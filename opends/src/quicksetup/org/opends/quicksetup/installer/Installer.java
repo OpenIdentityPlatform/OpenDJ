@@ -59,6 +59,7 @@ import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.admin.ads.TopologyCache;
 import org.opends.admin.ads.TopologyCacheException;
+import org.opends.admin.ads.TopologyCacheFilter;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.PreferredConnection;
@@ -2105,7 +2106,11 @@ public abstract class Installer extends GuiApplication {
       {
         rCtx = getRemoteConnection(server, getTrustManager(),
             getPreferredConnections());
-        ServerDescriptor s = ServerDescriptor.createStandalone(rCtx);
+        TopologyCacheFilter filter = new TopologyCacheFilter();
+        filter.setSearchMonitoringInformation(false);
+        filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
+        filter.addBaseDNToSearch(Constants.SCHEMA_DN);
+        ServerDescriptor s = ServerDescriptor.createStandalone(rCtx, filter);
         for (ReplicaDescriptor replica : s.getReplicas())
         {
           String dn = replica.getSuffix().getDN();
@@ -2187,7 +2192,11 @@ public abstract class Installer extends GuiApplication {
           {
             rCtx = getRemoteConnection(server, getTrustManager(),
                 getPreferredConnections());
-            ServerDescriptor s = ServerDescriptor.createStandalone(rCtx);
+            TopologyCacheFilter filter = new TopologyCacheFilter();
+            filter.setSearchMonitoringInformation(false);
+            filter.addBaseDNToSearch(dn);
+            ServerDescriptor s = ServerDescriptor.createStandalone(rCtx,
+                filter);
             for (ReplicaDescriptor r : s.getReplicas())
             {
               if (areDnsEqual(r.getSuffix().getDN(), dn))
@@ -2348,8 +2357,11 @@ public abstract class Installer extends GuiApplication {
           }
 
           adsContext.createAdminData(null);
+          TopologyCacheFilter filter = new TopologyCacheFilter();
+          filter.setSearchMonitoringInformation(false);
+          filter.setSearchBaseDNInformation(false);
           ServerDescriptor server
-                  = ServerDescriptor.createStandalone(remoteCtx);
+                  = ServerDescriptor.createStandalone(remoteCtx, filter);
           server.updateAdsPropertiesWithServerProperties();
           adsContext.registerServer(server.getAdsProperties());
           createdRemoteAds = true;
@@ -2383,7 +2395,11 @@ public abstract class Installer extends GuiApplication {
       assert null != adsContext ; // Bound either to local or remote ADS.
 
       /* Register new server in ADS. */
-      ServerDescriptor server = ServerDescriptor.createStandalone(localCtx);
+      TopologyCacheFilter filter = new TopologyCacheFilter();
+      filter.setSearchMonitoringInformation(false);
+      filter.setSearchBaseDNInformation(false);
+      ServerDescriptor server = ServerDescriptor.createStandalone(localCtx,
+          filter);
       server.updateAdsPropertiesWithServerProperties();
       if (0 == adsContext.registerOrUpdateServer(server.getAdsProperties())) {
         if (isRemoteServer) registeredNewServerOnRemote = true;
@@ -3918,7 +3934,9 @@ public abstract class Installer extends GuiApplication {
     {
       type = suf.getType();
     }
-    ServerDescriptor s = ServerDescriptor.createStandalone(ctx);
+
+    ServerDescriptor s = ServerDescriptor.createStandalone(ctx,
+        new TopologyCacheFilter());
     Set<ReplicaDescriptor> replicas = s.getReplicas();
     for (ReplicaDescriptor replica : replicas)
     {

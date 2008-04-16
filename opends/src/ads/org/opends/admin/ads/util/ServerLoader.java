@@ -42,6 +42,7 @@ import javax.naming.ldap.LdapName;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.TopologyCacheException;
+import org.opends.admin.ads.TopologyCacheFilter;
 import org.opends.admin.ads.ADSContext.ServerProperty;
 
 /**
@@ -62,6 +63,7 @@ public class ServerLoader extends Thread
   private String dn;
   private String pwd;
   private LinkedHashSet<PreferredConnection> preferredLDAPURLs;
+  private TopologyCacheFilter filter;
 
   private static final Logger LOG =
     Logger.getLogger(ServerLoader.class.getName());
@@ -77,10 +79,13 @@ public class ServerLoader extends Thread
    * @param preferredLDAPURLs the list of preferred LDAP URLs that we want
    * to use to connect to the server.  They will be used only if they correspond
    * to the URLs that we found in the the server properties.
+   * @param filter the topology cache filter to be used.  This can be used not
+   * to retrieve all the information.
    */
   public ServerLoader(Map<ServerProperty,Object> serverProperties,
       String dn, String pwd, ApplicationTrustManager trustManager,
-      LinkedHashSet<PreferredConnection> preferredLDAPURLs)
+      LinkedHashSet<PreferredConnection> preferredLDAPURLs,
+      TopologyCacheFilter filter)
   {
     this.serverProperties = serverProperties;
     this.dn = dn;
@@ -88,6 +93,7 @@ public class ServerLoader extends Thread
     this.trustManager = trustManager;
     this.preferredLDAPURLs =
       new LinkedHashSet<PreferredConnection>(preferredLDAPURLs);
+    this.filter = filter;
   }
 
   /**
@@ -151,7 +157,7 @@ public class ServerLoader extends Thread
     try
     {
       ctx = createContext();
-      serverDescriptor = ServerDescriptor.createStandalone(ctx);
+      serverDescriptor = ServerDescriptor.createStandalone(ctx, filter);
       serverDescriptor.setAdsProperties(serverProperties);
     }
     catch (NoPermissionException npe)

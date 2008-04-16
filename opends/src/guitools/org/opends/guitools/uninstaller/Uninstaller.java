@@ -1496,6 +1496,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           ADSContext adsContext = new ADSContext(ctx);
           TopologyCache cache = new TopologyCache(adsContext,
               getTrustManager());
+          cache.getFilter().setSearchMonitoringInformation(false);
           cache.reloadTopology();
           return cache;
         }

@@ -72,6 +72,7 @@ import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.admin.ads.TopologyCache;
 import org.opends.admin.ads.TopologyCacheException;
+import org.opends.admin.ads.TopologyCacheFilter;
 import org.opends.admin.ads.ADSContext.ADSPropertySyntax;
 import org.opends.admin.ads.ADSContext.AdministratorProperty;
 import org.opends.admin.ads.util.ApplicationTrustManager;
@@ -2531,8 +2532,11 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           // We must recreate the cache because the trust manager in the
           // LDAPConnectionConsoleInteraction object might have changed.
+
           TopologyCache cache = new TopologyCache(adsContext,
               getTrustManager());
+          cache.getFilter().setSearchMonitoringInformation(false);
+          cache.getFilter().setSearchBaseDNInformation(false);
           cache.setPreferredConnections(getPreferredConnections(ctx[0]));
           cache.reloadTopology();
 
@@ -2611,6 +2615,8 @@ public class ReplicationCliMain extends ConsoleApplication
                         adminPwd, getTrustManager());
                     adsContext = new ADSContext(ctx[0]);
                     cache = new TopologyCache(adsContext, getTrustManager());
+                    cache.getFilter().setSearchMonitoringInformation(false);
+                    cache.getFilter().setSearchBaseDNInformation(false);
                     cache.setPreferredConnections(
                         getPreferredConnections(ctx[0]));
                     connected = true;
@@ -2806,8 +2812,12 @@ public class ReplicationCliMain extends ConsoleApplication
     LinkedList<String> suffixes = new LinkedList<String>();
     try
     {
-      ServerDescriptor server1 = ServerDescriptor.createStandalone(ctx1);
-      ServerDescriptor server2 = ServerDescriptor.createStandalone(ctx2);
+      TopologyCacheFilter filter = new TopologyCacheFilter();
+      filter.setSearchMonitoringInformation(false);
+      ServerDescriptor server1 =
+        ServerDescriptor.createStandalone(ctx1, filter);
+      ServerDescriptor server2 =
+        ServerDescriptor.createStandalone(ctx2, filter);
       Set<ReplicaDescriptor> replicas1 = server1.getReplicas();
       Set<ReplicaDescriptor> replicas2 = server2.getReplicas();
 
@@ -2929,9 +2939,11 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     LinkedList<ReplicaDescriptor> suffixes =
       new LinkedList<ReplicaDescriptor>();
+    TopologyCacheFilter filter = new TopologyCacheFilter();
+    filter.setSearchMonitoringInformation(false);
     try
     {
-      ServerDescriptor server = ServerDescriptor.createStandalone(ctx);
+      ServerDescriptor server = ServerDescriptor.createStandalone(ctx, filter);
       suffixes.addAll(server.getReplicas());
     }
     catch (Throwable t)
@@ -4347,9 +4359,16 @@ public class ReplicationCliMain extends ConsoleApplication
       new HashMap<String, Set<Integer>>();
 
     ServerDescriptor server1;
+    TopologyCacheFilter filter = new TopologyCacheFilter();
+    filter.setSearchMonitoringInformation(false);
+    filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
+    for (String dn : uData.getBaseDNs())
+    {
+      filter.addBaseDNToSearch(dn);
+    }
     try
     {
-      server1 = ServerDescriptor.createStandalone(ctx1);
+      server1 = ServerDescriptor.createStandalone(ctx1, filter);
     }
     catch (NamingException ne)
     {
@@ -4360,7 +4379,7 @@ public class ReplicationCliMain extends ConsoleApplication
     ServerDescriptor server2;
     try
     {
-      server2 = ServerDescriptor.createStandalone(ctx2);
+      server2 = ServerDescriptor.createStandalone(ctx2, filter);
     }
     catch (NamingException ne)
     {
@@ -4387,6 +4406,11 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           TopologyCache cache = new TopologyCache(adsCtx1, getTrustManager());
           cache.setPreferredConnections(cnx);
+          cache.getFilter().setSearchMonitoringInformation(false);
+          for (String dn : uData.getBaseDNs())
+          {
+            cache.getFilter().addBaseDNToSearch(dn);
+          }
           cache.reloadTopology();
           messages.addAll(getErrorMessages(cache));
         }
@@ -4395,6 +4419,11 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           TopologyCache cache = new TopologyCache(adsCtx2, getTrustManager());
           cache.setPreferredConnections(cnx);
+          cache.getFilter().setSearchMonitoringInformation(false);
+          for (String dn : uData.getBaseDNs())
+          {
+            cache.getFilter().addBaseDNToSearch(dn);
+          }
           cache.reloadTopology();
           messages.addAll(getErrorMessages(cache));
         }
@@ -4605,6 +4634,11 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         cache1 = new TopologyCache(adsCtx1, getTrustManager());
         cache1.setPreferredConnections(cnx);
+        cache1.getFilter().setSearchMonitoringInformation(false);
+        for (String dn : uData.getBaseDNs())
+        {
+          cache1.getFilter().addBaseDNToSearch(dn);
+        }
         cache1.reloadTopology();
         usedReplicationServerIds.addAll(getReplicationServerIds(cache1));
       }
@@ -4613,6 +4647,11 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         cache2 = new TopologyCache(adsCtx2, getTrustManager());
         cache2.setPreferredConnections(cnx);
+        cache2.getFilter().setSearchMonitoringInformation(false);
+        for (String dn : uData.getBaseDNs())
+        {
+          cache2.getFilter().addBaseDNToSearch(dn);
+        }
         cache2.reloadTopology();
         usedReplicationServerIds.addAll(getReplicationServerIds(cache2));
       }
@@ -4847,9 +4886,16 @@ public class ReplicationCliMain extends ConsoleApplication
       DisableReplicationUserData uData) throws ReplicationCliException
   {
     ServerDescriptor server;
+    TopologyCacheFilter filter = new TopologyCacheFilter();
+    filter.setSearchMonitoringInformation(false);
+    filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
+    for (String dn : uData.getBaseDNs())
+    {
+      filter.addBaseDNToSearch(dn);
+    }
     try
     {
-      server = ServerDescriptor.createStandalone(ctx);
+      server = ServerDescriptor.createStandalone(ctx, filter);
     }
     catch (NamingException ne)
     {
@@ -4870,6 +4916,11 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         cache = new TopologyCache(adsCtx, getTrustManager());
         cache.setPreferredConnections(getPreferredConnections(ctx));
+        cache.getFilter().setSearchMonitoringInformation(false);
+        for (String dn : uData.getBaseDNs())
+        {
+          cache.getFilter().addBaseDNToSearch(dn);
+        }
         cache.reloadTopology();
       }
     }
@@ -5074,6 +5125,10 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       cache = new TopologyCache(adsCtx, getTrustManager());
       cache.setPreferredConnections(getPreferredConnections(ctx));
+      for (String dn : uData.getBaseDNs())
+      {
+        cache.getFilter().addBaseDNToSearch(dn);
+      }
       cache.reloadTopology();
     }
     catch (TopologyCacheException tce)
@@ -5885,9 +5940,12 @@ public class ReplicationCliMain extends ConsoleApplication
               cache.getAdsContext().getDirContext());
           String pwd = ConnectionUtils.getBindPassword(
               cache.getAdsContext().getDirContext());
-
+          TopologyCacheFilter filter = new TopologyCacheFilter();
+          filter.setSearchMonitoringInformation(false);
+          filter.setSearchBaseDNInformation(false);
           ServerLoader loader = new ServerLoader(s.getAdsProperties(),
-              dn, pwd, getTrustManager(), cache.getPreferredConnections());
+              dn, pwd, getTrustManager(), cache.getPreferredConnections(),
+              filter);
           InitialLdapContext ctx = null;
           try
           {
@@ -5960,7 +6018,11 @@ public class ReplicationCliMain extends ConsoleApplication
     int replicationId = -1;
     try
     {
-      ServerDescriptor source = ServerDescriptor.createStandalone(ctxSource);
+      TopologyCacheFilter filter = new TopologyCacheFilter();
+      filter.setSearchMonitoringInformation(false);
+      filter.addBaseDNToSearch(baseDN);
+      ServerDescriptor source = ServerDescriptor.createStandalone(ctxSource,
+          filter);
       for (ReplicaDescriptor replica : source.getReplicas())
       {
         if (Utils.areDnsEqual(replica.getSuffix().getDN(), baseDN))
@@ -6621,8 +6683,11 @@ public class ReplicationCliMain extends ConsoleApplication
       LinkedHashSet<PreferredConnection> cnx)
   throws ReplicationCliException
   {
+    TopologyCacheFilter filter = new TopologyCacheFilter();
+    filter.setSearchMonitoringInformation(false);
+    filter.setSearchBaseDNInformation(false);
     ServerLoader loader = new ServerLoader(server.getAdsProperties(), bindDn,
-        pwd, getTrustManager(), cnx);
+        pwd, getTrustManager(), cnx, filter);
     InitialLdapContext ctx = null;
     String lastBaseDN = null;
     String hostPort = null;
@@ -7383,7 +7448,10 @@ public class ReplicationCliMain extends ConsoleApplication
   throws NamingException
   {
     int domainId = -1;
-    ServerDescriptor server = ServerDescriptor.createStandalone(ctx);
+    TopologyCacheFilter filter = new TopologyCacheFilter();
+    filter.setSearchMonitoringInformation(false);
+    filter.addBaseDNToSearch(baseDN);
+    ServerDescriptor server = ServerDescriptor.createStandalone(ctx, filter);
     for (ReplicaDescriptor replica : server.getReplicas())
     {
       if (Utils.areDnsEqual(replica.getSuffix().getDN(), baseDN))

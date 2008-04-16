@@ -61,6 +61,7 @@ public class TopologyCache
   private Set<SuffixDescriptor> suffixes = new HashSet<SuffixDescriptor>();
   private LinkedHashSet<PreferredConnection> preferredConnections =
     new LinkedHashSet<PreferredConnection>();
+  private TopologyCacheFilter filter = new TopologyCacheFilter();
 
   private final boolean isMultiThreaded = true;
   private final static int MULTITHREAD_TIMEOUT = 90 * 1000;
@@ -225,6 +226,15 @@ public class TopologyCache
   }
 
   /**
+   * Returns the filter to be used when retrieving information.
+   * @return the filter to be used when retrieving information.
+   */
+  public TopologyCacheFilter getFilter()
+  {
+    return filter;
+  }
+
+  /**
    * Method used to wait at most a certain time (MULTITHREAD_TIMEOUT) for the
    * different threads to finish.
    * @param threadSet the list of threads (we assume that they are started)
@@ -269,7 +279,7 @@ public class TopologyCache
   {
     return new ServerLoader(serverProperties, dn, pwd,
         trustManager == null ? null : trustManager.createCopy(),
-            getPreferredConnections());
+            getPreferredConnections(), getFilter());
   }
 
   /**

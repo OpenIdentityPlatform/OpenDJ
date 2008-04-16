@@ -33,6 +33,7 @@ import org.opends.messages.MessageBuilder;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.TopologyCacheException;
+import org.opends.admin.ads.TopologyCacheFilter;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
@@ -757,8 +758,11 @@ public abstract class Application implements ProgressNotifier, Runnable {
   {
     Map<ADSContext.ServerProperty, Object> adsProperties =
       server.getAdsProperties();
+    TopologyCacheFilter filter = new TopologyCacheFilter();
+    filter.setSearchMonitoringInformation(false);
+    filter.setSearchBaseDNInformation(false);
     ServerLoader loader = new ServerLoader(adsProperties, dn, pwd,
-        trustManager, cnx);
+        trustManager, cnx, filter);
 
     InitialLdapContext ctx = null;
     try

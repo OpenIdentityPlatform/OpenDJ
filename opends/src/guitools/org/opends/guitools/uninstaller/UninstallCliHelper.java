@@ -1095,6 +1095,7 @@ class UninstallCliHelper extends ConsoleApplication {
       }
       TopologyCache cache = new TopologyCache(adsContext,
           userData.getTrustManager());
+      cache.getFilter().setSearchMonitoringInformation(false);
       cache.reloadTopology();
 
       accepted = handleTopologyCache(cache, userData);
