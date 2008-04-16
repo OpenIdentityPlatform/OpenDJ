@@ -154,8 +154,6 @@ public class WorkThread extends DirectoryThread {
     EntryID entryID;
     if((entryID = processDN2ID(element, txn)) == null)
       return;
-    if(!processParent(element, entryID, txn))
-      return;
     if(!processID2Entry(element, entryID, txn))
       return;
     procesID2SCEntry(element, entryID, txn);
@@ -351,13 +349,12 @@ public class WorkThread extends DirectoryThread {
    * Process entry from work element checking if it's parent exists.
    *
    * @param element The work element containing the entry.
-   * @param entryID The entry ID to use as the key.
    * @param txn A transaction.
    * @return <CODE>True</CODE> If the insert succeeded.
    * @throws DatabaseException If a database error occurs.
    */
   private boolean
-  processParent(WorkElement element, EntryID entryID, Transaction txn)
+  processParent(WorkElement element, Transaction txn)
           throws DatabaseException {
     Entry entry = element.getEntry();
     DNContext context = element.getContext();
@@ -380,13 +377,13 @@ public class WorkThread extends DirectoryThread {
         return false;
       }
     }
+    EntryID entryID = rootContainer.getNextEntryID();
     ArrayList<EntryID> IDs;
     if (parentDN != null && context.getParentDN() != null &&
             parentDN.equals(context.getParentDN())) {
       IDs = new ArrayList<EntryID>(context.getIDs());
       IDs.set(0, entryID);
-    }
-    else {
+    } else {
       EntryID nodeID;
       IDs = new ArrayList<EntryID>(entryDN.getNumComponents());
       IDs.add(entryID);
@@ -460,7 +457,10 @@ public class WorkThread extends DirectoryThread {
         entryID = null;
       }
     } else {
-      entryID = rootContainer.getNextEntryID();
+      if(!processParent(element, txn))
+         return null;
+      ArrayList IDs = (ArrayList)entry.getAttachment();
+      entryID = (EntryID)IDs.get(0);
       dn2id.insert(txn, entryDN, entryID);
     }
     context.removePending(entryDN);
