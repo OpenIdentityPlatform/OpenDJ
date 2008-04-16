@@ -42,6 +42,8 @@
       </function-arg-def>
       <function-arg-def name="duration" type="required">
       </function-arg-def>
+      <function-arg-def name="suffix" type="required">
+      </function-arg-def>
       <function-arg-def name="fileFd" type="required">
       </function-arg-def>
     </function-map-args>
@@ -54,6 +56,7 @@
       <!-- to inform scheduler if it has pass/fail status       -->
       <script>
         errNum = 0
+        msg = ''
       </script>
       
       <!-- ==================    Preamble   =================== -->
@@ -66,33 +69,62 @@
         
         outFile = '%s/client_searchLoad_id%s.txt' % \
                   (client.getLogDir(),client.getId())
-        cParams = client.getParams()
-        serverInstanceFromClient = cParams[0][1]
-        baseDn = cParams[1][1]
-        nbCnx = cParams[2][1]
-        nbMaxSearch = cParams[3][1]
-        attributeName = cParams[4][1]
         
-        sys.path.append("%s/phases/scheduler" % TESTS_DIR )
-        from scheduler import getInstance
-        serverInstance = getInstance(serverInstanceFromClient,instances)
-        if (serverInstance == 'ERROR'):
-          msg = 'ERROR: cant find client instance named'
-          msg = '%s %s in server instance list' %(msg,serverInstanceFromClient)
-          
-        else:
-          # remove sec, try to finish before timer kill -9 the client
-          duration = duration - 20
-          
-          parms=[]
-          parms.append('-h %s -p %s' % \
-                      (serverInstance.getHost(),serverInstance.getLDAPPort()))
-          parms.append('-b "%s"' % baseDn)
-          parms.append('-D "%s" -w "%s"' % \
-                      (DIRECTORY_INSTANCE_DN,DIRECTORY_INSTANCE_PSWD))
-          parms.append('-t %s -M %s -a %s -d %s' % \
-                      (nbCnx,nbMaxSearch,attributeName,duration))
-          parms = ' '.join(parms)
+        #
+        # Extract client parameters from client.getParams()
+        #
+        cParams = client.getParams()
+        try:
+          serverInstanceFromClient = cParams[0][1]
+        except IndexError:
+          serverInstanceFromClient = NOT_DEFINED
+          msg = '%s\nERROR: serverInstanceFromClient undefined,mandatory' % msg
+        try:
+          baseDn = cParams[1][1]
+        except IndexError:
+          baseDn = NOT_DEFINED
+          msg = '%s\nERROR: baseDn undefined,mandatory' % msg
+        try:
+          nbCnx = cParams[2][1]
+        except IndexError:
+          nbCnx = NOT_DEFINED
+          msg = '%s\nERROR: nbCnx undefined,mandatory' % msg
+        try:
+          nbMaxSearch = cParams[3][1]
+        except IndexError:
+          nbMaxSearch = NOT_DEFINED
+          msg = '%s\nERROR: nbMaxSearch undefined,mandatory' % msg
+        try:
+          attributeName = cParams[4][1]
+        except IndexError:
+          attributeName = NOT_DEFINED
+        
+        #
+        # setup parms to run the client
+        #
+        if serverInstanceFromClient != NOT_DEFINED:
+          sys.path.append("%s/phases/scheduler" % TESTS_DIR )
+          from scheduler import getInstance
+          serverInstance = getInstance(serverInstanceFromClient,instances)
+          if (serverInstance == 'ERROR'):
+            msg = '%s\nERROR: cant find client instance named' % msg
+            msg = '%s %s in server instance list' % \
+                  (msg,serverInstanceFromClient)
+            
+          else:
+            # remove sec, try to finish before timer kill -9 the client
+            duration = duration - 20
+            
+            parms=[]
+            parms.append('-h %s -p %s' % \
+                       (serverInstance.getHost(),serverInstance.getLDAPPort()))
+            parms.append('-b "%s"' % baseDn)
+            parms.append('-D "%s" -w "%s"' % \
+                        (DIRECTORY_INSTANCE_DN,DIRECTORY_INSTANCE_PSWD))
+            parms.append('-t %s -M %s -d %s' % (nbCnx,nbMaxSearch,duration))
+            if attributeName != NOT_DEFINED:
+              parms.append('-a %s' % attributeName)
+            parms = ' '.join(parms)
       </script>
       
       <if expr="msg.find('ERROR') != -1">
