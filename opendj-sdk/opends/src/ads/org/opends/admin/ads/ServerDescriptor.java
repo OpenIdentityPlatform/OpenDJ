@@ -629,23 +629,26 @@ public class ServerDescriptor
    * using the provided InitialLdapContext.
    * @param ctx the InitialLdapContext that will be used to read the
    * configuration of the server.
+   * @param filter the topology cache filter describing the information that
+   * must be retrieved.
    * @return a ServerDescriptor object that corresponds to the read
    * configuration.
    * @throws NamingException if a problem occurred reading the server
    * configuration.
    */
-  public static ServerDescriptor createStandalone(InitialLdapContext ctx)
+  public static ServerDescriptor createStandalone(InitialLdapContext ctx,
+      TopologyCacheFilter filter)
   throws NamingException
   {
     ServerDescriptor desc = new ServerDescriptor();
 
 
-    updateLdapConfiguration(desc, ctx);
-    updateJmxConfiguration(desc, ctx);
-    updateReplicas(desc, ctx);
-    updateReplication(desc, ctx);
-    updatePublicKeyCertificate(desc, ctx);
-    updateMiscellaneous(desc, ctx);
+    updateLdapConfiguration(desc, ctx, filter);
+    updateJmxConfiguration(desc, ctx, filter);
+    updateReplicas(desc, ctx, filter);
+    updateReplication(desc, ctx, filter);
+    updatePublicKeyCertificate(desc, ctx, filter);
+    updateMiscellaneous(desc, ctx, filter);
 
     desc.serverProperties.put(ServerProperty.HOST_NAME,
         ConnectionUtils.getHostName(ctx));
@@ -654,7 +657,8 @@ public class ServerDescriptor
   }
 
   private static void updateLdapConfiguration(ServerDescriptor desc,
-      InitialLdapContext ctx) throws NamingException
+      InitialLdapContext ctx, TopologyCacheFilter cacheFilter)
+  throws NamingException
   {
     SearchControls ctls = new SearchControls();
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
@@ -712,7 +716,8 @@ public class ServerDescriptor
   }
 
   private static void updateJmxConfiguration(ServerDescriptor desc,
-      InitialLdapContext ctx) throws NamingException
+      InitialLdapContext ctx, TopologyCacheFilter cacheFilter)
+  throws NamingException
   {
     SearchControls ctls = new SearchControls();
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
@@ -764,8 +769,13 @@ public class ServerDescriptor
   }
 
   private static void updateReplicas(ServerDescriptor desc,
-      InitialLdapContext ctx) throws NamingException
+      InitialLdapContext ctx, TopologyCacheFilter cacheFilter)
+  throws NamingException
   {
+    if (!cacheFilter.searchBaseDNInformation())
+    {
+      return;
+    }
     SearchControls ctls = new SearchControls();
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
     ctls.setReturningAttributes(
@@ -788,42 +798,65 @@ public class ServerDescriptor
       {
         Set<String> baseDns = getValues(sr, "ds-cfg-base-dn");
 
-        Set<String> entries = getBaseDNEntryCount(ctx, id);
+        Set<String> entries;
+        if (cacheFilter.searchMonitoringInformation())
+        {
+          entries = getBaseDNEntryCount(ctx, id);
+        }
+        else
+        {
+          entries = new HashSet<String>();
+        }
 
         Set<ReplicaDescriptor> replicas = desc.getReplicas();
         for (String baseDn : baseDns)
         {
-          SuffixDescriptor suffix = new SuffixDescriptor();
-          suffix.setDN(baseDn);
-          ReplicaDescriptor replica = new ReplicaDescriptor();
-          replica.setServer(desc);
-          replicas.add(replica);
-          HashSet<ReplicaDescriptor> r = new HashSet<ReplicaDescriptor>();
-          r.add(replica);
-          suffix.setReplicas(r);
-          replica.setSuffix(suffix);
-          int nEntries = -1;
-          for (String s : entries)
+          boolean addReplica = cacheFilter.searchAllBaseDNs();
+          if (!addReplica)
           {
-            int index = s.indexOf(" ");
-            if (index != -1)
+            for (String dn : cacheFilter.getBaseDNsToSearch())
             {
-              String dn = s.substring(index + 1);
-              if (Utils.areDnsEqual(baseDn, dn))
+              addReplica = Utils.areDnsEqual(dn, baseDn);
+              if (addReplica)
               {
-                try
-                {
-                  nEntries = Integer.parseInt(s.substring(0, index));
-                }
-                catch (Throwable t)
-                {
-                  /* Ignore */
-                }
                 break;
               }
             }
           }
-          replica.setEntries(nEntries);
+          if(addReplica)
+          {
+            SuffixDescriptor suffix = new SuffixDescriptor();
+            suffix.setDN(baseDn);
+            ReplicaDescriptor replica = new ReplicaDescriptor();
+            replica.setServer(desc);
+            replicas.add(replica);
+            HashSet<ReplicaDescriptor> r = new HashSet<ReplicaDescriptor>();
+            r.add(replica);
+            suffix.setReplicas(r);
+            replica.setSuffix(suffix);
+            int nEntries = -1;
+            for (String s : entries)
+            {
+              int index = s.indexOf(" ");
+              if (index != -1)
+              {
+                String dn = s.substring(index + 1);
+                if (Utils.areDnsEqual(baseDn, dn))
+                {
+                  try
+                  {
+                    nEntries = Integer.parseInt(s.substring(0, index));
+                  }
+                  catch (Throwable t)
+                  {
+                    /* Ignore */
+                  }
+                  break;
+                }
+              }
+            }
+            replica.setEntries(nEntries);
+          }
         }
         desc.setReplicas(replicas);
       }
@@ -831,7 +864,8 @@ public class ServerDescriptor
   }
 
   private static void updateReplication(ServerDescriptor desc,
-      InitialLdapContext ctx) throws NamingException
+      InitialLdapContext ctx, TopologyCacheFilter cacheFilter)
+  throws NamingException
   {
     boolean replicationEnabled = false;
     boolean oneDomainReplicated = false;
@@ -868,56 +902,59 @@ public class ServerDescriptor
     desc.serverProperties.put(ServerProperty.IS_REPLICATION_ENABLED,
         replicationEnabled ? Boolean.TRUE : Boolean.FALSE);
 
-    ctls = new SearchControls();
-    ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-    ctls.setReturningAttributes(
-        new String[] {
-            "ds-cfg-base-dn",
-            "ds-cfg-replication-server",
-            "ds-cfg-server-id"
-        });
-    filter = "(objectclass=ds-cfg-replication-domain)";
+    if (cacheFilter.searchBaseDNInformation())
+    {
+      ctls = new SearchControls();
+      ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+      ctls.setReturningAttributes(
+          new String[] {
+              "ds-cfg-base-dn",
+              "ds-cfg-replication-server",
+              "ds-cfg-server-id"
+          });
+      filter = "(objectclass=ds-cfg-replication-domain)";
 
-    jndiName = new LdapName(
+      jndiName = new LdapName(
       "cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config");
 
-    try
-    {
-      NamingEnumeration syncProviders = ctx.search(jndiName, filter, ctls);
-
-      while(syncProviders.hasMore())
+      try
       {
-        SearchResult sr = (SearchResult)syncProviders.next();
+        NamingEnumeration syncProviders = ctx.search(jndiName, filter, ctls);
 
-        int id = Integer.parseInt(
-            getFirstValue(sr, "ds-cfg-server-id"));
-        Set<String> replicationServers = getValues(sr,
-            "ds-cfg-replication-server");
-        Set<String> dns = getValues(sr, "ds-cfg-base-dn");
-        oneDomainReplicated = dns.size() > 0;
-        for (String dn : dns)
+        while(syncProviders.hasMore())
         {
-          for (ReplicaDescriptor replica : desc.getReplicas())
+          SearchResult sr = (SearchResult)syncProviders.next();
+
+          int id = Integer.parseInt(
+              getFirstValue(sr, "ds-cfg-server-id"));
+          Set<String> replicationServers = getValues(sr,
+          "ds-cfg-replication-server");
+          Set<String> dns = getValues(sr, "ds-cfg-base-dn");
+          oneDomainReplicated = dns.size() > 0;
+          for (String dn : dns)
           {
-            if (areDnsEqual(replica.getSuffix().getDN(), dn))
+            for (ReplicaDescriptor replica : desc.getReplicas())
             {
-              replica.setReplicationId(id);
-              // Keep the values of the replication servers in lower case
-              // to make use of Sets as String simpler.
-              LinkedHashSet<String> repServers = new LinkedHashSet<String>();
-              for (String s: replicationServers)
+              if (areDnsEqual(replica.getSuffix().getDN(), dn))
               {
-                repServers.add(s.toLowerCase());
+                replica.setReplicationId(id);
+                // Keep the values of the replication servers in lower case
+                // to make use of Sets as String simpler.
+                LinkedHashSet<String> repServers = new LinkedHashSet<String>();
+                for (String s: replicationServers)
+                {
+                  repServers.add(s.toLowerCase());
+                }
+                replica.setReplicationServers(repServers);
               }
-              replica.setReplicationServers(repServers);
             }
           }
         }
       }
-    }
-    catch (NameNotFoundException nse)
-    {
-      /* ignore */
+      catch (NameNotFoundException nse)
+      {
+        /* ignore */
+      }
     }
 
     ctls = new SearchControls();
@@ -967,66 +1004,69 @@ public class ServerDescriptor
       /* ignore */
     }
 
-    ctls = new SearchControls();
-    ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
-    ctls.setReturningAttributes(
-    new String[] {
-      "approx-older-change-not-synchronized-millis", "missing-changes",
-      "base-dn", "server-id"
-    });
-    filter = "(missing-changes=*)";
-
-    jndiName = new LdapName("cn=monitor");
-
-    if (oneDomainReplicated)
+    if (cacheFilter.searchMonitoringInformation())
     {
-      try
+      ctls = new SearchControls();
+      ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
+      ctls.setReturningAttributes(
+          new String[] {
+              "approx-older-change-not-synchronized-millis", "missing-changes",
+              "base-dn", "server-id"
+          });
+      filter = "(missing-changes=*)";
+
+      jndiName = new LdapName("cn=monitor");
+
+      if (oneDomainReplicated)
       {
-        NamingEnumeration monitorEntries = ctx.search(jndiName, filter, ctls);
-
-        while(monitorEntries.hasMore())
+        try
         {
-          SearchResult sr = (SearchResult)monitorEntries.next();
+          NamingEnumeration monitorEntries = ctx.search(jndiName, filter, ctls);
 
-          String dn = getFirstValue(sr, "base-dn");
-          int replicaId = -1;
-          try
+          while(monitorEntries.hasMore())
           {
-            replicaId = new Integer(getFirstValue(sr, "server-id"));
-          }
-          catch (Throwable t)
-          {
-          }
+            SearchResult sr = (SearchResult)monitorEntries.next();
 
-          for (ReplicaDescriptor replica: desc.getReplicas())
-          {
-            if (Utils.areDnsEqual(dn, replica.getSuffix().getDN()) &&
-                replica.isReplicated() &&
-                (replica.getReplicationId() == replicaId))
+            String dn = getFirstValue(sr, "base-dn");
+            int replicaId = -1;
+            try
             {
-              try
+              replicaId = new Integer(getFirstValue(sr, "server-id"));
+            }
+            catch (Throwable t)
+            {
+            }
+
+            for (ReplicaDescriptor replica: desc.getReplicas())
+            {
+              if (Utils.areDnsEqual(dn, replica.getSuffix().getDN()) &&
+                  replica.isReplicated() &&
+                  (replica.getReplicationId() == replicaId))
               {
-                replica.setAgeOfOldestMissingChange(
-                    new Long(getFirstValue(sr,
-                        "approx-older-change-not-synchronized-millis")));
-              }
-              catch (Throwable t)
-              {
-              }
-              try
-              {
-                replica.setMissingChanges(
-                    new Integer(getFirstValue(sr, "missing-changes")));
-              }
-              catch (Throwable t)
-              {
+                try
+                {
+                  replica.setAgeOfOldestMissingChange(
+                      new Long(getFirstValue(sr,
+                      "approx-older-change-not-synchronized-millis")));
+                }
+                catch (Throwable t)
+                {
+                }
+                try
+                {
+                  replica.setMissingChanges(
+                      new Integer(getFirstValue(sr, "missing-changes")));
+                }
+                catch (Throwable t)
+                {
+                }
               }
             }
           }
         }
-      }
-      catch (NameNotFoundException nse)
-      {
+        catch (NameNotFoundException nse)
+        {
+        }
       }
     }
 
@@ -1069,7 +1109,7 @@ public class ServerDescriptor
    instance.
    */
   private static void updatePublicKeyCertificate(ServerDescriptor desc,
-      InitialLdapContext ctx) throws NamingException
+      InitialLdapContext ctx, TopologyCacheFilter filter) throws NamingException
   {
     /* TODO: this DN is declared in some core constants file. Create a constants
        file for the installer and import it into the core. */
@@ -1114,7 +1154,8 @@ public class ServerDescriptor
   }
 
   private static void updateMiscellaneous(ServerDescriptor desc,
-      InitialLdapContext ctx) throws NamingException
+      InitialLdapContext ctx, TopologyCacheFilter cacheFilter)
+  throws NamingException
   {
     SearchControls ctls = new SearchControls();
     ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
