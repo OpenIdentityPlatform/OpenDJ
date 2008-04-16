@@ -224,8 +224,9 @@
           client1 = clients.pop()
           
           if client1.getHost() == NOT_DEFINED:
-              msg = '%s\nERROR : client %s has host %s'%\
-                    (msg,client1.getHost(),host1)
+              msg = '%s\nWARNING : client %s has unknown host, taking %s'%\
+                    (msg,client1.getName(),STAXServiceMachine)
+              client1.setHost('STAXServiceMachine')
           
           for client2 in clients:
             if client1.getId() == client2.getId():
