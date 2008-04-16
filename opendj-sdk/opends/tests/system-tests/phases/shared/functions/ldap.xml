@@ -111,61 +111,83 @@
       }
       </call>
       
-      <script>ldapRC=9999</script>
-      <loop from="1" to="noOfLoops" while="ldapRC != 0">
+      <script>
+        ldapRC=9999
+        timerKilled = TRUE
+      </script>
+      <timer duration="'120s'">
         <sequence>
-          <call function="'ldapSearch'">
-            { 'location'       : mylocation,
-              'dsPath'         : mypath,
-              'dsInstanceHost' : myhost,
-              'dsInstancePort' : myport,
-              'dsInstanceDn'   : mydn,
-              'dsInstancePswd' : mypswd,
-              'dsScope'        : 'base',
-              'dsBaseDN'       : 'cn=config',
-              'dsFilter'       : 'objectclass=*',
-              'dsAttributes'   : 'dn',
-              'expectedRC'     : 'noCheck',
-              'fileFd'         : fileFd
-            }
-          </call>
+          <loop from="1" to="noOfLoops" while="ldapRC != 0">
+            <sequence>
+              <call function="'ldapSearch'">
+                { 'location'       : mylocation,
+                  'dsPath'         : mypath,
+                  'dsInstanceHost' : myhost,
+                  'dsInstancePort' : myport,
+                  'dsInstanceDn'   : mydn,
+                  'dsInstancePswd' : mypswd,
+                  'dsScope'        : 'base',
+                  'dsBaseDN'       : 'cn=config',
+                  'dsFilter'       : 'objectclass=*',
+                  'dsAttributes'   : 'dn',
+                  'expectedRC'     : 'noCheck',
+                  'fileFd'         : fileFd
+                }
+              </call>
+              <script>
+                ldapRC=STAXResult[0]
+                ldapReason=STAXResult[1]
+              </script>
+              
+              <call function="'sleep'">
+                {
+                  'sleepForMilliSeconds'  : noOfMilliSeconds,
+                  'silentMode' : 'TRUE',
+                  'fileFd' : fileFd
+                }
+              </call>
+              
+            </sequence>
+          </loop>
           <script>
-            ldapRC=STAXResult[0]
-            ldapReason=STAXResult[1]
+            timerKilled = FALSE
           </script>
-          
-          <call function="'sleep'">
-            {
-              'sleepForMilliSeconds'  : noOfMilliSeconds,
-              'silentMode' : 'TRUE',
-              'fileFd' : fileFd
-            }
-          </call>
-          
         </sequence>
-      </loop>
-      
-      <if expr="ldapRC == 0">
+      </timer>
+      <if expr="timerKilled == TRUE">
         <sequence>
           <call function="'writeMessage'">
           { 'fileFd'  : fileFd,
-            'content' : 'Server is alive'
-          }
-          </call>
-          <script>returnValue = TRUE</script>
-        </sequence>
-      <else>
-        <sequence>
-          <call function="'writeMessage'">
-          { 'fileFd'  : fileFd,
-            'content' : 'server is not alive'
+            'content' : 'server is not alive, ldapsearch not responding'
           }
           </call>
           <script>returnValue = FALSE</script>
         </sequence>
+      <else>
+        <sequence>
+          <if expr="ldapRC == 0">
+            <sequence>
+              <call function="'writeMessage'">
+              { 'fileFd'  : fileFd,
+                'content' : 'Server is alive'
+              }
+              </call>
+              <script>returnValue = TRUE</script>
+            </sequence>
+          <else>
+            <sequence>
+              <call function="'writeMessage'">
+              { 'fileFd'  : fileFd,
+                'content' : 'server is not alive'
+              }
+              </call>
+              <script>returnValue = FALSE</script>
+            </sequence>
+          </else>
+          </if>
+        </sequence>
       </else>
       </if>
-      
       <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
       <return>returnValue</return>
     </sequence>
@@ -217,6 +239,8 @@
         instance2 = NOT_DEFINED
         i = 0
         found = FALSE
+        failedServers = []
+        myRC = 0
         
         # get the real instance reference from instances list
         for cInstance in instances:
@@ -246,9 +270,8 @@
           </call>
           
           <script>
-            myRC = 0
             dsPath = instance.getInstallDir()
-            failedServers = []
+            
             failingServerList = ''
             referenceServerPath = instance.getInstallDir()
             referenceTree = '%s/%s_%s_referenceTree.ldif' % \
@@ -287,13 +310,14 @@
             }
           </call>
           <if expr="STAXResult[0] != 0">
-            <!-- == If the reference tree could not be retrieved, return an error == -->
+            <!-- == If the reference tree could not be retrieved,  == -->
+            <!-- == return an error                                == -->
             <sequence>
               <call function="'writeEndTagStep'">{ 'fileFd' : fileFd}</call>
               <return> [1, None] </return>
             </sequence>
           </if>
-
+          
           <!-- Retrieve the same tree for instance2 -->
           <call function="'ldapSearch'">
             { 'location'       : location,
@@ -312,7 +336,7 @@
           <script>
             ldapSearchRC = STAXResult[0]
           </script>
-
+          
           <if expr="ldapSearchRC == 0">
             <sequence>
               <!-- == Check if file is empty == -->
@@ -374,9 +398,9 @@
           
           <call function="'writeEndTagStep'">{ 'fileFd' : fileFd}</call>
           
-          <return>[myRC, failedServers]</return>
         </sequence>
       </if>
+      <return>[myRC, failedServers]</return>
     </sequence>
   </function>
 
@@ -897,7 +921,6 @@
 
   
   <!-- ************************************************************ -->
- 
   <!-- Add a New entry-->
   <function name="addAnEntry">
     <function-prolog>
@@ -1042,9 +1065,10 @@
       </return>
     </sequence>
   </function>
-    
-
   
+  
+  
+  <!-- ************************************************************ -->
    <!-- Modify an attribute -->
   <function name="modifyAnAttribute">
     <function-prolog>
@@ -1250,9 +1274,10 @@
       </return>
     </sequence>
     
-  </function>    
-
+  </function>
   
+  
+ <!-- ************************************************************ -->
  <function name="modifyEntry">
     <function-prolog>
       This function modifies an entry in the Directory Server
@@ -1369,5 +1394,67 @@
       </return>
     </sequence>
   </function>  
+
+
+  <!-- ************************************************************ -->
+  <function name="checkLogs" scope="local">
+    <function-map-args>
+      <function-arg-def name="location" type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="installDir" type="required">
+        <function-arg-description>
+          instance installation path
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          Name of output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <script> _errNum = 0 </script>
+      
+      <call function="'writeStartTagStep'">
+      { 'tagName' : 'checkLogs',
+        'fileFd'  : fileFd }
+      </call>
+      
+      <call function="'grep'">
+      {
+        'location'      : location,
+        'string2grep'   : 'ERROR',
+        'expect2Find'   : FALSE,
+        'caseSensitive' : FALSE,
+        'file'          : '%s/logs/errors' % installDir,
+        'fileFd'        : fileFd 
+      }
+      </call>
+      <script> _errNum += STAXResult </script>
+      
+      <call function="'grep'">
+      {
+        'location'      : location,
+        'string2grep'   : 'exception',
+        'expect2Find'   : FALSE,
+        'caseSensitive' : FALSE,
+        'file'          : '%s/logs/errors' % installDir,
+        'fileFd'        : fileFd 
+      }
+      </call>
+      <script> _errNum += STAXResult </script>
+      
+      <call function="'writeEndTagStep'">{ 'fileFd' : fileFd}</call>
+      <return> _errNum </return>
+    </sequence>
+  </function>
+  
+  
+  
   
 </stax>
