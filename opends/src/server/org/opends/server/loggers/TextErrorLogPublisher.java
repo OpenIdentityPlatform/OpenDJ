@@ -76,10 +76,7 @@ public class TextErrorLogPublisher
     TextErrorLogPublisher startupPublisher = new TextErrorLogPublisher();
     startupPublisher.writer = writer;
 
-    startupPublisher.defaultSeverities.add(Severity.FATAL_ERROR);
-    startupPublisher.defaultSeverities.add(Severity.SEVERE_ERROR);
-    startupPublisher.defaultSeverities.add(Severity.SEVERE_WARNING);
-    startupPublisher.defaultSeverities.add(Severity.NOTICE);
+    startupPublisher.defaultSeverities.addAll(Arrays.asList(Severity.values()));
 
     return startupPublisher;
   }
