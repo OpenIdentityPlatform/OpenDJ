@@ -114,7 +114,7 @@
         <serverInstance>I1</serverInstance>
         <baseDn>dc=com</baseDn>
         <nbCnx>5</nbCnx>
-        <nbMaxSearch>5</nbMaxSearch>
+        <nbMaxOperations>5</nbMaxOperations>
         <attribute>sn</attribute>
       </client>
       
@@ -123,7 +123,7 @@
         <serverInstance>I2</serverInstance>
         <baseDn>dc=com</baseDn>
         <nbCnx>5</nbCnx>
-        <nbMaxSearch>5</nbMaxSearch>
+        <nbMaxOperations>5</nbMaxOperations>
         <attribute>sn</attribute>
       </client>
       
@@ -142,7 +142,7 @@
         <serverInstance>I1</serverInstance>
         <baseDn>dc=com</baseDn>
         <nbCnx>5</nbCnx>
-        <nbMaxSearch>5</nbMaxSearch>
+        <nbMaxOperations>5</nbMaxOperations>
         <attribute>sn</attribute>
       </client>
     </module>
