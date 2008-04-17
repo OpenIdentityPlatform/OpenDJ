@@ -56,6 +56,7 @@
       <!-- to inform scheduler if it has pass/fail status       -->
       <script>
         errNum = 0
+        msg = ''
       </script>
       
       <!-- ==================    Preamble   =================== -->
@@ -92,7 +93,7 @@
           nbMaxSearch = cParams[3][1]
         except IndexError:
           nbMaxSearch = NOT_DEFINED
-          msg = '%s\nERROR: nbMaxSearch undefined,mandatory' % msg
+          msg = '%s\nERROR: nbMaxOperations undefined,mandatory' % msg
         try:
           attributeName = cParams[4][1]
         except IndexError:
