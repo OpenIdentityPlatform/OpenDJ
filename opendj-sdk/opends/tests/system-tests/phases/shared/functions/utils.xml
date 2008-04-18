@@ -842,7 +842,7 @@
               cmdOutput=STAXResult
               cmdRC = RC
               
-            cmdResult=STAXResult
+            cmdResult=[cmdRC,cmdOutput]
           </script>
           
           <if expr="expectedRC != 'noCheck'">
@@ -886,7 +886,7 @@
           </call>
           <script>
             ERR_NUM[0] += 1
-            cmdResult = [['9999','ERROR : file does not exist']]
+            cmdResult = ['9999','ERROR : file does not exist']
           </script>
         </sequence>
       </else>
