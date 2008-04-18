@@ -727,32 +727,32 @@
       <script>
         STAFCmdParamsList=[]
         STAFCmdParams=''
-
+        
         if dsPath:
           dsBinPath='%s/bin' % (dsPath) 
           STAFCmd='%s/ldapsearch' % (dsBinPath)
-
+          
         if dsInstanceHost:
           STAFCmdParamsList.append('-h %s' % dsInstanceHost)
           
         if dsInstanceDn:
           STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
-
+          
         if dsInstancePswd:
           STAFCmdParamsList.append('-w %s' % dsInstancePswd)
-
+          
         if dsScope:
           STAFCmdParamsList.append('-s %s' % dsScope)
-
+          
         if dsDereferencePolicy:
           STAFCmdParamsList.append('-a %s' % dsDereferencePolicy)
-         
+          
         if dsTypesOnly:
           STAFCmdParamsList.append('-A')
           
         if dsAssertionFilter:
           STAFCmdParamsList.append('--assertionFilter "%s"' % dsAssertionFilter)
-        
+          
         if dsBaseDN:
           STAFCmdParamsList.append('-b "%s"' % dsBaseDN)
           
@@ -761,38 +761,38 @@
           
         if dsPersistentSearch:
           STAFCmdParamsList.append('-C %s' % dsPersistentSearch)
-                 
+          
         if dsCountEntries:
           STAFCmdParamsList.append('--countEntries')
-                    
+          
         if dsGetEffectiveRightsAttribute:
           for attribute in dsGetEffectiveRightsAttribute:
             STAFCmdParamsList.append('-e %s' % attribute)
-         
+            
         if dsReportAuthzID:
           STAFCmdParamsList.append('-E')
-         
+          
         if dsFilename:
           STAFCmdParamsList.append('-f %s' % dsFilename)
-                             
+          
         if dsGetEffectiveRightsAuthzid:
           STAFCmdParamsList.append('-g %s' % dsGetEffectiveRightsAuthzid)
-                   
+          
         if dsVirtualListView:
           STAFCmdParamsList.append('-G %s' % dsVirtualListView)
-  
+          
         if dsHelp:
           STAFCmdParamsList.append('-H')
-           
+          
         if dsEncoding:
           STAFCmdParamsList.append('-i %s' % dsEncoding)
-         
+          
         if dsBindPasswordFile:
           STAFCmdParamsList.append('-j %s' % dsBindPasswordFile)
-         
+          
         if dsControl:
           STAFCmdParamsList.append('-J %s' % dsControl)
-         
+          
         if dsKeyStorePath:
           STAFCmdParamsList.append('-K %s' % dsKeyStorePath)
           
@@ -804,7 +804,7 @@
           
         if dsDryRun:
           STAFCmdParamsList.append('-n')
-                            
+          
         if dsCertNickname:
           STAFCmdParamsList.append('-N %s' % dsCertNickname)
           
@@ -822,100 +822,74 @@
           
         if dsUseSASLExternal:
           STAFCmdParamsList.append('-r')
-                                        
+          
         if dsSimplePageSize:
           STAFCmdParamsList.append('--simplePageSize %s' % dsSimplePageSize)
-                                                  
+          
         if dsSortOrder:
           STAFCmdParamsList.append('-S %s' % dsSortOrder)
-                    
+          
         if dsDontWrap:
           STAFCmdParamsList.append('-T')
-                              
+          
         if dsTrustStorePassword:
           STAFCmdParamsList.append('--trustStorePassword %s' % dsTrustStorePassword)
-                             
+          
         if dsTrustStorePasswordFile:
           STAFCmdParamsList.append('-U %s' % dsTrustStorePasswordFile)
-                  
+          
         if dsKeyStorePasswordFile:
           STAFCmdParamsList.append('-u %s' % dsKeyStorePasswordFile)
-                    
+          
         if dsUsePasswordPolicyControl:
           STAFCmdParamsList.append('--usePasswordPolicyControl')
-                              
+          
         if dsVersion:
           STAFCmdParamsList.append('-V %s' % dsVersion)
-                              
+          
         if dsVerbose:
           STAFCmdParamsList.append('-v')
-                                               
+          
         if dsKeyStorePassword:
           STAFCmdParamsList.append('-W %s' % dsKeyStorePassword)
-                      
+          
         if dsTrustAll:
           STAFCmdParamsList.append('-X')
-                            
+          
         if dsProxyAs:
           STAFCmdParamsList.append('-Y "%s"' % dsProxyAs)
-                  
+          
         if dsUseSSL:
           STAFCmdParamsList.append('-Z')
-                                      
+          
         if dsSizeLimit:
           STAFCmdParamsList.append('-z %s' % dsSizeLimit)
-                                              
+          
         if dsFilter:
           STAFCmdParamsList.append('"%s"' % dsFilter)
-  
+          
         if dsAttributes:
           STAFCmdParamsList.append('%s' % dsAttributes)
-
+          
          
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
       
       
-      <call function="'writeStartTagOperation'">
-      { 'tagName' : 'ldapSearch',
-        'fileFd'  : fileFd }
+      <call function="'runCommand'">
+        { 'name'      : 'LDAP Search %s on %s:%s' % 
+                        (dsBaseDN,dsInstanceHost,dsInstancePort),
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'path'      : dsBinPath,
+          'fileFd'    : fileFd
+        }
       </call>
-      <call function="'writeMessage'">
-      { 'fileFd'  : fileFd,
-        'content' : '%s %s' % (STAFCmd, STAFCmdParams)
-      }
-      </call>
-      
-      
-      <process name="'LDAP Search %s on %s:%s' % 
-                     (dsBaseDN,dsInstanceHost,dsInstancePort)">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath]
-        </envs>
-        <stdout if="outputFile != None" mode="'replace'">'%s' % outputFile</stdout>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <if expr="expectedRC != 'noCheck'">
-        <call function="'checkRC'">
-          { 'returncode' : STAXCode,
-            'result'     : STAXReason,
-            'fileFd'     : fileFd }
-        </call>
-      </if>
-
-      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
       <return>
-        [STAXCode,STAXReason]
+        STAXResult
       </return>
+      
     </sequence>
   </function>
 
