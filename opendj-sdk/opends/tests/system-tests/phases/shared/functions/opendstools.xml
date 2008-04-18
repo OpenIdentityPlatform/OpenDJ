@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <!-- ************************************************************ -->
+  <function name="verdict4OpendsInstance" scope="local">
+    <function-map-args>
+      <function-arg-def name="instance" type="required">
+      </function-arg-def>
+      <function-arg-def name="instances" type="required">
+        <function-arg-description>
+          instances list
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="suffix" type="required">
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <script>
+        _errNum = 0
+      </script>
+      
+      <!--==== Check server is alive =========-->
+      <call function="'isAlive'">
+        { 'location'         : instance.getHost(),
+          'noOfLoops'        : 1,
+          'noOfMilliSeconds' : 2000,
+          'dsPath'           : instance.getInstallDir(),
+          'dsInstanceHost'   : instance.getHost(),
+          'dsInstancePort'   : instance.getLDAPPort(),
+          'fileFd'           : fileFd
+        }
+      </call>
+      <script>isAliveResult = STAXResult</script>
+      <if expr="isAliveResult == FALSE">
+        <sequence>
+          <call function="'writeMessage'">
+            { 
+              'content' : 'Server does not responding',
+              'fileFd'  : fileFd
+            }
+          </call>
+          <script> _errNum +=  1 </script>
+        </sequence>
+      </if>
+      
+      
+      <!--==== Check replication synchronization =========-->
+      <!--
+      <call function="'checkReplicationSynchro'">
+          { 'instance' : instance,
+            'fileFd'   : fileFd
+          }
+      </call>
+      <script>
+        errNum += STAXResult[0][0]
+      </script>
+      -->
+      
+      
+      <!--==== Compare entries =========-->
+      <call function="'verifyTrees'">
+        {
+          'location'   : instance.getHost(),
+          'instance'   : instance,
+          'instances'  : instances,
+          'suffixDn'   : suffix.getSuffixDn(),
+          'filePrefix' : 'verdict',
+          'fileFd'     : fileFd
+        }
+      </call>
+      <script> _errNum += STAXResult[0] </script>
+      
+      
+      <!--== Check error/access logs =========-->
+      <call function="'checkLogs'">
+        {
+          'location'   : instance.getHost(),
+          'installDir' : instance.getInstallDir(),
+          'fileFd'     : fileFd
+        }
+      </call>
+      <script> _errNum += STAXResult </script>
+      
+      <return> _errNum </return>
+    </sequence>
+  </function>
+  
+</stax>
