@@ -1500,8 +1500,11 @@ public class Utils
           i.getVersion().compareToIgnoreCase(version) <= 0;
         if (!versionCompatible)
         {
+          String javaBin = System.getProperty("java.home")+File.separator+
+          "bin"+File.separator+"java";
           throw new IncompatibleVersionException(
-              ERR_INCOMPATIBLE_VERSION.get(i.getVersion(), version), null);
+              ERR_INCOMPATIBLE_VERSION.get(i.getVersion(), version, javaBin),
+              null);
         }
       }
     }
