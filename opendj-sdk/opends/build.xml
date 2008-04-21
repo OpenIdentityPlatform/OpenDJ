@@ -910,6 +910,8 @@
       <fileset file="${lib.dir}/*.exe" />
     </copy>
 
+    <antcall target="example-plugin" />
+
     <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" excludes="*.bat,_client-script.sh,_server-script.sh,_mixed-script.sh,_script-util.sh" eol="lf" />
     <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/lib" includes="_client-script.sh,_server-script.sh,_mixed-script.sh,_script-util.sh" eol="lf" />
     <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" includes="README_WINDOWS.txt" eol="crlf" />
