@@ -1,0 +1,50 @@
+How To Install OpenDS
+=====================
+
+If you are reading this page, you have already downloaded and unzipped an OpenDS build.
+
+You can install OpenDS in two modes:
+
+ * Graphical User Interface (GUI) mode. The GUI mode uses QuickSetup, a Java-based graphical tool 
+   that enables you to install and configure an OpenDS directory server, load it with data and get 
+   it running in very little time.
+ * Interactive Command-line mode. The interactive command-line utility prompts you for required 
+   information before the installation and configuration begin.
+
+Before You Install
+------------------
+A Java SE 5.0 (version 1.5.0_08) or higher runtime environment must be installed. It is 
+recommended that your system have at least 100MB of disk space and 256MB of free memory to run 
+OpenDS for evaluation purposes. Note that you can configure OpenDS in such a way that it requires 
+substantially less, or more, disk space. For more information, see the OpenDS System Requirements 
+at https://www.opends.org/wiki/page/OpenDSSystemRequirements.
+
+To Install OpenDS in GUI mode
+-----------------------------
+You can run QuickSetup remotely via Java Web Start, or locally from within the build that you 
+have downloaded and unzipped.
+
+If you run QuickSetup remotely, it automatically downloads and unzips the latest weekly build, 
+and handles server configuration. To launch QuickSetup via Java Web Start, point your 
+browser to http://opends.org/install/QuickSetup.jnlp.
+
+To run QuickSetup locally:
+
+  1. From the top level of your installation directory, type the following command: 
+     (Unix, Linux) setup (Windows) setup.bat
+  2. On Mac systems, double-click on the QuickSetup.app application to launch QuickSetup 
+     directly from the Finder.
+  3. Answer the questions in the installation wizard.
+
+To Install OpenDS in Command-Line Mode
+--------------------------------------
+  1. From the top level of your installation directory, type the following command:
+     (Unix, Linux) setup --cli (Windows) setup.bat --cli
+  2. Follow the prompts to provide the required installation information.
+
+See Also
+--------
+ * Installing the OpenDS Directory Server 
+   (https://www.opends.org/wiki/page/InstallingTheOpenDSDirectoryServer)
+ * Overview of the QuickSetup Tool (https://www.opends.org/wiki/page/OverviewOfTheQuickSetupTool)
+ * setup (https://www.opends.org/wiki/page/Setup)

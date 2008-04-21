@@ -964,6 +964,10 @@
     </copy>
 
     <copy todir="${pdir}">
+      <fileset file="${resource.dir}/install.txt" />
+    </copy>
+
+    <copy todir="${pdir}">
       <fileset file="${resource.dir}/images/opends_logo.png" />
     </copy>
 
