@@ -734,14 +734,6 @@
         </function-arg-description>
         <function-arg-property name="type" value="file"/>
       </function-arg-def>
-      <function-arg-def name="outputPath" 
-                        type="optional" 
-                        default="LOG_TMP_DIR">
-        <function-arg-description>
-          Path containing the outputFile
-        </function-arg-description>
-        <function-arg-property name="type" value="filepath"/>
-      </function-arg-def>  
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0.
@@ -801,6 +793,7 @@
               'fileFd'   : fileFd }
           </call>
           
+          
           <!-- If 'logStderr' is True then redirect sdterr to sdtout -->
           <if expr="logStderr == 'true'">
             <process name="name">
@@ -811,7 +804,7 @@
               <envs>env</envs>
               <console use="'same'"/>
               <stdout if="outputFile != 'None'" mode="'replace'">
-                '%s/%s' % (outputPath, outputFile)
+                '%s' % outputFile
               </stdout>
               <stderr mode="'stdout'"/>
               <returnstdout/>
@@ -825,7 +818,7 @@
                 <envs>env</envs>
                 <console use="'same'"/>
                 <stdout if="outputFile != 'None'" mode="'replace'">
-                  '%s/%s' % (outputPath, outputFile)
+                  '%s' % outputFile
                 </stdout>
                 <returnstdout/>
               </process>
@@ -845,51 +838,34 @@
             cmdResult=[cmdRC,cmdOutput]
           </script>
           
-          <if expr="expectedRC != 'noCheck'">
-            <call function="'checkRC'">
-              { 'returncode' : cmdRC,
-                'result'     : cmdOutput,
-                'expected'   : [expectedRC],
-                'fileFd'     : fileFd
-              }
-            </call>
-          </if>
-          <!--
-          <script>
-            def dig(var):
-              try:
-                if var.__class__==[].__class__:
-                  for i in range(len(var)):
-                    var[i]=dig(var[i])
-                  return var
-                else:
-                  if var.__class__==''.__class__:
-                    return re.compile(r'EMMA:.*\n').sub('',var)
-                  else:
-                    return var
-              except TypeError:
-                return 'could not evaluate the following component: %s' % var
-            
-            if stripOutput == 'true':
-              cmdResult=dig(cmdResult)
-          </script>
-          -->
         </sequence>
       <else>
         <sequence>
+          <script>
+            cmdRC = 9999
+            cmdOutput = 'ERROR : file does not exist on %s : %s'\
+                        % (location,command)
+            cmdResult = [cmdRC,cmdOutput]
+          </script>
           <call function="'writeMessage'">
           { 
-            'content' : 'ERROR : file does not exist on %s : %s'\
-                        % (location,command),
+            'content' : cmdOutput,
             'fileFd'  : fileFd
           }
           </call>
-          <script>
-            ERR_NUM[0] += 1
-            cmdResult = ['9999','ERROR : file does not exist']
-          </script>
         </sequence>
       </else>
+      </if>
+      
+      
+      <if expr="expectedRC != 'noCheck'">
+        <call function="'checkRC'">
+          { 'returncode' : cmdRC,
+            'result'     : cmdOutput,
+            'expected'   : [expectedRC],
+            'fileFd'     : fileFd
+          }
+        </call>
       </if>
       <call function="'writeEndTagOperation'">{'fileFd' : fileFd}</call>
       <return>

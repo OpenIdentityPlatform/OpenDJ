@@ -702,7 +702,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
-      <function-arg-def name="outputFile" type="optional">
+      <function-arg-def name="outputFile" type="optional" default="'None'">
         <function-arg-description>
           Output file containing the search result in ldif format.
         </function-arg-description>
@@ -710,7 +710,8 @@
       </function-arg-def>
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
-          Expected return code value. Default value is 0. Wildcard 'noCheck' to not check the RC
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
         </function-arg-def>
@@ -883,6 +884,8 @@
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
           'path'      : dsBinPath,
+          'outputFile': outputFile,
+          'expectedRC': expectedRC,
           'fileFd'    : fileFd
         }
       </call>
