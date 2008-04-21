@@ -334,6 +334,68 @@ public class AttributeIndex
   /**
    * Update the attribute index for a new entry.
    *
+   * @param buffer The index buffer to use to store the added keys
+   * @param entryID     The entry ID.
+   * @param entry       The contents of the new entry.
+   * @return True if all the index keys for the entry are added. False if the
+   *         entry ID already exists for some keys.
+   * @throws DatabaseException If an error occurs in the JE database.
+   * @throws DirectoryException If a Directory Server error occurs.
+   * @throws JebException If an error occurs in the JE backend.
+   */
+  public boolean addEntry(IndexBuffer buffer, EntryID entryID,
+                          Entry entry)
+       throws DatabaseException, DirectoryException, JebException
+  {
+    boolean success = true;
+
+    if (equalityIndex != null)
+    {
+      if(!equalityIndex.addEntry(buffer, entryID, entry))
+      {
+        success = false;
+      }
+    }
+
+    if (presenceIndex != null)
+    {
+      if(!presenceIndex.addEntry(buffer, entryID, entry))
+      {
+        success = false;
+      }
+    }
+
+    if (substringIndex != null)
+    {
+      if(!substringIndex.addEntry(buffer, entryID, entry))
+      {
+        success = false;
+      }
+    }
+
+    if (orderingIndex != null)
+    {
+      if(!orderingIndex.addEntry(buffer, entryID, entry))
+      {
+        success = false;
+      }
+    }
+
+    if (approximateIndex != null)
+    {
+      if(!approximateIndex.addEntry(buffer, entryID, entry))
+      {
+        success = false;
+      }
+    }
+
+    return success;
+  }
+
+
+  /**
+   * Update the attribute index for a new entry.
+   *
    * @param txn         The database transaction to be used for the insertions.
    * @param entryID     The entry ID.
    * @param entry       The contents of the new entry.
@@ -389,6 +451,46 @@ public class AttributeIndex
     }
 
     return success;
+  }
+
+  /**
+   * Update the attribute index for a deleted entry.
+   *
+   * @param buffer The index buffer to use to store the deleted keys
+   * @param entryID     The entry ID
+   * @param entry       The contents of the deleted entry.
+   * @throws DatabaseException If an error occurs in the JE database.
+   * @throws DirectoryException If a Directory Server error occurs.
+   * @throws JebException If an error occurs in the JE backend.
+   */
+  public void removeEntry(IndexBuffer buffer, EntryID entryID,
+                          Entry entry)
+       throws DatabaseException, DirectoryException, JebException
+  {
+    if (equalityIndex != null)
+    {
+      equalityIndex.removeEntry(buffer, entryID, entry);
+    }
+
+    if (presenceIndex != null)
+    {
+      presenceIndex.removeEntry(buffer, entryID, entry);
+    }
+
+    if (substringIndex != null)
+    {
+      substringIndex.removeEntry(buffer, entryID, entry);
+    }
+
+    if (orderingIndex != null)
+    {
+      orderingIndex.removeEntry(buffer, entryID, entry);
+    }
+
+    if(approximateIndex != null)
+    {
+      approximateIndex.removeEntry(buffer, entryID, entry);
+    }
   }
 
   /**
@@ -472,6 +574,51 @@ public class AttributeIndex
     if (approximateIndex != null)
     {
       approximateIndex.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
+    }
+  }
+
+  /**
+   * Update the index to reflect a sequence of modifications in a Modify
+   * operation.
+   *
+   * @param buffer The index buffer used to buffer up the index changes.
+   * @param entryID The ID of the entry that was modified.
+   * @param oldEntry The entry before the modifications were applied.
+   * @param newEntry The entry after the modifications were applied.
+   * @param mods The sequence of modifications in the Modify operation.
+   * @throws DatabaseException If an error occurs during an operation on a
+   * JE database.
+   */
+  public void modifyEntry(IndexBuffer buffer,
+                          EntryID entryID,
+                          Entry oldEntry,
+                          Entry newEntry,
+                          List<Modification> mods)
+       throws DatabaseException
+  {
+    if (equalityIndex != null)
+    {
+      equalityIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
+    }
+
+    if (presenceIndex != null)
+    {
+      presenceIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
+    }
+
+    if (substringIndex != null)
+    {
+      substringIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
+    }
+
+    if (orderingIndex != null)
+    {
+      orderingIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
+    }
+
+    if (approximateIndex != null)
+    {
+      approximateIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
     }
   }
 
@@ -1675,5 +1822,42 @@ public class AttributeIndex
    */
   public Index getPresenceIndex() {
     return presenceIndex;
+  }
+
+  /**
+   * Retrieves all the indexes used by this attribute index.
+   *
+   * @return A collection of all indexes in use by this attribute
+   * index.
+   */
+  public Collection<Index> getAllIndexes() {
+    LinkedHashSet<Index> indexes = new LinkedHashSet<Index>();
+
+    if (equalityIndex != null)
+    {
+      indexes.add(equalityIndex);
+    }
+
+    if (presenceIndex != null)
+    {
+      indexes.add(presenceIndex);
+    }
+
+    if (substringIndex != null)
+    {
+      indexes.add(substringIndex);
+    }
+
+    if (orderingIndex != null)
+    {
+      indexes.add(orderingIndex);
+    }
+
+    if (approximateIndex != null)
+    {
+      indexes.add(approximateIndex);
+    }
+
+    return indexes;
   }
 }

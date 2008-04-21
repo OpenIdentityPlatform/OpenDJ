@@ -1435,3 +1435,13 @@ ds-cfg-writability-mode: enabled
 ds-cfg-base-dn: o=ldif
 ds-cfg-ldif-file: config/ldif-backend.ldif
 
+dn: cn=File-Based Debug Logger,cn=Loggers,cn=config
+changetype: modify
+replace: ds-cfg-enabled
+ds-cfg-enabled: true
+-
+replace: ds-cfg-default-include-throwable-cause
+ds-cfg-default-include-throwable-cause: true
+-
+replace: ds-cfg-default-throwable-stack-frames
+ds-cfg-default-throwable-stack-frames: 500

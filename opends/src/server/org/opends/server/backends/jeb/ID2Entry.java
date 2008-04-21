@@ -211,11 +211,12 @@ public class ID2Entry extends DatabaseContainer
    *
    * @param txn The database transaction or null if none.
    * @param id The desired entry ID which forms the key.
+   * @param lockMode The JE locking mode to be used for the read.
    * @return The requested entry, or null if there is no such record.
    * @throws JebException If an error occurs in the JE backend.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public Entry get(Transaction txn, EntryID id)
+  public Entry get(Transaction txn, EntryID id, LockMode lockMode)
        throws JebException, DatabaseException
   {
     DatabaseEntry key = id.getDatabaseEntry();

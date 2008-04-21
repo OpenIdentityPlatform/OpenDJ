@@ -35,6 +35,7 @@ import org.opends.server.backends.jeb.*;
 
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Transaction;
+import com.sleepycat.je.LockMode;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -468,7 +469,7 @@ public class DNContext {
           return null;
         }
       }
-      parentID = dn2id.get(txn, parentDN);
+      parentID = dn2id.get(txn, parentDN, LockMode.DEFAULT);
       //If the parent is in dn2id, add it to the cache.
       if (parentID != null) {
         synchronized(synchObject) {

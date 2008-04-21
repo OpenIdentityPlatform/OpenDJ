@@ -37,7 +37,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.*;
 import org.opends.server.util.Base64;
 import static
@@ -50,6 +49,7 @@ import org.testng.annotations.AfterClass;
 
 import static org.testng.Assert.*;
 import com.sleepycat.je.DatabaseEntry;
+import com.sleepycat.je.LockMode;
 
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.ModifyOperationBasis;
@@ -819,7 +819,7 @@ public class TestBackendImpl extends JebTestCase {
     {
       entry = ec.getEntry(DN.decode("uid=user.539,ou=People,dc=test,dc=com"));
       entryID = ec.getDN2ID().get(null,
-          DN.decode("uid=user.539,ou=People,dc=test,dc=com"));
+          DN.decode("uid=user.539,ou=People,dc=test,dc=com"), LockMode.DEFAULT);
 
       DeleteOperationBasis delete = new DeleteOperationBasis(conn,
         conn.nextOperationID(),
@@ -835,7 +835,7 @@ public class TestBackendImpl extends JebTestCase {
 
       assertFalse(ec.entryExists(DN.decode("uid=user.539,ou=People,dc=test,dc=com")));
       assertNull(ec.getDN2ID().get(null,
-          DN.decode("uid=user.539,ou=People,dc=test,dc=com")));
+          DN.decode("uid=user.539,ou=People,dc=test,dc=com"), LockMode.DEFAULT));
       assertFalse(ec.getDN2URI().delete(null,
           DN.decode("uid=user.539,ou=People,dc=test,dc=com")));
 
@@ -919,7 +919,7 @@ public class TestBackendImpl extends JebTestCase {
       entry = ec.getEntry(DN.decode("uid=user.0,ou=People,dc=test,dc=com"));
       oldEntry = entries.get(0);
       entryID = ec.getDN2ID().get(null,
-          DN.decode("uid=user.0,ou=People,dc=test,dc=com"));
+          DN.decode("uid=user.0,ou=People,dc=test,dc=com"), LockMode.DEFAULT);
 
       assertNotNull(entry);
       LinkedHashSet<AttributeValue> values =
@@ -1086,7 +1086,7 @@ public class TestBackendImpl extends JebTestCase {
       newEntry = entries.get(1);
       newEntry.applyModifications(modifications);
       entry = ec.getEntry(DN.decode("uid=user.1,ou=People,dc=test,dc=com"));
-      entryID = ec.getDN2ID().get(null, DN.decode("uid=user.1,ou=People,dc=test,dc=com"));
+      entryID = ec.getDN2ID().get(null, DN.decode("uid=user.1,ou=People,dc=test,dc=com"), LockMode.DEFAULT);
 
       assertNotNull(entryID);
 
@@ -1290,12 +1290,12 @@ public class TestBackendImpl extends JebTestCase {
           entry, null);
 
       assertNotNull(backend.getEntry(DN.decode("cn=Abbey Abbie,ou=People,dc=test,dc=com")));
-      assertNotNull(ec.getDN2ID().get(null, DN.decode("cn=Abbey Abbie,ou=People,dc=test,dc=com")));
+      assertNotNull(ec.getDN2ID().get(null, DN.decode("cn=Abbey Abbie,ou=People,dc=test,dc=com"), LockMode.DEFAULT));
 
 
       assertNull(backend.getEntry(DN.decode("uid=user.2,ou=People,dc=test,dc=com")));
       assertNull(ec.getDN2ID().get(null,
-          DN.decode("uid=user.2,ou=People,dc=test,dc=com")));
+          DN.decode("uid=user.2,ou=People,dc=test,dc=com"), LockMode.DEFAULT));
     }
     finally
     {
@@ -1317,9 +1317,9 @@ public class TestBackendImpl extends JebTestCase {
     ec.sharedLock.lock();
     try
     {
-      EntryID newSuperiorID = ec.getDN2ID().get(null, DN.decode("ou=JEB Testers,dc=test,dc=com"));
+      EntryID newSuperiorID = ec.getDN2ID().get(null, DN.decode("ou=JEB Testers,dc=test,dc=com"), LockMode.DEFAULT);
       EntryID oldID = ec.getDN2ID().get(null,
-          DN.decode("ou=People,dc=test,dc=com"));
+          DN.decode("ou=People,dc=test,dc=com"), LockMode.DEFAULT);
       assertTrue(newSuperiorID.compareTo(oldID) > 0);
 
       ArrayList<Control> noControls = new ArrayList<Control>(0);
@@ -1338,17 +1338,17 @@ public class TestBackendImpl extends JebTestCase {
       modifyDN.run();
 
       assertNotNull(backend.getEntry(DN.decode("ou=Good People,ou=JEB Testers,dc=test,dc=com")));
-      EntryID newID = ec.getDN2ID().get(null, DN.decode("ou=Good People,ou=JEB Testers,dc=test,dc=com"));
+      EntryID newID = ec.getDN2ID().get(null, DN.decode("ou=Good People,ou=JEB Testers,dc=test,dc=com"), LockMode.DEFAULT);
       assertNotNull(newID);
       assertTrue(newID.compareTo(newSuperiorID) > 0);
       assertNotNull(backend.getEntry(DN.decode("uid=user.0,ou=Good People,ou=JEB Testers,dc=test,dc=com")));
       EntryID newSubordinateID = ec.getDN2ID().get(null,
-          DN.decode("uid=user.0,ou=Good People,ou=JEB Testers,dc=test,dc=com"));
+          DN.decode("uid=user.0,ou=Good People,ou=JEB Testers,dc=test,dc=com"), LockMode.DEFAULT);
       assertTrue(newSubordinateID.compareTo(newID) > 0);
 
       assertNull(backend.getEntry(DN.decode("ou=People,dc=test,dc=com")));
       assertNull(ec.getDN2ID().get(null,
-          DN.decode("ou=People,dc=test,dc=com")));
+          DN.decode("ou=People,dc=test,dc=com"), LockMode.DEFAULT));
     }
     finally
     {

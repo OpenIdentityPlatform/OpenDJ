@@ -829,7 +829,9 @@ public class Importer implements Thread.UncaughtExceptionHandler {
             DN dn = DN.decode(new ASN1OctetString(key.getData()));
             if(!context.getIncludeBranches().contains(dn)) {
               EntryID id = new EntryID(data);
-              Entry entry = srcEntryContainer.getID2Entry().get(null, id);
+              Entry entry =
+                  srcEntryContainer.getID2Entry().get(null,
+                      id, LockMode.DEFAULT);
               processEntry(context, entry);
               migratedCount++;
               status = cursor.getNext(key, data, lockMode);
@@ -909,7 +911,8 @@ public class Importer implements Thread.UncaughtExceptionHandler {
                   throw new JebException(message);
                 }
                 EntryID id = new EntryID(data);
-                Entry entry = srcEntryContainer.getID2Entry().get(null, id);
+                Entry entry = srcEntryContainer.getID2Entry().get(null,
+                    id, LockMode.DEFAULT);
                 processEntry(importContext, entry);
                 migratedCount++;
                 status = cursor.getNext(key, data, lockMode);

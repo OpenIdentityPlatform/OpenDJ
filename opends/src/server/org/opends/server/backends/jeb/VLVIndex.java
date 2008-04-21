@@ -52,15 +52,13 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.asn1.ASN1Element;
+import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.controls.VLVResponseControl;
 import org.opends.server.controls.ServerSideSortRequestControl;
 
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Iterator;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -202,8 +200,7 @@ public class VLVIndex extends DatabaseContainer
       if(attrType == null)
       {
         Message msg =
-            ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
-                    String.valueOf(sortKeys[i]), name);
+            ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttrs[i], name);
         throw new ConfigException(msg);
       }
       sortKeys[i] = new SortKey(attrType, ascending[i]);
@@ -323,6 +320,53 @@ public class VLVIndex extends DatabaseContainer
   }
 
   /**
+   * Update the vlvIndex for a new entry.
+   *
+   * @param buffer      The index buffer to buffer the changes.
+   * @param entryID     The entry ID.
+   * @param entry       The entry to be indexed.
+   * @return True if the entry ID for the entry are added. False if
+   *         the entry ID already exists.
+   * @throws DirectoryException If a Directory Server
+   * error occurs.
+   */
+  public boolean addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
+      throws DirectoryException
+  {
+    DN entryDN = entry.getDN();
+    if(entryDN.matchesBaseAndScope(baseDN, scope) && filter.matchesEntry(entry))
+    {
+      SortValues sortValues = new SortValues(entryID, entry, sortOrder);
+
+      IndexBuffer.BufferedVLVValues bufferedValues =
+          buffer.getVLVIndex(this);
+      if(bufferedValues == null)
+      {
+        bufferedValues = new IndexBuffer.BufferedVLVValues();
+        buffer.putBufferedVLVIndex(this, bufferedValues);
+      }
+
+      if(bufferedValues.deletedValues != null &&
+          bufferedValues.deletedValues.contains(sortValues))
+      {
+        bufferedValues.deletedValues.remove(sortValues);
+        return true;
+      }
+
+      TreeSet<SortValues> bufferedAddedValues = bufferedValues.addedValues;
+      if(bufferedAddedValues == null)
+      {
+        bufferedAddedValues = new TreeSet<SortValues>();
+        bufferedValues.addedValues = bufferedAddedValues;
+      }
+      bufferedAddedValues.add(sortValues);
+      return true;
+    }
+    return false;
+  }
+
+
+  /**
    * Update the vlvIndex for a deleted entry.
    *
    * @param txn         The database transaction to be used for the deletions
@@ -343,6 +387,52 @@ public class VLVIndex extends DatabaseContainer
       return removeValues(txn, entryID.longValue(), entry);
     }
     return false;
+  }
+
+  /**
+   * Update the vlvIndex for a deleted entry.
+   *
+   * @param buffer      The database transaction to be used for the deletions
+   * @param entryID     The entry ID
+   * @param entry       The contents of the deleted entry.
+   * @return True if the entry was successfully removed from this VLV index
+   * or False otherwise.
+   * @throws DirectoryException If a Directory Server error occurs.
+   */
+  public boolean removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
+      throws DirectoryException
+  {
+    DN entryDN = entry.getDN();
+    if(entryDN.matchesBaseAndScope(baseDN, scope) && filter.matchesEntry(entry))
+    {
+      SortValues sortValues = new SortValues(entryID, entry, sortOrder);
+
+      IndexBuffer.BufferedVLVValues bufferedValues =
+          buffer.getVLVIndex(this);
+      if(bufferedValues == null)
+      {
+        bufferedValues = new IndexBuffer.BufferedVLVValues();
+        buffer.putBufferedVLVIndex(this, bufferedValues);
+      }
+
+      if(bufferedValues.addedValues != null &&
+          bufferedValues.addedValues.contains(sortValues))
+      {
+        bufferedValues.addedValues.remove(sortValues);
+        return true;
+      }
+
+      TreeSet<SortValues> bufferedDeletedValues = bufferedValues.deletedValues;
+      if(bufferedDeletedValues == null)
+      {
+        bufferedDeletedValues = new TreeSet<SortValues>();
+        bufferedValues.deletedValues = bufferedDeletedValues;
+      }
+      bufferedDeletedValues.add(sortValues);
+      return true;
+    }
+    return false;
+
   }
 
   /**
@@ -440,6 +530,100 @@ public class VLVIndex extends DatabaseContainer
   }
 
   /**
+   * Update the vlvIndex to reflect a sequence of modifications in a Modify
+   * operation.
+   *
+   * @param buffer The database transaction to be used for the deletions
+   * @param entryID The ID of the entry that was modified.
+   * @param oldEntry The entry before the modifications were applied.
+   * @param newEntry The entry after the modifications were applied.
+   * @param mods The sequence of modifications in the Modify operation.
+   * @return True if the modification was successfully processed or False
+   * otherwise.
+   * @throws JebException If an error occurs during an operation on a
+   * JE database.
+   * @throws DatabaseException If an error occurs during an operation on a
+   * JE database.
+   * @throws DirectoryException If a Directory Server error occurs.
+   */
+  public boolean modifyEntry(IndexBuffer buffer,
+                          EntryID entryID,
+                          Entry oldEntry,
+                          Entry newEntry,
+                          List<Modification> mods)
+       throws DatabaseException, DirectoryException, JebException
+  {
+    DN oldEntryDN = oldEntry.getDN();
+    DN newEntryDN = newEntry.getDN();
+    if(oldEntryDN.matchesBaseAndScope(baseDN, scope) &&
+        filter.matchesEntry(oldEntry))
+    {
+      if(newEntryDN.matchesBaseAndScope(baseDN, scope) &&
+          filter.matchesEntry(newEntry))
+      {
+        // The entry should still be indexed. See if any sorted attributes are
+        // changed.
+        boolean sortAttributeModified = false;
+        SortKey[] sortKeys = sortOrder.getSortKeys();
+        for(SortKey sortKey : sortKeys)
+        {
+          AttributeType attributeType = sortKey.getAttributeType();
+          Iterable<AttributeType> subTypes =
+              DirectoryServer.getSchema().getSubTypes(attributeType);
+          for(Modification mod : mods)
+          {
+            AttributeType modAttrType = mod.getAttribute().getAttributeType();
+            if(modAttrType.equals(attributeType))
+            {
+              sortAttributeModified = true;
+              break;
+            }
+            for(AttributeType subType : subTypes)
+            {
+              if(modAttrType.equals(subType))
+              {
+                sortAttributeModified = true;
+                break;
+              }
+            }
+          }
+          if(sortAttributeModified)
+          {
+            break;
+          }
+        }
+        if(sortAttributeModified)
+        {
+          boolean success;
+          // Sorted attributes have changed. Reindex the entry;
+          success = removeEntry(buffer, entryID, oldEntry);
+          success &= addEntry(buffer, entryID, newEntry);
+          return success;
+        }
+      }
+      else
+      {
+        // The modifications caused the new entry to be unindexed. Remove from
+        // vlvIndex.
+        return removeEntry(buffer, entryID, oldEntry);
+      }
+    }
+    else
+    {
+      if(newEntryDN.matchesBaseAndScope(baseDN, scope) &&
+          filter.matchesEntry(newEntry))
+      {
+        // The modifications caused the new entry to be indexed. Add to
+        // vlvIndex.
+        return addEntry(buffer, entryID, newEntry);
+      }
+    }
+
+    // The modifications does not affect this vlvIndex
+    return true;
+  }
+
+  /**
    * Put a sort values set in this VLV index.
    *
    * @param txn The transaction to use when retriving the set or NULL if it is
@@ -503,7 +687,7 @@ public class VLVIndex extends DatabaseContainer
           TRACER.debugVerbose("No sort values set exist in VLV vlvIndex %s. " +
               "Creating unbound set.", config.getName());
         }
-        sortValuesSet = new SortValuesSet(this, id2entry);
+        sortValuesSet = new SortValuesSet(this);
       }
       else
       {
@@ -520,7 +704,7 @@ public class VLVIndex extends DatabaseContainer
                               foundKeyHex);
         }
         sortValuesSet = new SortValuesSet(key.getData(), data.getData(),
-                                          this, id2entry);
+                                          this);
       }
     }
     finally
@@ -590,7 +774,7 @@ public class VLVIndex extends DatabaseContainer
         TRACER.debugVerbose("No sort values set exist in VLV vlvIndex %s. " +
             "Creating unbound set.", config.getName());
       }
-      sortValuesSet = new SortValuesSet(this, id2entry);
+      sortValuesSet = new SortValuesSet(this);
       key.setData(new byte[0]);
     }
     else
@@ -608,7 +792,7 @@ public class VLVIndex extends DatabaseContainer
                             foundKeyHex);
       }
       sortValuesSet = new SortValuesSet(key.getData(), data.getData(),
-                                        this, id2entry);
+                                        this);
     }
 
 
@@ -643,6 +827,7 @@ public class VLVIndex extends DatabaseContainer
       byte[] after = sortValuesSet.toDatabase();
       data.setData(after);
       put(txn, key, data);
+      // TODO: What about phantoms?
     }
 
     if(success)
@@ -690,7 +875,7 @@ public class VLVIndex extends DatabaseContainer
                             foundKeyHex);
       }
       sortValuesSet = new SortValuesSet(key.getData(), data.getData(),
-                                        this, id2entry);
+                                        this);
       boolean success = sortValuesSet.remove(entryID, values);
       byte[] after = sortValuesSet.toDatabase();
       data.setData(after);
@@ -706,6 +891,223 @@ public class VLVIndex extends DatabaseContainer
     else
     {
       return false;
+    }
+  }
+
+  /**
+   * Update the vlvIndex with the specified values to add and delete.
+   *
+   * @param txn A database transaction, or null if none is required.
+   * @param addedValues The values to add to the VLV index.
+   * @param deletedValues The values to delete from the VLV index.
+   * @throws DatabaseException If an error occurs in the JE database.
+   * @throws DirectoryException If a Directory Server
+   * error occurs.
+   * @throws JebException If an error occurs in the JE backend.
+   */
+  public void updateIndex(Transaction txn,
+                          TreeSet<SortValues> addedValues,
+                          TreeSet<SortValues> deletedValues)
+      throws DirectoryException, DatabaseException, JebException
+  {
+    // Handle cases where nothing is changed early to avoid
+    // DB access.
+    if((addedValues == null || addedValues.size() == 0) &&
+        (deletedValues == null || deletedValues.size() == 0))
+    {
+      return;
+    }
+
+    DatabaseEntry key = new DatabaseEntry();
+    OperationStatus status;
+    LockMode lockMode = LockMode.RMW;
+    DatabaseEntry data = new DatabaseEntry();
+    SortValuesSet sortValuesSet;
+    Iterator<SortValues> aValues = null;
+    Iterator<SortValues> dValues = null;
+    SortValues av = null;
+    SortValues dv = null;
+
+    if(addedValues != null)
+    {
+      aValues = addedValues.iterator();
+      av = aValues.next();
+    }
+    if(deletedValues != null)
+    {
+      dValues = deletedValues.iterator();
+      dv = dValues.next();
+    }
+
+    while(true)
+    {
+      if(av != null)
+      {
+        if(dv != null)
+        {
+          // Start from the smallest values from either set.
+          if(av.compareTo(dv) < 0)
+          {
+            key.setData(encodeKey(av.getEntryID(), av.getValues()));
+          }
+          else
+          {
+            key.setData(encodeKey(dv.getEntryID(), dv.getValues()));
+          }
+        }
+        else
+        {
+          key.setData(encodeKey(av.getEntryID(), av.getValues()));
+        }
+      }
+      else if(dv != null)
+      {
+        key.setData(encodeKey(dv.getEntryID(), dv.getValues()));
+      }
+      else
+      {
+        break;
+      }
+
+      Cursor cursor = openCursor(txn, CursorConfig.READ_COMMITTED);
+
+      try
+      {
+        status = cursor.getSearchKeyRange(key, data,lockMode);
+      }
+      finally
+      {
+        cursor.close();
+      }
+
+      if(status != OperationStatus.SUCCESS)
+      {
+        // There are no records in the database
+        if(debugEnabled())
+        {
+          TRACER.debugVerbose("No sort values set exist in VLV vlvIndex %s. " +
+              "Creating unbound set.", config.getName());
+        }
+        sortValuesSet = new SortValuesSet(this);
+        key.setData(new byte[0]);
+      }
+      else
+      {
+        if(debugEnabled())
+        {
+          StringBuilder searchKeyHex = new StringBuilder();
+          StaticUtils.byteArrayToHexPlusAscii(searchKeyHex, key.getData(), 4);
+          StringBuilder foundKeyHex = new StringBuilder();
+          StaticUtils.byteArrayToHexPlusAscii(foundKeyHex, key.getData(), 4);
+          TRACER.debugVerbose("Retrieved a sort values set in VLV vlvIndex " +
+              "%s\nSearch Key:%s\nFound Key:%s\n",
+              config.getName(),
+              searchKeyHex,
+              foundKeyHex);
+        }
+        sortValuesSet = new SortValuesSet(key.getData(), data.getData(),
+            this);
+      }
+
+      int oldSize = sortValuesSet.size();
+      if(key.getData().length == 0)
+      {
+        // This is the last unbounded set.
+        while(av != null)
+        {
+          sortValuesSet.add(av.getEntryID(), av.getValues());
+          aValues.remove();
+          if(aValues.hasNext())
+          {
+            av = aValues.next();
+          }
+          else
+          {
+            av = null;
+          }
+        }
+
+        while(dv != null)
+        {
+          sortValuesSet.remove(dv.getEntryID(), dv.getValues());
+          dValues.remove();
+          if(dValues.hasNext())
+          {
+            dv = dValues.next();
+          }
+          else
+          {
+            dv = null;
+          }
+        }
+      }
+      else
+      {
+        SortValues maxValues = decodeKey(sortValuesSet.getKeyBytes());
+
+        while(av != null && av.compareTo(maxValues) <= 0)
+        {
+          sortValuesSet.add(av.getEntryID(), av.getValues());
+          aValues.remove();
+          if(aValues.hasNext())
+          {
+            av = aValues.next();
+          }
+          else
+          {
+            av = null;
+          }
+        }
+
+        while(dv != null && dv.compareTo(maxValues) <= 0)
+        {
+          sortValuesSet.remove(dv.getEntryID(), dv.getValues());
+          dValues.remove();
+          if(dValues.hasNext())
+          {
+            dv = dValues.next();
+          }
+          else
+          {
+            dv = null;
+          }
+        }
+      }
+
+      int newSize = sortValuesSet.size();
+      if(newSize >= sortedSetCapacity)
+      {
+        SortValuesSet splitSortValuesSet = sortValuesSet.split(newSize / 2);
+        byte[] splitAfter = splitSortValuesSet.toDatabase();
+        key.setData(splitSortValuesSet.getKeyBytes());
+        data.setData(splitAfter);
+        put(txn, key, data);
+        byte[] after = sortValuesSet.toDatabase();
+        key.setData(sortValuesSet.getKeyBytes());
+        data.setData(after);
+        put(txn, key, data);
+
+        if(debugEnabled())
+        {
+          TRACER.debugInfo("SortValuesSet with key %s has reached" +
+              " the entry size of %d. Spliting into two sets with " +
+              " keys %s and %s.", splitSortValuesSet.getKeySortValues(),
+              newSize, sortValuesSet.getKeySortValues(),
+              splitSortValuesSet.getKeySortValues());
+        }
+      }
+      else if(newSize == 0)
+      {
+        delete(txn, key);
+      }
+      else
+      {
+        byte[] after = sortValuesSet.toDatabase();
+        data.setData(after);
+        put(txn, key, data);
+      }
+
+      count.getAndAdd(newSize - oldSize);
     }
   }
 
@@ -924,8 +1326,7 @@ public class VLVIndex extends DatabaseContainer
                                   foundKeyHex);
             }
             SortValuesSet sortValuesSet =
-                new SortValuesSet(key.getData(), data.getData(), this,
-                                  id2entry);
+                new SortValuesSet(key.getData(), data.getData(), this);
             AttributeValue[] assertionValue = new AttributeValue[1];
             assertionValue[0] =
                 new AttributeValue(
@@ -1213,6 +1614,66 @@ public class VLVIndex extends DatabaseContainer
   }
 
   /**
+   * Decode a VLV database key.
+   *
+   * @param  keyBytes The byte array to decode.
+   * @return The sort values represented by the key bytes.
+   * @throws DirectoryException If a Directory Server error occurs.
+   */
+  SortValues decodeKey(byte[] keyBytes)
+      throws DirectoryException
+  {
+    if(keyBytes == null || keyBytes.length == 0)
+    {
+      return null;
+    }
+
+    AttributeValue[] attributeValues =
+        new AttributeValue[sortOrder.getSortKeys().length];
+    int vBytesPos = 0;
+
+    for(int i = 0; i < attributeValues.length; i++)
+    {
+      int valueLength = keyBytes[vBytesPos] & 0x7F;
+      if (valueLength != keyBytes[vBytesPos++])
+      {
+        int valueLengthBytes = valueLength;
+        valueLength = 0;
+        for (int j=0; j < valueLengthBytes; j++, vBytesPos++)
+        {
+          valueLength = (valueLength << 8) | (keyBytes[vBytesPos] & 0xFF);
+        }
+      }
+
+      if(valueLength == 0)
+      {
+        attributeValues[i] = null;
+      }
+      else
+      {
+        byte[] valueBytes = new byte[valueLength];
+        System.arraycopy(keyBytes, vBytesPos, valueBytes, 0, valueLength);
+        attributeValues[i] =
+            new AttributeValue(sortOrder.getSortKeys()[i].getAttributeType(),
+                new ASN1OctetString(valueBytes));
+      }
+
+      vBytesPos += valueLength;
+    }
+
+    // FIXME: Should pos+offset method for decoding IDs be added to
+    // JebFormat?
+    long v = 0;
+    for (int i = vBytesPos; i < keyBytes.length; i++)
+    {
+      v <<= 8;
+      v |= (keyBytes[i] & 0xFF);
+    }
+
+    return new SortValues(new EntryID(v), attributeValues, sortOrder);
+  }
+
+  /**
    * Get the sorted set capacity configured for this VLV index.
    *
    * @return The sorted set capacity.
@@ -1298,7 +1759,7 @@ public class VLVIndex extends DatabaseContainer
       if(attrType == null)
       {
         Message msg = ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
-                String.valueOf(sortKeys[i]), name);
+                sortAttrs[i], name);
         unacceptableReasons.add(msg);
         return false;
       }

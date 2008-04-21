@@ -185,6 +185,55 @@ public class Index extends DatabaseContainer
   }
 
   /**
+   * Add an add entry ID operation into a index buffer.
+   *
+   * @param buffer The index buffer to insert the ID into.
+   * @param keyBytes         The index key bytes.
+   * @param entryID     The entry ID.
+   * @return True if the entry ID is inserted or ignored because the entry limit
+   *         count is exceeded. False if it already exists in the entry ID set
+   *         for the given key.
+   */
+  public boolean insertID(IndexBuffer buffer, byte[] keyBytes,
+                          EntryID entryID)
+  {
+    TreeMap<byte[], IndexBuffer.BufferedIndexValues> bufferedOperations =
+        buffer.getBufferedIndex(this);
+    IndexBuffer.BufferedIndexValues values = null;
+
+    if(bufferedOperations == null)
+    {
+      bufferedOperations = new TreeMap<byte[],
+          IndexBuffer.BufferedIndexValues>(comparator);
+      buffer.putBufferedIndex(this, bufferedOperations);
+    }
+    else
+    {
+      values = bufferedOperations.get(keyBytes);
+    }
+
+    if(values == null)
+    {
+      values = new IndexBuffer.BufferedIndexValues();
+      bufferedOperations.put(keyBytes, values);
+    }
+
+    if(values.deletedIDs != null && values.deletedIDs.contains(entryID))
+    {
+      values.deletedIDs.remove(entryID);
+      return true;
+    }
+
+    if(values.addedIDs == null)
+    {
+      values.addedIDs = new EntryIDSet(keyBytes, null);
+    }
+
+    values.addedIDs.add(entryID);
+    return true;
+  }
+
+  /**
    * Insert an entry ID into the set of IDs indexed by a given key.
    *
    * @param txn A database transaction, or null if none is required.
@@ -378,6 +427,276 @@ public class Index extends DatabaseContainer
   }
 
   /**
+   * Update the set of entry IDs for a given key.
+   *
+   * @param txn A database transaction, or null if none is required.
+   * @param key The database key.
+   * @param deletedIDs The IDs to remove for the key.
+   * @param addedIDs the IDs to add for the key.
+   * @throws DatabaseException If a database error occurs.
+   */
+  void updateKey(Transaction txn, DatabaseEntry key,
+                 EntryIDSet deletedIDs, EntryIDSet addedIDs)
+      throws DatabaseException
+  {
+    OperationStatus status;
+    DatabaseEntry data = new DatabaseEntry();
+
+    // Handle cases where nothing is changed early to avoid
+    // DB access.
+    if(deletedIDs != null && deletedIDs.size() == 0 &&
+        (addedIDs == null || addedIDs.size() == 0))
+    {
+      return;
+    }
+
+    if(addedIDs != null && addedIDs.size() == 0 &&
+        (deletedIDs == null || deletedIDs.size() == 0))
+    {
+      return;
+    }
+
+
+    if(deletedIDs == null && addedIDs == null)
+    {
+      status = delete(txn, key);
+
+      if(status != OperationStatus.SUCCESS)
+      {
+        if(debugEnabled())
+        {
+          StringBuilder builder = new StringBuilder();
+          StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
+          TRACER.debugError("The expected key does not exist in the " +
+              "index %s.\nKey:%s", name, builder.toString());
+        }
+      }
+
+      return;
+    }
+
+    if(maintainCount)
+    {
+      for(int i = 0; i < phantomWriteRetires; i++)
+      {
+        if(updateKeyWithRMW(txn, key, data, deletedIDs, addedIDs) ==
+            OperationStatus.SUCCESS)
+        {
+          return;
+        }
+      }
+    }
+    else
+    {
+      status = read(txn, key, data, LockMode.READ_COMMITTED);
+      if(status == OperationStatus.SUCCESS)
+      {
+        EntryIDSet entryIDList =
+            new EntryIDSet(key.getData(), data.getData());
+
+        if (entryIDList.isDefined())
+        {
+          for(int i = 0; i < phantomWriteRetires; i++)
+          {
+            if(updateKeyWithRMW(txn, key, data, deletedIDs, addedIDs) ==
+                OperationStatus.SUCCESS)
+            {
+              return;
+            }
+          }
+        }
+      }
+      else
+      {
+        if(rebuildRunning || trusted)
+        {
+          if(deletedIDs != null)
+          {
+            if(debugEnabled())
+            {
+              StringBuilder builder = new StringBuilder();
+              StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
+              TRACER.debugError("The expected key does not exist in the " +
+                  "index %s.\nKey:%s", name, builder.toString());
+            }
+          }
+          data.setData(addedIDs.toDatabase());
+
+          status = insert(txn, key, data);
+          if(status == OperationStatus.KEYEXIST)
+          {
+            for(int i = 1; i < phantomWriteRetires; i++)
+            {
+              if(updateKeyWithRMW(txn, key, data, deletedIDs, addedIDs) ==
+                    OperationStatus.SUCCESS)
+              {
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private OperationStatus updateKeyWithRMW(Transaction txn,
+                                           DatabaseEntry key,
+                                           DatabaseEntry data,
+                                           EntryIDSet deletedIDs,
+                                           EntryIDSet addedIDs)
+      throws DatabaseException
+  {
+    OperationStatus status;
+
+    status = read(txn, key, data, LockMode.RMW);
+    if(status == OperationStatus.SUCCESS)
+    {
+      EntryIDSet entryIDList =
+          new EntryIDSet(key.getData(), data.getData());
+
+      if(addedIDs != null)
+      {
+        if(entryIDList.isDefined() && indexEntryLimit > 0)
+        {
+          long idCountDelta = addedIDs.size();
+          if(deletedIDs != null)
+          {
+            idCountDelta -= deletedIDs.size();
+          }
+          if(idCountDelta + entryIDList.size() >= indexEntryLimit)
+          {
+            if(maintainCount)
+            {
+              entryIDList = new EntryIDSet(entryIDList.size() + idCountDelta);
+            }
+            else
+            {
+              entryIDList = new EntryIDSet();
+            }
+            entryLimitExceededCount++;
+
+            if(debugEnabled())
+            {
+              StringBuilder builder = new StringBuilder();
+              StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
+              TRACER.debugInfo("Index entry exceeded in index %s. " +
+                  "Limit: %d. ID list size: %d.\nKey:",
+                  name, indexEntryLimit, idCountDelta + addedIDs.size(),
+                  builder);
+
+            }
+          }
+          else
+          {
+            entryIDList.addAll(addedIDs);
+            if(deletedIDs != null)
+            {
+              entryIDList.deleteAll(deletedIDs);
+            }
+          }
+        }
+        else
+        {
+          entryIDList.addAll(addedIDs);
+          if(deletedIDs != null)
+          {
+            entryIDList.deleteAll(deletedIDs);
+          }
+        }
+      }
+      else if(deletedIDs != null)
+      {
+        entryIDList.deleteAll(deletedIDs);
+      }
+
+      byte[] after = entryIDList.toDatabase();
+      if (after == null)
+      {
+        // No more IDs, so remove the key. If index is not
+        // trusted then this will cause all subsequent reads
+        // for this key to return undefined set.
+        return delete(txn, key);
+      }
+      else
+      {
+        data.setData(after);
+        return put(txn, key, data);
+      }
+    }
+    else
+    {
+      if(rebuildRunning || trusted)
+      {
+        if(deletedIDs != null)
+        {
+          if(debugEnabled())
+          {
+            StringBuilder builder = new StringBuilder();
+            StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
+            TRACER.debugError("The expected key does not exist in the " +
+                "index %s.\nKey:%s", name, builder.toString());
+          }
+        }
+        data.setData(addedIDs.toDatabase());
+        return insert(txn, key, data);
+      }
+      else
+      {
+        return OperationStatus.SUCCESS;
+      }
+    }
+  }
+
+  /**
+   * Add an remove entry ID operation into a index buffer.
+   *
+   * @param buffer The index buffer to insert the ID into.
+   * @param keyBytes    The index key bytes.
+   * @param entryID     The entry ID.
+   * @return True if the entry ID is inserted or ignored because the entry limit
+   *         count is exceeded. False if it already exists in the entry ID set
+   *         for the given key.
+   */
+  public boolean removeID(IndexBuffer buffer, byte[] keyBytes,
+                          EntryID entryID)
+  {
+    TreeMap<byte[], IndexBuffer.BufferedIndexValues> bufferedOperations =
+        buffer.getBufferedIndex(this);
+    IndexBuffer.BufferedIndexValues values = null;
+
+    if(bufferedOperations == null)
+    {
+      bufferedOperations = new TreeMap<byte[],
+          IndexBuffer.BufferedIndexValues>(comparator);
+      buffer.putBufferedIndex(this, bufferedOperations);
+    }
+    else
+    {
+      values = bufferedOperations.get(keyBytes);
+    }
+
+    if(values == null)
+    {
+      values = new IndexBuffer.BufferedIndexValues();
+      bufferedOperations.put(keyBytes, values);
+    }
+
+    if(values.addedIDs != null && values.addedIDs.contains(entryID))
+    {
+      values.addedIDs.remove(entryID);
+      return true;
+    }
+
+    if(values.deletedIDs == null)
+    {
+      values.deletedIDs = new EntryIDSet(keyBytes, null);
+    }
+
+    values.deletedIDs.add(entryID);
+    return true;
+  }
+
+  /**
    * Remove an entry ID from the set of IDs indexed by a given key.
    *
    * @param txn A database transaction, or null if none is required.
@@ -512,6 +831,35 @@ public class Index extends DatabaseContainer
 
         logError(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
       }
+    }
+  }
+
+  /**
+   * Buffered delete of a key from the JE database.
+   * @param buffer The index buffer to use to store the deleted keys
+   * @param keyBytes The index key bytes.
+   */
+  public void delete(IndexBuffer buffer, byte[] keyBytes)
+  {
+    TreeMap<byte[], IndexBuffer.BufferedIndexValues> bufferedOperations =
+        buffer.getBufferedIndex(this);
+    IndexBuffer.BufferedIndexValues values = null;
+
+    if(bufferedOperations == null)
+    {
+      bufferedOperations = new TreeMap<byte[],
+          IndexBuffer.BufferedIndexValues>(comparator);
+      buffer.putBufferedIndex(this, bufferedOperations);
+    }
+    else
+    {
+      values = bufferedOperations.get(keyBytes);
+    }
+
+    if(values == null)
+    {
+      values = new IndexBuffer.BufferedIndexValues();
+      bufferedOperations.put(keyBytes, values);
     }
   }
 
@@ -790,6 +1138,36 @@ public class Index extends DatabaseContainer
   }
 
   /**
+   * Update the index buffer for a deleted entry.
+   *
+   * @param buffer The index buffer to use to store the deleted keys
+   * @param entryID     The entry ID.
+   * @param entry       The entry to be indexed.
+   * @return True if all the indexType keys for the entry are added. False if
+   *         the entry ID already exists for some keys.
+   * @throws DatabaseException If an error occurs in the JE database.
+   * @throws DirectoryException If a Directory Server error occurs.
+   */
+  public boolean addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
+       throws DatabaseException, DirectoryException
+  {
+    HashSet<byte[]> addKeys = new HashSet<byte[]>();
+    boolean success = true;
+
+    indexer.indexEntry(null, entry, addKeys);
+
+    for (byte[] keyBytes : addKeys)
+    {
+      if(!insertID(buffer, keyBytes, entryID))
+      {
+        success = false;
+      }
+    }
+
+    return success;
+  }
+
+  /**
    * Update the index for a new entry.
    *
    * @param txn A database transaction, or null if none is required.
@@ -821,6 +1199,27 @@ public class Index extends DatabaseContainer
     return success;
   }
 
+  /**
+   * Update the index buffer for a deleted entry.
+   *
+   * @param buffer The index buffer to use to store the deleted keys
+   * @param entryID     The entry ID
+   * @param entry       The contents of the deleted entry.
+   * @throws DatabaseException If an error occurs in the JE database.
+   * @throws DirectoryException If a Directory Server error occurs.
+   */
+  public void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
+       throws DatabaseException, DirectoryException
+  {
+    HashSet<byte[]> delKeys = new HashSet<byte[]>();
+
+    indexer.indexEntry(null, entry, delKeys);
+
+    for (byte[] keyBytes : delKeys)
+    {
+      removeID(buffer, keyBytes, entryID);
+    }
+  }
 
   /**
    * Update the index for a deleted entry.
@@ -881,6 +1280,40 @@ public class Index extends DatabaseContainer
     {
       key.setData(keyBytes);
       insertID(txn, key, entryID);
+    }
+  }
+
+  /**
+   * Update the index to reflect a sequence of modifications in a Modify
+   * operation.
+   *
+   * @param buffer The index buffer to use to store the deleted keys
+   * @param entryID The ID of the entry that was modified.
+   * @param oldEntry The entry before the modifications were applied.
+   * @param newEntry The entry after the modifications were applied.
+   * @param mods The sequence of modifications in the Modify operation.
+   * @throws DatabaseException If an error occurs in the JE database.
+   */
+  public void modifyEntry(IndexBuffer buffer,
+                          EntryID entryID,
+                          Entry oldEntry,
+                          Entry newEntry,
+                          List<Modification> mods)
+       throws DatabaseException
+  {
+    TreeSet<byte[]> addKeys = new TreeSet<byte[]>(indexer.getComparator());
+    TreeSet<byte[]> delKeys = new TreeSet<byte[]>(indexer.getComparator());
+
+    indexer.modifyEntry(null, oldEntry, newEntry, mods, addKeys, delKeys);
+
+    for (byte[] keyBytes : delKeys)
+    {
+      removeID(buffer, keyBytes, entryID);
+    }
+
+    for (byte[] keyBytes : addKeys)
+    {
+      insertID(buffer, keyBytes, entryID);
     }
   }
 

@@ -203,7 +203,7 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
     // If we've gotten here, then we can't tell a difference between the sets
     // of available values, so sort based on entry ID if its in the key.
 
-    if(b1Pos + 8 < b1.length && b2Pos + 8 < b2.length)
+    if(b1Pos + 8 <= b1.length && b2Pos + 8 <= b2.length)
     {
       long b1ID = 0;
       for (int i = b1Pos; i < b1Pos + 8; i++)
@@ -273,7 +273,7 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
    *                              not acceptable for use with the
    *                              associated equality matching rule).
    */
-  public int compareValuesInSet(SortValuesSet set, int index,
+  public int compare(SortValuesSet set, int index,
                                 long entryID, AttributeValue[] values)
       throws JebException, DatabaseException, DirectoryException
   {

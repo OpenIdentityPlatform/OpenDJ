@@ -1460,8 +1460,7 @@ public class DBTest
                 StringBuilder builder = new StringBuilder();
                 SortValuesSet svs = new SortValuesSet(key.getData(),
                                                       data.getData(),
-                                                      index,
-                                                      null);
+                                                      index);
                 long[] entryIDs = svs.getEntryIDs();
                 for(int i = 0; i < entryIDs.length; i++)
                 {

@@ -5066,7 +5066,7 @@ public class PluginConfigManager
    *                            subordinate entry is associated.
    * @param  oldEntry           The subordinate entry prior to the move/rename
    *                            operation.
-   * @param  newEntry           The subordinate enry after the move/rename
+   * @param  newEntry           The subordinate entry after the move/rename
    *                            operation.
    * @param  modifications      A list into which any modifications made to the
    *                            target entry should be placed.

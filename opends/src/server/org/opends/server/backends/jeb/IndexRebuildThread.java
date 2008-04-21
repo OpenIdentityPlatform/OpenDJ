@@ -569,7 +569,7 @@ public class IndexRebuildThread extends DirectoryThread
             dn2uri.targetEntryReferrals(entry.getDN(), null);
 
             // Read the parent ID from dn2id.
-            EntryID parentID = dn2id.get(txn, parentDN);
+            EntryID parentID = dn2id.get(txn, parentDN, LockMode.DEFAULT);
             if (parentID != null)
             {
               // Insert into id2children for parent ID.
@@ -684,7 +684,7 @@ public class IndexRebuildThread extends DirectoryThread
             dn2uri.targetEntryReferrals(entry.getDN(), null);
 
             // Read the parent ID from dn2id.
-            EntryID parentID = dn2id.get(txn, parentDN);
+            EntryID parentID = dn2id.get(txn, parentDN, LockMode.DEFAULT);
             if (parentID != null)
             {
               // Insert into id2subtree for parent ID.
@@ -700,7 +700,7 @@ public class IndexRebuildThread extends DirectoryThread
                    dn = ec.getParentWithinBase(dn))
               {
                 // Read the ID from dn2id.
-                EntryID nodeID = dn2id.get(null, dn);
+                EntryID nodeID = dn2id.get(null, dn, LockMode.DEFAULT);
                 if (nodeID != null)
                 {
                   // Insert into id2subtree for this node.
@@ -921,7 +921,7 @@ public class IndexRebuildThread extends DirectoryThread
           skippedEntries++;
 
           Message message = ERR_JEB_REBUILD_INSERT_ENTRY_FAILED.get(
-              index.getName(), stackTraceToSingleLineString(e));
+              vlvIndex.getName(), stackTraceToSingleLineString(e));
           logError(message);
 
           if (debugEnabled())

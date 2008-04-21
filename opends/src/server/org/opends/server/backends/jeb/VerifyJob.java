@@ -615,7 +615,7 @@ public class VerifyJob
         Entry entry;
         try
         {
-          entry = id2entry.get(null, entryID);
+          entry = id2entry.get(null, entryID, LockMode.DEFAULT);
         }
         catch (Exception e)
         {
@@ -725,7 +725,7 @@ public class VerifyJob
           Entry entry;
           try
           {
-            entry = id2entry.get(null, entryID);
+            entry = id2entry.get(null, entryID, LockMode.DEFAULT);
           }
           catch (Exception e)
           {
@@ -753,7 +753,7 @@ public class VerifyJob
             Entry childEntry;
             try
             {
-              childEntry = id2entry.get(null, id);
+              childEntry = id2entry.get(null, id, LockMode.DEFAULT);
             }
             catch (Exception e)
             {
@@ -866,7 +866,7 @@ public class VerifyJob
           Entry entry;
           try
           {
-            entry = id2entry.get(null, entryID);
+            entry = id2entry.get(null, entryID, LockMode.DEFAULT);
           }
           catch (Exception e)
           {
@@ -894,7 +894,7 @@ public class VerifyJob
             Entry subordEntry;
             try
             {
-              subordEntry = id2entry.get(null, id);
+              subordEntry = id2entry.get(null, id, LockMode.DEFAULT);
             }
             catch (Exception e)
             {
@@ -1022,8 +1022,7 @@ public class VerifyJob
       while(status == OperationStatus.SUCCESS)
       {
         SortValuesSet sortValuesSet =
-            new SortValuesSet(key.getData(), data.getData(), vlvIndex,
-                              id2entry);
+            new SortValuesSet(key.getData(), data.getData(), vlvIndex);
         for(int i = 0; i < sortValuesSet.getEntryIDs().length; i++)
         {
           keyCount++;
@@ -1065,7 +1064,7 @@ public class VerifyJob
             EntryID id = new EntryID(values.getEntryID());
             try
             {
-              entry = id2entry.get(null, id);
+              entry = id2entry.get(null, id, LockMode.DEFAULT);
             }
             catch (Exception e)
             {
@@ -1279,7 +1278,7 @@ public class VerifyJob
             Entry entry;
             try
             {
-              entry = id2entry.get(null, id);
+              entry = id2entry.get(null, id, LockMode.DEFAULT);
             }
             catch (Exception e)
             {
@@ -1400,7 +1399,7 @@ public class VerifyJob
     // Check the ID is in dn2id with the correct DN.
     try
     {
-      EntryID id = dn2id.get(null, dn);
+      EntryID id = dn2id.get(null, dn, LockMode.DEFAULT);
       if (id == null)
       {
         if (debugEnabled())
@@ -1441,7 +1440,7 @@ public class VerifyJob
     {
       try
       {
-        EntryID id = dn2id.get(null, parentDN);
+        EntryID id = dn2id.get(null, parentDN, LockMode.DEFAULT);
         if (id == null)
         {
           if (debugEnabled())
@@ -1483,7 +1482,7 @@ public class VerifyJob
       EntryID parentID = null;
       try
       {
-        parentID = dn2id.get(null, parentDN);
+        parentID = dn2id.get(null, parentDN, LockMode.DEFAULT);
         if (parentID == null)
         {
           if (debugEnabled())
@@ -1555,7 +1554,7 @@ public class VerifyJob
       EntryID id = null;
       try
       {
-        id = dn2id.get(null, dn);
+        id = dn2id.get(null, dn, LockMode.DEFAULT);
         if (id == null)
         {
           if (debugEnabled())

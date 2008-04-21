@@ -205,10 +205,11 @@ public class DN2ID extends DatabaseContainer
    * @param txn A JE database transaction to be used for the database read, or
    * null if none is required.
    * @param dn The DN for which the entry ID is desired.
+   * @param lockMode The JE locking mode to be used for the read.
    * @return The entry ID, or null if the given DN is not in the DN database.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public EntryID get(Transaction txn, DN dn)
+  public EntryID get(Transaction txn, DN dn, LockMode lockMode)
        throws DatabaseException
   {
     DatabaseEntry key = DNdata(dn);

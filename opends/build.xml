@@ -1728,14 +1728,14 @@
     <echo message="      builds the server without the debug logging facility." />
     <echo message="      No debug logging messages will be included on test failures." />
     <echo message=""/>
-    <echo message="  -Dorg.opends.test.debug.target=org.opends.server.core:level=verbose,category=data"/>
+    <echo message="  -Dorg.opends.server.debug.target=org.opends.server.core:level=verbose,category=data"/>
     <echo message="      for example only include debug messages in the core"/>
     <echo message="      package that are related to data access and at the" />
     <echo message="      verbose level or higher. The syntax of this target" />
     <echo message="      definition is the same as the org.opends.server.debug.target.x" />
     <echo message="      property when starting ${SHORT_NAME}. " />
     <echo message="      Default debug target:"/>
-    <echo message="      org.opends.server:level=warning,category=caught|data|database-access|message|protocol,stack" />
+    <echo message="      org.opends.server:level=warning,category=caught|data|database-access|message|protocol,stack,cause" />
     <echo message=""/>
     <echo message="  -Dtest.diff.srcpath=src/server/org/opends/server/core"/>
     <echo message="      for example includes only the classes in"/>
@@ -1829,12 +1829,12 @@
       </not>
     </condition>
 
-    <!-- This sets org.opends.test.debug.target if and only if its's not
+    <!-- This sets org.opends.server.debug.target if and only if its's not
          already set. -->
-    <condition property="org.opends.test.debug.target"
-               value="org.opends.server:level=warning,category=caught|data|database-access|message|protocol,stack">
+    <condition property="org.opends.server.debug.target"
+               value="org.opends.server:level=warning,category=caught|data|database-access|message|protocol,stack,cause">
       <not>
-        <isset property="org.opends.test.debug.target" />
+        <isset property="org.opends.server.debug.target" />
       </not>
     </condition>
 
@@ -1932,7 +1932,7 @@
       <jvmarg value="-Dorg.opends.server.snmp.opendmk=${opendmk.lib.dir}"/>
       <jvmarg value="-Dorg.opends.test.suppressOutput=${org.opends.test.suppressOutput}" />
       <jvmarg value="-Dorg.opends.test.pauseOnFailure=${org.opends.test.pauseOnFailure}" />
-      <jvmarg value="-Dorg.opends.test.debug.target=${org.opends.test.debug.target}" />
+      <jvmarg value="-Dorg.opends.server.debug.target=${org.opends.server.debug.target}" />
       <jvmarg value="-Dorg.opends.test.copyClassesToTestPackage=${org.opends.test.copyClassesToTestPackage}" />
       <jvmarg value="-Dtest.progress=${test.progress}" />
       <jvmarg value="-Xms${MEM}" />
