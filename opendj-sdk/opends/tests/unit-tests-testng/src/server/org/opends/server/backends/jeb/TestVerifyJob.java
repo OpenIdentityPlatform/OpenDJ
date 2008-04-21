@@ -39,11 +39,10 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
-import com.sleepycat.je.Database;
-import com.sleepycat.je.DatabaseConfig;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Transaction;
+import com.sleepycat.je.LockMode;
 
 import java.util.*;
 
@@ -390,7 +389,7 @@ public class TestVerifyJob extends JebTestCase
       SortValuesSet svs =
           vlvIndex.getSortValuesSet(null, 0, new AttributeValue[3]);
       long id = svs.getEntryIDs()[0];
-      Entry entry = eContainer.getID2Entry().get(null, new EntryID(id));
+      Entry entry = eContainer.getID2Entry().get(null, new EntryID(id), LockMode.DEFAULT);
 
       SortValuesSet svs2 = svs.split(2);
       svs2.add(id, vlvIndex.getSortValues(entry));
@@ -400,7 +399,7 @@ public class TestVerifyJob extends JebTestCase
 
       // Muck up the values of another ID
       id = svs.getEntryIDs()[0];
-      entry = eContainer.getID2Entry().get(null, new EntryID(id));
+      entry = eContainer.getID2Entry().get(null, new EntryID(id), LockMode.DEFAULT);
       AttributeValue[] values = vlvIndex.getSortValues(entry);
       AttributeValue[] badValues = new AttributeValue[values.length];
       System.arraycopy(values, 1, badValues, 0, values.length - 1);
@@ -696,7 +695,7 @@ public class TestVerifyJob extends JebTestCase
       SortValuesSet svs =
           vlvIndex.getSortValuesSet(null, 0, new AttributeValue[3]);
       long id = svs.getEntryIDs()[0];
-      Entry entry = eContainer.getID2Entry().get(null, new EntryID(id));
+      Entry entry = eContainer.getID2Entry().get(null, new EntryID(id), LockMode.DEFAULT);
       svs.remove(id, vlvIndex.getSortValues(entry));
 
       // Add an incorrectly ordered values.
@@ -705,7 +704,7 @@ public class TestVerifyJob extends JebTestCase
 
       // Muck up the values of another ID
       id = svs.getEntryIDs()[0];
-      entry = eContainer.getID2Entry().get(null, new EntryID(id));
+      entry = eContainer.getID2Entry().get(null, new EntryID(id), LockMode.DEFAULT);
       AttributeValue[] values = vlvIndex.getSortValues(entry);
       AttributeValue[] badValues = new AttributeValue[values.length];
       System.arraycopy(values, 1, badValues, 0, values.length - 1);

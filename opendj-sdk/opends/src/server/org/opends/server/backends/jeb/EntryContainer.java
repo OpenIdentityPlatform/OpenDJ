@@ -29,10 +29,7 @@ import org.opends.messages.Message;
 
 import com.sleepycat.je.*;
 
-import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.Backend;
-import org.opends.server.api.EntryCache;
-import org.opends.server.api.ClientConnection;
+import org.opends.server.api.*;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -50,6 +47,7 @@ import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.ServerConstants;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -202,8 +200,6 @@ public class EntryContainer
 
   private int subtreeDeleteBatchSize;
 
-  private int indexEntryLimit;
-
   private String databasePrefix;
   /**
    * This class is responsible for managing the configuraiton for attribute
@@ -314,7 +310,66 @@ public class EntryContainer
     public boolean isConfigurationAddAcceptable(
         LocalDBVLVIndexCfg cfg, List<Message> unacceptableReasons)
     {
-      // TODO: validate more before returning true?
+      SearchFilter filter;
+      try
+      {
+        filter =
+            SearchFilter.createFilterFromString(cfg.getFilter());
+      }
+      catch(Exception e)
+      {
+        Message msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
+            cfg.getFilter(), cfg.getName(),
+            stackTraceToSingleLineString(e));
+        unacceptableReasons.add(msg);
+        return false;
+      }
+
+      String[] sortAttrs = cfg.getSortOrder().split(" ");
+      SortKey[] sortKeys = new SortKey[sortAttrs.length];
+      OrderingMatchingRule[] orderingRules =
+          new OrderingMatchingRule[sortAttrs.length];
+      boolean[] ascending = new boolean[sortAttrs.length];
+      for(int i = 0; i < sortAttrs.length; i++)
+      {
+        try
+        {
+          if(sortAttrs[i].startsWith("-"))
+          {
+            ascending[i] = false;
+            sortAttrs[i] = sortAttrs[i].substring(1);
+          }
+          else
+          {
+            ascending[i] = true;
+            if(sortAttrs[i].startsWith("+"))
+            {
+              sortAttrs[i] = sortAttrs[i].substring(1);
+            }
+          }
+        }
+        catch(Exception e)
+        {
+          Message msg =
+              ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
+                  String.valueOf(sortKeys[i]), cfg.getName());
+          unacceptableReasons.add(msg);
+          return false;
+        }
+
+        AttributeType attrType =
+            DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
+        if(attrType == null)
+        {
+          Message msg = ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
+              sortAttrs[i], cfg.getName());
+          unacceptableReasons.add(msg);
+          return false;
+        }
+        sortKeys[i] = new SortKey(attrType, ascending[i]);
+        orderingRules[i] = attrType.getOrderingMatchingRule();
+      }
+
       return true;
     }
 
@@ -449,7 +504,6 @@ public class EntryContainer
     this.deadlockRetryLimit = config.getDeadlockRetryLimit();
     this.subtreeDeleteSizeLimit = config.getSubtreeDeleteSizeLimit();
     this.subtreeDeleteBatchSize = config.getSubtreeDeleteBatchSize();
-    this.indexEntryLimit = config.getIndexEntryLimit();
 
     // Instantiate the attribute indexes.
     attrIndexMap = new HashMap<AttributeType, AttributeIndex>();
@@ -498,12 +552,12 @@ public class EntryContainer
 
       id2children = new Index(databasePrefix + "_" + ID2CHILDREN_DATABASE_NAME,
                               new ID2CIndexer(), state,
-                              indexEntryLimit, 0, true,
+                              config.getIndexEntryLimit(), 0, true,
                               env,this);
       id2children.open();
       id2subtree = new Index(databasePrefix + "_" + ID2SUBTREE_DATABASE_NAME,
                              new ID2SIndexer(), state,
-                             indexEntryLimit, 0, true,
+                             config.getIndexEntryLimit(), 0, true,
                              env, this);
       id2subtree.open();
 
@@ -753,7 +807,7 @@ public class EntryContainer
   public long getNumSubordinates(DN entryDN, boolean subtree)
       throws DatabaseException
   {
-    EntryID entryID = dn2id.get(null, entryDN);
+    EntryID entryID = dn2id.get(null, entryDN, LockMode.DEFAULT);
     if (entryID != null)
     {
       DatabaseEntry key =
@@ -1002,7 +1056,7 @@ public class EntryContainer
       if (entryIDList.size() > IndexFilter.FILTER_CANDIDATE_THRESHOLD)
       {
         // Read the ID from dn2id.
-        EntryID baseID = dn2id.get(null, baseDN);
+        EntryID baseID = dn2id.get(null, baseDN, LockMode.DEFAULT);
         if (baseID == null)
         {
           Message message =
@@ -1851,8 +1905,6 @@ public class EntryContainer
     public Transaction beginOperationTransaction() throws DatabaseException
     {
       Transaction txn =  beginTransaction();
-      // Multiple adds should never encounter a deadlock.
-      txn.setLockTimeout(0);
       return txn;
     }
 
@@ -1878,7 +1930,7 @@ public class EntryContainer
         throws DatabaseException, DirectoryException, JebException
     {
       // Check whether the entry already exists.
-      if (dn2id.get(txn, entry.getDN()) != null)
+      if (dn2id.get(txn, entry.getDN(), LockMode.DEFAULT) != null)
       {
         Message message =
             ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getDN().toString());
@@ -1894,7 +1946,7 @@ public class EntryContainer
         dn2uri.targetEntryReferrals(entry.getDN(), null);
 
         // Read the parent ID from dn2id.
-        parentID = dn2id.get(txn, parentDN);
+        parentID = dn2id.get(txn, parentDN, LockMode.DEFAULT);
         if (parentID == null)
         {
           Message message = ERR_JEB_ADD_NO_SUCH_OBJECT.get(
@@ -1961,7 +2013,7 @@ public class EntryContainer
              dn = getParentWithinBase(dn))
         {
           // Read the ID from dn2id.
-          EntryID nodeID = dn2id.get(txn, dn);
+          EntryID nodeID = dn2id.get(txn, dn, LockMode.DEFAULT);
           if (nodeID == null)
           {
             Message msg =
@@ -2040,212 +2092,6 @@ public class EntryContainer
   }
 
   /**
-   * Delete a leaf entry.
-   * The caller must be sure that the entry is indeed a leaf. We cannot
-   * rely on id2children to check for children since this entry may at
-   * one time have had enough children to exceed the index entry limit,
-   * after which the number of children IDs is unknown.
-   *
-   * @param id2cBuffered A buffered children index.
-   * @param id2sBuffered A buffered subtree index.
-   * @param txn    The database transaction.
-   * @param leafDN The DN of the leaf entry to be deleted.
-   * @param leafID The ID of the leaf entry.
-   * @throws DatabaseException If an error occurs in the JE database.
-   * @throws DirectoryException If a Directory Server error occurs.
-   * @throws JebException If an error occurs in the JE backend.
-   */
-  private void deleteLeaf(BufferedIndex id2cBuffered,
-                          BufferedIndex id2sBuffered,
-                          Transaction txn,
-                          DN leafDN,
-                          EntryID leafID)
-      throws DatabaseException, DirectoryException, JebException
-  {
-    // Check that the entry exists in id2entry and read its contents.
-    Entry entry = id2entry.get(txn, leafID);
-    if (entry == null)
-    {
-      Message msg = ERR_JEB_MISSING_ID2ENTRY_RECORD.get(leafID.toString());
-      throw new JebException(msg);
-    }
-
-    // Remove from dn2id.
-    if (!dn2id.remove(txn, leafDN))
-    {
-      // Do not expect to ever come through here.
-      Message message = ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDN.toString());
-      DN matchedDN = getMatchedDN(baseDN);
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-          message, matchedDN, null);
-    }
-
-    // Update the referral database.
-    dn2uri.deleteEntry(txn, entry);
-
-    // Remove from id2entry.
-    if (!id2entry.remove(txn, leafID))
-    {
-      Message msg = ERR_JEB_MISSING_ID2ENTRY_RECORD.get(leafID.toString());
-      throw new JebException(msg);
-    }
-
-    // Remove from the indexes, in index config order.
-    indexRemoveEntry(txn, entry, leafID);
-
-    // Make sure this entry either has no children in id2children,
-    // or that the index entry limit has been exceeded.
-    byte[] keyID = leafID.getDatabaseEntry().getData();
-    EntryIDSet children = id2cBuffered.get(keyID);
-    if (!children.isDefined())
-    {
-      id2cBuffered.remove(keyID);
-    }
-    else if (children.size() != 0)
-    {
-      Message message =
-          ERR_JEB_DELETE_NOT_ALLOWED_ON_NONLEAF.get(leafDN.toString());
-      throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF,
-                                   message);
-    }
-
-    // Make sure this entry either has no subordinates in id2subtree,
-    // or that the index entry limit has been exceeded.
-    EntryIDSet subordinates = id2sBuffered.get(keyID);
-    if (!subordinates.isDefined())
-    {
-      id2sBuffered.remove(keyID);
-    }
-    else if (subordinates.size() != 0)
-    {
-      Message message =
-          ERR_JEB_DELETE_NOT_ALLOWED_ON_NONLEAF.get(leafDN.toString());
-      throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF,
-                                   message);
-    }
-
-    // Iterate up through the superior entries.
-    boolean isParent = true;
-    for (DN dn = getParentWithinBase(leafDN); dn != null;
-         dn = getParentWithinBase(dn))
-    {
-      // Read the ID from dn2id.
-      EntryID nodeID = dn2id.get(txn, dn);
-      if (nodeID == null)
-      {
-        Message msg = ERR_JEB_MISSING_DN2ID_RECORD.get(dn.toNormalizedString());
-        throw new JebException(msg);
-      }
-      DatabaseEntry nodeIDData = nodeID.getDatabaseEntry();
-
-      // Remove from id2children.
-      if (isParent)
-      {
-        id2cBuffered.removeID(nodeIDData.getData(), leafID);
-        isParent = false;
-      }
-
-      // Remove from id2subtree for this node.
-      id2sBuffered.removeID(nodeIDData.getData(), leafID);
-    }
-  }
-
-  /**
-   * Delete the target entry of a delete operation, with appropriate handling
-   * of referral entries. The caller must be sure that the entry is indeed a
-   * leaf.
-   *
-   * @param manageDsaIT In the case where the target entry is a referral entry,
-   * this parameter should be true if the target is to be deleted, or false if
-   * the target should generate a referral.
-   * @param id2cBuffered A buffered children index.
-   * @param id2sBuffered A buffered subtree index.
-   * @param txn    The database transaction.
-   * @param leafDN The DN of the target entry to be deleted.
-   * @throws DatabaseException If an error occurs in the JE database.
-   * @throws DirectoryException If a Directory Server error occurs.
-   * @throws JebException If an error occurs in the JE backend.
-   */
-  private void deleteTarget(boolean manageDsaIT,
-                            BufferedIndex id2cBuffered,
-                            BufferedIndex id2sBuffered,
-                            Transaction txn,
-                            DN leafDN)
-      throws DatabaseException, DirectoryException, JebException
-  {
-    // Read the entry ID from dn2id.
-    EntryID leafID = dn2id.get(txn, leafDN);
-    if (leafID == null)
-    {
-      Message message = ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDN.toString());
-      DN matchedDN = getMatchedDN(baseDN);
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-          message, matchedDN, null);
-    }
-
-    // Check that the entry exists in id2entry and read its contents.
-    Entry entry = id2entry.get(txn, leafID);
-    if (entry == null)
-    {
-      Message msg = ERR_JEB_MISSING_ID2ENTRY_RECORD.get(leafID.toString());
-      throw new JebException(msg);
-    }
-
-    if (!manageDsaIT)
-    {
-      dn2uri.checkTargetForReferral(entry, null);
-    }
-
-    // Remove from dn2id.
-    if (!dn2id.remove(txn, leafDN))
-    {
-      // Do not expect to ever come through here.
-      Message message = ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDN.toString());
-      DN matchedDN = getMatchedDN(baseDN);
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-          message, matchedDN, null);
-    }
-
-    // Update the referral database.
-    dn2uri.deleteEntry(txn, entry);
-
-    // Remove from id2entry.
-    if (!id2entry.remove(txn, leafID))
-    {
-      Message msg = ERR_JEB_MISSING_ID2ENTRY_RECORD.get(leafID.toString());
-      throw new JebException(msg);
-    }
-
-    // Remove from the indexes, in index config order.
-    indexRemoveEntry(txn, entry, leafID);
-
-    // Iterate up through the superior entries.
-    boolean isParent = true;
-    for (DN dn = getParentWithinBase(leafDN); dn != null;
-         dn = getParentWithinBase(dn))
-    {
-      // Read the ID from dn2id.
-      EntryID nodeID = dn2id.get(txn, dn);
-      if (nodeID == null)
-      {
-        Message msg = ERR_JEB_MISSING_DN2ID_RECORD.get(dn.toNormalizedString());
-        throw new JebException(msg);
-      }
-      DatabaseEntry nodeIDData = nodeID.getDatabaseEntry();
-
-      // Remove from id2children.
-      if (isParent)
-      {
-        id2cBuffered.removeID(nodeIDData.getData(), leafID);
-        isParent = false;
-      }
-
-      // Remove from id2subtree for this node.
-      id2sBuffered.removeID(nodeIDData.getData(), leafID);
-    }
-  }
-
-  /**
    * This inner class implements the Delete Entry operation through
    * the TransactedOperation interface.
    */
@@ -2261,12 +2107,6 @@ public class EntryContainer
      */
     private DeleteOperation deleteOperation;
 
-    /**
-     * A list of the DNs of all entries deleted by this operation in a batch.
-     * The subtree delete control can cause multiple entries to be deleted.
-     */
-    private ArrayList<DN> deletedDNList;
-
 
     /**
      * Indicates whether the subtree delete size limit has been exceeded.
@@ -2281,9 +2121,19 @@ public class EntryContainer
 
 
     /**
-     * Indicates the count of deleted DNs in the Delete Operation.
+     * Indicates the total count of deleted DNs in the Delete Operation.
      */
-    private int countDeletedDN;
+    private int totalDeletedDN;
+
+    /**
+     * Indicates the batch count of deleted DNs in the Delete Operation.
+     */
+    private int batchDeletedDN;
+
+    /**
+     * The index buffer used to buffer up the index changes.
+     */
+    private IndexBuffer indexBuffer = null;
 
     /**
      * Create a new Delete Entry Transaction.
@@ -2294,7 +2144,6 @@ public class EntryContainer
     {
       this.entryDN = entryDN;
       this.deleteOperation = deleteOperation;
-      deletedDNList = new ArrayList<DN>();
     }
 
     /**
@@ -2322,7 +2171,7 @@ public class EntryContainer
     public void resetBatchSize()
     {
       batchSizeExceeded=false;
-      deletedDNList.clear();
+      batchDeletedDN = 0;
     }
 
     /**
@@ -2331,7 +2180,7 @@ public class EntryContainer
      */
     public int getDeletedEntryCount()
     {
-      return countDeletedDN;
+      return totalDeletedDN;
     }
 
     /**
@@ -2344,8 +2193,6 @@ public class EntryContainer
     public Transaction beginOperationTransaction() throws DatabaseException
     {
       Transaction txn =  beginTransaction();
-      // Multiple deletes should never encounter a deadlock.
-      txn.setLockTimeout(0);
       return txn;
     }
 
@@ -2364,8 +2211,6 @@ public class EntryContainer
       dn2uri.targetEntryReferrals(entryDN, null);
 
       // Determine whether this is a subtree delete.
-      int adminSizeLimit = subtreeDeleteSizeLimit;
-      int deleteBatchSize = subtreeDeleteBatchSize;
       boolean isSubtreeDelete = false;
       List<Control> controls = deleteOperation.getRequestControls();
       if (controls != null)
@@ -2403,11 +2248,10 @@ public class EntryContainer
 
       DatabaseEntry data = new DatabaseEntry();
       DatabaseEntry key = new DatabaseEntry(begin);
+      CursorConfig cursorConfig = new CursorConfig();
+      cursorConfig.setReadCommitted(true);
 
-      BufferedIndex id2cBuffered = new BufferedIndex(id2children, txn);
-      BufferedIndex id2sBuffered = new BufferedIndex(id2subtree, txn);
-
-      Cursor cursor = dn2id.openCursor(txn, null);
+      Cursor cursor = dn2id.openCursor(txn, cursorConfig);
       try
       {
         OperationStatus status;
@@ -2449,17 +2293,26 @@ public class EntryContainer
           }
 
           // Enforce any subtree delete size limit.
-          if (adminSizeLimit > 0 && countDeletedDN >= adminSizeLimit)
+          if (subtreeDeleteSizeLimit > 0 &&
+              totalDeletedDN >= subtreeDeleteSizeLimit)
           {
             adminSizeLimitExceeded = true;
             break;
           }
 
           // Enforce any subtree delete batch size.
-          if (deleteBatchSize > 0 && deletedDNList.size() >= deleteBatchSize)
+          if (subtreeDeleteBatchSize > 0 &&
+              batchDeletedDN >= subtreeDeleteBatchSize)
           {
             batchSizeExceeded = true;
             break;
+          }
+
+          // This is a subtree delete so crate a index buffer
+          // if it there isn't one.
+          if(indexBuffer == null)
+          {
+            indexBuffer = new IndexBuffer(EntryContainer.this);
           }
 
           /*
@@ -2468,11 +2321,10 @@ public class EntryContainer
            */
           EntryID entryID = new EntryID(data);
           DN subordinateDN = DN.decode(new ASN1OctetString(key.getData()));
-          deleteLeaf(id2cBuffered, id2sBuffered,
-                     txn, subordinateDN, entryID);
+          deleteEntry(txn, true, entryDN, subordinateDN, entryID);
 
-          deletedDNList.add(subordinateDN);
-          countDeletedDN++;
+          batchDeletedDN++;
+          totalDeletedDN++;
           status = cursor.getPrev(key, data, LockMode.DEFAULT);
         }
       }
@@ -2486,41 +2338,178 @@ public class EntryContainer
       if (!adminSizeLimitExceeded && !batchSizeExceeded)
       {
         // Enforce any subtree delete size limit.
-        if (adminSizeLimit > 0 && countDeletedDN >= adminSizeLimit)
+        if (subtreeDeleteSizeLimit > 0 &&
+            totalDeletedDN >= subtreeDeleteSizeLimit)
         {
           adminSizeLimitExceeded = true;
         }
-        else if (deleteBatchSize > 0 &&
-                                      deletedDNList.size() >= deleteBatchSize)
+        else if (subtreeDeleteBatchSize > 0 &&
+            batchDeletedDN >= subtreeDeleteBatchSize)
         {
           batchSizeExceeded = true;
         }
         else
         {
-          boolean manageDsaIT;
-          if (isSubtreeDelete)
-          {
-            // draft-armijo-ldap-treedelete, 4.1 Tree Delete Semantics:
-            // The server MUST NOT chase referrals stored in the tree.  If
-            // information about referrals is stored in this section of the
-            // tree, this pointer will be deleted.
-            manageDsaIT = true;
-          }
-          else
-          {
-            manageDsaIT = isManageDsaITOperation(deleteOperation);
-          }
-          deleteTarget(manageDsaIT, id2cBuffered, id2sBuffered, txn, entryDN);
+          // draft-armijo-ldap-treedelete, 4.1 Tree Delete Semantics:
+          // The server MUST NOT chase referrals stored in the tree.  If
+          // information about referrals is stored in this section of the
+          // tree, this pointer will be deleted.
+          deleteEntry(txn,
+              isSubtreeDelete || isManageDsaITOperation(deleteOperation),
+              entryDN, null, null);
 
-          deletedDNList.add(entryDN);
-          countDeletedDN++;
+          batchDeletedDN++;
+          totalDeletedDN++;
         }
       }
 
-      // Write out any buffered index values.
-      id2cBuffered.flush();
-      id2sBuffered.flush();
+      if(indexBuffer != null)
+      {
+        indexBuffer.flush(txn);
+      }
+    }
 
+    /**
+     * Delete an entry with appropriate handling of referral entries.
+     * The caller must be sure that the entry is indeed a leaf. We cannot
+     * rely on id2children to check for children since this entry may at
+     * one time have had enough children to exceed the index entry limit,
+     * after which the number of children IDs is unknown.
+     *
+     * @param txn    The database transaction.
+     * @param manageDsaIT Whether it is an manage DSA IT operation.
+     * @param targetDN The DN of the target entry.
+     * @param leafDN The DN of the leaf entry to be deleted.
+     * @param leafID The ID of the leaf entry.
+     * @throws DatabaseException If an error occurs in the JE database.
+     * @throws DirectoryException If a Directory Server error occurs.
+     * @throws JebException If an error occurs in the JE backend.
+     */
+    private void deleteEntry(Transaction txn,
+                             boolean manageDsaIT,
+                             DN targetDN,
+                             DN leafDN,
+                             EntryID leafID)
+        throws DatabaseException, DirectoryException, JebException
+    {
+      if(leafID == null || leafDN == null)
+      {
+        // Read the entry ID from dn2id.
+        leafDN = targetDN;
+        leafID = dn2id.get(txn, leafDN, LockMode.RMW);
+        if (leafID == null)
+        {
+          Message message =
+              ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDN.toString());
+          DN matchedDN = getMatchedDN(baseDN);
+          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+              message, matchedDN, null);
+        }
+      }
+
+      // Remove from dn2id.
+      if (!dn2id.remove(txn, leafDN))
+      {
+        // Do not expect to ever come through here.
+        Message message = ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDN.toString());
+        DN matchedDN = getMatchedDN(baseDN);
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+            message, matchedDN, null);
+      }
+
+      // Check that the entry exists in id2entry and read its contents.
+      Entry entry = id2entry.get(txn, leafID, LockMode.RMW);
+      if (entry == null)
+      {
+        Message msg = ERR_JEB_MISSING_ID2ENTRY_RECORD.get(leafID.toString());
+        throw new JebException(msg);
+      }
+
+      if (!manageDsaIT)
+      {
+        dn2uri.checkTargetForReferral(entry, null);
+      }
+
+      // Update the referral database.
+      dn2uri.deleteEntry(txn, entry);
+
+      // Remove from id2entry.
+      if (!id2entry.remove(txn, leafID))
+      {
+        Message msg = ERR_JEB_MISSING_ID2ENTRY_RECORD.get(leafID.toString());
+        throw new JebException(msg);
+      }
+
+      // Remove from the indexes, in index config order.
+      if(indexBuffer != null)
+      {
+       indexRemoveEntry(indexBuffer, entry, leafID);
+      }
+      else
+      {
+        indexRemoveEntry(txn, entry, leafID);
+      }
+
+      // Remove the id2c and id2s records for this entry.
+      if(indexBuffer != null)
+      {
+        byte[] leafIDKeyBytes =
+            JebFormat.entryIDToDatabase(leafID.longValue());
+        id2children.delete(indexBuffer, leafIDKeyBytes);
+        id2subtree.delete(indexBuffer, leafIDKeyBytes);
+      }
+      else
+      {
+        DatabaseEntry leafIDKey = leafID.getDatabaseEntry();
+        id2children.delete(txn, leafIDKey);
+        id2subtree.delete(txn, leafIDKey);
+      }
+
+      // Iterate up through the superior entries from the target entry.
+      boolean isParent = true;
+      for (DN parentDN = getParentWithinBase(targetDN); parentDN != null;
+           parentDN = getParentWithinBase(parentDN))
+      {
+        // Read the ID from dn2id.
+        EntryID parentID = dn2id.get(txn, parentDN, LockMode.DEFAULT);
+        if (parentID == null)
+        {
+          Message msg =
+              ERR_JEB_MISSING_DN2ID_RECORD.get(parentDN.toNormalizedString());
+          throw new JebException(msg);
+        }
+
+        if(indexBuffer != null)
+        {
+          byte[] parentIDBytes =
+              JebFormat.entryIDToDatabase(parentID.longValue());
+          // Remove from id2children.
+          if (isParent)
+          {
+            id2children.removeID(indexBuffer, parentIDBytes, leafID);
+            isParent = false;
+          }
+          id2subtree.removeID(indexBuffer, parentIDBytes, leafID);
+        }
+        else
+        {
+          DatabaseEntry nodeIDData = parentID.getDatabaseEntry();
+          // Remove from id2children.
+          if(isParent)
+          {
+            id2children.removeID(txn, nodeIDData, leafID);
+            isParent = false;
+          }
+          id2subtree.removeID(txn, nodeIDData, leafID);
+        }
+      }
+
+      // Remove the entry from the entry cache.
+      EntryCache entryCache = DirectoryServer.getEntryCache();
+      if (entryCache != null)
+      {
+        entryCache.removeEntry(leafDN);
+      }
     }
 
     /**
@@ -2529,15 +2518,7 @@ public class EntryContainer
      */
     public void postCommitAction()
     {
-      // Update the entry cache.
-      EntryCache entryCache = DirectoryServer.getEntryCache();
-      if (entryCache != null)
-      {
-        for (DN dn : deletedDNList)
-        {
-          entryCache.removeEntry(dn);
-        }
-      }
+
     }
   }
 
@@ -2570,7 +2551,7 @@ public class EntryContainer
     EntryID id = null;
     try
     {
-      id = dn2id.get(null, entryDN);
+      id = dn2id.get(null, entryDN, LockMode.DEFAULT);
     }
     catch (DatabaseException e)
     {
@@ -2707,7 +2688,7 @@ public class EntryContainer
                                                         JebException
     {
       // Read dn2id.
-      entryID = dn2id.get(txn, entryDN);
+      entryID = dn2id.get(txn, entryDN, LockMode.DEFAULT);
       if (entryID == null)
       {
         // The entryDN does not exist.
@@ -2719,7 +2700,7 @@ public class EntryContainer
       }
 
       // Read id2entry.
-      entry = id2entry.get(txn, entryID);
+      entry = id2entry.get(txn, entryID, LockMode.DEFAULT);
 
       if (entry == null)
       {
@@ -2811,7 +2792,7 @@ public class EntryContainer
                                                         JebException
     {
       // Read id2entry.
-      entry = id2entry.get(txn, entryID);
+      entry = id2entry.get(txn, entryID, LockMode.DEFAULT);
     }
 
     /**
@@ -2890,8 +2871,6 @@ public class EntryContainer
     public Transaction beginOperationTransaction() throws DatabaseException
     {
       Transaction txn =  beginTransaction();
-      // Multiple replace operations should never encounter a deadlock.
-      txn.setLockTimeout(0);
       return txn;
     }
 
@@ -2908,7 +2887,7 @@ public class EntryContainer
                                                         JebException
     {
       // Read dn2id.
-      entryID = dn2id.get(txn, entry.getDN());
+      entryID = dn2id.get(txn, entry.getDN(), LockMode.RMW);
       if (entryID == null)
       {
         // The entry does not exist.
@@ -2920,7 +2899,7 @@ public class EntryContainer
       }
 
       // Read id2entry for the original entry.
-      Entry originalEntry = id2entry.get(txn, entryID);
+      Entry originalEntry = id2entry.get(txn, entryID, LockMode.RMW);
       if (originalEntry == null)
       {
         // The entry does not exist.
@@ -3044,16 +3023,10 @@ public class EntryContainer
      */
     private ModifyDNOperation modifyDNOperation;
 
-
     /**
-     * A buffered children index.
+     * Whether the apex entry moved under another parent.
      */
-    private BufferedIndex id2cBuffered;
-
-    /**
-     * A buffered subtree index.
-     */
-    private BufferedIndex id2sBuffered;
+    private boolean isApexEntryMoved;
 
     /**
      * Create a new transacted operation for a Modify DN operation.
@@ -3069,6 +3042,19 @@ public class EntryContainer
       this.newSuperiorDN = getParentWithinBase(entry.getDN());
       this.newApexEntry = entry;
       this.modifyDNOperation = modifyDNOperation;
+
+      if(oldSuperiorDN != null)
+      {
+        this.isApexEntryMoved = ! oldSuperiorDN.equals(newSuperiorDN);
+      }
+      else if(newSuperiorDN != null)
+      {
+        this.isApexEntryMoved = ! newSuperiorDN.equals(oldSuperiorDN);
+      }
+      else
+      {
+        this.isApexEntryMoved = false;
+      }
     }
 
     /**
@@ -3079,19 +3065,13 @@ public class EntryContainer
      * @throws DirectoryException If a Directory Server error occurs.
      * @throws JebException If an error occurs in the JE backend.
      */
-    public void invokeOperation(Transaction txn) throws DatabaseException,
-        DirectoryException,
-        JebException
+    public void invokeOperation(Transaction txn)
+        throws DatabaseException, DirectoryException, JebException
     {
-      DN requestedNewSuperiorDN = null;
-
-      if(modifyDNOperation != null)
-      {
-        requestedNewSuperiorDN = modifyDNOperation.getNewSuperior();
-      }
+      IndexBuffer buffer = new IndexBuffer(EntryContainer.this);
 
       // Check whether the renamed entry already exists.
-      if (dn2id.get(txn, newApexEntry.getDN()) != null)
+      if (dn2id.get(txn, newApexEntry.getDN(), LockMode.DEFAULT) != null)
       {
         Message message = ERR_JEB_MODIFYDN_ALREADY_EXISTS.get(
             newApexEntry.getDN().toString());
@@ -3099,7 +3079,7 @@ public class EntryContainer
                                      message);
       }
 
-      EntryID oldApexID = dn2id.get(txn, oldApexDN);
+      EntryID oldApexID = dn2id.get(txn, oldApexDN, LockMode.DEFAULT);
       if (oldApexID == null)
       {
         // Check for referral entries above the target entry.
@@ -3112,7 +3092,7 @@ public class EntryContainer
             message, matchedDN, null);
       }
 
-      Entry oldApexEntry = id2entry.get(txn, oldApexID);
+      Entry oldApexEntry = id2entry.get(txn, oldApexID, LockMode.DEFAULT);
       if (oldApexEntry == null)
       {
         Message msg = ERR_JEB_MISSING_ID2ENTRY_RECORD.get(oldApexID.toString());
@@ -3124,18 +3104,15 @@ public class EntryContainer
         dn2uri.checkTargetForReferral(oldApexEntry, null);
       }
 
-      id2cBuffered = new BufferedIndex(id2children, txn);
-      id2sBuffered = new BufferedIndex(id2subtree, txn);
-
       EntryID newApexID = oldApexID;
-      if (newSuperiorDN != null)
+      if (newSuperiorDN != null && isApexEntryMoved)
       {
         /*
          * We want to preserve the invariant that the ID of an
          * entry is greater than its parent, since search
          * results are returned in ID order.
          */
-        EntryID newSuperiorID = dn2id.get(txn, newSuperiorDN);
+        EntryID newSuperiorID = dn2id.get(txn, newSuperiorDN, LockMode.DEFAULT);
         if (newSuperiorID == null)
         {
           Message msg =
@@ -3153,18 +3130,26 @@ public class EntryContainer
           // expensive since every entry has to be deleted from
           // and added back into the attribute indexes.
           newApexID = rootContainer.getNextEntryID();
+
+          if(debugEnabled())
+          {
+            TRACER.debugInfo("Move of target entry requires renumbering" +
+                "all entries in the subtree. " +
+                "Old DN: %s " +
+                "New DN: %s " +
+                "Old entry ID: %d " +
+                "New entry ID: %d " +
+                "New Superior ID: %d" +
+                oldApexEntry.getDN(), newApexEntry.getDN(),
+                oldApexID.longValue(), newApexID.longValue(),
+                newSuperiorID.longValue());
+          }
         }
       }
 
       // Move or rename the apex entry.
-      if (requestedNewSuperiorDN != null)
-      {
-        moveApexEntry(txn, oldApexID, newApexID, oldApexEntry, newApexEntry);
-      }
-      else
-      {
-        renameApexEntry(txn, oldApexID, oldApexEntry, newApexEntry);
-      }
+      renameApexEntry(txn, buffer, oldApexID, newApexID, oldApexEntry,
+            newApexEntry);
 
       /*
        * We will iterate forwards through a range of the dn2id keys to
@@ -3186,20 +3171,23 @@ public class EntryContainer
 
       DatabaseEntry data = new DatabaseEntry();
       DatabaseEntry key = new DatabaseEntry(begin);
+      int subordinateEntriesMoved = 0;
 
-      Cursor cursor = dn2id.openCursor(txn, null);
+      CursorConfig cursorConfig = new CursorConfig();
+      cursorConfig.setReadCommitted(true);
+      Cursor cursor = dn2id.openCursor(txn, cursorConfig);
       try
       {
         OperationStatus status;
 
         // Initialize the cursor very close to the starting value.
-        status = cursor.getSearchKeyRange(key, data, LockMode.RMW);
+        status = cursor.getSearchKeyRange(key, data, LockMode.DEFAULT);
 
         // Step forward until the key is greater than the starting value.
         while (status == OperationStatus.SUCCESS &&
             dn2id.getComparator().compare(key.getData(), begin) <= 0)
         {
-          status = cursor.getNext(key, data, LockMode.RMW);
+          status = cursor.getNext(key, data, LockMode.DEFAULT);
         }
 
         // Step forward until we pass the ending value.
@@ -3215,33 +3203,44 @@ public class EntryContainer
           // We have found a subordinate entry.
 
           EntryID oldID = new EntryID(data);
-          Entry oldEntry = id2entry.get(txn, oldID);
+          Entry oldEntry = id2entry.get(txn, oldID, LockMode.DEFAULT);
 
           // Construct the new DN of the entry.
           DN newDN = modDN(oldEntry.getDN(),
                            oldApexDN.getNumComponents(),
                            newApexEntry.getDN());
 
-          if (requestedNewSuperiorDN != null)
+          // Assign a new entry ID if we are renumbering.
+          EntryID newID = oldID;
+          if (!newApexID.equals(oldApexID))
           {
-            // Assign a new entry ID if we are renumbering.
-            EntryID newID = oldID;
-            if (!newApexID.equals(oldApexID))
-            {
-              newID = rootContainer.getNextEntryID();
-            }
+            newID = rootContainer.getNextEntryID();
 
-            // Move this entry.
-            moveSubordinateEntry(txn, oldID, newID, oldEntry, newDN);
+            if(debugEnabled())
+            {
+              TRACER.debugInfo("Move of subordinate entry requires " +
+                  "renumbering. " +
+                  "Old DN: %s " +
+                  "New DN: %s " +
+                  "Old entry ID: %d " +
+                  "New entry ID: %d",
+                  oldEntry.getDN(), newDN, oldID.longValue(),
+                  newID.longValue());
+            }
           }
-          else
+
+          // Move this entry.
+          renameSubordinateEntry(txn, buffer, oldID, newID, oldEntry, newDN);
+          subordinateEntriesMoved++;
+
+          if(subordinateEntriesMoved >= subtreeDeleteBatchSize)
           {
-            // Rename this entry.
-            renameSubordinateEntry(txn, oldID, oldEntry, newDN);
+            buffer.flush(txn);
+            subordinateEntriesMoved = 0;
           }
 
           // Get the next DN.
-          status = cursor.getNext(key, data, LockMode.RMW);
+          status = cursor.getNext(key, data, LockMode.DEFAULT);
         }
       }
       finally
@@ -3249,8 +3248,7 @@ public class EntryContainer
         cursor.close();
       }
 
-      id2cBuffered.flush();
-      id2sBuffered.flush();
+      buffer.flush(txn);
     }
 
     /**
@@ -3262,116 +3260,7 @@ public class EntryContainer
      */
     public Transaction beginOperationTransaction() throws DatabaseException
     {
-      Transaction txn =  beginTransaction();
-      return txn;
-    }
-
-    /**
-     * Update the database for the target entry of a ModDN operation
-     * specifying a new superior.
-     *
-     * @param txn The database transaction to be used for the updates.
-     * @param oldID The original ID of the target entry.
-     * @param newID The new ID of the target entry, or the original ID if
-     *              the ID has not changed.
-     * @param oldEntry The original contents of the target entry.
-     * @param newEntry The new contents of the target entry.
-     * @throws JebException If an error occurs in the JE backend.
-     * @throws DirectoryException If a Directory Server error occurs.
-     * @throws DatabaseException If an error occurs in the JE database.
-     */
-    private void moveApexEntry(Transaction txn,
-                               EntryID oldID, EntryID newID,
-                               Entry oldEntry, Entry newEntry)
-        throws JebException, DirectoryException, DatabaseException
-    {
-      DN oldDN = oldEntry.getDN();
-      DN newDN = newEntry.getDN();
-      DN newParentDN = getParentWithinBase(newDN);
-
-      // Remove the old DN from dn2id.
-      dn2id.remove(txn, oldDN);
-
-      // Insert the new DN in dn2id.
-      if (!dn2id.insert(txn, newDN, newID))
-      {
-        Message message = ERR_JEB_MODIFYDN_ALREADY_EXISTS.get(newDN.toString());
-        throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
-                                     message);
-      }
-
-      // Update any referral records.
-      dn2uri.replaceEntry(txn, oldEntry, newEntry);
-
-      // Remove the old ID from id2entry.
-      if (!newID.equals(oldID) || modifyDNOperation == null)
-      {
-        id2entry.remove(txn, oldID);
-
-        // Remove the old ID from the indexes.
-        indexRemoveEntry(txn, oldEntry, oldID);
-
-        // Insert the new ID into the indexes.
-        indexInsertEntry(txn, newEntry, newID);
-      }
-      else
-      {
-        // Update indexes only for those attributes that changed.
-        indexModifications(txn, oldEntry, newEntry, oldID,
-                           modifyDNOperation.getModifications());
-      }
-
-      // Put the new entry in id2entry.
-      id2entry.put(txn, newID, newEntry);
-
-      // Remove the old parentID:ID from id2children.
-      DN oldParentDN = getParentWithinBase(oldDN);
-      if (oldParentDN != null)
-      {
-        EntryID currentParentID = dn2id.get(txn, oldParentDN);
-        id2cBuffered.removeID(currentParentID.getDatabaseEntry().getData(),
-                              oldID);
-      }
-
-      // Put the new parentID:ID in id2children.
-      if (newParentDN != null)
-      {
-        EntryID parentID = dn2id.get(txn, newParentDN);
-        id2cBuffered.insertID(indexEntryLimit,
-                              parentID.getDatabaseEntry().getData(),
-                              newID);
-      }
-
-
-      // Remove the old nodeID:ID from id2subtree.
-      for (DN dn = getParentWithinBase(oldDN); dn != null;
-           dn = getParentWithinBase(dn))
-      {
-        EntryID nodeID = dn2id.get(txn, dn);
-        id2sBuffered.removeID(nodeID.getDatabaseEntry().getData(), oldID);
-      }
-
-      // Put the new nodeID:ID in id2subtree.
-      for (DN dn = newParentDN; dn != null; dn = getParentWithinBase(dn))
-      {
-        EntryID nodeID = dn2id.get(txn, dn);
-        id2sBuffered.insertID(indexEntryLimit,
-                              nodeID.getDatabaseEntry().getData(), newID);
-      }
-
-      if (!newID.equals(oldID))
-      {
-        // All the subordinates will be renumbered.
-        id2cBuffered.remove(oldID.getDatabaseEntry().getData());
-        id2sBuffered.remove(oldID.getDatabaseEntry().getData());
-      }
-
-      // Remove the entry from the entry cache.
-      EntryCache entryCache = DirectoryServer.getEntryCache();
-      if (entryCache != null)
-      {
-        entryCache.removeEntry(oldDN);
-      }
+      return beginTransaction();
     }
 
     /**
@@ -3379,14 +3268,17 @@ public class EntryContainer
      * not specifying a new superior.
      *
      * @param txn The database transaction to be used for the updates.
-     * @param entryID The ID of the target entry.
+     * @param buffer The index buffer used to buffer up the index changes.
+     * @param oldID The old ID of the target entry.
+     * @param newID The new ID of the target entry.
      * @param oldEntry The original contents of the target entry.
      * @param newEntry The new contents of the target entry.
      * @throws DirectoryException If a Directory Server error occurs.
      * @throws DatabaseException If an error occurs in the JE database.
      * @throws JebException if an error occurs in the JE database.
      */
-    private void renameApexEntry(Transaction txn, EntryID entryID,
+    private void renameApexEntry(Transaction txn, IndexBuffer buffer,
+                                 EntryID oldID, EntryID newID,
                                  Entry oldEntry, Entry newEntry)
         throws DirectoryException, DatabaseException, JebException
     {
@@ -3396,33 +3288,83 @@ public class EntryContainer
       // Remove the old DN from dn2id.
       dn2id.remove(txn, oldDN);
 
-      // Insert the new DN in dn2id.
-      if (!dn2id.insert(txn, newDN, entryID))
+      // Put the new DN in dn2id.
+      if (!dn2id.insert(txn, newDN, newID))
       {
         Message message = ERR_JEB_MODIFYDN_ALREADY_EXISTS.get(newDN.toString());
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
-                                     message);
+            message);
       }
+
+      // Remove old ID from id2entry and put the new entry
+      // (old entry with new DN) in id2entry.
+      if (!newID.equals(oldID))
+      {
+        id2entry.remove(txn, oldID);
+      }
+      id2entry.put(txn, newID, newEntry);
 
       // Update any referral records.
       dn2uri.replaceEntry(txn, oldEntry, newEntry);
 
-      // Replace the entry in id2entry.
-      id2entry.put(txn, entryID, newEntry);
-
-      if(modifyDNOperation == null)
+      // Remove the old ID from id2children and id2subtree of
+      // the old apex parent entry.
+      if(oldSuperiorDN != null && isApexEntryMoved)
       {
-        // Remove the old ID from the indexes.
-        indexRemoveEntry(txn, oldEntry, entryID);
+        EntryID parentID;
+        byte[] parentIDKeyBytes;
+        boolean isParent = true;
+        for (DN dn = oldSuperiorDN; dn != null; dn = getParentWithinBase(dn))
+        {
+          parentID = dn2id.get(txn, dn, LockMode.DEFAULT);
+          parentIDKeyBytes =
+              JebFormat.entryIDToDatabase(parentID.longValue());
+          if(isParent)
+          {
+            id2children.removeID(buffer, parentIDKeyBytes, oldID);
+            isParent = false;
+          }
+          id2subtree.removeID(buffer, parentIDKeyBytes, oldID);
+        }
+      }
 
-        // Insert the new ID into the indexes.
-        indexInsertEntry(txn, newEntry, entryID);
+      if (!newID.equals(oldID) || modifyDNOperation == null)
+      {
+        // All the subordinates will be renumbered so we have to rebuild
+        // id2c and id2s with the new ID.
+        byte[] oldIDKeyBytes = JebFormat.entryIDToDatabase(oldID.longValue());
+        id2children.delete(buffer, oldIDKeyBytes);
+        id2subtree.delete(buffer, oldIDKeyBytes);
+
+        // Reindex the entry with the new ID.
+        indexRemoveEntry(buffer, oldEntry, oldID);
+        indexInsertEntry(buffer, newEntry, newID);
       }
       else
       {
-        // Update indexes only for those attributes that changed.
-        indexModifications(txn, oldEntry, newEntry, entryID,
-                           modifyDNOperation.getModifications());
+        // Update the indexes if needed.
+        indexModifications(buffer, oldEntry, newEntry, oldID,
+            modifyDNOperation.getModifications());
+      }
+
+      // Add the new ID to id2children and id2subtree of new apex parent entry.
+      if(newSuperiorDN != null && isApexEntryMoved)
+      {
+        EntryID parentID;
+        byte[] parentIDKeyBytes;
+        boolean isParent = true;
+        for (DN dn = newSuperiorDN; dn != null; dn = getParentWithinBase(dn))
+        {
+          parentID = dn2id.get(txn, dn, LockMode.DEFAULT);
+          parentIDKeyBytes =
+              JebFormat.entryIDToDatabase(parentID.longValue());
+          if(isParent)
+          {
+            id2children.insertID(buffer, parentIDKeyBytes, newID);
+            isParent = false;
+          }
+          id2subtree.insertID(buffer, parentIDKeyBytes, newID);
+        }
       }
 
       // Remove the entry from the entry cache.
@@ -3438,6 +3380,7 @@ public class EntryContainer
      * of a Modify DN operation specifying a new superior.
      *
      * @param txn The database transaction to be used for the updates.
+     * @param buffer The index buffer used to buffer up the index changes.
      * @param oldID The original ID of the subordinate entry.
      * @param newID The new ID of the subordinate entry, or the original ID if
      *              the ID has not changed.
@@ -3447,13 +3390,57 @@ public class EntryContainer
      * @throws DirectoryException If a Directory Server error occurs.
      * @throws DatabaseException If an error occurs in the JE database.
      */
-    private void moveSubordinateEntry(Transaction txn,
-                                      EntryID oldID, EntryID newID,
-                                      Entry oldEntry, DN newDN)
+    private void renameSubordinateEntry(Transaction txn, IndexBuffer buffer,
+                                        EntryID oldID, EntryID newID,
+                                        Entry oldEntry, DN newDN)
         throws JebException, DirectoryException, DatabaseException
     {
       DN oldDN = oldEntry.getDN();
-      DN newParentDN = getParentWithinBase(newDN);
+      Entry newEntry = oldEntry.duplicate(false);
+      newEntry.setDN(newDN);
+      List<Modification> modifications =
+          Collections.unmodifiableList(new ArrayList<Modification>(0));
+
+      // Create a new entry that is a copy of the old entry but with the new DN.
+      // Also invoke any subordinate modify DN plugins on the entry.
+      // FIXME -- At the present time, we don't support subordinate modify DN
+      //          plugins that make changes to subordinate entries and therefore
+      //          provide an unmodifiable list for the modifications element.
+      // FIXME -- This will need to be updated appropriately if we decided that
+      //          these plugins should be invoked for synchronization
+      //          operations.
+      if (! modifyDNOperation.isSynchronizationOperation())
+      {
+        PluginConfigManager pluginManager =
+            DirectoryServer.getPluginConfigManager();
+        PluginResult.SubordinateModifyDN pluginResult =
+            pluginManager.invokeSubordinateModifyDNPlugins(
+                modifyDNOperation, oldEntry, newEntry, modifications);
+
+        if (!pluginResult.continueProcessing())
+        {
+          Message message = ERR_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_PLUGIN.get(
+              oldDN.toString(), newDN.toString());
+          throw new DirectoryException(
+              DirectoryServer.getServerErrorResultCode(), message);
+        }
+
+        if (! modifications.isEmpty())
+        {
+          MessageBuilder invalidReason = new MessageBuilder();
+          if (! newEntry.conformsToSchema(null, false, false, false,
+              invalidReason))
+          {
+            Message message =
+                ERR_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_SCHEMA_ERROR.get(
+                    oldDN.toString(),
+                    newDN.toString(),
+                    invalidReason.toString());
+            throw new DirectoryException(
+                DirectoryServer.getServerErrorResultCode(), message);
+          }
+        }
+      }
 
       // Remove the old DN from dn2id.
       dn2id.remove(txn, oldDN);
@@ -3463,211 +3450,83 @@ public class EntryContainer
       {
         Message message = ERR_JEB_MODIFYDN_ALREADY_EXISTS.get(newDN.toString());
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
-                                     message);
+            message);
       }
 
-      // Delete any existing referral records for the old DN.
-      dn2uri.deleteEntry(txn, oldEntry);
-
-      // Remove old ID from id2entry.
+      // Remove old ID from id2entry and put the new entry
+      // (old entry with new DN) in id2entry.
       if (!newID.equals(oldID))
       {
         id2entry.remove(txn, oldID);
-
-        // Update the attribute indexes.
-        for (AttributeIndex index : attrIndexMap.values())
-        {
-          index.removeEntry(txn, oldID, oldEntry);
-
-          index.addEntry(txn, newID, oldEntry);
-        }
-
       }
-
-
-      // Create a new entry that is a copy of the old entry but with the new DN.
-      // Also invoke any subordinate modify DN plugins on the entry.
-      // FIXME -- At the present time, we don't support subordinate modify DN
-      //          plugins that make changes to subordinate entries and therefore
-      //          provide an unmodifiable list for the modifications element.
-      // FIXME -- This will need to be updated appropriately if we decided that
-      //          these plugins should be invoked for synchronization
-      //          operations.
-      Entry newEntry = oldEntry.duplicate(false);
-      newEntry.setDN(newDN);
-
-      if (! modifyDNOperation.isSynchronizationOperation())
-      {
-        PluginConfigManager pluginManager =
-             DirectoryServer.getPluginConfigManager();
-        List<Modification> modifications =
-             Collections.unmodifiableList(new ArrayList<Modification>(0));
-        PluginResult.SubordinateModifyDN pluginResult =
-             pluginManager.invokeSubordinateModifyDNPlugins(
-                  modifyDNOperation, oldEntry, newEntry, modifications);
-
-        if (!pluginResult.continueProcessing())
-        {
-          Message message = ERR_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_PLUGIN.get(
-                  oldDN.toString(), newDN.toString());
-          throw new DirectoryException(
-                  DirectoryServer.getServerErrorResultCode(), message);
-        }
-
-        if (! modifications.isEmpty())
-        {
-          indexModifications(txn, oldEntry, newEntry, newID, modifications);
-
-          MessageBuilder invalidReason = new MessageBuilder();
-          if (! newEntry.conformsToSchema(null, false, false, false,
-                                          invalidReason))
-          {
-            Message message =
-                    ERR_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_SCHEMA_ERROR.get(
-                            oldDN.toString(),
-                            newDN.toString(),
-                            invalidReason.toString());
-            throw new DirectoryException(
-                           DirectoryServer.getServerErrorResultCode(), message);
-          }
-        }
-      }
-
-
-      // Add any referral records for the new DN.
-      dn2uri.addEntry(txn, newEntry);
-
-      // Put the new entry (old entry with new DN) in id2entry.
       id2entry.put(txn, newID, newEntry);
+
+      // Update any referral records.
+      dn2uri.replaceEntry(txn, oldEntry, newEntry);
+
+      if(isApexEntryMoved)
+      {
+        // Remove the old ID from id2subtree of old apex superior entries.
+        for (DN dn = oldSuperiorDN; dn != null; dn = getParentWithinBase(dn))
+        {
+          EntryID parentID = dn2id.get(txn, dn, LockMode.DEFAULT);
+          byte[] parentIDKeyBytes =
+              JebFormat.entryIDToDatabase(parentID.longValue());
+          id2subtree.removeID(buffer, parentIDKeyBytes, oldID);
+        }
+      }
 
       if (!newID.equals(oldID))
       {
-        // All the subordinates will be renumbered.
-        id2cBuffered.remove(oldID.getDatabaseEntry().getData());
-        id2sBuffered.remove(oldID.getDatabaseEntry().getData());
+        // All the subordinates will be renumbered so we have to rebuild
+        // id2c and id2s with the new ID.
+        byte[] oldIDKeyBytes = JebFormat.entryIDToDatabase(oldID.longValue());
+        id2children.delete(buffer, oldIDKeyBytes);
+        id2subtree.delete(buffer, oldIDKeyBytes);
 
-        // Put the new parentID:ID in id2children.
-        if (newParentDN != null)
+        // Add new ID to the id2c and id2s of our new parent and
+        // new ID to id2s up the tree.
+        EntryID newParentID;
+        byte[] parentIDKeyBytes;
+        boolean isParent = true;
+        for (DN superiorDN = newDN; superiorDN != null;
+             superiorDN = getParentWithinBase(superiorDN))
         {
-          EntryID parentID = dn2id.get(txn, newParentDN);
-          id2cBuffered.insertID(indexEntryLimit,
-                                parentID.getDatabaseEntry().getData(),
-                                newID);
-        }
-      }
-
-      // Remove the old nodeID:ID from id2subtree
-      for (DN dn = oldSuperiorDN; dn != null; dn = getParentWithinBase(dn))
-      {
-        EntryID nodeID = dn2id.get(txn, dn);
-        id2sBuffered.removeID(nodeID.getDatabaseEntry().getData(),
-                              oldID);
-      }
-
-      // Put the new nodeID:ID in id2subtree.
-      for (DN dn = newParentDN; dn != null; dn = getParentWithinBase(dn))
-      {
-        if (!newID.equals(oldID) || dn.isAncestorOf(newSuperiorDN))
-        {
-          EntryID nodeID = dn2id.get(txn, dn);
-          id2sBuffered.insertID(indexEntryLimit,
-                                nodeID.getDatabaseEntry().getData(), newID);
-        }
-      }
-
-      // Remove the entry from the entry cache.
-      EntryCache entryCache = DirectoryServer.getEntryCache();
-      if (entryCache != null)
-      {
-        entryCache.removeEntry(oldDN);
-      }
-    }
-
-    /**
-     * Update the database for a subordinate entry of the target entry
-     * of a Modify DN operation not specifying a new superior.
-     *
-     * @param txn The database transaction to be used for the updates.
-     * @param entryID The ID of the subordinate entry.
-     * @param oldEntry The original contents of the subordinate entry.
-     * @param newDN The new DN of the subordinate entry.
-     * @throws DirectoryException If a Directory Server error occurs.
-     * @throws DatabaseException If an error occurs in the JE database.
-     */
-    private void renameSubordinateEntry(Transaction txn, EntryID entryID,
-                                        Entry oldEntry, DN newDN)
-        throws DirectoryException, JebException, DatabaseException
-    {
-      DN oldDN = oldEntry.getDN();
-
-      // Remove the old DN from dn2id.
-      dn2id.remove(txn, oldDN);
-
-      // Insert the new DN in dn2id.
-      if (!dn2id.insert(txn, newDN, entryID))
-      {
-        Message message = ERR_JEB_MODIFYDN_ALREADY_EXISTS.get(newDN.toString());
-        throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
-                                     message);
-      }
-
-      // Delete any existing referral records for the old DN.
-      dn2uri.deleteEntry(txn, oldEntry);
-
-
-      // Create a new entry that is a copy of the old entry but with the new DN.
-      // Also invoke any subordinate modify DN plugins on the entry.
-      // FIXME -- At the present time, we don't support subordinate modify DN
-      //          plugins that make changes to subordinate entries and therefore
-      //          provide an unmodifiable list for the modifications element.
-      // FIXME -- This will need to be updated appropriately if we decided that
-      //          these plugins should be invoked for synchronization
-      //          operations.
-      Entry newEntry = oldEntry.duplicate(false);
-      newEntry.setDN(newDN);
-
-      if (! modifyDNOperation.isSynchronizationOperation())
-      {
-        PluginConfigManager pluginManager =
-             DirectoryServer.getPluginConfigManager();
-        List<Modification> modifications =
-             Collections.unmodifiableList(new ArrayList<Modification>(0));
-        PluginResult.SubordinateModifyDN pluginResult =
-             pluginManager.invokeSubordinateModifyDNPlugins(
-                  modifyDNOperation, oldEntry, newEntry, modifications);
-
-        if (!pluginResult.continueProcessing())
-        {
-          Message message = ERR_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_PLUGIN.get(
-                  oldDN.toString(), newDN.toString());
-          throw new DirectoryException(
-                  DirectoryServer.getServerErrorResultCode(), message);
-        }
-
-        if (! modifications.isEmpty())
-        {
-          indexModifications(txn, oldEntry, newEntry, entryID, modifications);
-
-          MessageBuilder invalidReason = new MessageBuilder();
-          if (! newEntry.conformsToSchema(null, false, false, false,
-                                          invalidReason))
+          newParentID = dn2id.get(txn, superiorDN, LockMode.DEFAULT);
+          parentIDKeyBytes =
+              JebFormat.entryIDToDatabase(newParentID.longValue());
+          if(isParent)
           {
-            Message message =
-                    ERR_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_SCHEMA_ERROR.get(
-                            oldDN.toString(), newDN.toString(),
-                            invalidReason.toString());
-            throw new DirectoryException(
-                           DirectoryServer.getServerErrorResultCode(), message);
+            id2children.insertID(buffer, parentIDKeyBytes, newID);
+            isParent = false;
+          }
+          id2subtree.insertID(buffer, parentIDKeyBytes, newID);
+        }
+
+        // Reindex the entry with the new ID.
+        indexRemoveEntry(buffer, oldEntry, oldID);
+        indexInsertEntry(buffer, newEntry, newID);
+      }
+      else
+      {
+        // Update the indexes if needed.
+        if(! modifications.isEmpty())
+        {
+          indexModifications(buffer, oldEntry, newEntry, oldID, modifications);
+        }
+
+        if(isApexEntryMoved)
+        {
+          // Add the new ID to the id2s of new apex superior entries.
+          for(DN dn = newSuperiorDN; dn != null; dn = getParentWithinBase(dn))
+          {
+            EntryID parentID = dn2id.get(txn, dn, LockMode.DEFAULT);
+            byte[] parentIDKeyBytes =
+                JebFormat.entryIDToDatabase(parentID.longValue());
+            id2subtree.insertID(buffer, parentIDKeyBytes, newID);
           }
         }
       }
-
-
-      // Add any referral records for the new DN.
-      dn2uri.addEntry(txn, newEntry);
-
-      // Replace the entry in id2entry.
-      id2entry.put(txn, entryID, newEntry);
 
       // Remove the entry from the entry cache.
       EntryCache entryCache = DirectoryServer.getEntryCache();
@@ -3790,6 +3649,31 @@ public class EntryContainer
   }
 
   /**
+   * Insert a new entry into the attribute indexes.
+   *
+   * @param buffer The index buffer used to buffer up the index changes.
+   * @param entry The entry to be inserted into the indexes.
+   * @param entryID The ID of the entry to be inserted into the indexes.
+   * @throws DatabaseException If an error occurs in the JE database.
+   * @throws DirectoryException If a Directory Server error occurs.
+   * @throws JebException If an error occurs in the JE backend.
+   */
+  private void indexInsertEntry(IndexBuffer buffer, Entry entry,
+                                EntryID entryID)
+      throws DatabaseException, DirectoryException, JebException
+  {
+    for (AttributeIndex index : attrIndexMap.values())
+    {
+      index.addEntry(buffer, entryID, entry);
+    }
+
+    for (VLVIndex vlvIndex : vlvIndexMap.values())
+    {
+      vlvIndex.addEntry(buffer, entryID, entry);
+    }
+  }
+
+  /**
    * Remove an entry from the attribute indexes.
    *
    * @param txn The database transaction to be used for the updates.
@@ -3810,6 +3694,31 @@ public class EntryContainer
     for (VLVIndex vlvIndex : vlvIndexMap.values())
     {
       vlvIndex.removeEntry(txn, entryID, entry);
+    }
+  }
+
+  /**
+   * Remove an entry from the attribute indexes.
+   *
+   * @param buffer The index buffer used to buffer up the index changes.
+   * @param entry The entry to be removed from the indexes.
+   * @param entryID The ID of the entry to be removed from the indexes.
+   * @throws DatabaseException If an error occurs in the JE database.
+   * @throws DirectoryException If a Directory Server error occurs.
+   * @throws JebException If an error occurs in the JE backend.
+   */
+  private void indexRemoveEntry(IndexBuffer buffer, Entry entry,
+                                EntryID entryID)
+      throws DatabaseException, DirectoryException, JebException
+  {
+    for (AttributeIndex index : attrIndexMap.values())
+    {
+      index.removeEntry(buffer, entryID, entry);
+    }
+
+    for (VLVIndex vlvIndex : vlvIndexMap.values())
+    {
+      vlvIndex.removeEntry(buffer, entryID, entry);
     }
   }
 
@@ -3871,6 +3780,63 @@ public class EntryContainer
   }
 
   /**
+   * Update the attribute indexes to reflect the changes to the
+   * attributes of an entry resulting from a sequence of modifications.
+   *
+   * @param buffer The index buffer used to buffer up the index changes.
+   * @param oldEntry The contents of the entry before the change.
+   * @param newEntry The contents of the entry after the change.
+   * @param entryID The ID of the entry that was changed.
+   * @param mods The sequence of modifications made to the entry.
+   * @throws DatabaseException If an error occurs in the JE database.
+   * @throws DirectoryException If a Directory Server error occurs.
+   * @throws JebException If an error occurs in the JE backend.
+   */
+  private void indexModifications(IndexBuffer buffer, Entry oldEntry,
+                                  Entry newEntry,
+                                  EntryID entryID, List<Modification> mods)
+      throws DatabaseException, DirectoryException, JebException
+  {
+    // Process in index configuration order.
+    for (AttributeIndex index : attrIndexMap.values())
+    {
+      // Check whether any modifications apply to this indexed attribute.
+      boolean attributeModified = false;
+      AttributeType indexAttributeType = index.getAttributeType();
+      Iterable<AttributeType> subTypes =
+          DirectoryServer.getSchema().getSubTypes(indexAttributeType);
+
+      for (Modification mod : mods)
+      {
+        Attribute modAttr = mod.getAttribute();
+        AttributeType modAttrType = modAttr.getAttributeType();
+        if (modAttrType.equals(indexAttributeType))
+        {
+          attributeModified = true;
+          break;
+        }
+        for(AttributeType subType : subTypes)
+        {
+          if(modAttrType.equals(subType))
+          {
+            attributeModified = true;
+            break;
+          }
+        }
+      }
+      if (attributeModified)
+      {
+        index.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
+      }
+    }
+
+    for(VLVIndex vlvIndex : vlvIndexMap.values())
+    {
+      vlvIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
+    }
+  }
+
+  /**
    * Get a count of the number of entries stored in this entry entryContainer.
    *
    * @return The number of entries stored in this entry entryContainer.
@@ -3878,7 +3844,7 @@ public class EntryContainer
    */
   public long getEntryCount() throws DatabaseException
   {
-    EntryID entryID = dn2id.get(null, baseDN);
+    EntryID entryID = dn2id.get(null, baseDN, LockMode.DEFAULT);
     if (entryID != null)
     {
       DatabaseEntry key =
@@ -4386,7 +4352,6 @@ public class EntryContainer
     this.deadlockRetryLimit = config.getDeadlockRetryLimit();
     this.subtreeDeleteSizeLimit = config.getSubtreeDeleteSizeLimit();
     this.subtreeDeleteBatchSize = config.getSubtreeDeleteBatchSize();
-    this.indexEntryLimit = config.getIndexEntryLimit();
     return new ConfigChangeResult(ResultCode.SUCCESS,
                                   adminActionRequired, messages);
   }
@@ -4671,7 +4636,6 @@ public class EntryContainer
 
   /**
    * Get the exclusive lock.
-   *
    */
   public void lock() {
     exclusiveLock.lock();
@@ -4682,6 +4646,16 @@ public class EntryContainer
    */
   public void unlock() {
     exclusiveLock.unlock();
+  }
+
+  /**
+   * Get the subtree delete batch size.
+   *
+   * @return The subtree delete batch size.
+   */
+  public int getSubtreeDeleteBatchSize()
+  {
+    return subtreeDeleteBatchSize;
   }
 
 }

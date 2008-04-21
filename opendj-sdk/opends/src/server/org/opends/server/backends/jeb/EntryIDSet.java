@@ -498,33 +498,22 @@ public class EntryIDSet implements Iterable<EntryID>
   /**
    * Add all the IDs from a given set that are not already present.
    *
-   * @param that The set of IDs to be added.
+   * @param that The set of IDs to be added. It MUST be defined
    */
   public void addAll(EntryIDSet that)
   {
-    if (!this.isDefined())
+    if(!that.isDefined())
     {
-      // Can't simply add the undefined size of this set to that set since
-      // we don't know if there are any duplicates. In this case, we can't
-      // maintain the undefined size anymore.
-      if(undefinedSize != Long.MAX_VALUE && that.size() > 0)
-      {
-        undefinedSize = Long.MAX_VALUE;
-      }
       return;
     }
 
-    if (!that.isDefined())
+    if (!this.isDefined())
     {
-      if(that.size() == 0)
+      // Assume there are no overlap between IDs in that set with this set
+      if(undefinedSize != Long.MAX_VALUE && that.size() > 0)
       {
-        undefinedSize = values.length;
+        undefinedSize += that.size();
       }
-      else
-      {
-        undefinedSize = Long.MAX_VALUE;
-      }
-      values = null;
       return;
     }
 
@@ -616,10 +605,15 @@ public class EntryIDSet implements Iterable<EntryID>
   /**
    * Delete all IDs in this set that are in a given set.
    *
-   * @param that The set of IDs to be deleted.
+   * @param that The set of IDs to be deleted. It MUST be defined.
    */
   public void deleteAll(EntryIDSet that)
   {
+    if(!that.isDefined())
+    {
+      return;
+    }
+
     if (!this.isDefined())
     {
       // Can't simply subtract the undefined size of this set to that set since
@@ -629,20 +623,6 @@ public class EntryIDSet implements Iterable<EntryID>
       {
         undefinedSize = Long.MAX_VALUE;
       }
-      return;
-    }
-
-    if (!that.isDefined())
-    {
-      if(that.size() == 0)
-      {
-        undefinedSize = values.length;
-      }
-      else
-      {
-        undefinedSize = Long.MAX_VALUE;
-      }
-      values = null;
       return;
     }
 

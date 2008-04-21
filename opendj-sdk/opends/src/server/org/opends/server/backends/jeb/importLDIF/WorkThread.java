@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.*;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Transaction;
+import com.sleepycat.je.LockMode;
 
 /**
  * A thread to process import entries from a queue.  Multiple instances of
@@ -410,9 +411,9 @@ public class WorkThread extends DirectoryThread {
   private EntryID getAncestorID(DN2ID dn2id, DN dn, Transaction txn)
           throws DatabaseException {
     int i=0;
-    EntryID nodeID = dn2id.get(txn, dn);
+    EntryID nodeID = dn2id.get(txn, dn, LockMode.DEFAULT);
     if(nodeID == null) {
-      while((nodeID = dn2id.get(txn, dn)) == null) {
+      while((nodeID = dn2id.get(txn, dn, LockMode.DEFAULT)) == null) {
         try {
           Thread.sleep(50);
           if(i == 3) {
@@ -444,12 +445,12 @@ public class WorkThread extends DirectoryThread {
     DN2ID dn2id = context.getEntryContainer().getDN2ID();
     LDIFImportConfig ldifImportConfig = context.getLDIFImportConfig();
     DN entryDN = entry.getDN();
-    EntryID entryID = dn2id.get(txn, entryDN);
+    EntryID entryID = dn2id.get(txn, entryDN, LockMode.DEFAULT);
     if (entryID != null) {
       if (ldifImportConfig.appendToExistingData() &&
               ldifImportConfig.replaceExistingEntries()) {
         ID2Entry id2entry = context.getEntryContainer().getID2Entry();
-        Entry existingEntry = id2entry.get(txn, entryID);
+        Entry existingEntry = id2entry.get(txn, entryID, LockMode.DEFAULT);
         element.setExistingEntry(existingEntry);
       } else {
         Message msg = WARN_JEB_IMPORT_ENTRY_EXISTS.get();

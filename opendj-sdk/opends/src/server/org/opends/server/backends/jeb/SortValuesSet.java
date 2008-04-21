@@ -28,8 +28,9 @@ package org.opends.server.backends.jeb;
 
 import org.opends.server.types.*;
 import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.asn1.ASN1Element;
 
-import java.util.HashMap;
+import java.util.LinkedList;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -39,21 +40,13 @@ import com.sleepycat.je.DatabaseException;
  */
 public class SortValuesSet
 {
-  private static final int ENCODED_VALUE_SIZE = 16;
-  private static final int ENCODED_VALUE_LENGTH_SIZE =
-      encodedLengthSize(ENCODED_VALUE_SIZE);
-  private static final int ENCODED_ATTRIBUTE_VALUE_SIZE =
-      ENCODED_VALUE_LENGTH_SIZE + ENCODED_VALUE_SIZE;
-
-  private ID2Entry id2entry;
-
   private long[] entryIDs;
+
+  private int[] valuesBytesOffsets;
 
   private byte[] valuesBytes;
 
   private byte[] keyBytes;
-
-  private HashMap<EntryID, AttributeValue[]> cachedAttributeValues;
 
   private VLVIndex vlvIndex;
 
@@ -61,16 +54,14 @@ public class SortValuesSet
    * Construct an empty sort values set with the given information.
    *
    * @param vlvIndex The VLV index using this set.
-   * @param id2entry The ID2Entry database.
    */
-  public SortValuesSet(VLVIndex vlvIndex, ID2Entry id2entry)
+  public SortValuesSet(VLVIndex vlvIndex)
   {
     this.keyBytes = new byte[0];
     this.entryIDs = null;
     this.valuesBytes = null;
-    this.id2entry = id2entry;
+    this.valuesBytesOffsets = null;
     this.vlvIndex = vlvIndex;
-    this.cachedAttributeValues = new HashMap<EntryID, AttributeValue[]>();
   }
 
   /**
@@ -79,16 +70,11 @@ public class SortValuesSet
    * @param keyBytes The database key used to locate this set.
    * @param dataBytes The bytes to decode and construct this set.
    * @param vlvIndex The VLV index using this set.
-   * @param id2entry The ID2Entry database.
    */
-  public SortValuesSet(byte[] keyBytes, byte[] dataBytes, VLVIndex vlvIndex,
-                       ID2Entry id2entry)
+  public SortValuesSet(byte[] keyBytes, byte[] dataBytes, VLVIndex vlvIndex)
   {
     this.keyBytes = keyBytes;
-    this.id2entry = id2entry;
     this.vlvIndex = vlvIndex;
-    this.cachedAttributeValues = new HashMap<EntryID, AttributeValue[]>();
-
     if(dataBytes == null)
     {
       entryIDs = new long[0];
@@ -96,22 +82,16 @@ public class SortValuesSet
     }
 
     entryIDs = getEncodedIDs(dataBytes, 0);
-    valuesBytes = new byte[entryIDs.length * ENCODED_ATTRIBUTE_VALUE_SIZE *
-        vlvIndex.sortOrder.getSortKeys().length];
-    System.arraycopy(dataBytes, entryIDs.length * 8 + 4, valuesBytes, 0,
-                     valuesBytes.length);
+    int valuesBytesOffset = entryIDs.length * 8 + 4;
+    int valuesBytesLength = dataBytes.length - valuesBytesOffset;
+    valuesBytes = new byte[valuesBytesLength];
+    System.arraycopy(dataBytes, valuesBytesOffset, valuesBytes, 0,
+                     valuesBytesLength);
+    this.valuesBytesOffsets = null;
   }
 
-  private SortValuesSet(long[] entryIDs, byte[] keyBytes, byte[] valuesBytes,
-                        VLVIndex vlvIndex, ID2Entry id2entry)
-  {
-    this.keyBytes = keyBytes;
-    this.id2entry = id2entry;
-    this.entryIDs = entryIDs;
-    this.valuesBytes = valuesBytes;
-    this.vlvIndex = vlvIndex;
-    this.cachedAttributeValues = new HashMap<EntryID, AttributeValue[]>();
-  }
+  private SortValuesSet()
+  {}
 
   /**
    * Add the given entryID and values from this VLV idnex.
@@ -137,10 +117,14 @@ public class SortValuesSet
       entryIDs = new long[1];
       entryIDs[0] = entryID;
       valuesBytes = attributeValuesToDatabase(values);
+      if(valuesBytesOffsets != null)
+      {
+        valuesBytesOffsets = new int[1];
+        valuesBytesOffsets[0] = 0;
+      }
       return true;
     }
-    if(vlvIndex.comparator.compareValuesInSet(this,
-                                              entryIDs.length - 1, entryID,
+    if(vlvIndex.comparator.compare(this, entryIDs.length - 1, entryID,
                                               values) < 0)
     {
       long[] updatedEntryIDs = new long[entryIDs.length + 1];
@@ -155,6 +139,17 @@ public class SortValuesSet
       System.arraycopy(newValuesBytes, 0, updatedValuesBytes,
                        valuesBytes.length,
                        newValuesBytes.length);
+
+      if(valuesBytesOffsets != null)
+      {
+        int[] updatedValuesBytesOffsets =
+            new int[valuesBytesOffsets.length + 1];
+        System.arraycopy(valuesBytesOffsets, 0, updatedValuesBytesOffsets,
+            0, valuesBytesOffsets.length);
+        updatedValuesBytesOffsets[valuesBytesOffsets.length] =
+            updatedValuesBytes.length - newValuesBytes.length;
+        valuesBytesOffsets = updatedValuesBytesOffsets;
+      }
 
       entryIDs = updatedEntryIDs;
       valuesBytes = updatedValuesBytes;
@@ -186,7 +181,7 @@ public class SortValuesSet
       updatedEntryIDs[pos] = entryID;
 
       byte[] newValuesBytes = attributeValuesToDatabase(values);
-      int valuesPos = pos * newValuesBytes.length;
+      int valuesPos = valuesBytesOffsets[pos];
       byte[] updatedValuesBytes = new byte[valuesBytes.length +
           newValuesBytes.length];
       System.arraycopy(valuesBytes, 0, updatedValuesBytes, 0, valuesPos);
@@ -195,6 +190,22 @@ public class SortValuesSet
                        valuesBytes.length - valuesPos);
       System.arraycopy(newValuesBytes, 0, updatedValuesBytes, valuesPos,
                        newValuesBytes.length);
+
+      if(valuesBytesOffsets != null)
+      {
+        int[] updatedValuesBytesOffsets =
+            new int[valuesBytesOffsets.length + 1];
+        System.arraycopy(valuesBytesOffsets, 0, updatedValuesBytesOffsets,
+            0, pos);
+        // Update the rest of the offsets one by one - Expensive!
+        for(int i = pos; i < valuesBytesOffsets.length; i++)
+        {
+          updatedValuesBytesOffsets[i+1] =
+              valuesBytesOffsets[i] + newValuesBytes.length;
+        }
+        updatedValuesBytesOffsets[pos] = valuesBytesOffsets[pos];
+        valuesBytesOffsets = updatedValuesBytesOffsets;
+      }
 
       entryIDs = updatedEntryIDs;
       valuesBytes = updatedValuesBytes;
@@ -222,6 +233,11 @@ public class SortValuesSet
       return false;
     }
 
+    if(valuesBytesOffsets == null)
+    {
+      updateValuesBytesOffsets();
+    }
+
     int pos = binarySearch(entryID, values);
     if(pos < 0)
     {
@@ -235,54 +251,93 @@ public class SortValuesSet
       System.arraycopy(entryIDs, 0, updatedEntryIDs, 0, pos);
       System.arraycopy(entryIDs, pos+1, updatedEntryIDs, pos,
                        entryIDs.length-pos-1);
-
-      int valuesLength = ENCODED_ATTRIBUTE_VALUE_SIZE *
-          vlvIndex.sortOrder.getSortKeys().length;
-      int valuesPos = pos * valuesLength;
+      int valuesLength;
+      int valuesPos = valuesBytesOffsets[pos];
+      if(pos < valuesBytesOffsets.length - 1)
+      {
+        valuesLength = valuesBytesOffsets[pos+1] - valuesPos;
+      }
+      else
+      {
+        valuesLength = valuesBytes.length - valuesPos;
+      }
       byte[] updatedValuesBytes = new byte[valuesBytes.length - valuesLength];
       System.arraycopy(valuesBytes, 0, updatedValuesBytes, 0, valuesPos);
       System.arraycopy(valuesBytes, valuesPos + valuesLength,
                        updatedValuesBytes, valuesPos,
                        valuesBytes.length - valuesPos - valuesLength);
 
+      int[] updatedValuesBytesOffsets = new int[valuesBytesOffsets.length - 1];
+      System.arraycopy(valuesBytesOffsets, 0, updatedValuesBytesOffsets,
+          0, pos);
+      // Update the rest of the offsets one by one - Expensive!
+      for(int i = pos + 1; i < valuesBytesOffsets.length; i++)
+      {
+        updatedValuesBytesOffsets[i-1] =
+            valuesBytesOffsets[i] - valuesLength;
+      }
+
       entryIDs = updatedEntryIDs;
       valuesBytes = updatedValuesBytes;
+      valuesBytesOffsets = updatedValuesBytesOffsets;
       return true;
     }
   }
 
   /**
    * Split portions of this set into another set. The values of the new set is
-   * from the front of this set.
+   * from the end of this set.
    *
    * @param splitLength The size of the new set.
    * @return The split set.
    */
   public SortValuesSet split(int splitLength)
   {
+    if(valuesBytesOffsets == null)
+    {
+      updateValuesBytesOffsets();
+    }
+
     long[] splitEntryIDs = new long[splitLength];
-    byte[] splitValuesBytes = new byte[splitLength *
-        ENCODED_ATTRIBUTE_VALUE_SIZE * vlvIndex.sortOrder.getSortKeys().length];
+    byte[] splitValuesBytes = new byte[valuesBytes.length -
+        valuesBytesOffsets[valuesBytesOffsets.length - splitLength]];
+    int[] splitValuesBytesOffsets = new int[splitLength];
 
     long[] updatedEntryIDs = new long[entryIDs.length - splitEntryIDs.length];
     System.arraycopy(entryIDs, 0, updatedEntryIDs, 0, updatedEntryIDs.length);
     System.arraycopy(entryIDs, updatedEntryIDs.length, splitEntryIDs, 0,
                      splitEntryIDs.length);
 
-    byte[] updatedValuesBytes = new byte[valuesBytes.length -
-        splitValuesBytes.length];
+    byte[] updatedValuesBytes =
+        new byte[valuesBytesOffsets[valuesBytesOffsets.length - splitLength]];
     System.arraycopy(valuesBytes, 0, updatedValuesBytes, 0,
                      updatedValuesBytes.length);
     System.arraycopy(valuesBytes, updatedValuesBytes.length, splitValuesBytes,
                      0, splitValuesBytes.length);
 
-    SortValuesSet splitValuesSet = new SortValuesSet(splitEntryIDs,
-                                                     keyBytes,
-                                                     splitValuesBytes,
-                                                     vlvIndex, id2entry);
+    int[] updatedValuesBytesOffsets =
+        new int[valuesBytesOffsets.length - splitValuesBytesOffsets.length];
+    System.arraycopy(valuesBytesOffsets, 0, updatedValuesBytesOffsets,
+        0, updatedValuesBytesOffsets.length);
+    for(int i = updatedValuesBytesOffsets.length;
+        i < valuesBytesOffsets.length; i++)
+    {
+      splitValuesBytesOffsets[i - updatedValuesBytesOffsets.length] =
+          valuesBytesOffsets[i] -
+              valuesBytesOffsets[updatedValuesBytesOffsets.length];
+    }
+
+    SortValuesSet splitValuesSet = new SortValuesSet();
+
+    splitValuesSet.entryIDs = splitEntryIDs;
+    splitValuesSet.keyBytes = this.keyBytes;
+    splitValuesSet.valuesBytes = splitValuesBytes;
+    splitValuesSet.valuesBytesOffsets = splitValuesBytesOffsets;
+    splitValuesSet.vlvIndex = this.vlvIndex;
 
     entryIDs = updatedEntryIDs;
     valuesBytes = updatedValuesBytes;
+    valuesBytesOffsets = updatedValuesBytesOffsets;
     keyBytes = null;
 
     return splitValuesSet;
@@ -369,7 +424,7 @@ public class SortValuesSet
     for(int j = entryIDs.length - 1; i <= j;)
     {
       int k = i + j >> 1;
-      int l = vlvIndex.comparator.compareValuesInSet(this, k, entryID, values);
+      int l = vlvIndex.comparator.compare(this, k, entryID, values);
       if(l < 0)
         i = k + 1;
       else
@@ -407,71 +462,38 @@ public class SortValuesSet
     return entryIDs;
   }
 
-  private static int encodedLengthSize(int length)
-  {
-    if ((length & 0x000000FF) == length)
-    {
-      return 1;
-    }
-    else if ((length & 0x0000FFFF) == length)
-    {
-      return 2;
-    }
-    else if ((length & 0x00FFFFFF) == length)
-    {
-      return 3;
-    }
-    else
-    {
-      return 4;
-    }
-  }
-
   private byte[] attributeValuesToDatabase(AttributeValue[] values)
       throws DirectoryException
   {
-    byte[] valuesBytes = new byte[values.length *
-        (ENCODED_ATTRIBUTE_VALUE_SIZE)];
-    for(int i = 0; i < values.length; i++)
+    int totalValueBytes = 0;
+    LinkedList<byte[]> valueBytes = new LinkedList<byte[]>();
+    for (AttributeValue v : values)
     {
-      AttributeValue value = values[i];
-      int length;
-      byte[] lengthBytes = new byte[ENCODED_VALUE_LENGTH_SIZE];
-      if(value == null)
+      byte[] vBytes;
+      if(v == null)
       {
-        length = 0;
+        vBytes = new byte[0];
       }
       else
       {
-        byte[] valueBytes = value.getNormalizedValueBytes();
-        length = valueBytes.length;
-        if(valueBytes.length > ENCODED_VALUE_SIZE)
-        {
-          System.arraycopy(valueBytes, 0, valuesBytes,
-                           i * ENCODED_ATTRIBUTE_VALUE_SIZE +
-                               ENCODED_VALUE_LENGTH_SIZE,
-                           ENCODED_VALUE_SIZE);
-        }
-        else
-        {
-          System.arraycopy(valueBytes, 0, valuesBytes,
-                           i * ENCODED_ATTRIBUTE_VALUE_SIZE +
-                               ENCODED_VALUE_LENGTH_SIZE,
-                           valueBytes.length);
-        }
+        vBytes = v.getNormalizedValueBytes();
       }
-
-      for (int j = ENCODED_VALUE_LENGTH_SIZE - 1; j >= 0; j--)
-      {
-        lengthBytes[j] = (byte) (length & 0xFF);
-        length >>>= 8;
-      }
-
-      System.arraycopy(lengthBytes, 0, valuesBytes,
-                       i * (ENCODED_ATTRIBUTE_VALUE_SIZE),
-                       lengthBytes.length);
+      byte[] vLength = ASN1Element.encodeLength(vBytes.length);
+      valueBytes.add(vLength);
+      valueBytes.add(vBytes);
+      totalValueBytes += vLength.length + vBytes.length;
     }
-    return valuesBytes;
+
+    byte[] attrBytes = new byte[totalValueBytes];
+
+    int pos = 0;
+    for (byte[] b : valueBytes)
+    {
+      System.arraycopy(b, 0, attrBytes, pos, b.length);
+      pos += b.length;
+    }
+
+    return attrBytes;
   }
 
   /**
@@ -496,18 +518,22 @@ public class SortValuesSet
       return keyBytes;
     }
 
-    SortKey[] sortKeys = vlvIndex.sortOrder.getSortKeys();
-    int numValues = sortKeys.length;
-    AttributeValue[] values =
-        new AttributeValue[numValues];
-    for (int i = (entryIDs.length - 1) * numValues, j = 0;
-         i < entryIDs.length * numValues;
-         i++, j++)
+    if(valuesBytesOffsets == null)
     {
-      values[j] = new AttributeValue(sortKeys[j].getAttributeType(),
-                                     new ASN1OctetString(getValue(i)));
+      updateValuesBytesOffsets();
     }
-    keyBytes = vlvIndex.encodeKey(entryIDs[entryIDs.length - 1], values);
+
+    int vBytesPos = valuesBytesOffsets[valuesBytesOffsets.length - 1];
+    int vBytesLength = valuesBytes.length - vBytesPos;
+
+    byte[] idBytes =
+        JebFormat.entryIDToDatabase(entryIDs[entryIDs.length - 1]);
+    keyBytes =
+        new byte[vBytesLength + idBytes.length];
+
+    System.arraycopy(valuesBytes, vBytesPos, keyBytes, 0, vBytesLength);
+    System.arraycopy(idBytes, 0, keyBytes, vBytesLength, idBytes.length);
+
     return keyBytes;
   }
 
@@ -587,6 +613,34 @@ public class SortValuesSet
     return new SortValues(id, values, vlvIndex.sortOrder);
   }
 
+  private void updateValuesBytesOffsets()
+  {
+    valuesBytesOffsets = new int[entryIDs.length];
+    int vBytesPos = 0;
+    int numAttributes = vlvIndex.sortOrder.getSortKeys().length;
+
+    for(int pos = 0; pos < entryIDs.length; pos++)
+    {
+      valuesBytesOffsets[pos] = vBytesPos;
+
+      for(int i = 0; i < numAttributes; i++)
+      {
+        int valueLength = valuesBytes[vBytesPos] & 0x7F;
+        if (valueLength != valuesBytes[vBytesPos++])
+        {
+          int valueLengthBytes = valueLength;
+          valueLength = 0;
+          for (int j=0; j < valueLengthBytes; j++, vBytesPos++)
+          {
+            valueLength = (valueLength << 8) | (valuesBytes[vBytesPos] & 0xFF);
+          }
+        }
+
+        vBytesPos += valueLength;
+      }
+    }
+  }
+
   /**
    * Retrieve an attribute value from this values set. The index is the
    * absolute index. (ie. for a sort on 3 attributes per entry, an vlvIndex of 6
@@ -601,52 +655,47 @@ public class SortValuesSet
   public byte[] getValue(int index)
       throws JebException, DatabaseException, DirectoryException
   {
-    // If values bytes is null, we have to get the value by getting the
-    // entry by ID and getting the value.
-    if(valuesBytes != null)
+    if(valuesBytesOffsets == null)
     {
-      int pos = index * ENCODED_ATTRIBUTE_VALUE_SIZE;
-      int length = 0;
-      byte[] valueBytes;
-      for (int k = 0; k < ENCODED_VALUE_LENGTH_SIZE; k++, pos++)
+      updateValuesBytesOffsets();
+    }
+    int numAttributes = vlvIndex.sortOrder.getSortKeys().length;
+    int vIndex = index / numAttributes;
+    int vOffset = index % numAttributes;
+    int vBytesPos = valuesBytesOffsets[vIndex];
+
+    // Find the desired value in the sort order set.
+    for(int i = 0; i <= vOffset; i++)
+    {
+      int valueLength = valuesBytes[vBytesPos] & 0x7F;
+      if (valueLength != valuesBytes[vBytesPos++])
       {
-        length <<= 8;
-        length |= (valuesBytes[pos] & 0xFF);
+        int valueLengthBytes = valueLength;
+        valueLength = 0;
+        for (int j=0; j < valueLengthBytes; j++, vBytesPos++)
+        {
+          valueLength = (valueLength << 8) | (valuesBytes[vBytesPos] & 0xFF);
+        }
       }
 
-      if(length == 0)
+      if(i == vOffset)
       {
-        return null;
+        if(valueLength == 0)
+        {
+          return null;
+        }
+        else
+        {
+          byte[] valueBytes = new byte[valueLength];
+          System.arraycopy(valuesBytes, vBytesPos, valueBytes, 0, valueLength);
+          return valueBytes;
+        }
       }
-      // If the value has exceeded the max value size, we have to get the
-      // value by getting the entry by ID.
-      else if(length <= ENCODED_VALUE_SIZE && length > 0)
+      else
       {
-        valueBytes = new byte[length];
-        System.arraycopy(valuesBytes, pos, valueBytes, 0, length);
-
-        return valueBytes;
+        vBytesPos += valueLength;
       }
     }
-
-    if(id2entry == null)
-    {
-      return new byte[0];
-    }
-
-    // Get the entry from id2entry and assign the values from the entry.
-    // Once the values are assigned from the retrieved entry, it will
-    // not be retrieve again from future compares.
-    EntryID id = new EntryID(entryIDs[index /
-        vlvIndex.sortOrder.getSortKeys().length]);
-    AttributeValue[] values = cachedAttributeValues.get(id);
-    if(values == null)
-    {
-      values = vlvIndex.getSortValues(id2entry.get(null, id));
-      cachedAttributeValues.put(id, values);
-    }
-    int offset = index % values.length;
-    return values[offset].getNormalizedValueBytes();
+    return new byte[0];
   }
-
 }

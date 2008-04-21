@@ -50,7 +50,7 @@ import org.opends.server.types.SortOrder;
 
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-
+import com.sleepycat.je.LockMode;
 
 
 /**
@@ -98,7 +98,7 @@ public class EntryIDSetSorter
     {
       try
       {
-        Entry e = id2Entry.get(null, id);
+        Entry e = id2Entry.get(null, id, LockMode.DEFAULT);
 
         if ((! e.matchesBaseAndScope(baseDN, scope)) ||
             (! filter.matchesEntry(e)))

@@ -30,6 +30,7 @@ import org.opends.messages.Message;
 import java.io.IOException;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
 
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
@@ -308,7 +309,7 @@ public class BackendImpl
     {
       EnvironmentConfig envConfig =
           ConfigurableEnvironment.parseConfigEntry(cfg);
-
+      envConfig.setLockTimeout(0);
       rootContainer = initializeRootContainer(envConfig);
     }
 
@@ -941,9 +942,19 @@ public class BackendImpl
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                                    msg);
     }
+
+    Lock containerLock = currentContainer.sharedLock;
     try
     {
-      currentContainer.sharedLock.lock();
+      containerLock.lock();
+
+      if(currentContainer.getNumSubordinates(currentDN, true) >
+         currentContainer.getSubtreeDeleteBatchSize())
+      {
+        containerLock.unlock();
+        containerLock = currentContainer.exclusiveLock;
+        containerLock.lock();
+      }
 
       currentContainer.renameEntry(currentDN, entry, modifyDNOperation);
     }
@@ -966,7 +977,7 @@ public class BackendImpl
     }
     finally
     {
-      currentContainer.sharedLock.unlock();
+      containerLock.unlock();
       writerEnd();
     }
   }
