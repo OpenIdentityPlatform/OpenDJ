@@ -34,7 +34,7 @@
       </function-arg-def>
       <function-arg-def name="instances" type="required">
         <function-arg-description>
-          instances list
+          opends instances objects list
         </function-arg-description>
       </function-arg-def>
       <function-arg-def name="suffix" type="required">
@@ -74,15 +74,19 @@
       
       
       <!--==== Check replication synchronization =========-->
-      <call function="'checkOpendsReplication'">
-          {
-            'instance'  : instance,
-            'instances' : instances,
-            'suffix'    : suffix,
-            'fileFd'    : fileFd
-          }
-      </call>
-      <script> _errNum += STAXResult </script>
+      <if expr="len(instances) > 1">
+        <sequence>
+          <call function="'checkOpendsReplication'">
+              {
+                'instance'  : instance,
+                'instances' : instances,
+                'suffix'    : suffix,
+                'fileFd'    : fileFd
+              }
+          </call>
+          <script> _errNum += STAXResult </script>
+        </sequence>
+      </if>
       
       
       <!--==== Compare entries =========-->
