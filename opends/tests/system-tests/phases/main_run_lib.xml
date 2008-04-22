@@ -247,7 +247,7 @@
             <sequence>
               <script>
                 id = element[0]
-                instance = element[1]
+                client = element[1]
               </script>
               <!-- Parrallel copy, all instances except client 0 wait 1 sec -->
               <!-- This prevent copying the same folder in case of NFS      -->
