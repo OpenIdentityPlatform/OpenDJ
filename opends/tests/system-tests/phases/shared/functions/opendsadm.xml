@@ -903,5 +903,229 @@
       
     </sequence>
   </function>
-
+  
+  
+  
+  <!-- This function stops DS using the stop-ds script -->
+  <function name="checkOpendsReplication" scope="local">
+    <function-prolog>
+      This function uses dsreplication status to check the replication 
+      of the topology
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="instance" type="required">
+        <function-arg-description>
+          opends instance object to run the command
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="instances" type="required">
+        <function-arg-description>
+          list of opends instances objects
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="suffix" type="required">
+        <function-arg-description>
+          suffix object of the topology
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="adminDN" type="optional"
+                                       default="DIRECTORY_INSTANCE_DN">
+        <function-arg-description>
+          Admin Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      <function-arg-def name="adminPwd" type="optional"
+                                       default="DIRECTORY_INSTANCE_PSWD">
+        <function-arg-description>
+          Admin Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="optional" default="''">
+        <function-arg-description>
+          file descriptor to write message in if needed
+        </function-arg-description>
+      </function-arg-def>
+      
+    </function-map-args>
+    
+    <sequence>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        
+        dsBinPath='%s/bin' % (instance.getInstallDir()) 
+        STAFCmd='%s/dsreplication' % (dsBinPath)
+        
+        STAFCmdParamsList.append('status -n')
+        STAFCmdParamsList.append('-h %s' % instance.getHost())
+        STAFCmdParamsList.append('-p %s' % instance.getLDAPPort())
+        STAFCmdParamsList.append('-b %s' % suffix.getSuffixDn())
+        STAFCmdParamsList.append('-I "%s"' % adminDN)
+        STAFCmdParamsList.append('-w "%s"' % adminPwd)
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'checkOpendsReplication',
+        'fileFd'  : fileFd }
+      </call>
+      <call function="'writeMessage'">
+      { 'fileFd'  : fileFd,
+        'content' : '%s %s' % (STAFCmd, STAFCmdParams)
+      }
+      </call>
+      
+      
+      <!--== Run dsreplication status ==-->
+      <call function="'runCommand'">
+        { 'name'      : 'opendsReplicationStatus on %s' % \
+                        instance.getHost(),
+          'location'  : instance.getHost(),
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'path'      : dsBinPath,
+          'fileFd'    : fileFd
+        }
+      </call>
+      <script>
+        cmdRC     = STAXResult[0]
+        cmdOutput = STAXResult[1]
+      </script>
+      
+      
+      <!--== Check dsreplication status outputs if command succedded ==-->
+      <if expr="cmdRC == 0">
+        <sequence>
+          <call function="'writeStartTagOperation'">
+          { 'tagName' : 'checkReplicationResults',
+            'fileFd'  : fileFd }
+          </call>
+          
+          <script>
+            # transform output string into a list (each element is a line)
+            cmdOutput = cmdOutput.split('\n')
+            list = STAXGlobal([])
+          </script>
+          
+          <!--== For each instances, get nb of replicated entries ==-->
+          <iterate in="instances" var="instance">
+            <sequence>
+              <script>
+                serverName = '%s:%s' % \
+                             (instance.getHost(),instance.getLDAPPort())
+                nbEntries = NOT_DEFINED
+                
+                for e in cmdOutput:
+                  if e.count(serverName) > 0 :
+                    # serverName line is found, extract nb of entries
+                    e = e.split(':')
+                    nbEntries = e[2].strip()
+                
+                list = list.append([serverName,nbEntries])
+              </script>
+            </sequence>
+          </iterate>
+          
+          <!--== Check that all instances have the same nb of entries    ==-->
+          <!--== Build sList [[serverName1 serverName2 .., nbEntry1],..] ==-->
+          <script>
+            sList = STAXGlobal([])
+            while list != []:
+              element1 = list.pop(0)
+              isRecorded = 0
+              i = 0
+              for element2 in list:
+                if element1[1] == element2[1]:
+                  # same nb of entries
+                  isAlreadyExist = 0
+                  j = 0
+                  for e in sList:
+                    if element1[1] == e[1]:
+                      # some serverName already recorded with same
+                      # nb of entries, add new serverName to the list
+                      sList[j] = '%s %s' % (e[0],element1[0])
+                      isAlreadyExist = 1
+                      isRecorded = 1
+                    j += 1
+                  
+                  if isAlreadyExist == 0:
+                    # new nb of entries, add a new sub list
+                    s1 = '%s %s' % (element1[0],element2[0])
+                    sList = sList.append( [s1 ,element1[1]] )
+                    isRecorded = 1
+                  
+                  # remove element2 from the main list
+                  trash = list.pop(i)
+                  break
+                i += 1
+              # end of for
+              
+              if isRecorded == 0:
+                # record only element1
+                sList = sList.append([element1[0],element1[1]])
+          </script>
+          <message>'TRACE : sList = %s' % sList</message>
+          
+          <if expr="len(sList) == 1">
+            <sequence>
+              <script>
+                cmdOutput='All intances have the same number of entries (%s)'%\
+                      sList[0][1]
+                cmdRC = 0
+              </script>
+            </sequence>
+          <else>
+            <sequence>
+              <script>
+                cmdOutput='All intances have NOT the same nb of entries (%s)'%\
+                      sList[0][1]
+                cmdRC = 1
+              </script>
+              <iterate in="sList" var="_list">
+                <call function="'writeMessage'">
+                { 'fileFd'  : fileFd,
+                  'content' : 'INFO : instances %s have %s nb of entries' % \
+                              (_list[0],_list[1])
+                }
+                </call>
+              </iterate>
+            </sequence>
+          </else>
+          </if>
+          <call function="'checkRC'">
+            { 'returncode' : cmdRC,
+              'result'     : cmdOutput,
+              'fileFd'     : fileFd }
+          </call>
+          <call function="'writeEndTagOperation'">
+            {'fileFd'  : fileFd}
+          </call>
+          
+        </sequence>
+      </if>
+      
+      <!--== End of function ==-->
+      <call function="'checkRC'">
+        { 'returncode' : cmdRC,
+          'result'     : cmdOutput,
+          'fileFd'     : fileFd }
+      </call>
+      <call function="'writeEndTagOperation'">
+        {'fileFd'  : fileFd}
+      </call>
+      <return>cmdRC</return>
+  </sequence>
+  </function>
+  
 </stax>
+

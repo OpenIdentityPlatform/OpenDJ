@@ -74,16 +74,15 @@
       
       
       <!--==== Check replication synchronization =========-->
-      <!--
-      <call function="'checkReplicationSynchro'">
-          { 'instance' : instance,
-            'fileFd'   : fileFd
+      <call function="'checkOpendsReplication'">
+          {
+            'instance'  : instance,
+            'instances' : instances,
+            'suffix'    : suffix,
+            'fileFd'    : fileFd
           }
       </call>
-      <script>
-        errNum += STAXResult[0][0]
-      </script>
-      -->
+      <script> _errNum += STAXResult </script>
       
       
       <!--==== Compare entries =========-->
