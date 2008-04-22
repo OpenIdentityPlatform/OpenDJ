@@ -91,7 +91,7 @@ public class DependencyTest extends ReplicationTestCase
    * all those entries is also correctly ordered.
    */
   @SuppressWarnings("unchecked")
-  @Test(enabled=false, groups="slow")
+  @Test(enabled=true, groups="slow")
   public void addModDelDependencyTest() throws Exception
   {
     ReplicationServer replServer = null;
