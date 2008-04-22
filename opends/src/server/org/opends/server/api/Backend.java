@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.locks.Lock;
 
 import org.opends.server.admin.Configuration;
 import org.opends.server.config.ConfigException;
@@ -56,7 +55,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
-import org.opends.server.types.LockManager;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.WritabilityMode;
@@ -486,33 +484,7 @@ public abstract class Backend
   public boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-    Lock lock = null;
-    for (int i=0; i < 3; i++)
-    {
-      lock = LockManager.lockRead(entryDN);
-      if (lock != null)
-      {
-        break;
-      }
-    }
-
-    if (lock == null)
-    {
-      Message message =
-          ERR_BACKEND_CANNOT_LOCK_ENTRY.get(String.valueOf(entryDN));
-      throw new DirectoryException(
-                     DirectoryServer.getServerErrorResultCode(),
-                     message);
-    }
-
-    try
-    {
-      return (getEntry(entryDN) != null);
-    }
-    finally
-    {
-      LockManager.unlock(entryDN, lock);
-    }
+    return (getEntry(entryDN) != null);
   }
 
 

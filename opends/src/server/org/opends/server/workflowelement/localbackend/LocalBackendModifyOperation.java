@@ -399,7 +399,39 @@ modifyProcessing:
         try
         {
           // Get the entry to modify.  If it does not exist, then fail.
-          getEntryToModify();
+          currentEntry = backend.getEntry(entryDN);
+
+          if (currentEntry == null)
+          {
+            setResultCode(ResultCode.NO_SUCH_OBJECT);
+            appendErrorMessage(ERR_MODIFY_NO_SUCH_ENTRY.get(
+                String.valueOf(entryDN)));
+
+            // See if one of the entry's ancestors exists.
+            try
+            {
+              DN parentDN = entryDN.getParentDNInSuffix();
+              while (parentDN != null)
+              {
+                if (DirectoryServer.entryExists(parentDN))
+                {
+                  setMatchedDN(parentDN);
+                  break;
+                }
+
+                parentDN = parentDN.getParentDNInSuffix();
+              }
+            }
+            catch (Exception e)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+              }
+            }
+
+            break modifyProcessing;
+          }
 
           // Check to see if there are any controls in the request.  If so, then
           // see if there is any special processing required.
@@ -740,52 +772,6 @@ modifyProcessing:
     if (getResultCode() == ResultCode.SUCCESS)
     {
       notifyChangeListeners();
-    }
-  }
-
-
-
-  /**
-   * Gets the entry to modify.
-   *
-   *
-   * @throws  DirectoryException  If a problem occurs while trying to get the
-   *                              entry, or if the entry doesn't exist.
-   */
-  private void getEntryToModify()
-          throws DirectoryException
-  {
-    currentEntry = backend.getEntry(entryDN);
-    if (currentEntry == null)
-    {
-      // See if one of the entry's ancestors exists.
-      DN matchedDN = null;
-      DN parentDN = entryDN.getParentDNInSuffix();
-      while (parentDN != null)
-      {
-        try
-        {
-          if (DirectoryServer.entryExists(parentDN))
-          {
-            matchedDN = parentDN;
-            break;
-          }
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-          break;
-        }
-
-        parentDN = parentDN.getParentDNInSuffix();
-      }
-
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-                     ERR_MODIFY_NO_SUCH_ENTRY.get(String.valueOf(entryDN)),
-                     matchedDN, null);
     }
   }
 
