@@ -1036,45 +1036,30 @@
             </sequence>
           </iterate>
           
+          
           <!--== Check that all instances have the same nb of entries    ==-->
-          <!--== Build sList [[serverName1 serverName2 .., nbEntry1],..] ==-->
+          <!--== Build sorted list sList :                               ==-->
+          <!--== [ [serverName1 serverName2 .., nbEntry1 ] , ... ]       ==-->
           <script>
             sList = STAXGlobal([])
+            
             while list != []:
               element1 = list.pop(0)
-              isRecorded = 0
-              i = 0
-              for element2 in list:
-                if element1[1] == element2[1]:
-                  # same nb of entries
-                  isAlreadyExist = 0
-                  j = 0
-                  for e in sList:
-                    if element1[1] == e[1]:
-                      # some serverName already recorded with same
-                      # nb of entries, add new serverName to the list
-                      sList[j] = '%s %s' % (e[0],element1[0])
-                      isAlreadyExist = 1
-                      isRecorded = 1
-                    j += 1
-                  
-                  if isAlreadyExist == 0:
-                    # new nb of entries, add a new sub list
-                    s1 = '%s %s' % (element1[0],element2[0])
-                    sList = sList.append( [s1 ,element1[1]] )
-                    isRecorded = 1
-                  
-                  # remove element2 from the main list
-                  trash = list.pop(i)
-                  break
-                i += 1
-              # end of for
+              isAlreadyExist = 0
+              j = 0
+              for e in sList:
+                if element1[1] == e[1]:
+                  # some serverName already recorded with same
+                  # nb of entries, add new serverName to the list
+                  sList[j] = ['%s %s' % (e[0],element1[0]) , e[1] ]
+                  isAlreadyExist = 1
+                j += 1
               
-              if isRecorded == 0:
-                # record only element1
-                sList = sList.append([element1[0],element1[1]])
+              if isAlreadyExist == 0:
+                # new nb of entries, add a new sub list
+                sList = sList.append( [element1[0] ,element1[1]] )
+              
           </script>
-          <message>'TRACE : sList = %s' % sList</message>
           
           <if expr="len(sList) == 1">
             <sequence>
@@ -1087,14 +1072,13 @@
           <else>
             <sequence>
               <script>
-                cmdOutput='All intances have NOT the same nb of entries (%s)'%\
-                      sList[0][1]
+                cmdOutput='All intances have NOT the same number of entries'
                 cmdRC = 1
               </script>
               <iterate in="sList" var="_list">
                 <call function="'writeMessage'">
                 { 'fileFd'  : fileFd,
-                  'content' : 'INFO : instances %s have %s nb of entries' % \
+                  'content' : 'INFO : instances %s have %s entries' % \
                               (_list[0],_list[1])
                 }
                 </call>
