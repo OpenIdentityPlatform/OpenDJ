@@ -209,94 +209,98 @@
       <call function="'getEnabledClients'">{'scheduler':scheduler}</call>
       <script>clients = STAXResult </script>
       
-      <!--======= Create instance log dir on instance's host =====-->
-      <paralleliterate in="clients" var="client">
+      <if expr="len(clients) > 0">
         <sequence>
-          <call function="'createFolder'">
-            { 'location'   : client.getHost(),
-              'foldername' : client.getLogDir(),
-              'fileFd'     : NO_FILE
-            }
-          </call>
-          <call function="'createFolder'">
-            { 'location'   : client.getHost(),
-              'foldername' : LOG_TMP_DIR,
-              'fileFd'     : NO_FILE
-            }
-          </call>
-        </sequence>
-      </paralleliterate>
-      
-      <!--====== Copy framework files needed to client hosts ======-->
-      <!-- Copy framework one time per host even if several        -->
-      <!-- client on same host                                     -->
-      <!--== Get the list of hosts for each client              ===-->
-      <script>
-        _list = []
-        _i = 0
-        _listName = []
-        for client in clients:
-          if client.getHost() not in _listName:
-            _listName.append(client.getHost())
-            _list.append([_i,client])
-            _i += 1
-      </script>
-      <paralleliterate in="_list" var="element">
-        <sequence>
-          <if expr="runScheduler == 'true' or runConfiguration == 'true'">
+          <!--======= Create instance log dir on instance's host =====-->
+          <paralleliterate in="clients" var="client">
             <sequence>
-              <script>
-                id = element[0]
-                client = element[1]
-              </script>
-              <!-- Parrallel copy, all instances except client 0 wait 1 sec -->
-              <!-- This prevent copying the same folder in case of NFS      -->
-              <if expr="id != 0">
-                <call function="'sleep'">
-                  {
-                    'sleepForMilliSeconds'  : '2000',
-                    'silentMode' : 'TRUE',
-                    'fileFd' : NO_FILE
-                  }
-                </call>
-              </if>
-              <!-- Copy shared clients -->
-              <call function="'copyFolder'">
-              {
-                'remoteHost'    : '%s%s' % (client.getHost(),DOMAIN[0]),
-                'fromDirectory' : '%s/clients' % TESTS_DIR,
-                'toDirectory'   : '%s/clients' % LOCAL_TESTS_DIR,
-                'fileFd'        : NO_FILE
-              }
-              </call>
-              <!-- Copy clients that are under the scenario directory -->
-              <call function="'isFile'">
-              {
-                'location' : STAXServiceMachine,
-                'fileName' : '%s/scenario/%s/clients' % \
-                             (TESTS_DIR,DIR_NAME),
-              }
-              </call>
-              <script>
-                fileExist = STAXResult
-              </script>
-              <if expr="fileExist == TRUE">
-                <call function="'copyFolder'">
-                {
-                  'remoteHost'    : '%s%s' % (client.getHost(),DOMAIN[0]),
-                  'fromDirectory' : '%s/scenario/%s/clients' % \
-                                    (TESTS_DIR,DIR_NAME),
-                  'toDirectory'   : '%s/scenario/%s/clients' % \
-                                    (LOCAL_TESTS_DIR,DIR_NAME),
-                  'fileFd'        : NO_FILE
+              <call function="'createFolder'">
+                { 'location'   : client.getHost(),
+                  'foldername' : client.getLogDir(),
+                  'fileFd'     : NO_FILE
                 }
-                </call>
+              </call>
+              <call function="'createFolder'">
+                { 'location'   : client.getHost(),
+                  'foldername' : LOG_TMP_DIR,
+                  'fileFd'     : NO_FILE
+                }
+              </call>
+            </sequence>
+          </paralleliterate>
+          
+          <!--====== Copy framework files needed to client hosts ======-->
+          <!-- Copy framework one time per host even if several        -->
+          <!-- client on same host                                     -->
+          <!--== Get the list of hosts for each client              ===-->
+          <script>
+            _list = []
+            _i = 0
+            _listName = []
+            for client in clients:
+              if client.getHost() not in _listName:
+                _listName.append(client.getHost())
+                _list.append([_i,client])
+                _i += 1
+          </script>
+          <paralleliterate in="_list" var="element">
+            <sequence>
+              <if expr="runScheduler == 'true' or runConfiguration == 'true'">
+                <sequence>
+                  <script>
+                    id = element[0]
+                    client = element[1]
+                  </script>
+                  <!-- Parrallel copy, all instances except             -->
+                  <!-- client 0 wait 1 sec. This prevent copying        -->
+                  <!-- the same folder in case of NFS                   -->
+                  <if expr="id != 0">
+                    <call function="'sleep'">
+                      {
+                        'sleepForMilliSeconds'  : '2000',
+                        'silentMode' : 'TRUE',
+                        'fileFd' : NO_FILE
+                      }
+                    </call>
+                  </if>
+                  <!-- Copy shared clients -->
+                  <call function="'copyFolder'">
+                  {
+                    'remoteHost'    : '%s%s' % (client.getHost(),DOMAIN[0]),
+                    'fromDirectory' : '%s/clients' % TESTS_DIR,
+                    'toDirectory'   : '%s/clients' % LOCAL_TESTS_DIR,
+                    'fileFd'        : NO_FILE
+                  }
+                  </call>
+                  <!-- Copy clients that are under the scenario directory -->
+                  <call function="'isFile'">
+                  {
+                    'location' : STAXServiceMachine,
+                    'fileName' : '%s/scenario/%s/clients' % \
+                                 (TESTS_DIR,DIR_NAME),
+                  }
+                  </call>
+                  <script>
+                    fileExist = STAXResult
+                  </script>
+                  <if expr="fileExist == TRUE">
+                    <call function="'copyFolder'">
+                    {
+                      'remoteHost'    : '%s%s' % (client.getHost(),DOMAIN[0]),
+                      'fromDirectory' : '%s/scenario/%s/clients' % \
+                                        (TESTS_DIR,DIR_NAME),
+                      'toDirectory'   : '%s/scenario/%s/clients' % \
+                                        (LOCAL_TESTS_DIR,DIR_NAME),
+                      'fileFd'        : NO_FILE
+                    }
+                    </call>
+                  </if>
+                </sequence>
               </if>
             </sequence>
-          </if>
+          </paralleliterate>
         </sequence>
-      </paralleliterate>
-      
+      </if>
       
       <message log="1">
         '== Found %s Error(s) during this phase' % (ERR_NUM[0])
@@ -393,19 +397,21 @@
       <call function="'getEnabledClients'">{'scheduler':scheduler}</call>
       <script>clients = STAXResult </script>
       
-      <iterate in="clients" var="client">
-        <sequence>
-          <call function="'copyFolder'">
-            { 'location'      : client.getHost(),
-              'remoteHost'    : STAXServiceMachine,
-              'fromDirectory' : client.getLogDir(),
-              'toDirectory'   : client.getLogDir(),
-              'fileFd'        : NO_FILE
-            }
-          </call>
-          
-        </sequence>
-      </iterate>
+      <if expr="len(clients) > 0">
+        <iterate in="clients" var="client">
+          <sequence>
+            <call function="'copyFolder'">
+              { 'location'      : client.getHost(),
+                'remoteHost'    : STAXServiceMachine,
+                'fromDirectory' : client.getLogDir(),
+                'toDirectory'   : client.getLogDir(),
+                'fileFd'        : NO_FILE
+              }
+            </call>
+            
+          </sequence>
+        </iterate>
+      </if>
       
       <!--== Copy xsl file needed to read the report ==-->
       <call function="'copyFile'">

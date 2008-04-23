@@ -142,14 +142,22 @@
       <!--== Get the enabled clients list from all modules ==-->
       <call function="'getEnabledClients'">{'scheduler':scheduler}</call>
       <script>clients = STAXResult </script>
-      <paralleliterate in="clients" var="client">
-        <sequence>
-          <script>
-            client.setLogDir('%s/client_%s_id%s' % \
-            (LOG_DIR,client.getName(),client.getId()))
-          </script>
-        </sequence>
-      </paralleliterate>
+      <if expr="len(clients) > 0">
+        <paralleliterate in="clients" var="client">
+          <sequence>
+            <script>
+              client.setLogDir('%s/client_%s_id%s' % \
+              (LOG_DIR,client.getName(),client.getId()))
+            </script>
+          </sequence>
+        </paralleliterate>
+      <else>
+        <script>
+          msg = '%s\nWARNING : client list is empty,' % msg
+          msg = '%s check clients are defined and modules are enabled\n' % msg
+        </script>
+      </else>
+      </if>
       
       
       <!--=================================================================-->
