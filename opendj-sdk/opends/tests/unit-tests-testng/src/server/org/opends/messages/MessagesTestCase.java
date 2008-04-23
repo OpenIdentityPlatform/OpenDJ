@@ -50,7 +50,7 @@ public abstract class MessagesTestCase
        extends DirectoryServerTestCase
 {
   /** Locale for accessing a pseudo localized test messages file. */
-  protected static final Locale TEST_LOCALE = Locale.CHINA;
+  protected static final Locale TEST_LOCALE = new Locale("myLanguage");
 
   /** Message to appear in pseudo localized test messages file. */
   protected static final String TEST_MSG = "XXX";
