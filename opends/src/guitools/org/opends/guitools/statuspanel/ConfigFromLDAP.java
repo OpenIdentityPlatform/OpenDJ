@@ -915,6 +915,22 @@ public class ConfigFromLDAP
         state = ListenerDescriptor.State.DISABLED;
       }
     }
+    else if (hasObjectClass(entry, "ds-cfg-snmp-connection-handler"))
+    {
+      addressPort = "0.0.0.0:"+port;
+      protocolDescription = INFO_SNMP_PROTOCOL_LABEL.get();
+      protocol = ListenerDescriptor.Protocol.SNMP;
+      boolean enabled = "true".equalsIgnoreCase(
+          getFirstValue(entry, "ds-cfg-enabled"));
+      if (enabled)
+      {
+        state = ListenerDescriptor.State.ENABLED;
+      }
+      else
+      {
+        state = ListenerDescriptor.State.DISABLED;
+      }
+    }
     else
     {
       addressPort = INFO_UNKNOWN_LABEL.get().toString();

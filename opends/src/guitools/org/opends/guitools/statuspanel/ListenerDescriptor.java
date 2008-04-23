@@ -81,6 +81,10 @@ public class ListenerDescriptor
      */
     LDIF,
     /**
+     * SNMP protocol.
+     */
+    SNMP,
+    /**
      * Other protocol.
      */
     OTHER
