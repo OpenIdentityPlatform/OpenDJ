@@ -353,8 +353,12 @@
       
       
       
-      <!-- ============ scheduler ==================================== -->
-      <if expr="runScheduler == 'true' and ERR_NUM_TOTAL == 0">
+      <!-- ============ SCHEDULER ==================================== -->
+      <!--== Get the enabled clients list from all modules ==-->
+      <call function="'getEnabledClients'">{'scheduler':scheduler}</call>
+      <script>clients = STAXResult </script>
+      <if expr="runScheduler == 'true' and ERR_NUM_TOTAL == 0
+                and len(clients) > 0">
         <sequence>
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/phases/scheduler/scheduler.xml' % (TESTS_DIR)"/>
