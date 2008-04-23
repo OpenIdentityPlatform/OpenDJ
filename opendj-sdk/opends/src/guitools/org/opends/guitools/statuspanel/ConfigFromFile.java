@@ -73,6 +73,8 @@ public class ConfigFromFile
     DirectoryServer.getObjectClass("ds-cfg-jmx-connection-handler", true);
   private final ObjectClass ldifConnectionHandlerOc =
     DirectoryServer.getObjectClass("ds-cfg-ldif-connection-handler", true);
+  private final ObjectClass snmpConnectionHandlerOc =
+    DirectoryServer.getObjectClass("ds-cfg-snmp-connection-handler", true);
   private final ObjectClass backendOc =
     DirectoryServer.getObjectClass("ds-cfg-backend", true);
   private final ObjectClass administrativeUserOc =
@@ -569,6 +571,22 @@ public class ConfigFromFile
       addressPort = INFO_UNKNOWN_LABEL.get().toString();
       protocol = ListenerDescriptor.Protocol.LDIF;
       protocolDescription = INFO_LDIF_PROTOCOL_LABEL.get();
+      boolean enabled = "true".equalsIgnoreCase(
+          getFirstValue(entry, "ds-cfg-connection-handler-enabled"));
+      if (enabled)
+      {
+        state = ListenerDescriptor.State.ENABLED;
+      }
+      else
+      {
+        state = ListenerDescriptor.State.DISABLED;
+      }
+    }
+    else if (entry.hasObjectClass(snmpConnectionHandlerOc))
+    {
+      addressPort = addressPort = "0.0.0.0:"+port;
+      protocol = ListenerDescriptor.Protocol.SNMP;
+      protocolDescription = INFO_SNMP_PROTOCOL_LABEL.get();
       boolean enabled = "true".equalsIgnoreCase(
           getFirstValue(entry, "ds-cfg-connection-handler-enabled"));
       if (enabled)

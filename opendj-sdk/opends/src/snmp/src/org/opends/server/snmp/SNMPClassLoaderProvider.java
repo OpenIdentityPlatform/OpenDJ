@@ -98,11 +98,6 @@ public class SNMPClassLoaderProvider {
      */
     private int snmpTrapPort = 162;
 
-    /**
-     * Default SNMP Version.
-     */
-    private String snmpVersion =
-      SNMPConnectionHandlerDefinitions.SNMP_VERSION_V3;
 
     /**
      * Registration of the SNMP MBeans.
@@ -228,12 +223,6 @@ public class SNMPClassLoaderProvider {
         this.snmpTrapPort = this.currentConfig.getTrapPort();
         this.registeredSNMPMBeans = this.currentConfig.isRegisteredMbean();
 
-        this.snmpVersion = this.currentConfig.getVersion().trim().toLowerCase();
-        if (!SNMPConnectionHandlerDefinitions.SUPPORTED_SNMP_VERSION.contains(
-                this.snmpVersion)) {
-            this.snmpVersion = SNMPConnectionHandlerDefinitions.SNMP_VERSION_V3;
-        }
-
         // Creates all the required objects for SNMP MIB 2605 Support
         try {
 
@@ -246,8 +235,7 @@ public class SNMPClassLoaderProvider {
             this.snmpAdaptor = this.getSnmpAdaptor(this.currentConfig);
 
             // Create the Usm MIB to allow user management
-            if ((this.registeredSNMPMBeans) && (this.snmpVersion.equals(
-                    SNMPConnectionHandlerDefinitions.SNMP_VERSION_V3))) {
+            if (this.registeredSNMPMBeans) {
 
                 this.UsmObjName = new ObjectName(
                         SNMPConnectionHandlerDefinitions.SNMP_DOMAIN +
@@ -273,10 +261,10 @@ public class SNMPClassLoaderProvider {
 
             this.dsMib = new DIRECTORY_SERVER_MIBImpl(
                     this.registeredSNMPMBeans, this.mibObjName);
+            this.dsMib.preRegister(this.server, this.mibObjName);
             this.dsMib.setSnmpAdaptor(snmpAdaptor);
 
             this.server.registerMBean(this.snmpAdaptor, snmpObjName);
-            this.server.registerMBean(this.dsMib, this.mibObjName);
 
         } catch (Exception ex) {
             if (debugEnabled()) {
@@ -310,11 +298,7 @@ public class SNMPClassLoaderProvider {
             // Unregister the created SNMP MBeans
             if (this.registeredSNMPMBeans) {
                 this.unregisterSnmpMBeans();
-
-                if (this.snmpVersion.equals(
-                        SNMPConnectionHandlerDefinitions.SNMP_VERSION_V3)) {
-                    this.server.unregisterMBean(this.UsmObjName);
-                }
+                this.server.unregisterMBean(this.UsmObjName);
             }
         } catch (Exception ex) {
             if (debugEnabled()) {
@@ -345,13 +329,7 @@ public class SNMPClassLoaderProvider {
             // Set the USM security file
             String usmConfigPath = configuration.getSecurityAgentFile();
             File file = StaticUtils.getFileForPath(usmConfigPath);
-
-            if (configuration.getVersion().toLowerCase().equals(
-                    SNMPConnectionHandlerDefinitions.SNMP_VERSION_V3)) {
-                System.setProperty("jdmk.security.file",
-                    file.getAbsolutePath());
-            }
-
+            System.setProperty("jdmk.security.file",file.getAbsolutePath());
             // Create the Security Parameters for the engine
             SnmpEngineParameters engineParameters = new SnmpEngineParameters();
 

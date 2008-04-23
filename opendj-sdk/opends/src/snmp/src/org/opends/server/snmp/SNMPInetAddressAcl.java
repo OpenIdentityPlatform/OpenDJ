@@ -59,7 +59,7 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
     private SortedSet<String> trapsDestinations;
     private String trapsCommunity;
 
-    private SortedSet<String> communitiesList;
+    private String communities;
 
 
     /**
@@ -68,6 +68,7 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
      */
     public SNMPInetAddressAcl(SNMPConnectionHandlerCfg configuration) {
         super();
+        // Get the current configuration
         this.currentConfig = configuration;
 
         // hostsList
@@ -85,10 +86,12 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
             }
         }
 
+        // Get the list of trap destinations
         this.trapsDestinations = this.currentConfig.getTrapsDestination();
-        this.communitiesList = this.currentConfig.getCommunity();
+        // Get the community string to accept
+        this.communities = this.currentConfig.getCommunity();
+        // Get the community string to set in the traps
         this.trapsCommunity = this.currentConfig.getTrapsCommunity();
-
     }
 
     /**
@@ -140,7 +143,7 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
      * {@inheritDoc}
      */
     public boolean checkCommunity(String community) {
-        return this.communitiesList.contains(community);
+        return this.communities.equals(community);
     }
 
     /**

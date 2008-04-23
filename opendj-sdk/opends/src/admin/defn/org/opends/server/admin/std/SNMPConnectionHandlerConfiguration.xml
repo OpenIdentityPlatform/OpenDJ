@@ -35,7 +35,7 @@
         The
         <adm:user-friendly-name />
         can be used to process SNMP requests to retrieve monitoring information
-        described by the MIB 2605.
+        described by the MIB 2605. Supported protocol are SNMP V1, V2c and V3.
     </adm:synopsis>
     <adm:description>
         The SNMP connection handler will process SNMP requests sent by SNMP 
@@ -77,29 +77,12 @@
         </adm:profile>
     </adm:property>
     <!-- SNMP Version  -->
-    <adm:property name="version">
-        <adm:synopsis>
-            Specifies Supported SNMP Version : v1, v2, v3.
-        </adm:synopsis>
-        <adm:default-behavior>
-            <adm:defined>
-                <adm:value>v2</adm:value>
-            </adm:defined>
-        </adm:default-behavior>
-        <adm:syntax>
-            <adm:string />
-        </adm:syntax>
-        <adm:profile name="ldap">
-            <ldap:attribute>
-                <ldap:name>ds-cfg-version</ldap:name>
-            </ldap:attribute>
-        </adm:profile>
-    </adm:property>
     <!-- SNMP Community or Context Name  -->
-    <adm:property name="community" multi-valued="true">
+    <adm:property name="community">
         <adm:synopsis>
             Specifies the v1,v2 community or the v3 context name allowed to 
-            access the MIB 2605 monitoring information or the USM MIB.
+            access the MIB 2605 monitoring information or the USM MIB. The
+            mapping between "community" and "context name" is set.
         </adm:synopsis>
         <adm:default-behavior>
             <adm:defined>
@@ -124,7 +107,7 @@
         <adm:default-behavior>
             <adm:alias>
                 <adm:synopsis>
-                    If the list is empty, no access control is done.
+                    An empty list opens access to all managers.
                 </adm:synopsis>
             </adm:alias>
         </adm:default-behavior>
@@ -287,135 +270,7 @@
             </ldap:attribute>
         </adm:profile>
     </adm:property>
-    <!--User Template definitions -->
-    <!--User Name -->
-    <adm:property name="template-username">
-        <adm:synopsis>
-            Indicates the user name for the template definitions.
-        </adm:synopsis>
-        <adm:default-behavior>
-            <adm:defined>
-                <adm:value>defaultUser</adm:value>
-            </adm:defined>
-        </adm:default-behavior>
-        <adm:syntax>
-            <adm:string />
-        </adm:syntax>
-        <adm:profile name="ldap">
-            <ldap:attribute>
-                <ldap:name>ds-cfg-template-username</ldap:name>
-            </ldap:attribute>
-        </adm:profile>
-    </adm:property>
-    <!-- Authentication Algoritm -->
-    <adm:property name="template-auth-algorithm">
-        <adm:synopsis>
-            Specifies the type of Authentication algorithm that must be used for
-            SNMP V3 request for the specified user.
-        </adm:synopsis>
-        <adm:default-behavior>
-            <adm:defined>
-                <adm:value>usmhmacmd5authprotocol</adm:value>
-            </adm:defined>
-        </adm:default-behavior>
-        <adm:syntax>
-            <adm:enumeration>
-                <adm:value name="usmhmacmd5authprotocol">
-                    <adm:synopsis>
-                        usmHMACMD5AuthProtocol Authentication algorithm.
-                    </adm:synopsis>
-                </adm:value>
-                <adm:value name="usmhmacshaauthprotocol">
-                    <adm:synopsis>
-                        usmHMACSHAAuthProtocol Authentication algorithm.
-                    </adm:synopsis>
-                </adm:value>
-                <adm:value name="usmnoauthprotocol">
-                    <adm:synopsis>
-                        usmNoAuthProtocol Authentication algorithm.
-                    </adm:synopsis>
-                </adm:value>
-            </adm:enumeration>
-        </adm:syntax>
-        <adm:profile name="ldap">
-            <ldap:attribute>
-                <ldap:name>ds-cfg-template-auth-algorithm</ldap:name>
-            </ldap:attribute>
-        </adm:profile>
-    </adm:property>
-    <!-- Authentication key -->
-    <adm:property name="template-authkey">
-        <adm:synopsis>
-            Any text password or any hexadecimal key starting with 0x; for 
-            example, 0x0098768905AB67EFAA855A453B665B12, of size: 0 to 32 
-            inclusive for HMACMD5 or 0 to 40 inclusive for HMACSHA.
-        </adm:synopsis>
-        <adm:default-behavior>
-            <adm:defined>
-                <adm:value>password</adm:value>
-            </adm:defined>
-        </adm:default-behavior>
-        <adm:syntax>
-            <adm:string />
-        </adm:syntax>
-        <adm:profile name="ldap">
-            <ldap:attribute>
-                <ldap:name>ds-cfg-template-authkey</ldap:name>
-            </ldap:attribute>
-        </adm:profile>
-    </adm:property>
-    <!-- Privacy Algorithm -->
-    <adm:property name="template-priv-algorithm">
-        <adm:synopsis>
-            Specifies the type of Privacy algorithm that must be used for
-            SNMP V3 request for the specified user.
-        </adm:synopsis>
-        <adm:default-behavior>
-            <adm:defined>
-                <adm:value>usmdesprivprotocol</adm:value>
-            </adm:defined>
-        </adm:default-behavior>
-        <adm:syntax>
-            <adm:enumeration>
-                <adm:value name="usmdesprivprotocol">
-                    <adm:synopsis>
-                        usmDESPrivProtocol Privacy algorithm.
-                    </adm:synopsis>
-                </adm:value>
-                <adm:value name="usmnoprivprotocol">
-                    <adm:synopsis>
-                        usmNoPrivProtocol Privacy algorithm.
-                    </adm:synopsis>
-                </adm:value>
-            </adm:enumeration>
-        </adm:syntax>
-        <adm:profile name="ldap">
-            <ldap:attribute>
-                <ldap:name>ds-cfg-template-priv-algorithm</ldap:name>
-            </ldap:attribute>
-        </adm:profile>
-    </adm:property>
-    <!-- Privacy key -->
-    <adm:property name="template-privkey">
-        <adm:synopsis>
-            Any text password or any hexadecimal key starting with 0x; 
-            for example, 0x0098768905AB67EFAA855A453B665B12, of size: 0 to 32 
-            inclusive for HMACMD5 or 0 to 40 inclusive for HMACSHA.
-        </adm:synopsis>
-        <adm:default-behavior>
-            <adm:defined>
-                <adm:value>password</adm:value>
-            </adm:defined>
-        </adm:default-behavior>
-        <adm:syntax>
-            <adm:string />
-        </adm:syntax>
-        <adm:profile name="ldap">
-            <ldap:attribute>
-                <ldap:name>ds-cfg-template-privkey</ldap:name>
-            </ldap:attribute>
-        </adm:profile>
-    </adm:property>
+  
       <adm:property name="opendmk-jarfile">
         <adm:synopsis>
             Indicates the OpenDMK runtime jar file location

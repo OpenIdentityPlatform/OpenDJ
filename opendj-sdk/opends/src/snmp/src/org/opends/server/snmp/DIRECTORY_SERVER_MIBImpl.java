@@ -36,103 +36,104 @@ import org.opends.server.loggers.debug.DebugTracer;
  */
 public class DIRECTORY_SERVER_MIBImpl extends DIRECTORY_SERVER_MIB {
 
-  /**
-   * The serial version identifier required to satisfy the compiler because
-   * this class implements the <CODE>java.io.Serializable</CODE> interface.
-   * This value was generated using the <CODE>serialver</CODE> command-line
-   * utility included with the Java SDK.
-   */
-  private static final long serialVersionUID = 1420660265781848102L;
-  /**
-   * The debug log tracer for this class.
-   */
-  private static final DebugTracer TRACER = DebugLogger.getTracer();
-  /**
-   * Indicates if the SNMP Mbeans have to be registered or not.
-   */
-  private boolean registeredSnmpMBean = false;
-  /**
-   * The Current Directory Server MIB.
-   */
-  private DsMIBImpl dsMib = null;
-  /**
-   * ObjectName of the Current Direcotry Server MIB.
-   */
-  private ObjectName mibObName;
-  /**
-   * ObjectName of the dsMIB group in the Directory Server MIB.
-   */
-  private ObjectName groupObjName;
+    /**
+     * The serial version identifier required to satisfy the compiler because
+     * this class implements the <CODE>java.io.Serializable</CODE> interface.
+     * This value was generated using the <CODE>serialver</CODE> command-line
+     * utility included with the Java SDK.
+     */
+    private static final long serialVersionUID = 1420660265781848102L;
+    /**
+     * The debug log tracer for this class.
+     */
+    private static final DebugTracer TRACER = DebugLogger.getTracer();
+    /**
+     * Indicates if the SNMP Mbeans have to be registered or not.
+     */
+    private boolean registeredSnmpMBean = false;
+    /**
+     * The Current Directory Server MIB.
+     */
+    private DsMIBImpl dsMibGroup = null;
+    /**
+     * ObjectName of the Current Direcotry Server MIB.
+     */
+    private ObjectName mibObName;
+    /**
+     * ObjectName of the dsMIB group in the Directory Server MIB.
+     */
+    private ObjectName groupObjName;
 
-  /**
-   * Creates the Current Directory Server MIB.
-   * @param registeredMBean indicates if the SNMP MBean has to register
-   * in the Direcotry Server MBeanServer
-   * @param mibName of the Directory Server MIB
-   */
-  public DIRECTORY_SERVER_MIBImpl(boolean registeredMBean, ObjectName mibName) {
-    super();
-    this.registeredSnmpMBean = registeredMBean;
-    this.mibObName = mibName;
-    if (DebugLogger.debugEnabled()) {
-      TRACER.debugVerbose("DIRECTORY_SERVER_MIB=" + this.mibObName +
-              " created with registerMBean=" + this.registeredSnmpMBean);
+    /**
+     * Creates the Current Directory Server MIB.
+     * @param registeredMBean indicates if the SNMP MBean has to register
+     * in the Direcotry Server MBeanServer
+     * @param mibName of the Directory Server MIB
+     */
+    public DIRECTORY_SERVER_MIBImpl(boolean registeredMBean,
+            ObjectName mibName) {
+        super();
+        this.registeredSnmpMBean = registeredMBean;
+        this.mibObName = mibName;
+        if (DebugLogger.debugEnabled()) {
+            TRACER.debugVerbose("DIRECTORY_SERVER_MIB=" + this.mibObName +
+                    " created with registerMBean=" + this.registeredSnmpMBean);
+        }
     }
-  }
 
-  /**
-   * {@inheritDoc}
-   * @throws java.lang.Exception if the DsMib Group couls not be initialized
-   */
-  @Override
-  protected void initDsMIB(MBeanServer server)
-          throws Exception {
+    /**
+     * {@inheritDoc}
+     * @throws java.lang.Exception if the DsMib Group couls not be initialized
+     */
+    @Override
+    protected void initDsMIB(MBeanServer server)
+            throws Exception {
 
-    final String oid = getGroupOid("DsMIB", "1.3.6.1.2.1.66");
-    if (server != null) {
-      groupObjName = new ObjectName(
-              SNMPConnectionHandlerDefinitions.SNMP_DOMAIN +
-              "type=group,name=DsMib");
+        final String oid = getGroupOid("DsMIB", "1.3.6.1.2.1.66");
+        if (server != null) {
+            groupObjName = new ObjectName(
+                    SNMPConnectionHandlerDefinitions.SNMP_DOMAIN +
+                    "type=group,name=DsMib");
+        }
+        final DsMIBMeta meta = createDsMIBMetaNode("DsMIB", oid, groupObjName,
+                server);
+        if (meta != null) {
+            meta.registerTableNodes(this, server);
+
+            // Note that when using standard metadata,
+            // the returned object must implement the "DsMIBMBean"
+            // interface.
+            //
+            final DsMIBMBean group = (DsMIBMBean) createDsMIBMBean("DsMIB", oid,
+                    groupObjName, server);
+            meta.setInstance(group);
+            registerGroupNode("DsMIB", oid, groupObjName, meta, group, server);
+        }
     }
-    final DsMIBMeta meta = createDsMIBMetaNode("DsMIB", oid, groupObjName,
-            server);
-    if (meta != null) {
-      meta.registerTableNodes(this, server);
 
-      // Note that when using standard metadata,
-      // the returned object must implement the "DsMIBMBean"
-      // interface.
-      //
-      final DsMIBMBean group = (DsMIBMBean) createDsMIBMBean("DsMIB", oid,
-              groupObjName, server);
-      meta.setInstance(group);
-      registerGroupNode("DsMIB", oid, groupObjName, meta, group, server);
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected Object createDsMIBMBean(String groupName,
+            String groupOid, ObjectName groupObjname, MBeanServer server) {
+        this.dsMibGroup = new DsMIBImpl(this, server, this.registeredSnmpMBean);
+        return this.dsMibGroup;
     }
-  }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected Object createDsMIBMBean(String groupName,
-          String groupOid, ObjectName groupObjname, MBeanServer server) {
-    this.dsMib = new DsMIBImpl(this, server, this.registeredSnmpMBean);
-    return this.dsMib;
-  }
+    /**
+     * Returns the created dsMIB group.
+     * @return the DsMIBImpl
+     */
+    protected DsMIBImpl getMib() {
+        return this.dsMibGroup;
+    }
 
-  /**
-   * Returns the created dsMIB group.
-   * @return the DsMIBImpl
-   */
-  protected DsMIBImpl getMib() {
-    return this.dsMib;
-  }
-
-  /**
-   * Returns the ObjectName of the dsMIB group.
-   * @return the ObjectName of the created dsMIB group
-   */
-  protected ObjectName getObjectName() {
-    return this.groupObjName;
-  }
+    /**
+     * Returns the ObjectName of the dsMIB group.
+     * @return the ObjectName of the created dsMIB group
+     */
+    protected ObjectName getObjectName() {
+        return this.groupObjName;
+    }
 }

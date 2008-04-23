@@ -123,9 +123,6 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
     this.dsTableEntries.clear();
     this.dsApplIfOpsTableEntries.clear();
     this.dsIntTableEntries.clear();
-    this.applIndex = 1;
-    this.applIfOpsIndex = 1;
-    this.intIndex = 1;
     // Initialize the MIB
     initDsTables();
 

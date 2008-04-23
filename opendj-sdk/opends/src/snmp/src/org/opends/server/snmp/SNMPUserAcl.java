@@ -48,6 +48,10 @@ public class SNMPUserAcl implements UserAcl {
      */
     private static final String ALL_USERS_ALLOWED = "*";
     /**
+     * Default User for cloning mechanism.
+     */
+    private static final String DEFAULT_USER = "defaultUser";
+    /**
      * Current Security Configuration for the SNMP Connection Handler.
      */
     private SNMPConnectionHandlerCfg currentConfig;
@@ -60,18 +64,13 @@ public class SNMPUserAcl implements UserAcl {
      */
     private SortedSet trapDestinations;
     /**
-     * Configured communities string.
+     * Configured context name.
      */
-    private SortedSet communityList;
+    private String contextName;
     /**
      * Configured Security level.
      */
     private SecurityLevel securityLevel;
-    /**
-     * User Name template - the only user getting the write access
-     * on the USM MIB . Allowed to add user clones
-     */
-    private String templateUsername;
 
     /**
      * {@inheritDoc}
@@ -81,15 +80,13 @@ public class SNMPUserAcl implements UserAcl {
         // Keep the configuration
         this.currentConfig = configuration;
         // Get the community/context string to accept
-        this.communityList = this.currentConfig.getCommunity();
+        this.contextName = this.currentConfig.getCommunity();
         // Get the list of allowed users (SNMPV3)
         this.usersList = this.currentConfig.getAllowedUser();
         // Get the traps destinations
         this.trapDestinations = this.currentConfig.getTrapsDestination();
         // Get the min security level to accept
         this.securityLevel = this.currentConfig.getSecurityLevel();
-        // Get the user name template allowed to add users in the USM MIB
-        this.templateUsername = this.currentConfig.getTemplateUsername();
     }
 
     /**
@@ -118,7 +115,7 @@ public class SNMPUserAcl implements UserAcl {
             int securityLevel) {
 
         // Special check for the defaultUser
-        if ((user.equals(this.templateUsername))
+        if ((user.equals(DEFAULT_USER))
             && (contextName.equals("null"))
             && ((this.securityLevel.ordinal() + 1) >= securityLevel)) {
             return true;
@@ -136,14 +133,14 @@ public class SNMPUserAcl implements UserAcl {
      * {@inheritDoc}
      */
     public boolean checkContextName(String contextName) {
-        return this.communityList.contains(contextName);
+        return this.contextName.equals(contextName);
     }
 
     /**
      * {@inheritDoc}
      */
     public boolean checkWritePermission(String user) {
-        if (user.equals(this.templateUsername)) {
+        if (user.equals(DEFAULT_USER)) {
             return true;
         }
         return false;
