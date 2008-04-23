@@ -1979,4 +1979,52 @@
       </if>
     </sequence>
   </function>
+  
+  
+  
+  <function name="getFreePort" scope="local">
+    <function-description>
+      Returns the first free TCP port greater or equal to given number
+    </function-description>
+    <function-map-args>
+      <function-arg-def name="host" type="optional" default="STAXServiceMachine">
+        <function-arg-description>
+          Which machine to look for the free port
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="port" type="required">
+        <function-arg-description>
+          The minimal port number to be returned
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <script>
+        # returns first free port in [port; port+5]
+        # if no free port in this interval, return -1
+        import socket
+        import sys
+        s = None
+        i = 0
+        while 1:
+          try:
+            i = i + 1
+            if i > 5:
+              port = -1
+              break
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.bind(host, port)
+            s.listen(1)
+            s.close()
+            break
+          except socket.error:
+            if s:
+              s.close()
+            port = port + 1
+      </script>
+      <return>port</return>
+    </sequence>
+  </function>
+
+  
 </stax>
