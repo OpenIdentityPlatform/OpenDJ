@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, exclude this CDDL HEADER in each
+ ! file and exclude the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  
+  <defaultcall function="general_options"/>
+  
+  <function name="general_options">
+    
+    <sequence>
+          
+      <!--- Test Suite information
+        #@TestSuiteName       Setup-Uninstall general_options Tests
+        #@TestSuitePurpose    Test the general options of both setup and 
+                              uninstall commands. General options include
+                              'help', 'version', ...
+        #@TestSuiteGroup      general_options
+        #@TestSuiteID         general_options Tests
+        #@TestGroup           Setup-Uninstall
+        #@TestScript          general_options.xml
+        #@TestHTMLLink        http://opends.dev.java.net/
+      -->
+
+      <script>
+        if not CurrentTestPath.has_key('group'):
+          CurrentTestPath['group'] = 'setup'              
+        CurrentTestPath['suite'] = 'general_options'
+      </script>
+
+      <call function="'testSuite_Preamble'"/>
+
+      <!--- Test Case information
+        #@TestMarker          Setup-Uninstall General options
+        #@TestName            Setup-Uninstall: general_options: 
+                              setup_uninstall_version
+        #@TestID              setup_uninstall_version
+        #@TestPurpose         Test the 'version' option of the commands
+        #@TestPreamble        
+        #@TestStep            Test 'version' option of setup command
+                              Test 'version' option of uninstall command
+        #@TestPostamble       
+        #@TestResult          PASS if all steps ran without errors
+      -->
+      <testcase name="getTestCaseName('setup_uninstall_version')">
+
+        <sequence>
+
+          <call function="'testCase_Preamble'"/>
+          <message>'Setup Uninstall: Version option'</message>
+
+          <script>
+            setupCmd    = '%s/%s/setup%s' % (ODS_UNZIPPED, OPENDSNAME, fileExt)
+            setupParams = '--version'
+          </script>
+      
+          <message>'%s %s' % (setupCmd, setupParams)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAXServiceMachine,
+              'name'      : 'Launch setup command to get DS version',
+              'command'   : setupCmd,
+              'arguments' : setupParams,
+              'path'      : ODS_UNZIPPED,
+              'expectedRC': 0,
+              'outputPath': OUT_GROUP,
+              'outputFile': 'go-setup-version.txt',
+            }
+          </call>
+
+          <script>
+            grepFile = '%s/go-setup-version.txt' % OUT_GROUP
+          </script>
+
+          <call function="'grep'">
+            { 'location'  : STAXServiceMachine,
+              'filename'  : grepFile,
+              'testString': 'OpenDS Directory Server',
+              'expectedRC': 0,
+            }
+          </call>
+
+          <script>
+            uninstallCmd = '%s/%s/uninstall%s' % (ODS_UNZIPPED, \
+              OPENDSNAME, fileExt)
+            uninstallParams = '--version'
+          </script>
+      
+          <message>'%s %s' % (uninstallCmd, uninstallParams)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAXServiceMachine,
+              'name'      : 'Launch uninstall command to get DS version',
+              'command'   : uninstallCmd,
+              'arguments' : uninstallParams,
+              'path'      : ODS_UNZIPPED,
+              'expectedRC': 0,
+              'outputPath': OUT_GROUP,
+              'outputFile': 'go-uninstall-version.txt',
+            }
+          </call>
+
+          <script>
+            grepFile = '%s/go-uninstall-version.txt' % OUT_GROUP
+          </script>
+
+          <call function="'grep'">
+            { 'location'  : STAXServiceMachine,
+              'filename'  : grepFile,
+              'testString': 'OpenDS Directory Server',
+              'expectedRC': 0,
+            }
+          </call>
+
+          <call function="'testCase_Postamble'"/>
+
+        </sequence>
+
+      </testcase> 
+
+      <!--- Test Case information
+        #@TestMarker          Setup-Uninstall General options
+        #@TestName            Setup-Uninstall: general_options: 
+                              setup_uninstall_help
+        #@TestID              setup_uninstall_help
+        #@TestPurpose         Test the 'help' option of the commands
+        #@TestPreamble        
+        #@TestStep            Test 'help' option of setup command
+                              Test 'help' option of uninstall command
+        #@TestPostamble       
+        #@TestResult          PASS if all steps ran without errors
+      -->
+      <testcase name="getTestCaseName('setup_uninstall_help')">
+
+        <sequence>
+
+          <call function="'testCase_Preamble'"/>
+          <message>'Setup Uninstall: Help option'</message>
+          <script>
+            setupCmd    = '%s/%s/setup%s' % (ODS_UNZIPPED, OPENDSNAME, fileExt)
+            setupParams = '--help'
+          </script>
+      
+          <message>'%s %s' % (setupCmd, setupParams)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAXServiceMachine,
+              'name'      : 'Launch setup command to get its help',
+              'command'   : setupCmd,
+              'arguments' : setupParams,
+              'path'      : ODS_UNZIPPED,
+              'expectedRC': 0,
+              'outputPath': OUT_GROUP,
+              'outputFile': 'go-setup-help.txt',
+            }
+          </call>
+
+          <script>
+            grepFile = '%s/go-setup-help.txt' % OUT_GROUP
+          </script>
+
+          <call function="'grep'">
+            { 'location'  : STAXServiceMachine,
+              'filename'  : grepFile,
+              'testString': 'Usage',
+              'expectedRC': 0,
+            }
+          </call>
+
+          <script>
+            uninstallCmd = '%s/%s/uninstall%s' % (ODS_UNZIPPED, \
+              OPENDSNAME, fileExt)
+            uninstallParams = '--help'
+          </script>
+      
+          <message>'%s %s' % (uninstallCmd, uninstallParams)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAXServiceMachine,
+              'name'      : 'Launch uninstall command to get its help',
+              'command'   : uninstallCmd,
+              'arguments' : uninstallParams,
+              'path'      : ODS_UNZIPPED,
+              'expectedRC': 0,
+              'outputPath': OUT_GROUP,
+              'outputFile': 'go-uninstall-help.txt',
+            }
+          </call>
+
+          <script>
+            grepFile = '%s/go-uninstall-help.txt' % OUT_GROUP
+          </script>
+
+          <call function="'grep'">
+            { 'location'  : STAXServiceMachine,
+              'filename'  : grepFile,
+              'testString': 'Usage',
+              'expectedRC': 0,
+            }
+          </call>
+
+          <call function="'testCase_Postamble'"/>
+
+        </sequence>
+
+      </testcase> 
+      <call function="'testSuite_Postamble'"/>
+
+    </sequence>
+    
+  </function>
+  
+</stax>
