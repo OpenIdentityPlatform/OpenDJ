@@ -138,6 +138,12 @@
       -->
 
       <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/testcases/setup/setup.xml' % (TESTS_DIR)" />
+      <!--
+      add keyword 'main_setup' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
+      -->
+
+      <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/sample/sample.xml' % TESTS_DIR" />
       <script>
         # this function return a well-formatted testcase name
