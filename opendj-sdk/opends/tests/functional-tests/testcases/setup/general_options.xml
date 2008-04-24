@@ -54,7 +54,7 @@
       <call function="'testSuite_Preamble'"/>
 
       <!--- Test Case information
-        #@TestMarker          Setup-Uninstall General options
+        #@TestMarker          Setup-Uninstall general_options Tests
         #@TestName            Setup-Uninstall: general_options: 
                               setup_uninstall_version
         #@TestID              setup_uninstall_version
@@ -140,7 +140,7 @@
       </testcase> 
 
       <!--- Test Case information
-        #@TestMarker          Setup-Uninstall General options
+        #@TestMarker          Setup-Uninstall general_options Tests
         #@TestName            Setup-Uninstall: general_options: 
                               setup_uninstall_help
         #@TestID              setup_uninstall_help
