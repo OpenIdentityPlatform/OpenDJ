@@ -271,11 +271,7 @@ public class AciListenerManager
             }
             continue;
         }
-        if(internalSearch.getSearchEntries().isEmpty()) {
-          Message message =
-              INFO_ACI_ADD_LIST_NO_ACIS.get(String.valueOf(baseDN));
-          logError(message);
-        } else {
+        if(!internalSearch.getSearchEntries().isEmpty()) {
           int validAcis = aciList.addAci(
                internalSearch.getSearchEntries(), failedACIMsgs);
           if(!failedACIMsgs.isEmpty())
