@@ -459,9 +459,14 @@ public class WorkThread extends DirectoryThread {
       }
     } else {
       if(!processParent(element, txn))
-         return null;
-      ArrayList IDs = (ArrayList)entry.getAttachment();
-      entryID = (EntryID)IDs.get(0);
+        return null;
+      if (ldifImportConfig.appendToExistingData() &&
+              ldifImportConfig.replaceExistingEntries()) {
+        entryID = rootContainer.getNextEntryID();
+      } else {
+        ArrayList IDs = (ArrayList)entry.getAttachment();
+        entryID = (EntryID)IDs.get(0);
+      }
       dn2id.insert(txn, entryDN, entryID);
     }
     context.removePending(entryDN);
