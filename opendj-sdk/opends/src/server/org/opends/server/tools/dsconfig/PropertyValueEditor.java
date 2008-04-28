@@ -2426,7 +2426,7 @@ final class PropertyValueEditor {
     SortedSet<T> originalValues;
     if (mod != null)
     {
-      originalValues = new TreeSet<T>();
+      originalValues = new TreeSet<T>(pd);
       castAndAddValues(originalValues, mod.getOriginalValues(), pd);
       removeModification(mod);
     }
@@ -2457,7 +2457,7 @@ final class PropertyValueEditor {
     SortedSet<T> originalValues;
     if (mod != null)
     {
-      originalValues = new TreeSet<T>();
+      originalValues = new TreeSet<T>(pd);
       castAndAddValues(originalValues, mod.getOriginalValues(), pd);
       removeModification(mod);
     }
@@ -2488,7 +2488,7 @@ final class PropertyValueEditor {
     SortedSet<T> originalValues;
     if (mod != null)
     {
-      originalValues = new TreeSet<T>();
+      originalValues = new TreeSet<T>(pd);
       castAndAddValues(originalValues, mod.getOriginalValues(), pd);
       if (mod.getType() == PropertyEditorModification.Type.ADD)
       {
@@ -2534,7 +2534,7 @@ final class PropertyValueEditor {
     SortedSet<T> originalValues;
     if (mod != null)
     {
-      originalValues = new TreeSet<T>();
+      originalValues = new TreeSet<T>(pd);
       castAndAddValues(originalValues, mod.getOriginalValues(), pd);
       if (newValues.isEmpty())
       {

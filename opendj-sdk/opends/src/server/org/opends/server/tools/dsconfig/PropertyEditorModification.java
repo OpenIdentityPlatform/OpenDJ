@@ -80,10 +80,8 @@ final class PropertyEditorModification<T>
   {
     this.propertyDefinition = propertyDefinition;
     this.type = type;
-    this.values = new TreeSet<T>();
-    this.values.addAll(values);
-    this.originalValues = new TreeSet<T>();
-    this.originalValues.addAll(originalValues);
+    this.values = new TreeSet<T>(values);
+    this.originalValues = new TreeSet<T>(originalValues);
   }
 
   /**
@@ -97,7 +95,7 @@ final class PropertyEditorModification<T>
       PropertyDefinition<T> propertyDefinition, SortedSet<T> originalValues)
   {
     return new PropertyEditorModification<T>(propertyDefinition, Type.RESET,
-        new TreeSet<T>(), originalValues);
+        new TreeSet<T>(propertyDefinition), originalValues);
   }
 
   /**
