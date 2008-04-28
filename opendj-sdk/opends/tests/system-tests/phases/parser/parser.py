@@ -402,6 +402,8 @@ class Client:
     self.dependency = NOT_DEFINED
     self.result     = NOT_DEFINED
     self.logDir     = NOT_DEFINED
+    self.startDate  = NOT_DEFINED
+    self.stopDate   = NOT_DEFINED
     
   def getId(self):
     return self.iid
@@ -447,6 +449,18 @@ class Client:
     
   def setLogDir(self,logDir):
     self.logDir = logDir
+    
+  def getStartDate(self):
+    return self.startDate
+    
+  def setStartDate(self,startDate):
+    self.startDate = startDate
+    
+  def getStopDate(self):
+    return self.stopDate
+    
+  def setStopDate(self,stopDate):
+    self.stopDate = stopDate
 
 
 ###########################

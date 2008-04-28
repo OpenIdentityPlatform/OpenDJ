@@ -631,10 +631,12 @@
         <xsl:value-of select="$clientHost"/>
       </span>
     </a>
+    [Start : <xsl:value-of select="clientResult/@startDate"/> / 
+    Stop : <xsl:value-of select="clientResult/@stopDate"/>].
     <p id="{$i}" style="display: none">
       <xsl:call-template name="parseChildPhase" />
     </p>
-    client ends with status :
+    Client ends with status :
       <xsl:variable name="clientStatus" 
                     select="normalize-space(clientResult/@status)"/>
       <xsl:choose>

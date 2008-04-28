@@ -294,6 +294,7 @@
       
       <script>
         startTime=strftime("%Y%m%d@%H:%M:%S",localtime())
+        client.setStartDate(startTime)
         errNum = NOT_DEFINED
       </script>
       
@@ -447,6 +448,7 @@
       <!--=== log info ===-->
       <script>
         stopTime=strftime("%Y%m%d@%H:%M:%S",localtime())
+        client.setStopDate(stopTime)
       </script>
       <message>
         '-- Stop %s client (id %s) running on %s at %s' %\
@@ -461,16 +463,21 @@
       
       <if expr="errNum == 0">
         <script>
-          client.setResult('SUCCESS')
-          fileFd.write('\n&lt;clientResult status=\"SUCCESS\"/&gt;\n')
+          result = 'SUCCESS'
         </script>
       <else>
         <script>
-          client.setResult('FAIL')
-          fileFd.write('\n&lt;clientResult status=\"FAIL\"/&gt;\n')
+          result = 'FAIL'
         </script>
       </else>
       </if>
+      <script>
+        client.setResult(result)
+        attrs = 'status=\"%s\" startDate=\"%s\" stopDate=\"%s\"' % \
+                (result,client.getStartDate(),client.getStopDate())
+        fileFd.write('\n&lt;clientResult %s/&gt;\n' % attrs)
+      </script>
+      
       <!-- DO NOT record number of error(s) found by clients         -->
       <!-- each should use checkRC and ERR_NUM[0] is already updated -->
       <!-- <script>
