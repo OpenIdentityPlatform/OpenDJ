@@ -28,12 +28,11 @@
                                    suffix?, scheduler?)>
 
 <!-- ========== GLOBAL PARAMETERS NODE ========================= -->
-<!ELEMENT globalParameters (scenario,opendsName,opendsZip,directoryManagerDn?,
+<!ELEMENT globalParameters (scenario,opendsZip,directoryManagerDn?,
                             directoryManagerPswd?,domain?)>
   <!ELEMENT scenario (name,description)>
     <!ELEMENT name (#PCDATA)>
     <!ELEMENT description (#PCDATA)>
-  <!ELEMENT opendsName (#PCDATA)>
   <!ELEMENT opendsZip (#PCDATA)>
   <!ELEMENT directoryManagerDn (#PCDATA)>
   <!ELEMENT directoryManagerPswd (#PCDATA)>

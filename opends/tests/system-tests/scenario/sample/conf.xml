@@ -42,9 +42,9 @@
       <description>This is an example</description>
     </scenario>
     
-    <opendsName>OpenDS-1.0.0</opendsName>
     <opendsZip>NEED_VALUE</opendsZip>
-    <domain>NEED_VALUE</domain>
+    <!-- Example : <domain>france.sun.com</domain> -->
+    <domain></domain>
     
   </globalParameters>
   
