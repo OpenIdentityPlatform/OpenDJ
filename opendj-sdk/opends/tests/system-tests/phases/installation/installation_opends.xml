@@ -85,7 +85,7 @@
           }
           </call>
           
-          <!--== install -->
+          <!--== install ==-->
           <call function="'installSetupOpends'">
           {
             'instance'           : instance,
@@ -95,7 +95,7 @@
           </call>
           
           
-          <!--== Post operations ======-->
+          <!--== Post operations ==-->
           <message>
             '%s : %s : installation complete' % \
             (instance.getHost(),instance.getName())
@@ -111,14 +111,14 @@
       </paralleliterate>
       
       
-      <!--== Update missing parameters -->
+      <!--== Update missing parameters ==-->
       <iterate in="instances" var="instance">
         <call function="'updateMissingParameters'">
         {'instance' : instance}
         </call>
       </iterate>
     </sequence>
-  </function>  
+  </function>
 
 
 
