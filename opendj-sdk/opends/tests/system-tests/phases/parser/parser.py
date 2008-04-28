@@ -547,9 +547,8 @@ def main(document):
       result = parseGlobalParameters(thisChild)
       msg = '%s \n %s' % (msg,result[0])
       scenario   = result[1]
-      opendsName = result[2]
-      opendsZip  = result[3]
-      domain     = result[4]
+      opendsZip  = result[2]
+      domain     = result[3]
     
     #
     # Parsing instance node
@@ -574,8 +573,7 @@ def main(document):
       # opends instance parsing
       #
       if cProduct == 'opends':
-        result = parseOpenDs(cId,cName,cProduct,cRole,opendsName,opendsZip,\
-                             thisChild)
+        result = parseOpenDs(cId,cName,cProduct,cRole,opendsZip,thisChild)
         msg = '%s \n %s' % (msg,result[0])
         instances.append(result[1])
       
@@ -648,7 +646,7 @@ def main(document):
 #
 # Parse children and get information for opends instance 
 #
-def parseOpenDs(cId,cName,cProduct,cRole,opendsName,opendsZip,thisChild):
+def parseOpenDs(cId,cName,cProduct,cRole,opendsZip,thisChild):
   msg              = ''
   cHost            = 'localhost'
   cInstallDir      = NOT_DEFINED
@@ -787,7 +785,18 @@ def parseOpenDs(cId,cName,cProduct,cRole,opendsName,opendsZip,thisChild):
                               cDatabaseCachePercentage,\
                               cReplicationPurgeDelay)
   
-  cInstallDir = '%s/%s/%s' % (cInstallDir,cName,opendsName)
+  #
+  # extract the name of zip and add it to the installDir path
+  #
+  # 1. Remove the file path
+  _list = opendsZip.split('/')
+  _file = _list.pop()
+  # 2. Get the name of the file without the extension
+  _fileName  = _file.split('.')
+  _extension = _fileName.pop()
+  _fileName  = '.'.join(_fileName)
+  
+  cInstallDir = '%s/%s/%s' % (cInstallDir,cName,_fileName)
   return [msg,OpendsInstance(cId,cName,cProduct,cRole,cHost,cInstallDir,\
                              opendsZip,\
                              cPortLDAP,cPortLDAPS,cPortJMX,cPortREPL,\
@@ -1178,12 +1187,11 @@ def parseGlobalParameters(thisChild):
   msg        = ''
   result     = []
   scenario   = NOT_DEFINED
-  opendsName = NOT_DEFINED
   opendsZip  = NOT_DEFINED
   domain     = NOT_DEFINED
   
   #
-  # Parsing second level : opendsName,...
+  # Parsing second level
   #
   if thisChild.hasChildNodes():
     
@@ -1194,10 +1202,6 @@ def parseGlobalParameters(thisChild):
       thisSubChild = subChildren.item(j)
       
       if (thisSubChild.getNodeType() == Node.ELEMENT_NODE and
-          thisSubChild.getNodeName() == 'opendsName'):
-        opendsName = _getPropValue(thisSubChild)
-        
-      elif (thisSubChild.getNodeType() == Node.ELEMENT_NODE and
           thisSubChild.getNodeName() == 'opendsZip'):
         opendsZip = _getPropValue(thisSubChild)
         
@@ -1228,12 +1232,10 @@ def parseGlobalParameters(thisChild):
     msg = '%s\n ERROR: parseGlobalParameters(): no child for this node' % msg
     
     
-  if (opendsName == NOT_DEFINED):
-    msg = '%s\n ERROR: parseGlobalParameters() : opendsName not defined' % (msg)
   if (opendsZip == NOT_DEFINED):
     msg = '%s\n ERROR: parseGlobalParameters() : opendsZip not defined' % (msg)
 
-  return [msg,scenario,opendsName,opendsZip,domain]
+  return [msg,scenario,opendsZip,domain]
 
 
 
@@ -1249,7 +1251,7 @@ def parseScenario(thisChild):
   description = NOT_DEFINED
   
   #
-  # Parsing second level : opendsName,...
+  # Parsing second level
   #
   if thisChild.hasChildNodes():
     
