@@ -42,6 +42,8 @@
       </function-arg-def>
       <function-arg-def name="duration" type="required">
       </function-arg-def>
+      <function-arg-def name="suffix" type="required">
+      </function-arg-def>
       <function-arg-def name="fileFd" type="required">
       </function-arg-def>
     </function-map-args>
@@ -97,7 +99,7 @@
             }
           </call>
           <script>
-            errNum += STAXResult[0][0]
+            errNum += STAXResult[0]
           </script>
           
           <!-- ==== Start DS ==== -->
@@ -109,7 +111,7 @@
             }
           </call>
           <script>
-            errNum += STAXResult[0][0]
+            errNum += STAXResult[0]
           </script>
           
         </sequence>
