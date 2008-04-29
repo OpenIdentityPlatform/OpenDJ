@@ -102,7 +102,7 @@ public class BufferManager {
           throws DatabaseException {
 
     Set<byte[]> keySet = new HashSet<byte[]>();
-    index.indexer.indexEntry(txn, entry, keySet);
+    index.indexer.indexEntry(entry, keySet);
     synchronized(elementMap) {
       insertKeySet(keySet, index, entryID);
       //If over the memory limit and import hasn't completed
@@ -127,9 +127,9 @@ public class BufferManager {
   void insert(Index id2children, Index id2subtree, Entry entry,
          EntryID entryID, Transaction txn) throws DatabaseException {
     Set<byte[]> childKeySet = new HashSet<byte[]>();
-    id2children.indexer.indexEntry(txn, entry, childKeySet);
+    id2children.indexer.indexEntry(entry, childKeySet);
     Set<byte[]> subKeySet = new HashSet<byte[]>();
-    id2subtree.indexer.indexEntry(txn, entry, subKeySet);
+    id2subtree.indexer.indexEntry(entry, subKeySet);
      synchronized(elementMap) {
       insertKeySet(childKeySet, id2children, entryID);
       insertKeySet(subKeySet, id2subtree, entryID);

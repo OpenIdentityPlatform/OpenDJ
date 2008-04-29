@@ -31,12 +31,10 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.AttributeType;
 
-import com.sleepycat.je.Transaction;
-import com.sleepycat.je.DatabaseException;
-
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
 
 /**
  * An implementation of an Indexer for attribute presence.
@@ -92,14 +90,10 @@ public class PresenceIndexer extends Indexer
   /**
    * Generate the set of index keys for an entry.
    *
-   * @param txn A database transaction to be used if the database need to be
-   * accessed in the course of generating the index keys.
    * @param entry The entry.
    * @param keys The set into which the generated keys will be inserted.
-   * @throws DatabaseException If an error occurs in the JE database.
    */
-  public void indexEntry(Transaction txn, Entry entry,
-                       Set<byte[]> keys) throws DatabaseException
+  public void indexEntry(Entry entry,  Set<byte[]> keys)
   {
     List<Attribute> attrList =
          entry.getAttribute(attributeType);
@@ -118,18 +112,12 @@ public class PresenceIndexer extends Indexer
    * Generate the set of index keys to be added and the set of index keys
    * to be deleted for an entry that has been replaced.
    *
-   * @param txn A database transaction to be used if the database need to be
-   * accessed in the course of generating the index keys.
    * @param oldEntry The original entry contents.
    * @param newEntry The new entry contents.
-   * @param addKeys The set into which the keys to be added will be inserted.
-   * @param delKeys The set into which the keys to be deleted will be inserted.
-   * @throws DatabaseException If an error occurs in the JE database.
+   * @param modifiedKeys The map into which the modified keys will be inserted.
    */
-  public void replaceEntry(Transaction txn, Entry oldEntry, Entry newEntry,
-                           Set<byte[]> addKeys,
-                           Set<byte[]> delKeys)
-      throws DatabaseException
+  public void replaceEntry(Entry oldEntry, Entry newEntry,
+                           Map<byte[], Boolean> modifiedKeys)
   {
     List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
     List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
@@ -137,14 +125,14 @@ public class PresenceIndexer extends Indexer
     {
       if(newAttributes != null)
       {
-        addKeys.add(AttributeIndex.presenceKey.getData());
+        modifiedKeys.put(AttributeIndex.presenceKey.getData(), true);
       }
     }
     else
     {
       if(newAttributes == null)
       {
-        delKeys.add(AttributeIndex.presenceKey.getData());
+        modifiedKeys.put(AttributeIndex.presenceKey.getData(), false);
       }
     }
   }
@@ -155,20 +143,14 @@ public class PresenceIndexer extends Indexer
    * Generate the set of index keys to be added and the set of index keys
    * to be deleted for an entry that was modified.
    *
-   * @param txn A database transaction to be used if the database need to be
-   * accessed in the course of generating the index keys.
    * @param oldEntry The original entry contents.
    * @param newEntry The new entry contents.
    * @param mods The set of modifications that were applied to the entry.
-   * @param addKeys The set into which the keys to be added will be inserted.
-   * @param delKeys The set into which the keys to be deleted will be inserted.
-   * @throws DatabaseException If an error occurs in the JE database.
+   * @param modifiedKeys The map into which the modified keys will be inserted.
    */
-  public void modifyEntry(Transaction txn, Entry oldEntry, Entry newEntry,
+  public void modifyEntry(Entry oldEntry, Entry newEntry,
                           List<Modification> mods,
-                          Set<byte[]> addKeys,
-                          Set<byte[]> delKeys)
-       throws DatabaseException
+                          Map<byte[], Boolean> modifiedKeys)
   {
     List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
     List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
@@ -176,14 +158,14 @@ public class PresenceIndexer extends Indexer
     {
       if(newAttributes != null)
       {
-        addKeys.add(AttributeIndex.presenceKey.getData());
+        modifiedKeys.put(AttributeIndex.presenceKey.getData(), true);
       }
     }
     else
     {
       if(newAttributes == null)
       {
-        delKeys.add(AttributeIndex.presenceKey.getData());
+        modifiedKeys.put(AttributeIndex.presenceKey.getData(), false);
       }
     }
   }

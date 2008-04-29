@@ -845,7 +845,7 @@ public class TestBackendImpl extends JebTestCase {
 
       addKeys = new HashSet<byte[]>();
       presenceIndexer = new PresenceIndexer(index.getAttributeType());
-      presenceIndexer.indexEntry(null, entry, addKeys);
+      presenceIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
       for (byte[] keyBytes : addKeys) {
@@ -856,7 +856,7 @@ public class TestBackendImpl extends JebTestCase {
 
       addKeys = new HashSet<byte[]>();
       equalityIndexer = new EqualityIndexer(index.getAttributeType());
-      equalityIndexer.indexEntry(null, entry, addKeys);
+      equalityIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
       for (byte[] keyBytes : addKeys) {
@@ -868,7 +868,7 @@ public class TestBackendImpl extends JebTestCase {
       addKeys = new HashSet<byte[]>();
       substringIndexer = new SubstringIndexer(index.getAttributeType(),
                    index.getConfiguration().getSubstringLength());
-      substringIndexer.indexEntry(null, entry, addKeys);
+      substringIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
       for (byte[] keyBytes : addKeys) {
@@ -879,7 +879,7 @@ public class TestBackendImpl extends JebTestCase {
 
       addKeys = new HashSet<byte[]>();
       orderingIndexer = new OrderingIndexer(index.getAttributeType());
-      orderingIndexer.indexEntry(null, entry, addKeys);
+      orderingIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
       for (byte[] keyBytes : addKeys) {
@@ -945,7 +945,7 @@ public class TestBackendImpl extends JebTestCase {
 
       addKeys = new HashSet<byte[]>();
       orderingIndexer = new OrderingIndexer(index.getAttributeType());
-      orderingIndexer.indexEntry(null, entry, addKeys);
+      orderingIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
       for (byte[] keyBytes : addKeys) {
@@ -955,7 +955,7 @@ public class TestBackendImpl extends JebTestCase {
           ConditionResult.TRUE);
 
       addKeys = new HashSet<byte[]>();
-      orderingIndexer.indexEntry(null, oldEntry, addKeys);
+      orderingIndexer.indexEntry(oldEntry, addKeys);
 
       key = new DatabaseEntry();
       for (byte[] keyBytes : addKeys) {
@@ -967,7 +967,7 @@ public class TestBackendImpl extends JebTestCase {
       addKeys = new HashSet<byte[]>();
       substringIndexer = new SubstringIndexer(index.getAttributeType(),
                                               index.getConfiguration().getSubstringLength());
-      substringIndexer.indexEntry(null, entry, addKeys);
+      substringIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
       for (byte[] keyBytes : addKeys) {
@@ -977,7 +977,7 @@ public class TestBackendImpl extends JebTestCase {
                    ConditionResult.TRUE);
 
       addKeys = new HashSet<byte[]>();
-      substringIndexer.indexEntry(null, oldEntry, addKeys);
+      substringIndexer.indexEntry(oldEntry, addKeys);
 
       key = new DatabaseEntry();
       for (byte[] keyBytes : addKeys) {
@@ -988,7 +988,7 @@ public class TestBackendImpl extends JebTestCase {
 
       addKeys = new HashSet<byte[]>();
       equalityIndexer = new EqualityIndexer(index.getAttributeType());
-      equalityIndexer.indexEntry(null, entry, addKeys);
+      equalityIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
       for (byte[] keyBytes : addKeys) {
@@ -998,7 +998,7 @@ public class TestBackendImpl extends JebTestCase {
           ConditionResult.TRUE);
 
       addKeys = new HashSet<byte[]>();
-      equalityIndexer.indexEntry(null, oldEntry, addKeys);
+      equalityIndexer.indexEntry(oldEntry, addKeys);
 
       key = new DatabaseEntry();
       for (byte[] keyBytes : addKeys) {
@@ -1178,7 +1178,7 @@ public class TestBackendImpl extends JebTestCase {
 
       addKeys = new HashSet<byte[]>();
       presenceIndexer = new PresenceIndexer(titleIndex.getAttributeType());
-      presenceIndexer.indexEntry(null, entry, addKeys);
+      presenceIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
       for (byte[] keyBytes : addKeys) {
@@ -1189,7 +1189,7 @@ public class TestBackendImpl extends JebTestCase {
 
       addKeys = new HashSet<byte[]>();
       presenceIndexer = new PresenceIndexer(nameIndex.getAttributeType());
-      presenceIndexer.indexEntry(null, entry, addKeys);
+      presenceIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
       for (byte[] keyBytes : addKeys) {
@@ -1200,7 +1200,7 @@ public class TestBackendImpl extends JebTestCase {
 
       addKeys = new HashSet<byte[]>();
       orderingIndexer = new OrderingIndexer(titleIndex.getAttributeType());
-      orderingIndexer.indexEntry(null, entry, addKeys);
+      orderingIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
       for (byte[] keyBytes : addKeys) {
@@ -1211,7 +1211,7 @@ public class TestBackendImpl extends JebTestCase {
 
       addKeys = new HashSet<byte[]>();
       orderingIndexer = new OrderingIndexer(nameIndex.getAttributeType());
-      orderingIndexer.indexEntry(null, entry, addKeys);
+      orderingIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
       for (byte[] keyBytes : addKeys) {
@@ -1222,7 +1222,7 @@ public class TestBackendImpl extends JebTestCase {
 
       addKeys = new HashSet<byte[]>();
       equalityIndexer = new EqualityIndexer(titleIndex.getAttributeType());
-      equalityIndexer.indexEntry(null, entry, addKeys);
+      equalityIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
       for (byte[] keyBytes : addKeys) {
@@ -1233,7 +1233,7 @@ public class TestBackendImpl extends JebTestCase {
 
       addKeys = new HashSet<byte[]>();
       equalityIndexer = new EqualityIndexer(nameIndex.getAttributeType());
-      equalityIndexer.indexEntry(null, entry, addKeys);
+      equalityIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
       for (byte[] keyBytes : addKeys) {
@@ -1245,7 +1245,7 @@ public class TestBackendImpl extends JebTestCase {
       addKeys = new HashSet<byte[]>();
       substringIndexer = new SubstringIndexer(titleIndex.getAttributeType(),
                    titleIndex.getConfiguration().getSubstringLength());
-      substringIndexer.indexEntry(null, entry, addKeys);
+      substringIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
       for (byte[] keyBytes : addKeys) {
@@ -1257,7 +1257,7 @@ public class TestBackendImpl extends JebTestCase {
       addKeys = new HashSet<byte[]>();
       substringIndexer = new SubstringIndexer(nameIndex.getAttributeType(),
                    nameIndex.getConfiguration().getSubstringLength());
-      substringIndexer.indexEntry(null, entry, addKeys);
+      substringIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
       for (byte[] keyBytes : addKeys) {

@@ -1154,7 +1154,7 @@ public class Index extends DatabaseContainer
     HashSet<byte[]> addKeys = new HashSet<byte[]>();
     boolean success = true;
 
-    indexer.indexEntry(null, entry, addKeys);
+    indexer.indexEntry(entry, addKeys);
 
     for (byte[] keyBytes : addKeys)
     {
@@ -1184,7 +1184,7 @@ public class Index extends DatabaseContainer
     TreeSet<byte[]> addKeys = new TreeSet<byte[]>(indexer.getComparator());
     boolean success = true;
 
-    indexer.indexEntry(txn, entry, addKeys);
+    indexer.indexEntry(entry, addKeys);
 
     DatabaseEntry key = new DatabaseEntry();
     for (byte[] keyBytes : addKeys)
@@ -1213,7 +1213,7 @@ public class Index extends DatabaseContainer
   {
     HashSet<byte[]> delKeys = new HashSet<byte[]>();
 
-    indexer.indexEntry(null, entry, delKeys);
+    indexer.indexEntry(entry, delKeys);
 
     for (byte[] keyBytes : delKeys)
     {
@@ -1235,7 +1235,7 @@ public class Index extends DatabaseContainer
   {
     TreeSet<byte[]> delKeys = new TreeSet<byte[]>(indexer.getComparator());
 
-    indexer.indexEntry(txn, entry, delKeys);
+    indexer.indexEntry(entry, delKeys);
 
     DatabaseEntry key = new DatabaseEntry();
     for (byte[] keyBytes : delKeys)
@@ -1264,22 +1264,23 @@ public class Index extends DatabaseContainer
                           List<Modification> mods)
        throws DatabaseException
   {
-    TreeSet<byte[]> addKeys = new TreeSet<byte[]>(indexer.getComparator());
-    TreeSet<byte[]> delKeys = new TreeSet<byte[]>(indexer.getComparator());
+    TreeMap<byte[], Boolean> modifiedKeys =
+        new TreeMap<byte[], Boolean>(indexer.getComparator());
 
-    indexer.modifyEntry(txn, oldEntry, newEntry, mods, addKeys, delKeys);
+    indexer.modifyEntry(oldEntry, newEntry, mods, modifiedKeys);
 
     DatabaseEntry key = new DatabaseEntry();
-    for (byte[] keyBytes : delKeys)
+    for (Map.Entry<byte[], Boolean> modifiedKey : modifiedKeys.entrySet())
     {
-      key.setData(keyBytes);
-      removeID(txn, key, entryID);
-    }
-
-    for (byte[] keyBytes : addKeys)
-    {
-      key.setData(keyBytes);
-      insertID(txn, key, entryID);
+      key.setData(modifiedKey.getKey());
+      if(modifiedKey.getValue())
+      {
+        insertID(txn, key, entryID);
+      }
+      else
+      {
+        removeID(txn, key, entryID);
+      }
     }
   }
 
@@ -1299,21 +1300,21 @@ public class Index extends DatabaseContainer
                           Entry oldEntry,
                           Entry newEntry,
                           List<Modification> mods)
-       throws DatabaseException
+      throws DatabaseException
   {
-    TreeSet<byte[]> addKeys = new TreeSet<byte[]>(indexer.getComparator());
-    TreeSet<byte[]> delKeys = new TreeSet<byte[]>(indexer.getComparator());
+    HashMap<byte[], Boolean> modifiedKeys = new HashMap<byte[], Boolean>();
 
-    indexer.modifyEntry(null, oldEntry, newEntry, mods, addKeys, delKeys);
-
-    for (byte[] keyBytes : delKeys)
+    indexer.modifyEntry(oldEntry, newEntry, mods, modifiedKeys);
+    for (Map.Entry<byte[], Boolean> modifiedKey : modifiedKeys.entrySet())
     {
-      removeID(buffer, keyBytes, entryID);
-    }
-
-    for (byte[] keyBytes : addKeys)
-    {
-      insertID(buffer, keyBytes, entryID);
+      if(modifiedKey.getValue())
+      {
+        insertID(buffer, modifiedKey.getKey(), entryID);
+      }
+      else
+      {
+        removeID(buffer, modifiedKey.getKey(), entryID);
+      }
     }
   }
 

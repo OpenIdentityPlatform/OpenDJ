@@ -28,7 +28,6 @@ package org.opends.server.backends.jeb;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import com.sleepycat.je.Transaction;
 import org.opends.server.types.*;
 
 import java.util.*;
@@ -98,13 +97,10 @@ public class SubstringIndexer extends Indexer
   /**
    * Generate the set of index keys for an entry.
    *
-   * @param txn A database transaction to be used if the database need to be
-   * accessed in the course of generating the index keys.
    * @param entry The entry.
    * @param keys The set into which the generated keys will be inserted.
    */
-  public void indexEntry(Transaction txn, Entry entry,
-                       Set<byte[]> keys)
+  public void indexEntry(Entry entry, Set<byte[]> keys)
   {
     List<Attribute> attrList =
          entry.getAttribute(attributeType);
@@ -118,47 +114,18 @@ public class SubstringIndexer extends Indexer
    * Generate the set of index keys to be added and the set of index keys
    * to be deleted for an entry that has been replaced.
    *
-   * @param txn A database transaction to be used if the database need to be
-   * accessed in the course of generating the index keys.
    * @param oldEntry The original entry contents.
    * @param newEntry The new entry contents.
-   * @param addKeys The set into which the keys to be added will be inserted.
-   * @param delKeys The set into which the keys to be deleted will be inserted.
+   * @param modifiedKeys The map into which the modified keys will be inserted.
    */
-  public void replaceEntry(Transaction txn,
-                           Entry oldEntry, Entry newEntry,
-                           Set<byte[]> addKeys,
-                           Set<byte[]> delKeys)
+  public void replaceEntry(Entry oldEntry, Entry newEntry,
+                           Map<byte[], Boolean> modifiedKeys)
   {
     List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
     List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
 
-    if(newAttributes == null)
-    {
-      indexAttribute(oldAttributes, delKeys);
-    }
-    else
-    {
-      if(oldAttributes == null)
-      {
-        indexAttribute(newAttributes, addKeys);
-      }
-      else
-      {
-        TreeSet<byte[]> newKeys =
-            new TreeSet<byte[]>(comparator);
-        TreeSet<byte[]> oldKeys =
-            new TreeSet<byte[]>(comparator);
-        indexAttribute(newAttributes, newKeys);
-        indexAttribute(oldAttributes, oldKeys);
-
-        addKeys.addAll(newKeys);
-        addKeys.removeAll(oldKeys);
-
-        delKeys.addAll(oldKeys);
-        delKeys.removeAll(newKeys);
-      }
-    }
+    indexAttribute(oldAttributes, modifiedKeys, false);
+    indexAttribute(newAttributes, modifiedKeys, true);
   }
 
 
@@ -167,48 +134,20 @@ public class SubstringIndexer extends Indexer
    * Generate the set of index keys to be added and the set of index keys
    * to be deleted for an entry that was modified.
    *
-   * @param txn A database transaction to be used if the database need to be
-   * accessed in the course of generating the index keys.
    * @param oldEntry The original entry contents.
    * @param newEntry The new entry contents.
    * @param mods The set of modifications that were applied to the entry.
-   * @param addKeys The set into which the keys to be added will be inserted.
-   * @param delKeys The set into which the keys to be deleted will be inserted.
+   * @param modifiedKeys The map into which the modified keys will be inserted.
    */
-  public void modifyEntry(Transaction txn, Entry oldEntry, Entry newEntry,
+  public void modifyEntry(Entry oldEntry, Entry newEntry,
                           List<Modification> mods,
-                          Set<byte[]> addKeys,
-                          Set<byte[]> delKeys)
+                          Map<byte[], Boolean> modifiedKeys)
   {
     List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
     List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
 
-    if(newAttributes == null)
-    {
-      indexAttribute(oldAttributes, delKeys);
-    }
-    else
-    {
-      if(oldAttributes == null)
-      {
-        indexAttribute(newAttributes, addKeys);
-      }
-      else
-      {
-        TreeSet<byte[]> newKeys =
-            new TreeSet<byte[]>(comparator);
-        TreeSet<byte[]> oldKeys =
-            new TreeSet<byte[]>(comparator);
-        indexAttribute(newAttributes, newKeys);
-        indexAttribute(oldAttributes, oldKeys);
-
-        addKeys.addAll(newKeys);
-        addKeys.removeAll(oldKeys);
-
-        delKeys.addAll(oldKeys);
-        delKeys.removeAll(newKeys);
-      }
-    }
+    indexAttribute(oldAttributes, modifiedKeys, false);
+    indexAttribute(newAttributes, modifiedKeys, true);
   }
 
 
@@ -299,4 +238,94 @@ public class SubstringIndexer extends Indexer
     return keyBytes;
   }
 
+  /**
+   * Generate the set of index keys for an attribute.
+   * @param attrList The attribute to be indexed.
+   * @param modifiedKeys The map into which the modified
+   * keys will be inserted.
+   * @param insert <code>true</code> if generated keys should
+   * be inserted or <code>false</code> otherwise.
+   */
+  private void indexAttribute(List<Attribute> attrList,
+                              Map<byte[], Boolean> modifiedKeys,
+                              Boolean insert)
+  {
+    if (attrList == null) return;
+
+    for (Attribute attr : attrList)
+    {
+      indexValues(attr.getValues(), modifiedKeys, insert);
+    }
+  }
+
+  /**
+   * Generate the set of index keys for a set of attribute values.
+   * @param values The set of attribute values to be indexed.
+   * @param modifiedKeys The map into which the modified
+   *  keys will be inserted.
+   * @param insert <code>true</code> if generated keys should
+   * be inserted or <code>false</code> otherwise.
+   */
+  private void indexValues(Set<AttributeValue> values,
+                           Map<byte[], Boolean> modifiedKeys,
+                           Boolean insert)
+  {
+    if (values == null) return;
+
+    for (AttributeValue value : values)
+    {
+      try
+      {
+        byte[] normalizedBytes = value.getNormalizedValue().value();
+
+        substringKeys(normalizedBytes, modifiedKeys, insert);
+      }
+      catch (DirectoryException e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
+  }
+
+  /**
+   * Decompose an attribute value into a set of substring index keys.
+   * The ID of the entry containing this value should be inserted
+   * into the list of each of these keys.
+   *
+   * @param value A byte array containing the normalized attribute value
+   * @param modifiedKeys The map into which the modified
+   *  keys will be inserted.
+   * @param insert <code>true</code> if generated keys should
+   * be inserted or <code>false</code> otherwise.
+   */
+  private void substringKeys(byte[] value,
+                             Map<byte[], Boolean> modifiedKeys,
+                             Boolean insert)
+  {
+    byte[] keyBytes;
+
+    // Example: The value is ABCDE and the substring length is 3.
+    // We produce the keys ABC BCD CDE DE E
+    // To find values containing a short substring such as DE,
+    // iterate through keys with prefix DE. To find values
+    // containing a longer substring such as BCDE, read keys
+    // BCD and CDE.
+    for (int i = 0, remain = value.length; remain > 0; i++, remain--)
+    {
+      int len = Math.min(substrLength, remain);
+      keyBytes = makeSubstringKey(value, i, len);
+      Boolean cInsert = modifiedKeys.get(keyBytes);
+      if(cInsert == null)
+      {
+        modifiedKeys.put(keyBytes, insert);
+      }
+      else if(!cInsert.equals(insert))
+      {
+        modifiedKeys.remove(keyBytes);
+      }
+    }
+  }
 }
