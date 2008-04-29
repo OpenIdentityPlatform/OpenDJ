@@ -30,14 +30,8 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 
 import com.sleepycat.je.DatabaseEntry;
-import com.sleepycat.je.Transaction;
-import com.sleepycat.je.DatabaseException;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Implementation of an Indexer for the children index.
@@ -82,15 +76,10 @@ public class ID2CIndexer extends Indexer
   /**
    * Generate the set of index keys for an entry.
    *
-   * @param txn A database transaction to be used if the database need to be
-   * accessed in the course of generating the index keys.
    * @param entry The entry.
    * @param addKeys The set into which the generated keys will be inserted.
-   * @throws DatabaseException If an error occurs in the JE database.
    */
-  public void indexEntry(Transaction txn, Entry entry,
-                       Set<byte[]> addKeys)
-       throws DatabaseException
+  public void indexEntry(Entry entry, Set<byte[]> addKeys)
   {
     // The superior entry IDs are in the entry attachment.
     ArrayList ids = (ArrayList)entry.getAttachment();
@@ -111,16 +100,12 @@ public class ID2CIndexer extends Indexer
    * Generate the set of index keys to be added and the set of index keys
    * to be deleted for an entry that has been replaced.
    *
-   * @param txn A database transaction to be used if the database need to be
-   * accessed in the course of generating the index keys.
    * @param oldEntry The original entry contents.
    * @param newEntry The new entry contents.
-   * @param addKeys The set into which the keys to be added will be inserted.
-   * @param delKeys The set into which the keys to be deleted will be inserted.
+   * @param modifiedKeys The map into which the modified keys will be inserted.
    */
-  public void replaceEntry(Transaction txn, Entry oldEntry, Entry newEntry,
-                           Set<byte[]> addKeys,
-                           Set<byte[]> delKeys)
+  public void replaceEntry(Entry oldEntry, Entry newEntry,
+                           Map<byte[], Boolean> modifiedKeys)
   {
     // Nothing to do.
   }
@@ -131,20 +116,14 @@ public class ID2CIndexer extends Indexer
    * Generate the set of index keys to be added and the set of index keys
    * to be deleted for an entry that was modified.
    *
-   * @param txn A database transaction to be used if the database need to be
-   * accessed in the course of generating the index keys.
    * @param oldEntry The original entry contents.
    * @param newEntry The new entry contents.
    * @param mods The set of modifications that were applied to the entry.
-   * @param addKeys The set into which the keys to be added will be inserted.
-   * @param delKeys The set into which the keys to be deleted will be inserted.
-   * @throws DatabaseException If an error occurs in the JE database.
+   * @param modifiedKeys The map into which the modified keys will be inserted.
    */
-  public void modifyEntry(Transaction txn, Entry oldEntry, Entry newEntry,
+  public void modifyEntry(Entry oldEntry, Entry newEntry,
                           List<Modification> mods,
-                          Set<byte[]> addKeys,
-                          Set<byte[]> delKeys)
-       throws DatabaseException
+                          Map<byte[], Boolean> modifiedKeys)
   {
     // Nothing to do.
   }

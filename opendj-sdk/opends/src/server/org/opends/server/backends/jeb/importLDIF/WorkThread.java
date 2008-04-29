@@ -289,7 +289,7 @@ public class WorkThread extends DirectoryThread {
   insert(Index index, Entry entry, EntryID entryID,
          Transaction txn) throws DatabaseException {
     Set<byte[]> keySet = new HashSet<byte[]>();
-    index.indexer.indexEntry(txn, entry, keySet);
+    index.indexer.indexEntry(entry, keySet);
     return index.insert(txn, keySet,  entryID);
   }
 
@@ -307,7 +307,7 @@ public class WorkThread extends DirectoryThread {
   delete(Index index, Entry entry, EntryID entryID,
          Transaction txn) throws DatabaseException {
     Set<byte[]> keySet = new HashSet<byte[]>();
-    index.indexer.indexEntry(txn, entry, keySet);
+    index.indexer.indexEntry(entry, keySet);
     index.delete(txn, keySet,  entryID);
   }
 
