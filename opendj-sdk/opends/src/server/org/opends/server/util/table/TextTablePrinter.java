@@ -221,8 +221,13 @@ public final class TextTablePrinter extends TablePrinter {
           builder.append(head);
 
           // Now pad with extra space to make up the width.
-          for (int j = head.length(); j < width; j++) {
-            builder.append(' ');
+          // Only if it's not the last cell (see issue #3210)
+          if (i != currentRow.size() - 1)
+          {
+            for (int j = head.length(); j < width; j++)
+            {
+              builder.append(' ');
+            }
           }
 
           // Update the row contents.
