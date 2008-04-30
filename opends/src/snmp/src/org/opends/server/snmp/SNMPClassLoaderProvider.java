@@ -116,6 +116,8 @@ public class SNMPClassLoaderProvider {
 
     private SnmpV3AdaptorServer snmpAdaptor;
 
+    private String contextName;
+
     /**
      * Default constructor.
      */
@@ -222,6 +224,7 @@ public class SNMPClassLoaderProvider {
         this.snmpPort = this.currentConfig.getListenPort();
         this.snmpTrapPort = this.currentConfig.getTrapPort();
         this.registeredSNMPMBeans = this.currentConfig.isRegisteredMbean();
+        this.contextName = this.currentConfig.getCommunity();
 
         // Creates all the required objects for SNMP MIB 2605 Support
         try {
@@ -262,7 +265,9 @@ public class SNMPClassLoaderProvider {
             this.dsMib = new DIRECTORY_SERVER_MIBImpl(
                     this.registeredSNMPMBeans, this.mibObjName);
             this.dsMib.preRegister(this.server, this.mibObjName);
-            this.dsMib.setSnmpAdaptor(snmpAdaptor);
+
+            // Register the DS MIB into the defined context
+            this.dsMib.setSnmpAdaptor(snmpAdaptor, this.contextName);
 
             this.server.registerMBean(this.snmpAdaptor, snmpObjName);
 
@@ -290,7 +295,12 @@ public class SNMPClassLoaderProvider {
             this.snmpAdaptor.stop();
 
             this.server.unregisterMBean(this.snmpObjName);
-            this.server.unregisterMBean(this.mibObjName );
+
+            if (this.server.isRegistered(this.mibObjName)) {
+               this.server.unregisterMBean(this.mibObjName);
+            }
+
+
             this.server.unregisterMBean(new ObjectName(
                         SNMPConnectionHandlerDefinitions.SNMP_DOMAIN +
                         "type=group,name=DsMib"));

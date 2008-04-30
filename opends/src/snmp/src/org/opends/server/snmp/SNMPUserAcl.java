@@ -52,6 +52,11 @@ public class SNMPUserAcl implements UserAcl {
      */
     private static final String DEFAULT_USER = "defaultUser";
     /**
+     * Admin User for cloning mechanism.
+     */
+    private static final String ADMIN_USER = "snmpAdmin";
+
+    /**
      * Current Security Configuration for the SNMP Connection Handler.
      */
     private SNMPConnectionHandlerCfg currentConfig;
@@ -101,6 +106,17 @@ public class SNMPUserAcl implements UserAcl {
      * {@inheritDoc}
      */
     public boolean checkReadPermission(String user) {
+
+        // Test if clone user
+        if (user.equals(DEFAULT_USER)) {
+            return false;
+        }
+
+        // Test if clone user
+        if (user.equals(ADMIN_USER)) {
+            return false;
+        }
+
         if ((this.usersList.contains(ALL_USERS_ALLOWED)) ||
                 (this.usersList.contains(user))) {
             return true;
@@ -115,7 +131,7 @@ public class SNMPUserAcl implements UserAcl {
             int securityLevel) {
 
         // Special check for the defaultUser
-        if ((user.equals(DEFAULT_USER))
+        if ((user.equals(ADMIN_USER))
             && (contextName.equals("null"))
             && ((this.securityLevel.ordinal() + 1) >= securityLevel)) {
             return true;
@@ -123,6 +139,7 @@ public class SNMPUserAcl implements UserAcl {
 
         // Else
         if ((checkReadPermission(user))  &&
+                ((checkContextName(contextName))) &&
                 ((this.securityLevel.ordinal() + 1) >= securityLevel)) {
             return true;
         }
@@ -140,7 +157,7 @@ public class SNMPUserAcl implements UserAcl {
      * {@inheritDoc}
      */
     public boolean checkWritePermission(String user) {
-        if (user.equals(DEFAULT_USER)) {
+        if (user.equals(ADMIN_USER)) {
             return true;
         }
         return false;

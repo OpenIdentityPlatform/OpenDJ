@@ -32,14 +32,6 @@ import com.sun.management.snmp.SnmpPduTrap;
 import com.sun.management.snmp.SnmpScopedPduRequest;
 import com.sun.management.snmp.SnmpEventReportDispatcher;
 import com.sun.management.snmp.manager.SnmpTrapListener;
-import java.net.InetAddress;
-import java.util.ArrayList;
-import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
 import org.testng.annotations.BeforeClass;
 import static org.testng.Assert.*;
 import org.testng.annotations.Test;
@@ -97,8 +89,6 @@ public class SNMPTrapManagerTest extends SNMPConnectionManager {
             // Should received 1 traps
             assertEquals(trapNumbers, 1);
             
-            // Nicely stop the SnmpEventReportDispatcher.
-            //
             trapAgent.close();
             taskServer.terminate();
 

@@ -588,7 +588,7 @@ public class ConfigFromFile
       protocol = ListenerDescriptor.Protocol.SNMP;
       protocolDescription = INFO_SNMP_PROTOCOL_LABEL.get();
       boolean enabled = "true".equalsIgnoreCase(
-          getFirstValue(entry, "ds-cfg-connection-handler-enabled"));
+          getFirstValue(entry, "ds-cfg-enabled"));
       if (enabled)
       {
         state = ListenerDescriptor.State.ENABLED;

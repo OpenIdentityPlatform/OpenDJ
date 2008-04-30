@@ -24,12 +24,6 @@ RFC1213-MIB DEFINITIONS ::= BEGIN
           -- with this syntax are declared as having
 
 
-
-SNMP Working Group                                             [Page 12]
-
-RFC 1213                         MIB-II                       March 1991
-
-
           --
           --      SIZE (0..255)
 
@@ -80,12 +74,6 @@ RFC 1213                         MIB-II                       March 1991
               STATUS  mandatory
 
 
-
-SNMP Working Group                                             [Page 13]
-
-RFC 1213                         MIB-II                       March 1991
-
-
               DESCRIPTION
                       "A textual description of the entity.  This value
                       should include the full name and version
@@ -134,14 +122,6 @@ RFC 1213                         MIB-II                       March 1991
 
           sysName OBJECT-TYPE
               SYNTAX  DisplayString (SIZE (0..255))
-
-
-
-SNMP Working Group                                             [Page 14]
-
-RFC 1213                         MIB-II                       March 1991
-
-
               ACCESS  read-write
               STATUS  mandatory
               DESCRIPTION
@@ -189,14 +169,6 @@ RFC 1213                         MIB-II                       March 1991
                       For systems including OSI protocols, layers 5 and
                       6 may also be counted."
               ::= { system 7 }
-
-
-
-
-SNMP Working Group                                             [Page 15]
-
-RFC 1213                         MIB-II                       March 1991
-
 
           -- the Interfaces group
 
@@ -246,14 +218,6 @@ RFC 1213                         MIB-II                       March 1991
               SEQUENCE {
                   ifIndex
                       INTEGER,
-
-
-
-SNMP Working Group                                             [Page 16]
-
-RFC 1213                         MIB-II                       March 1991
-
-
                   ifDescr
                       DisplayString,
                   ifType
@@ -302,14 +266,6 @@ RFC 1213                         MIB-II                       March 1991
               SYNTAX  INTEGER
               ACCESS  read-only
               STATUS  mandatory
-
-
-
-SNMP Working Group                                             [Page 17]
-
-RFC 1213                         MIB-II                       March 1991
-
-
               DESCRIPTION
                       "A unique value for each interface.  Its value
                       ranges between 1 and the value of ifNumber.  The
@@ -358,14 +314,6 @@ RFC 1213                         MIB-II                       March 1991
                           softwareLoopback(24),
                           eon(25),            -- CLNP over IP [11]
                           ethernet-3Mbit(26),
-
-
-
-SNMP Working Group                                             [Page 18]
-
-RFC 1213                         MIB-II                       March 1991
-
-
                           nsip(27),           -- XNS over IP
                           slip(28),           -- generic SLIP
                           ultra(29),          -- ULTRA technologies
@@ -414,14 +362,6 @@ RFC 1213                         MIB-II                       March 1991
                       "The interface's address at the protocol layer
                       immediately `below' the network layer in the
                       protocol stack.  For interfaces which do not have
-
-
-
-SNMP Working Group                                             [Page 19]
-
-RFC 1213                         MIB-II                       March 1991
-
-
                       such an address (e.g., a serial line), this object
                       should contain an octet string of zero length."
               ::= { ifEntry 6 }
@@ -470,14 +410,6 @@ RFC 1213                         MIB-II                       March 1991
           ifInOctets OBJECT-TYPE
               SYNTAX  Counter
               ACCESS  read-only
-
-
-
-SNMP Working Group                                             [Page 20]
-
-RFC 1213                         MIB-II                       March 1991
-
-
               STATUS  mandatory
               DESCRIPTION
                       "The total number of octets received on the
@@ -525,16 +457,7 @@ RFC 1213                         MIB-II                       March 1991
                       errors preventing them from being deliverable to a
                       higher-layer protocol."
               ::= { ifEntry 14 }
-
-
-
-
-SNMP Working Group                                             [Page 21]
-
-RFC 1213                         MIB-II                       March 1991
-
-
-          ifInUnknownProtos OBJECT-TYPE
+         ifInUnknownProtos OBJECT-TYPE
               SYNTAX  Counter
               ACCESS  read-only
               STATUS  mandatory
@@ -582,14 +505,6 @@ RFC 1213                         MIB-II                       March 1991
               STATUS  mandatory
               DESCRIPTION
                       "The number of outbound packets which were chosen
-
-
-
-SNMP Working Group                                             [Page 22]
-
-RFC 1213                         MIB-II                       March 1991
-
-
                       to be discarded even though no errors had been
                       detected to prevent their being transmitted.  One
                       possible reason for discarding such a packet could
@@ -638,14 +553,6 @@ RFC 1213                         MIB-II                       March 1991
           -- Implementation of the Address Translation group is
           -- mandatory for all systems.  Note however that this group
           -- is deprecated by MIB-II. That is, it is being included
-
-
-
-SNMP Working Group                                             [Page 23]
-
-RFC 1213                         MIB-II                       March 1991
-
-
           -- solely for compatibility with MIB-I nodes, and will most
           -- likely be excluded from MIB-III nodes.  From MIB-II and
           -- onwards, each network protocol group contains its own
@@ -694,14 +601,6 @@ RFC 1213                         MIB-II                       March 1991
               SEQUENCE {
                   atIfIndex
                       INTEGER,
-
-
-
-SNMP Working Group                                             [Page 24]
-
-RFC 1213                         MIB-II                       March 1991
-
-
                   atPhysAddress
                       PhysAddress,
                   atNetAddress
@@ -750,14 +649,6 @@ RFC 1213                         MIB-II                       March 1991
                       "The NetworkAddress (e.g., the IP address)
                       corresponding to the media-dependent `physical'
                       address."
-
-
-
-SNMP Working Group                                             [Page 25]
-
-RFC 1213                         MIB-II                       March 1991
-
-
               ::= { atEntry 3 }
 
 
@@ -806,14 +697,6 @@ RFC 1213                         MIB-II                       March 1991
               DESCRIPTION
                       "The total number of input datagrams received from
                       interfaces, including those received in error."
-
-
-
-SNMP Working Group                                             [Page 26]
-
-RFC 1213                         MIB-II                       March 1991
-
-
               ::= { ip 3 }
 
           ipInHdrErrors OBJECT-TYPE
@@ -862,14 +745,6 @@ RFC 1213                         MIB-II                       March 1991
 
           ipInUnknownProtos OBJECT-TYPE
               SYNTAX  Counter
-
-
-
-SNMP Working Group                                             [Page 27]
-
-RFC 1213                         MIB-II                       March 1991
-
-
               ACCESS  read-only
               STATUS  mandatory
               DESCRIPTION
@@ -918,14 +793,6 @@ RFC 1213                         MIB-II                       March 1991
               STATUS  mandatory
               DESCRIPTION
                       "The number of output IP datagrams for which no
-
-
-
-SNMP Working Group                                             [Page 28]
-
-RFC 1213                         MIB-II                       March 1991
-
-
                       problem was encountered to prevent their
                       transmission to their destination, but which were
                       discarded (e.g., for lack of buffer space).  Note
@@ -974,14 +841,6 @@ RFC 1213                         MIB-II                       March 1991
               DESCRIPTION
                       "The number of IP datagrams successfully re-
                       assembled."
-
-
-
-SNMP Working Group                                             [Page 29]
-
-RFC 1213                         MIB-II                       March 1991
-
-
               ::= { ip 15 }
 
           ipReasmFails OBJECT-TYPE
@@ -1027,16 +886,6 @@ RFC 1213                         MIB-II                       March 1991
                       been generated as a result of fragmentation at
                       this entity."
               ::= { ip 19 }
-
-
-
-
-
-
-SNMP Working Group                                             [Page 30]
-
-RFC 1213                         MIB-II                       March 1991
-
 
           -- the IP address table
 
@@ -1085,15 +934,6 @@ RFC 1213                         MIB-II                       March 1991
                       information pertains."
               ::= { ipAddrEntry 1 }
 
-
-
-
-
-SNMP Working Group                                             [Page 31]
-
-RFC 1213                         MIB-II                       March 1991
-
-
           ipAdEntIfIndex OBJECT-TYPE
               SYNTAX  INTEGER
               ACCESS  read-only
@@ -1141,14 +981,6 @@ RFC 1213                         MIB-II                       March 1991
                       entity can re-assemble from incoming IP fragmented
                       datagrams received on this interface."
               ::= { ipAddrEntry 5 }
-
-
-
-
-SNMP Working Group                                             [Page 32]
-
-RFC 1213                         MIB-II                       March 1991
-
 
           -- the IP routing table
 
@@ -1199,17 +1031,6 @@ RFC 1213                         MIB-II                       March 1991
                   ipRouteMetric5
                       INTEGER,
 
-
-
-SNMP Working Group                                             [Page 33]
-
-RFC 1213                         MIB-II                       March 1991
-
-
-                  ipRouteInfo
-                      OBJECT IDENTIFIER
-              }
-
           ipRouteDest OBJECT-TYPE
               SYNTAX  IpAddress
               ACCESS  read-write
@@ -1254,15 +1075,7 @@ RFC 1213                         MIB-II                       March 1991
               ACCESS  read-write
               STATUS  mandatory
               DESCRIPTION
-
-
-
-SNMP Working Group                                             [Page 34]
-
-RFC 1213                         MIB-II                       March 1991
-
-
-                      "An alternate routing metric for this route.  The
+                     "An alternate routing metric for this route.  The
                       semantics of this metric are determined by the
                       routing-protocol specified in the route's
                       ipRouteProto value.  If this metric is not used,
@@ -1310,13 +1123,6 @@ RFC 1213                         MIB-II                       March 1991
                           other(1),        -- none of the following
 
                           invalid(2),      -- an invalidated route
-
-
-
-SNMP Working Group                                             [Page 35]
-
-RFC 1213                         MIB-II                       March 1991
-
 
                                            -- route to directly
                           direct(3),       -- connected (sub-)network
@@ -1366,14 +1172,6 @@ RFC 1213                         MIB-II                       March 1991
                                           -- protocols
                           egp(5),
                           ggp(6),
-
-
-
-SNMP Working Group                                             [Page 36]
-
-RFC 1213                         MIB-II                       March 1991
-
-
                           hello(7),
                           rip(8),
                           is-is(9),
@@ -1423,13 +1221,6 @@ RFC 1213                         MIB-II                       March 1991
                            255.255.0.0    class-B
                            255.255.255.0  class-C
 
-
-
-SNMP Working Group                                             [Page 37]
-
-RFC 1213                         MIB-II                       March 1991
-
-
                       If the value of the ipRouteDest is 0.0.0.0 (a
                       default route), then the mask value is also
                       0.0.0.0.  It should be noted that all IP routing
@@ -1478,14 +1269,6 @@ RFC 1213                         MIB-II                       March 1991
               SYNTAX  SEQUENCE OF IpNetToMediaEntry
               ACCESS  not-accessible
               STATUS  mandatory
-
-
-
-SNMP Working Group                                             [Page 38]
-
-RFC 1213                         MIB-II                       March 1991
-
-
               DESCRIPTION
                       "The IP Address Translation table used for mapping
                       from IP addresses to physical addresses."
@@ -1533,14 +1316,6 @@ RFC 1213                         MIB-II                       March 1991
               DESCRIPTION
                       "The media-dependent `physical' address."
               ::= { ipNetToMediaEntry 2 }
-
-
-
-
-SNMP Working Group                                             [Page 39]
-
-RFC 1213                         MIB-II                       March 1991
-
 
           ipNetToMediaNetAddress OBJECT-TYPE
               SYNTAX  IpAddress
@@ -1590,14 +1365,6 @@ RFC 1213                         MIB-II                       March 1991
                       to be discarded even though they are valid.  One
                       possible reason for discarding such an entry could
                       be to free-up buffer space for other routing
-
-
-
-SNMP Working Group                                             [Page 40]
-
-RFC 1213                         MIB-II                       March 1991
-
-
                       entries."
               ::= { ip 23 }
 
@@ -1644,15 +1411,6 @@ RFC 1213                         MIB-II                       March 1991
                       "The number of ICMP Time Exceeded messages
                       received."
               ::= { icmp 4 }
-
-
-
-
-
-SNMP Working Group                                             [Page 41]
-
-RFC 1213                         MIB-II                       March 1991
-
 
           icmpInParmProbs OBJECT-TYPE
               SYNTAX  Counter
@@ -1702,14 +1460,6 @@ RFC 1213                         MIB-II                       March 1991
               ACCESS  read-only
               STATUS  mandatory
               DESCRIPTION
-
-
-
-SNMP Working Group                                             [Page 42]
-
-RFC 1213                         MIB-II                       March 1991
-
-
                       "The number of ICMP Timestamp (request) messages
                       received."
               ::= { icmp 10 }
@@ -1758,14 +1508,6 @@ RFC 1213                         MIB-II                       March 1991
               DESCRIPTION
                       "The number of ICMP messages which this entity did
                       not send due to problems discovered within ICMP
-
-
-
-SNMP Working Group                                             [Page 43]
-
-RFC 1213                         MIB-II                       March 1991
-
-
                       such as a lack of buffers.  This value should not
                       include errors discovered outside the ICMP layer
                       such as the inability of IP to route the resultant
@@ -1814,14 +1556,6 @@ RFC 1213                         MIB-II                       March 1991
               STATUS  mandatory
               DESCRIPTION
                       "The number of ICMP Redirect messages sent.  For a
-
-
-
-SNMP Working Group                                             [Page 44]
-
-RFC 1213                         MIB-II                       March 1991
-
-
                       host, this object will always be zero, since hosts
                       do not send redirects."
               ::= { icmp 20 }
@@ -1868,15 +1602,6 @@ RFC 1213                         MIB-II                       March 1991
                       "The number of ICMP Address Mask Request messages
                       sent."
               ::= { icmp 25 }
-
-
-
-
-
-SNMP Working Group                                             [Page 45]
-
-RFC 1213                         MIB-II                       March 1991
-
 
           icmpOutAddrMaskReps OBJECT-TYPE
               SYNTAX  Counter
@@ -1926,14 +1651,6 @@ RFC 1213                         MIB-II                       March 1991
                       particular, when the timeout algorithm is rsre(3),
                       an object of this type has the semantics of the
                       LBOUND quantity described in RFC 793."
-
-
-
-SNMP Working Group                                             [Page 46]
-
-RFC 1213                         MIB-II                       March 1991
-
-
               ::= { tcp 2 }
 
 
@@ -1983,13 +1700,6 @@ RFC 1213                         MIB-II                       March 1991
                       LISTEN state."
               ::= { tcp 6 }
 
-
-
-SNMP Working Group                                             [Page 47]
-
-RFC 1213                         MIB-II                       March 1991
-
-
           tcpAttemptFails OBJECT-TYPE
               SYNTAX  Counter
               ACCESS  read-only
@@ -2038,14 +1748,6 @@ RFC 1213                         MIB-II                       March 1991
               SYNTAX  Counter
               ACCESS  read-only
               STATUS  mandatory
-
-
-
-SNMP Working Group                                             [Page 48]
-
-RFC 1213                         MIB-II                       March 1991
-
-
               DESCRIPTION
                       "The total number of segments sent, including
                       those on current connections but excluding those
@@ -2093,14 +1795,6 @@ RFC 1213                         MIB-II                       March 1991
                         tcpConnRemAddress,
                         tcpConnRemPort }
               ::= { tcpConnTable 1 }
-
-
-
-
-SNMP Working Group                                             [Page 49]
-
-RFC 1213                         MIB-II                       March 1991
-
 
           TcpConnEntry ::=
               SEQUENCE {
@@ -2150,14 +1844,6 @@ RFC 1213                         MIB-II                       March 1991
                       connection.
 
                       As an implementation-specific option, a RST
-
-
-
-SNMP Working Group                                             [Page 50]
-
-RFC 1213                         MIB-II                       March 1991
-
-
                       segment may be sent from the managed node to the
                       other TCP endpoint (note however that RST segments
                       are not sent reliably)."
@@ -2206,14 +1892,6 @@ RFC 1213                         MIB-II                       March 1991
               SYNTAX  Counter
               ACCESS  read-only
               STATUS  mandatory
-
-
-
-SNMP Working Group                                             [Page 51]
-
-RFC 1213                         MIB-II                       March 1991
-
-
               DESCRIPTION
                       "The total number of segments received in error
                       (e.g., bad TCP checksums)."
@@ -2263,13 +1941,6 @@ RFC 1213                         MIB-II                       March 1991
                       of an application at the destination port."
               ::= { udp 3 }
 
-
-
-SNMP Working Group                                             [Page 52]
-
-RFC 1213                         MIB-II                       March 1991
-
-
           udpOutDatagrams OBJECT-TYPE
               SYNTAX  Counter
               ACCESS  read-only
@@ -2318,14 +1989,6 @@ RFC 1213                         MIB-II                       March 1991
               STATUS  mandatory
               DESCRIPTION
                       "The local IP address for this UDP listener.  In
-
-
-
-SNMP Working Group                                             [Page 53]
-
-RFC 1213                         MIB-II                       March 1991
-
-
                       the case of a UDP listener which is willing to
                       accept datagrams for any IP interface associated
                       with the node, the value 0.0.0.0 is used."
@@ -2374,14 +2037,6 @@ RFC 1213                         MIB-II                       March 1991
 
           egpOutErrors OBJECT-TYPE
               SYNTAX  Counter
-
-
-
-SNMP Working Group                                             [Page 54]
-
-RFC 1213                         MIB-II                       March 1991
-
-
               ACCESS  read-only
               STATUS  mandatory
               DESCRIPTION
@@ -2430,14 +2085,6 @@ RFC 1213                         MIB-II                       March 1991
                       Counter,
                   egpNeighOutErrs
                       Counter,
-
-
-
-SNMP Working Group                                             [Page 55]
-
-RFC 1213                         MIB-II                       March 1991
-
-
                   egpNeighInErrMsgs
                       Counter,
                   egpNeighOutErrMsgs
@@ -2486,14 +2133,6 @@ RFC 1213                         MIB-II                       March 1991
               SYNTAX  INTEGER
               ACCESS  read-only
               STATUS  mandatory
-
-
-
-SNMP Working Group                                             [Page 56]
-
-RFC 1213                         MIB-II                       March 1991
-
-
               DESCRIPTION
                       "The autonomous system of this EGP peer.  Zero
                       should be specified if the autonomous system
@@ -2542,14 +2181,6 @@ RFC 1213                         MIB-II                       March 1991
               SYNTAX  Counter
               ACCESS  read-only
               STATUS  mandatory
-
-
-
-SNMP Working Group                                             [Page 57]
-
-RFC 1213                         MIB-II                       March 1991
-
-
               DESCRIPTION
                       "The number of EGP-defined error messages received
                       from this EGP peer."
@@ -2598,14 +2229,6 @@ RFC 1213                         MIB-II                       March 1991
               STATUS  mandatory
               DESCRIPTION
                       "The interval between EGP poll command
-
-
-
-SNMP Working Group                                             [Page 58]
-
-RFC 1213                         MIB-II                       March 1991
-
-
                       retransmissions (in hundredths of a second).  This
                       represents the t3 timer as defined in RFC 904."
               ::= { egpNeighEntry 13 }
@@ -2653,14 +2276,6 @@ RFC 1213                         MIB-II                       March 1991
               DESCRIPTION
                       "The autonomous system number of this EGP entity."
               ::= { egp 6 }
-
-
-
-
-SNMP Working Group                                             [Page 59]
-
-RFC 1213                         MIB-II                       March 1991
-
 
           -- the Transmission group
 
@@ -2710,14 +2325,6 @@ RFC 1213                         MIB-II                       March 1991
 
           snmpOutPkts OBJECT-TYPE
               SYNTAX  Counter
-
-
-
-SNMP Working Group                                             [Page 60]
-
-RFC 1213                         MIB-II                       March 1991
-
-
               ACCESS  read-only
               STATUS  mandatory
               DESCRIPTION
@@ -2767,13 +2374,6 @@ RFC 1213                         MIB-II                       March 1991
                       decoding received SNMP Messages."
               ::= { snmp 6 }
 
-
-
-SNMP Working Group                                             [Page 61]
-
-RFC 1213                         MIB-II                       March 1991
-
-
           -- { snmp 7 } is not used
 
           snmpInTooBigs OBJECT-TYPE
@@ -2822,14 +2422,6 @@ RFC 1213                         MIB-II                       March 1991
                       contains the value `readOnly' in the error-status
                       field, as such this object is provided as a means
                       of detecting incorrect implementations of the
-
-
-
-SNMP Working Group                                             [Page 62]
-
-RFC 1213                         MIB-II                       March 1991
-
-
                       SNMP."
               ::= { snmp 11 }
 
@@ -2878,14 +2470,6 @@ RFC 1213                         MIB-II                       March 1991
 
           snmpInGetNexts OBJECT-TYPE
               SYNTAX  Counter
-
-
-
-SNMP Working Group                                             [Page 63]
-
-RFC 1213                         MIB-II                       March 1991
-
-
               ACCESS  read-only
               STATUS  mandatory
               DESCRIPTION
@@ -2935,13 +2519,6 @@ RFC 1213                         MIB-II                       March 1991
                       `tooBig.'"
               ::= { snmp 20 }
 
-
-
-SNMP Working Group                                             [Page 64]
-
-RFC 1213                         MIB-II                       March 1991
-
-
           snmpOutNoSuchNames OBJECT-TYPE
               SYNTAX  Counter
               ACCESS  read-only
@@ -2990,14 +2567,6 @@ RFC 1213                         MIB-II                       March 1991
               SYNTAX  Counter
               ACCESS  read-only
               STATUS  mandatory
-
-
-
-SNMP Working Group                                             [Page 65]
-
-RFC 1213                         MIB-II                       March 1991
-
-
               DESCRIPTION
                       "The total number of SNMP Get-Next PDUs which have
                       been generated by the SNMP protocol entity."
@@ -3046,14 +2615,6 @@ RFC 1213                         MIB-II                       March 1991
                       object be stored in non-volatile memory so that it
                       remains constant between re-initializations of the
                       network management system."
-
-
-
-SNMP Working Group                                             [Page 66]
-
-RFC 1213                         MIB-II                       March 1991
-
-
-              ::= { snmp 30 }
+             ::= { snmp 30 }
 
           END
