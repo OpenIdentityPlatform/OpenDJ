@@ -346,10 +346,16 @@ public class SortValuesSet
   /**
    * Encode this set to its database format.
    *
-   * @return The encoded bytes representing this set.
+   * @return The encoded bytes representing this set or null if
+   * this set is empty.
    */
   public byte[] toDatabase()
   {
+    if(size() == 0)
+    {
+      return null;
+    }
+
     byte[] entryIDBytes = JebFormat.entryIDListToDatabase(entryIDs);
     byte[] concatBytes = new byte[entryIDBytes.length + valuesBytes.length + 4];
     int v = entryIDs.length;

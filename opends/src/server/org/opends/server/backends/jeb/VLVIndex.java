@@ -878,8 +878,16 @@ public class VLVIndex extends DatabaseContainer
                                         this);
       boolean success = sortValuesSet.remove(entryID, values);
       byte[] after = sortValuesSet.toDatabase();
-      data.setData(after);
-      put(txn, key, data);
+
+      if(after == null)
+      {
+        delete(txn, key);
+      }
+      else
+      {
+        data.setData(after);
+        put(txn, key, data);
+      }
 
       if(success)
       {
