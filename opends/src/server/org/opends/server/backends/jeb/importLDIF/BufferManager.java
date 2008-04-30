@@ -39,6 +39,7 @@ import static org.opends.server.loggers.ErrorLogger.logError;
 import org.opends.messages.Message;
 import static org.opends.messages.JebMessages.*;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 /**
@@ -70,11 +71,28 @@ public class BufferManager {
   private TreeMap<KeyHashElement, KeyHashElement> elementMap =
                         new TreeMap<KeyHashElement, KeyHashElement>();
 
+  //The current backup map being used.
+  private int currentMap = 1;
+
+  //Reference to use when the maps are switched.
+  private TreeMap<KeyHashElement, KeyHashElement> backupMap;
+
+  //The two backup maps to insert into if the main element map is being used.
+  private TreeMap<KeyHashElement, KeyHashElement> backupMap2 =
+                        new TreeMap<KeyHashElement, KeyHashElement>();
+  private TreeMap<KeyHashElement, KeyHashElement> backupMap1 =
+                        new TreeMap<KeyHashElement, KeyHashElement>();
+
   //Overhead values determined from using JHAT. They appear to be the same
   //for both 32 and 64 bit machines. Close enough.
   private final static int TREEMAP_ENTRY_OVERHEAD = 29;
   private final static int KEY_ELEMENT_OVERHEAD = 32;
 
+  //Lock used to get main element map.
+  private ReentrantLock lock = new ReentrantLock();
+
+  //Object to synchronize on if backup maps are being written.
+  private Object backupSynchObj = new Object();
 
   /**
    * Create buffer manager instance.
@@ -85,6 +103,7 @@ public class BufferManager {
   public BufferManager(long memoryLimit, int importThreadCount) {
     this.memoryLimit = memoryLimit;
     this.nextElem = null;
+    this.backupMap = backupMap1;
   }
 
   /**
@@ -95,45 +114,128 @@ public class BufferManager {
    * @param entry The entry used to build the key set.
    * @param entryID The entry ID to insert into the key set.
    * @param txn A transaction.
+   * @param keySet Keyset hash to store the keys in.
    * @throws DatabaseException If a problem happened during a flushAll cycle.
    */
+
   void insert(Index index, Entry entry,
-              EntryID entryID, Transaction txn)
+              EntryID entryID, Transaction txn, Set<byte[]> keySet)
           throws DatabaseException {
 
-    Set<byte[]> keySet = new HashSet<byte[]>();
+    keySet.clear();
     index.indexer.indexEntry(entry, keySet);
-    synchronized(elementMap) {
-      insertKeySet(keySet, index, entryID);
-      //If over the memory limit and import hasn't completed
-      //flush some keys from the cache to make room.
-      if(memoryUsage > memoryLimit) {
-        flushUntilUnderLimit();
-      }
+    if(!lock.tryLock()) {
+      insertBackupMap(keySet, index, entryID);
+      return;
     }
+    insertKeySet(keySet, index, entryID, elementMap, true);
+    if(!backupMap.isEmpty()) {
+       mergeMap();
+    }
+    //If over the memory limit, flush some keys from the cache to make room.
+    if(memoryUsage > memoryLimit) {
+      flushUntilUnderLimit();
+    }
+    lock.unlock();
   }
 
   /**
-   * Special case for id2children and id2subtree.
-   * Insert an entry ID into the buffer using the both the specified index and
-   * entry to build a key set.
-   * @param id2children  The id2children index.
-   * @param id2subtree The id2subtree index.
-   * @param entry  The entry to used to build the keyset.
+   * Insert an entry ID into buffer using specified id2children and id2subtree
+   * indexes.
+   *
+   * @param id2children The id2children index to use.
+   * @param id2subtree The id2subtree index to use.
+   * @param entry The entry used to build the key set.
    * @param entryID The entry ID to insert into the key set.
-   * @param txn A transaction.
-   * @throws DatabaseException  If a problem happens formating the keyset.
+   * @param txn  A transaction.
+   * @param childKeySet id2children key set hash to use.
+   * @param subKeySet subtree key set hash to use.
+   * @throws DatabaseException If a problem occurs during processing.
    */
   void insert(Index id2children, Index id2subtree, Entry entry,
-         EntryID entryID, Transaction txn) throws DatabaseException {
-    Set<byte[]> childKeySet = new HashSet<byte[]>();
+              EntryID entryID, Transaction txn, Set<byte[]> childKeySet,
+              Set<byte[]> subKeySet) throws DatabaseException {
+    childKeySet.clear();
     id2children.indexer.indexEntry(entry, childKeySet);
-    Set<byte[]> subKeySet = new HashSet<byte[]>();
+    subKeySet.clear();
     id2subtree.indexer.indexEntry(entry, subKeySet);
-     synchronized(elementMap) {
-      insertKeySet(childKeySet, id2children, entryID);
-      insertKeySet(subKeySet, id2subtree, entryID);
+    if(!lock.tryLock()) {
+      insertBackupMap(childKeySet, id2children, subKeySet, id2subtree, entryID);
+      return;
     }
+    insertKeySet(childKeySet, id2children, entryID, elementMap, true);
+    insertKeySet(subKeySet, id2subtree, entryID, elementMap, true);
+    lock.unlock();
+  }
+
+  /**
+   * Insert into a backup tree if can't get a lock on the main table.
+   * @param childrenKeySet The id2children keyset to use.
+   * @param id2children The id2children index to use.
+   * @param subtreeKeySet The subtree keyset to use.
+   * @param id2subtree The id2subtree index to use.
+   * @param entryID The entry ID to insert into the key set.
+   */
+  void insertBackupMap(Set<byte[]> childrenKeySet, Index id2children,
+                    Set<byte[]> subtreeKeySet,
+                    Index id2subtree, EntryID entryID) {
+    synchronized(backupSynchObj) {
+      insertKeySet(childrenKeySet, id2children, entryID, backupMap,  false);
+      insertKeySet(subtreeKeySet, id2subtree, entryID, backupMap,  false);
+    }
+  }
+
+
+  /**
+   * Insert specified keyset, index and entry ID into the backup map.
+   *
+   * @param keySet The keyset to use.
+   * @param index The index to use.
+   * @param entryID The entry ID to use.
+   */
+  void insertBackupMap(Set<byte[]> keySet, Index index, EntryID entryID) {
+       synchronized(backupSynchObj) {
+         insertKeySet(keySet, index, entryID, backupMap,  false);
+    }
+  }
+
+
+  /**
+   * Merge the backup map with the element map after switching the backup
+   * map reference to an empty map.
+   */
+  void mergeMap() {
+    TreeMap<KeyHashElement, KeyHashElement> tmpMap;
+    synchronized(backupSynchObj) {
+      tmpMap = backupMap;
+      if(currentMap == 1) {
+         backupMap = backupMap2;
+         tmpMap = backupMap1;
+         currentMap = 2;
+      } else {
+         backupMap = backupMap1;
+         tmpMap = backupMap2;
+         currentMap = 1;
+      }
+    }
+    TreeSet<KeyHashElement>  tSet =
+            new TreeSet<KeyHashElement>(tmpMap.keySet());
+    for (KeyHashElement elem : tSet) {
+      total++;
+      if(!elementMap.containsKey(elem)) {
+        elementMap.put(elem, elem);
+        memoryUsage += TREEMAP_ENTRY_OVERHEAD + elem.getMemorySize();
+      } else {
+        KeyHashElement curElem = elementMap.get(elem);
+        if(curElem.isDefined() || curElem.getIndex().getMaintainCount()) {
+          int oldSize = curElem.getMemorySize();
+          curElem.merge(elem);
+          memoryUsage += (curElem.getMemorySize() - oldSize);
+          hit++;
+        }
+      }
+    }
+    tmpMap.clear();
   }
 
   /**
@@ -141,27 +243,37 @@ public class BufferManager {
    * @param keySet The key set to add to the map.
    * @param index  The index that eventually will contain the entry IDs.
    * @param entryID The entry ID to add to the entry ID set.
+   * @param map The map to add the keys to
+   * @param trackStats <CODE>True</CODE> if memory and usage should be tracked.
    */
-  private void insertKeySet(Set<byte[]> keySet, Index index, EntryID entryID) {
-      int entryLimit = index.getIndexEntryLimit();
-      for(byte[] key : keySet) {
-         KeyHashElement elem = new KeyHashElement(key, index, entryID);
-         total++;
-         if(!elementMap.containsKey(elem)) {
-            elementMap.put(elem, elem);
-            memoryUsage += TREEMAP_ENTRY_OVERHEAD + elem.getMemorySize();
-         } else {
-           KeyHashElement curElem = elementMap.get(elem);
-           if(curElem.isDefined() || index.getMaintainCount()) {
-            int oldSize = curElem.getMemorySize();
-            curElem.addEntryID(entryID, entryLimit);
-            int newSize = curElem.getMemorySize();
-            //Might have moved from defined to undefined.
-            memoryUsage += (newSize - oldSize);
-            hit++;
-           }
-         }
+  private void insertKeySet(Set<byte[]> keySet, Index index, EntryID entryID,
+                            TreeMap<KeyHashElement, KeyHashElement> map,
+                            boolean trackStats) {
+    KeyHashElement elem = new KeyHashElement();
+    int entryLimit = index.getIndexEntryLimit();
+    for(byte[] key : keySet) {
+      elem.reset(key, index);
+      if(trackStats) {
+        total++;
       }
+      if(!map.containsKey(elem)) {
+        KeyHashElement newElem = new KeyHashElement(key, index, entryID);
+        map.put(newElem, newElem);
+        if(trackStats) {
+          memoryUsage += TREEMAP_ENTRY_OVERHEAD + newElem.getMemorySize();
+        }
+      } else {
+        KeyHashElement curElem = map.get(elem);
+        if(curElem.isDefined() || index.getMaintainCount()) {
+          int oldSize = curElem.getMemorySize();
+          curElem.addEntryID(entryID, entryLimit);
+          if(trackStats) {
+            memoryUsage += (curElem.getMemorySize() - oldSize);
+            hit++;
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -176,6 +288,8 @@ public class BufferManager {
     } else {
       iter = elementMap.tailMap(nextElem).keySet().iterator();
     }
+    DatabaseEntry dbEntry = new DatabaseEntry();
+    DatabaseEntry entry = new DatabaseEntry();
     while((memoryUsage + extraBytes) > memoryLimit) {
       if(iter.hasNext()) {
         KeyHashElement curElem = iter.next();
@@ -183,8 +297,8 @@ public class BufferManager {
         if(curElem.isDefined()) {
           int oldSize = curElem.getMemorySize();
           Index index = curElem.getIndex();
-          index.insert(null, new DatabaseEntry(curElem.getKey()),
-                  curElem.getIDSet());
+          dbEntry.setData(curElem.getKey());
+          index.insert(null, dbEntry, curElem.getIDSet(), entry);
           if(curElem.isDefined()) {
              memoryUsage -= TREEMAP_ENTRY_OVERHEAD + curElem.getMemorySize();
              iter.remove();
@@ -222,12 +336,15 @@ public class BufferManager {
    * @throws DatabaseException If an error occurred during the insert.
    */
   void flushAll() throws DatabaseException {
+    mergeMap();
     TreeSet<KeyHashElement>  tSet =
             new TreeSet<KeyHashElement>(elementMap.keySet());
+    DatabaseEntry dbEntry = new DatabaseEntry();
+    DatabaseEntry entry = new DatabaseEntry();
     for (KeyHashElement curElem : tSet) {
       Index index = curElem.getIndex();
-      index.insert(null, new DatabaseEntry(curElem.getKey()),
-              curElem.getIDSet());
+      dbEntry.setData(curElem.getKey());
+      index.insert(null, dbEntry, curElem.getIDSet(), entry);
     }
   }
 
@@ -251,6 +368,27 @@ public class BufferManager {
 
     //Used to speed up lookup.
     private int keyHashCode;
+
+    /**
+     * Empty constructor for use when the element is being reused.
+     */
+    public KeyHashElement() {}
+
+    /**
+     * Reset the element. Used when the element is being reused.
+     *
+     * @param key The new key to reset to.
+     * @param index The new index to reset to.
+     */
+    public void reset(byte[] key, Index index) {
+      this.key = key;
+      this.index = index;
+      this.indexHashCode = System.identityHashCode(index);
+      this.keyHashCode = Arrays.hashCode(key);
+      if(this.importIDSet != null) {
+        this.importIDSet.reset();
+      }
+    }
 
     /**
      * Create instance of an element for the specified key and index, the add
@@ -390,7 +528,6 @@ public class BufferManager {
         throw new NullPointerException();
       }
       KeyHashElement inElem = (KeyHashElement) o;
-    //  int keyCompare = compare(key, inElem.key);
       int keyCompare = compare(inElem);
       if(keyCompare == 0) {
         if(indexHashCode == inElem.indexHashCode) {
@@ -413,6 +550,15 @@ public class BufferManager {
       return  KEY_ELEMENT_OVERHEAD +
               MemoryBudget.byteArraySize(key.length) +
               importIDSet.getMemorySize();
+    }
+
+    /**
+     * Merge the specified element with this element.
+     * @param e The element to merge.
+     */
+    public void merge(KeyHashElement e) {
+      importIDSet.merge(e.importIDSet, e.getIndex().getIndexEntryLimit(),
+              e.getIndex().getMaintainCount());
     }
   }
 }

@@ -40,6 +40,7 @@ import java.util.*;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Transaction;
 import com.sleepycat.je.LockMode;
+import com.sleepycat.je.DatabaseEntry;
 
 /**
  * A thread to process import entries from a queue.  Multiple instances of
@@ -76,6 +77,15 @@ public class WorkThread extends DirectoryThread {
 
   //The substring buffer manager to use.
   private BufferManager bufferMgr;
+
+  //These are used to try and keep memory usage down.
+  private Set<byte[]> insertKeySet = new HashSet<byte[]>();
+  private Set<byte[]> childKeySet = new HashSet<byte[]>();
+  private Set<byte[]> subtreeKeySet = new HashSet<byte[]>();
+  private Set<byte[]> delKeySet = new HashSet<byte[]>();
+  private DatabaseEntry keyData = new DatabaseEntry();
+  private DatabaseEntry data = new DatabaseEntry();
+  ImportIDSet importIDSet = new IntegerImportIDSet();
 
   /**
    * Create a work thread instance using the specified parameters.
@@ -239,7 +249,7 @@ public class WorkThread extends DirectoryThread {
           insert(index, entry, entryID, txn);
         }
         if((index=attributeIndex.getSubstringIndex()) != null) {
-          bufferMgr.insert(index,entry, entryID, txn);
+          bufferMgr.insert(index,entry, entryID, txn, insertKeySet);
         }
         if((index=attributeIndex.getOrderingIndex()) != null) {
           insert(index, entry, entryID, txn);
@@ -271,7 +281,8 @@ public class WorkThread extends DirectoryThread {
     }
     Index id2children = context.getEntryContainer().getID2Children();
     Index id2subtree = context.getEntryContainer().getID2Subtree();
-    bufferMgr.insert(id2children, id2subtree, entry, entryID, txn);
+    bufferMgr.insert(id2children, id2subtree, entry, entryID, txn,
+                    childKeySet, subtreeKeySet);
   }
 
   /**
@@ -288,9 +299,10 @@ public class WorkThread extends DirectoryThread {
   private boolean
   insert(Index index, Entry entry, EntryID entryID,
          Transaction txn) throws DatabaseException {
-    Set<byte[]> keySet = new HashSet<byte[]>();
-    index.indexer.indexEntry(entry, keySet);
-    return index.insert(txn, keySet,  entryID);
+    insertKeySet.clear();
+    index.indexer.indexEntry(entry, insertKeySet);
+    importIDSet.setEntryID(entryID);
+    return index.insert(txn, importIDSet, insertKeySet, keyData, data);
   }
 
   /**
@@ -306,9 +318,9 @@ public class WorkThread extends DirectoryThread {
   private void
   delete(Index index, Entry entry, EntryID entryID,
          Transaction txn) throws DatabaseException {
-    Set<byte[]> keySet = new HashSet<byte[]>();
-    index.indexer.indexEntry(entry, keySet);
-    index.delete(txn, keySet,  entryID);
+    delKeySet.clear();
+    index.indexer.indexEntry(entry, delKeySet);
+    index.delete(txn, delKeySet,  entryID);
   }
 
   /**

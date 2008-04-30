@@ -318,14 +318,14 @@ public class Index extends DatabaseContainer
    * @param txn A transaction.
    * @param key The key to add the set to.
    * @param importIdSet The set of import IDs.
+   * @param data Database entry to reuse for read
    * @throws DatabaseException If an database error occurs.
    */
   public void insert(Transaction txn, DatabaseEntry key,
-                     ImportIDSet importIdSet)
+                     ImportIDSet importIdSet, DatabaseEntry data)
   throws DatabaseException {
 
     OperationStatus status;
-    DatabaseEntry data = new DatabaseEntry();
       status = read(txn, key, data, LockMode.RMW);
       if(status == OperationStatus.SUCCESS) {
         ImportIDSet newImportIDSet = new IntegerImportIDSet();
@@ -348,24 +348,26 @@ public class Index extends DatabaseContainer
 
 
   /**
-   * Add the specified entry ID to the provided keys in the keyset.
+   * Add the specified import ID set to the provided keys in the keyset.
    *
    * @param txn  A transaction.
+   * @param importIDSet A import ID set to use.
    * @param keySet  The set containing the keys.
-   * @param entryID The entry ID.
+   * @param keyData A key database entry to use.
+   * @param data A database entry to use for data.
    * @return <CODE>True</CODE> if the insert was successful.
    * @throws DatabaseException If a database error occurs.
    */
   public synchronized
-  boolean insert(Transaction txn, Set<byte[]> keySet, EntryID entryID)
-  throws DatabaseException {
+  boolean insert(Transaction txn, ImportIDSet importIDSet, Set<byte[]> keySet,
+                 DatabaseEntry keyData, DatabaseEntry data)
+          throws DatabaseException {
     for(byte[] key : keySet) {
-      if(insertIDWithRMW(txn, new DatabaseEntry(key), new DatabaseEntry(),
-              entryID.getDatabaseEntry(), entryID) !=
-              OperationStatus.SUCCESS)  {
-        return false;
-      }
+      keyData.setData(key);
+      insert(txn, keyData, importIDSet, data);
     }
+    keyData.setData(null);
+    data.setData(null);
     return true;
   }
 
