@@ -74,6 +74,26 @@ public class IntegerImportIDSet implements ImportIDSet {
     count=1;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public void setEntryID(EntryID id) {
+    if(array == null) {
+      this.array = new int[1];
+    }
+    reset();
+    this.array[0] = (int) id.longValue();
+    count=1;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void reset() {
+    count = 0;
+    isDefined = true;
+    undefinedSize = 0;
+  }
 
   /**
    * {@inheritDoc}
@@ -106,6 +126,35 @@ public class IntegerImportIDSet implements ImportIDSet {
       return THIS_OVERHEAD + MemoryBudget.byteArraySize(array.length * 4);
     } else {
       return THIS_OVERHEAD;
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void
+  merge(ImportIDSet importIDSet, int limit, boolean maintainCount) {
+    if(!isDefined()) {
+      if(maintainCount)  {
+        if(importIDSet.isDefined()) {
+          undefinedSize += importIDSet.size();
+        } else {
+          undefinedSize += importIDSet.getUndefinedSize();
+        }
+      }
+      return;
+    }
+    if(isDefined() && ((count + importIDSet.size()) > limit)) {
+      isDefined = false;
+      if(maintainCount)  {
+        undefinedSize = size() + importIDSet.size();
+      } else {
+        undefinedSize = Long.MAX_VALUE;
+      }
+      array = null;
+      count = 0;
+    } else {
+      addAll((IntegerImportIDSet) importIDSet);
     }
   }
 

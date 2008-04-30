@@ -85,10 +85,20 @@ public interface ImportIDSet {
                        int entryLimit, boolean maintainCount);
 
   /**
+   * Merge the specified import ID set with the current import ID set using the
+   * specified entry limit an maintain count values.
+   *
+   * @param bufImportIDSet The import ID set to merge.
+   * @param entryLimit The entry limit to use.
+   * @param maintainCount <CODE>True</CODE> if maintain count is being kept.
+   */
+  public void
+  merge(ImportIDSet bufImportIDSet, int entryLimit, boolean maintainCount);
+
+  /**
    * Set the import ID set to the undefined state.
    */
   public void setUndefined();
-
 
   /**
    * Return the undefined size.
@@ -96,4 +106,16 @@ public interface ImportIDSet {
    * @return The undefined count.
    */
   public long getUndefinedSize();
+
+  /**
+   * Reset set.
+   */
+  public void reset();
+
+  /**
+   * Set the first entry ID to the specified entry ID.
+   *
+   * @param entryID The entry ID to use.
+   */
+  public void setEntryID(EntryID entryID);
 }
