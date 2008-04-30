@@ -24,11 +24,11 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2008 Sun Microsystems, Inc.
  ! -->
   <meta content="text/html; charset=ISO-8859-1"
  http-equiv="content-type">
-  <title>windows_service</title>
+  <title>snmp</title>
 </head>
 <body>
 <br>
@@ -37,53 +37,46 @@
   <tbody>
     <tr>
       <td style="vertical-align: top;">Test ID</td>
-      <td style="vertical-align: top;">windows_service<br>
-      </td>
+      <td style="vertical-align: top;">snmp</td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Panel<br>
       </td>
-      <td style="vertical-align: top;">OpenDS and windows services: run
-the GUI setup and enable Windows Service for Opends, Uninstall with the
-GUI and disable Windows Service.<br>
+      <td style="vertical-align: top;">OpenDS SNMP Extension feature<br>
       </td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Items<br>
       </td>
       <td style="vertical-align: top;">- install OpenDS using the same
-procedure than in the <a
- href="setup_gui_ssl.html">setup_gui_ssl</a>
-testcase (GUI with
-security enabled, status panel) <br>
+procedure than in the <a href="setup_cli.html">setup_cli</a>
+testcase  <br>
       <br>
-- on the last panel, select "Run OpenDS as a Windows Service"<br>
+- run status in CLI and check that the SNMP Connection Handler is listed and disabled<br>
+- same checks using status-panel in GUI<br>
       <br>
-- Stop OpendDS server using the Services Manager<br>
+- enable SNMP using the procedure described in the following link:<br>
+<a  href="https://www.opends.org/wiki/page/HowToMonitorOpenDSThroughSNMP">How To Monitor OpenDS Through SNMP</a><br>
       <br>
-- Start OpendDS server using the Services Manager<br>
+- run status in CLI and check that the SNMP Connection Handler is listed and enabled, check also that the port is correct<br>
+- same checks using status-panel in GUI<br>
       <br>
-- Stop OpendDS server using the Services Manager<br>
+- check that your SNMP Connection Handler is up and running:<br>
+snmpwalk -v 2c -c OpenDS {hostName}:{port} .1.3.6.1.2.1.66<br>
       <br>
-- Restart the host and verify that opends is started after reboot<br>
+- stop the server (stop-ds)<br>
       <br>
-- Stop OpendDS server using the Services Manager<br>
+- run status in CLI and check that the SNMP Connection Handler is listed and enabled<br>
+- same checks using status-panel in GUI<br>
       <br>
-- run setup command to uninstall in GUI, and select "Unregister OpenDS
-as a Windows service"<br>
+- run uninstall command in CLI or in GUI mode<br>
       <br>
       </td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Specific checks</td>
-      <td style="vertical-align: top;">- Check the install is
-successfull<br>
-and the opends service is listed and showing correct status<br>
-      <br>
-- Check status-panel data are valid<br>
-      <br>
-- Check uninstall is successfull<br>
-and the opends service is not anymore listed </td>
+      <td style="vertical-align: top;"><br>
+      </td>
     </tr>
   </tbody>
 </table>
