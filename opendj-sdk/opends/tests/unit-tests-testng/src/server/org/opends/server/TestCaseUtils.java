@@ -72,6 +72,7 @@ import org.opends.server.backends.jeb.RootContainer;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.DeleteOperation;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.TextAccessLogPublisher;
 import org.opends.server.loggers.TextErrorLogPublisher;
@@ -1067,6 +1068,26 @@ public final class TestCaseUtils {
                                      entry.getUserAttributes(),
                                      entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+
+
+  /**
+   * Deletess the provided entry from the Directory Server using an
+   * internal operation.
+   *
+   * @param  entry  The entry to be added.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  public static void deleteEntry(Entry entry)
+         throws Exception
+  {
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    DeleteOperation deleteOperation = conn.processDelete(entry.getDN());
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 

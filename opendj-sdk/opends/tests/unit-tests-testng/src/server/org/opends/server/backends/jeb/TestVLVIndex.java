@@ -88,6 +88,8 @@ public class TestVLVIndex extends DirectoryServerTestCase {
 
   TreeSet<SortValues> expectedSortedValues;
 
+  List<Entry> entries;
+
   @BeforeClass
   public void setUp() throws Exception {
     TestCaseUtils.startServer();
@@ -112,21 +114,8 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     suffixDN          = DN.decode("dc=vlvtest,dc=com");
 
     expectedSortedValues = new TreeSet<SortValues>();
-  }
 
-  @AfterClass
-  public void cleanUp() throws Exception {
-  }
-
-  /**
-   * Populates the JE DB with a set of test data.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  private void populateDB()
-      throws Exception
-  {
-    List<Entry> entries = TestCaseUtils.makeEntries(
+    entries = TestCaseUtils.makeEntries(
         "dn: dc=vlvtest,dc=com",
         "objectClass: top",
         "objectClass: domain",
@@ -223,7 +212,20 @@ public class TestVLVIndex extends DirectoryServerTestCase {
         "sn: Zorro",
         "cn: Zorro"
     );
+  }
 
+  @AfterClass
+  public void cleanUp() throws Exception {
+  }
+
+  /**
+   * Populates the JE DB with a set of test data.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  private void populateDB()
+      throws Exception
+  {
     long id = 1;
     for(Entry entry : entries)
     {
@@ -234,8 +236,74 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     }
   }
 
-
   @Test
+  public void testDel() throws Exception
+  {
+    populateDB();
+
+    TestCaseUtils.deleteEntry(entries.get(1));
+    TestCaseUtils.deleteEntry(entries.get(entries.size() - 1));
+
+    be=(BackendImpl) DirectoryServer.getBackend(beID);
+    RootContainer rootContainer = be.getRootContainer();
+    EntryContainer entryContainer =
+        rootContainer.getEntryContainer(DN.decode("dc=vlvtest,dc=com"));
+
+    for(VLVIndex vlvIndex : entryContainer.getVLVIndexes())
+    {
+      if(vlvIndex.getName().contains("testvlvindex"))
+      {
+
+
+        SortValuesSet svs1 =
+            vlvIndex.getSortValuesSet(null, 0,
+                                      expectedSortedValues.first().getValues());
+
+        assertNotNull(svs1);
+        assertEquals(svs1.size(), 3);
+
+        SortValuesSet svs2 =
+            vlvIndex.getSortValuesSet(null, 0,
+                                      expectedSortedValues.last().getValues());
+
+        assertNotNull(svs2);
+        assertEquals(svs2.size(), 5);
+      }
+    }
+
+    for(int i = 2; i <= entries.size() - 2; i++)
+    {
+      TestCaseUtils.deleteEntry(entries.get(i));
+    }
+    // Delete the base entry
+    TestCaseUtils.deleteEntry(entries.get(0));
+
+    for(VLVIndex vlvIndex : entryContainer.getVLVIndexes())
+    {
+      if(vlvIndex.getName().contains("testvlvindex"))
+      {
+
+
+        SortValuesSet svs1 =
+            vlvIndex.getSortValuesSet(null, 0,
+                                      expectedSortedValues.first().getValues());
+
+        assertNotNull(svs1);
+        assertEquals(svs1.size(), 0);
+        assertNull(svs1.getKeyBytes());
+
+        SortValuesSet svs2 =
+            vlvIndex.getSortValuesSet(null, 0,
+                                      expectedSortedValues.last().getValues());
+
+        assertNotNull(svs2);
+        assertEquals(svs1.size(), 0);
+        assertNull(svs1.getKeyBytes());
+      }
+    }
+  }
+
+  @Test( dependsOnMethods = { "testDel" } )
   public void testAdd() throws Exception
   {
     populateDB();
