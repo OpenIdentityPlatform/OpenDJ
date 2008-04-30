@@ -101,7 +101,7 @@ public class SNMPSyncManagerV2AccessTest extends SNMPConnectionManager {
                 new SnmpParameters();
 
         // Set to the allowed the community string
-        params.setRdCommunity("OpenDS");
+        params.setRdCommunity("OpenDS@OpenDS");
 
         // The newly created parameter must be associated to the agent.
         //
@@ -188,7 +188,7 @@ public class SNMPSyncManagerV2AccessTest extends SNMPConnectionManager {
         return new Object[][]{
             {"public", false},
             {"private", false},
-            {"OpenDS", true},
+            {"OpenDS@OpenDS", true},
             {"dummy", false},
             {"", false}};
     }

@@ -52,6 +52,10 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
      * Current Security Configuration for the SNMP Connection Handler.
      */
     private SNMPConnectionHandlerCfg currentConfig;
+    /**
+     * If * then all the users are allowed to access in read.
+     */
+    private static final String ALL_MANAGERS_ALLOWED = "*";
 
     private TreeSet<InetAddress> hostsList;
     private boolean allManagers = false;
@@ -73,7 +77,7 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
 
         // hostsList
         SortedSet tmp = this.currentConfig.getAllowedManager();
-        if (tmp.isEmpty()) {
+        if (tmp.contains(ALL_MANAGERS_ALLOWED)) {
             this.allManagers=true;
         }
         this.hostsList = new TreeSet<InetAddress>();

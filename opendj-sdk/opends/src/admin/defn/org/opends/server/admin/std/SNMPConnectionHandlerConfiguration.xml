@@ -103,13 +103,12 @@
         <adm:synopsis>
             Specifies the hosts of the managers to be granted the access rights. 
             This property is required for SNMP v1 and v2 security configuration.
+            An asterik (*) opens access to all managers. 
         </adm:synopsis>
         <adm:default-behavior>
-            <adm:alias>
-                <adm:synopsis>
-                    An empty list opens access to all managers.
-                </adm:synopsis>
-            </adm:alias>
+            <adm:defined>
+                <adm:value>*</adm:value>
+            </adm:defined>
         </adm:default-behavior>
         <adm:syntax>
             <adm:string />
@@ -125,13 +124,12 @@
         <adm:synopsis>
             Specifies the users to be granted the access rights. This property
             is required for SNMP v3 security configuration.
+            An asterik (*) opens access to all users. 
         </adm:synopsis>
         <adm:default-behavior>
-            <adm:alias>
-                <adm:synopsis>
-                    An asterik (*) opens access to all users.  
-                </adm:synopsis>
-            </adm:alias>
+            <adm:defined>
+                <adm:value>*</adm:value>
+            </adm:defined>
         </adm:default-behavior>
         <adm:syntax>
             <adm:string />

@@ -1,14 +1,4 @@
---
--- @(#)file      mib_core.txt
--- @(#)author    Sun Microsystems, Inc.
--- @(#)version   1.4
--- @(#)date      03/05/30
---
--- The file contains all the definitions scattered around many different
--- RFCs. 
---
-
-          CORE-MIB DEFINITIONS ::= BEGIN
+CORE-MIB DEFINITIONS ::= BEGIN
 
 
           IMPORTS ;
