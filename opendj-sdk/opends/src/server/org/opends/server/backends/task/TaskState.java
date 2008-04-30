@@ -217,6 +217,7 @@ public enum TaskState
       case WAITING_ON_DEPENDENCY:
       case RUNNING:
       case STOPPED_BY_ERROR:
+      case COMPLETED_WITH_ERRORS:
         return false;
       default:
         return true;
