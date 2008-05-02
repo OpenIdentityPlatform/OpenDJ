@@ -295,6 +295,30 @@
                     }
                     </call>
                   </if>
+                  <!-- Copy data that are under the scenario directory -->
+                  <call function="'isFile'">
+                  {
+                    'location' : STAXServiceMachine,
+                    'fileName' : '%s/scenario/%s/data' % \
+                                 (TESTS_DIR,DIR_NAME),
+                  }
+                  </call>
+                  <script>
+                    fileExist = STAXResult
+                  </script>
+                  <if expr="fileExist == TRUE">
+                    <call function="'copyFolder'">
+                    {
+                      'remoteHost'    : '%s%s' % (client.getHost(),DOMAIN[0]),
+                      'fromDirectory' : '%s/scenario/%s/data' % \
+                                        (TESTS_DIR,DIR_NAME),
+                      'toDirectory'   : '%s/scenario/%s/data' % \
+                                        (LOCAL_TESTS_DIR,DIR_NAME),
+                      'fileFd'        : NO_FILE
+                    }
+                    </call>
+                  </if>
+                  
                 </sequence>
               </if>
             </sequence>
