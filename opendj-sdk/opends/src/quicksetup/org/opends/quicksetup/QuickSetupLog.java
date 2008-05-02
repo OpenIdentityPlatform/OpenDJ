@@ -62,6 +62,8 @@ public class QuickSetupLog {
       logger.addHandler(fileHandler);
       logger = Logger.getLogger("org.opends.admin.ads");
       logger.addHandler(fileHandler);
+      logger = Logger.getLogger("org.opends.server.admin.client.cli");
+      logger.addHandler(fileHandler);
       disableConsoleLogging();
       logger = Logger.getLogger("org.opends.quicksetup");
       logger.log(Level.INFO, getInitialLogRecord());
@@ -94,6 +96,8 @@ public class QuickSetupLog {
     logger = Logger.getLogger("org.opends.admin.ads");
     logger.setUseParentHandlers(false);
     logger = Logger.getLogger("org.opends.server.tools");
+    logger.setUseParentHandlers(false);
+    logger = Logger.getLogger("org.opends.server.admin.client.cli");
     logger.setUseParentHandlers(false);
   }
 

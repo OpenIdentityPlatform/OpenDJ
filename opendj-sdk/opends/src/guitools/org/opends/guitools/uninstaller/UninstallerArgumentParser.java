@@ -410,6 +410,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
         }
       }
     }
+    super.validateGlobalOptions(buf);
     if (buf.length() > 0)
     {
       returnValue = CONFLICTING_ARGS.getReturnCode();

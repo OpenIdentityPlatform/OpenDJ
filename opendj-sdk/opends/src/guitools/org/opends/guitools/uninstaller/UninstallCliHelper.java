@@ -254,9 +254,12 @@ class UninstallCliHelper extends ConsoleApplication {
     {
       LOG.log(Level.WARNING,
           "Error retrieving a valid LDAP URL in conf file: "+ce, ce);
-      println();
-      println(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
-      println();
+      if (!parser.isInteractive())
+      {
+        Message msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
+        throw new ApplicationException(ReturnCode.APPLICATION_ERROR, msg,
+            ce);
+      }
     }
     userData.setReferencedHostName(referencedHostName);
 
@@ -748,9 +751,10 @@ class UninstallCliHelper extends ConsoleApplication {
    *  remote servers.  <CODE>false</CODE> otherwise.
    *  @throws UserDataException if there is a problem with the information
    *  provided by the user.
+   *  @throws ApplicationException if there is an error processing data.
    */
   private boolean askForAuthenticationIfNeeded(UninstallUserData userData)
-  throws UserDataException
+  throws UserDataException, ApplicationException
   {
     boolean accepted = true;
     String uid = userData.getAdminUID();
@@ -883,11 +887,12 @@ class UninstallCliHelper extends ConsoleApplication {
       }
       catch (ConfigException ce)
       {
+        // This is unexpected
         LOG.log(Level.WARNING,
             "Error retrieving a valid LDAP URL in conf file: "+ce, ce);
-        println();
-        println(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
-        println();
+        Message msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
+        throw new ApplicationException(ReturnCode.APPLICATION_ERROR, msg,
+            ce);
       }
       finally
       {
@@ -1133,11 +1138,12 @@ class UninstallCliHelper extends ConsoleApplication {
     }
     catch (ConfigException ce)
     {
+      // This is unexpected, when calling this code this should already been
+      // checked.
       LOG.log(Level.WARNING,
           "Error retrieving a valid LDAP URL in conf file: "+ce, ce);
-      println();
-      println(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
-      userData.setLocalServerUrl("ldap://localhost:389");
+      Message msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
+      throw new ApplicationException(ReturnCode.APPLICATION_ERROR, msg, ce);
     }
     catch (NamingException ne)
     {
