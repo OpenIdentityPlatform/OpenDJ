@@ -571,7 +571,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * @param launcher
    */
   public UserData createUserData(Launcher launcher)
-          throws UserDataException {
+          throws UserDataException, ApplicationException {
     return cliHelper.createUserData(
         (UninstallerArgumentParser)launcher.getArgumentParser(),
         launcher.getArguments());
@@ -1884,7 +1884,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         LOG.log(Level.INFO, "Error updating replication references in: "+
             server.getHostPort(true), ae);
 
-        if (getUninstallUserData().isForceOnError())
+        if (!getUninstallUserData().isForceOnError())
         {
           throw ae;
         }

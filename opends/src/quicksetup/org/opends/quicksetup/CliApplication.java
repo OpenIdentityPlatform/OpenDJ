@@ -40,10 +40,12 @@ public interface CliApplication extends ProgressNotifier, Runnable {
    * status.
    * @param launcher that launched this application
    * @return UserData object populated to reflect the input args and status
-   * @throws UserDataException if something is wrong
+   * @throws UserDataException if something is wrong with the data provided
+   * by the user
+   * @throws ApplicationException if there is an application specific problem
    */
   UserData createUserData(Launcher launcher)
-          throws UserDataException;
+          throws UserDataException, ApplicationException;
 
   /**
    * Gets the user data this application will use when running.

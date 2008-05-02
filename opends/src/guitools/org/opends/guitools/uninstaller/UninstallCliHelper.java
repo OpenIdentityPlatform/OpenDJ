@@ -43,7 +43,6 @@ import org.opends.messages.MessageBuilder;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.messages.UtilityMessages.*;
 
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
@@ -118,10 +117,13 @@ class UninstallCliHelper extends ConsoleApplication {
    * and null if the user cancels the uninstallation.
    * @throws UserDataException if there is an error with the data
    * in the arguments.
+   * @throws ApplicationException if there is an error processing data in
+   * non-interactive mode and an error must be thrown (not in force on error
+   * mode).
    */
   public UninstallUserData createUserData(UninstallerArgumentParser args,
       String[] rawArguments)
-  throws UserDataException
+  throws UserDataException, ApplicationException
   {
     parser = args;
     UninstallUserData userData = new UninstallUserData();
@@ -485,11 +487,14 @@ class UninstallCliHelper extends ConsoleApplication {
    * @return <CODE>true</CODE> if the user wants to continue with uninstall and
    * <CODE>false</CODE> otherwise.
    * @throws UserDataException if there is a problem with the data
-   * provided by the user (in the particular case where we are on quiet
-   * uninstall and some data is missing or not valid).
+   * provided by the user (in the particular case where we are on
+   * non-interactive uninstall and some data is missing or not valid).
+   * @throws ApplicationException if there is an error processing data in
+   * non-interactive mode and an error must be thrown (not in force on error
+   * mode).
    */
   private boolean checkServerState(UninstallUserData userData)
-  throws UserDataException
+  throws UserDataException, ApplicationException
   {
     boolean cancelled = false;
     boolean interactive = parser.isInteractive();
@@ -548,8 +553,9 @@ class UninstallCliHelper extends ConsoleApplication {
         }
         else
         {
-          cancelled =
+          boolean errorWithRemote =
             !updateUserUninstallDataWithRemoteServers(userData);
+          cancelled = errorWithRemote && !parser.isForceOnError();
         }
       }
       else
@@ -611,8 +617,9 @@ class UninstallCliHelper extends ConsoleApplication {
           if (startWorked)
           {
             userData.setStopServer(true);
-            cancelled =
+            boolean errorWithRemote =
               !updateUserUninstallDataWithRemoteServers(userData);
+            cancelled = errorWithRemote && !parser.isForceOnError();
           }
           else
           {
@@ -1063,9 +1070,12 @@ class UninstallCliHelper extends ConsoleApplication {
    * <CODE>false</CODE> otherwise.
    * @throws UserDataException if were are not in interactive mode and not in
    * force on error mode and the operation must be stopped.
+   * @throws ApplicationException if there is an error processing data in
+   * non-interactive mode and an error must be thrown (not in force on error
+   * mode).
    */
   private boolean updateUserUninstallDataWithRemoteServers(
-      UninstallUserData userData) throws UserDataException
+      UninstallUserData userData) throws UserDataException, ApplicationException
   {
     boolean accepted = false;
     boolean interactive = parser.isInteractive();
@@ -1150,6 +1160,10 @@ class UninstallCliHelper extends ConsoleApplication {
       println();
       println(Utils.getMessage(te));
 
+    } catch (ApplicationException ae)
+    {
+      throw ae;
+
     } catch (Throwable t)
     {
       LOG.log(Level.WARNING, "Error connecting to server: "+t, t);
@@ -1219,9 +1233,12 @@ class UninstallCliHelper extends ConsoleApplication {
    * @param userData the user data.
    * @throws UserDataException if there is an error with the information
    * provided by the user when we are in non-interactive mode.
+   * @throws ApplicationException if there is an error processing data in
+   * non-interactive mode and an error must be thrown (not in force on error
+   * mode).
    */
   private boolean handleTopologyCache(TopologyCache cache,
-      UninstallUserData userData) throws UserDataException
+      UninstallUserData userData) throws UserDataException, ApplicationException
   {
     boolean returnValue;
     boolean stopProcessing = false;
@@ -1281,9 +1298,8 @@ class UninstallCliHelper extends ConsoleApplication {
           }
           else
           {
-            stopProcessing = true;
-            println();
-            println(INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
+            exceptionMsgs.add(
+                INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
                 e.getHostPort(), e.getCause().getMessage()));
           }
         }
@@ -1326,10 +1342,19 @@ class UninstallCliHelper extends ConsoleApplication {
     {
       if (exceptionMsgs.size() > 0)
       {
-        println();
-        println(Utils.getMessageFromCollection(exceptionMsgs,
-            Constants.LINE_SEPARATOR));
-        returnValue = false;
+        Message msg = Utils.getMessageFromCollection(exceptionMsgs,
+            Constants.LINE_SEPARATOR);
+        if (parser.isForceOnError())
+        {
+          println();
+          println(msg);
+          returnValue = false;
+        }
+        else
+        {
+          throw new ApplicationException(ReturnCode.APPLICATION_ERROR, msg,
+              null);
+        }
       }
       else
       {
