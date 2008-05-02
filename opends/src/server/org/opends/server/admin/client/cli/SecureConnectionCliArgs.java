@@ -38,6 +38,7 @@ import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
 import static org.opends.server.util.StaticUtils.wrapText;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -625,6 +626,30 @@ public final class SecureConnectionCliArgs
       errors.add(message);
     }
 
+    if (trustStorePathArg.isPresent())
+    {
+      // Check that the path exists and is readable
+      String value = trustStorePathArg.getValue();
+      if (!canRead(trustStorePathArg.getValue()))
+      {
+        Message message = ERR_CANNOT_READ_TRUSTSTORE.get(
+            value);
+        errors.add(message);
+      }
+    }
+
+    if (keyStorePathArg.isPresent())
+    {
+      // Check that the path exists and is readable
+      String value = keyStorePathArg.getValue();
+      if (!canRead(trustStorePathArg.getValue()))
+      {
+        Message message = ERR_CANNOT_READ_KEYSTORE.get(
+            value);
+        errors.add(message);
+      }
+    }
+
     // Couldn't have at the same time startTLSArg and
     // useSSLArg
     if (useStartTLSArg.isPresent()
@@ -634,7 +659,6 @@ public final class SecureConnectionCliArgs
                       .getLongIdentifier(), useSSLArg.getLongIdentifier());
       errors.add(message);
     }
-
     if (errors.size() > 0)
     {
       for (Message error : errors)
@@ -875,5 +899,27 @@ public final class SecureConnectionCliArgs
     {
       return null;
     }
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if we can read on the provided path and
+   * <CODE>false</CODE> otherwise.
+   * @param path the path.
+   * @return <CODE>true</CODE> if we can read on the provided path and
+   * <CODE>false</CODE> otherwise.
+   */
+  private boolean canRead(String path)
+  {
+    boolean canRead;
+    File file = new File(path);
+    if (file.exists())
+    {
+      canRead = file.canRead();
+    }
+    else
+    {
+      canRead = false;
+    }
+    return canRead;
   }
 }
