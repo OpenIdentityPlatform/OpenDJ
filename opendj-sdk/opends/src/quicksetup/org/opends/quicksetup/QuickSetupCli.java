@@ -144,6 +144,13 @@ public class QuickSetupCli {
         returnValue = ReturnCode.USER_DATA_ERROR;
       }
     }
+    catch (ApplicationException ae)
+    {
+      System.err.println();
+      System.err.println(ae.getLocalizedMessage());
+      System.err.println();
+      returnValue = ae.getType();
+    }
     return returnValue;
   }
 
