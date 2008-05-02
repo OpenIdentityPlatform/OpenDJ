@@ -97,6 +97,8 @@ class UninstallCliHelper extends ConsoleApplication {
 
   private LDAPConnectionConsoleInteraction ci = null;
 
+  private ConfigFromFile conf;
+
   /**
    * Default constructor.
    */
@@ -222,20 +224,39 @@ class UninstallCliHelper extends ConsoleApplication {
     if ((referencedHostName == null) && !args.isInteractive())
     {
       referencedHostName = args.getDefaultReferencedHostName();
-      try
-      {
-        UninstallData d = new UninstallData(Installation.getLocal());
-        userData.setReplicationServer(
-            referencedHostName+":"+d.getReplicationServerPort());
-        userData.setReferencedHostName(referencedHostName);
-      }
-      catch (Throwable t)
-      {
-        LOG.log(Level.SEVERE, "Could not create UninstallData: "+t, t);
-      }
+    }
+    try
+    {
+      UninstallData d = new UninstallData(Installation.getLocal());
+      userData.setReplicationServer(
+          referencedHostName+":"+d.getReplicationServerPort());
+    }
+    catch (Throwable t)
+    {
+      LOG.log(Level.SEVERE, "Could not create UninstallData: "+t, t);
+      userData.setReplicationServer(
+          referencedHostName+":8989");
     }
     userData.setUseSSL(parser.useSSL());
     userData.setUseStartTLS(parser.useStartTLS());
+    conf = new ConfigFromFile();
+    conf.readConfiguration();
+    try
+    {
+      String ldapUrl = conf.getURL(
+        ConnectionProtocolPolicy.getConnectionPolicy(parser.useSSL(),
+            parser.useStartTLS()));
+      userData.setLocalServerUrl(ldapUrl);
+    }
+    catch (ConfigException ce)
+    {
+      LOG.log(Level.WARNING,
+          "Error retrieving a valid LDAP URL in conf file: "+ce, ce);
+      println();
+      println(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
+      println();
+    }
+    userData.setReferencedHostName(referencedHostName);
 
     /*
      * Step 4: check if server is running.  Depending if it is running and the
@@ -731,8 +752,6 @@ class UninstallCliHelper extends ConsoleApplication {
     boolean useStartTLS = userData.useStartTLS();
 
     boolean couldConnect = false;
-    ConfigFromFile conf = new ConfigFromFile();
-    conf.readConfiguration();
 
     boolean canUseSSL = conf.getLDAPSURL() != null;
     boolean canUseStartTLS = conf.getStartTLSURL() != null;
@@ -1108,6 +1127,7 @@ class UninstallCliHelper extends ConsoleApplication {
           "Error retrieving a valid LDAP URL in conf file: "+ce, ce);
       println();
       println(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
+      userData.setLocalServerUrl("ldap://localhost:389");
     }
     catch (NamingException ne)
     {
