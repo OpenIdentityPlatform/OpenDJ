@@ -347,19 +347,21 @@ public class RestoreTask extends Task
     DirectoryServer.notifyRestoreBeginning(backend, restoreConfig);
 
     // Disable the backend.
-    try
+    if ( !verifyOnly)
     {
-      TaskUtils.disableBackend(backendID);
-    }
-    catch (DirectoryException e)
-    {
-      if (debugEnabled())
+      try
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+        TaskUtils.disableBackend(backendID);
+      } catch (DirectoryException e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
 
-      logError(e.getMessageObject());
-      return TaskState.STOPPED_BY_ERROR;
+        logError(e.getMessageObject());
+        return TaskState.STOPPED_BY_ERROR;
+      }
     }
 
     // From here we must make sure to re-enable the backend before returning.
@@ -367,7 +369,7 @@ public class RestoreTask extends Task
     try
     {
       // Acquire an exclusive lock for the backend.
-      if (lockBackend(backend))
+      if (verifyOnly || lockBackend(backend))
       {
         // From here we must make sure to release the backend exclusive lock.
         try
@@ -397,7 +399,7 @@ public class RestoreTask extends Task
         finally
         {
           // Release the exclusive lock on the backend.
-          if (!unlockBackend(backend))
+          if ( (!verifyOnly) && !unlockBackend(backend))
           {
             errorsEncountered = true;
           }
@@ -407,23 +409,25 @@ public class RestoreTask extends Task
     finally
     {
       // Enable the backend.
-      try
+      if (! verifyOnly)
       {
-        TaskUtils.enableBackend(backendID);
-        // it is necessary to retrieve the backend structure again
-        // because disabling and enabling it again may have resulted
-        // in a new backend being registered to the server.
-        backend = DirectoryServer.getBackend(backendID);
-      }
-      catch (DirectoryException e)
-      {
-        if (debugEnabled())
+        try
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+          TaskUtils.enableBackend(backendID);
+          // it is necessary to retrieve the backend structure again
+          // because disabling and enabling it again may have resulted
+          // in a new backend being registered to the server.
+          backend = DirectoryServer.getBackend(backendID);
+        } catch (DirectoryException e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
 
-        logError(e.getMessageObject());
-        errorsEncountered = true;
+          logError(e.getMessageObject());
+          errorsEncountered = true;
+        }
       }
       DirectoryServer.notifyRestoreEnded(backend, restoreConfig, true);
     }
