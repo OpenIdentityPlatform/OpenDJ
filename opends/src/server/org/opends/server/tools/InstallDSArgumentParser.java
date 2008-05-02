@@ -461,7 +461,7 @@ public class InstallDSArgumentParser extends ArgumentParser
     {
       pwd = keyStorePasswordArg.getValue();
     }
-    else if (keyStorePasswordArg.isPresent())
+    else if (keyStorePasswordFileArg.isPresent())
     {
       pwd = keyStorePasswordFileArg.getValue();
     }
