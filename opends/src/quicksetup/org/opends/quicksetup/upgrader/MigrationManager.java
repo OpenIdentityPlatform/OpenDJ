@@ -48,6 +48,7 @@ import org.opends.server.types.LDIFImportConfig;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -119,7 +120,7 @@ public class MigrationManager {
       try {
         ldifDiff(installation.getBaseSchemaFile(),
                 installation.getSchemaConcatFile(),
-                getCustomSchemaDiffFile());
+                getCustomSchemaDiffFile(), true);
         isSchemaCustomized = true;
       } catch (ApplicationException ae) {
         throw ae;
@@ -149,7 +150,7 @@ public class MigrationManager {
         try {
           ldifDiff(installation.getBaseConfigurationFile(),
                   installation.getCurrentConfigurationFile(),
-                  getCustomConfigDiffFile());
+                  getCustomConfigDiffFile(), false);
         } catch (ApplicationException ae) {
           throw ae;
         } catch (Exception e) {
@@ -308,35 +309,63 @@ public class MigrationManager {
                     Utils.getPath(ldifFile));
     LDIFReader ldifReader =
             new LDIFReader(importCfg);
-    ChangeRecordEntry cre = ldifReader.readChangeRecord(false);
-    while (cre != null) {
-      try {
-        ipsc.modify(cre);
-        cre = ldifReader.readChangeRecord(false);
-      } catch (Exception e) {
+    ArrayList<ChangeRecordEntry> remainingChanges =
+      new ArrayList<ChangeRecordEntry>();
+    ChangeRecordEntry o = ldifReader.readChangeRecord(false);
+    while (o != null)
+    {
+      remainingChanges.add(o);
+      o = ldifReader.readChangeRecord(false);
+    }
+    ArrayList<ChangeRecordEntry> appliedChanges =
+      new ArrayList<ChangeRecordEntry>();
+    // In the particular case of the schema, the order on which the
+    // the modifications are applied is important.  That is why we retry
+    // until no modification works.
+    while (remainingChanges.size() > 0)
+    {
+      Exception firstException = null;
+      appliedChanges.clear();
+      for (ChangeRecordEntry cre : remainingChanges)
+      {
+        try {
+          ipsc.modify(cre);
+          appliedChanges.add(cre);
+        } catch (Exception e) {
+          if (firstException == null)
+          {
+            firstException = e;
+          }
+        }
+      }
+      remainingChanges.removeAll(appliedChanges);
+      if ((firstException != null) && (appliedChanges.size() == 0))
+      {
         if (ui != null) {
           Message cancel = INFO_CANCEL_BUTTON_LABEL.get();
           Message cont = INFO_CONTINUE_BUTTON_LABEL.get();
           Message retry = INFO_RETRY_BUTTON_LABEL.get();
+          // Now changeList contains the changes that could not be applied:
+          // just ask to confirm about the first element.
           Object r = ui.confirm(
                   getModificationErrorSummary(component),
-                  getModificationErrorMessage(cre),
-                  Message.raw(e.getLocalizedMessage()),
+                  getModificationErrorMessage(remainingChanges.get(0)),
+                  Message.raw(firstException.getLocalizedMessage()),
                   INFO_ERROR_UPGRADE_MIGRATION.get(),
                   UserInteraction.MessageType.ERROR,
                   new Message[]{cancel, cont, retry},
                   cancel, null);
           if (cont.equals(r)) {
-            cre = ldifReader.readChangeRecord(false);
+            remainingChanges.remove(0);
           } else if (retry.equals(r)) {
             // do nothing; will retry;
           } else {
             throw new ApplicationException(
                 ReturnCode.CANCELLED,
-                INFO_UPGRADE_CANCELED.get(), e);
+                INFO_UPGRADE_CANCELED.get(), firstException);
           }
         } else {
-          throw e;
+          throw firstException;
         }
       }
     }
@@ -438,13 +467,26 @@ public class MigrationManager {
     return msg.toMessage();
   }
 
-  private void ldifDiff(File source, File target, File output)
+  private void ldifDiff(File source, File target, File output,
+      boolean splitMods)
           throws ApplicationException, IOException, InterruptedException {
     ExternalTools et = new ExternalTools(installation);
-    String[] args = new String[]{
-            "-o", Utils.getPath(output),
-            "-O",
-    };
+    String[] args;
+    if (splitMods)
+    {
+      args = new String[]{
+          "-o", Utils.getPath(output),
+          "-O",
+          "-S"
+      };
+    }
+    else
+    {
+      args = new String[]{
+          "-o", Utils.getPath(output),
+          "-O"
+      };
+    }
     OperationOutput oo = et.ldifDiff(source, target, args);
     int ret = oo.getReturnCode();
     if (ret != 0) {
