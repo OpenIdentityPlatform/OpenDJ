@@ -306,6 +306,9 @@
         from inetOrgPersonJpeg1Mb import writeInetOrgPersonJpeg1MbTemplate
         writeInetOrgPersonJpeg1MbTemplate(cTemplateFd)
         
+        from inetOrgPersonEXTJpeg1Mb import writeInetOrgPersonEXTJpeg1MbTemplate
+        writeInetOrgPersonEXTJpeg1MbTemplate(cTemplateFd)
+        
         # scalablePerson not in opends schema (so comment it) :
         # "invalid because it violates the server's schema configuration"
         # from scalablePerson import writeScalablePersonTemplate
