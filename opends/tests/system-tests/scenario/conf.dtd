@@ -96,7 +96,7 @@
     <!ELEMENT subordinateTemplate EMPTY>
     <!ATTLIST subordinateTemplate
           type ( person | inetOrgPerson | organizationalPerson 
-                 | inetOrgPerson_Jpeg_1MB ) #REQUIRED
+                 | inetOrgPerson_Jpeg_1MB | inetOrgPersonEXT_Jpeg_1MB) #REQUIRED
           percentage NMTOKEN #IMPLIED
           nb NMTOKEN #IMPLIED>
 
