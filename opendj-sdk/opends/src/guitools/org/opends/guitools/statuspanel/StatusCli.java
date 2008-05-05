@@ -65,6 +65,7 @@ import org.opends.server.tools.ClientException;
 import org.opends.server.tools.ToolConstants;
 import org.opends.server.tools.dsconfig.LDAPManagementContextFactory;
 import org.opends.server.types.NullOutputStream;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
@@ -619,13 +620,14 @@ class StatusCli extends ConsoleApplication
       {
         getOutputStream().println();
         getOutputStream().println(
-            wrap(INFO_NOT_AVAILABLE_SERVER_DOWN_CLI_LEGEND.get()));
+            wrapText(INFO_NOT_AVAILABLE_SERVER_DOWN_CLI_LEGEND.get()));
       }
       else if (displayMustAuthenticateLegend)
       {
         getOutputStream().println();
         getOutputStream().println(
-            wrap(INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LEGEND.get()));
+            wrapText(
+                INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LEGEND.get()));
       }
     }
     getOutputStream().println();
@@ -866,16 +868,17 @@ class StatusCli extends ConsoleApplication
         if (!desc.isAuthenticated())
         {
           getOutputStream().println(
-              wrap(INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LABEL.get()));
+              wrapText(
+                  INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LABEL.get()));
         }
         else
         {
-          getOutputStream().println(wrap(INFO_NO_LISTENERS_FOUND.get()));
+          getOutputStream().println(wrapText(INFO_NO_LISTENERS_FOUND.get()));
         }
       }
       else
       {
-        getOutputStream().println(wrap(INFO_NO_LISTENERS_FOUND.get()));
+        getOutputStream().println(wrapText(INFO_NO_LISTENERS_FOUND.get()));
       }
     }
     else
@@ -908,16 +911,17 @@ class StatusCli extends ConsoleApplication
         if (!desc.isAuthenticated())
         {
           getOutputStream().println(
-              wrap(INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LABEL.get()));
+              wrapText(
+                  INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LABEL.get()));
         }
         else
         {
-          getOutputStream().println(wrap(INFO_NO_DBS_FOUND.get()));
+          getOutputStream().println(wrapText(INFO_NO_DBS_FOUND.get()));
         }
       }
       else
       {
-        getOutputStream().println(wrap(INFO_NO_DBS_FOUND.get()));
+        getOutputStream().println(wrapText(INFO_NO_DBS_FOUND.get()));
       }
     }
     else
@@ -946,7 +950,7 @@ class StatusCli extends ConsoleApplication
     if (errorMsg != null)
     {
       getOutputStream().println();
-      getOutputStream().println(wrap(errorMsg));
+      getOutputStream().println(wrapText(errorMsg));
     }
   }
 
@@ -1002,7 +1006,7 @@ class StatusCli extends ConsoleApplication
 
           line.append(getCellValue(tableModel.getValueAt(i, j), desc));
 
-          getOutputStream().println(wrap(line.toMessage()));
+          getOutputStream().println(wrapText(line.toMessage()));
         }
       }
     }
@@ -1202,7 +1206,7 @@ class StatusCli extends ConsoleApplication
       buf.append(" ");
     }
     buf.append(" ").append(String.valueOf(value));
-    getOutputStream().println(wrap(buf.toMessage()));
+    getOutputStream().println(wrapText(buf.toMessage()));
   }
 
   private Message centerTitle(Message text)
@@ -1294,5 +1298,18 @@ class StatusCli extends ConsoleApplication
    */
   public boolean isVerbose() {
     return true;
+  }
+
+
+
+  /**
+   * Wraps a message accoring to client tool console width.
+   * @param text to wrap
+   * @return raw message representing wrapped string
+   */
+  private Message wrapText(Message text)
+  {
+    return Message.raw(
+        StaticUtils.wrapText(text, getCommandLineMaxLineWidth()));
   }
 }
