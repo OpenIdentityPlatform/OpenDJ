@@ -55,14 +55,26 @@ testcase  <br>
 - run status in CLI and check that the SNMP Connection Handler is listed and disabled<br>
 - same checks using status-panel in GUI<br>
       <br>
-- enable SNMP using the procedure described in the following link:<br>
+- enable SNMP Connection Handler:<br>
+# dsconfig set-connection-handler-prop
+-D "cn=Directory Manager" -w password -p PORT
+--handler-name "SNMP Connection Handler"
+--set enabled:true
+--set listen-port:8085
+--set opendmk-jarfile:PATH_TO_OPENDMK_JARFILE
+-n<br>
+      <br>
+For more information on how to enable SNMP, see:<br>
 <a  href="https://www.opends.org/wiki/page/HowToMonitorOpenDSThroughSNMP">How To Monitor OpenDS Through SNMP</a><br>
       <br>
 - run status in CLI and check that the SNMP Connection Handler is listed and enabled, check also that the port is correct<br>
 - same checks using status-panel in GUI<br>
       <br>
 - check that your SNMP Connection Handler is up and running:<br>
-snmpwalk -v 2c -c OpenDS {hostName}:{port} .1.3.6.1.2.1.66<br>
+# snmpwalk -v 2c -c OpenDS@OpenDS HOSTNAME:8085 .1.3.6.1.2.1.66<br>
+iso.3.6.1.2.1.66.1.1.1.1 = STRING: "JDMK"<br>
+...<br>
+iso.3.6.1.2.1.66.2.1.25.1.3 = No more variables left in this MIB View (It is past the end of the MIB tree)<br>
       <br>
 - stop the server (stop-ds)<br>
       <br>
