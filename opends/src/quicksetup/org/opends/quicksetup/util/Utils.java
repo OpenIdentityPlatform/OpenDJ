@@ -1411,18 +1411,6 @@ public class Utils
             text.indexOf('>') != -1);
   }
 
-  /**
-   * Wraps a message accoring to client tool console width.
-   * @param text to wrap
-   * @return raw message representing wrapped string
-   */
-  static public Message wrap(Message text)
-  {
-    return Message.raw(
-            org.opends.server.util.StaticUtils.wrapText(text,
-                    getCommandLineMaxLineWidth()));
-  }
-
   private static EmptyPrintStream emptyStream = new EmptyPrintStream();
 
   /**
