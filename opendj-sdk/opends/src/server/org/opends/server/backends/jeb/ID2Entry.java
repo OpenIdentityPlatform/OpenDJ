@@ -223,8 +223,7 @@ public class ID2Entry extends DatabaseContainer
     DatabaseEntry data = new DatabaseEntry();
 
     OperationStatus status;
-    status = read(txn, key, data,
-                                 LockMode.DEFAULT);
+    status = read(txn, key, data, lockMode);
 
     if (status != OperationStatus.SUCCESS)
     {

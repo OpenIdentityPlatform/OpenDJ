@@ -233,6 +233,13 @@ modifyDNProcessing:
       }
       else
       {
+        if(newSuperior.isDescendantOf(entryDN))
+        {
+          setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+          appendErrorMessage(ERR_MODDN_NEW_SUPERIOR_IN_SUBTREE.get(
+              String.valueOf(entryDN), String.valueOf(newSuperior)));
+          break modifyDNProcessing;
+        }
         parentDN = newSuperior;
       }
 

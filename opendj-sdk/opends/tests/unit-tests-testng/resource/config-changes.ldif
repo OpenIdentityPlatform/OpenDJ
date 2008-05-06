@@ -425,7 +425,6 @@ ds-cfg-preload-time-limit: 0 seconds
 ds-cfg-import-queue-size: 100
 ds-cfg-import-thread-count: 8
 ds-cfg-entries-compressed: false
-ds-cfg-deadlock-retry-limit: 10
 ds-cfg-db-cache-percent: 2
 
 dn: ds-cfg-attribute=oncRpcNumber,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
@@ -659,7 +658,6 @@ ds-cfg-preload-time-limit: 0 seconds
 ds-cfg-import-queue-size: 100
 ds-cfg-import-thread-count: 8
 ds-cfg-entries-compressed: false
-ds-cfg-deadlock-retry-limit: 10
 ds-cfg-db-cache-percent: 2
 
 dn: cn=VLV Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
@@ -833,7 +831,6 @@ ds-cfg-preload-time-limit: 0 seconds
 ds-cfg-import-queue-size: 100
 ds-cfg-import-thread-count: 8
 ds-cfg-entries-compressed: false
-ds-cfg-deadlock-retry-limit: 10
 ds-cfg-db-cache-percent: 2
 
 dn: cn=VLV Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
@@ -1002,7 +999,6 @@ ds-cfg-preload-time-limit: 0 seconds
 ds-cfg-import-queue-size: 100
 ds-cfg-import-thread-count: 8
 ds-cfg-entries-compressed: false
-ds-cfg-deadlock-retry-limit: 10
 ds-cfg-db-cache-percent: 2
 
 dn: cn=VLV Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
@@ -1205,7 +1201,6 @@ ds-cfg-preload-time-limit: 0 seconds
 ds-cfg-import-queue-size: 100
 ds-cfg-import-thread-count: 8
 ds-cfg-entries-compressed: false
-ds-cfg-deadlock-retry-limit: 10
 ds-cfg-db-cache-percent: 2
 
 dn: cn=VLV Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
