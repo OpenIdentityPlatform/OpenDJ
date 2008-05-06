@@ -127,7 +127,7 @@
   <!ELEMENT serverInstance (#PCDATA)>
   <!ELEMENT baseDn (#PCDATA)>
   <!ELEMENT nbCnx (#PCDATA)>
-  <!ELEMENT nbMaxOp (#PCDATA)>
+  <!ELEMENT nbMaxOperations (#PCDATA)>
   <!ELEMENT attribute (#PCDATA)>
   <!ELEMENT authentication (#PCDATA)>
   <!ELEMENT certAlias (#PCDATA)>
