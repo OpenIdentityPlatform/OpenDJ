@@ -184,7 +184,6 @@ ds-cfg-preload-time-limit: 0 seconds
 ds-cfg-import-queue-size: 100
 ds-cfg-import-thread-count: 8
 ds-cfg-entries-compressed: false
-ds-cfg-deadlock-retry-limit: 10
 ds-cfg-compact-encoding: true
 ds-cfg-db-cache-percent: 10
 ds-cfg-db-cache-size: 0 megabytes

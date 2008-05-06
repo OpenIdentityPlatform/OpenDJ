@@ -194,7 +194,6 @@ public class EntryContainer
   /**
    * Cached value from config so they don't have to be retrieved per operation.
    */
-  private int deadlockRetryLimit;
 
   private int subtreeDeleteSizeLimit;
 
@@ -501,7 +500,6 @@ public class EntryContainer
     }
     this.databasePrefix = builder.toString();
 
-    this.deadlockRetryLimit = config.getDeadlockRetryLimit();
     this.subtreeDeleteSizeLimit = config.getSubtreeDeleteSizeLimit();
     this.subtreeDeleteBatchSize = config.getSubtreeDeleteBatchSize();
 
@@ -1781,7 +1779,6 @@ public class EntryContainer
   {
     // Attempt the operation under a transaction until it fails or completes.
     boolean completed = false;
-    int retryRemaining = deadlockRetryLimit;
     while (!completed)
     {
       // Start a transaction.
@@ -1795,18 +1792,6 @@ public class EntryContainer
         // Commit the transaction.
         EntryContainer.transactionCommit(txn);
         completed = true;
-      }
-      catch (DeadlockException deadlockException)
-      {
-        EntryContainer.transactionAbort(txn);
-        if (retryRemaining-- <= 0)
-        {
-          throw deadlockException;
-        }
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, deadlockException);
-        }
       }
       catch (DatabaseException databaseException)
       {
@@ -1827,7 +1812,12 @@ public class EntryContainer
       {
         EntryContainer.transactionAbort(txn);
 
-        Message message = ERR_JEB_UNCHECKED_EXCEPTION.get();
+        String msg = e.getMessage();
+        if (msg == null)
+        {
+          msg = stackTraceToSingleLineString(e);
+        }
+        Message message = ERR_JEB_UNCHECKED_EXCEPTION.get(msg);
         throw new JebException(message, e);
       }
     }
@@ -4247,8 +4237,13 @@ public class EntryContainer
         {
           transactionAbort(txn);
 
-          Message message = ERR_JEB_UNCHECKED_EXCEPTION.get();
-          throw new JebException(message, e);
+        String msg = e.getMessage();
+        if (msg == null)
+        {
+          msg = stackTraceToSingleLineString(e);
+        }
+        Message message = ERR_JEB_UNCHECKED_EXCEPTION.get(msg);
+        throw new JebException(message, e);
         }
       }
       else
@@ -4349,7 +4344,6 @@ public class EntryContainer
     id2entry.setDataConfig(entryDataConfig);
 
     this.config = cfg;
-    this.deadlockRetryLimit = config.getDeadlockRetryLimit();
     this.subtreeDeleteSizeLimit = config.getSubtreeDeleteSizeLimit();
     this.subtreeDeleteBatchSize = config.getSubtreeDeleteBatchSize();
     return new ConfigChangeResult(ResultCode.SUCCESS,

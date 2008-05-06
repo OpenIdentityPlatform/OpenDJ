@@ -1100,11 +1100,6 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.224
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.225
-  NAME 'ds-cfg-deadlock-retry-limit'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.226
   NAME 'ds-cfg-db-evictor-lru-only'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
@@ -2280,7 +2275,6 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.6
         ds-cfg-import-queue-size $
         ds-cfg-import-thread-count $
         ds-cfg-entries-compressed $
-        ds-cfg-deadlock-retry-limit $
         ds-cfg-db-directory-permissions $
         ds-cfg-db-cache-percent $
         ds-cfg-subtree-delete-batch-size $

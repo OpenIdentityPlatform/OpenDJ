@@ -230,7 +230,7 @@
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>false</adm:value>
+        <adm:value>true</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -249,11 +249,11 @@
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>0</adm:value>
+        <adm:value>2147483647</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer lower-limit="0" />
+      <adm:integer lower-limit="0" upper-limit="2147483647" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>

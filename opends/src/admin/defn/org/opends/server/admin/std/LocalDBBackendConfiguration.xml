@@ -124,30 +124,6 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
-  <adm:property name="deadlock-retry-limit" advanced="true">
-    <adm:synopsis>
-      Specifies the number of times that the server should retry an
-      attempted operation in the backend if a deadlock results from two
-      concurrent requests that interfere with each other in a
-      conflicting manner.
-    </adm:synopsis>
-    <adm:description>
-      A value of "0" indicates no limit.
-    </adm:description>
-    <adm:default-behavior>
-      <adm:defined>
-        <adm:value>10</adm:value>
-      </adm:defined>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:integer lower-limit="0" upper-limit="2147483647" />
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-deadlock-retry-limit</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
   <adm:property name="db-directory" mandatory="true">
     <adm:TODO>Default this to the db/backend-id</adm:TODO>
     <adm:synopsis>
