@@ -298,7 +298,7 @@
         errNum = NOT_DEFINED
       </script>
       
-      <!--=== log info ===-->
+      <!--=============== Log info =======================================-->
       <if expr="client.getHost() == NOT_DEFINED">
         <sequence>
           <script>
@@ -310,7 +310,7 @@
           <message> str </message>
           <call function="'writeMessage'">
           { 'fileFd'  : fileFd,
-            'content' : str
+            'content' : 'Client id %s' % client.getId()
           }
           </call>
         </sequence>
@@ -333,7 +333,138 @@
       </else>
       </if>
       
-      <!--=== run the client, exit if time exceed duration time ===-->
+      
+      <!--=============== Start the client under a timer =================-->
+      <!--== open logfile for details                                   ==-->
+      <!-- All informations loged in this this function will              -->
+      <!-- not be displayed in the main report, to avoid broken xml file  -->
+       <call function="'getLogFileName'">
+        {
+          'type'   : 'client',
+          'object' : client,
+          'prefix' : 'client_details'
+        }
+      </call>
+      <script>
+        logFileDetails = STAXResult
+        fileList.append(logFileDetails)
+        fileFdDetails = open(logFileDetails,'w')
+        outFile = '%s/client_%s_id%s.txt' % \
+                  (client.getLogDir(),client.getName(),client.getId())
+      </script>
+      
+      <call function="'startTimer'">
+      { 
+        'client'     : client,
+        'instances'  : instances,
+        'duration'   : duration,
+        'suffix'     : suffix,
+        'outFile'    : outFile,
+        'fileFd'     : fileFdDetails
+      }
+      </call>
+      <script>
+        fileFdDetails.close()
+        errNum = STAXResult[0]
+        timerKilled = STAXResult[1]
+      </script>
+      
+      <!--=============== Analyze client run status ======================-->
+      <if expr="timerKilled == TRUE">
+        <sequence>
+          <script>
+            errMsg = 'ERROR: client %s has been killed,' % client.getName()
+          </script>
+          <call function="'writeMessage'">
+            {
+              'content' : errMsg,
+              'fileFd'  : fileFd
+            }
+          </call>
+          <message> errMsg </message>
+          <script>
+            ERR_NUM[0] += 1
+          </script>
+        </sequence>
+      </if>
+      
+      <script>
+        finishedClients.append(client.getId())
+      </script>
+      
+      <!--=============== Log info =======================================-->
+      <script>
+        stopTime=strftime("%Y%m%d@%H:%M:%S",localtime())
+        client.setStopDate(stopTime)
+      </script>
+      <message>
+        '-- Stop %s client (id %s) running on %s at %s' %\
+        (client.getName(),client.getId(),client.getHost(),stopTime)
+      </message>
+      <call function="'writeMessage'">
+      { 
+        'content' : 'Details of the client : %s' % logFileDetails,
+        'fileFd'  : fileFd
+      }
+      </call>
+      <call function="'writeMessage'">
+      { 
+        'content' : 'Client outPuts : %s' % outFile,
+        'fileFd'  : fileFd
+      }
+      </call>
+      
+      
+      <!--=============== Set client result ==============================-->
+      <if expr="errNum == 0">
+        <script>
+          result = 'SUCCESS'
+        </script>
+      <else>
+        <script>
+          result = 'FAIL'
+        </script>
+      </else>
+      </if>
+      <script>
+        client.setResult(result)
+        attrs = 'status=\"%s\" startDate=\"%s\" stopDate=\"%s\"' % \
+                (result,client.getStartDate(),client.getStopDate())
+        fileFd.write('\n&lt;clientResult %s/&gt;\n' % attrs)
+      </script>
+      
+      <!-- DO NOT record number of error(s) found by clients         -->
+      <!-- each should use checkRC and ERR_NUM[0] is already updated -->
+      <!-- <script>
+        ERR_NUM[0] += errNum
+      </script> -->
+      
+    </sequence>
+  </function>
+
+
+  <!-- ************************************************************ -->
+  <function name="startTimer" scope="local">
+    <function-map-args>
+      <function-arg-def name="client"    type="required"/>
+      <function-arg-def name="duration"  type="required"/>
+      <function-arg-def name="instances" type="required"/>
+      <function-arg-def name="suffix"    type="required"/>
+      <function-arg-def name="outFile"   type="required"/>
+      <function-arg-def name="fileFd"    type="required"/>
+    </function-map-args>
+    <sequence>
+      
+      <!-- ==== Log info ====================================-->
+      <!--== Write root tag for xml details file -->
+      <call function="'writeStartTagClient'">
+      {
+        'client' : client,
+        'fileFd' : fileFd
+      }
+      </call>
+      
+      <!--=============== Select local/shared client file ================-->
       <script>
         timerKilled = TRUE
         workingDir  = NOT_DEFINED
@@ -342,29 +473,33 @@
         sharedWorkingdir = '%s/clients/%s/' % \
                            (LOCAL_TESTS_DIR,client.getName())
       </script>
+      
+      <!-- Check if local file exists before launching it-->
+      <call function="'isFile'">
+      {
+        'location' : STAXServiceMachine,
+        'fileName' : '%s/%s.xml' % (localWorkingDir,client.getName())
+      }
+      </call>
+      <script>
+        localClientExist = STAXResult
+      </script>
+      <!-- Check if remote file exists before launching it-->
+      <call function="'isFile'">
+      {
+        'location' : STAXServiceMachine,
+        'fileName' : '%s/%s.xml' % (sharedWorkingdir,client.getName())
+      }
+      </call>
+      <script>
+        sharedClientExist = STAXResult
+      </script>
+      
+      
+      <!--================================================================-->
+      <!--====== run the client, exit if time exceed duration time  ======-->
       <timer duration="'%ss' % duration">
         <sequence>
-          <!-- check if local client exists before launching it-->
-          <call function="'isFile'">
-          {
-            'location' : STAXServiceMachine,
-            'fileName' : '%s/%s.xml' % (localWorkingDir,client.getName())
-          }
-          </call>
-          <script>
-            localClientExist = STAXResult
-          </script>
-          <!-- check if remote client exists before launching it-->
-          <call function="'isFile'">
-          {
-            'location' : STAXServiceMachine,
-            'fileName' : '%s/%s.xml' % (sharedWorkingdir,client.getName())
-          }
-          </call>
-          <script>
-            sharedClientExist = STAXResult
-          </script>
-          
           <!-- use local client by default else the shared client -->
           <if expr="localClientExist == TRUE">
             <script> workingDir = localWorkingDir </script>
@@ -402,6 +537,7 @@
                 'instances'  : instances,
                 'duration'   : duration,
                 'suffix'     : suffix,
+                'outFile'    : outFile,
                 'fileFd'     : fileFd
               }
               </call>
@@ -415,74 +551,15 @@
         </sequence>
       
       </timer>
-      <if expr="timerKilled == TRUE">
-        <sequence>
-          <!-- TBD: The client has been killed, we have to make sure that 
-               xml result structure is coherent...
-               Another issue: in this case we can not get the client RC
-          -->
-          <script>
-            errMsg = 'ERROR: client %s has been killed,' % client.getName()
-            errMsg = '%s %s is probably over loaded'% (errMsg,client.getHost())
-          </script>
-          <call function="'writeMessage'">
-            {
-              'content' : errMsg,
-              'fileFd'  : fileFd
-            }
-          </call>
-          <message> errMsg </message>
-          <script>
-            ERR_NUM[0] += 1
-          </script>
-          <!-- 
-          <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
-          -->
-        </sequence>
-      </if>
       
-      <script>
-        finishedClients.append(client.getId())
-      </script>
       
-      <!--=== log info ===-->
-      <script>
-        stopTime=strftime("%Y%m%d@%H:%M:%S",localtime())
-        client.setStopDate(stopTime)
-      </script>
-      <message>
-        '-- Stop %s client (id %s) running on %s at %s' %\
-        (client.getName(),client.getId(),client.getHost(),stopTime)
-      </message>
-      <call function="'writeMessage'">
-        {
-          'content' : 'Stop at %s' % stopTime,
-          'fileFd'  : fileFd
-        }
+      <!--=============== Log info =======================================-->
+      <!--== Close root tag for xml details file -->
+      <call function="'writeEndTagClient'">
+      { 'fileFd'    : fileFd }
       </call>
       
-      <if expr="errNum == 0">
-        <script>
-          result = 'SUCCESS'
-        </script>
-      <else>
-        <script>
-          result = 'FAIL'
-        </script>
-      </else>
-      </if>
-      <script>
-        client.setResult(result)
-        attrs = 'status=\"%s\" startDate=\"%s\" stopDate=\"%s\"' % \
-                (result,client.getStartDate(),client.getStopDate())
-        fileFd.write('\n&lt;clientResult %s/&gt;\n' % attrs)
-      </script>
-      
-      <!-- DO NOT record number of error(s) found by clients         -->
-      <!-- each should use checkRC and ERR_NUM[0] is already updated -->
-      <!-- <script>
-        ERR_NUM[0] += errNum
-      </script> -->
+      <return> [ errNum, timerKilled ] </return>
       
     </sequence>
   </function>
