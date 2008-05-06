@@ -78,7 +78,7 @@
         </call>
 
         <!-- chmod +x all the .sh file in tomcat bin directory -->
-        <stafcmd name="'create import temp directory'">
+        <stafcmd name="'make tomcat shell scripts executable'">
           <location>'%s' % mylocation</location>
           <service>'fs'</service>
           <request>' LIST DIRECTORY %s/%s-%s/bin EXT sh' % \
@@ -100,6 +100,36 @@
           <returnstdout/>
         </process>
 
+        <!-- generate SSL certificate -->
+        <stafcmd>
+          <location>STAXServiceMachine</location>
+          <service>'var'</service>
+          <request>'resolve string {STAF/Config/STAFRoot}'</request>
+        </stafcmd>
+        
+        <script>stafRoot=STAFResult</script>
+        
+        <call function="'runCommand'">
+          { 'name'      : 'Generate a Certificate',
+            'location'  : STAXServiceMachine,
+            'command'   : '%s/bin/keytool' % (JAVA_HOME),
+            'arguments' : '-genkey -alias tomcat -keyalg rsa \
+                           -dname "cn=tomcat,O=Sun Microsystems,C=US" \
+                           -keystore "%s/services/http/tomcatCertificate" \
+                           -storepass "changeit" -keypass "changeit" \
+                           -storetype JKS ' % (stafRoot),
+            'path'      : '%s/bin' % (JAVA_HOME),
+            'expectedRC': 0
+          }
+        </call>
+      
+        <call function="'copyFile'">
+          { 'location'   : STAXServiceMachine,
+            'srcfile'    : '%s/services/http/tomcatCertificate' % (stafRoot),
+            'destfile'   : '%s/%s-%s/conf/tomcatCertificate' % (wcPath, WC_TYPE, WC_VERSION),
+            'remotehost' : mylocation
+          }
+        </call>
         <!-- configure webcontainer's PORTs -->
         <message>
           'Configure webcontainer ports HTTP %s / HTTPS %s' % (WC_PORT, WC_SSL_PORT)
@@ -117,6 +147,15 @@
           sslPortRegEx = re.compile('8443')
           content=portRegEx.sub(WC_PORT, serverXmlInput)
           content=sslPortRegEx.sub(WC_SSL_PORT, content)
+          sslConnectorRegEx = re.compile('&lt;Service name="Catalina"&gt;')
+          SSL_CONNECTOR = '&lt;Service name="Catalina"&gt;\n \
+            &lt;Connector port="%s" protocole="HTTP/1.1" \
+            SSLEnabled="true" maxThreads="150" scheme="https" secure="true" \
+            clientAuth="false" sslProtocol="SSL" \
+            keystoreFile="%s/%s-%s/conf/tomcatCertificate" \
+            keystorePass="changeit" /&gt;' % \
+            (WC_SSL_PORT, wcPath, WC_TYPE, WC_VERSION)
+          content=sslConnectorRegEx.sub(SSL_CONNECTOR, content)
           serverXmlOutput=open('%s/%s-%s-%s_server.xml' % \
                           (TMPDIR,STAF_REMOTE_HOSTNAME,WC_TYPE,WC_VERSION),'w')
           serverXmlOutput.write(content)
@@ -133,10 +172,7 @@
         <message>
           'Configure webcontainer SSL keystore '
         </message>
-        <message>
-          'TODO....'
-        </message>
-        
+          
         <if expr="RC != 0">
           <return>RC</return>
         </if>
