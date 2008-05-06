@@ -24,8 +24,10 @@
  !
  !      Copyright 2008 Sun Microsystems, Inc.
  ! -->
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                xmlns:xlink="http://www.w3.org/1999/xlink"
+                exclude-result-prefixes="xlink"           
+                version="1.0">
 <xsl:output 
   method="html"
   encoding="ISO-8859-1"
@@ -456,7 +458,7 @@
   * <a href="#summary"> Move up to Summary</a>
   <br/>
   * <a onclick="ShowHideListElement('{$phaseName}')">
-    <span class="showLink"> Clic me to show/hide details</span>
+    <span class="showLink"> Click me to show/hide details</span>
   </a>
   <p id="{$phaseName}" style="display: none">
     <ul>
@@ -517,7 +519,7 @@
     </ul>
     
   * <a onclick="ShowHideListElement('{$phaseName}')">
-    <span class="showLink">Clic me to show/hide details</span>
+    <span class="showLink">Click me to show/hide details</span>
   </a><br/>
   * <a href="#summary">Move up to Summary</a>
   </p>
@@ -707,7 +709,15 @@
 
 <!-- ================= Manage message node     ================ -->
 <xsl:template name="displayMessage">
-  <xsl:value-of select="." /> <br/>
+  <xsl:choose>
+    <xsl:when test="@xlink:href">
+      <a href="{@xlink:href}"><xsl:value-of select="." /></a>
+    </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="." />
+      </xsl:otherwise>
+    </xsl:choose>
+   <br/>
   <xsl:call-template name="parseChildPhase" />
 </xsl:template>
 

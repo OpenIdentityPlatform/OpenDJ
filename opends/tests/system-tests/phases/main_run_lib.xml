@@ -457,6 +457,16 @@
       }
       </call>
       
+      <!--== Copy xsl file needed to read the client details ==-->
+      <call function="'copyFile'">
+      {
+        'srcFile'    : '%s/report/clientDetails.xsl' % (TESTS_DIR),
+        'destFile'   : '%s/tmp/clientDetails.xsl' % LOG_DIR,
+        'remoteHost' : STAXServiceMachine,
+        'fileFd'     : NO_FILE
+      }
+      </call>
+      
       <!--== Close main output file ==-->
       <script>
         LOG_MAIN_FD.write('&lt;/systemTestRoot&gt;\n')

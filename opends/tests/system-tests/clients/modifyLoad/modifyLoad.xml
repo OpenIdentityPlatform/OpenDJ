@@ -260,6 +260,7 @@
           <!-- ========== Postamble ========== -->
           <call function="'writeMessage'">
           {'content' : 'Output file %s' % outFile,
+           'xlink'   : outFile,
            'fileFd'  : fileFd}
           </call>
           
