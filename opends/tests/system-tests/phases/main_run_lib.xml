@@ -99,12 +99,9 @@
           clients list
         </function-arg-description>
       </function-arg-def>
-      <function-arg-def name="runInstallation" type="required">
-      </function-arg-def>
-      <function-arg-def name="runConfiguration" type="required">
-      </function-arg-def>
-      <function-arg-def name="runScheduler" type="required">
-      </function-arg-def>
+      <function-arg-def name="runInstallation" type="required"/>
+      <function-arg-def name="runConfiguration" type="required"/>
+      <function-arg-def name="runScheduler" type="required"/>
     </function-map-args>
     <sequence>
       

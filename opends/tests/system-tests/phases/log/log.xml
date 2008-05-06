@@ -72,12 +72,9 @@
       'return a log file name'
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="type" type="required">
-      </function-arg-def>
-      <function-arg-def name="object" type="required">
-      </function-arg-def>
-      <function-arg-def name="prefix" type="required">
-      </function-arg-def>
+      <function-arg-def name="type" type="required"/>
+      <function-arg-def name="object" type="required"/>
+      <function-arg-def name="prefix" type="required"/>
     </function-map-args>
     
     <sequence>
@@ -112,10 +109,8 @@
       ''
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="scenario" type="required">
-      </function-arg-def>
-      <function-arg-def name="fileFd" type="required">
-      </function-arg-def>
+      <function-arg-def name="scenario" type="required"/>
+      <function-arg-def name="fileFd" type="required"/>
     </function-map-args>
     <sequence>
       <script>
@@ -179,8 +174,7 @@
           scheduler object
         </function-arg-description>
       </function-arg-def>
-      <function-arg-def name="fileFd" type="required">
-      </function-arg-def>
+      <function-arg-def name="fileFd" type="required"/>
     </function-map-args>
     <sequence>
       <iterate in="scheduler" var="module">
@@ -247,10 +241,8 @@
       ''
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="fileList" type="required">
-      </function-arg-def>
-      <function-arg-def name="fileFd" type="required">
-      </function-arg-def>
+      <function-arg-def name="fileList" type="required"/>
+      <function-arg-def name="fileFd" type="required"/>
     </function-map-args>
     <sequence>
       
@@ -419,16 +411,11 @@
       ''
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="returncode" type="required">
-      </function-arg-def>
-      <function-arg-def name="expected" type="required">
-      </function-arg-def>
-      <function-arg-def name="result" type="required">
-      </function-arg-def>
-      <function-arg-def name="status" type="required">
-      </function-arg-def>
-      <function-arg-def name="fileFd" type="required">
-      </function-arg-def>
+      <function-arg-def name="returncode" type="required"/>
+      <function-arg-def name="expected" type="required"/>
+      <function-arg-def name="result" type="required"/>
+      <function-arg-def name="status" type="required"/>
+      <function-arg-def name="fileFd" type="required"/>
     </function-map-args>
     <sequence>
       <if expr="fileFd == NO_FILE">
@@ -460,8 +447,7 @@
       ''
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="tagName">
-      </function-arg-def>
+      <function-arg-def name="tagName"/>
       <function-arg-def name="fileFd" type="required">
         <function-arg-description>
           file descriptor
@@ -504,8 +490,7 @@
       ''
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="instance" type="required">
-      </function-arg-def>
+      <function-arg-def name="instance" type="required"/>
       <function-arg-def name="fileFd" type="required">
         <function-arg-description>
           file descriptor
@@ -699,8 +684,7 @@
       ''
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="fileFd" type="required">
-      </function-arg-def>
+      <function-arg-def name="fileFd" type="required"/>
     </function-map-args>
     <sequence>
       <if expr="fileFd != NO_FILE">
@@ -719,10 +703,8 @@
       ''
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="nodeName" type="required">
-      </function-arg-def>
-      <function-arg-def name="fileFd" type="required">
-      </function-arg-def>
+      <function-arg-def name="nodeName" type="required"/>
+      <function-arg-def name="fileFd" type="required"/>
     </function-map-args>
     <sequence>
       <if expr="fileFd != NO_FILE">
@@ -740,10 +722,8 @@
       ''
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="nodeName" type="required">
-      </function-arg-def>
-      <function-arg-def name="fileFd" type="required">
-      </function-arg-def>
+      <function-arg-def name="nodeName" type="required"/>
+      <function-arg-def name="fileFd" type="required"/>
     </function-map-args>
     <sequence>
       <if expr="fileFd != NO_FILE">

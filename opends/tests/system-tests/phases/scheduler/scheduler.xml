@@ -109,14 +109,10 @@
   <!-- ************************************************************ -->
   <function name="runClients" scope="local">
     <function-map-args>
-      <function-arg-def name="clients" type="required">
-      </function-arg-def>
-      <function-arg-def name="instances" type="required">
-      </function-arg-def>
-      <function-arg-def name="scenario" type="required">
-      </function-arg-def>
-      <function-arg-def name="suffix" type="required">
-      </function-arg-def>
+      <function-arg-def name="clients" type="required"/>
+      <function-arg-def name="instances" type="required"/>
+      <function-arg-def name="scenario" type="required"/>
+      <function-arg-def name="suffix" type="required"/>
     </function-map-args>
     
     <sequence>
@@ -278,16 +274,11 @@
   <!-- ************************************************************ -->
   <function name="runClient" scope="local">
     <function-map-args>
-      <function-arg-def name="client" type="required">
-      </function-arg-def>
-      <function-arg-def name="duration" type="required">
-      </function-arg-def>
-      <function-arg-def name="instances" type="required">
-      </function-arg-def>
-      <function-arg-def name="suffix" type="required">
-      </function-arg-def>
-      <function-arg-def name="fileFd" type="required">
-      </function-arg-def>
+      <function-arg-def name="client" type="required"/>
+      <function-arg-def name="duration" type="required"/>
+      <function-arg-def name="instances" type="required"/>
+      <function-arg-def name="suffix" type="required"/>
+      <function-arg-def name="fileFd" type="required"/>
     </function-map-args>
     
     <sequence>
@@ -579,16 +570,11 @@
   <function name="sleepForDependency" scope="local">
     <function-map-args>
       <function-arg-def name="location" type="optional" 
-                        default="'%s' % STAXServiceMachine">
-      </function-arg-def>
-      <function-arg-def name="client" type="required">
-      </function-arg-def>
-      <function-arg-def name="clients" type="required">
-      </function-arg-def>
-      <function-arg-def name="durationTime" type="required">
-      </function-arg-def>
-      <function-arg-def name="fileFd" type="required">
-      </function-arg-def>
+                        default="'%s' % STAXServiceMachine"/>
+      <function-arg-def name="client" type="required"/>
+      <function-arg-def name="clients" type="required"/>
+      <function-arg-def name="durationTime" type="required"/>
+      <function-arg-def name="fileFd" type="required"/>
     </function-map-args>
     
     <sequence>
