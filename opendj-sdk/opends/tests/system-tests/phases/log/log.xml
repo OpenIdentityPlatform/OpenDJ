@@ -379,6 +379,11 @@
           string to write in a file
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="xlink" type="optional" default="NOT_DEFINED">
+        <function-arg-description>
+          if you want the content to be a href of xlink
+        </function-arg-description>
+      </function-arg-def>
       <function-arg-def name="fileFd" type="required">
         <function-arg-description>
           file descriptor
@@ -392,7 +397,13 @@
           sys.path.append("%s/phases/log" % TESTS_DIR )
           from log import htmlTransformation
           content = htmlTransformation(content)
-          fileFd.write('&lt;message&gt;%s&lt;/message&gt;\n' % content)
+          if xlink == NOT_DEFINED:
+            str = '&lt;message&gt;'
+          else:
+            str = '&lt;message xlink:href="%s" xlink:type="simple"&gt;' % xlink
+          
+          str = '%s %s&lt;/message&gt;\n' % (str,content)
+          fileFd.write(str)
         </script>
       <else>
         <message>content</message>
@@ -543,6 +554,12 @@
     <function-map-args>
       <function-arg-def name="client" type="required">
       </function-arg-def>
+      <function-arg-def name="extraParameters" type="optional"
+                                               default="NOT_DEFINED">
+        <function-arg-description>
+          extra parameters to add in the node
+        </function-arg-description>
+      </function-arg-def>
       <function-arg-def name="fileFd" type="required">
         <function-arg-description>
           file descriptor
@@ -557,7 +574,10 @@
           str = '%s host=\"%s\"'           % (str,client.getHost())
           str = '%s start=\"%s\"'          % (str,client.getStart())
           str = '%s stop=\"%s\"'           % (str,client.getStop())
-          str = '%s dependency=\"%s\"&gt;\n' % (str,client.getDependency())
+          str = '%s dependency=\"%s\"'     % (str,client.getDependency())
+          if extraParameters != NOT_DEFINED:
+            str = '%s %s' % (str,extraParameters)
+          str = '%s &gt;\n' % str
           fileFd.write(str)
         </script>
       </if>

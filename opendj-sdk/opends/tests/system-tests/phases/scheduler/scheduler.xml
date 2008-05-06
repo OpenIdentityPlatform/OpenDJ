@@ -404,12 +404,14 @@
       <call function="'writeMessage'">
       { 
         'content' : 'Details of the client : %s' % logFileDetails,
+        'xlink'   : logFileDetails,
         'fileFd'  : fileFd
       }
       </call>
       <call function="'writeMessage'">
       { 
         'content' : 'Client outPuts : %s' % outFile,
+        'xlink'   : outFile,
         'fileFd'  : fileFd
       }
       </call>
@@ -457,10 +459,18 @@
       
       <!-- ==== Log info ====================================-->
       <!--== Write root tag for xml details file -->
+      <script>
+        str = '&lt;?xml version=\"1.0\" encoding=\"UTF-8\"'
+        str = '%s standalone=\"no\"?&gt;\n' % str
+        str = '%s &lt;?xml-stylesheet type="text/xsl"' % str
+        str = '%s href="clientDetails.xsl"?>\n' % str
+        fileFd.write(str)
+      </script>
       <call function="'writeStartTagClient'">
       {
-        'client' : client,
-        'fileFd' : fileFd
+        'client'          : client,
+        'extraParameters' : 'xmlns:xlink="http://www.w3.org/1999/xlink"',
+        'fileFd'          : fileFd
       }
       </call>
       

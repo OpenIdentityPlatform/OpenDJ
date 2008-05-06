@@ -176,7 +176,8 @@
         str = '%s standalone=\"no\"?&gt;\n' % str
         str = '%s &lt;?xml-stylesheet type="text/xsl" href="result.xsl"?>\n' \
                % str
-        str = '%s &lt;systemTestRoot&gt;\n' % str
+        str = '%s &lt;systemTestRoot' % str
+        str = '%s xmlns:xlink="http://www.w3.org/1999/xlink"&gt;\n' % str
         LOG_MAIN_FD.write(str)
       </script>
       
