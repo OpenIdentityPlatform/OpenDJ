@@ -30,22 +30,18 @@
   <defaultcall function="restartDs"/>
 
 
-
   <!-- ************************************************************ -->
+  <!-- Client is automatically called by the scheduler and must     -->
+  <!-- always define all the parameters below                       -->
   <function name="restartDs" scope="local">
     <function-map-args>
-      <function-arg-def name="workingDir" type="required">
-      </function-arg-def>
-      <function-arg-def name="client" type="required">
-      </function-arg-def>
-      <function-arg-def name="instances" type="required">
-      </function-arg-def>
-      <function-arg-def name="duration" type="required">
-      </function-arg-def>
-      <function-arg-def name="suffix" type="required">
-      </function-arg-def>
-      <function-arg-def name="fileFd" type="required">
-      </function-arg-def>
+      <function-arg-def name="workingDir" type="required"/>
+      <function-arg-def name="client"     type="required"/>
+      <function-arg-def name="instances"  type="required"/>
+      <function-arg-def name="duration"   type="required"/>
+      <function-arg-def name="suffix"     type="required"/>
+      <function-arg-def name="outFile"    type="required"/>
+      <function-arg-def name="fileFd"     type="required"/>
     </function-map-args>
     
     <sequence>
