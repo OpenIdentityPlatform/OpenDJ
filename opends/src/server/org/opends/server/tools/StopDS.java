@@ -669,7 +669,9 @@ public class StopDS
     }
     catch (LDAPConnectionException lce)
     {
-      Message message = ERR_STOPDS_CANNOT_CONNECT.get(lce.getMessage());
+      String hostPort = host.getValue() + ":" + port.getValue();
+      Message message = ERR_STOPDS_CANNOT_CONNECT.get(hostPort,
+          lce.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR;
     }
