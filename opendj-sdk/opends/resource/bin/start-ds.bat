@@ -56,6 +56,8 @@ if %errorlevel% == 99 goto runDetach
 if %errorlevel% == 100 goto runNoDetach
 if %errorlevel% == 101 goto runAsService
 if %errorlevel% == 102 goto runDetachCalledByWinService
+if %errorlevel% == 103 goto runDetachQuiet
+if %errorlevel% == 104 goto runNoDetachQuiet
 goto end
 
 :serverAlreadyStarted
@@ -70,6 +72,14 @@ if exist "%DIR_HOME%\lib\set-java-args.bat %SCRIPT%" DO call "%DIR_HOME%\lib\set
 "%OPENDS_JAVA_BIN%" %OPENDS_SERVER_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
 goto end
 
+:runNoDetachQuiet
+echo %SCRIPT%: Run no detach  >> %LOG%
+if not exist "%DIR_HOME%\logs\server.out" echo. > "%DIR_HOME%\logs\server.out"
+if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.starting"
+if exist "%DIR_HOME%\lib\set-java-args.bat %SCRIPT%" DO call "%DIR_HOME%\lib\set-java-args.bat"
+"%OPENDS_JAVA_BIN%" %OPENDS_SERVER_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %* >> %LOG%
+goto end
+
 
 :runDetach
 echo %SCRIPT%: Run detach  >> %LOG%
@@ -79,6 +89,16 @@ if exist "%DIR_HOME%\lib\set-java-args.bat" DO call "%DIR_HOME%\lib\set-java-arg
 "%DIR_HOME%\lib\winlauncher.exe" start "%DIR_HOME%" "%OPENDS_JAVA_BIN%" %OPENDS_SERVER_JAVA_ARGS%  %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
 echo %SCRIPT%: Waiting for "%DIR_HOME%\logs\server.out" to be deleted >> %LOG%
 "%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.starting" --logFile "%DIR_HOME%\logs\server.out"
+goto checkStarted
+
+:runDetachQuiet
+echo %SCRIPT%: Run detach  >> %LOG%
+if not exist "%DIR_HOME%\logs\server.out" echo. > "%DIR_HOME%\logs\server.out"
+if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.starting"
+if exist "%DIR_HOME%\lib\set-java-args.bat" DO call "%DIR_HOME%\lib\set-java-args.bat"
+"%DIR_HOME%\lib\winlauncher.exe" start "%DIR_HOME%" "%OPENDS_JAVA_BIN%" %OPENDS_SERVER_JAVA_ARGS%  %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
+echo %SCRIPT%: Waiting for "%DIR_HOME%\logs\server.out" to be deleted >> %LOG%
+"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.starting" --logFile "%DIR_HOME%\logs\server.out" >> %LOG%
 goto checkStarted
 
 :runDetachCalledByWinService

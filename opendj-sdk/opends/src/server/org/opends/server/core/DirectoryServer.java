@@ -273,6 +273,11 @@ public class DirectoryServer
    * output.
    */
   private static int START_AS_DETACH_QUIET = 103;
+  /**
+   * The server must be started as non-detached process and should not produce
+   * any output.
+   */
+  private static int START_AS_NON_DETACH_QUIET = 104;
 
   // The policy to use regarding single structural objectclass enforcement.
   private AcceptRejectWarn singleStructuralClassPolicy;
@@ -1172,7 +1177,7 @@ public class DirectoryServer
                   String.valueOf(configClass),
                   String.valueOf(configFile),
                   e.getLocalizedMessage());
-      throw new InitializationException(message);
+      throw new InitializationException(message, e);
     }
 
   }
@@ -9284,8 +9289,9 @@ public class DirectoryServer
       //   intended command.  If that command was successful, then we'll have an
       //   exit code of NOTHING_TO_DO (0).  Otherwise, it will have an exit code
       //   that is something other than NOTHING_TO_DO, SERVER_ALREADY_STARTED,
-      //   START_AS_DETACH, START_AS_NON_DETACH, START_AS_WINDOWS_SERVICE to
-      //   indicate that a problem occurred.
+      //   START_AS_DETACH, START_AS_NON_DETACH, START_AS_WINDOWS_SERVICE,
+      //   START_AS_DETACH_QUIET, START_AS_NON_DETACH_QUIET to indicate that a
+      //   problem occurred.
       if (argParser.usageOrVersionDisplayed())
       {
         // We're just trying to display usage, and that's already been done so
@@ -9740,7 +9746,14 @@ public class DirectoryServer
       {
         if (noDetachPresent)
         {
-          returnValue = START_AS_NON_DETACH;
+          if (quietMode.isPresent())
+          {
+            returnValue = START_AS_NON_DETACH_QUIET;
+          }
+          else
+          {
+            returnValue = START_AS_NON_DETACH;
+          }
         }
         else if (quietMode.isPresent())
         {
