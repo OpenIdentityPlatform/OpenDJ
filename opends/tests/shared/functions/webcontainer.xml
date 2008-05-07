@@ -115,7 +115,7 @@
             'command'   : '%s/bin/keytool' % (JAVA_HOME),
             'arguments' : '-genkey -alias tomcat -keyalg rsa \
                            -dname "cn=tomcat,O=Sun Microsystems,C=US" \
-                           -keystore "%s/services/http/tomcatCertificate" \
+                           -keystore "%s/services/DSML/tomcatCertificate" \
                            -storepass "changeit" -keypass "changeit" \
                            -storetype JKS ' % (stafRoot),
             'path'      : '%s/bin' % (JAVA_HOME),
@@ -125,7 +125,7 @@
       
         <call function="'copyFile'">
           { 'location'   : STAXServiceMachine,
-            'srcfile'    : '%s/services/http/tomcatCertificate' % (stafRoot),
+            'srcfile'    : '%s/services/DSML/tomcatCertificate' % (stafRoot),
             'destfile'   : '%s/%s-%s/conf/tomcatCertificate' % (wcPath, WC_TYPE, WC_VERSION),
             'remotehost' : mylocation
           }
