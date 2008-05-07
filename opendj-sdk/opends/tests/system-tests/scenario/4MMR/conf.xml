@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE systemTestConfiguration SYSTEM "../conf.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+
+<!--==================================================================-->
+<!-- This conf.xml file is an example                                 -->
+<!-- BEFORE running system-tests, you need to set up your environment -->
+<!--==================================================================-->
+
+
+<systemTestConfiguration>
+  
+  <!-- ================= Global Parameters ===================== -->
+  <!-- =============  Should be the first node   =============== -->
+  <globalParameters>
+    <scenario>
+      <name>4MMR</name>
+      <description>
+        4 Ldap Servers each connected to a single changelog server
+      </description>
+    </scenario>
+    
+    <opendsZip>NEED_VALUE</opendsZip>
+    <!-- Example : <domain>france.sun.com</domain> -->
+    <domain></domain>
+  </globalParameters>
+  
+  
+  <!-- ================= Instance ============================== -->
+  <instance name="I1" product="opends" role="ldapServer">
+    <host>localhost</host>
+    <installDir>NEED_VALUE</installDir>
+    <ports>
+      <ldap>5021</ldap>
+      <ldaps>5022</ldaps>
+      <jmx>5023</jmx>
+      <replicationServer>5025</replicationServer>
+    </ports>
+    <tuning>
+      <java xms="2g" xmx="2g"
+            xxNewSize="512m" xxMaxNewSize="512m"
+            xxSurvivorRatio="6" xxPermSize="128m"
+            xxMaxPermSize="128m" xxUseConcMarkSweepGC="true"/>
+      <databaseCachePercentage>40</databaseCachePercentage>
+      <replicationPurgeDelay unit="h">4</replicationPurgeDelay>
+    </tuning>
+  </instance>
+  
+  <!-- ================= Instance ============================== -->
+  <instance name="I2" product="opends" role="ldapServer">
+    <host>localhost</host>
+    <installDir>NEED_VALUE</installDir>
+    <ports>
+      <ldap>6021</ldap>
+      <ldaps>6022</ldaps>
+      <jmx>6023</jmx>
+      <replicationServer>6025</replicationServer>
+    </ports>
+    <tuning>
+      <java xms="2g" xmx="2g"
+            xxNewSize="512m" xxMaxNewSize="512m"
+            xxSurvivorRatio="6" xxPermSize="128m"
+            xxMaxPermSize="128m" xxUseConcMarkSweepGC="true"/>
+      <databaseCachePercentage>40</databaseCachePercentage>
+      <replicationPurgeDelay unit="h">4</replicationPurgeDelay>
+    </tuning>
+  </instance>
+  
+  <!-- ================= Instance ============================== -->
+  <instance name="I3" product="opends" role="ldapServer">
+    <host>localhost</host>
+    <installDir>NEED_VALUE</installDir>
+    <ports>
+      <ldap>7021</ldap>
+      <ldaps>7022</ldaps>
+      <jmx>7023</jmx>
+      <replicationServer>7025</replicationServer>
+    </ports>
+    <tuning>
+      <java xms="2g" xmx="2g"
+            xxNewSize="512m" xxMaxNewSize="512m"
+            xxSurvivorRatio="6" xxPermSize="128m"
+            xxMaxPermSize="128m" xxUseConcMarkSweepGC="true"/>
+      <databaseCachePercentage>40</databaseCachePercentage>
+      <replicationPurgeDelay unit="h">4</replicationPurgeDelay>
+    </tuning>
+  </instance>
+  
+  <!-- ================= Instance ============================== -->
+  <instance name="I4" product="opends" role="ldapServer">
+    <host>localhost</host>
+    <installDir>NEED_VALUE</installDir>
+    <ports>
+      <ldap>8021</ldap>
+      <ldaps>8022</ldaps>
+      <jmx>8023</jmx>
+      <replicationServer>8025</replicationServer>
+    </ports>
+    <tuning>
+      <java xms="2g" xmx="2g"
+            xxNewSize="512m" xxMaxNewSize="512m"
+            xxSurvivorRatio="6" xxPermSize="128m"
+            xxMaxPermSize="128m" xxUseConcMarkSweepGC="true"/>
+      <databaseCachePercentage>40</databaseCachePercentage>
+      <replicationPurgeDelay unit="h">4</replicationPurgeDelay>
+    </tuning>
+  </instance>
+  
+  <!-- ================= Suffix  ============================== -->
+  <suffix dn="dc=com">
+    
+    <topology>
+     	<element instanceName="I1" initRule="importLdif"/>
+      <element instanceName="I2" initRule="totalUpdate"
+               instanceSourceName="I1"/>
+      <element instanceName="I3" initRule="totalUpdate"
+               instanceSourceName="I1"/>
+      <element instanceName="I4" initRule="totalUpdate"
+               instanceSourceName="I1"/>
+    </topology>
+    
+    <tree nbOfEntries="200">
+      <branch name="ou=france,dc=com">
+        <branch name="ou=QA Engineers,ou=france,dc=com">
+          <subordinateTemplate type="inetOrgPerson" percentage="30"/>
+        </branch>
+        <branch name="ou=Accounting,ou=france,dc=com">
+          <subordinateTemplate type="organizationalPerson" percentage="30"/>
+        </branch>
+        <branch name="ou=Managers,ou=france,dc=com">
+          <subordinateTemplate type="person" nb="1"/>
+        </branch>
+        <branch name="ou=Engineers,ou=france,dc=com">
+          <subordinateTemplate type="person" percentage="40"/>
+        </branch>
+      </branch>
+    </tree>
+    
+  </suffix>
+  
+  
+  <!-- ================= Scheduler  =========================== -->
+  <!-- [1] duration must be more than 1 minute                  -->
+  <!-- [2] dependencyId is a list of client id ie : 1,2         -->
+  <!--     if using it, specify id attribute for each clients   -->
+  <scheduler>
+    <duration unit="h">4</duration> 
+    <!-- 60h : 1% <-> 36 min , 10% <-> 6h -->
+    
+    
+    <!-- ============================================================= -->
+    <!--== Module 1 ==-->
+    <module name="search" enabled="true">
+      
+      <client id="1" name="searchLoad" host="localhost" start="t0" stop="t10">
+        <serverInstance>I1</serverInstance>
+        <baseDn>dc=com</baseDn>
+        <nbCnx>20</nbCnx>
+        <nbMaxOperations>20</nbMaxOperations>
+        <attribute>sn</attribute>
+      </client>
+      
+    </module>
+    
+    
+    <!--== Module 2 ==-->
+    <module name="modify" enabled="true">
+      
+      <client id="3" name="modifyLoad" host="localhost" start="t20" stop="t50">
+        <serverInstance>I1</serverInstance>
+        <baseDn>dc=com</baseDn>
+        <nbCnx>20</nbCnx>
+        <nbMaxOperations>20</nbMaxOperations>
+        <attribute>sn</attribute>
+      </client>
+      
+      <client id="4" name="searchLoad" host="localhost" start="t20" stop="t50">
+        <serverInstance>I4</serverInstance>
+        <baseDn>dc=com</baseDn>
+        <nbCnx>20</nbCnx>
+        <nbMaxOperations>20</nbMaxOperations>
+        <attribute>sn</attribute>
+      </client>
+      
+    </module>
+    
+    
+    <!--== Module 3 ==-->
+    <module name="addAndDelete" enabled="true">
+      
+      <client id="6" name="addDeleteLoad" host="localhost" start="t60"
+                                                           stop="t80">
+        <serverInstance>I2</serverInstance>
+        <baseDn>dc=com</baseDn>
+        <nbCnx>20</nbCnx>
+      </client>
+      
+      <client id="7" name="restartDs" host="localhost" start="t70"
+                                                       dependencyId="6">
+        <serverInstance>I3</serverInstance>
+      </client>
+      
+    </module>
+    
+    
+  </scheduler>
+  
+</systemTestConfiguration>
