@@ -17,25 +17,48 @@
       ( id <xsl:value-of select="@id" /> )
     </h1>
     <p>
-      <ul>
+      <xsl:apply-templates select="instance"/>
       <xsl:apply-templates select="operation"/>
-      </ul>
       <xsl:apply-templates select="message"/>
     </p>
     </body>
     </html>
   </xsl:template>
 
+  <!-- ============= instance node =============== -->
+  <xsl:template match="instance">
+    <xsl:variable name="iName" select="normalize-space(@name)"/>
+    <ul><li>
+      Instance <font color="blue"><b><xsl:value-of select="$iName"/></b></font>
+      <xsl:apply-templates select="step"/>
+      <xsl:apply-templates select="operation"/>
+    </li></ul>
+    <xsl:apply-templates select="message"/>
+  </xsl:template>
+
+  <!-- ============= step node =============== -->
+  <xsl:template match="step">
+    <xsl:variable name="sName" select="normalize-space(@name)"/>
+    <ul><li>
+      Step <b><xsl:value-of select="$sName"/></b><br/>
+      <xsl:apply-templates select="message"/>
+      <xsl:apply-templates select="operation"/>
+    </li></ul>
+  </xsl:template>
+
   <!-- ============= operation node =============== -->
   <xsl:template match="operation">
     <xsl:variable name="opName" select="normalize-space(@name)"/>
     <xsl:variable name="opDate" select="normalize-space(@date)"/>
+    <ul>
     <li>
       <b><xsl:value-of select="$opName"/></b>
          <i>@ <xsl:value-of select="$opDate"/></i><br/>
       <xsl:apply-templates select="message"/>
+      <xsl:apply-templates select="operation"/>
       <xsl:apply-templates select="operationResult"/>
     </li>
+    </ul>
   </xsl:template>
 
 
