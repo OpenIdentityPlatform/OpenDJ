@@ -121,6 +121,17 @@ else
       org.opends.server.core.DirectoryServer \
       --configClass org.opends.server.extensions.ConfigFileHandler \
       --configFile "${CONFIG_FILE}" "${@}"
+  elif test ${EC} -eq 104
+  then
+    #
+    # run no detach quiet
+    #
+    echo $$ > "${PID_FILE}"
+    rm -f "${LOG_FILE}"
+    exec "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
+      org.opends.server.core.DirectoryServer \
+      --configClass org.opends.server.extensions.ConfigFileHandler \
+      --configFile "${CONFIG_FILE}" "${@}" > /dev/null
   else
     #
     # an error or the server is already started.  Just return the code provided
