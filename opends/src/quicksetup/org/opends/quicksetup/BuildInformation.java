@@ -81,6 +81,8 @@ public class BuildInformation implements Comparable {
     try {
       Map<String, String> env = pb.environment();
       env.put(SetupUtils.OPENDS_JAVA_HOME, System.getProperty("java.home"));
+      // This is required in order the return code to be valid.
+      env.put("OPENDS_EXIT_NO_BACKGROUND", "true");
       final Process process = pb.start();
       is = process.getInputStream();
       out = process.getOutputStream();
@@ -98,8 +100,11 @@ public class BuildInformation implements Comparable {
               try
               {
                 Thread.sleep(5000);
-                fOut.write(Constants.LINE_SEPARATOR.getBytes());
-                fOut.flush();
+                if (!done[0])
+                {
+                  fOut.write(Constants.LINE_SEPARATOR.getBytes());
+                  fOut.flush();
+                }
               }
               catch (Throwable t)
               {

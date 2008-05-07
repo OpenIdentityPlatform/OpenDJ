@@ -41,7 +41,9 @@ set SCRIPT_NAME=start-ds
 rem Set environment variables
 set SCRIPT_UTIL_CMD=set-full-environment-and-test-java
 call "%INSTANCE_ROOT%\lib\_script-util.bat"
-if NOT %errorlevel% == 0 exit %errorlevel%
+
+set ERROR_CODE=%errorlevel%
+if NOT %ERROR_CODE% == 0 goto exitErrorCode
 
 echo %SCRIPT%: CLASSPATH=%CLASSPATH% >> %LOG%
 
@@ -58,11 +60,13 @@ if %errorlevel% == 101 goto runAsService
 if %errorlevel% == 102 goto runDetachCalledByWinService
 if %errorlevel% == 103 goto runDetachQuiet
 if %errorlevel% == 104 goto runNoDetachQuiet
-goto end
+set ERROR_CODE=%errorlevel%
+goto exitErrorCode
 
 :serverAlreadyStarted
 echo %SCRIPT%: Server already started  >> %LOG%
-goto end
+set ERROR_CODE=0
+goto exitErrorCode
 
 :runNoDetach
 echo %SCRIPT%: Run no detach  >> %LOG%
@@ -70,7 +74,8 @@ if not exist "%DIR_HOME%\logs\server.out" echo. > "%DIR_HOME%\logs\server.out"
 if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.starting"
 if exist "%DIR_HOME%\lib\set-java-args.bat %SCRIPT%" DO call "%DIR_HOME%\lib\set-java-args.bat"
 "%OPENDS_JAVA_BIN%" %OPENDS_SERVER_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
-goto end
+set ERROR_CODE=%errorlevel%
+goto exitErrorCode
 
 :runNoDetachQuiet
 echo %SCRIPT%: Run no detach  >> %LOG%
@@ -78,8 +83,8 @@ if not exist "%DIR_HOME%\logs\server.out" echo. > "%DIR_HOME%\logs\server.out"
 if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.starting"
 if exist "%DIR_HOME%\lib\set-java-args.bat %SCRIPT%" DO call "%DIR_HOME%\lib\set-java-args.bat"
 "%OPENDS_JAVA_BIN%" %OPENDS_SERVER_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %* >> %LOG%
-goto end
-
+set ERROR_CODE=%errorlevel%
+goto exitErrorCode
 
 :runDetach
 echo %SCRIPT%: Run detach  >> %LOG%
@@ -132,12 +137,17 @@ goto serverNotStarted
 
 :serverStarted
 echo %SCRIPT%: finished >> %LOG%
-exit 0
+set ERROR_CODE=0
+goto exitErrorCode
 
 :serverNotStarted
 echo %SCRIPT%: finished >> %LOG%
-exit 1
+set ERROR_CODE=1
+goto exitErrorCode
 
+:exitErrorCode
+if "%OPENDS_EXIT_NO_BACKGROUND%" == "true" exit %ERROR_CODE%
+exit /B %ERROR_CODE%
 
 :end
 echo %SCRIPT%: finished >> %LOG%
