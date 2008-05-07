@@ -445,7 +445,8 @@ public abstract class ConsoleApplication {
   public final String readLineOfInput(Message prompt) throws CLIException {
     if (prompt != null)
     {
-      err.print(wrapText(prompt + " ", MAX_LINE_WIDTH));
+      err.print(wrapText(prompt, MAX_LINE_WIDTH));
+      err.print(" ");
     }
     try {
       String s = in.readLine();
