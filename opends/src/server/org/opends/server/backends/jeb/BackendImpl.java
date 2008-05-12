@@ -66,6 +66,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import static org.opends.server.util.ServerConstants.*;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
+import org.opends.server.admin.std.server.LocalDBIndexCfg;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.types.DN;
@@ -1192,7 +1193,18 @@ public class BackendImpl
       envConfig.setTxnNoSync(false);
       envConfig.setConfigParam("je.env.isLocking", "false");
       envConfig.setConfigParam("je.env.runCheckpointer", "false");
-      Importer importer = new Importer(importConfig);
+      //Loop through local indexes and see if any are substring.
+      boolean hasSubIndex = false;
+      for (String idx : cfg.listLocalDBIndexes()) {
+        LocalDBIndexCfg indexCfg = cfg.getLocalDBIndex(idx);
+        Set<org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType>
+                                            indexType = indexCfg.getIndexType();
+        if(indexType.contains(org.opends.server.admin.std.
+                meta.LocalDBIndexCfgDefn.IndexType.SUBSTRING)) {
+          hasSubIndex = true;
+        }
+      }
+      Importer importer = new Importer(importConfig, hasSubIndex);
       envConfig.setConfigParam("je.maxMemory", importer.getDBCacheSize());
       rootContainer = initializeRootContainer(envConfig);
       return importer.processImport(rootContainer);
