@@ -138,15 +138,20 @@ public class Importer implements Thread.UncaughtExceptionHandler {
   //A thread threw an Runtime exception stop the import.
   private boolean unCaughtExceptionThrown = false;
 
+  //Set to true if substring indexes are defined.
+  private boolean hasSubIndexes = false;
+
   /**
    * Create a new import job with the specified ldif import config.
    *
    * @param ldifImportConfig The LDIF import config.
+   * @param hasSubIndexes <CODE>True</CODE> If substring indexes are defined.
    */
-  public Importer(LDIFImportConfig ldifImportConfig)
+  public Importer(LDIFImportConfig ldifImportConfig, boolean hasSubIndexes)
   {
     this.ldifImportConfig = ldifImportConfig;
     this.threads = new CopyOnWriteArrayList<WorkThread>();
+    this.hasSubIndexes = hasSubIndexes;
     calcMemoryLimits();
   }
 
@@ -172,12 +177,12 @@ public class Importer implements Thread.UncaughtExceptionHandler {
     }
     // Create one set of worker threads/buffer managers for each base DN.
     for (DNContext context : importMap.values()) {
-      BufferManager bufferManager = new BufferManager(memoryPerContext,
-                                                      importThreadCount);
+      BufferManager bufferManager =
+                        new BufferManager(memoryPerContext, importThreadCount);
       context.setBufferManager(bufferManager);
       for (int i = 0; i < importThreadCount; i++) {
         WorkThread t = new WorkThread(context.getWorkQueue(), i,
-                                      bufferManager, rootContainer);
+                bufferManager, rootContainer);
         t.setUncaughtExceptionHandler(this);
         threads.add(t);
         t.start();
@@ -771,7 +776,12 @@ public class Importer implements Thread.UncaughtExceptionHandler {
     long maxMemory = runtime.maxMemory();
     long totMemory = runtime.totalMemory();
     long totFreeMemory = (freeMemory + (maxMemory - totMemory));
-    long dbCacheLimit = (totFreeMemory * 40) / 100;
+    long dbCacheLimit = (totFreeMemory * 45) / 100;
+    //If there are now substring indexes defined, set the DB cache
+    //size to 60% and take a minimal substring buffer.
+    if(!hasSubIndexes) {
+      dbCacheLimit = (totFreeMemory * 60) / 100;
+    }
     dbCacheSizeStr = Long.toString(dbCacheLimit);
     totalAvailBufferMemory = (totFreeMemory * 10) / 100;
     if(totalAvailBufferMemory < (10 * minBuffer)) {
@@ -779,6 +789,8 @@ public class Importer implements Thread.UncaughtExceptionHandler {
           NOTE_JEB_IMPORT_LDIF_BUFFER_TOT_AVAILMEM.get(totalAvailBufferMemory,
                                                       (10 * minBuffer));
       logError(msg);
+      totalAvailBufferMemory = (10 * minBuffer);
+    } else if(!hasSubIndexes) {
       totalAvailBufferMemory = (10 * minBuffer);
     }
     msg=NOTE_JEB_IMPORT_LDIF_MEMORY_INFO.get(dbCacheLimit,
