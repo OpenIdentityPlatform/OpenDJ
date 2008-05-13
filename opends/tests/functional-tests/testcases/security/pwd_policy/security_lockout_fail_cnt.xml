@@ -32,13 +32,40 @@
   <function name="lockout_fail_cnt">
 
       <sequence>
+        
+          <!--- Test Suite information
+            #@TestSuiteName       Lockout Failure Count
+            #@TestSuitePurpose    Test the password Policy Lockout Failure Count
+            #@TestSuiteGroup      Lockout Failure Count
+            #@TestScript          security_lockout_fail_cnt.xml
+          -->
+          
+   <!--- Define default value for basedn,basepwp, msg -->
+   <script>
+   basedn = 'ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com'
+   basepwp = 'cn=Default Password Policy,cn=Password Policies,cn=config'
+   msg = 'Security: Lockout Fail Cnt:'
+   </script>
 
-        <!--- Test Case : Preamble 1 - Check Default-->
+        <!--- Test Case information
+          #@TestMarker          Lockout Failure Count
+          #@TestName            Test Preamble
+          #@TestIssue           none
+          #@TestPurpose         Check Default value ds-cfg-lockout-failure-count
+          #@TestPreamble        none
+          #@TestStep            Step 1. Check for existence of
+                                ds-cfg-lockout-failure-count and value is 0
+          #@TestStep            Step 2. Default Bind With Bad Pwd 3x RC 49
+                                then User search with good password returns 0
+          #@TestPostamble       none
+          #@TestResult          Success if the 2 steps are PASS
+        -->
+          
         <testcase name="getTestCaseName('Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Lockout Fail Cnt: Preamble Step 1. Check for existence of ds-cfg-lockout-failure-count'
+'%s Preamble Step 1. Check for existence of ds-cfg-lockout-failure-count' % msg
             </message>
 
             <call function="'compareEntry'">
@@ -47,11 +74,11 @@
                 'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                 'attrToBeCompared'    : 'ds-cfg-lockout-failure-count:0',
-                'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
+                'entryToBeCompared'   : basepwp }
             </call>
 
             <message>
-               'Security: Lockout Fail Cnt: Preamble Step 2. Default Bind With Bad Pwd 3x'
+'%s Preamble Step 2. Default Bind With Bad Pwd 3x' % msg
             </message>
 
             <script>
@@ -62,7 +89,7 @@
               <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=bhall,%s' % basedn ,
                   'dsInstancePswd'   : '%s' % pwds,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -74,7 +101,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=bhall,%s' % basedn ,
                   'dsInstancePswd'   : 'oranges',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -85,7 +112,18 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Amin Change Lockout Cnt -->
+        <!--- Test Case information
+          #@TestMarker          Lockout Failure Count
+          #@TestName            Admin Change Lockout Count
+          #@TestIssue           none
+          #@TestPurpose         Admin Change Lockout Count
+          #@TestPreamble        none
+          #@TestStep            Admin Changing Lockout Count set
+                                lockout-failure-count to 3
+          #@TestPostamble       none
+          #@TestResult          Success if modifyPwdPolicy returns 0.
+        -->
+
         <testcase name="getTestCaseName('Admin Change Lockout Cnt')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -108,12 +146,22 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Lockout With Bad Pwd 3x -->
+        <!--- Test Case information
+          #@TestMarker          Lockout Failure Count
+          #@TestName            Lockout With Bad Pwd 3x
+          #@TestIssue           none
+          #@TestPurpose         Lockout With Bad Pwd 3x
+          #@TestPreamble        none
+          #@TestStep            Lockout With Bad Pwd 3x SearchObject RC 49 3x
+          #@TestPostamble       none
+          #@TestResult          Success if the test is PASS
+        -->
+        
         <testcase name="getTestCaseName('Lockout With Bad Pwd 3x')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Lockout Fail Cnt: Lockout With Bad Pwd 3x'
+               '%s Lockout With Bad Pwd 3x' % msg
             </message>
 
             <script>
@@ -124,7 +172,7 @@
               <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=bhall,%s' % basedn ,
                   'dsInstancePswd'   : '%s' % pwds,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -138,12 +186,26 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Postamble Reset -->
+        <!--- Test Case information
+          #@TestMarker        Lockout Failure Count
+          #@TestName          Postamble Reset
+          #@TestIssue         none
+          #@TestPurpose       Reseting the Password policy and verify it
+          #@TestPreamble      none
+          #@TestStep          Step 1. Admin Resetting Lockout Fail Count
+                              set lockout-failure-count to 0
+          #@TestStep          Step 2. Check Bind With Previous User Lockout RC 0
+          #@TestStep          Step 3. Check Bind With Bad Pwd 3x RC 49 3x
+                              then User search with good password returns 0
+          #@TestPostamble     none
+          #@TestResult        Success if the 3 steps are PASS
+        -->
+        
         <testcase name="getTestCaseName('Postamble Reset')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Lockout Fail Cnt: Postamble Reset: Step 1. Admin Resetting Lockout Fail Count'
+'%s Postamble Reset: Step 1. Admin Resetting Lockout Fail Count' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -157,14 +219,14 @@
             </call>
             
             <message>
-               'Security: Lockout Fail Cnt: Postamble Step 2. Check Bind With Previous User Lockout'
+'%s Postamble Step 2. Check Bind With Previous User Lockout' % msg
             </message>
 
             <!--- Check Lockouted User -->
            <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=bhall,%s' % basedn ,
                 'dsInstancePswd'   : 'oranges' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -172,7 +234,7 @@
             </call>
 
             <message>
-               'Security: Lockout Fail Cnt: Postamble Step 3. Check Bind With Bad Pwd 3x'
+      '%s Postamble Step 3. Check Bind With Bad Pwd 3x' % msg
             </message>
 
             <script>
@@ -183,7 +245,7 @@
               <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=gfarmer,%s' % basedn ,
                   'dsInstancePswd'   : '%s' % pwds,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -195,7 +257,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=gfarmer,%s' % basedn ,
                   'dsInstancePswd'   : 'ruling',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,

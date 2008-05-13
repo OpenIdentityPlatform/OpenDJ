@@ -32,19 +32,48 @@
   <function name="grace_login">
 
       <sequence>
+        
+        <!--- Test Suite information
+            #@TestSuiteName       Grace Login
+            #@TestSuitePurpose    Test the Password Policy Grace Login
+            #@TestSuiteGroup      Grace Login
+            #@TestScript          security_grace_login.xml
+        -->
 
-        <testcase name="getTestCaseName('Preamble, Admin Changing Pwd Policy Settings')">
+        <!--- Define default value for basedn -->
+          <script>
+   basedn = 'ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com'
+   basepwp ='cn=Default Password Policy,cn=Password Policies,cn=config'
+          </script>
+
+
+        <!--- Test Case information
+          #@TestMarker          Grace Login
+          #@TestName            Admin Changing Pwd Policy Settings
+          #@TestIssue           none
+          #@TestPurpose         Admin Changing Pwd Policy Settings
+          #@TestPreamble        none
+          #@TestStep            set ds-cfg-expire-passwords-without-warning true
+                                ds-cfg-min-password-age 1 seconds
+                                ds-cfg-max-password-age 3 seconds
+                                ds-cfg-password-expiration-warning-interval 1 s
+                                ds-cfg-grace-login-count 2
+          #@TestPostamble       none
+          #@TestResult          Success if modifyAnAttribute returns 0
+        -->
+        
+ <testcase name="getTestCaseName('Preamble, Admin Change Pwd Policy Settings')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
-            <script>
-                listAttrs=[]
-                listAttrs.append("ds-cfg-expire-passwords-without-warning:true")
-                listAttrs.append("ds-cfg-min-password-age:1 seconds")
-                listAttrs.append("ds-cfg-max-password-age:3 seconds")
-                listAttrs.append("ds-cfg-password-expiration-warning-interval:1 seconds")
-                listAttrs.append("ds-cfg-grace-login-count:2")
-            </script>
+       <script>
+       listAttrs=[]
+       listAttrs.append("ds-cfg-expire-passwords-without-warning:true")
+       listAttrs.append("ds-cfg-min-password-age:1 seconds")
+       listAttrs.append("ds-cfg-max-password-age:3 seconds")
+       listAttrs.append("ds-cfg-password-expiration-warning-interval:1 seconds")
+       listAttrs.append("ds-cfg-grace-login-count:2")
+       </script>
             
             <message>
                'Security: Grace Login: Admin modifying password policy settings'
@@ -55,7 +84,7 @@
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
+                    'DNToModify'             : basepwp ,
                     'listAttributes'         : listAttrs ,
                     'changetype'             : 'replace' }
             </call>
@@ -66,17 +95,31 @@
           </sequence>
         </testcase>
 
-        <!-- Issue 2032 -->
-        <testcase name="getTestCaseName('Preamble, Admin Changing min password age beyond limit')">
+        <!--- Test Case information
+          #@TestMarker          Grace Login
+          #@TestName            Admin Changing min password age beyond limit
+          #@TestIssue           2032
+          #@TestPurpose         Testing issue 2032
+          #@TestPreamble        none
+          #@TestStep            Change Pwd Policy min password age beyond limit
+                                set ds-cfg-min-password-age 10 seconds
+                                ds-cfg-max-password-age 3 seconds
+                                ds-cfg-password-expiration-warning-interval 1 s
+          #@TestPostamble       none
+          #@TestResult          Success if modifyAnAttribute returns 53
+        -->
+        
+<testcase name="getTestCaseName
+('Preamble, Admin Change min pwd age beyond limit')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
-            <script>
-                listAttrs=[]
-                listAttrs.append("ds-cfg-min-password-age:10 seconds")
-                listAttrs.append("ds-cfg-max-password-age:3 seconds")
-                listAttrs.append("ds-cfg-password-expiration-warning-interval:1 seconds")
-            </script>
+       <script>
+       listAttrs=[]
+       listAttrs.append("ds-cfg-min-password-age:10 seconds")
+       listAttrs.append("ds-cfg-max-password-age:3 seconds")
+       listAttrs.append("ds-cfg-password-expiration-warning-interval:1 seconds")
+       </script>
             
             <message>
                'Security: Grace Login: Admin modifying password policy settings'
@@ -87,7 +130,7 @@
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
+                    'DNToModify'             : basepwp ,
                     'listAttributes'         : listAttrs ,
                     'changetype'             : 'replace' ,
                     'expectedRC'             : 53 }
@@ -99,17 +142,30 @@
           </sequence>
         </testcase>
 
-        <!-- Issue 2032 -->
-        <testcase name="getTestCaseName('Preamble, Admin Changing min password age to limit')">
+        <!--- Test Case information
+          #@TestMarker          Grace Login
+          #@TestName            Admin Changing min password age to limit
+          #@TestIssue           2032
+          #@TestPurpose         Testing issue 2032
+          #@TestPreamble        none
+          #@TestStep            Change Pwd Policy min password age to limit
+                                set ds-cfg-min-password-age 2 seconds
+                                ds-cfg-max-password-age 3 seconds
+                                ds-cfg-password-expiration-warning-interval 1 s
+          #@TestPostamble       none
+          #@TestResult          Success if modifyAnAttribute returns 53
+        -->
+        
+<testcase name="getTestCaseName('Preamble, Admin Change min pwd age to limit')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
-            <script>
-                listAttrs=[]
-                listAttrs.append("ds-cfg-min-password-age:2 seconds")
-                listAttrs.append("ds-cfg-max-password-age:3 seconds")
-                listAttrs.append("ds-cfg-password-expiration-warning-interval:1 seconds")
-            </script>
+       <script>
+       listAttrs=[]
+       listAttrs.append("ds-cfg-min-password-age:2 seconds")
+       listAttrs.append("ds-cfg-max-password-age:3 seconds")
+       listAttrs.append("ds-cfg-password-expiration-warning-interval:1 seconds")
+       </script>
             
             <message>
                'Security: Grace Login: Admin modifying password policy settings'
@@ -120,7 +176,7 @@
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
+                    'DNToModify'             : basepwp ,
                     'listAttributes'         : listAttrs ,
                     'changetype'             : 'replace' ,
                     'expectedRC'             : 53 }
@@ -132,17 +188,31 @@
           </sequence>
         </testcase>
 
-        <!-- Issue 2032 -->
-        <testcase name="getTestCaseName('Preamble, Admin Changing expire warning interval beyond limit')">
+        <!--- Test Case information
+          #@TestMarker       Grace Login
+          #@TestName         Admin Changing expire warning interval beyond limit
+          #@TestIssue        2032
+          #@TestPurpose      Testing issue 2032
+          #@TestPreamble     none
+          #@TestStep         Change Pwd Pol expire warning interval beyond limit
+                             set ds-cfg-min-password-age 1 seconds
+                             ds-cfg-max-password-age 3 seconds
+                             ds-cfg-password-expiration-warning-interval 10 s
+          #@TestPostamble    none
+          #@TestResult       Success if modifyAnAttribute returns 53
+        -->
+        
+<testcase name="getTestCaseName
+('Preamble, Admin Change expire warning interval beyond limit')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
-            <script>
-                listAttrs=[]
-                listAttrs.append("ds-cfg-min-password-age:1 seconds")
-                listAttrs.append("ds-cfg-max-password-age:3 seconds")
-                listAttrs.append("ds-cfg-password-expiration-warning-interval:10 seconds")
-            </script>
+      <script>
+      listAttrs=[]
+      listAttrs.append("ds-cfg-min-password-age:1 seconds")
+      listAttrs.append("ds-cfg-max-password-age:3 seconds")
+      listAttrs.append("ds-cfg-password-expiration-warning-interval:10 seconds")
+      </script>
             
             <message>
                'Security: Grace Login: Admin modifying password policy settings'
@@ -153,7 +223,7 @@
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
+                    'DNToModify'             : basepwp ,
                     'listAttributes'         : listAttrs ,
                     'changetype'             : 'replace' ,
                     'expectedRC'             : 53 }
@@ -165,6 +235,21 @@
           </sequence>
         </testcase>
 
+        <!--- Test Case information
+          #@TestMarker          Grace Login
+          #@TestName            Search Bad Pwd 4x
+          #@TestIssue           none
+          #@TestPurpose         Search Bad Pwd 4x
+          #@TestPreamble        none
+          #@TestStep            Pause 2 seconds
+          #@TestStep            Search Bind 1 SearchObject returns 19
+          #@TestStep            Search Bind 2 SearchObject returns 19
+          #@TestStep            Search Bind 3 SearchObject returns 49
+          #@TestStep            Search Bind 4 SearchObject returns 49
+          #@TestPostamble       none
+          #@TestResult          Success if the 4 steps are PASS
+        -->
+        
         <testcase name="getTestCaseName('Search Bad Pwd 4x')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -184,7 +269,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=btalbot,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=btalbot,%s' % basedn ,
                   'dsInstancePswd'   : 'trident',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -199,7 +284,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=btalbot,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=btalbot,%s' % basedn ,
                   'dsInstancePswd'   : 'trident',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -214,7 +299,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=btalbot,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=btalbot,%s' % basedn ,
                   'dsInstancePswd'   : 'trident',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -228,7 +313,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=btalbot,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=btalbot,%s' % basedn ,
                   'dsInstancePswd'   : 'trident',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -241,6 +326,22 @@
           </sequence>
         </testcase>
 
+        <!--- Test Case information
+          #@TestMarker          Grace Login
+          #@TestName            Reset Pwd
+          #@TestIssue           none
+          #@TestPurpose         Reset Pwd
+          #@TestPreamble        none
+          #@TestStep            Search Bind 1 SearchObject returns 19
+          #@TestStep            User resetting password
+          #@TestStep            Admin reset max password age set 
+                                max-password-age to 24 h
+          #@TestStep            Search Bind 2 SearchObject returns 0
+          #@TestStep            Search Bind 2 SearchObject returns 0
+          #@TestPostamble       none
+          #@TestResult          Success if the 5 steps are PASS
+        -->
+        
         <testcase name="getTestCaseName('Reset Pwd')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -252,7 +353,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=kwinters,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=kwinters,%s' % basedn ,
                   'dsInstancePswd'   : 'forsook',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -267,13 +368,13 @@
             <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=kwinters,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=kwinters,%s' % basedn ,
                     'dsInstancePswd'         : 'forsook' ,
-                    'DNToModify'             : 'uid=kwinters,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'DNToModify'             : 'uid=kwinters,%s' % basedn ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'newforsook' ,
                     'changetype'             : 'replace' }
-            </call>
+             </call>
     
             <message>
                'Security: Grace Login: Reset Pwd, Admin reset max password age'
@@ -296,7 +397,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=kwinters,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=kwinters,%s' % basedn ,
                   'dsInstancePswd'   : 'newforsook',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -310,7 +411,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=kwinters,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=kwinters,%s' % basedn ,
                   'dsInstancePswd'   : 'newforsook',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -322,17 +423,32 @@
           </sequence>
         </testcase>
 
-        <testcase name="getTestCaseName('Postamble, Admin Resetting Pwd Policy Settings')">
+        <!--- Test Case information
+          #@TestMarker          Grace Login
+          #@TestName            Admin Resetting Pwd Policy Settings
+          #@TestIssue           none
+          #@TestPurpose         Admin Resetting Pwd Policy Settings
+          #@TestPreamble        none
+          #@TestStep            set ds-cfg-expire-passwords-without-warning to 
+                                false ds-cfg-max-password-age 0 seconds
+                                ds-cfg-min-password-age 0 seconds
+                                ds-cfg-password-expiration-warning-interval 5 d
+                                ds-cfg-grace-login-count 0
+          #@TestPostamble       none
+          #@TestResult          Success if modifyAnAttribute returns 0
+        -->
+      
+<testcase name="getTestCaseName('Postamble, Admin Reset Pwd Policy Settings')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <script>
-                listAttrs=[]
-                listAttrs.append("ds-cfg-expire-passwords-without-warning:false")
-                listAttrs.append("ds-cfg-max-password-age:0 seconds")
-                listAttrs.append("ds-cfg-min-password-age:0 seconds")
-                listAttrs.append("ds-cfg-password-expiration-warning-interval:5 d")
-                listAttrs.append("ds-cfg-grace-login-count:0")
+             listAttrs=[]
+             listAttrs.append("ds-cfg-expire-passwords-without-warning:false")
+             listAttrs.append("ds-cfg-max-password-age:0 seconds")
+             listAttrs.append("ds-cfg-min-password-age:0 seconds")
+             listAttrs.append("ds-cfg-password-expiration-warning-interval:5 d")
+             listAttrs.append("ds-cfg-grace-login-count:0")
             </script>
             
             <message>
@@ -344,7 +460,7 @@
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
+                    'DNToModify'             : basepwp ,
                     'listAttributes'         : listAttrs ,
                     'changetype'             : 'replace' }
             </call>

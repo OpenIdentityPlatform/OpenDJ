@@ -33,12 +33,39 @@
 
       <sequence>
 
-        <!--- Test Case : Preamble 1 - Add New Passwords Policy-->
+         <!--- Test Suite information
+            #@TestSuiteName       Multiple Password Policies
+            #@TestSuitePurpose    Test Multiple Password Policies
+            #@TestSuiteGroup      Multiple Password Policies
+            #@TestScript          security_mult_pwd_policies.xml
+          -->
+          
+   <!--- Define default value for basedn, msg1, msg2 -->
+   <script>
+   basedn = 'ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com'
+   msg1 = 'default-password-storage-scheme:Salted SHA-1'
+   msg2 = 'password-attribute:userPassword'
+   </script>
+
+          
+        <!--- Test Case information
+            #@TestMarker          Multiple Password Policies
+            #@TestName            Add New Password Policy
+            #@TestIssue           none
+            #@TestPurpose         Preamble - Add Sales Password Policy
+            #@TestPreamble        none
+            #@TestStep            with dsconfig create-password-policy Sales 
+                                  Password Policy and set 
+                                  default-password-storage-schemeSalted SHA-1
+            #@TestPostamble       none
+            #@TestResult          Success if dsconfig returns 0
+        -->
+        
         <testcase name="getTestCaseName('Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Mult Pwd Policies: Preamble - Add Sales Password Policy'
+             'Security: Mult Pwd Policies: Preamble - Add Sales Password Policy'
             </message>
 
             <call function="'dsconfig'">
@@ -46,38 +73,50 @@
               'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-              'subcommand'           : 'create-password-policy' ,    
+              'subcommand'           : 'create-password-policy' ,
               'objectType'           : 'policy-name' ,
               'objectName'           : 'Sales Password Policy',
-              'optionsString'        : '--set "default-password-storage-scheme:Salted SHA-1" --set password-attribute:userPassword',
-              'expectedRC'           : 0 } 
-            </call>          
+              'optionsString'        : '--set "%s" --set %s' % (msg1,msg2),
+              'expectedRC'           : 0 }
+            </call>
             
             <call function="'testCase_Postamble'"/>
             
           </sequence>
         </testcase>
 
-        <!--- Test Case : Add Entry With New Password Policy -->
+        <!--- Test Case information
+            #@TestMarker          Multiple Password Policies
+            #@TestName            Adding New Entry With Sales Password Policy
+            #@TestIssue           none
+            #@TestPurpose         Adding New Entry With Sales Password Policy
+            #@TestPreamble        none
+            #@TestStep            addEntry add_sales_person.ldif
+                                  SearchObject with uid=sguy returns 0
+                                  SearchObject with uid=sgal eturns 0
+            #@TestPostamble       none
+            #@TestResult          Success if the test is PASS
+        -->
         <testcase name="getTestCaseName('Add New Entry')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Mult Pwd Policies: Adding New Entry With Sales Password Policy'
+      'Security: Mult Pwd Policies: Adding New Entry With Sales Password Policy'
             </message>
 
             <call function="'addEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/pwd_policy/add_sales_person.ldif' % logsRemoteDataDir }
+         { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+           'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+           'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+           'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+           'entryToBeAdded'   : '%s/security/pwd_policy/add_sales_person.ldif' \
+                                % logsRemoteDataDir }
             </call>
 
              <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=sguy,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=sguy,%s' % basedn ,
                 'dsInstancePswd'   : 'superguy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -87,7 +126,7 @@
              <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=sgal,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=sgal,%s' % basedn ,
                 'dsInstancePswd'   : 'supergal' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -99,7 +138,19 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Modify Sales Pwd Policy -->
+        <!--- Test Case information
+            #@TestMarker          Multiple Password Policies
+            #@TestName            Modify Sales Pwd Policy
+            #@TestIssue           none
+            #@TestPurpose         Admin Changing Sales Lockout Count
+            #@TestPreamble        none
+            #@TestStep            Admin Changing Sales Lockout Count
+                                  modifyPwdPolicy for Sales Password Policy
+                                  set lockout-failure-count to 3
+            #@TestPostamble       none
+            #@TestResult          Success if modifyPwdPolicy returns 0
+        -->
+        
         <testcase name="getTestCaseName('Modify Sales Pwd Policy')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -123,12 +174,24 @@
         </testcase>
 
             
-        <!--- Test Case : Test Sales Password Policy -->
+         <!--- Test Case information
+            #@TestMarker          Multiple Password Policies
+            #@TestName            Test Sales Password Policy
+            #@TestIssue           none
+            #@TestPurpose         Test Sales Password Policy
+            #@TestPreamble        none
+            #@TestStep            Testing Sales Pwd Policy with Lockout Count
+                                  search with bad pwd 3x good pwd 1x
+                                  SearchObject returns 49 4x
+            #@TestPostamble       none
+            #@TestResult          Success if the test is PASS
+        -->
+        
         <testcase name="getTestCaseName('Test Sales Pwd Policy')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Mult Pwd Policies: Testing Sales Pwd Policy with Lockout Count'
+      'Security: Mult Pwd Policies: Testing Sales Pwd Policy with Lockout Count'
             </message>
 
             <script>
@@ -139,7 +202,7 @@
               <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=sguy,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=sguy,%s' % basedn ,
                   'dsInstancePswd'   : '%s' % pwds ,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -152,12 +215,25 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Test Default Password Policy -->
+        <!--- Test Case information
+            #@TestMarker          Multiple Password Policies
+            #@TestName            Testing Default Pwd Policy with Lockout Count
+            #@TestIssue           none
+            #@TestPurpose         Testing Default Pwd Policy with Lockout Count
+            #@TestPreamble        none
+            #@TestStep            Testing Default Pwd Policy with Lockout Count
+                                  search with bad pwd 3x good pwd 1x
+                                  SearchObject returns 49 3x
+                                  SearchObject returns 0 1x
+            #@TestPostamble       none
+            #@TestResult          Success if the test is PASS
+        -->
+        
         <testcase name="getTestCaseName('Test Default Pwd Policy')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Mult Pwd Policies: Testing Default Pwd Policy with Lockout Count'
+    'Security: Mult Pwd Policies: Testing Default Pwd Policy with Lockout Count'
             </message>
 
             <script>
@@ -168,7 +244,7 @@
               <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=tclow,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=tclow,%s' % basedn ,
                   'dsInstancePswd'   : '%s' % pwds ,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -180,7 +256,7 @@
             <call function="'SearchObject'">
     { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
       'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-      'dsInstanceDn'     : 'uid=tclow,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+      'dsInstanceDn'     : 'uid=tclow,%s' % basedn ,
       'dsInstancePswd'   : 'cardreader' ,
       'dsBaseDN'         : 'dc=example,dc=com' ,
       'dsFilter'         : 'objectclass=*'  ,
@@ -192,7 +268,18 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Delete Sales Pwd Policy -->
+        <!--- Test Case information
+            #@TestMarker          Multiple Password Policies
+            #@TestName            Delete Sales Pwd Policy
+            #@TestIssue           none
+            #@TestPurpose         Admin Deleting Sales Lockout Count
+            #@TestPreamble        none
+            #@TestStep            Admin Deleting Sales Lockout Count
+                                  dsconfig delete Sales Password Policy
+            #@TestPostamble       none
+            #@TestResult          Success if dsconfig returns 0
+        -->
+        
         <testcase name="getTestCaseName('Delete Sales Pwd Policy')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -216,18 +303,28 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Test Sales Password Policy 2-->
+        <!--- Test Case information
+            #@TestMarker          Multiple Password Policies
+            #@TestName            Test Sales Pwd Policy after Remove
+            #@TestIssue           none
+            #@TestPurpose         Test Sales Pwd Policy after Remove
+            #@TestPreamble        none
+            #@TestStep            Testing Sales Pwd Policy after removing it
+            #@TestPostamble       none
+            #@TestResult          Success if SearchObject returns 80 (Other)
+        -->
+        
         <testcase name="getTestCaseName('Test Sales Pwd Policy 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Mult Pwd Policies: Testing Sales Pwd Policy with Lockout Count'
+      'Security: Mult Pwd Policies: Testing Sales Pwd Policy with Lockout Count'
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=sgal,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=sgal,%s' % basedn ,
                 'dsInstancePswd'   : 'supergal' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
