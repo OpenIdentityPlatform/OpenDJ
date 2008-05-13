@@ -39,7 +39,12 @@
          #@TestSuiteGroup      User Password Policy
          #@TestScript          security_user_pwd_policy.xml
         -->
-        
+
+        <!--- Define default value for basedn -->
+         <script>
+     basedn = 'ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com'
+     basepwp = 'cn=Default Password Policy,cn=Password Policies,cn=config'
+        </script>       
         
         <!--- Test Case information
           #@TestMarker         User Password Policy
@@ -62,12 +67,12 @@
             </message>
 
             <call function="'compareEntry'">
-              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                'attrToBeCompared'    : 'ds-cfg-allow-user-password-changes:true',
-                'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
+            { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+              'attrToBeCompared'    : 'ds-cfg-allow-user-password-changes:true',
+              'entryToBeCompared'   : basepwp }
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -98,7 +103,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=scarter,%s' % basedn ,
                 'dsInstancePswd'   : 'sprain' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -130,7 +135,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=scarter,%s' % basedn ,
                 'dsInstancePswd'   : 'newsprain' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -144,31 +149,29 @@
         </testcase>
 
         <!--- Test Case information
-          #@TestMarker          User Password Policy
-          #@TestName            User With Bad Credentials Change Password
-          #@TestIssue           none
-          #@TestPurpose         Check User Search With Bad Credentials
-          #@TestPreamble        none
-          #@TestStep            Check User Search With Bad Credentials
-          #@TestPostamble       none
-          #@TestResult          Success if modifyAnAttribute returns 49
+        #@TestMarker          User Password Policy
+        #@TestName            User With Bad Credentials Change Password
+        #@TestIssue           none
+        #@TestPurpose         Check User Search With Bad Credentials
+        #@TestPreamble        none
+        #@TestStep            Check User Search With Bad Credentials
+        #@TestPostamble       none
+        #@TestResult          Success if ldapPasswordModifyWithScript returns 49
         -->
-        <testcase name="getTestCaseName('User With Bad Credentials Change Password')">
+ <testcase name="getTestCaseName('User With Bad Credentials Change Password')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Policy: User with Bad Credentials Changing Password'
+          'Security: Pwd Policy: User with Bad Credentials Changing Password'
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=scarter,%s' % basedn ,
                     'dsInstancePswd'         : 'BadPwd' ,
-                    'DNToModify'             : 'uid=scarter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'newsprain' ,
-                    'changetype'             : 'replace'  ,
+                    'dsAuthzID'              : 'uid=scarter,%s' % basedn ,
+                    'dsNewPassword'          : 'newsprain' ,
                     'expectedRC'             : 49  }
             </call>
             
@@ -187,7 +190,7 @@
           #@TestStep            Step 2 User Searching With Old Password
           #@TestStep            Step 3 User Searching With New Password
           #@TestPostamble       none
-          #@TestResult          Success if SearchObject returns 0 
+          #@TestResult          Success if SearchObject returns 0
         -->
         <testcase name="getTestCaseName('User Change Password')">
           <sequence>
@@ -196,15 +199,14 @@
                'Security: Pwd Policy: Step 1 User Changing Password'
             </message>
 
-            <call function="'modifyAnAttribute'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                    'dsInstancePswd'         : 'sprain' ,
-                    'DNToModify'             : 'uid=scarter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'newsprain' ,
-                    'changetype'             : 'replace'  }
+            <call function="'ldapPasswordModifyWithScript'">
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'           : 'uid=scarter,%s' % basedn ,
+                'dsInstancePswd'         : 'sprain' ,
+                'dsAuthzID'              : 'dn:uid=scarter,%s' % basedn ,
+                'dsNewPassword'          : 'newsprain' ,
+               }
             </call>
             
             <message>
@@ -214,7 +216,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=scarter,%s' % basedn ,
                 'dsInstancePswd'   : 'sprain' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*' ,
@@ -229,7 +231,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=scarter,%s' % basedn ,
                 'dsInstancePswd'   : 'newsprain' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*' ,
@@ -242,16 +244,16 @@
         </testcase>
 
         <!--- Test Case information
-          #@TestMarker          User Password Policy
-          #@TestName            Admin Change Password Policy
-          #@TestIssue           none
-          #@TestPurpose         Admin Change Password Policy
-          #@TestPreamble        none
-          #@TestStep            Step 1 Modify the Password Policy by setting
-                                allow-user-password-changes to false
-          #@TestStep            Step 2 User resetting password should fail (49)
-          #@TestPostamble       none
-          #@TestResult          Success if modifyAnAttribute returns 49
+        #@TestMarker          User Password Policy
+        #@TestName            Admin Change Password Policy
+        #@TestIssue           none
+        #@TestPurpose         Admin Change Password Policy
+        #@TestPreamble        none
+        #@TestStep            Step 1 Modify the Password Policy by setting
+                              allow-user-password-changes to false
+        #@TestStep            Step 2 User resetting password should fail (49)
+        #@TestPostamble       none
+        #@TestResult          Success if ldapPasswordModifyWithScript returns 49
         -->
         
         <testcase name="getTestCaseName('Admin Change Password Policy')">
@@ -275,15 +277,13 @@
                'Security: Pwd Policy: Step 2 User Resetting Password'
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=scarter,%s' % basedn ,
                     'dsInstancePswd'         : 'sprain' ,
-                    'DNToModify'             : 'uid=scarter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'sprain' ,
-                    'changetype'             : 'replace' ,
+                    'dsAuthzID'              : 'dn:uid=scarter,%s' % basedn ,
+                    'dsNewPassword'          : 'sprain' ,
                     'expectedRC'             : 49 }
             </call>
             
@@ -310,7 +310,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Policy: Postamble Step 1 - Admin Resetting Password Policy'
+     'Security: Pwd Policy: Postamble Step 1 - Admin Resetting Password Policy'
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -324,28 +324,27 @@
             </call>
             
             <message>
-               'Security: Pwd Policy: Postamble Step 2 - User Resetting Password'
+             'Security: Pwd Policy: Postamble Step 2 - User Resetting Password'
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=scarter,%s' % basedn ,
                     'dsInstancePswd'         : 'newsprain' ,
-                    'DNToModify'             : 'uid=scarter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'sprain' ,
-                    'changetype'             : 'replace'  }
+                    'dsAuthzID'              : 'dn:uid=scarter,%s' % basedn ,
+                    'dsNewPassword'          : 'sprain' ,
+                  }
             </call>
             
             <message>
-               'Security: Pwd Policy: Postamble Step 3 - User Searching With Old Password'
+   'Security: Pwd Policy: Postamble Step 3 - User Searching With Old Password'
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=scarter,%s' % basedn ,
                 'dsInstancePswd'   : 'newsprain' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*' ,
@@ -354,13 +353,13 @@
             </call>
 
             <message>
-               'Security: Pwd Policy: Postamble Step 4 - User Searching With New Password'
+  'Security: Pwd Policy: Postamble Step 4 - User Searching With New Password'
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=scarter,%s' % basedn ,
                 'dsInstancePswd'   : 'sprain' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*' ,
