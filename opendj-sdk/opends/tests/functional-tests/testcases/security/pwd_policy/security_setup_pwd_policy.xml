@@ -41,7 +41,6 @@
             #@TestScript          security_setup_pwd_policy.xml
           -->
           
-             
            <!--- Test Case information
             #@TestMarker          setup Password Policy
             #@TestName            setup: Add Initials Entries
@@ -62,11 +61,12 @@
             </message>
 
             <call function="'addEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/pwd_policy/pwd_policy_startup.ldif' % logsRemoteDataDir }
+        { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
+          'dsInstancePort'  : DIRECTORY_INSTANCE_PORT ,
+          'dsInstanceDn'    : DIRECTORY_INSTANCE_DN ,
+          'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
+          'entryToBeAdded'  : '%s/security/pwd_policy/pwd_policy_startup.ldif'\
+                              % logsRemoteDataDir }
             </call>
 
             <call function="'testCase_Postamble'"/>

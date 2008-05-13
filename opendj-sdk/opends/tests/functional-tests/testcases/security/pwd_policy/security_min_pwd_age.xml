@@ -32,8 +32,30 @@
   <function name="min_pwd_age">
 
       <sequence>
+        
+         <!--- Test Suite information
+            #@TestSuiteName       Minimum Password Age
+            #@TestSuitePurpose    Test the Password Policy Minimum Password Age
+            #@TestSuiteGroup      Minimum Password Age
+            #@TestScript          security_min_pwd_age.xml
+          -->
 
-        <!--- Test Case : Preamble Check -->
+        <!--- Define default value for basedn -->
+          <script>
+            basedn = 'ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com'
+          </script>
+
+          <!--- Test Case information
+            #@TestMarker          Minimum Password Age
+            #@TestName            Test Preamble
+            #@TestIssue           none
+            #@TestPurpose         Checking existence of ds-cfg-min-password-age
+            #@TestPreamble        none
+            #@TestStep            Checking existence of ds-cfg-min-password-age
+            #@TestPostamble       none
+            #@TestResult          Success if compareEntry returns 0.
+          -->
+          
         <testcase name="getTestCaseName('Preamble Check')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -55,7 +77,22 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Test -->
+                  <!--- Test Case information
+            #@TestMarker          Minimum Password Age
+            #@TestName            Test Minimum Password Age
+            #@TestIssue           none
+            #@TestPurpose         Test Minimum Password Age
+            #@TestPreamble        none
+            #@TestStep            Step 1. Admin Enabling Minimum Pwd Age
+                                  set min-password-age to 24 h
+            #@TestStep            Step 2. User Changing Password
+                                  ldapPasswordModifyWithScript returns 53
+            #@TestStep            Step 3. User Searching With Password
+                                  SearchObject returns 49
+            #@TestPostamble       none
+            #@TestResult          Success if the 3 steps are PASS
+          -->
+          
         <testcase name="getTestCaseName('Test')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -78,15 +115,13 @@
                'Security: Min Pwd Age: Test: Step 2. User Changing Password'
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=dmiller,%s' % basedn ,
                     'dsInstancePswd'         : 'gosling' ,
-                    'DNToModify'             : 'uid=dmiller,ou=People,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'newgosling' ,
-                    'changetype'             : 'replace' ,
+                    'dsAuthzID'              : 'dn:uid=dmiller,%s' % basedn ,
+                    'dsNewPassword'          : 'newgosling' ,
                     'expectedRC'             : 53  }
             </call>
             
@@ -98,7 +133,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=dmiller,%s' % basedn ,
                 'dsInstancePswd'   : 'newgosling' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -110,7 +145,23 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Postamble Reset -->
+        
+          <!--- Test Case information
+            #@TestMarker          Minimum Password Age
+            #@TestName            Postamble Reset
+            #@TestIssue           none
+            #@TestPurpose         Reseting the password Policy
+            #@TestPreamble        none
+            #@TestStep            Step 1. Admin Disabling Minimum Pwd Age
+                                  set min-password-age to 0 s
+            #@TestStep            Step 2. User Changing Password RC 0
+            #@TestStep            Step 3. User Searching With Password RC 0
+            #@TestStep            Step 4. User Changing Password RC 0
+            #@TestStep            Step 5. User Searching With Password RC 0
+            #@TestPostamble       none
+            #@TestResult          Success if  returns 0.
+          -->
+          
         <testcase name="getTestCaseName('Postamble Reset')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -132,15 +183,13 @@
                'Security: Min Pwd Age: Postamble Reset: Step 2. User Changing Password'
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=dmiller,%s' % basedn ,
                     'dsInstancePswd'         : 'gosling' ,
-                    'DNToModify'             : 'uid=dmiller,ou=People,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'newgosling' ,
-                    'changetype'             : 'replace'  }
+                    'dsAuthzID'              : 'dn:uid=dmiller,%s' % basedn ,
+                    'dsNewPassword'          : 'newgosling' }
             </call>
             
             <!--- User Search With Password -->
@@ -151,7 +200,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=dmiller,%s' % basedn ,
                 'dsInstancePswd'   : 'newgosling' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -163,15 +212,13 @@
                'Security: Min Pwd Age: Postamble Reset: Step 4. User Changing Password'
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=dmiller,%s' % basedn ,
                     'dsInstancePswd'         : 'newgosling' ,
-                    'DNToModify'             : 'uid=dmiller,ou=People,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'gosling' ,
-                    'changetype'             : 'replace'  }
+                    'dsAuthzID'              : 'dn:uid=dmiller,%s' % basedn ,
+                    'dsNewPassword'          : 'gosling' }
             </call>
             
             <!--- User Search With Password -->
@@ -182,7 +229,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=dmiller,%s' % basedn ,
                 'dsInstancePswd'   : 'gosling' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,

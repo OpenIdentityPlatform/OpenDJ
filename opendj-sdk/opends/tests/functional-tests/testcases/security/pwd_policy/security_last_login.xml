@@ -32,8 +32,31 @@
   <function name="last_login">
 
       <sequence>
-
-        <!--- Test Case : Check for ds-cfg-idle-lockout-interval -->
+        
+         <!--- Test Suite information
+            #@TestSuiteName       Last Login
+            #@TestSuitePurpose    Test Password Policy for Last Login
+            #@TestSuiteGroup      Last Login
+            #@TestScript          security_last_login.xml
+          -->
+ 
+         <!--- Define default value for basedn -->
+          <script>
+            basedn = 'ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com'
+          </script>
+        
+        <!--- Test Case information
+            #@TestMarker          Last Login
+            #@TestName            Check for ds-cfg-idle-lockout-interval
+            #@TestIssue           none
+            #@TestPurpose         Check for ds-cfg-idle-lockout-interval
+            #@TestPreamble        none
+            #@TestStep            Checking existence of 
+                                  ds-cfg-idle-lockout-interval with value set 0
+            #@TestPostamble       none
+            #@TestResult          Success if compareEntry returns 0
+        -->
+        
         <testcase name="getTestCaseName('Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>          
@@ -55,7 +78,24 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Admin enable last login attribute only-->
+        <!--- Test Case information
+            #@TestMarker          Last Login
+            #@TestName            Admin enable last login attribute only
+            #@TestIssue           none
+            #@TestPurpose         Admin enable last login attribute only
+            #@TestPreamble        none
+            #@TestStep            Admin Enable Last Login Attribute Only
+                                  modifyPwdPolicy set last-login-time-attribute 
+                                  to ds-pwp-last-login-time
+            #@TestStep            User Binding With Password returns 0
+            #@TestStep            Checking for Absence of Last Login Time
+                                  SearchObject attribute ds-pwp-last-login-time 
+                                  returns 0 checktestStringNotPresent 
+                                  ds-pwp-last-login-time
+            #@TestPostamble       none
+            #@TestResult          Success if the 3 steps are PASS
+        -->
+        
         <testcase name="getTestCaseName('Admin Enable Last Login Attr Only')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -80,7 +120,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                 'dsInstancePswd'   : 'destroy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -96,7 +136,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'dsBaseDN'         : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsBaseDN'         : 'uid=jreuter,%s' % basedn ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'attributes'       : 'ds-pwp-last-login-time' }
             </call>
@@ -115,7 +155,25 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Admin enable last login format only -->
+        <!--- Test Case information
+          #@TestMarker          Last Login
+          #@TestName            Admin enable last login format only
+          #@TestIssue           none
+          #@TestPurpose         Admin enable last login format only
+          #@TestPreamble        none
+          #@TestStep            Admin Disable Last Login Attribute Only set
+                                last-login-time-attribute to reset
+          #@TestStep            Admin Enable Last Login Format Only set
+                                last-login-time-format to EEE, MMM dd, 
+                                yyyy HH:mm:ss
+          #@TestStep            User Binding With Password returns 0
+          #@TestStep            Checking for Absence of Last Login Time
+                                SearchObject attribute ds-pwp-last-login-time
+                                checktestStringNotPresent ds-pwp-last-login-time
+          #@TestPostamble       none
+          #@TestResult          Success if the 4 steps are PASS
+        -->
+        
         <testcase name="getTestCaseName('Admin Enable Last Login Format Only')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -154,7 +212,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                 'dsInstancePswd'   : 'destroy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -170,7 +228,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'dsBaseDN'         : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsBaseDN'         : 'uid=jreuter,%s' % basedn ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'attributes'       : 'ds-pwp-last-login-time' }
             </call>
@@ -189,7 +247,23 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Admin enable both last login attribute and format-->
+        <!--- Test Case information
+          #@TestMarker        Last Login
+          #@TestName          Admin enable both last login attribute and format
+          #@TestIssue         none
+          #@TestPurpose       Admin enable both last login attribute and format
+          #@TestPreamble      none
+          #@TestStep          Admin Enable Last Login Attribute And Format
+                              set last-login-time-attribute to 
+                              ds-pwp-last-login-time
+          #@TestStep          User Binding With Password returns 0
+          #@TestStep          Checking for Absence of Last Login Time
+                              SearchObject ds-pwp-last-login-time returns 0
+                              checktestString ds-pwp-last-login-time
+          #@TestPostamble     none
+          #@TestResult        Success if the 3 steps are PASS
+        -->
+        
         <testcase name="getTestCaseName('Admin Enable Last Login Attr And Format')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -214,7 +288,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                 'dsInstancePswd'   : 'destroy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -230,7 +304,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'dsBaseDN'         : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsBaseDN'         : 'uid=jreuter,%s' % basedn ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'attributes'       : 'ds-pwp-last-login-time' }
             </call>
@@ -249,7 +323,24 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Long Idle Lockout Interval -->
+        <!--- Test Case information
+            #@TestMarker          Last Login
+            #@TestName            Long Idle Lockout Interval
+            #@TestIssue           none
+            #@TestPurpose         Long Idle Lockout Interval
+            #@TestPreamble        none
+            #@TestStep            Step 1. Check User Bind returns 0
+            #@TestStep            Step 2. Admin Changing Idle Lockout Interval
+                                  set idle-lockout-interval to 50 s
+            #@TestStep            Step 3. User Binding Before Idle Lockout
+                                  SearchObject returns 0
+            #@TestStep            Step 4. Sleep sleepForMilliSeconds 60000
+            #@TestStep            Step 5. User Binding After Idle Lockout
+                                  SearchObject returns 49
+            #@TestPostamble       none
+            #@TestResult          Success if the 5 steps are PASS
+        -->
+
         <testcase name="getTestCaseName('Long Idle Lockout')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -260,7 +351,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                 'dsInstancePswd'   : 'destroy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -288,7 +379,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                 'dsInstancePswd'   : 'destroy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -312,7 +403,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'destroy' ,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -325,7 +416,20 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Amin Reset Idle Lockout Interval -->
+        <!--- Test Case information
+            #@TestMarker          Last Login
+            #@TestName            Admin Reset Idle Lockout Interval 1
+            #@TestIssue           none
+            #@TestPurpose         Admin Reset Idle Lockout Interval 1
+            #@TestPreamble        none
+            #@TestStep            Step 1. set idle-lockout-interval to 0 s
+            #@TestStep            Step 2. User Binding SearchObject returns 0
+            #@TestStep            Step 3. Sleep sleepForMilliSeconds 60000
+            #@TestStep            Step 4. User Binding SearchObject returns 0
+            #@TestPostamble       none
+            #@TestResult          Success if the 4 tests are PASS
+        -->
+        
         <testcase name="getTestCaseName('Reset Idle Lockout')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -350,7 +454,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'destroy',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -373,7 +477,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'destroy' ,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -385,7 +489,26 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Password Change Override -->
+        <!--- Test Case information
+            #@TestMarker          Last Login
+            #@TestName            Password Change Override
+            #@TestIssue           none
+            #@TestPurpose         Password Change Override
+            #@TestPreamble        none
+            #@TestStep            Step 1. Check User Bind SearchObject returns 0
+            #@TestStep            Step 2. Admin Changing Idle Lockout Interval
+                                  set idle-lockout-interval to 50 s
+            #@TestStep            Step 3. User Binding Before Idle Lockout
+                                  SearchObject returns 0
+            #@TestStep            Step 4. Sleep sleepForMilliSeconds 30000
+            #@TestStep            Step 5. User Changing Password
+            #@TestStep            Step 6. Sleep sleepForMilliSeconds to 30000
+            #@TestStep            Step 7. User Binding After Idle Lockout
+                                  SearchObject returns 0
+            #@TestPostamble       none
+            #@TestResult          Success if the 7 steps are PASS
+        -->
+        
         <testcase name="getTestCaseName('Long Idle Lockout - Pwd Change Override')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -396,7 +519,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                 'dsInstancePswd'   : 'destroy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -424,7 +547,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                 'dsInstancePswd'   : 'destroy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -445,15 +568,13 @@
                'Security: Last Login: Long Idle Lockout - Password Change Override Step 5. User Changing Password'
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'uid=jreuter,ou=People,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'newdestroy' ,
-                    'changetype'             : 'replace'  }
+                    'dsAuthzID'              : 'dn:uid=jreuter,%s' % basedn ,
+                    'dsNewPassword'          : 'newdestroy' }
             </call>
             
             <message>
@@ -471,7 +592,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'newdestroy' ,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -482,8 +603,22 @@
 
           </sequence>
         </testcase>
+        
+        <!--- Test Case information
+            #@TestMarker          Last Login
+            #@TestName            Admin Reset Idle Lockout Interval 2
+            #@TestIssue           none
+            #@TestPurpose         Admin Reset Idle Lockout Interval 2
+            #@TestPreamble        none
+            #@TestStep            Step 1. Admin Resetting Idle Lockout Interval
+                                  set idle-lockout-interval to 0
+            #@TestStep            Step 2. User Binding SearchObject returns 0
+            #@TestStep            Step 3. Sleep sleepForMilliSeconds 60000
+            #@TestStep            Step 4. User Binding SearchObject returns 0
+            #@TestPostamble       none
+            #@TestResult          Success if the 4 steps are PASS
+        -->
 
-        <!--- Test Case : Amin Reset Idle Lockout Interval -->
         <testcase name="getTestCaseName('Reset Idle Lockout 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -508,7 +643,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'newdestroy',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -530,7 +665,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'newdestroy' ,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -542,7 +677,27 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : User Bind Reset Last Login Time -->
+        <!--- Test Case information
+            #@TestMarker          Last Login
+            #@TestName            User Bind Reset Last Login Time
+            #@TestIssue           none
+            #@TestPurpose         User Bind Reset Last Login Time
+            #@TestPreamble        none
+            #@TestStep            Step 1. Check User Bind SearchObject returns 0
+            #@TestStep            Step 2. Admin Changing Idle Lockout Interval
+                                  set idle-lockout-interval to 50 s
+            #@TestStep            Step 3. User Binding Before Idle Lockout
+                                  SearchObject returns 0
+            #@TestStep            Step 4. Sleep sleepForMilliSeconds 30000
+            #@TestStep            Step 5. User Bind To Reset Last Login Time
+                                  SearchObject returns 0
+            #@TestStep            Step 6. Sleep sleepForMilliSeconds 30000
+            #@TestStep            Step 7. User Binding After Idle Lockout
+                                  SearchObject returns 0
+            #@TestPostamble       none
+            #@TestResult          Success if the 7 steps are PASS
+        -->
+        
         <testcase name="getTestCaseName('Long Idle Lockout - User Bind Reset')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -553,7 +708,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                 'dsInstancePswd'   : 'newdestroy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -582,7 +737,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                 'dsInstancePswd'   : 'newdestroy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -605,7 +760,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                 'dsInstancePswd'   : 'newdestroy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -628,7 +783,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'newdestroy' ,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -640,7 +795,21 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Amin Reset Idle Lockout Interval -->
+        <!--- Test Case information
+            #@TestMarker          Last Login
+            #@TestName            Admin Reset Idle Lockout Interval 3
+            #@TestIssue           none
+            #@TestPurpose         Admin Reset Idle Lockout Interval 3
+            #@TestPreamble        none
+            #@TestStep            Step 1. Admin Resetting Idle Lockout Interval
+                                  set idle-lockout-interval to 0
+            #@TestStep            Step 2. User Binding SearchObject returns 0
+            #@TestStep            Step 3. Sleep sleepForMilliSeconds 60000
+            #@TestStep            Step 4. User Binding SearchObject returns 0
+            #@TestPostamble       none
+            #@TestResult          Success if the 4 steps are PASS
+        -->
+        
         <testcase name="getTestCaseName('Reset Idle Lockout 3')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -665,7 +834,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'newdestroy',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -687,7 +856,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'newdestroy' ,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -699,7 +868,22 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Long Idle Lockout Interval -->
+        <!--- Test Case information
+            #@TestMarker          Last Login
+            #@TestName            Long Idle Lockout Interval
+            #@TestIssue           none
+            #@TestPurpose         Long Idle Lockout Interval
+            #@TestPreamble        none
+            #@TestStep            Step 1. Disable Last Login set 
+                                  last-login-time-attribute to reset
+            #@TestStep            Step 2. Check User Bind SearchObject returns 0
+            #@TestStep            Step 3. Admin Changing Idle Lockout Interval
+                                  set idle-lockout-interval to 50 s
+            #@TestStep            Step 4. User Binding SearchObject returns 49
+            #@TestPostamble       none
+            #@TestResult          Success if the 4 steps are PASS
+        -->        
+        
         <testcase name="getTestCaseName('Long Idle Lockout - Disabled Last Login')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -724,7 +908,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                 'dsInstancePswd'   : 'newdestroy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -752,7 +936,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                 'dsInstancePswd'   : 'newdestroy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -765,7 +949,23 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Amin Reset Idle Lockout Interval -->
+        <!--- Test Case information
+          #@TestMarker       Last Login
+          #@TestName         Admin Reset Idle Lockout Interval 4
+          #@TestIssue        none
+          #@TestPurpose      Admin Reset Idle Lockout Interval 4
+          #@TestPreamble     none
+          #@TestStep         Step 1. Enable Last Login Attribute set
+                             last-login-time-attribute to ds-pwp-last-login-time
+          #@TestStep         Step 2. Admin Resetting Idle Lockout Interval
+                             set idllockout-interval to 0 s
+          #@TestStep         Step 3. User Binding SearchObject returns 0
+          #@TestStep         Step 4. Sleep sleepForMilliSeconds 60000
+          #@TestStep         Step 5. User Binding SearchObject returns 0
+          #@TestPostamble    none
+          #@TestResult       Success if the 5 steps are PASS
+        -->
+
         <testcase name="getTestCaseName('Reset Idle Lockout 4')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -804,7 +1004,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'newdestroy',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -826,7 +1026,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'newdestroy' ,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -838,7 +1038,22 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Long Idle Lockout Interval -->
+        <!--- Test Case information
+          #@TestMarker          Last Login
+          #@TestName            Long Idle Lockout Interval Disabled Last Login 2
+          #@TestIssue           none
+          #@TestPurpose         Long Idle Lockout Interval Disabled Last Login 2
+          #@TestPreamble        none
+          #@TestStep            Step 1. Disable Last Login set
+                                last-login-time-format to reset
+          #@TestStep            Step 2. Check User Bind SearchObject returns 0
+          #@TestStep            Step 3. Admin Changing Idle Lockout Interval
+                                set idle-lockout-interval to 50 s
+          #@TestStep            Step 4. User Binding SearchObject returns 49
+          #@TestPostamble       none
+          #@TestResult          Success if the 4 steps are PASS
+        -->
+        
         <testcase name="getTestCaseName('Long Idle Lockout - Disabled Last Login 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -863,7 +1078,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                 'dsInstancePswd'   : 'newdestroy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -891,7 +1106,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                 'dsInstancePswd'   : 'newdestroy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -904,7 +1119,24 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Amin Reset Idle Lockout Interval -->
+        <!--- Test Case information
+            #@TestMarker          Last Login
+            #@TestName            Admin Reset Idle Lockout Interval 5
+            #@TestIssue           none
+            #@TestPurpose         Admin Reset Idle Lockout Interval 5
+            #@TestPreamble        none
+            #@TestStep            Step 1. Enable Last Login Attribute set
+                                  last-login-time-format to EEE, MMM dd, 
+                                  yyyy HH:mm:ss
+            #@TestStep            Step 2. Admin Resetting Idle Lockout Interval
+                                  set idle-lockout-interval to 0 s
+            #@TestStep            Step 3. User Binding SearchObject returns 0
+            #@TestStep            Step 4. Sleep sleepForMilliSeconds to 60000
+            #@TestStep            Step 5. User Binding SearchObject returns 0
+            #@TestPostamble       none
+            #@TestResult          Success if the 5 steps are PASS
+        -->
+        
         <testcase name="getTestCaseName('Reset Idle Lockout 5')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -943,7 +1175,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'newdestroy',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -966,7 +1198,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'newdestroy' ,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -978,7 +1210,24 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Long Idle Lockout Interval -->
+        <!--- Test Case information
+            #@TestMarker          Last Login
+            #@TestName            Long Idle Lockout Interval - Repeat
+            #@TestIssue           none
+            #@TestPurpose         Long Idle Lockout Interval - Repeat
+            #@TestPreamble        none
+            #@TestStep            Step 1. Check User Bind SearchObject returns 0
+            #@TestStep            Step 2. Admin Changing Idle Lockout Interval
+                                  set idle-lockout-interval to 50 s
+            #@TestStep            Step 3. User Binding Before Idle Lockout
+                                  SearchObject returns 0
+            #@TestStep            Step 4. Sleep sleepForMilliSeconds to 60000
+            #@TestStep            Step 5. User Binding After Idle Lockout
+                                  SearchObject returns 49
+            #@TestPostamble       none
+            #@TestResult          Success if the 5 steps are PASS
+        -->
+        
         <testcase name="getTestCaseName('Long Idle Lockout - Repeat')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -989,7 +1238,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                 'dsInstancePswd'   : 'newdestroy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -1017,7 +1266,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                 'dsInstancePswd'   : 'newdestroy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -1041,7 +1290,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'newdestroy' ,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -1054,7 +1303,21 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Amin Reset Idle Lockout Interval -->
+        <!--- Test Case information
+            #@TestMarker          Last Login
+            #@TestName            Admin Reset Idle Lockout Interval 6
+            #@TestIssue           none
+            #@TestPurpose         Admin Reset Idle Lockout Interval 6
+            #@TestPreamble        none
+            #@TestStep            Step 1. Admin Resetting Idle Lockout Interval
+                                  set idle-lockout-interval to 0 s
+            #@TestStep            Step 2. User Binding SearchObject returns 0
+            #@TestStep            Step 3. Sleep sleepForMilliSeconds to 60000
+            #@TestStep            Step 4. User Binding SearchObject returns 0
+            #@TestPostamble       none
+            #@TestResult          Success if the 4 steps are PASS
+        -->
+        
         <testcase name="getTestCaseName('Reset Idle Lockout 6')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -1079,7 +1342,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'newdestroy',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -1103,7 +1366,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'newdestroy' ,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -1115,7 +1378,26 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Long Idle Lockout Interval -->
+        <!--- Test Case information
+          #@TestMarker        Last Login
+          #@TestName          Long Idle Lockout Interval - Pwd Change Override 2
+          #@TestIssue         none
+          #@TestPurpose       Long Idle Lockout Interval - Pwd Change Override 2
+         SearchObject returns 0
+          #@TestPreamble      none
+          #@TestStep          Step 1. Check User Bind SearchObject returns 0
+          #@TestStep          Step 2. Admin Changing Idle Lockout Interval
+                              set idle-lockout-interval to 50 s
+          #@TestStep          Step 3. User Binding Before Idle Lockout
+                              SearchObject returns 0
+          #@TestStep          Step 4. Sleep sleepForMilliSeconds to 60000
+          #@TestStep          Step 5. User Changing Password
+          #@TestStep          Step 6. User Binding After Idle Lockout
+                              SearchObject returns 0
+          #@TestPostamble     none
+          #@TestResult        Success if the 6 steps are PASS
+        -->
+        
         <testcase name="getTestCaseName('Long Idle Lockout - Pwd Change Override 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -1126,7 +1408,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                 'dsInstancePswd'   : 'newdestroy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -1155,7 +1437,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                 'dsInstancePswd'   : 'newdestroy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -1175,15 +1457,13 @@
                'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 5. User Changing Password'
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'uid=jreuter,ou=People,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'anotherdestroy' ,
-                    'changetype'             : 'replace'  }
+                    'dsAuthzID'              : 'dn:uid=jreuter,%s' % basedn ,
+                    'dsNewPassword'          : 'anotherdestroy' }
             </call>
             
             <message>
@@ -1193,7 +1473,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'anotherdestroy' ,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -1205,7 +1485,21 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Amin Reset Idle Lockout Interval -->
+        <!--- Test Case information
+            #@TestMarker          Last Login
+            #@TestName            Admin Reset Idle Lockout Interval 7
+            #@TestIssue           none
+            #@TestPurpose         Admin Reset Idle Lockout Interval 7
+            #@TestPreamble        none
+            #@TestStep            Step 1. Admin Resetting Idle Lockout Interval
+                                  set idle-lockout-interval to 0 s
+            #@TestStep            Step 2. User Binding SearchObject returns 0
+            #@TestStep            Step 3. Sleep sleepForMilliSeconds 60000
+            #@TestStep            Step 4. User Binding SearchObject returns 0
+            #@TestPostamble       none
+            #@TestResult          Success if the 4 steps are PASS
+        -->
+        
         <testcase name="getTestCaseName('Reset Idle Lockout 7')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -1230,7 +1524,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'anotherdestroy',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -1254,7 +1548,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'anotherdestroy' ,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -1266,7 +1560,26 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Long Idle Lockout Interval -->
+        <!--- Test Case information
+            #@TestMarker          Last Login
+            #@TestName            Long Idle Lockout - Pwd Change Override 3
+            #@TestIssue           none
+            #@TestPurpose         Long Idle Lockout - Pwd Change Override 3
+            #@TestPreamble        none
+            #@TestStep            Step 1. Disable Last Login set
+                                  last-login-time-format to reset
+            #@TestStep            Step 2. Check User Bind SearchObject returns 0
+            #@TestStep            Step 3. Admin Changing Idle Lockout Interval
+                                  set idle-lockout-interval to 50 s
+            #@TestStep            Step 4. User Binding Before Idle Lockout
+                                  SearchObject returns 49
+            #@TestStep            Step 5. Admin Changing Password
+            #@TestStep            Step 6. User Binding After Admin Pwd Change
+                                  SearchObject returns 0
+            #@TestPostamble       none
+            #@TestResult          Success if the 6 steps are PASS
+        -->
+        
         <testcase name="getTestCaseName('Long Idle Lockout - Pwd Change Override 3')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -1291,7 +1604,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                 'dsInstancePswd'   : 'anotherdestroy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -1320,7 +1633,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                 'dsInstancePswd'   : 'anotherdestroy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -1332,15 +1645,13 @@
                'Security: Last Login: Long Idle Lockout - Pwd Change Override 3 Step 5. Admin Changing Password'
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'uid=jreuter,ou=People,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'lastdestroy' ,
-                    'changetype'             : 'replace'  }
+                    'dsAuthzID'              : 'dn:uid=jreuter,%s' % basedn ,
+                    'dsNewPassword'          : 'lastdestroy' }
             </call>
             
             <message>
@@ -1350,7 +1661,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'lastdestroy' ,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -1362,7 +1673,23 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Amin Reset Idle Lockout Interval -->
+        <!--- Test Case information
+            #@TestMarker          Last Login
+            #@TestName            Postamble Admin Reset Idle Lockout Interval
+            #@TestIssue           none
+            #@TestPurpose         Admin Reset Idle Lockout Interval
+            #@TestPreamble        none
+            #@TestStep            Step 1. Admin Resetting Idle Lockout Interval
+                                  set idle-lockout-interval'  to 0 s 
+            #@TestStep            Step 2. Admin Disabling Last Login Time 
+                                  Attribute last-login-time-attribute to reset
+            #@TestStep            Step 3. User Binding SearchObject returns 0
+            #@TestStep            Step 4. Sleep sleepForMilliSeconds 60000
+            #@TestStep            Step 5. User Binding SearchObject returns 0
+            #@TestPostamble       none
+            #@TestResult          Success if the 5 steps are PASS
+        -->
+        
         <testcase name="getTestCaseName('Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -1401,7 +1728,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'lastdestroy',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
@@ -1425,7 +1752,7 @@
             <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=jreuter,%s' % basedn ,
                   'dsInstancePswd'   : 'lastdestroy' ,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,

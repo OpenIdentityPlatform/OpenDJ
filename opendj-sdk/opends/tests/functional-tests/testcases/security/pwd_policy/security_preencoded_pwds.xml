@@ -33,12 +33,39 @@
 
       <sequence>
 
-        <!--- Test Case : Preamble 1 - Check Default-->
+         <!--- Test Suite information
+           #@TestSuiteName       Preencoded Passwords
+           #@TestSuitePurpose    Test Preencoded Passwords in Password Policy
+           #@TestSuiteGroup      Preencoded Passwords
+           #@TestScript          security_preencoded_pwds.xml
+          -->
+                 
+     <!--- Define default value for basedn -->
+     <script>
+     basedn = 'ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com'
+     basepwp = 'cn=Default Password Policy,cn=Password Policies,cn=config'
+     msg1 = 'Security: Preencoded Pwds: Preamble'
+     </script>
+     
+     
+        <!--- Test Case information
+            #@TestMarker          Preencoded Passwords
+            #@TestName            Preamble Check Default
+            #@TestIssue           none
+            #@TestPurpose         Preamble Check Default
+            #@TestPreamble        none
+            #@TestStep            Check for existence of 
+                                  ds-cfg-allow-pre-encoded-passwords
+                                  and value is set to false
+            #@TestPostamble       none
+            #@TestResult          Success if the test is PASS
+        -->
+        
         <testcase name="getTestCaseName('Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Preencoded Pwds: Preamble - Check for existence of ds-cfg-allow-pre-encoded-passwords'
+'%s - Check for existence of ds-cfg-allow-pre-encoded-passwords' % msg1
             </message>
 
             <call function="'compareEntry'">
@@ -46,8 +73,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'attrToBeCompared'   : 'ds-cfg-allow-pre-encoded-passwords:false',
-                'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
+                'attrToBeCompared' : 'ds-cfg-allow-pre-encoded-passwords:false',
+                'entryToBeCompared': basepwp }
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -55,29 +82,41 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Add Entry With Pre-encoded Password -->
+        <!--- Test Case information
+            #@TestMarker          Preencoded Passwords
+            #@TestName            Add Entry With Pre-encoded Password
+            #@TestIssue           none
+            #@TestPurpose         Adding New Entry With a Pre-encoded Password
+            #@TestPreamble        none
+            #@TestStep            addEntry add_entry_preencoded_pwd.ldif RC 53
+                                  SearchObject returns 49
+            #@TestPostamble       none
+            #@TestResult          Success if the test is PASS
+        -->
+        
         <testcase name="getTestCaseName('Default - Add New Entry')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Preencoded Pwds: Adding New Entry With a Pre-encoded Password'
+      'Security: Preencoded Pwds: Adding New Entry With a Pre-encoded Password'
             </message>
 
-            <call function="'addEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/pwd_policy/add_entry_preencoded_pwd.ldif' % logsRemoteDataDir ,
-                'expectedRC'       : 53 }
-            </call>
+   <call function="'addEntry'">
+ { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+   'entryToBeAdded'   : '%s/security/pwd_policy/add_entry_preencoded_pwd.ldif' \
+                        % logsRemoteDataDir ,
+   'expectedRC'       : 53 }
+   </call>
 
              <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=pguy,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=pguy,%s' % basedn ,
                 'dsInstancePswd'   : 'superguy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' ,
                 'expectedRC'       : 49 }
@@ -88,7 +127,17 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Enable Pre-encoded Passwords -->
+        <!--- Test Case information
+            #@TestMarker          Preencoded Passwords
+            #@TestName            Enable Pre-encoded Passwords in pwd policy
+            #@TestIssue           none
+            #@TestPurpose         Admin Enabling Preencoded Pwds
+            #@TestPreamble        none
+            #@TestStep            set allow-pre-encoded-passwords to true
+            #@TestPostamble       none
+            #@TestResult          Success if the test is PASS
+        -->
+        
         <testcase name="getTestCaseName('Enable Preencoded Pwds')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -111,27 +160,38 @@
           </sequence>
         </testcase>
 
-            
-        <!--- Test Case : Test Enabled Pre-encoded Passwords -->
+         <!--- Test Case information
+            #@TestMarker          Preencoded Passwords
+            #@TestName            Test Enabled Pre-encoded Passwords
+            #@TestIssue           none
+            #@TestPurpose         Test Enabled Pre-encoded Passwords
+            #@TestPreamble        none
+            #@TestStep            addEntry add_entry_preencoded_pwd.ldif RC 0
+                                  SearchObject returns 0
+            #@TestPostamble       none
+            #@TestResult          Success if the test is PASS
+        -->           
+
         <testcase name="getTestCaseName('Enabled - Add New Entry')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Preencoded Pwds: Add New Entry With Pre-encoded Password'
+           'Security: Preencoded Pwds: Add New Entry With Pre-encoded Password'
             </message>
 
-            <call function="'addEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/pwd_policy/add_entry_preencoded_pwd.ldif' % logsRemoteDataDir }
-            </call>
+   <call function="'addEntry'">
+ { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+   'entryToBeAdded'   : '%s/security/pwd_policy/add_entry_preencoded_pwd.ldif' \
+                        % logsRemoteDataDir }
+   </call>
 
              <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=pguy,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=pguy,%s' % basedn ,
                 'dsInstancePswd'   : 'superguy' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -143,7 +203,18 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Disable Pre-encoded Passwordds -->
+         <!--- Test Case information
+            #@TestMarker          Preencoded Passwords
+            #@TestName            Disable Pre-encoded Passwords
+            #@TestIssue           none
+            #@TestPurpose         Admin Disabling Pre-encoded Passwords
+            #@TestPreamble        none
+            #@TestStep            Disable Pre-encoded Passwordds 0
+                                  SearchObject returns 49
+            #@TestPostamble       none
+            #@TestResult          Success if the test is PASS
+        -->
+        
         <testcase name="getTestCaseName('Disable Preencoded Pwds')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -164,7 +235,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=pgal,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=pgal,%s' % basedn ,
                 'dsInstancePswd'   : 'supergal' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,

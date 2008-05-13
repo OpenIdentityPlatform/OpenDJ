@@ -33,8 +33,24 @@
 
       <sequence>
 
-        <!--- Test Case : Password Policy Teardown -->
-        <!--- Delete Branch -->
+        <!--- Test Suite information
+           #@TestSuiteName       Teardown
+           #@TestSuitePurpose    Test Teardown in Password Policy
+           #@TestSuiteGroup      Teardown
+           #@TestScript          security_lockout_duration.xml
+          -->
+          
+        <!--- Test Case information
+           #@TestMarker         Teardown
+           #@TestName           Delete Branch
+           #@TestIssue          none
+           #@TestPurpose        Delete Branch
+           #@TestPreamble       none
+           #@TestStep           DeleteEntry -x o=Pwd Policy Tests
+           #@TestPostamble      none
+           #@TestResult         Success if the step is PASS
+        -->
+
         <testcase name="getTestCaseName('Postamble Reset')">
           <sequence>
             <call function="'testCase_Preamble'"/>

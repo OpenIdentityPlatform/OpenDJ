@@ -33,18 +33,45 @@
 
       <sequence>
 
-        <!--- Test Case : User Search With Password -->
+        <!--- Test Suite information
+         #@TestSuiteName       Force PasswordChange All Users
+         #@TestSuitePurpose    Force PasswordChange All Users
+         #@TestSuiteGroup      Force PasswordChange All Users
+         #@TestScript          security_force_pwd_change_all_users.xml
+        -->
+        
+        <!--- Define default value for basedn -->
+     <script>
+     basedn = 'ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com'
+     </script>
+     
+     
+        <!--- Test Case information
+          #@TestMarker       Force PasswordChange All Users
+          #@TestName         User Search With Password
+          #@TestIssue        none
+          #@TestPurpose      Set the Pwd Expiration Time to a past date
+          #@TestPreamble     none
+          #@TestStep         Step 1 - User Searching With Password
+          #@TestStep         Step 2 - Admin Enabling Exp Pwd No Warning
+                             set expire-passwords-without-warning to true
+          #@TestStep         Step 3 - Admin Setting Pwd Time Exp
+                             set require-change-by-time to 20061030183752.848Z
+          #@TestPostamble    none
+          #@TestResult       Success if the 3 steps are PASS
+        -->
+
         <testcase name="getTestCaseName('Preamble Setup')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Change: Preamble Step 1 - User Searching With Password'
+         'Security: Pwd Change: Preamble Step 1 - User Searching With Password'
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=scarter,%s' % basedn ,
                 'dsInstancePswd'   : 'sprain' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -53,21 +80,21 @@
 
 
             <message>
-               'Security: Pwd Change: Preamble Step 2 - Admin Enabling Exp Pwd No Warning'
+     'Security: Pwd Change: Preamble Step 2 - Admin Enabling Exp Pwd No Warning'
             </message>
 
             <call function="'modifyPwdPolicy'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'expire-passwords-without-warning' ,
-                    'attributeValue'         : 'true' }
+               { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                 'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                 'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                 'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                 'propertyName'           : 'Default Password Policy' ,
+                 'attributeName'          : 'expire-passwords-without-warning' ,
+                 'attributeValue'         : 'true' }
             </call>
             
             <message>
-               'Security: Pwd Change: Preamble Step 3 -Admin Setting Pwd Time Exp'
+           'Security: Pwd Change: Preamble Step 3 -Admin Setting Pwd Time Exp'
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -84,7 +111,18 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : User Search With Expired Password -->
+        <!--
+        - Test Case information
+          #@TestMarker       Force PasswordChange All Users
+          #@TestName         User Search With Expired Password
+          #@TestIssue        none
+          #@TestPurpose      User Search With Expired Password
+          #@TestPreamble     none
+          #@TestStep         User Search With Expired Password RC 49
+          #@TestPostamble    none
+          #@TestResult       Success if the step is PASS
+        -->
+        
         <testcase name="getTestCaseName('User Search With Exp Password')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -95,19 +133,31 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=scarter,%s' % basedn ,
                 'dsInstancePswd'   : 'sprain' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base',
-                'expectedRC'       : 49 }                            
+                'expectedRC'       : 49 }
             </call>
 
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
-        <!--- Test Case : Admin Disable Exp Pwd No Warning -->
+        <!--
+        - Test Case information
+          #@TestMarker       Force PasswordChange All Users
+          #@TestName         Admin Disable Exp Pwd No Warning
+          #@TestIssue        none
+          #@TestPurpose      Admin Disable Exp Pwd No Warning
+          #@TestPreamble     none
+          #@TestStep         Admin Disabling Exp Pwd No Warning
+                             set expire-passwords-without-warning to false
+          #@TestPostamble    none
+          #@TestResult       Success if the step is PASS
+        -->
+        
         <testcase name="getTestCaseName('Admin Disable Exp Pwd No Warning')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -116,20 +166,32 @@
             </message>
 
             <call function="'modifyPwdPolicy'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'expire-passwords-without-warning' ,
-                    'attributeValue'         : 'false' }
+               { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                 'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                 'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                 'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                 'propertyName'           : 'Default Password Policy' ,
+                 'attributeName'          : 'expire-passwords-without-warning' ,
+                 'attributeValue'         : 'false' }
             </call>
             
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
-        <!--- Test Case : User Search With Expired Password 2-->
+       <!--
+        - Test Case information
+          #@TestMarker       Force PasswordChange All Users
+          #@TestName         User Search With Expired Password 2
+          #@TestIssue        none
+          #@TestPurpose      User Search With Expired Password 2
+          #@TestPreamble     none
+          #@TestStep         User Searching With Expired Password 2
+                             SearchObject grep will expire
+          #@TestPostamble    none
+          #@TestResult       Success if the steps is PASS
+        -->
+        
         <testcase name="getTestCaseName('User Search With Exp Password 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -140,7 +202,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=scarter,%s' % basedn ,
                 'dsInstancePswd'   : 'sprain' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -159,7 +221,20 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Admin Reset Pwd Time Exp -->
+        <!--
+        - Test Case information
+          #@TestMarker       Force PasswordChange All Users
+          #@TestName         Admin Reset Pwd Time Exp
+          #@TestIssue        none
+          #@TestPurpose      Admin Reset Pwd Time Exp 
+          #@TestPreamble     none
+          #@TestStep         Admin Resetting Pwd Time Exp
+                             remove require-change-by-time 20061030183752.848Z
+          #@TestStep         User Searching With Password SearchObject returns 0
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 steps are PASS
+        -->
+        
         <testcase name="getTestCaseName('Postamble Reset')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -185,9 +260,9 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=scarter,%s' % basedn ,
                 'dsInstancePswd'   : 'sprain' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
