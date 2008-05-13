@@ -70,6 +70,9 @@
         
       <import machine="STAF_LOCAL_HOSTNAME"
         file="'%s/webcontainer.xml' % (TESTS_FUNCTIONS_DIR)" />
+
+      <import machine="STAF_LOCAL_HOSTNAME"
+        file="'%s/snmp.xml' % (TESTS_FUNCTIONS_DIR)" />
         
   </sequence>  
       

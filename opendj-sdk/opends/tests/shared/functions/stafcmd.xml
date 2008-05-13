@@ -557,8 +557,8 @@
           Type of string to be resolved
         </function-arg-description>
         <function-arg-property name="type" value="variable"/>
-      </function-arg-def>       
-      <function-arg-def name="string" type="required">
+      </function-arg-def>      
+      <function-arg-def name="name" type="required">
         <function-arg-description>
           Name of string to be resolved
         </function-arg-description>
@@ -568,12 +568,12 @@
 
     <sequence>
 
-      <message>'Resolve %s Variable %s' % (type,string)</message>
+      <message>'Resolve %s Variable %s' % (type, name)</message>
             
       <stafcmd name="'STAF Command: Resolve Var.'">
         <location>'%s' % location</location>
         <service>'var'</service>
-        <request>'RESOLVE %s STRING {%s}' % (type,string)</request>
+        <request>'RESOLVE %s {%s}' % (type, name)</request>
       </stafcmd>
 
     </sequence>
@@ -679,6 +679,64 @@
 
   </function>	
 
+<!-- List a folder by extension -->
+  <function name="listFolderByExtension" scope="local">
+    <function-prolog>
+        This function lists a folder by extension
+    </function-prolog>
+    
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="foldername" type="required">
+        <function-arg-description>
+          Name of folder to be list
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+    </function-arg-def>
+      <function-arg-def name="extension" type="required">
+        <function-arg-description>
+          he name of the file extension (default txt)
+        </function-arg-description>
+        <function-arg-property name="type" value="file extension"/>      
+      </function-arg-def>      
+    </function-map-args>
+
+    <sequence>
+      <stafcmd name="'STAF Command: list folder by extension'">
+        <location>'%s' % location</location>
+        <service>'fs'</service>
+        <request>' LIST DIRECTORY %s EXT %s ' % (foldername,extension)</request>
+      </stafcmd>
+      
+      <script>
+        cmdRC=RC
+        cmdResult=STAFResult
+      </script>
+      
+      <if expr="cmdRC != 0">
+        <sequence>
+          <script>
+            cmdResult = 'Folder does not exist.'
+          </script>
+        </sequence>
+      </if>
+
+      <call function="'checkRC'">
+        { 
+        'returncode' : cmdRC ,
+        'result'     : cmdResult 
+        }
+      </call>
+      
+      <return>cmdResult</return>
+    </sequence>
+  </function>	  
+  
   <function name="getFile">
     <function-prolog>
       This function get the contents of a file
@@ -724,5 +782,103 @@
       <return>[cmdRC,cmdResult]</return>
     </sequence>
   </function>
-  	
+  
+  <!-- Send event -->
+  <function name="SendEvent">
+    <function-prolog>
+      Send event.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional" 
+                        default="STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>  
+      <function-arg-def name="name" type="required">
+        <function-arg-description>
+          Name of event to send
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def> 
+    </function-map-args>
+    
+    <sequence>
+      <message>'Send Event %s on %s' % (name, location)</message>
+      
+      <stafcmd name="'STAF Command: Send Event.'">
+        <location>'%s' % location</location>
+        <service>'sem'</service>
+        <request>'PULSE EVENT %s' % name</request>
+      </stafcmd>
+    </sequence>
+  </function> 
+
+  <!-- Wait event -->
+  <function name="WaitEvent">
+    <function-prolog>
+      Wait event.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional" 
+                        default="STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>  
+      <function-arg-def name="name" type="required">
+        <function-arg-description>
+          Name of event to wait
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def> 
+    </function-map-args>
+    
+    <sequence>
+      <message>'Wait Event %s on %s' % (name, location)</message>
+      
+      <stafcmd name="'STAF Command: Wait Event.'">
+        <location>'%s' % location</location>
+        <service>'sem'</service>
+        <request>'WAIT EVENT %s' % name</request>
+      </stafcmd>
+    </sequence>
+  </function>
+  
+  <!-- Delete event -->
+  <function name="DeleteEvent">
+    <function-prolog>
+      Delete event.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional" 
+                        default="STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>  
+      <function-arg-def name="name" type="required">
+        <function-arg-description>
+          Name of event to delete
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def> 
+    </function-map-args>
+    
+    <sequence>
+      <message>'Delete Event %s on %s' % (name, location)</message>
+      <stafcmd name="'STAF Command: Delete Event.'">
+        <location>'%s' % location</location>
+        <service>'sem'</service>
+        <request>'DELETE EVENT %s' % name</request>
+      </stafcmd>
+    </sequence>
+  </function>
+  
 </stax>

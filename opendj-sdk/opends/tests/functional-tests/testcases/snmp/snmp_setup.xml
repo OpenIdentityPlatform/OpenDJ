@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+! -->
+<stax>
+
+  <defaultcall function="snmp_setup" />
+
+  <function name="snmp_setup">
+
+    <sequence>
+
+      <block name="'snmp_setup'">
+
+        <sequence>
+
+          <!--- Test Suite information
+            #@TestSuiteName       setup
+            #@TestSuitePurpose    Setup for the snmp test suite.
+            #@TestSuiteGroup      setup
+            #@TestScript          snmp_setup.xml
+          -->
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group'] = 'snmp'
+            CurrentTestPath['suite'] = STAXCurrentBlock
+          </script>
+
+          <call function="'testSuite_Preamble'"/>
+
+          <!--- Define default value for manager -->
+          <script>
+            snmpPath    = '%s/../%s/snmp' % (dsPath,relativeJavaDir),
+            opendmkPath = '%s/jdmkrt.jar' % snmpPath
+          </script>
+
+          <!--- Test Case information
+            #@TestMarker          setup
+            #@TestName            setup: create DS topology
+            #@TestIssue           none
+            #@TestPurpose         Create the topology necessary to the
+                                  test suite.
+            #@TestPreamble        none
+            #@TestStep            Create DS topology as described in config.py.
+            #@TestPostamble       none
+            #@TestResult          Success if createTopology returns 0.
+          -->
+          <testcase name="getTestCaseName('setup: create DS tpology')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'setup: create DS topology as described in config.py'
+              </message>
+
+              <call function="'createTopology'">
+                { 'initialiseInstance' : False }
+              </call>
+
+              <call function="'checktestRC'">
+                {
+                'returncode' : RC ,
+                'result'     : STAXResult
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+
+          <!-- Check if 'opendmkPath' already created -->
+          <call function="'GetEntry'">
+            {
+            'location'  : STAF_REMOTE_HOSTNAME ,
+            'entry'     : opendmkPath ,
+            'attribute' : 'TYPE'
+            }
+          </call>
+          <!-- 'opendmkPath' exists so we can continue -->
+          <if expr="RC != 48">
+            <sequence>
+
+              <!--- Test Case information
+               #@TestMarker          setup
+               #@TestName            setup: add initial entries
+               #@TestIssue           none
+               #@TestPurpose         Load the data needed by the test suite.
+               #@TestPreamble        none
+               #@TestStep            Load the data needed by the test suite.
+               #@TestPostamble       none
+               #@TestResult          Success if importLdif returns 0.
+              -->
+              <testcase name="getTestCaseName('setup: add initial entries')">
+
+                <sequence>
+
+                  <call function="'testCase_Preamble'"/>
+
+                  <message>
+                    'setup: add initial entries'
+                  </message>
+
+                  <call function="'importLdif'">
+                    {
+                    'ldifFile'    : '%s/snmp/snmp_start.ldif'
+                                    % logsRemoteDataDir
+                    }
+                  </call>
+
+                  <call function="'testCase_Postamble'"/>
+
+                </sequence>
+
+              </testcase>
+
+              <!--- Test Case information
+                #@TestMarker          setup
+                #@TestName            setup: start DS
+                #@TestIssue           none
+                #@TestPurpose         Start DS.
+                #@TestPreamble        none
+                #@TestStep            Start the server.
+                #@TestStep            Check that the server is alive.
+                #@TestPostamble       none
+                #@TestResult          Success if StartDsWithScript returns 0.
+              -->
+              <testcase name="getTestCaseName('setup: start DS')">
+
+                <sequence>
+
+                  <call function="'testCase_Preamble'"/>
+
+                  <message>
+                    'setup: start DS to run on port %s' \
+                    % (DIRECTORY_INSTANCE_PORT)
+                  </message>
+
+                  <!--- Start DS -->
+                  <call function="'StartDsWithScript'">
+                    { 'location' : STAF_REMOTE_HOSTNAME }
+                  </call>
+
+                  <!--- Check that DS started -->
+                  <call function="'isAlive'">
+                    {
+                    'noOfLoops'        : 5 ,
+                    'noOfMilliSeconds' : 2000
+                    }
+                  </call>
+
+                  <call function="'testCase_Postamble'"/>
+
+                </sequence>
+
+              </testcase>
+
+              <!--- Test Case information
+                #@TestMarker          setup
+                #@TestName            setup: enable SNMP Connection Handler
+                #@TestIssue           none
+                #@TestPurpose         Enable SNMP Connection Handler.
+                #@TestPreamble        none
+                #@TestStep            enable SNMP Connection Handler using
+                                      dsconfig.
+                #@TestPostamble       none
+                #@TestResult          Success if dsconfig returns 0.
+              -->
+              <testcase name="getTestCaseName
+              ('setup: enable SNMP Connection Handler')">
+
+                <sequence>
+
+                  <call function="'testCase_Preamble'"/>
+
+                  <message>
+                    'setup: enable SNMP Connection Handler'
+                  </message>
+
+                  <call function="'dsconfig'">
+                    {
+                    'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'subcommand'       : 'set-connection-handler-prop' ,
+                    'objectType'       : 'handler-name' ,
+                    'objectName'       : 'SNMP Connection Handler' ,
+                    'optionsString'    : '--set enabled:true \
+                                          --set listen-port:%s \
+                                          --set trap-port:%s \
+                                          --set opendmk-jarfile:%s' \
+                                     % (SNMP_PORT, SNMP_TRAP_PORT, opendmkPath)
+                    }
+                  </call>
+
+                  <call function="'testCase_Postamble'"/>
+
+                </sequence>
+
+              </testcase>
+
+            </sequence>
+            <else>
+              <sequence>
+
+              <!--- Test Case information
+                #@TestMarker          setup
+                #@TestName            setup: enable SNMP Connection Handler
+                #@TestIssue           none
+                #@TestPurpose         Enable SNMP Connection Handler.
+                #@TestPreamble        none
+                #@TestStep            enable SNMP Connection Handler using
+                                      dsconfig.
+                #@TestPostamble       none
+                #@TestResult          Success if dsconfig returns 0.
+              -->
+              <testcase name="getTestCaseName('setup: Warning')">
+
+                <sequence>
+
+                  <call function="'testCase_Preamble'"/>
+
+                  <script>
+                    STOP_RUN = 'True'
+                  </script>
+
+                  <message log="1" level="'Error'">
+                    'WARNING: Check if SNMP_OPENDMK_LIBDIR is set \
+                    in the config.py.stubs file.'
+                  </message>
+
+                  <tcstatus result="'fail'"></tcstatus>
+
+                  <call function="'testCase_Postamble'"/>
+
+                </sequence>
+
+              </testcase>
+
+              </sequence>
+            </else>
+          </if>
+
+          <call function="'testSuite_Postamble'"/>
+
+        </sequence>
+
+      </block>
+
+    </sequence>
+
+  </function>
+
+</stax>
