@@ -56,7 +56,7 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
    * @throws Exception
    *           If the environment could not be set up.
    */
-  @BeforeClass
+  @BeforeClass(alwaysRun = true)
   public void setUp() throws Exception
   {
     // Make sure that the server is up and running.

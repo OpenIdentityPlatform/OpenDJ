@@ -111,7 +111,7 @@ public class JmxPrivilegeTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass(alwaysRun = true)
   public void setUp()
          throws Exception
   {
