@@ -326,100 +326,113 @@
             }
           </call>          
           
-          <!---   Check if snmp java files are already compiled -->
-          <call function="'listFolderByExtension'" >
-            { 
-            'location'   : STAXServiceMachine,
-            'foldername' : javaLocalDir,
-            'extension'  : 'class'
+          <!-- Check if 'SNMP_OPENDMK_LIBDIR' exists -->
+          <call function="'GetEntry'">
+            {
+            'location'  : STAXServiceMachine,
+            'entry'     : SNMP_OPENDMK_LIBDIR,
+            'attribute' : 'TYPE'
             }
           </call>
-          <if expr="STAXResult != ''">
-            <sequence>
-              <!--- Install DS Copy zip file -->
-              <message>
-                'Copy DS zip archive locally to %s.' % TMPDIR
-              </message>
-              <call function="'copyFile'">
+          <!-- 'SNMP_OPENDS_JARFILE' exists so we can continue -->
+          <if expr="RC != 48">
+            <sequence>          
+              <!---   Check if snmp java files are already compiled -->
+              <call function="'listFolderByExtension'" >
                 { 
-                'srcfile'    : '%s/%s' % (ZIPPATH, ZIPNAME),
-                'destfile'   : '%s/%s' % (TMPDIR, ZIPNAME),
-                'remotehost' : STAXServiceMachine
-                }
-              </call>
-              
-              <!--- Install DS Extract zip file -->
-              <message>
-                'Extract locally DS zip archive to %s' % TMPDIR
-              </message>
-              <call function="'unZipFile'">
-                { 
-                'location' : STAXServiceMachine,
-                'zipfile'  : '%s/%s' % (TMPDIR, ZIPNAME),
-                'unzipdir' : TMPDIR
-                }
-              </call>
- 
-              <call function="'ResolveVar'" >
-                { 
-                'location' : STAXServiceMachine,
-                'type'     : 'STRING',
-                'name'     : 'STAF/Env/LD_LIBRARY_PATH'
-                }
-              </call>                                                       
-              <script>jstaf_jarfile = '%s/JSTAF.jar' % STAFResult</script> 
-              
-              <!---   Compile snmp java files on controler host -->
-              <message>
-                'Compile Java files under %s on %s' \
-                % (javaLocalDir, STAXServiceMachine)
-              </message>
-              <call function="'compileJava'" >
-                {
                 'location'   : STAXServiceMachine,
                 'foldername' : javaLocalDir,
-                'classpath'  : '%s:%s:%s' \
-                % (SNMP_OPENDS_JARFILE, SNMP_OPENDMK_JARFILE, jstaf_jarfile)
+                'extension'  : 'class'
                 }
               </call>
-              
-              <!--  Delete the DS zip archive -->
-              <message>
-                'Delete %s/%s' % (TMPDIR, ZIPNAME)
-              </message>
-              <call function="'deleteFile'">
-                { 
-                'location' : STAXServiceMachine,
-                'filename' : '%s/%s' % (TMPDIR, ZIPNAME)
-                }
-              </call>
-              
-              <!--  Delete the DS install dir -->
-              <message>
-                'Delete %s/%s' % (TMPDIR, OPENDSNAME)
-              </message>
-              <call function="'deleteFolder'">
-                { 
-                'location' : STAXServiceMachine,
-                'foldername' : '%s/%s' % (TMPDIR, OPENDSNAME)
-                }
-              </call>
-              
-              <!-- Archive SNMP_OPENDMK_JARFILE file -->
-              <message>
-                'Copy OpenDMK jar file %s locally to %s.' \
-                % (SNMP_OPENDMK_JARFILE,javaLocalDir)
-              </message>
-              <call function="'copyFile'">
-                { 
-                'remotehost' : STAXServiceMachine,
-                'srcfile'    : SNMP_OPENDMK_JARFILE,
-                'destfile'   : '%s/jdmkrt.jar' % javaLocalDir,
-                'remotehost' : STAXServiceMachine
-                }
-              </call>
+              <if expr="STAXResult != ''">
+                <sequence>
+                  <!--- Install DS Copy zip file -->
+                  <message>
+                    'Copy DS zip archive locally to %s.' % TMPDIR
+                  </message>
+                  <call function="'copyFile'">
+                    { 
+                    'srcfile'    : '%s/%s' % (ZIPPATH, ZIPNAME),
+                    'destfile'   : '%s/%s' % (TMPDIR, ZIPNAME),
+                    'remotehost' : STAXServiceMachine
+                    }
+                  </call>
+                  
+                  <!--- Install DS Extract zip file -->
+                  <message>
+                    'Extract locally DS zip archive to %s' % TMPDIR
+                  </message>
+                  <call function="'unZipFile'">
+                    { 
+                    'location' : STAXServiceMachine,
+                    'zipfile'  : '%s/%s' % (TMPDIR, ZIPNAME),
+                    'unzipdir' : TMPDIR
+                    }
+                  </call>
+                  
+                  <call function="'ResolveVar'" >
+                    { 
+                    'location' : STAXServiceMachine,
+                    'type'     : 'STRING',
+                    'name'     : 'STAF/Env/LD_LIBRARY_PATH'
+                    }
+                  </call>                                                       
+                  <script>jstaf_jarfile = '%s/JSTAF.jar' % STAFResult</script> 
+                  
+                  <!---   Compile snmp java files on controler host -->
+                  <message>
+                    'Compile Java files under %s on %s' \
+                    % (javaLocalDir, STAXServiceMachine)
+                  </message>
+                  <call function="'compileJava'" >
+                    {
+                    'location'   : STAXServiceMachine,
+                    'foldername' : javaLocalDir,
+                    'classpath'  : '%s:%s:%s' \
+                    % (SNMP_OPENDS_JARFILE, SNMP_OPENDMK_JARFILE, jstaf_jarfile)
+                    }
+                  </call>
+                  
+                  <!--  Delete the DS zip archive -->
+                  <message>
+                    'Delete %s/%s' % (TMPDIR, ZIPNAME)
+                  </message>
+                  <call function="'deleteFile'">
+                    { 
+                    'location' : STAXServiceMachine,
+                    'filename' : '%s/%s' % (TMPDIR, ZIPNAME)
+                    }
+                  </call>
+                  
+                  <!--  Delete the DS install dir -->
+                  <message>
+                    'Delete %s/%s' % (TMPDIR, OPENDSNAME)
+                  </message>
+                  <call function="'deleteFolder'">
+                    { 
+                    'location' : STAXServiceMachine,
+                    'foldername' : '%s/%s' % (TMPDIR, OPENDSNAME)
+                    }
+                  </call>
+                  
+                  <!-- Archive SNMP_OPENDMK_JARFILE file -->
+                  <message>
+                    'Copy OpenDMK jar file %s locally to %s.' \
+                    % (SNMP_OPENDMK_JARFILE,javaLocalDir)
+                  </message>
+                  <call function="'copyFile'">
+                    { 
+                    'remotehost' : STAXServiceMachine,
+                    'srcfile'    : SNMP_OPENDMK_JARFILE,
+                    'destfile'   : '%s/jdmkrt.jar' % javaLocalDir,
+                    'remotehost' : STAXServiceMachine
+                    }
+                  </call>
+                </sequence>
+              </if>
             </sequence>
-          </if>
+          </if>          
           
           <!--  Delete the any existing testdata archive -->
           <message>
