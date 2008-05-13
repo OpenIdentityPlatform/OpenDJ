@@ -81,7 +81,7 @@
               value="${daily.package.dir}/${product.name}.zip"/>
     <property name="daily.package.url" 
               value="${daily.build.url}/${daily.date}${daily.build.time}/${SHORT_NAME}/build/package/${product.name}.zip"/>
-    
+     
   <!-- installer wide settings - bottom  -->
   
 <!-- Usage section - top     -->
@@ -155,16 +155,51 @@
   </target>
 
   <target name="download-do-get-services"  unless="bits.services.downloaded.before">
-    <get src="${bits.download.url}/${bits.email.archive}" 
-         dest="${bits.download.dir}/${bits.email.archive}" />
-    <get src="${bits.download.url}/${bits.event.archive}" 
-         dest="${bits.download.dir}/${bits.event.archive}" />
-    <get src="${bits.download.url}/${bits.eventmanager.archive}" 
-         dest="${bits.download.dir}/${bits.eventmanager.archive}" />
-    <get src="${bits.download.url}/${bits.stax.archive}" 
-         dest="${bits.download.dir}/${bits.stax.archive}" />
-    <get src="${bits.download.url}/${bits.http.archive}" 
-         dest="${bits.download.dir}/${bits.http.archive}" />
+    <if>
+      <not>
+        <available file="${bits.download.dir}/${bits.email.archive}" />
+      </not>
+      <then>
+        <get src="${bits.download.url}/${bits.email.archive}" 
+             dest="${bits.download.dir}/${bits.email.archive}" />
+      </then>
+    </if>
+    <if>
+      <not>
+        <available file="${bits.download.dir}/${bits.event.archive}" />
+      </not>
+      <then>
+        <get src="${bits.download.url}/${bits.event.archive}" 
+             dest="${bits.download.dir}/${bits.event.archive}" />
+      </then>
+    </if>
+    <if>
+      <not>
+        <available file="${bits.download.dir}/${bits.eventmanager.archive}" />
+      </not>
+      <then>
+        <get src="${bits.download.url}/${bits.eventmanager.archive}" 
+             dest="${bits.download.dir}/${bits.eventmanager.archive}" />
+      </then>
+    </if>
+    <if>
+      <not>
+        <available file="${bits.download.dir}/${bits.stax.archive}" />
+      </not>
+      <then>
+        <get src="${bits.download.url}/${bits.stax.archive}" 
+             dest="${bits.download.dir}/${bits.stax.archive}" />
+      </then>
+    </if>
+    <if>
+      <not>
+        <available file="${bits.download.dir}/${bits.http.archive}" />
+      </not>
+      <then>
+        <get src="${bits.download.url}/${bits.http.archive}" 
+             dest="${bits.download.dir}/${bits.http.archive}" />
+      </then>
+    </if>
     <property name="bits.services.downloaded" value="true" />
   </target>
   
@@ -176,6 +211,8 @@
         <or>
           <isset property="bits.staf.downloaded"/>
           <isset property="bits.staf.downloaded.before" />
+        </or>
+        <or>
           <isset property="bits.tomcat.downloaded"/>
           <isset property="bits.tomcat.downloaded.before" />
         </or>
@@ -469,9 +506,9 @@ email.server.pwd=${email.server.pwd.input}
   <target name="run-tests-build-pkg" 
     if="product.package.build" 
     depends="run-tests-get-pkg">
-    <ant dir="${project.home}" 
-      antfile="${project.home}/build.xml" 
-      target="package"/>
+      <ant antfile="${project.home}/build.xml" 
+           target="package"
+           inheritAll="false"/>
   </target>
   
   <target name="run-tests-get-pkg">
@@ -480,9 +517,30 @@ email.server.pwd=${email.server.pwd.input}
                else="${project.home}/build/package">
        <isset property="tests.run.daily"/>
      </condition>
+     
+     <loadproperties srcFile="${project.home}/build.properties">
+       <filterchain>
+         <linecontains>
+           <contains value="opendmk."/>
+         </linecontains>
+       </filterchain>
+     </loadproperties>
+     <loadproperties srcFile="${tests.config.stubs}">
+       <filterchain>
+         <linecontains>
+           <contains value="SNMP_"/>
+         </linecontains>
+         <tokenfilter>
+           <replacestring from="'" to=""/>
+         </tokenfilter>
+       </filterchain>
+     </loadproperties>
+     <!-- <echo>opendm.lib.dir=${opendmk.lib.dir}</echo> -->
+     <!-- <echo>SNMP_OPENDMK_LIBDIR=${SNMP_OPENDMK_LIBDIR}</echo> -->
+  
      <property name="product.package" 
                value="${product.package.dir}/${product.name}.zip"/>
-     <condition property="product.package.build">
+     <if>
        <and> 
          <not>
            <isset property="tests.run.daily"/>
@@ -490,8 +548,75 @@ email.server.pwd=${email.server.pwd.input}
          <not>
            <available file="${product.package}"/>
          </not>
-       </and>
-     </condition>
+       </and>    
+       <then>
+         <echo>Daily run not set and ${product.name}.zip not found.</echo>
+         <if>
+           <available file="${SNMP_OPENDMK_LIBDIR}/${SNMP_OPENDMK_JARFILE}" />
+           <then>
+             <!-- <echo>SNMP_OPENDMK_LIBDIR is set in ${tests.config.stubs}.</echo> -->
+             <if>
+               <length string="${opendmk.lib.dir}" when="equal" length="0" />
+               <then>
+                 <echo>SNMP_OPENDMK_LIBDIR is set in ${tests.config.stubs}.</echo>
+                 <echo>opendmk.lib.dir is not set in ${project.home}/build.properties.</echo>
+                 <echo>Update opendmk.lib.dir and build ${product.name}.zip with SNMP.</echo>
+                 <replace file="${project.home}/build.properties"
+                          value="opendmk.lib.dir=${SNMP_OPENDMK_LIBDIR}">
+                   <replacefilter token="opendmk.lib.dir="/>
+                 </replace>                 
+                 <property name="product.package.build" value="true"/>
+               </then>
+             </if>
+           </then>
+           <else>
+             <echo>SNMP_OPENDMK_LIBDIR is not set or is wrong in ${tests.config.stubs}.</echo>
+             <echo>Build ${product.name}.zip without SNMP.</echo>
+           </else>         
+         </if>
+       </then>
+       <else>
+         <if>
+           <available file="${product.package}"/>
+           <then>
+             <!-- <echo>${product.name}.zip found</echo> -->
+             <if>
+               <available file="${SNMP_OPENDMK_LIBDIR}/${SNMP_OPENDMK_JARFILE}" />
+               <then>
+                 <!-- <echo>SNMP_OPENDMK_LIBDIR is set in ${tests.config.stubs}.</echo> -->
+                 <if>
+                   <not>
+                     <length string="${opendmk.lib.dir}" when="equal" length="0" />
+                   </not>
+                   <then>
+                     <!-- <echo>opendmk.lib.dir is set in ${project.home}/build.properties.</echo> -->
+                     <!-- <echo>Nothing to do.</echo> -->
+                   </then>
+                   <else>
+                     <echo>SNMP_OPENDMK_LIBDIR is set in ${tests.config.stubs}.</echo>
+                     <echo>opendmk.lib.dir is not set in ${project.home}/build.properties.</echo>
+                     <echo>Update opendmk.lib.dir and build again ${product.name}.zip with SNMP.</echo>
+                     <replace file="${project.home}/build.properties"
+                              value="opendmk.lib.dir=${SNMP_OPENDMK_LIBDIR}">
+                       <replacefilter token="opendmk.lib.dir="/>
+                     </replace>
+                     <property name="product.package.build" value="true"/>
+                   </else>
+                 </if>
+               </then>
+               <else>
+                 <!-- <echo>SNMP_OPENDMK_LIBDIR is not set or is wrong in ${tests.config.stubs}.</echo> -->
+                 <!-- <echo>Nothing to do.</echo> -->
+               </else>
+             </if>
+           </then>
+           <else>
+             <!-- <echo>Daily run is set.</echo> -->
+             <!-- <echo>Nothing to do.</echo> -->
+           </else>
+         </if>
+       </else>
+     </if>
   </target>
 
   <target name="run-tests-check" depends="run-tests-build-pkg">
@@ -588,7 +713,7 @@ email.server.pwd=${email.server.pwd.input}
     <fail message="Could not run the functional tests"/>
   </target>
   <target name="run-tests"
-    depends="status-do,run-tests-check,run-tests-cant,run-tests-prepare,run-my-tests-default-plan" 
+    depends="run-my-tests-define,status-do,run-tests-check,run-tests-cant,run-tests-prepare,run-my-tests-default-plan" 
     if="run-tests.proceed">
     <property name="tests.request" value="EXECUTE FILE ${tests.xml} JOBNAME OpenDS_Functional_Tests SCRIPTFILE ${tests.config} WAIT CLEARLOGS"/>
     <condition property="tests.replay.script" value="replay.bat" else="replay.sh">
@@ -621,10 +746,15 @@ email.server.pwd=${email.server.pwd.input}
     <move file="${tests.config.backup}" 
           tofile="${tests.config}"/>
     <echo file="${tests.run.dir}/last.run">${tests.run.time}</echo>
-    <echo>Saving server logs</echo>
-    <copy todir="${tests.run.dir}/${tests.run.time}/server-logs">
-      <fileset dir="${staf.tmp.dir}/${product.name}/logs"/>
-    </copy>
+    <if>
+      <available file="${staf.tmp.dir}/${product.name}/logs" />
+      <then>
+        <echo>Saving server logs</echo>
+        <copy todir="${tests.run.dir}/${tests.run.time}/server-logs">
+          <fileset dir="${staf.tmp.dir}/${product.name}/logs"/>
+        </copy>
+      </then>
+    </if>
     <echo>Saving Staf/Stax logs</echo>
     <copy todir="${tests.run.dir}/${tests.run.time}/staf-logs">
       <fileset dir="${staf.home}/logs"/>
@@ -741,7 +871,7 @@ email.server.pwd=${email.server.pwd.input}
          <contains value='font size="+2'/>
         </linecontains>
         <tokenfilter>
-          <replaceregex pattern=".*font size=.+2..(\d+)%./font.*" replace="test.percentage=\1"/>
+          <replaceregex pattern=".*font size=.+2..(.*\d+)%./font.*" replace="test.percentage=\1"/>
         </tokenfilter>
       </filterchain>
     </copy>
@@ -884,7 +1014,7 @@ email.server.pwd=${email.server.pwd.input}
 
   <target name="daily-coverage" depends="coverage-on,run-daily,restore-pkg,coverage-report"/>
   
-  <target name="testwithcoverage" depends="coverage-on,coverage-instrument,run-tests,restore-pkg,coverage-report"/> 
+  <target name="testwithcoverage" depends="run-my-tests-define,coverage-on,coverage-instrument,run-tests,restore-pkg,coverage-report"/> 
 <!-- Run tests section - bottom -->
   
 <!-- Uninstallation section - top    -->
@@ -1049,7 +1179,13 @@ email.server.pwd=${email.server.pwd.input}
         <available file="${bits.download.dir}/${bits.staf.archive}"/>
       </condition>
       <condition property="bits.services.downloaded.before" >
-        <available file="${bits.download.dir}/${bits.stax.archive}" />
+        <and>
+          <available file="${bits.download.dir}/${bits.stax.archive}" />
+          <available file="${bits.download.url}/${bits.email.archive}" />
+          <available file="${bits.download.url}/${bits.event.archive}" />
+          <available file="${bits.download.url}/${bits.eventmanager.archive}" />
+          <available file="${bits.download.url}/${bits.http.archive}" />
+        </and>
       </condition>
       <condition property="bits.tomcat.downloaded.before">
         <available file="${bits.webcontainer.download.dir}/${bits.tomcat.archive}"/>
@@ -1136,7 +1272,7 @@ email.server.pwd=${email.server.pwd.input}
 <!-- Status section - bottom -->
 
 <!-- Macros section - top -->
-  <target name="bootstrap">
+  <target name="bootstrap" depends="run-my-tests-define">
     <antcall target="download"  />
     <antcall target="install"   />
     <antcall target="start"     />

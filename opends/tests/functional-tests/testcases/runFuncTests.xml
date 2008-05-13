@@ -136,13 +136,19 @@
       <!--
       add keyword 'main_dsml' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
-
+      
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/setup/setup.xml' % (TESTS_DIR)" />
       <!--
       add keyword 'main_setup' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
-
+      
+      <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/testcases/snmp/snmp.xml' % TESTS_DIR" />
+      <!--
+      add keyword 'main_snmp' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
+      -->
+      
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/sample/sample.xml' % TESTS_DIR" />
       <script>

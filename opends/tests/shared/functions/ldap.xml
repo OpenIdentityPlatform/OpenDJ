@@ -1098,8 +1098,7 @@
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
           'location'  : location,
-          'outputFile': outputFile,
-          'outputPath': outputPath,
+          'outputFile': '%s/%s' % (outputPath, outputFile) ,
           'expectedRC': expectedRC ,
           'logStderr' : logStderr
         }
@@ -2716,8 +2715,8 @@
           'command'   : '%s/bin/java' % JAVA_HOME,
           'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
           'location'  : location,
-          'path'      : '%s/../%s' % (dsPath,relativeJavaDir),
-          'env'       : ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s/../%s' % (dsPath,relativeJavaDir)],
+          'path'      : '%s/../%s/ldap' % (dsPath,relativeJavaDir),
+          'env'       : ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s/../%s/ldap' % (dsPath,relativeJavaDir)],
           'expectedRC': expectedRC
         }
       </call>
@@ -2959,8 +2958,8 @@
           'command'   : '%s/bin/java' % JAVA_HOME,
           'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
           'location'  : location,
-          'env'       : ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s/../%s' % (dsPath,relativeJavaDir)],
-          'path'      : '%s/../%s' % (dsPath,relativeJavaDir),
+          'env'       : ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s/../%s/ldap' % (dsPath,relativeJavaDir)],
+          'path'      : '%s/../%s/ldap' % (dsPath,relativeJavaDir),
           'expectedRC': expectedRC
         }
       </call>

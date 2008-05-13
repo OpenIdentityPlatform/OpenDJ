@@ -115,10 +115,17 @@
             <sequence>
               <tcstatus result="'pass'"/>          
             </sequence>
-          </if>        
-          <message log="1">
-            'SUCCESS: RC=%s, Expected %s' % (returncode,expected)
-          </message>
+          </if>
+          <if expr="VERBOSE_MODE == 'True'">
+            <message log="1">
+              'SUCCESS: RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
+            </message>
+            <else>
+              <message log="1">
+                'SUCCESS: RC=%s, Expected %s' % (returncode,expected)
+              </message>
+            </else>
+          </if>
           <script>
             RC=0
           </script>
@@ -1452,14 +1459,6 @@
         </function-arg-description>
         <function-arg-property name="type" value="file"/>
       </function-arg-def>
-      <function-arg-def name="outputPath" 
-                        type="optional" 
-                        default="'%s/../..' % dsBinPath">
-        <function-arg-description>
-          Path containing the outputFile
-        </function-arg-description>
-        <function-arg-property name="type" value="filepath"/>
-      </function-arg-def>  
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0.
@@ -1505,7 +1504,7 @@
           <workdir>path</workdir>
           <envs>env</envs>
           <console use="'same'"/>
-          <stdout if="outputFile != 'None'" mode="'replace'">'%s/%s' % (outputPath, outputFile)</stdout>
+          <stdout if="outputFile != 'None'" mode="'replace'">'%s' % outputFile</stdout>
           <stderr mode="'stdout'"/>
           <returnstdout/>
         </process>
@@ -1517,7 +1516,7 @@
             <workdir>path</workdir>
             <envs>env</envs>
             <console use="'same'"/>
-            <stdout if="outputFile != 'None'" mode="'replace'">'%s/%s' % (outputPath, outputFile)</stdout>
+            <stdout if="outputFile != 'None'" mode="'replace'">'%s' % outputFile</stdout>
             <returnstdout/>
           </process>
         </else>
@@ -1980,14 +1979,110 @@
     </sequence>
   </function>
   
-  
-  
+  <function name="compileJava" scope="local">
+    <function-prolog>
+      This function compile java files.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" 
+                        type="optional" 
+                        default="STAXServiceMachine">
+        <function-arg-description>
+          Location of remote host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="foldername" type="required">
+        <function-arg-description>
+          Path containing java files to compile
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="classpath" type="optional">
+        <function-arg-description>
+          Additional classpath
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>      
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. 
+          0 for successful grep, 1 for unsuccessful grep. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>   
+    </function-map-args>
+    
+    <sequence>
+      
+      <script>
+        if classpath:
+          cp = 'CLASSPATH=%s:.' % classpath
+        else:
+          cp = 'CLASSPATH=.'
+          
+        if isWindows:
+          cp = cp.replace(':', ';')
+          
+        if location == STAXServiceMachine:
+          cmd = 'javac'
+          env = ['%s' % cp]        
+        else:
+          cmd = '%s/bin/javac' % JAVA_HOME
+          env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp]          
+      </script>
+      
+      <call function="'listFolderByExtension'" >
+        { 
+        'location'   : location ,
+        'foldername' : foldername ,
+        'extension'  : 'java'
+        }
+      </call>
+      
+      <script>
+        cmdResult = STAXResult
+      </script>
+
+      <if expr="cmdResult != 'Folder does not exist.'">
+        <sequence>
+          <script>
+            list = ""
+            for file in cmdResult:
+              list = list + " " + file
+          </script>
+          
+          <call function="'runCommand'" >
+            { 
+            'name'       : 'Compile Java files' ,
+            'command'    : cmd ,
+            'arguments'  : '-target 1.5 %s' % list ,
+            'location'   : location ,
+            'path'       : foldername ,
+            'env'        : env ,
+            'expectedRC' : expectedRC
+            }
+          </call>
+        </sequence>
+        <else>
+          <tcstatus result="'fail'"></tcstatus>
+        </else>
+      </if>
+
+      <return>
+        STAXResult
+      </return>
+    </sequence>
+  </function>
+
   <function name="getFreePort" scope="local">
     <function-description>
       Returns the first free TCP port greater or equal to given number
     </function-description>
     <function-map-args>
-      <function-arg-def name="host" type="optional" default="STAXServiceMachine">
+      <function-arg-def name="host"
+                        type="optional"
+                        default="STAXServiceMachine">
         <function-arg-description>
           Which machine to look for the free port
         </function-arg-description>
@@ -2026,5 +2121,4 @@
     </sequence>
   </function>
 
-  
 </stax>

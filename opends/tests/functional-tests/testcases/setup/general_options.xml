@@ -84,9 +84,7 @@
               'command'   : setupCmd,
               'arguments' : setupParams,
               'path'      : ODS_UNZIPPED,
-              'expectedRC': 0,
-              'outputPath': OUT_GROUP,
-              'outputFile': 'go-setup-version.txt',
+              'outputFile': '%s/go-setup-version.txt' % OUT_GROUP
             }
           </call>
 
@@ -97,8 +95,7 @@
           <call function="'grep'">
             { 'location'  : STAXServiceMachine,
               'filename'  : grepFile,
-              'testString': 'OpenDS Directory Server',
-              'expectedRC': 0,
+              'testString': 'OpenDS Directory Server'
             }
           </call>
 
@@ -115,9 +112,7 @@
               'command'   : uninstallCmd,
               'arguments' : uninstallParams,
               'path'      : ODS_UNZIPPED,
-              'expectedRC': 0,
-              'outputPath': OUT_GROUP,
-              'outputFile': 'go-uninstall-version.txt',
+              'outputFile': '%s/go-uninstall-version.txt' % OUT_GROUP
             }
           </call>
 
@@ -128,8 +123,7 @@
           <call function="'grep'">
             { 'location'  : STAXServiceMachine,
               'filename'  : grepFile,
-              'testString': 'OpenDS Directory Server',
-              'expectedRC': 0,
+              'testString': 'OpenDS Directory Server'
             }
           </call>
 
@@ -169,9 +163,7 @@
               'command'   : setupCmd,
               'arguments' : setupParams,
               'path'      : ODS_UNZIPPED,
-              'expectedRC': 0,
-              'outputPath': OUT_GROUP,
-              'outputFile': 'go-setup-help.txt',
+              'outputFile': '%s/go-setup-help.txt' % OUT_GROUP
             }
           </call>
 
@@ -182,8 +174,7 @@
           <call function="'grep'">
             { 'location'  : STAXServiceMachine,
               'filename'  : grepFile,
-              'testString': 'Usage',
-              'expectedRC': 0,
+              'testString': 'Usage'
             }
           </call>
 
@@ -200,9 +191,7 @@
               'command'   : uninstallCmd,
               'arguments' : uninstallParams,
               'path'      : ODS_UNZIPPED,
-              'expectedRC': 0,
-              'outputPath': OUT_GROUP,
-              'outputFile': 'go-uninstall-help.txt',
+              'outputFile': '%s/go-uninstall-help.txt' % OUT_GROUP
             }
           </call>
 
@@ -213,8 +202,7 @@
           <call function="'grep'">
             { 'location'  : STAXServiceMachine,
               'filename'  : grepFile,
-              'testString': 'Usage',
-              'expectedRC': 0,
+              'testString': 'Usage'
             }
           </call>
 
