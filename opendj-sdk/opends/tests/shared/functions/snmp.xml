@@ -152,7 +152,7 @@
         STAFCmd='SNMPGet'
         
         snmpPath = '%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir)
-        cp = 'CLASSPATH=%s:%s/jdmkrt.jar:.' % (SNMP_OPENDS_JARFILE, snmpPath)
+        cp = 'CLASSPATH=%s/%s:%s/jdmkrt.jar:.' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE, snmpPath)
         
         if isWindows:
           cp = cp.replace(':', ';')
@@ -309,7 +309,7 @@
         STAFCmd='SNMPSet'
         
         snmpPath = '%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir)
-        cp = 'CLASSPATH=%s:%s/jdmkrt.jar:.' % (SNMP_OPENDS_JARFILE, snmpPath)
+        cp = 'CLASSPATH=%s/%s:%s/jdmkrt.jar:.' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE, snmpPath)
         
         if isWindows:
           cp = cp.replace(':', ';')
@@ -392,7 +392,7 @@
         { 
         'location' : location ,
         'type'     : 'STRING',
-        'name'     : 'STAF/Env/STAF_DIR'
+        'name'     : 'STAF/Config/STAFRoot'
         }
       </call>                                                       
       <script>jstaf_jarfile = '%s/lib/JSTAF.jar' % STAFResult</script> 
@@ -419,8 +419,8 @@
         STAFCmd='SNMPTrapListener'
         
         snmpPath = '%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir)
-        cp = 'CLASSPATH=%s:%s/jdmkrt.jar:%s:.' \
-        % (SNMP_OPENDS_JARFILE, snmpPath, jstaf_jarfile)
+        cp = 'CLASSPATH=%s/%s:%s/jdmkrt.jar:%s:.' \
+        % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE, snmpPath, jstaf_jarfile)
         
         if isWindows:
           cp = cp.replace(':', ';')
