@@ -784,7 +784,7 @@
   </function>
   
   <!-- Send event -->
-  <function name="SendEvent">
+  <function name="SendEvent" scope="local">
     <function-prolog>
       Send event.
     </function-prolog>
@@ -817,7 +817,7 @@
   </function> 
 
   <!-- Wait event -->
-  <function name="WaitEvent">
+  <function name="WaitEvent" scope="local">
     <function-prolog>
       Wait event.
     </function-prolog>
@@ -850,7 +850,7 @@
   </function>
   
   <!-- Delete event -->
-  <function name="DeleteEvent">
+  <function name="DeleteEvent" scope="local">
     <function-prolog>
       Delete event.
     </function-prolog>

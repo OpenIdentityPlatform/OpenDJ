@@ -392,10 +392,10 @@
         { 
         'location' : location ,
         'type'     : 'STRING',
-        'name'     : 'STAF/Env/LD_LIBRARY_PATH'
+        'name'     : 'STAF/Env/STAF_DIR'
         }
       </call>                                                       
-      <script>jstaf_jarfile = '%s/JSTAF.jar' % STAFResult</script> 
+      <script>jstaf_jarfile = '%s/lib/JSTAF.jar' % STAFResult</script> 
       
       <!-- Build the command -->
       <script>

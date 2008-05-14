@@ -281,7 +281,7 @@
             'extension'  : 'class'
             }
           </call>
-          <if expr="STAXResult != ''">
+          <if expr="len(STAXResult) == 0">
             <sequence>
               <!---   Compile ldap java files on controler host -->
               <message>
@@ -334,7 +334,7 @@
             'attribute' : 'TYPE'
             }
           </call>
-          <!-- 'SNMP_OPENDS_JARFILE' exists so we can continue -->
+          <!-- 'SNMP_OPENDMK_LIBDIR' exists so we can continue with SNMP -->
           <if expr="RC != 48">
             <sequence>          
               <!---   Check if snmp java files are already compiled -->
@@ -345,7 +345,7 @@
                 'extension'  : 'class'
                 }
               </call>
-              <if expr="STAXResult != ''">
+              <if expr="len(STAXResult) == 0">
                 <sequence>
                   <!--- Install DS Copy zip file -->
                   <message>
@@ -375,10 +375,10 @@
                     { 
                     'location' : STAXServiceMachine,
                     'type'     : 'STRING',
-                    'name'     : 'STAF/Env/LD_LIBRARY_PATH'
+                    'name'     : 'STAF/Env/STAF_DIR'
                     }
                   </call>                                                       
-                  <script>jstaf_jarfile = '%s/JSTAF.jar' % STAFResult</script> 
+                  <script>jstaf_jarfile = '%s/lib/JSTAF.jar' % STAFResult</script> 
                   
                   <!---   Compile snmp java files on controler host -->
                   <message>

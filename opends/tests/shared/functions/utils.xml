@@ -2014,7 +2014,16 @@
     </function-map-args>
     
     <sequence>
-      
+      <call function="'ResolveVar'" >
+        { 
+        'location' : location ,
+        'type'     : 'STRING',
+        'name'     : 'STAF/Env/JAVA_HOME'
+        }
+      </call>
+      <script>local_java_home = '%s' % STAFResult</script>
+
+      <!-- Build the command -->
       <script>
         if classpath:
           cp = 'CLASSPATH=%s:.' % classpath
@@ -2025,7 +2034,7 @@
           cp = cp.replace(':', ';')
           
         if location == STAXServiceMachine:
-          cmd = 'javac'
+          cmd = '%s/bin/javac' % local_java_home
           env = ['%s' % cp]        
         else:
           cmd = '%s/bin/javac' % JAVA_HOME

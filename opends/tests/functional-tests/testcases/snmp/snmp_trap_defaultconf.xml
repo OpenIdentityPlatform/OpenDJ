@@ -81,6 +81,7 @@
 
                   <call function="'SNMPTrapListener'">
                     {
+                    'location'          : STAF_REMOTE_HOSTNAME ,
                     'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                     'snmpTrapPort'      : SNMP_TRAP_PORT ,
                     'snmpTrapCommunity' : 'OpenDS' ,
