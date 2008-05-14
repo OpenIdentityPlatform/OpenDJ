@@ -56,7 +56,8 @@
   <!ATTLIST security
         sslEnabled ( true | false ) "false"
         certificate ( generateSelfSigned ) "generateSelfSigned"
-        startTlsEnabled ( true | false ) "false">
+        startTlsEnabled ( true | false ) "false"
+        secureReplication ( true | false ) "false" >
   <!ELEMENT tuning (java?,databaseCachePercentage?,replicationPurgeDelay?)>
     <!ELEMENT java EMPTY>
     <!ATTLIST java
