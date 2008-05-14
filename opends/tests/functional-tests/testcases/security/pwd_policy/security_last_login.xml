@@ -42,7 +42,15 @@
  
          <!--- Define default value for basedn -->
           <script>
-            basedn = 'ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com'
+     basedn = 'ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com'
+     basepwp = 'cn=Default Password Policy,cn=Password Policies,cn=config'
+     msg1 = 'Security: Last Login:'
+     msg2 = 'Long Idle Lockout'
+     msg3 = 'Admin Changing Idle Lockout Interval'
+     msg4 = 'Password Change Override Step'
+     msg5 = 'User Bind Reset Step'
+     msg6 = 'User Binding Before Idle Lockout'
+     msg7 = 'User Binding After Idle Lockout'
           </script>
         
         <!--- Test Case information
@@ -61,16 +69,16 @@
           <sequence>
             <call function="'testCase_Preamble'"/>          
             <message>
-               'Security: Last Login: Preamble - Checking existence of ds-cfg-idle-lockout-interval'
+'%s Preamble - Checking existence of ds-cfg-idle-lockout-interval' % msg1
             </message>
 
             <call function="'compareEntry'">
-              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                'attrToBeCompared'    : 'ds-cfg-idle-lockout-interval:0 seconds',
-                'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
+             { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+               'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+               'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+               'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+               'attrToBeCompared'    : 'ds-cfg-idle-lockout-interval:0 seconds',
+               'entryToBeCompared'   : basepwp }
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -264,11 +272,11 @@
           #@TestResult        Success if the 3 steps are PASS
         -->
         
-        <testcase name="getTestCaseName('Admin Enable Last Login Attr And Format')">
+   <testcase name="getTestCaseName('Admin Enable Last Login Attr And Format')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Last Login: Admin Enable Last Login Attribute And Format'
+           'Security: Last Login: Admin Enable Last Login Attribute And Format'
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -345,7 +353,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Last Login: Long Idle Lockout Step 1. Check User Bind'
+              'Security: Last Login: Long Idle Lockout Step 1. Check User Bind'
             </message>
 
             <call function="'SearchObject'">
@@ -359,7 +367,7 @@
             </call>
 
             <message>
-               'Security: Last Login: Long Idle Lockout Step 2. Admin Changing Idle Lockout Interval'
+'%s Long Idle Lockout Step 2. Admin Changing Idle Lockout Interval' % msg1
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -373,7 +381,7 @@
             </call>
             
             <message>
-               'Security: Last Login: Long Idle Lockout Step 3. User Binding Before Idle Lockout'
+'%s Long Idle Lockout Step 3. User Binding Before Idle Lockout' % msg1
             </message>
 
             <call function="'SearchObject'">
@@ -397,7 +405,7 @@
 
             
             <message>
-               'Security: Last Login: Long Idle Lockout Step 5. User Binding After Idle Lockout'
+'%s Long Idle Lockout Step 5. User Binding After Idle Lockout' % msg1
             </message>
 
             <call function="'SearchObject'">
@@ -434,7 +442,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Last Login: Reset Idle Lockout Step 1. Admin Resetting Idle Lockout Interval'
+'%s Reset Idle Lockout Step 1. Admin Resetting Idle Lockout Interval' % msg1
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -509,11 +517,11 @@
             #@TestResult          Success if the 7 steps are PASS
         -->
         
-        <testcase name="getTestCaseName('Long Idle Lockout - Pwd Change Override')">
+    <testcase name="getTestCaseName('Long Idle Lockout - Pwd Change Override')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Last Login: Long Idle Lockout - Password Change Override Step 1. Check User Bind'
+'%s, %s - Password Change Override Step 1. Check User Bind' % (msg1,msg2)
             </message>
 
             <call function="'SearchObject'">
@@ -527,7 +535,7 @@
             </call>
 
             <message>
-               'Security: Last Login: Long Idle Lockout - Password Change Override Step 2. Admin Changing Idle Lockout Interval'
+'%s, %s - Password Change Override Step 2. %s' % (msg1,msg2,msg3)
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -541,7 +549,7 @@
             </call>
             
             <message>
-               'Security: Last Login: Long Idle Lockout - Password Change Override Step 3. User Binding Before Idle Lockout'
+'%s, %s - %s Step 3. User Binding Before Idle Lockout' % (msg1,msg2,msg4)
             </message>
 
             <call function="'SearchObject'">
@@ -565,7 +573,7 @@
 
             
             <message>
-               'Security: Last Login: Long Idle Lockout - Password Change Override Step 5. User Changing Password'
+'%s, %s - Password Change Override Step 5. User Changing Password' % (msg1,msg2)
             </message>
 
             <call function="'ldapPasswordModifyWithScript'">
@@ -586,7 +594,7 @@
             </call>
 
             <message>
-               'Security: Last Login: Long Idle Lockout Step 7. User Binding After Idle Lockout'
+'%s Long Idle Lockout Step 7. User Binding After Idle Lockout' % msg1
             </message>
 
             <call function="'SearchObject'">
@@ -623,7 +631,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Last Login: Reset Idle Lockout 2 Step 1. Admin Resetting Idle Lockout Interval'
+'%s Reset Idle Lockout 2 Step 1. Admin Resetting Idle Lockout Interval' % msg1
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -702,7 +710,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Last Login: Long Idle Lockout - User Bind Reset Step 1. Check User Bind'
+'%s Long Idle Lockout - User Bind Reset Step 1. Check User Bind' % msg1
             </message>
 
             <call function="'SearchObject'">
@@ -717,7 +725,7 @@
 
 
             <message>
-               'Security: Last Login: Long Idle Lockout - User Bind Reset Step 2. Admin Changing Idle Lockout Interval'
+'%s, %s - User Bind Reset Step 2. %s' % (msg1,msg2,msg3)
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -731,7 +739,7 @@
             </call>
             
             <message>
-               'Security: Last Login: Long Idle Lockout - User Bind Reset Step 3. User Binding Before Idle Lockout'
+'%s, %s - %s 3. User Binding Before Idle Lockout' % (msg1,msg2,msg5)
             </message>
 
             <call function="'SearchObject'">
@@ -746,7 +754,7 @@
 
 
             <message>
-               'Security: Last Login: Long Idle Lockout - User Bind Reset Step 4. Sleep'
+      'Security: Last Login: Long Idle Lockout - User Bind Reset Step 4. Sleep'
             </message>
 
             <call function="'Sleep'">
@@ -754,7 +762,7 @@
             </call>
 
             <message>
-               'Security: Last Login: Long Idle Lockout - User Bind Reset Step 5. User Bind To Reset Last Login Time'
+'%s, %s - %s 5. User Bind To Reset Last Login Time' % (msg1,msg2,msg5)
             </message>
 
             <call function="'SearchObject'">
@@ -769,7 +777,7 @@
 
 
             <message>
-               'Security: Last Login: Long Idle Lockout - User Bind Reset Step 6. Sleep'
+      'Security: Last Login: Long Idle Lockout - User Bind Reset Step 6. Sleep'
             </message>
 
             <call function="'Sleep'">
@@ -777,7 +785,7 @@
             </call>
 
             <message>
-               'Security: Last Login: Long Idle Lockout - User Bind Reset Step 7. User Binding After Idle Lockout'
+'%s, %s - User Bind Reset Step 7. User Binding After Idle Lockout' % (msg1,msg2)
             </message>
 
             <call function="'SearchObject'">
@@ -814,7 +822,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Last Login: Reset Idle Lockout Step 1. Admin Resetting Idle Lockout Interval'
+'%s Reset Idle Lockout Step 1. Admin Resetting Idle Lockout Interval' % msg1
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -884,11 +892,11 @@
             #@TestResult          Success if the 4 steps are PASS
         -->        
         
-        <testcase name="getTestCaseName('Long Idle Lockout - Disabled Last Login')">
+    <testcase name="getTestCaseName('Long Idle Lockout - Disabled Last Login')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Last Login: Long Idle Lockout - Disabled Last Login Step 1. Disable Last Login'
+'%s, %s - Disabled Last Login Step 1. Disable Last Login' % (msg1,msg2)
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -902,7 +910,7 @@
             </call>
             
             <message>
-               'Security: Last Login: Long Idle Lockout - Disabled Last Login Step 2. Check User Bind'
+'%s, %s - Disabled Last Login Step 2. Check User Bind' % (msg1,msg2)
             </message>
 
             <call function="'SearchObject'">
@@ -916,7 +924,7 @@
             </call>
 
             <message>
-               'Security: Last Login: Long Idle Lockout - Disabled Last Login Step 3. Admin Changing Idle Lockout Interval'
+'%s, %s - Disabled Last Login Step 3. %s' % (msg1,msg2,msg3)
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -930,7 +938,7 @@
             </call>
             
             <message>
-               'Security: Last Login: Long Idle Lockout - Disabled Last Login  Step 4. User Binding'
+'%s, %s - Disabled Last Login  Step 4. User Binding' % (msg1,msg2)
             </message>
 
             <call function="'SearchObject'">
@@ -970,7 +978,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Last Login: Reset Idle Lockout Step 1. Enable Last Login - Attribute'
+'Security: Last Login: Reset Idle Lockout Step 1. Enable Last Login - Attribute'
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -984,7 +992,7 @@
             </call>
             
             <message>
-               'Security: Last Login: Reset Idle Lockout Step 2. Admin Resetting Idle Lockout Interval'
+'%s Reset Idle Lockout Step 2. Admin Resetting Idle Lockout Interval' % msg1
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -1054,11 +1062,11 @@
           #@TestResult          Success if the 4 steps are PASS
         -->
         
-        <testcase name="getTestCaseName('Long Idle Lockout - Disabled Last Login 2')">
+  <testcase name="getTestCaseName('Long Idle Lockout - Disabled Last Login 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Last Login: Long Idle Lockout - Disabled Last Login 2 Step 1. Disable Last Login'
+'%s, %s - Disabled Last Login 2 Step 1. Disable Last Login' % (msg1,msg2)
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -1072,7 +1080,7 @@
             </call>
             
             <message>
-               'Security: Last Login: Long Idle Lockout - Disabled Last Login 2 Step 2. Check User Bind'
+'%s, %s - Disabled Last Login 2 Step 2. Check User Bind' % (msg1,msg2)
             </message>
 
             <call function="'SearchObject'">
@@ -1086,7 +1094,7 @@
             </call>
 
             <message>
-               'Security: Last Login: Long Idle Lockout - Disabled Last Login 2 Step 3. Admin Changing Idle Lockout Interval'
+'%s, %s - Disabled Last Login 2 Step 3. %s' % (msg1,msg2,msg3)
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -1100,7 +1108,7 @@
             </call>
             
             <message>
-               'Security: Last Login: Long Idle Lockout - Disabled Last Login  2 Step 4. User Binding'
+'%s, %s - Disabled Last Login  2 Step 4. User Binding' % (msg1,msg2)
             </message>
 
             <call function="'SearchObject'">
@@ -1141,7 +1149,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Last Login: Reset Idle Lockout Step 1. Enable Last Login - Attribute'
+'Security: Last Login: Reset Idle Lockout Step 1. Enable Last Login - Attribute'
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -1155,7 +1163,7 @@
             </call>
             
             <message>
-               'Security: Last Login: Reset Idle Lockout Step 2. Admin Resetting Idle Lockout Interval'
+'%s Reset Idle Lockout Step 2. Admin Resetting Idle Lockout Interval' % msg1
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -1246,7 +1254,7 @@
             </call>
 
             <message>
-               'Security: Last Login: Long Idle Lockout Step 2. Admin Changing Idle Lockout Interval'
+'%s, %s Step 2. Admin Changing Idle Lockout Interval' % (msg1,msg2)
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -1260,7 +1268,7 @@
             </call>
             
             <message>
-               'Security: Last Login: Long Idle Lockout Step 3. User Binding Before Idle Lockout'
+'%s, %s Step 3. User Binding Before Idle Lockout' % (msg1,msg2)
             </message>
 
             <call function="'SearchObject'">
@@ -1284,7 +1292,7 @@
 
             
             <message>
-               'Security: Last Login: Long Idle Lockout Step 5. User Binding After Idle Lockout'
+'%s, %s Step 5. User Binding After Idle Lockout' % (msg1,msg2)
             </message>
 
             <call function="'SearchObject'">
@@ -1322,7 +1330,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Last Login: Reset Idle Lockout Step 1. Admin Resetting Idle Lockout Interval'
+'%s Reset Idle Lockout Step 1. Admin Resetting Idle Lockout Interval' % msg1
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -1398,11 +1406,11 @@
           #@TestResult        Success if the 6 steps are PASS
         -->
         
-        <testcase name="getTestCaseName('Long Idle Lockout - Pwd Change Override 2')">
+  <testcase name="getTestCaseName('Long Idle Lockout - Pwd Change Override 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 1. Check User Bind'
+'%s, %s - Pwd Change Override 2 Step 1. Check User Bind' % (msg1,msg2)
             </message>
 
             <call function="'SearchObject'">
@@ -1417,7 +1425,7 @@
 
 
             <message>
-               'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 2. Admin Changing Idle Lockout Interval'
+'%s, %s - Pwd Change Override 2 Step 2. %s' % (msg1,msg2,msg3)
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -1431,7 +1439,7 @@
             </call>
             
             <message>
-               'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 3. User Binding Before Idle Lockout'
+'%s, %s - Pwd Change Override 2 Step 3. %s' % (msg1,msg2,msg6)
             </message>
 
             <call function="'SearchObject'">
@@ -1446,7 +1454,7 @@
 
 
             <message>
-               'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 4. Sleep'
+'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 4. Sleep'
             </message>
 
             <call function="'Sleep'">
@@ -1454,7 +1462,7 @@
             </call>
 
             <message>
-               'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 5. User Changing Password'
+'%s, %s - Pwd Change Override 2 Step 5. User Changing Password' % (msg1,msg2)
             </message>
 
             <call function="'ldapPasswordModifyWithScript'">
@@ -1467,7 +1475,7 @@
             </call>
             
             <message>
-               'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 6. User Binding After Idle Lockout'
+'%s, %s - Pwd Change Override 2 Step 6. %s' % (msg1,msg2,msg7)
             </message>
 
             <call function="'SearchObject'">
@@ -1504,7 +1512,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Last Login: Reset Idle Lockout Step 1. Admin Resetting Idle Lockout Interval'
+'%s Reset Idle Lockout Step 1. Admin Resetting Idle Lockout Interval' % msg1
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -1580,11 +1588,11 @@
             #@TestResult          Success if the 6 steps are PASS
         -->
         
-        <testcase name="getTestCaseName('Long Idle Lockout - Pwd Change Override 3')">
+ <testcase name="getTestCaseName('Long Idle Lockout - Pwd Change Override 3')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Last Login: Long Idle Lockout - Pwd Change Override 3 Step 1. Disable Last Login'
+'%s Long Idle Lockout - Pwd Change Override 3 Step 1. Disable Last Login' % msg1
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -1598,7 +1606,7 @@
             </call>
             
             <message>
-               'Security: Last Login: Long Idle Lockout - Pwd Change Override 3 Step 2. Check User Bind'
+'%s, %s - Pwd Change Override 3 Step 2. Check User Bind' % (msg1,msg2)
             </message>
 
             <call function="'SearchObject'">
@@ -1613,7 +1621,7 @@
 
 
             <message>
-               'Security: Last Login: Long Idle Lockout - Pwd Change Override 3 Step 3. Admin Changing Idle Lockout Interval'
+'%s, %s - Pwd Change Override 3 Step 3. %s' % (msg1,msg2,msg3)
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -1627,7 +1635,7 @@
             </call>
             
             <message>
-               'Security: Last Login: Long Idle Lockout - Pwd Change Override 3 Step 4. User Binding Before Idle Lockout'
+'%s, %s - Pwd Change Override 3 Step 4. %s' % (msg1,msg2,msg6)
             </message>
 
             <call function="'SearchObject'">
@@ -1642,7 +1650,7 @@
             </call>
 
             <message>
-               'Security: Last Login: Long Idle Lockout - Pwd Change Override 3 Step 5. Admin Changing Password'
+'%s, %s - Pwd Change Override 3 Step 5. Admin Changing Password' % (msg1,msg2)
             </message>
 
             <call function="'ldapPasswordModifyWithScript'">
@@ -1655,7 +1663,7 @@
             </call>
             
             <message>
-               'Security: Last Login: Pwd Override 3 Step 6. User Binding After Admin Pwd Change'
+'%s Pwd Override 3 Step 6. User Binding After Admin Pwd Change' % msg1
             </message>
 
             <call function="'SearchObject'">
@@ -1694,7 +1702,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Last Login: Postamble Step 1. Admin Resetting Idle Lockout Interval'
+'Security: Last Login: Postamble Step 1. Admin Resetting Idle Lockout Interval'
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -1708,7 +1716,7 @@
             </call>
             
             <message>
-               'Security: Last Login: Postamble Step 2. Admin Disabling Last Login Time Attribute'
+'%s Postamble Step 2. Admin Disabling Last Login Time Attribute' % msg1
             </message>
 
             <call function="'modifyPwdPolicy'">
