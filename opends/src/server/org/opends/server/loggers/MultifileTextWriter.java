@@ -368,10 +368,33 @@ public class MultifileTextWriter
   public ConfigChangeResult applyConfigurationChange(
       SizeLimitLogRotationPolicyCfg config)
   {
-    if(sizeLimit == 0 || sizeLimit > config.getFileSizeLimit())
+    long newSizeLimit = Integer.MAX_VALUE;
+
+    // Go through all current size rotation policies and get the
+    // lowest size setting.
+    for(RotationPolicy policy : rotationPolicies)
     {
-      sizeLimit = config.getFileSizeLimit();
+      if(policy instanceof SizeBasedRotationPolicy)
+      {
+        SizeBasedRotationPolicy sizePolicy = ((SizeBasedRotationPolicy)policy);
+        if(sizePolicy.currentConfig.dn().equals(config.dn()) )
+        {
+          if(newSizeLimit > config.getFileSizeLimit())
+          {
+            newSizeLimit = config.getFileSizeLimit();
+          }
+        }
+        else
+        {
+          if(newSizeLimit > sizePolicy.currentConfig.getFileSizeLimit())
+          {
+            newSizeLimit = sizePolicy.currentConfig.getFileSizeLimit();
+          }
+        }
+      }
     }
+
+    sizeLimit = newSizeLimit;
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false,
                                   new ArrayList<Message>());
