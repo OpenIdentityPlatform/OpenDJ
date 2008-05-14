@@ -338,7 +338,7 @@ class OpendsInstance(Instance):
   def __init__(self, iid, name, product, role, host, installDir, tarball, \
                portLDAP, portLDAPS, portJMX, portREPL, \
                sslEnabled, certificate, startTlsEnabled, \
-               tuning):
+               secureReplication,tuning):
     # from instance object
     self.iid             = iid
     self.name            = name
@@ -356,6 +356,7 @@ class OpendsInstance(Instance):
     self.sslEnabled      = sslEnabled
     self.certificate     = certificate
     self.startTlsEnabled = startTlsEnabled
+    self.secureReplication = secureReplication
     self.tuning          = tuning
     
   def getLDAPSPort(self):
@@ -381,7 +382,10 @@ class OpendsInstance(Instance):
     
   def getIsStartTlsEnabled(self):
     return self.startTlsEnabled
-    
+  
+  def getSecureReplication(self):
+    return self.secureReplication
+  
   def getTuning(self):
     return self.tuning
 
@@ -657,6 +661,7 @@ def parseOpenDs(cId,cName,cProduct,cRole,opendsZip,thisChild):
   cSslEnabled      = 'false'
   cCertificate     = NOT_DEFINED
   cStartTlsEnabled = 'false'
+  cSecureReplication  = 'false'
   cIsJava          = 'false'
   cXms             = NOT_DEFINED
   cXmx             = NOT_DEFINED
@@ -724,7 +729,7 @@ def parseOpenDs(cId,cName,cProduct,cRole,opendsZip,thisChild):
         cSslEnabled      = _getAttributeNode(thisSubChild,'sslEnabled')
         cCertificate     = _getAttributeNode(thisSubChild,'certificate')
         cStartTlsEnabled = _getAttributeNode(thisSubChild,'startTlsEnabled')
-        
+        cSecureReplication = _getAttributeNode(thisSubChild,'secureReplication')
       
       elif (thisSubChild.getNodeType() == Node.ELEMENT_NODE and
           thisSubChild.getNodeName() == 'tuning'):
@@ -801,7 +806,7 @@ def parseOpenDs(cId,cName,cProduct,cRole,opendsZip,thisChild):
                              opendsZip,\
                              cPortLDAP,cPortLDAPS,cPortJMX,cPortREPL,\
                              cSslEnabled,cCertificate,cStartTlsEnabled,\
-                             cOpendsTuning)]
+                             cSecureReplication,cOpendsTuning)]
 
 
 

@@ -967,8 +967,15 @@
         STAFCmd='%s/dsreplication' % (dsBinPath)
         
         STAFCmdParamsList.append('status -n')
+        STAFCmdParamsList.append('--trustAll')
         STAFCmdParamsList.append('-h %s' % instance.getHost())
-        STAFCmdParamsList.append('-p %s' % instance.getLDAPPort())
+        if ( instance.getIsSslEnabled() == 'true' ):
+          port = instance.getLDAPSPort()
+          STAFCmdParamsList.append('--useSSL')
+        else:
+          port = instance.getLDAPPort()
+          
+        STAFCmdParamsList.append('-p %s' % port )
         STAFCmdParamsList.append('-b %s' % suffix.getSuffixDn())
         STAFCmdParamsList.append('-I "%s"' % adminDN)
         STAFCmdParamsList.append('-w "%s"' % adminPwd)
@@ -1021,8 +1028,14 @@
           <iterate in="instances" var="instance">
             <sequence>
               <script>
+                
+                if ( instance.getIsSslEnabled() == 'true' ):
+                  port = instance.getLDAPPort()
+                else:
+                  port = instance.getLDAPSPort()
+                  
                 serverName = '%s:%s' % \
-                             (instance.getHost(),instance.getLDAPPort())
+                             (instance.getHost(),port)
                 nbEntries = NOT_DEFINED
                 
                 for e in cmdOutput:
