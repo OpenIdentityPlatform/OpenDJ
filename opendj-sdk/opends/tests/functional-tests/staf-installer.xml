@@ -73,14 +73,14 @@
       <format property="yesterdays.date" pattern="yyyyMMdd" offset="-24" unit="hour"/>
     </tstamp>
     <condition property="daily.date" value="${todays.date}" else="${yesterdays.date}">
-      <http url="${daily.build.url}/${todays.date}${daily.build.time}/${SHORT_NAME}/build/package/${product.name}.zip"/>
+      <http url="${daily.build.url}/${todays.date}${daily.build.time}/${SHORT_NAME}/build.jdk5/package/${product.name}.zip"/>
     </condition>
     <property name="daily.package.dir" 
               value="${staf.home}/daily-builds/${daily.date}"/>
     <property name="daily.package" 
               value="${daily.package.dir}/${product.name}.zip"/>
     <property name="daily.package.url" 
-              value="${daily.build.url}/${daily.date}${daily.build.time}/${SHORT_NAME}/build/package/${product.name}.zip"/>
+              value="${daily.build.url}/${daily.date}${daily.build.time}/${SHORT_NAME}/build.jdk5/package/${product.name}.zip"/>
      
   <!-- installer wide settings - bottom  -->
   
@@ -552,9 +552,8 @@ email.server.pwd=${email.server.pwd.input}
        <then>
          <echo>Daily run not set and ${product.name}.zip not found.</echo>
          <if>
-           <available file="${SNMP_OPENDMK_LIBDIR}/${SNMP_OPENDMK_JARFILE}" />
+           <available file="${SNMP_OPENDMK_LIBDIR}" />
            <then>
-             <!-- <echo>SNMP_OPENDMK_LIBDIR is set in ${tests.config.stubs}.</echo> -->
              <if>
                <length string="${opendmk.lib.dir}" when="equal" length="0" />
                <then>
@@ -567,30 +566,40 @@ email.server.pwd=${email.server.pwd.input}
                  </replace>                 
                  <property name="product.package.build" value="true"/>
                </then>
+               <else>
+                 <echo>SNMP_OPENDMK_LIBDIR is set in ${tests.config.stubs}.</echo>
+                 <echo>opendmk.lib.dir is set in ${project.home}/build.properties.</echo>
+                 <echo>Build ${product.name}.zip with SNMP.</echo>
+                 <property name="product.package.build" value="true"/>
+               </else>
              </if>
            </then>
            <else>
              <echo>SNMP_OPENDMK_LIBDIR is not set or is wrong in ${tests.config.stubs}.</echo>
              <echo>Build ${product.name}.zip without SNMP.</echo>
+             <property name="product.package.build" value="true"/>
            </else>         
          </if>
        </then>
        <else>
          <if>
-           <available file="${product.package}"/>
+           <isset property="tests.run.daily"/>
            <then>
-             <!-- <echo>${product.name}.zip found</echo> -->
+             <echo>Daily run is set.</echo>
+             <echo>Nothing to do.</echo>
+           </then>
+           <else>
+             <echo>Daily run not set and ${product.name}.zip found.</echo>
              <if>
-               <available file="${SNMP_OPENDMK_LIBDIR}/${SNMP_OPENDMK_JARFILE}" />
+               <available file="${SNMP_OPENDMK_LIBDIR}" />
                <then>
-                 <!-- <echo>SNMP_OPENDMK_LIBDIR is set in ${tests.config.stubs}.</echo> -->
                  <if>
                    <not>
                      <length string="${opendmk.lib.dir}" when="equal" length="0" />
                    </not>
                    <then>
-                     <!-- <echo>opendmk.lib.dir is set in ${project.home}/build.properties.</echo> -->
-                     <!-- <echo>Nothing to do.</echo> -->
+                     <echo>opendmk.lib.dir is set in ${project.home}/build.properties.</echo>
+                     <echo>Nothing to do.</echo>
                    </then>
                    <else>
                      <echo>SNMP_OPENDMK_LIBDIR is set in ${tests.config.stubs}.</echo>
@@ -605,14 +614,10 @@ email.server.pwd=${email.server.pwd.input}
                  </if>
                </then>
                <else>
-                 <!-- <echo>SNMP_OPENDMK_LIBDIR is not set or is wrong in ${tests.config.stubs}.</echo> -->
-                 <!-- <echo>Nothing to do.</echo> -->
+                 <echo>SNMP_OPENDMK_LIBDIR is not set or is wrong in ${tests.config.stubs}.</echo>
+                 <echo>Nothing to do.</echo>
                </else>
              </if>
-           </then>
-           <else>
-             <!-- <echo>Daily run is set.</echo> -->
-             <!-- <echo>Nothing to do.</echo> -->
            </else>
          </if>
        </else>
@@ -929,7 +934,7 @@ email.server.pwd=${email.server.pwd.input}
     <property name="tests.run.daily" value="true"/>
   </target>
   
-  <target name="run-daily" depends="status-do,daily,download-daily,coverage-instrument,run-tests"/>
+  <target name="run-daily" depends="run-my-tests-define,status-do,daily,download-daily,coverage-instrument,run-tests"/>
   
   <target name="coverage-init">
     <path id="emma.lib">
