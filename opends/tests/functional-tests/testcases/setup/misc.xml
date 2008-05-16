@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, exclude this CDDL HEADER in each
+ ! file and exclude the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  
+  <defaultcall function="misc"/>
+  
+  <function name="misc">
+    
+    <sequence>
+          
+      <!--- Test Suite information
+        #@TestSuiteName       Setup-Uninstall misc Tests
+        #@TestSuitePurpose    Test miscelaneous setup/uninstall commands
+                              that do not fit into any other test suite
+        #@TestSuiteGroup      misc
+        #@TestSuiteID         misc Tests
+        #@TestGroup           Setup-Uninstall
+        #@TestScript          misc.xml
+        #@TestHTMLLink        http://opends.dev.java.net/
+      -->
+
+      <script>
+        if not CurrentTestPath.has_key('group'):
+          CurrentTestPath['group'] = 'setup'              
+        CurrentTestPath['suite'] = 'misc'
+      </script>
+
+      <call function="'testSuite_Preamble'"/>
+
+      <call function="'getFreePort'">
+        {
+          'host'  : STAF_REMOTE_HOSTNAME,
+          'port'  : 7500,
+        }
+      </call>
+      <script>MISC_I1_PORT = STAXResult</script>
+
+      <message>
+        'Got this free port: %s' % MISC_I1_PORT
+      </message>
+
+      <!--- Test Case information
+        #@TestMarker          Setup-Uninstall Misc tests
+        #@TestName            Setup-Uninstall: Misc: 
+                              misc
+        #@TestID              misc
+        #@TestPurpose         Launch buggy setup & uninstall commands and check 
+                              that they are rejected
+        #@TestPreamble        
+        #@TestStep            Unzip OpenDS ZIP delivery
+                              Setup OpenDS with unexisting option
+                              Check for error
+                              Setup OpenDS with no options
+                              Check for error
+                              Uninstall an uninstalled OpenDS 
+                              Check for error
+        #@TestPostamble       
+        #@TestResult          PASS if all steps ran without errors
+      -->
+      <testcase name="getTestCaseName('misc')">
+        <sequence>
+          
+          <script>
+            MISC_I1_BASE = '%s/misc_i1' % (OUT_GROUP)
+            MISC_I1_ROOT = '%s/%s' % (MISC_I1_BASE, OPENDSNAME)
+          </script>
+          
+          
+          <call function="'testCase_Preamble'"/>
+          <message>'Setup Uninstall: Command errors'</message>
+          
+          <!-- 1. Setup options: baseDN baseDN sampleData -->
+          <message>'++ Setup options: baseDN baseDN sampleData'</message> 
+          <message>'Prepare Open DS ZIP (in %s)' % MISC_I1_ROOT</message>
+
+          <call function="'runSTAFCommand'">
+            { 'name'      :  'Create directory to contain I1',
+              'location'  :  STAF_REMOTE_HOSTNAME,
+              'service'   :  'FS',
+              'request'   :  'CREATE',
+              'arguments' :  'DIRECTORY %s FAILIFEXISTS' % MISC_I1_BASE
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC,
+              'expected'   : 0,
+              'result'     : 'FAIL to create directory',
+            }
+          </call>
+
+          <call function="'runSTAFCommand'">
+            { 'name'      :  'Extract OpenDS ZIP file',
+              'location'  :  STAF_REMOTE_HOSTNAME,
+              'service'   :  'ZIP',
+              'request'   :  'UNZIP',
+              'arguments' :  'ZIPFILE %s/%s TODIRECTORY %s RESTOREPERMISSION' \
+                % (ZIPPATH, ZIPNAME, MISC_I1_BASE)
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC,
+              'expected'   : 0,
+              'result'     : 'FAIL to unzip OpenDS ZIP file',
+            }
+          </call>
+
+          <script>
+            c = '%s/setup%s' % (MISC_I1_ROOT, fileExt)
+            p = []
+            p.append('--cli --no-prompt')
+            p.append('--rootUserPassword "kangourou"')
+            p.append('--doesNotExist')
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Launch (buggy) setup command for I1',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : MISC_I1_ROOT,
+              'expectedRC': 2,
+              'outputFile': '%s/misc-setup1-i1.txt' % OUT_GROUP,
+            }
+          </call>
+          
+          <script>
+            c = '%s/setup%s' % (MISC_I1_ROOT, fileExt)
+            p = []
+            p.append('--cli --no-prompt')
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Launch (another buggy) setup command for I1',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : MISC_I1_ROOT,
+              'expectedRC': 2,
+              'outputFile': '%s/misc-setup2-i1.txt' % OUT_GROUP,
+            }
+          </call>
+          
+          <script>
+            c = '%s/uninstall%s' % (MISC_I1_ROOT, fileExt)
+            p = []
+            p.append('--cli --no-prompt')
+            p.append('--removeAll')
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Launch uninstall command for (uninstalled) I1',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : MISC_I1_ROOT,
+              'expectedRC': 2,
+              'outputFile': '%s/misc-uninstall-i1.txt' % OUT_GROUP,
+            }
+          </call>
+
+          
+          <call function="'testCase_Postamble'"/>
+
+        </sequence>
+      </testcase> 
+
+      <call function="'testSuite_Postamble'"/>
+
+    </sequence>
+    
+  </function>
+  
+</stax>

@@ -1,0 +1,920 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, exclude this CDDL HEADER in each
+ ! file and exclude the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  
+  <defaultcall function="security"/>
+  
+  <function name="security">
+    
+    <sequence>
+          
+      <!--- Test Suite information
+        #@TestSuiteName       Setup-Uninstall security Tests
+        #@TestSuitePurpose    Test all secuirty related options of the 
+                              setup and uninstall commands
+        #@TestSuiteGroup      security
+        #@TestSuiteID         security Tests
+        #@TestGroup           Setup-Uninstall
+        #@TestScript          security.xml
+        #@TestHTMLLink        http://opends.dev.java.net/
+      -->
+
+      <script>
+        if not CurrentTestPath.has_key('group'):
+          CurrentTestPath['group'] = 'setup'              
+        CurrentTestPath['suite'] = 'security'
+      </script>
+
+      <call function="'testSuite_Preamble'"/>
+
+      
+      <call function="'getFreePort'">
+        {
+          'host'  : STAF_REMOTE_HOSTNAME,
+          'port'  : 8500,
+        }
+      </call>
+      <script>SEC_I1_PORT = STAXResult</script>
+
+      <call function="'getFreePort'">
+        {
+          'host'  : STAF_REMOTE_HOSTNAME,
+          'port'  : 8520,
+        }
+      </call>
+      <script>SEC_I1_SPORT = STAXResult</script>
+      
+      <call function="'getFreePort'">
+        {
+          'host'  : STAF_REMOTE_HOSTNAME,
+          'port'  : 8540,
+        }
+      </call>
+      <script>SEC_I1_REPL_PORT = STAXResult</script>
+
+      <call function="'getFreePort'">
+        {
+          'host'  : STAF_REMOTE_HOSTNAME,
+          'port'  : 8600,
+        }
+      </call>
+      <script>SEC_I2_PORT = STAXResult</script>
+
+      <call function="'getFreePort'">
+        {
+          'host'  : STAF_REMOTE_HOSTNAME,
+          'port'  : 8620,
+        }
+      </call>
+      <script>SEC_I2_SPORT = STAXResult</script>
+      
+      <call function="'getFreePort'">
+        {
+          'host'  : STAF_REMOTE_HOSTNAME,
+          'port'  : 8640,
+        }
+      </call>
+      <script>SEC_I2_REPL_PORT = STAXResult</script>
+
+      <message>
+        'Got these free ports for I1: %s, %s, %s' % (SEC_I1_PORT, \
+          SEC_I1_SPORT, SEC_I1_REPL_PORT)
+        'Got these free ports for I2: %s, %s, %s' % (SEC_I2_PORT, \
+          SEC_I2_SPORT, SEC_I2_REPL_PORT)
+      </message>
+      
+      
+
+      <!--- Test Case information
+        #@TestMarker          Setup-Uninstall Security tests
+        #@TestName            Setup-Uninstall: Security:
+                              security_starttls_ssl
+        #@TestID              security_starttls_ssl
+        #@TestPurpose         Test security related options of setup/uninstall
+        #@TestPreamble        
+        #@TestStep            Setup I1, with SSL
+                              Setup I2, with StartTLS
+                              Create o=o1 on I1 & I2, and import data on I1
+                              Setup replication I1 - I2
+                              Check SSL works OK on I1 and I2
+                              Check StartTLS not-OK on I1
+                              Check StartTLS OK on I2
+                              Export server certs I1 & I2
+                              Create new JKS keystore and import I1 & I2 certs
+                              Uninstall I1, using new keystore
+                              Uninstall I2
+        #@TestPostamble       
+        #@TestResult          PASS if all steps ran without errors
+      -->
+      <testcase name="getTestCaseName('security_starttls_ssl')">
+        <sequence>
+          
+          <script>
+            DM_DN = 'cn=DM'
+            DM_PW = 'secret12'
+            DM_PW_FILE = '%s/setup/pwd-security.ldif' % logsRemoteDataDir
+
+            KEYTOOL = '%s/bin/keytool%s' % (JAVA_HOME, fileExt)
+            SEC_I1_BASE = '%s/sec_i1' % (OUT_GROUP)
+            SEC_I1_ROOT = '%s/%s' % (SEC_I1_BASE, OPENDSNAME)
+            SEC_I2_BASE = '%s/sec_i2' % (OUT_GROUP)
+            SEC_I2_ROOT = '%s/%s' % (SEC_I2_BASE, OPENDSNAME)
+            MY_KEYSTORE = '%s/ks' % OUT_GROUP
+            SEC_O1_LDIF = '%s/setup/sec-o1.ldif' % logsRemoteDataDir
+          </script>
+
+          <call function="'checkFileExists'">
+            { 'file' : KEYTOOL }
+          </call>
+
+          <!-- 1.1. Setup I1 -->
+          <message>'++ Setup of I1'</message> 
+          <call function="'runSTAFCommand'">
+            { 'name'      :  'Create directory to contain I1',
+              'location'  :  STAF_REMOTE_HOSTNAME,
+              'service'   :  'FS',
+              'request'   :  'CREATE',
+              'arguments' :  'DIRECTORY %s FAILIFEXISTS' % SEC_I1_BASE
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC,
+              'expected'   : 0,
+              'result'     : 'FAIL to create directory',
+            }
+          </call>
+
+          <call function="'runSTAFCommand'">
+            { 'name'      :  'Extract OpenDS ZIP file',
+              'location'  :  STAF_REMOTE_HOSTNAME,
+              'service'   :  'ZIP',
+              'request'   :  'UNZIP',
+              'arguments' :  'ZIPFILE %s/%s TODIRECTORY %s RESTOREPERMISSION' \
+                % (ZIPPATH, ZIPNAME, SEC_I1_BASE)
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC,
+              'expected'   : 0,
+              'result'     : 'FAIL to unzip OpenDS ZIP file',
+            }
+          </call>
+
+          <script>
+            c = '%s/setup%s' % (SEC_I1_ROOT, fileExt)
+            p = []
+            p.append('--cli --no-prompt --ldapPort %s' % (SEC_I1_PORT))
+            p.append('--ldapsPort %s' % SEC_I1_SPORT)
+            p.append('--rootUserDN "%s"' % DM_DN)
+            p.append('--rootUserPassword "%s"' % DM_PW)
+            p.append('--generateSelfSignedCertificate')
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Launch setup command for I1',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : SEC_I1_ROOT,
+              'expectedRC': 0,
+              'outputFile': '%s/sec-setup-i1.txt' % OUT_GROUP,
+            }
+          </call>
+
+          <!-- 1.2. Check I1 -->
+          <message>'++ Check status of I1'</message> 
+          <script>
+            c = '%s/bin/status%s' % (SEC_I1_ROOT, fileExt)
+            p = []
+            p.append('--no-prompt')
+            p.append('--bindDN "%s" --bindPassword "%s"' % (DM_DN, DM_PW))
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Launch status command for I1',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : SEC_I1_ROOT,
+              'expectedRC': 0,
+              'outputFile': '%s/sec-status-i1.txt' % OUT_GROUP,
+            }
+          </call>
+          
+          <script>
+            grepFile = '%s/sec-status-i1.txt' % OUT_GROUP
+          </script>
+
+          <call function="'grep'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'filename'  : grepFile,
+              'testString': 'Server Run Status:    Started',
+              'expectedRC': 0,
+            }
+          </call>
+          
+          <!-- 1.3. Check config/keystore -->
+          <message>'++ Check file config/keystore exists'</message> 
+          <script>
+            ks = '%s/config/keystore' % SEC_I1_ROOT
+          </script>
+
+          <call function="'checkFileExists'">
+            { 'file' : ks }
+          </call>
+
+          <!-- 1.4. Check StartTLS non-enablement -->
+          <message>'++ Check StartTLS is disabled'</message> 
+          <script>
+            ent = 'cn=LDAP Connection Handler,cn=Connection Handlers,cn=config'
+          </script>
+
+          <call function="'ldapSearchWithScript'">
+            { 'dsInstancePort'  : SEC_I1_PORT,
+              'dsInstanceDn'    : DM_DN,
+              'dsInstancePswd'  : DM_PW,
+              'dsBaseDN'        : ent,
+              'dsFilter'        : 'objectclass=*',
+              'dsAttributes'    : 'ds-cfg-allow-start-tls',
+              'expectedRC'      : 0,
+              'outputPath'      : OUT_GROUP,
+              'outputFile'      : 'sec-ldapsearch-i1.txt',
+            }
+          </call>
+          
+          <script>
+            grepFile = '%s/sec-ldapsearch-i1.txt' % OUT_GROUP
+          </script>
+
+          <call function="'grep'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'filename'  : grepFile,
+              'testString': 'ds-cfg-allow-start-tls: false',
+              'expectedRC': 0,
+            }
+          </call>
+
+          <!-- 2.1. Setup I2 -->
+          <message>'++ Setup I2'</message> 
+          <call function="'runSTAFCommand'">
+            { 'name'      :  'Create directory to contain I2',
+              'location'  :  STAF_REMOTE_HOSTNAME,
+              'service'   :  'FS',
+              'request'   :  'CREATE',
+              'arguments' :  'DIRECTORY %s FAILIFEXISTS' % SEC_I2_BASE
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC,
+              'expected'   : 0,
+              'result'     : 'FAIL to create directory',
+            }
+          </call>
+
+          <call function="'runSTAFCommand'">
+            { 'name'      :  'Extract OpenDS ZIP file',
+              'location'  :  STAF_REMOTE_HOSTNAME,
+              'service'   :  'ZIP',
+              'request'   :  'UNZIP',
+              'arguments' :  'ZIPFILE %s/%s TODIRECTORY %s RESTOREPERMISSION' \
+                % (ZIPPATH, ZIPNAME, SEC_I2_BASE)
+
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC,
+              'expected'   : 0,
+              'result'     : 'FAIL to unzip OpenDS ZIP file',
+            }
+          </call>
+
+          <script>
+            c = '%s/setup%s' % (SEC_I2_ROOT, fileExt)
+            p = []
+            p.append('--cli --no-prompt --ldapPort %s' % (SEC_I2_PORT))
+            p.append('--ldapsPort %s' % SEC_I2_SPORT)
+            p.append('--rootUserDN "%s"' % DM_DN)
+            p.append('--rootUserPassword "%s"' % DM_PW)
+            p.append('--generateSelfSignedCertificate --enableStartTLS')
+            p = ' '.join(p)
+          </script>
+ 
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Launch setup command for I2',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : SEC_I2_ROOT,
+              'expectedRC': 0,
+              'outputFile': '%s/sec-setup-i2.txt' % OUT_GROUP,
+            }
+          </call>
+
+          <!-- 2.2. Check I2 -->
+          <message>'++ Check status of I2'</message> 
+          <script>
+            c = '%s/bin/status%s' % (SEC_I2_ROOT, fileExt)
+            p = []
+            p.append('--no-prompt')
+            p.append('--bindDN "%s" --bindPassword "%s"' % (DM_DN, DM_PW))
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Launch status command for I2',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : SEC_I1_ROOT,
+              'expectedRC': 0,
+              'outputFile': '%s/sec-status-i2.txt' % OUT_GROUP,
+            }
+          </call>
+          
+          <script>
+            grepFile = '%s/sec-status-i2.txt' % OUT_GROUP
+          </script>
+
+          <call function="'grep'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'filename'  : grepFile,
+              'testString': 'Server Run Status:    Started',
+              'expectedRC': 0,
+            }
+          </call>
+
+          <!-- 2.3. Check config/keystore -->
+          <message>'++ Check file config/keystore exists'</message> 
+          <script>
+            ks = '%s/config/keystore' % SEC_I2_ROOT
+          </script>
+
+          <call function="'checkFileExists'">
+            { 'file' : ks }
+          </call>
+
+          <!-- 2.4. Check StartTLS enablement -->
+          <message>'++ Check StartTLS is enabled on I2'</message> 
+          <script>
+            ent = 'cn=LDAP Connection Handler,cn=Connection Handlers,cn=config'
+          </script>
+
+          <call function="'ldapSearchWithScript'">
+            { 'dsInstancePort'  : SEC_I2_PORT,
+              'dsInstanceDn'    : DM_DN,
+              'dsInstancePswd'  : DM_PW,
+              'dsBaseDN'        : ent,
+              'dsFilter'        : 'objectclass=*',
+              'dsAttributes'    : 'ds-cfg-allow-start-tls',
+              'expectedRC'      : 0,
+              'outputPath'      : OUT_GROUP,
+              'outputFile'      : 'sec-ldapsearch-i2.txt',
+            }
+          </call>
+          
+          <script>
+            grepFile = '%s/sec-ldapsearch-i2.txt' % OUT_GROUP
+          </script>
+
+          <call function="'grep'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'filename'  : grepFile,
+              'testString': 'ds-cfg-allow-start-tls: true',
+              'expectedRC': 0,
+            }
+          </call>
+
+          <!-- 3.1. Config: create backend I1 -->
+          <message>'++ create backend on I1'</message> 
+          <script>
+            c = '%s/bin/dsconfig%s' % (SEC_I1_ROOT, fileExt)
+            p = []
+            p.append('create-backend --bindDN "%s"' % DM_DN)
+            p.append('--bindPassword "%s" --port %s' % (DM_PW, SEC_I1_PORT))
+            p.append('--backend-name o1 --type local-db --no-prompt')
+            p.append('--set enabled:true --set writability-mode:enabled')
+            p.append('--set base-dn:"o=o1"')
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Create backend on I1',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : SEC_I1_ROOT,
+              'expectedRC': 0,
+              'outputFile': '%s/sec-create-backend-i1.txt' % OUT_GROUP,
+            }
+          </call>
+
+          <!-- 3.2. Config: create backend I2 -->
+          <message>'++ create backend on I2'</message> 
+          <script>
+            c = '%s/bin/dsconfig%s' % (SEC_I2_ROOT, fileExt)
+            p = []
+            p.append('create-backend --bindDN "%s"' % DM_DN)
+            p.append('--bindPassword "%s" --port %s' % (DM_PW, SEC_I2_PORT))
+            p.append('--backend-name o1 --type local-db --no-prompt')
+            p.append('--set enabled:true --set writability-mode:enabled')
+            p.append('--set base-dn:"o=o1"')
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Create backend on I2',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : SEC_I2_ROOT,
+              'expectedRC': 0,
+              'outputFile': '%s/sec-create-backend-i2.txt' % OUT_GROUP,
+            }
+          </call>
+
+          <!-- 3.3. Import data I1 -->
+          <message>'++ Import data on I1'</message> 
+          <script>
+            c = '%s/bin/import-ldif%s' % (SEC_I1_ROOT, fileExt)
+            p = []
+            p.append('--bindDN "%s" --bindPassword "%s"' % (DM_DN, DM_PW))
+            p.append('--port %s --backendID o1' % SEC_I1_PORT)
+            p.append('--ldifFile %s' % SEC_O1_LDIF)
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Import data on I1',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : SEC_I1_ROOT,
+              'expectedRC': 0,
+              'outputFile': '%s/sec-import-ldif-i1.txt' % OUT_GROUP,
+            }
+          </call>
+
+          <!-- 3.4. Enable replication I1-I2 -->
+          <message>'++ Enable replication I1-I2'</message> 
+          <script>
+            c = '%s/bin/dsreplication%s' % (SEC_I1_ROOT, fileExt)
+            p = []
+            p.append('enable --host1 %s' % STAF_REMOTE_HOSTNAME)
+            p.append('--bindDN1 "%s"' % DM_DN)
+            p.append('--bindPassword1 "%s"' % DM_PW)
+            p.append('--port1 %s' % SEC_I1_PORT)
+            p.append('--replicationPort1 %s' % SEC_I1_REPL_PORT)
+            p.append('--host2 %s --bindDN2 "%s"' % (STAF_REMOTE_HOSTNAME, DM_DN))
+            p.append('--bindPassword2 "%s"' % DM_PW)
+            p.append('--port2 %s' % (SEC_I2_PORT))
+            p.append('--replicationPort2 %s' % SEC_I2_REPL_PORT)
+            p.append('-I admin -w secret12')
+            p.append('--baseDN "o=o1" --no-prompt')
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Enable I1 - I2 replication',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : SEC_I1_ROOT,
+              'expectedRC': 0,
+              'outputFile': '%s/sec-enable-repl.txt' % OUT_GROUP,
+            }
+          </call>
+
+          <!-- 3.5. Initialize replication -->
+          <message>'++ Initialize replication I1-I2'</message> 
+          <script>
+            c = '%s/bin/dsreplication%s' % (SEC_I1_ROOT, fileExt)
+            p = []
+            p.append('initialize -I admin -w secret12 --baseDN "o=o1"')
+            p.append('--hostSource %s' % STAF_REMOTE_HOSTNAME)
+            p.append('--portSource %s' % SEC_I1_PORT)
+            p.append('--hostDestination %s' % STAF_REMOTE_HOSTNAME)
+            p.append('--portDestination %s' %  SEC_I2_PORT)
+            p.append('--no-prompt')
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Initialize I1 - I2 replication',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : SEC_I1_ROOT,
+              'expectedRC': 0,
+              'outputFile': '%s/sec-initialize-repl.txt' % OUT_GROUP,
+            }
+          </call>
+
+          <!-- 4.1. Check SSL I1 -->
+          <message>'++ Check SSL I1'</message> 
+          <script>
+            c = '%s/bin/ldapsearch%s' % (SEC_I1_ROOT, fileExt)
+            p = []
+            p.append('--hostname %s' % STAF_REMOTE_HOSTNAME)
+            p.append('--port %s' % SEC_I1_SPORT)
+            p.append('--trustAll --useSSL')
+            p.append('--baseDN "cn=user_2,o=o1"')
+            p.append('--searchScope base "(objectClass=*)"')
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'SSL Search on I1',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : SEC_I1_ROOT,
+              'expectedRC': 0,
+              'outputFile': '%s/sec-ldapsearch-ssl-i1.txt' % OUT_GROUP,
+            }
+          </call>
+
+          <script>
+            grepFile = '%s/sec-ldapsearch-ssl-i1.txt' % OUT_GROUP
+          </script>
+
+          <call function="'grep'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'filename'  : grepFile,
+              'testString': 'dn: cn=user_2,o=o1',
+              'expectedRC': 0,
+            }
+          </call>
+
+          <!-- 4.2. Check SSL I2 -->
+          <message>'++ Check SSL I2'</message> 
+          <script>
+            c = '%s/bin/ldapsearch%s' % (SEC_I2_ROOT, fileExt)
+            p = []
+            p.append('--hostname %s' % STAF_REMOTE_HOSTNAME)
+            p.append('--port %s' % SEC_I2_SPORT)
+            p.append('--trustAll --useSSL')
+            p.append('--baseDN "cn=user_2,o=o1"')
+            p.append('--searchScope base "(objectClass=*)"')
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'SSL Search on I2',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : SEC_I2_ROOT,
+              'expectedRC': 0,
+              'outputFile': '%s/sec-ldapsearch-ssl-i2.txt' % OUT_GROUP,
+            }
+          </call>
+
+          <script>
+            grepFile = '%s/sec-ldapsearch-ssl-i2.txt' % OUT_GROUP
+          </script>
+
+          <call function="'grep'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'filename'  : grepFile,
+              'testString': 'dn: cn=user_2,o=o1',
+              'expectedRC': 0,
+            }
+          </call>
+
+          <!-- 4.3. Check not-StartTLS I1 -->
+          <message>'++ Check not-StartTLS I1'</message> 
+          <script>
+            c = '%s/bin/ldapsearch%s' % (SEC_I1_ROOT, fileExt)
+            p = []
+            p.append('--hostname %s' % STAF_REMOTE_HOSTNAME)
+            p.append('--port %s' % SEC_I1_PORT)
+            p.append('--trustAll --useStartTLS')
+            p.append('--baseDN "cn=user_2,o=o1"')
+            p.append('--searchScope base "(objectClass=*)"')
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'StartTLS Search on I1',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : SEC_I1_ROOT,
+              'expectedRC': 52,
+              'outputFile': '%s/sec-ldapsearch-starttls-i1.txt' % OUT_GROUP,
+            }
+          </call>
+
+          <!-- 4.4. Check StartTLS I2 -->
+          <message>'++ Check StartTLS OK on I2'</message> 
+          <script>
+            c = '%s/bin/ldapsearch%s' % (SEC_I2_ROOT, fileExt)
+            p = []
+            p.append('--hostname %s' % STAF_REMOTE_HOSTNAME)
+            p.append('--port %s' % SEC_I2_PORT)
+            p.append('--trustAll --useStartTLS')
+            p.append('--baseDN "cn=user_2,o=o1"')
+            p.append('--searchScope base "(objectClass=*)"')
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'StartTLS Search on I2',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : SEC_I2_ROOT,
+              'expectedRC': 0,
+              'outputFile': '%s/sec-ldapsearch-starttls-i2.txt' % OUT_GROUP,
+            }
+          </call>
+
+          <script>
+            grepFile = '%s/sec-ldapsearch-starttls-i2.txt' % OUT_GROUP
+          </script>
+
+          <call function="'grep'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'filename'  : grepFile,
+              'testString': 'dn: cn=user_2,o=o1',
+              'expectedRC': 0,
+            }
+          </call>
+
+          <!-- 5.1. Export server cert I1 -->
+          <message>'++ Export server cert I1'</message> 
+          <script>
+            CERT1_FILE = '%s/cert1' % OUT_GROUP
+            KEYSTORE1_FILE = '%s/config/keystore' % SEC_I1_ROOT
+            KEYSTORE1_PIN_FILE = '%s/config/keystore.pin' % SEC_I1_ROOT
+          </script>
+
+          <call function="'runSTAFCommand'">
+            { 'name'      :  'Get content of keystore.pin file for I1',
+              'location'  :  STAF_REMOTE_HOSTNAME,
+              'service'   :  'FS',
+              'request'   :  'GET',
+              'arguments' :  'FILE %s TEXT' % KEYSTORE1_PIN_FILE
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC,
+              'expected'   : 0,
+              'result'     : 'FAIL to get content of keystore.pin file',
+            }
+          </call>
+
+          <script>
+            KEYSTORE1_PIN = STAFResult[:-1]
+          </script>
+
+          <script>
+            c = '%s' % KEYTOOL
+            p = []
+            p.append('-export -keystore %s' % KEYSTORE1_FILE)
+            p.append('-storepass "%s"' % KEYSTORE1_PIN)
+            p.append('-alias server-cert -file %s' % CERT1_FILE)
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Export I1 server cert',
+              'command'   : KEYTOOL,
+              'arguments' : p,
+              'path'      : SEC_I1_ROOT,
+              'expectedRC': 0,
+              'outputFile': '%s/sec-export-cert-i1.txt' % OUT_GROUP,
+            }
+          </call>
+
+          <!-- 5.2. Export server cert I2 -->
+          <message>'++ Export server cert I2'</message> 
+          <script>
+            CERT2_FILE = '%s/cert2' % OUT_GROUP
+            KEYSTORE2_FILE = '%s/config/keystore' % SEC_I2_ROOT
+            KEYSTORE2_PIN_FILE = '%s/config/keystore.pin' % SEC_I2_ROOT
+          </script>
+
+          <call function="'runSTAFCommand'">
+            { 'name'      :  'Get content of keystore.pin file for I2',
+              'location'  :  STAF_REMOTE_HOSTNAME,
+              'service'   :  'FS',
+              'request'   :  'GET',
+              'arguments' :  'FILE %s TEXT' % KEYSTORE2_PIN_FILE
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC,
+              'expected'   : 0,
+              'result'     : 'FAIL to get content of keystore.pin file',
+            }
+          </call>
+
+          <script>
+            KEYSTORE2_PIN = STAFResult[:-1]
+          </script>
+
+          <script>
+            c = '%s' % KEYTOOL
+            p = []
+            p.append('-export -keystore %s' % KEYSTORE2_FILE)
+            p.append('-storepass "%s"' % KEYSTORE2_PIN)
+            p.append('-alias server-cert -file %s' % CERT2_FILE)
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Export I2 server cert',
+              'command'   : KEYTOOL,
+              'arguments' : p,
+              'path'      : SEC_I2_ROOT,
+              'expectedRC': 0,
+              'outputFile': '%s/sec-export-cert-i2.txt' % OUT_GROUP,
+            }
+          </call>
+
+          <!-- 5.3. Create new JKS keystore with I1 cert -->
+          <message>'++ Create new JKS keystore with I1 cert'</message> 
+          <script>
+            c = '%s' % KEYTOOL
+            p = []
+            p.append('-import -storetype JKS -keystore %s' % MY_KEYSTORE)
+            p.append('-file %s' % CERT1_FILE)
+            p.append('-storepass secret12 -alias server-cert1')
+            p.append('-noprompt')
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Import I1 cert in new JKS keystore',
+              'command'   : KEYTOOL,
+              'arguments' : p,
+              'path'      : SEC_I1_ROOT,
+              'expectedRC': 0,
+              'outputFile': '%s/sec-import-cert-i1.txt' % OUT_GROUP,
+            }
+          </call>
+
+          <!-- 5.4. Import cert I2 -->
+          <message>'++ Import cert on I2'</message> 
+          <script>
+            c = '%s' % KEYTOOL
+            p = []
+            p.append('-import -storetype JKS -keystore %s' % MY_KEYSTORE)
+            p.append('-file %s' % CERT2_FILE)
+            p.append('-storepass secret12 -alias server-cert2')
+            p.append('-noprompt')
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Import I2 cert in new JKS keystore',
+              'command'   : KEYTOOL,
+              'arguments' : p,
+              'path'      : SEC_I2_ROOT,
+              'expectedRC': 0,
+              'outputFile': '%s/sec-import-cert-i2.txt' % OUT_GROUP,
+            }
+          </call>
+          
+          <!-- 6.1. Uninstall I1 (should fail: incompatible options) -->
+          <message>'++ Uninstall I1 (should fail)'</message> 
+          <script>
+            c = '%s/uninstall%s' % (SEC_I1_ROOT, fileExt)
+            p = []
+            p.append('--cli --no-prompt')
+            p.append('--adminUID admin --bindPassword %s' % DM_PW)
+            p.append('--useSSL --useStartTLS --remove-all')
+            p.append('--trustStorePath %s' % MY_KEYSTORE)
+            p.append('--trustStorePassword secret12')
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Uninstall I1',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : SEC_I1_ROOT,
+              'expectedRC': 2,
+              'outputFile': '%s/sec-uninstall1-i1.txt' % OUT_GROUP,
+            }
+          </call>
+
+
+          <!-- 6.2. Uninstall I1 -->
+          <message>'++ Uninstall I1'</message> 
+          <script>
+            c = '%s/uninstall%s' % (SEC_I1_ROOT, fileExt)
+            p = []
+            p.append('--cli --no-prompt')
+            p.append('--adminUID admin --bindPassword %s' % DM_PW)
+            p.append('--useSSL --remove-all')
+            p.append('--trustStorePath %s' % MY_KEYSTORE)
+            p.append('--trustStorePassword secret12')
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Uninstall I1',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : SEC_I1_ROOT,
+              'expectedRC': 0,
+              'outputFile': '%s/sec-uninstall2-i1.txt' % OUT_GROUP,
+            }
+          </call>
+
+          <!-- 6.3. Uninstall I2 -->
+          <message>'++ Uninstall I2'</message> 
+          <script>
+            c = '%s/uninstall%s' % (SEC_I2_ROOT, fileExt)
+            p = []
+            p.append('--cli --no-prompt')
+            p.append('--adminUID admin --bindPasswordFile %s' % DM_PW_FILE)
+            p.append('--useStartTLS --remove-all')
+            p.append('--trustAll')
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Uninstall I2',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : SEC_I2_ROOT,
+              'expectedRC': 0,
+              'outputFile': '%s/sec-uninstall-i2.txt' % OUT_GROUP,
+            }
+          </call>
+
+          <call function="'testCase_Postamble'"/>
+
+        </sequence>
+      </testcase> 
+
+      <call function="'testSuite_Postamble'"/>
+
+    </sequence>
+    
+  </function>
+  
+</stax>

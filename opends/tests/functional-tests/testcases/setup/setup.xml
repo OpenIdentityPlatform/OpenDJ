@@ -50,7 +50,7 @@
           
           <call function="'runSTAFCommand'">
             { 'name'      :  'Create directory for this group',
-              'location'  :  STAXServiceMachine,
+              'location'  :  STAF_REMOTE_HOSTNAME,
               'service'   :  'FS',
               'request'   :  'CREATE',
               'arguments' :  'DIRECTORY %s FAILIFEXISTS' % OUT_GROUP
@@ -61,12 +61,12 @@
             testList = []
             testList.append(['.','_pre'])
             testList.append(['.','general_options'])
-#            testList.append(['.','directory_manager'])
-#            testList.append(['.','import'])
-#            testList.append(['.','incompatible_options'])
-#            testList.append(['.','security'])
-#            testList.append(['.','ports'])
-#            testList.append(['.','misc'])
+            testList.append(['.','directory_manager'])
+            testList.append(['.','import'])
+            testList.append(['.','incompatible_options'])
+            testList.append(['.','security'])
+            testList.append(['.','ports'])
+            testList.append(['.','misc'])
             testList.append(['.','_post'])
           </script>
 
