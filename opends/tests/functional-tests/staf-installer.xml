@@ -949,7 +949,7 @@ email.server.pwd=${email.server.pwd.input}
     <property name="coverage.on" value="true"/>
   </target>
   
-  <target name="coverage-instrument" depends="status-do,run-tests-get-pkg" if="coverage.on">
+  <target name="coverage-instrument" depends="status-do,run-tests-build-pkg" if="coverage.on">
     <delete dir="${staf.tmp.dir}/coverage-instr" />
     <mkdir dir="${staf.tmp.dir}/coverage-instr" />
     <!-- unzip the original package in a temporary location to make the
@@ -976,8 +976,8 @@ email.server.pwd=${email.server.pwd.input}
       <arg value="instr" />
       <arg value="-m" />
       <arg value="overwrite" />
-      <arg value="-cp" />
-      <arg value="${staf.tmp.dir}${file.separator}coverage-instr${file.separator}${product.name}${file.separator}lib${file.separator}OpenDS.jar" />
+      <arg value="-ip" />
+      <arg value="${staf.tmp.dir}${file.separator}coverage-instr${file.separator}${product.name}${file.separator}lib${file.separator}OpenDS.jar:${staf.tmp.dir}${file.separator}coverage-instr${file.separator}${product.name}${file.separator}lib${file.separator}extensions${file.separator}snmp-mib2605.jar" />
     </java>
     <echo>Writing properties file</echo>
     <echo file="${staf.tmp.dir}/coverage-instr/${product.name}/classes/emma.properties">coverage.out.file=${staf.tmp.dir}/emma.coverage</echo> 
