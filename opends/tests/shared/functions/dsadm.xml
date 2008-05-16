@@ -1138,7 +1138,16 @@
       <script>
         myLocation=location
         myPath=dsPath
-        taskLdifFile='import-task.ldif'
+
+        try:
+          import hashlib
+          m = hashlib.md5()
+        except ImportError:
+          import md5
+          m = md5.new()
+        m.update(location)
+        m.update(dsPath)
+        taskLdifFile='import-task-%s.ldif' % m.hexdigest()
         taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
         tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
@@ -1693,7 +1702,16 @@
       <script>
         myLocation=location
         myPath=dsPath
-        taskLdifFile='export-task.ldif'
+
+        try:
+          import hashlib
+          m = hashlib.md5()
+        except ImportError:
+          import md5
+          m = md5.new()
+        m.update(location)
+        m.update(dsPath)
+        taskLdifFile='export-task-%s.ldif' % m.hexdigest()
         taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
         tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
@@ -2035,7 +2053,16 @@
        <script>
         myLocation=location
         myPath=dsPath
-        taskLdifFile='backup-task.ldif'
+        
+        try:
+          import hashlib
+          m = hashlib.md5()
+        except ImportError:
+          import md5
+          m = md5.new()
+        m.update(location)
+        m.update(dsPath)
+        taskLdifFile='backup-task-%s.ldif' % m.hexdigest()
         taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
         tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
@@ -2317,10 +2344,19 @@
     
     <sequence>
     
-       <script>
+      <script>
         myLocation=location
         myPath=dsPath
-        taskLdifFile='restore-task.ldif'
+
+        try:
+          import hashlib
+          m = hashlib.md5()
+        except ImportError:
+          import md5
+          m = md5.new()
+        m.update(location)
+        m.update(dsPath)
+        taskLdifFile='restore-task-%s.ldif' % m.hexdigest()
         taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
         tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
@@ -2465,7 +2501,16 @@
       <script>
         myLocation=location
         myPath=dsPath
-        taskLdifFile='shutdown-task.ldif'
+
+        try:
+          import hashlib
+          m = hashlib.md5()
+        except ImportError:
+          import md5
+          m = md5.new()
+        m.update(location)
+        m.update(dsPath)
+        taskLdifFile='shutdown-task-%s.ldif' % m.hexdigest()
         taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
         tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
@@ -2587,7 +2632,16 @@
       <script>
         myLocation=location
         myPath=dsPath
-        taskLdifFile='restart-task.ldif'
+        
+        try:
+          import hashlib
+          m = hashlib.md5()
+        except ImportError:
+          import md5
+          m = md5.new()
+        m.update(location)
+        m.update(dsPath)
+        taskLdifFile='restart-task-%s.ldif' % m.hexdigest()
         taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
         tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
@@ -2715,10 +2769,19 @@
 
       <sequence>
 
-         <script>
+        <script>
           myLocation=location
           myPath=dsPath
-          taskLdifFile='schema.ldif'
+
+          try:
+            import hashlib
+            m = hashlib.md5()
+          except ImportError:
+            import md5
+            m = md5.new()
+          m.update(location)
+          m.update(dsPath)
+          taskLdifFile='schema-%s.ldif' % m.hexdigest()
           taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
           tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
           taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
@@ -2845,10 +2908,19 @@
 
       <sequence>
 
-         <script>
+        <script>
           myLocation=location
           myPath=dsPath
-          taskLdifFile='leaveShutdownTask.ldif'
+
+          try:
+            import hashlib
+            m = hashlib.md5()
+          except ImportError:
+            import md5
+            m = md5.new()
+          m.update(location)
+          m.update(dsPath)
+          taskLdifFile='leaveShutdownTask-%s.ldif' % m.hexdigest()
           taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
           tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
           taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
@@ -2988,7 +3060,16 @@
       <script>
         myLocation=location
         myPath=dsPath
-        taskLdifFile='totalupdate-task.ldif'
+        
+        try:
+          import hashlib
+          m = hashlib.md5()
+        except ImportError:
+          import md5
+          m = md5.new()
+        m.update(location)
+        m.update(dsPath)
+        taskLdifFile='totalupdate-task-%s.ldif' % m.hexdigest()
         taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
         tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
@@ -3701,16 +3782,25 @@
     
     <sequence>
     
-       <script>
+      <script>
         myLocation=location
         myPath=dsPath
-        taskLdifFile='rebuildIndex-task.ldif'
+        
+        try:
+          import hashlib
+          m = hashlib.md5()
+        except ImportError:
+          import md5
+          m = md5.new()
+        m.update(location)
+        m.update(dsPath)
+        taskLdifFile='rebuildIndex-task-%s.ldif' % m.hexdigest()
         taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
         tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
       </script>    
 
-      <!-- Build the restore task configuration object -->
+      <!-- Build the rebuild-index task configuration object -->
       <script>
         ldifLines=[]
         ldifLines.append('dn: %s' % taskDN)
@@ -3727,7 +3817,7 @@
           ldifLines.append('ds-task-rebuild-index: %s' % indexType )    
       </script>
        
-      <!-- Write out the restore-task ldif -->
+      <!-- Write out the rebuildIndex-task ldif -->
       <script>
         outfile = open(tmpTaskLdif,"w")
           
