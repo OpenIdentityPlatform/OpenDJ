@@ -2130,4 +2130,53 @@
     </sequence>
   </function>
 
+  <function name="checkFileExists" scope="local">
+    <function-description>
+      Set testcase result to FAIL if file (as param) does not exist
+    </function-description>
+    <function-map-args>
+      <function-arg-def name="file" type="required">
+        <function-arg-description>
+          The file to check existence
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <script>
+        if os.path.exists('%s' % file):
+          exist=1
+        else:
+          exist=0
+      </script>
+      <if expr="exist == 0">
+        <tcstatus result="'fail'"/>
+      </if>
+    </sequence>
+  </function>
+
+  <function name="checkFileNotExists" scope="local">
+    <function-description>
+      Set testcase result to FAIL if file (as param) exists
+    </function-description>
+    <function-map-args>
+      <function-arg-def name="file" type="required">
+        <function-arg-description>
+          The file to check absence
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <script>
+        if os.path.exists('%s' % file):
+          exist=1
+        else:
+          exist=0
+      </script>
+      <if expr="exist == 1">
+        <tcstatus result="'fail'"/>
+      </if>
+    </sequence>
+  </function>
+  
+  
 </stax>
