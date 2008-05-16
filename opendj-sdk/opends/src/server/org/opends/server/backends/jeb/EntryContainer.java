@@ -1894,8 +1894,7 @@ public class EntryContainer
      */
     public Transaction beginOperationTransaction() throws DatabaseException
     {
-      Transaction txn =  beginTransaction();
-      return txn;
+      return beginTransaction();
     }
 
     /**
@@ -2860,8 +2859,7 @@ public class EntryContainer
      */
     public Transaction beginOperationTransaction() throws DatabaseException
     {
-      Transaction txn =  beginTransaction();
-      return txn;
+      return beginTransaction();
     }
 
     /**
@@ -3880,7 +3878,22 @@ public class EntryContainer
   }
 
   /**
-   * Get a list of the databases opened by this entryContainer.
+   * Close cursors in the indexes of the context.
+   *
+   * @throws DatabaseException If a database error occurs.
+   */
+  public void closeIndexCursors() throws DatabaseException {
+    id2children.closeCursor();
+    id2subtree.closeCursor();
+    for (AttributeIndex index : attrIndexMap.values())
+    {
+      index.closeCursors();
+    }
+  }
+
+
+  /**
+   * Get a list of the databases opened by the entryContainer.
    * @param dbList A list of database containers.
    */
   public void listDatabases(List<DatabaseContainer> dbList)

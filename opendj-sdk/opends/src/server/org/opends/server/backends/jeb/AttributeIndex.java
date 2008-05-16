@@ -1224,6 +1224,38 @@ public class AttributeIndex
   }
 
   /**
+   * Close cursors related to the attribute indexes.
+   *
+   * @throws DatabaseException If a database error occurs.
+   */
+  public void closeCursors() throws DatabaseException {
+    if (equalityIndex != null)
+    {
+      equalityIndex.closeCursor();
+    }
+
+    if (presenceIndex != null)
+    {
+      presenceIndex.closeCursor();
+    }
+
+    if (substringIndex != null)
+    {
+      substringIndex.closeCursor();
+    }
+
+    if (orderingIndex != null)
+    {
+      orderingIndex.closeCursor();
+    }
+
+    if (approximateIndex != null)
+    {
+      approximateIndex.closeCursor();
+    }
+  }
+
+  /**
    * Return the number of values that have exceeded the entry limit since this
    * object was created.
    *

@@ -114,6 +114,9 @@ public class Index extends DatabaseContainer
    */
   private boolean rebuildRunning = false;
 
+  //Thread local area to store per thread cursors.
+  private ThreadLocal<Cursor> curLocal = new ThreadLocal<Cursor>();
+
 
   /**
    * Create a new index object.
@@ -312,45 +315,66 @@ public class Index extends DatabaseContainer
 
 
   /**
-   * Add the specified import ID set to the provided key. Used during
-   * substring buffer flushing.
+   * Insert the specified import ID set into this index a the provided key.
    *
-   * @param txn A transaction.
    * @param key The key to add the set to.
    * @param importIdSet The set of import IDs.
-   * @param data Database entry to reuse for read
+   * @param data Database entry to reuse for read.
+   * @param cursor A database cursor to use.
    * @throws DatabaseException If an database error occurs.
    */
-  public void insert(Transaction txn, DatabaseEntry key,
-                     ImportIDSet importIdSet, DatabaseEntry data)
-  throws DatabaseException {
 
-    OperationStatus status;
-      status = read(txn, key, data, LockMode.RMW);
-      if(status == OperationStatus.SUCCESS) {
-        ImportIDSet newImportIDSet = new IntegerImportIDSet();
-        if (newImportIDSet.merge(data.getData(), importIdSet,
-                                 indexEntryLimit, maintainCount)) {
-          entryLimitExceededCount++;
-        }
-        data.setData(newImportIDSet.toDatabase());
-      } else if(status == OperationStatus.NOTFOUND) {
-        if(!importIdSet.isDefined()) {
-          entryLimitExceededCount++;
-        }
-        data.setData(importIdSet.toDatabase());
-      } else {
-        //Should never happen during import.
-        throw new DatabaseException();
+  private void
+  insert(DatabaseEntry key, ImportIDSet importIdSet,
+         DatabaseEntry data, Cursor cursor) throws DatabaseException {
+    OperationStatus status =
+            cursor.getSearchKey(key, data, LockMode.DEFAULT);
+    if(status == OperationStatus.SUCCESS) {
+      ImportIDSet newImportIDSet = new IntegerImportIDSet();
+      if (newImportIDSet.merge(data.getData(), importIdSet,
+              indexEntryLimit, maintainCount) && importIdSet.isDirty()) {
+        entryLimitExceededCount++;
+        importIdSet.setDirty(false);
       }
-      put(txn,key, data);
+      data.setData(newImportIDSet.toDatabase());
+      cursor.putCurrent(data);
+    } else if(status == OperationStatus.NOTFOUND) {
+      if(!importIdSet.isDefined() && importIdSet.isDirty()) {
+        entryLimitExceededCount++;
+        importIdSet.setDirty(false);
+      }
+      data.setData(importIdSet.toDatabase());
+      cursor.put(key,data);
+    } else {
+      //Should never happen during import.
+      throw new DatabaseException();
+    }
+  }
+
+  /**
+   * Insert the specified import ID set into this index. Creates a DB
+   * cursor if needed.
+   *
+   * @param key The key to add the set to.
+   * @param importIdSet The set of import IDs.
+   * @param data Database entry to reuse for read.
+   * @throws DatabaseException If a database error occurs.
+   */
+  public void
+  insert(DatabaseEntry key, ImportIDSet importIdSet,
+         DatabaseEntry data) throws DatabaseException {
+    Cursor cursor = curLocal.get();
+    if(cursor == null) {
+      cursor = openCursor(null, null);
+      curLocal.set(cursor);
+    }
+    insert(key, importIdSet, data, cursor);
   }
 
 
   /**
    * Add the specified import ID set to the provided keys in the keyset.
    *
-   * @param txn  A transaction.
    * @param importIDSet A import ID set to use.
    * @param keySet  The set containing the keys.
    * @param keyData A key database entry to use.
@@ -358,13 +382,19 @@ public class Index extends DatabaseContainer
    * @return <CODE>True</CODE> if the insert was successful.
    * @throws DatabaseException If a database error occurs.
    */
+
   public synchronized
-  boolean insert(Transaction txn, ImportIDSet importIDSet, Set<byte[]> keySet,
+  boolean insert(ImportIDSet importIDSet, Set<byte[]> keySet,
                  DatabaseEntry keyData, DatabaseEntry data)
           throws DatabaseException {
+    Cursor cursor = curLocal.get();
+    if(cursor == null) {
+      cursor = openCursor(null, null);
+      curLocal.set(cursor);
+    }
     for(byte[] key : keySet) {
       keyData.setData(key);
-      insert(txn, keyData, importIDSet, data);
+      insert(keyData, importIDSet, data, cursor);
     }
     keyData.setData(null);
     data.setData(null);
@@ -1130,6 +1160,17 @@ public class Index extends DatabaseContainer
     return entryLimitExceededCount;
   }
 
+  /**
+   * Close any cursors open against this index.
+   *
+   * @throws DatabaseException  If a database error occurs.
+   */
+  public void closeCursor() throws DatabaseException {
+    Cursor cursor = curLocal.get();
+    if(cursor != null) {
+      cursor.close();
+    }
+  }
   /**
    * Increment the count of the number of keys that have exceeded the entry
    * limit since this object was created.

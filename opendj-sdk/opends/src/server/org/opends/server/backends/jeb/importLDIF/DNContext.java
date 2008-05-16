@@ -34,7 +34,6 @@ import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.backends.jeb.*;
 
 import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.Transaction;
 import com.sleepycat.je.LockMode;
 
 import java.util.concurrent.BlockingQueue;
@@ -116,7 +115,7 @@ public class DNContext {
 
   //Used to synchronize the parent ID map, since multiple worker threads
   //can be accessing it.
-  private Object synchObject = new Object();
+  private final Object synchObject = new Object();
 
   /**
    * The number of LDAP entries added to the database, used to update the
@@ -441,12 +440,11 @@ public class DNContext {
      * Get the Entry ID of the parent entry.
      * @param parentDN  The parent DN.
      * @param dn2id The DN2ID DB.
-     * @param txn A database transaction,
      * @return The entry ID of the parent entry.
      * @throws DatabaseException If a DB error occurs.
      */
     public
-    EntryID getParentID(DN parentDN, DN2ID dn2id, Transaction txn)
+    EntryID getParentID(DN parentDN, DN2ID dn2id)
             throws DatabaseException {
       EntryID parentID;
       synchronized(synchObject) {
@@ -469,7 +467,7 @@ public class DNContext {
           return null;
         }
       }
-      parentID = dn2id.get(txn, parentDN, LockMode.DEFAULT);
+      parentID = dn2id.get(null, parentDN, LockMode.DEFAULT);
       //If the parent is in dn2id, add it to the cache.
       if (parentID != null) {
         synchronized(synchObject) {
