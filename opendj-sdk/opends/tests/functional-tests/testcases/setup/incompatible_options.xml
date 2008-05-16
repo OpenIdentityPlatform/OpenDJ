@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, exclude this CDDL HEADER in each
+ ! file and exclude the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  
+  <defaultcall function="incompatible_options"/>
+  
+  <function name="incompatible_options">
+    
+    <sequence>
+          
+      <!--- Test Suite information
+        #@TestSuiteName       Setup-Uninstall incompatible_options Tests
+        #@TestSuitePurpose    Test incompatibilities between options of
+                              both setup and uninstall commands. In other words, 
+                              if 2 incompatible options are specified on the 
+                              same command line, the command should fail
+        #@TestSuiteGroup      incompatible_options
+        #@TestSuiteID         incompatible_options Tests
+        #@TestGroup           Setup-Uninstall
+        #@TestScript          incompatible_options.xml
+        #@TestHTMLLink        http://opends.dev.java.net/
+      -->
+
+      <script>
+        if not CurrentTestPath.has_key('group'):
+          CurrentTestPath['group'] = 'setup'              
+        CurrentTestPath['suite'] = 'incompatible_options'
+      </script>
+
+      <call function="'testSuite_Preamble'"/>
+
+      <!--- Test Case information
+        #@TestMarker          Setup-Uninstall incompatible_options Tests
+        #@TestName            Setup-Uninstall: incompatible_options: 
+                              inc_base_ldif
+        #@TestID              inc_base_ldif
+        #@TestPurpose         Check that 'addBaseEntry' and 'ldifFile' setup
+                              options cannot be specified together
+        #@TestPreamble        
+        #@TestStep            Setup OpenDS with 'addBaseEntry' and 'ldifFile'
+                              options, and check for error
+        #@TestPostamble       
+        #@TestResult          PASS if all steps ran without errors
+      -->
+      <testcase name="getTestCaseName('inc_base_ldif')">
+        <sequence>
+
+          <script>
+            INC_LDIF_FILE = '%s/setup/inc-options.ldif' % logsRemoteDataDir
+          </script>
+
+          <call function="'testCase_Preamble'"/>
+          <message>'Incompatible Options: addBaseEntry ldifFile'</message>
+
+          <script>
+            c = '%s/%s/setup%s' % (ODS_UNZIPPED, OPENDSNAME, fileExt)
+            p = []
+            p.append('--cli --no-prompt --ldapPort 10000')
+            p.append('--rootUserPassword "kangourou"')
+            p.append('--baseDN "o=o1"')
+            p.append('--addBaseEntry')
+            p.append('--ldifFile %s' % INC_LDIF_FILE)
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Launch setup command',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : ODS_UNZIPPED,
+              'expectedRC': 2,
+              'outputFile': '%s/inc-base-ldif-setup.txt' % OUT_GROUP,
+            }
+          </call>
+
+          <call function="'testCase_Postamble'"/>
+
+        </sequence>
+      </testcase> 
+
+      <!--- Test Case information
+        #@TestMarker          Setup-Uninstall incompatible_options Tests
+        #@TestName            Setup-Uninstall: incompatible_options: 
+                              inc_base_data
+        #@TestID              inc_base_data
+        #@TestPurpose         Check that 'addBaseEntry' and 'sampleData' setup
+                              options cannot be specified together
+        #@TestPreamble        
+        #@TestStep            Setup OpenDS with 'addBaseEntry' and 'sampleData'
+                              options, and check for error
+        #@TestPostamble       
+        #@TestResult          PASS if all steps ran without errors
+      -->
+      <testcase name="getTestCaseName('inc_base_data')">
+        <sequence>
+
+          <call function="'testCase_Preamble'"/>
+          <message>'Incompatible Options: addBaseEntry sampleData'</message>
+
+          <script>
+            c = '%s/%s/setup%s' % (ODS_UNZIPPED, OPENDSNAME, fileExt)
+            p = []
+            p.append('--cli --no-prompt --ldapPort 10000')
+            p.append('--rootUserPassword "kangourou"')
+            p.append('--baseDN "o=o1"')
+            p.append('--addBaseEntry')
+            p.append('--sampleData 10')
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Launch setup command',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : ODS_UNZIPPED,
+              'expectedRC': 2,
+              'outputFile': '%s/inc-base-data-setup.txt' % OUT_GROUP,
+            }
+          </call>
+          
+          <call function="'testCase_Postamble'"/>
+
+        </sequence>
+      </testcase>
+
+      <!--- Test Case information
+        #@TestMarker          Setup-Uninstall Incompatible options
+        #@TestName            Setup-Uninstall: incompatible_options: 
+                              inc_ldif_data
+        #@TestID              inc_ldif_data
+        #@TestPurpose         Check that 'ldifFile' and 'sampleData' setup 
+                              options cannot be specified together
+        #@TestPreamble        
+        #@TestStep            Setup OpenDS with 'ldifFile' and 
+                              'sampleData' options, and check for error
+        #@TestPostamble       
+        #@TestResult          PASS if all steps ran without errors
+      -->
+      <testcase name="getTestCaseName('inc_ldif_data')">
+        <sequence>
+
+          <script>
+            INC_LDIF_FILE = '%s/setup/inc-options.ldif' % logsRemoteDataDir
+          </script>
+
+          <call function="'testCase_Preamble'"/>
+          <message>'Incompatible Options: ldifFile sampleData'</message>
+
+          <script>
+            c = '%s/%s/setup%s' % (ODS_UNZIPPED, OPENDSNAME, fileExt)
+            p = []
+            p.append('--cli --no-prompt --ldapPort 10000')
+            p.append('--rootUserPassword "kangourou"')
+            p.append('--baseDN "o=o1"')
+            p.append('--ldifFile %s' %  INC_LDIF_FILE)
+            p.append('--sampleData 10')
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Launch setup command',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : ODS_UNZIPPED,
+              'expectedRC': 2,
+              'outputFile': '%s/inc-ldif-data-setup.txt' % OUT_GROUP,
+            }
+          </call>
+          
+          <call function="'testCase_Postamble'"/>
+
+        </sequence>
+      </testcase>
+
+      <!--- Test Case information
+        #@TestMarker          Setup-Uninstall Incompatible options
+        #@TestName            Setup-Uninstall: incompatible_options: 
+                              inc_userpwd_userpwdfile
+        #@TestID              inc_userpwd_userpwdfile
+        #@TestPurpose         Check that 'rootUserPassword' and 
+                              'rootUserPasswordFile' setup options cannot
+                              be specified together
+        #@TestPreamble        
+        #@TestStep            Setup OpenDS with 'rootUserPassword' and 
+                              'rootUserPasswordFile' options, and check 
+                              for error
+        #@TestPostamble       
+        #@TestResult          PASS if all steps ran without errors
+      -->
+      <testcase name="getTestCaseName('inc_userpwd_userpwdfile')">
+        <sequence>
+
+          <script>
+            INC_USER_PWD_FILE = '%s/setup/pwd.ldif' % logsRemoteDataDir
+          </script>
+
+          <call function="'testCase_Preamble'"/>
+          <message>
+            'Incompatible Options: rootUserPasswordFile rootUserPassword'
+          </message>
+
+          <script>
+            c = '%s/%s/setup%s' % (ODS_UNZIPPED, OPENDSNAME, fileExt)
+            p = []
+            p.append('--cli --no-prompt --ldapPort 10000')
+            p.append('--rootUserPassword "kangourou"')
+            p.append('--rootUserPasswordFile %s' % INC_USER_PWD_FILE)
+            p.append('--baseDN "o=o1"')
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Launch setup command',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : ODS_UNZIPPED,
+              'expectedRC': 2,
+              'outputFile': '%s/inc-userpwd-userpwdfile.txt' % OUT_GROUP,
+            }
+          </call>
+          
+          <call function="'testCase_Postamble'"/>
+
+        </sequence>
+      </testcase> 
+      
+      <call function="'testSuite_Postamble'"/>
+
+    </sequence>
+    
+  </function>
+  
+</stax>

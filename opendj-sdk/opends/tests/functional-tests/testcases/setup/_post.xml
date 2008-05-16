@@ -71,7 +71,7 @@
 
           <call function="'runSTAFCommand'">
             { 'name'      :  'Delete directory containing unzipped OpenDS',
-              'location'  :  STAXServiceMachine,
+              'location'  :  STAF_REMOTE_HOSTNAME,
               'service'   :  'FS',
               'request'   :  'DELETE',
               'arguments' :  'ENTRY %s RECURSE CONFIRM' % OUT_GROUP

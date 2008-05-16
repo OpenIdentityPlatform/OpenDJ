@@ -79,12 +79,13 @@
       
           <message>'%s %s' % (setupCmd, setupParams)</message>
           <call function="'runCommand'">
-            { 'location'  : STAXServiceMachine,
+            { 'location'  : STAF_REMOTE_HOSTNAME,
               'name'      : 'Launch setup command to get DS version',
               'command'   : setupCmd,
               'arguments' : setupParams,
               'path'      : ODS_UNZIPPED,
-              'outputFile': '%s/go-setup-version.txt' % OUT_GROUP
+              'expectedRC': 0,
+              'outputFile': '%s/go-setup-version.txt' % OUT_GROUP,
             }
           </call>
 
@@ -93,7 +94,7 @@
           </script>
 
           <call function="'grep'">
-            { 'location'  : STAXServiceMachine,
+            { 'location'  : STAF_REMOTE_HOSTNAME,
               'filename'  : grepFile,
               'testString': 'OpenDS Directory Server'
             }
@@ -107,12 +108,13 @@
       
           <message>'%s %s' % (uninstallCmd, uninstallParams)</message>
           <call function="'runCommand'">
-            { 'location'  : STAXServiceMachine,
+            { 'location'  : STAF_REMOTE_HOSTNAME,
               'name'      : 'Launch uninstall command to get DS version',
               'command'   : uninstallCmd,
               'arguments' : uninstallParams,
               'path'      : ODS_UNZIPPED,
-              'outputFile': '%s/go-uninstall-version.txt' % OUT_GROUP
+              'expectedRC': 0,
+              'outputFile': '%s/go-uninstall-version.txt' % OUT_GROUP,
             }
           </call>
 
@@ -121,7 +123,7 @@
           </script>
 
           <call function="'grep'">
-            { 'location'  : STAXServiceMachine,
+            { 'location'  : STAF_REMOTE_HOSTNAME,
               'filename'  : grepFile,
               'testString': 'OpenDS Directory Server'
             }
@@ -158,12 +160,13 @@
       
           <message>'%s %s' % (setupCmd, setupParams)</message>
           <call function="'runCommand'">
-            { 'location'  : STAXServiceMachine,
+            { 'location'  : STAF_REMOTE_HOSTNAME,
               'name'      : 'Launch setup command to get its help',
               'command'   : setupCmd,
               'arguments' : setupParams,
               'path'      : ODS_UNZIPPED,
-              'outputFile': '%s/go-setup-help.txt' % OUT_GROUP
+              'expectedRC': 0,
+              'outputFile': '%s/go-setup-help.txt' % OUT_GROUP,
             }
           </call>
 
@@ -172,7 +175,7 @@
           </script>
 
           <call function="'grep'">
-            { 'location'  : STAXServiceMachine,
+            { 'location'  : STAF_REMOTE_HOSTNAME,
               'filename'  : grepFile,
               'testString': 'Usage'
             }
@@ -186,12 +189,13 @@
       
           <message>'%s %s' % (uninstallCmd, uninstallParams)</message>
           <call function="'runCommand'">
-            { 'location'  : STAXServiceMachine,
+            { 'location'  : STAF_REMOTE_HOSTNAME,
               'name'      : 'Launch uninstall command to get its help',
               'command'   : uninstallCmd,
               'arguments' : uninstallParams,
               'path'      : ODS_UNZIPPED,
-              'outputFile': '%s/go-uninstall-help.txt' % OUT_GROUP
+              'expectedRC': 0,
+              'outputFile': '%s/go-uninstall-help.txt' % OUT_GROUP,
             }
           </call>
 
@@ -200,7 +204,7 @@
           </script>
 
           <call function="'grep'">
-            { 'location'  : STAXServiceMachine,
+            { 'location'  : STAF_REMOTE_HOSTNAME,
               'filename'  : grepFile,
               'testString': 'Usage'
             }

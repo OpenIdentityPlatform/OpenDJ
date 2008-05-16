@@ -70,9 +70,24 @@
           <call function="'testCase_Preamble'"/>
           <message>'Prepare Open DS ZIP (in %s)' % ODS_UNZIPPED</message>
 
+          <message>
+            'setup: create DS topology as described in config.py'
+          </message>
+
+          <call function="'createTopology'">
+            { 'initialiseInstance' : False }
+          </call>
+
+          <call function="'checktestRC'">
+            {
+              'returncode' : RC ,
+              'result'     : STAXResult
+            }
+          </call>
+
           <call function="'runSTAFCommand'">
             { 'name'      :  'Create directory to contain unzipped OpenDS',
-              'location'  :  STAXServiceMachine,
+              'location'  :  STAF_REMOTE_HOSTNAME,
               'service'   :  'FS',
               'request'   :  'CREATE',
               'arguments' :  'DIRECTORY %s FAILIFEXISTS' % ODS_UNZIPPED
@@ -88,7 +103,7 @@
 
           <call function="'runSTAFCommand'">
             { 'name'      :  'Extract OpenDS ZIP file',
-              'location'  :  STAXServiceMachine,
+              'location'  :  STAF_REMOTE_HOSTNAME,
               'service'   :  'ZIP',
               'request'   :  'UNZIP',
               'arguments' :  'ZIPFILE %s/%s TODIRECTORY %s RESTOREPERMISSION' \
