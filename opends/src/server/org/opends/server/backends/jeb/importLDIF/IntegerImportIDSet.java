@@ -35,6 +35,10 @@ import com.sleepycat.je.dbi.MemoryBudget;
  */
 public class IntegerImportIDSet implements ImportIDSet {
 
+
+  //Indicate if a undefined import set has been written to the index DB.
+  private boolean dirty = true;
+
   //Gleamed from JHAT. The same for 32/64 bit.
   private final static int THIS_OVERHEAD = 25;
 
@@ -93,8 +97,22 @@ public class IntegerImportIDSet implements ImportIDSet {
     count = 0;
     isDefined = true;
     undefinedSize = 0;
+    dirty = true;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public void setDirty(boolean dirty) {
+    this.dirty = dirty;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isDirty() {
+    return dirty;
+  }
   /**
    * {@inheritDoc}
    */
@@ -239,9 +257,11 @@ public class IntegerImportIDSet implements ImportIDSet {
       if(dbUndefined) {
         isDefined=false;
         importIdSet.setUndefined();
+        undefinedSize = Long.MAX_VALUE;
       } else if(!importIdSet.isDefined()) {
         isDefined=false;
         incrLimitCount=true;
+        undefinedSize = Long.MAX_VALUE;
       } else {
         array = JebFormat.intArrayFromDatabaseBytes(dBbytes);
         if(array.length + importIdSet.size() > limit) {
@@ -249,6 +269,7 @@ public class IntegerImportIDSet implements ImportIDSet {
           incrLimitCount=true;
           count = 0;
           importIdSet.setUndefined();
+          undefinedSize = Long.MAX_VALUE;
         } else {
           count = array.length;
           addAll((IntegerImportIDSet) importIdSet);

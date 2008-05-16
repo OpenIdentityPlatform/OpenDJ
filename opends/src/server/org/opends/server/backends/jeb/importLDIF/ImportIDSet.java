@@ -118,4 +118,19 @@ public interface ImportIDSet {
    * @param entryID The entry ID to use.
    */
   public void setEntryID(EntryID entryID);
+
+  /**
+   * Return if a undefined entry ID set has been written to the index DB.
+   *
+   * @return Return <CODE>True</CODE>if the undefined entry ID set has been
+   * written to the index DB.
+   */
+  public boolean isDirty();
+
+  /**
+   * Set the dirty flag to the specifed value.
+   *
+   * @param dirty The value to set the flag to.
+   */
+  public void setDirty(boolean dirty);
 }

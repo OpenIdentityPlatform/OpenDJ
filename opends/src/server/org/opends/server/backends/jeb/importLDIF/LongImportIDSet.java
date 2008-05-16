@@ -37,6 +37,8 @@ import org.opends.server.backends.jeb.JebFormat;
  */
 public class LongImportIDSet implements ImportIDSet {
 
+  //Indicate if a undefined import set has been written to the index DB.
+  private boolean dirty = true;
 
   //Overhead values gleamed from JHAT.
   private final static int LONGS_OVERHEAD;
@@ -108,6 +110,21 @@ public class LongImportIDSet implements ImportIDSet {
     count = 0;
     isDefined = true;
     undefinedSize = 0;
+    dirty = true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void setDirty(boolean dirty) {
+    this.dirty = dirty;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isDirty() {
+    return dirty;
   }
 
   /**
@@ -183,15 +200,18 @@ public class LongImportIDSet implements ImportIDSet {
 
     if(dbUndefined) {
       isDefined=false;
+      undefinedSize = Long.MAX_VALUE;
     } else if(!importIdSet.isDefined()) {
       isDefined=false;
       incrLimitCount=true;
+      undefinedSize = Long.MAX_VALUE;
     } else {
       array = JebFormat.entryIDListFromDatabase(DBbytes);
       if(array.length + importIdSet.size() > limit) {
           isDefined=false;
           incrLimitCount=true;
           importIdSet.setUndefined();
+          undefinedSize = Long.MAX_VALUE;
       } else {
         count = array.length;
         addAll((LongImportIDSet) importIdSet);

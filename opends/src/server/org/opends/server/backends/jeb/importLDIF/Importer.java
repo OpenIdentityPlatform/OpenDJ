@@ -178,11 +178,11 @@ public class Importer implements Thread.UncaughtExceptionHandler {
     // Create one set of worker threads/buffer managers for each base DN.
     for (DNContext context : importMap.values()) {
       BufferManager bufferManager =
-                        new BufferManager(memoryPerContext, importThreadCount);
+                        new BufferManager(memoryPerContext);
       context.setBufferManager(bufferManager);
       for (int i = 0; i < importThreadCount; i++) {
         WorkThread t = new WorkThread(context.getWorkQueue(), i,
-                bufferManager, rootContainer);
+                bufferManager, rootContainer, importMap);
         t.setUncaughtExceptionHandler(this);
         threads.add(t);
         t.start();
@@ -557,6 +557,15 @@ public class Importer implements Thread.UncaughtExceptionHandler {
     msg = NOTE_JEB_IMPORT_LDIF_FINAL_CLEAN.get();
     //Run the cleaner.
     runCleaner(msg);
+    closeIndexCursors();
+  }
+
+
+   private void closeIndexCursors() throws DatabaseException {
+    for (DNContext ic : importMap.values())
+    {
+      ic.getEntryContainer().closeIndexCursors();
+    }
   }
 
   /**
@@ -776,11 +785,11 @@ public class Importer implements Thread.UncaughtExceptionHandler {
     long maxMemory = runtime.maxMemory();
     long totMemory = runtime.totalMemory();
     long totFreeMemory = (freeMemory + (maxMemory - totMemory));
-    long dbCacheLimit = (totFreeMemory * 45) / 100;
-    //If there are now substring indexes defined, set the DB cache
-    //size to 60% and take a minimal substring buffer.
+    long dbCacheLimit = (totFreeMemory * 60) / 100;
+    //If there are no substring indexes defined, set the DB cache
+    //size to 75% and take a minimal substring buffer.
     if(!hasSubIndexes) {
-      dbCacheLimit = (totFreeMemory * 60) / 100;
+      dbCacheLimit = (totFreeMemory * 75) / 100;
     }
     dbCacheSizeStr = Long.toString(dbCacheLimit);
     totalAvailBufferMemory = (totFreeMemory * 10) / 100;

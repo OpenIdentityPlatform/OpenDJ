@@ -31,7 +31,6 @@ package org.opends.server.backends.jeb.importLDIF;
 import org.opends.server.types.Entry;
 import org.opends.server.backends.jeb.Index;
 import org.opends.server.backends.jeb.EntryID;
-import com.sleepycat.je.Transaction;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.dbi.MemoryBudget;
@@ -92,15 +91,14 @@ public class BufferManager {
   private ReentrantLock lock = new ReentrantLock();
 
   //Object to synchronize on if backup maps are being written.
-  private Object backupSynchObj = new Object();
+  private final Object backupSynchObj = new Object();
 
   /**
    * Create buffer manager instance.
    *
    * @param memoryLimit The memory limit.
-   * @param importThreadCount  The count of import worker threads.
    */
-  public BufferManager(long memoryLimit, int importThreadCount) {
+  public BufferManager(long memoryLimit) {
     this.memoryLimit = memoryLimit;
     this.nextElem = null;
     this.backupMap = backupMap1;
@@ -113,13 +111,12 @@ public class BufferManager {
    * @param index  The index to use.
    * @param entry The entry used to build the key set.
    * @param entryID The entry ID to insert into the key set.
-   * @param txn A transaction.
    * @param keySet Keyset hash to store the keys in.
    * @throws DatabaseException If a problem happened during a flushAll cycle.
    */
 
   void insert(Index index, Entry entry,
-              EntryID entryID, Transaction txn, Set<byte[]> keySet)
+              EntryID entryID, Set<byte[]> keySet)
           throws DatabaseException {
 
     keySet.clear();
@@ -147,13 +144,12 @@ public class BufferManager {
    * @param id2subtree The id2subtree index to use.
    * @param entry The entry used to build the key set.
    * @param entryID The entry ID to insert into the key set.
-   * @param txn  A transaction.
    * @param childKeySet id2children key set hash to use.
    * @param subKeySet subtree key set hash to use.
    * @throws DatabaseException If a problem occurs during processing.
    */
   void insert(Index id2children, Index id2subtree, Entry entry,
-              EntryID entryID, Transaction txn, Set<byte[]> childKeySet,
+              EntryID entryID, Set<byte[]> childKeySet,
               Set<byte[]> subKeySet) throws DatabaseException {
     childKeySet.clear();
     id2children.indexer.indexEntry(entry, childKeySet);
@@ -207,7 +203,6 @@ public class BufferManager {
   void mergeMap() {
     TreeMap<KeyHashElement, KeyHashElement> tmpMap;
     synchronized(backupSynchObj) {
-      tmpMap = backupMap;
       if(currentMap == 1) {
          backupMap = backupMap2;
          tmpMap = backupMap1;
@@ -298,7 +293,7 @@ public class BufferManager {
           int oldSize = curElem.getMemorySize();
           Index index = curElem.getIndex();
           dbEntry.setData(curElem.getKey());
-          index.insert(null, dbEntry, curElem.getIDSet(), entry);
+          index.insert(dbEntry, curElem.getIDSet(), entry);
           if(curElem.isDefined()) {
              memoryUsage -= TREEMAP_ENTRY_OVERHEAD + curElem.getMemorySize();
              iter.remove();
@@ -342,9 +337,11 @@ public class BufferManager {
     DatabaseEntry dbEntry = new DatabaseEntry();
     DatabaseEntry entry = new DatabaseEntry();
     for (KeyHashElement curElem : tSet) {
-      Index index = curElem.getIndex();
-      dbEntry.setData(curElem.getKey());
-      index.insert(null, dbEntry, curElem.getIDSet(), entry);
+      if(curElem.isDirty()) {
+        Index index = curElem.getIndex();
+        dbEntry.setData(curElem.getKey());
+        index.insert(dbEntry, curElem.getIDSet(), entry);
+      }
     }
   }
 
@@ -559,6 +556,16 @@ public class BufferManager {
     public void merge(KeyHashElement e) {
       importIDSet.merge(e.importIDSet, e.getIndex().getIndexEntryLimit(),
               e.getIndex().getMaintainCount());
+    }
+
+    /**
+     * Return if an undefined import ID set has been written to the index DB.
+     *
+     * @return <CODE>True</CODE> if an undefined importID set has been written
+     * to the index DB.
+     */
+    public boolean isDirty() {
+      return importIDSet.isDirty();
     }
   }
 }
