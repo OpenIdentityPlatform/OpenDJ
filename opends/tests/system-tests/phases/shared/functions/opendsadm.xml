@@ -986,11 +986,6 @@
       { 'tagName' : 'checkOpendsReplication',
         'fileFd'  : fileFd }
       </call>
-      <call function="'writeMessage'">
-      { 'fileFd'  : fileFd,
-        'content' : '%s %s' % (STAFCmd, STAFCmdParams)
-      }
-      </call>
       
       
       <!--== Run dsreplication status ==-->
