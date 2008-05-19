@@ -338,6 +338,7 @@
       </call>
       <script>
         logFileDetails = STAXResult
+        logFileDetailsRelativePath = logFileDetails.replace(LOG_DIR,'.')
         fileList.append(logFileDetails)
         fileFdDetails = open(logFileDetails,'w')
         outFile = '%s/client_%s_id%s.txt' % \
@@ -395,7 +396,7 @@
       <call function="'writeMessage'">
       { 
         'content' : 'Details of the client : %s' % logFileDetails,
-        'xlink'   : logFileDetails,
+        'xlink'   : logFileDetailsRelativePath,
         'fileFd'  : fileFd
       }
       </call>
