@@ -123,20 +123,12 @@
   </function-prolog>
     
     <sequence>
-    
-      <!-- Resolve any OS related variables -->           
-      <call function="'getOSvariables'">
-        { 'hostname' : STAF_REMOTE_HOSTNAME }
-      </call>
 
       <!-- fixMe: this needs some cleanup -->
       <script>
         STAXLogMessage = 1 
-        OPENDS_BINPATH ='%s/%s/bin' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME) 
-        OSName= STAXResult
-        winPattern=re.compile('win', re.IGNORECASE)
-        isWindows=winPattern.search(OSName)
-        if isWindows:
+        OPENDS_BINPATH ='%s/%s/bin' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+        if is_windows_platform(STAF_REMOTE_HOSTNAME):
           fileExt='.bat'
           fileFolder='bat'
           pathSeparator=';'

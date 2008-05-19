@@ -154,7 +154,7 @@
         snmpPath = '%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir)
         cp = 'CLASSPATH=%s/%s:%s/jdmkrt.jar:.' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE, snmpPath)
         
-        if isWindows:
+        if is_windows_platform(location):
           cp = cp.replace(':', ';')
         
         env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp] 
@@ -311,7 +311,7 @@
         snmpPath = '%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir)
         cp = 'CLASSPATH=%s/%s:%s/jdmkrt.jar:.' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE, snmpPath)
         
-        if isWindows:
+        if is_windows_platform(location):
           cp = cp.replace(':', ';')
         
         env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp] 
@@ -422,7 +422,7 @@
         cp = 'CLASSPATH=%s/%s:%s/jdmkrt.jar:%s:.' \
         % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE, snmpPath, jstaf_jarfile)
         
-        if isWindows:
+        if is_windows_platform(location):
           cp = cp.replace(':', ';')
         
         env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp] 

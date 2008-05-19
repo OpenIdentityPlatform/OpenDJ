@@ -29,7 +29,13 @@ __version__ = "$Revision$"
 # $Source$
 
 # public symbols
-__all__ = [ "format_testcase", "directory_server_information", "test_time", "report_generation", "compare_file", "exception_thrown" ]
+__all__ = [ "format_testcase",
+            "directory_server_information", 
+            "test_time", 
+            "report_generation", 
+            "compare_file", 
+            "is_windows_platform", 
+            "exception_thrown" ]
 
 class format_testcase:
   'Format the Test name objects'
@@ -171,3 +177,18 @@ class compare_file:
       return ret_str
     finally:
       diff_file.close()
+
+def is_windows_platform(host):
+    from java.lang import Boolean
+    from com.ibm.staf import STAFHandle
+    from com.ibm.staf import STAFResult
+    import re
+
+    handle = STAFHandle("varHandle")
+    res = handle.submit2(host, "VAR", "GET SYSTEM VAR STAF/Config/OS/Name")
+
+    winPattern=re.compile('win', re.IGNORECASE)
+    if (winPattern.search(res.result) != None):
+      return Boolean.TRUE
+    else:
+      return Boolean.FALSE

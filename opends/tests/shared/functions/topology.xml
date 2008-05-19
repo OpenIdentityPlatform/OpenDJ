@@ -638,7 +638,7 @@
       </call>
       
       <!-- fixMe: Windows Services are not enabled -->
-      <if expr="isWindows">
+      <if expr="is_windows_platform(dsHost)">
         <script>
           enableWindowsService=''
         </script>
