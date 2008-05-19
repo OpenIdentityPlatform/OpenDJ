@@ -46,7 +46,9 @@ import org.opends.server.types.HostPort;
 
 import org.opends.server.admin.std.server.SNMPConnectionHandlerCfg;
 
+import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.InitializationException;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 
@@ -92,9 +94,9 @@ public final class SNMPConnectionHandler
     /**
      * {@inheritDoc}
      */
-    @Override()
     public void initializeConnectionHandler(
-            SNMPConnectionHandlerCfg configuration) {
+            SNMPConnectionHandlerCfg configuration)
+            throws ConfigException, InitializationException {
 
         if (configuration == null) {
             Message message = ERR_SNMP_CONNHANDLER_NO_CONFIGURATION.get();
@@ -145,8 +147,14 @@ public final class SNMPConnectionHandler
         this.provider = new SNMPClassLoaderProvider();
 
         // Call the delegate class
-        this.provider.initializeConnectionHandler(this.currentConfig);
-
+        try {
+          this.provider.initializeConnectionHandler(this.currentConfig);
+        }
+        catch (Exception ex) {
+            Message message = ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get();
+            logError(message);
+            return;
+        }
     }
 
     /**
