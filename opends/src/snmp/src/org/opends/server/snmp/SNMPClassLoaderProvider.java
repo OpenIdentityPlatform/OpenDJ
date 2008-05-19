@@ -51,6 +51,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.Validator;
 
+import static org.opends.messages.ProtocolMessages.*;
 
 /**
  * The SNMPClassLoaderProvider.
@@ -61,76 +62,64 @@ public class SNMPClassLoaderProvider {
      * The debug log tracer for this class.
      */
     private static final DebugTracer TRACER = DebugLogger.getTracer();
-
     /**
      * The current configuration state.
      */
     private SNMPConnectionHandlerCfg currentConfig;
-
-
     /**
      * MBeanServer of OpenDS.
      */
     private MBeanServer server;
-
     /**
      * MIB to manage.
      */
     private DIRECTORY_SERVER_MIBImpl dsMib;
-
     /**
      * ObjectName of the MIB2605.
      */
     private ObjectName mibObjName;
-
     /**
      * ObjectName of the SnmpAdaptor.
      */
     private ObjectName snmpObjName;
-
     /**
      * SNMP Port Number for SNMP requests.
      */
     private int snmpPort = 161;
-
     /**
      * Default SNMP trap port Number for SNMP Traps.
      */
     private int snmpTrapPort = 162;
-
-
     /**
      * Registration of the SNMP MBeans.
      */
     private boolean registeredSNMPMBeans = false;
-
     /**
      * The unique name for this connection handler.
      */
     private String connectionHandlerName;
-
     /**
      * ObjectName of the UsmMIB.
      */
     private ObjectName UsmObjName;
-
     private SnmpV3AdaptorServer snmpAdaptor;
-
     private String contextName;
 
     /**
      * Default constructor.
      */
     public SNMPClassLoaderProvider() {
-      // No implementation required
+    // No implementation required
     }
 
     /**
      * Initialization.
      * @param configuration The configuration
+     * @throws java.lang.Exception if the SNMP connecvtion handler
+     * could not be initialized
      */
     public void initializeConnectionHandler(
-            SNMPConnectionHandlerCfg configuration) {
+            SNMPConnectionHandlerCfg configuration) throws Exception {
 
 
         // Keep the connection handler configuration
@@ -212,8 +201,8 @@ public class SNMPClassLoaderProvider {
         return this.UsmObjName;
     }
 
-     // private methods
-    private void initializeConnectionHandler() {
+    // private methods
+    private void initializeConnectionHandler() throws Exception {
 
 
         // Compute the connectionHandler name
@@ -237,6 +226,11 @@ public class SNMPClassLoaderProvider {
             // Create the SNMP Adaptor with the appropriated parameters
             this.snmpAdaptor = this.getSnmpAdaptor(this.currentConfig);
 
+            if (this.snmpAdaptor == null) {
+                throw new Exception(
+                      ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get().toString());
+            }
+
             // Create the Usm MIB to allow user management
             if (this.registeredSNMPMBeans) {
 
@@ -245,9 +239,10 @@ public class SNMPClassLoaderProvider {
                         "type=USM_MIB");
 
                 try {
-                     this.snmpAdaptor.registerUsmMib(server, this.UsmObjName);
-                }
-                catch (Exception ex) {
+                    this.snmpAdaptor.registerUsmMib(server, this.UsmObjName);
+                } catch (Exception ex) {
+                    throw new Exception(
+                       ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get().toString());
                 }
             }
 
@@ -255,7 +250,12 @@ public class SNMPClassLoaderProvider {
 
             // Send a coldStart SNMP Trap.
             this.snmpAdaptor.setTrapPort(snmpTrapPort);
-            this.snmpAdaptor.snmpV1Trap(0, 0, null);
+            this.snmpAdaptor.snmpV1Trap(
+                    null,
+                    this.currentConfig.getTrapsCommunity(),
+                    0,
+                    0,
+                    null);
 
             // Create an instance of the customized MIB
             this.mibObjName = new ObjectName(
@@ -275,9 +275,10 @@ public class SNMPClassLoaderProvider {
             if (debugEnabled()) {
                 TRACER.debugCaught(DebugLogLevel.ERROR, ex);
             }
+            throw new Exception(
+                    ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get().toString());
         }
     }
-
 
     /**
      * Finalize.
@@ -287,7 +288,12 @@ public class SNMPClassLoaderProvider {
         try {
 
             // Send a trap when stop
-            this.snmpAdaptor.snmpV1Trap(0, 0, null);
+            this.snmpAdaptor.snmpV1Trap(
+                    null,
+                    this.currentConfig.getTrapsCommunity(),
+                    0,
+                    0,
+                    null);
 
             String[] names = this.snmpAdaptor.getMibs();
 
@@ -297,13 +303,13 @@ public class SNMPClassLoaderProvider {
             this.server.unregisterMBean(this.snmpObjName);
 
             if (this.server.isRegistered(this.mibObjName)) {
-               this.server.unregisterMBean(this.mibObjName);
+                this.server.unregisterMBean(this.mibObjName);
             }
 
 
             this.server.unregisterMBean(new ObjectName(
-                        SNMPConnectionHandlerDefinitions.SNMP_DOMAIN +
-                        "type=group,name=DsMib"));
+                    SNMPConnectionHandlerDefinitions.SNMP_DOMAIN +
+                    "type=group,name=DsMib"));
 
             // Unregister the created SNMP MBeans
             if (this.registeredSNMPMBeans) {
@@ -328,9 +334,8 @@ public class SNMPClassLoaderProvider {
         }
     }
 
-
     private SnmpV3AdaptorServer getSnmpAdaptor(
-        SNMPConnectionHandlerCfg configuration) {
+            SNMPConnectionHandlerCfg configuration) {
 
         Validator.ensureNotNull(configuration);
         SnmpV3AdaptorServer adaptor = null;
@@ -339,7 +344,10 @@ public class SNMPClassLoaderProvider {
             // Set the USM security file
             String usmConfigPath = configuration.getSecurityAgentFile();
             File file = StaticUtils.getFileForPath(usmConfigPath);
-            System.setProperty("jdmk.security.file",file.getAbsolutePath());
+            if ((!file.isFile()) || (!file.exists())) {
+                return null;
+            }
+            System.setProperty("jdmk.security.file", file.getAbsolutePath());
             // Create the Security Parameters for the engine
             SnmpEngineParameters engineParameters = new SnmpEngineParameters();
 
@@ -347,12 +355,12 @@ public class SNMPClassLoaderProvider {
             engineParameters.activateEncryption();
 
             // Create the UACL controller
-            UserAcl uacls = (UserAcl)new SNMPUserAcl(configuration);
+            UserAcl uacls = (UserAcl) new SNMPUserAcl(configuration);
             engineParameters.setUserAcl(uacls);
 
             // V1/V2 Security parameters
             InetAddressAcl acls =
-              (InetAddressAcl)new SNMPInetAddressAcl(configuration);
+                    (InetAddressAcl) new SNMPInetAddressAcl(configuration);
 
             adaptor = new SnmpV3AdaptorServer(engineParameters, null, acls,
                     configuration.getListenPort(), InetAddress.getLocalHost());
@@ -363,7 +371,7 @@ public class SNMPClassLoaderProvider {
             return adaptor;
         } catch (Exception ex) {
             TRACER.debugError("Could not instanciate the SNMP Adaptor");
-            return adaptor;
+            return null;
         }
     }
 }

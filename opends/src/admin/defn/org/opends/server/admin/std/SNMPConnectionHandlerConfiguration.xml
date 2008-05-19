@@ -67,6 +67,9 @@
         <adm:synopsis>
             Specifies the port to use to send SNMP Traps.
         </adm:synopsis>
+        <adm:requires-admin-action>
+          <adm:component-restart />
+        </adm:requires-admin-action>
         <adm:syntax>
             <adm:integer />
         </adm:syntax>
@@ -84,6 +87,9 @@
             access the MIB 2605 monitoring information or the USM MIB. The
             mapping between "community" and "context name" is set.
         </adm:synopsis>
+        <adm:requires-admin-action>
+          <adm:component-restart />
+        </adm:requires-admin-action>
         <adm:default-behavior>
             <adm:defined>
                 <adm:value>OpenDS</adm:value>
@@ -105,6 +111,9 @@
             This property is required for SNMP v1 and v2 security configuration.
             An asterik (*) opens access to all managers. 
         </adm:synopsis>
+        <adm:requires-admin-action>
+          <adm:component-restart />
+        </adm:requires-admin-action>
         <adm:default-behavior>
             <adm:defined>
                 <adm:value>*</adm:value>
@@ -126,6 +135,9 @@
             is required for SNMP v3 security configuration.
             An asterik (*) opens access to all users. 
         </adm:synopsis>
+        <adm:requires-admin-action>
+          <adm:component-restart />
+        </adm:requires-admin-action>
         <adm:default-behavior>
             <adm:defined>
                 <adm:value>*</adm:value>
@@ -148,6 +160,9 @@
             privacy, AuthPriv : Authentication with privacy activated. 
             This property id required for SNMP V3 security configuration.
         </adm:synopsis>
+        <adm:requires-admin-action>
+          <adm:component-restart />
+        </adm:requires-admin-action>
         <adm:default-behavior>
             <adm:defined>
                 <adm:value>authnopriv</adm:value>
@@ -185,6 +200,9 @@
             sent to define managers (trap-destinations). 
             This property is used in the context of SNMP v1, v2 and v3.
         </adm:synopsis>
+        <adm:requires-admin-action>
+          <adm:component-restart />
+        </adm:requires-admin-action>
         <adm:default-behavior>
             <adm:defined>
                 <adm:value>OpenDS</adm:value>
@@ -209,6 +227,9 @@
             If this list is empty, V1 traps are sent to "localhost". 
             Each host in the list must be identifed by its name or complete IP Addess.
         </adm:description>
+        <adm:requires-admin-action>
+          <adm:component-restart />
+        </adm:requires-admin-action>
         <adm:default-behavior>
             <adm:alias>
                 <adm:synopsis>
@@ -231,6 +252,9 @@
             Specifies the USM security configuration to receive authenticated
             only SNMP requests.
         </adm:synopsis>
+        <adm:requires-admin-action>
+          <adm:component-restart />
+        </adm:requires-admin-action>
         <adm:default-behavior>
             <adm:defined>
                 <adm:value>
@@ -254,6 +278,9 @@
             Directory Server MBeanServer or not allowing to access SNMP Objects
             with RMI connector if enabled.
         </adm:synopsis>
+        <adm:requires-admin-action>
+          <adm:component-restart />
+        </adm:requires-admin-action>
         <adm:default-behavior>
             <adm:defined>
                 <adm:value>false</adm:value>
@@ -273,6 +300,9 @@
         <adm:synopsis>
             Indicates the OpenDMK runtime jar file location
         </adm:synopsis>
+        <adm:requires-admin-action>
+          <adm:component-restart />
+        </adm:requires-admin-action>
         <adm:default-behavior>
             <adm:undefined />
         </adm:default-behavior>
