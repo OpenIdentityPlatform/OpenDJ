@@ -1019,7 +1019,7 @@
         
         if aciValue:
             aciValue=aciValue.replace('"','\\"')
-            if isWindows:
+            if is_windows_platform(mylocation):
                 aciValue=aciValue.replace(r'||',r'"||"')
         
         STAFCmdParamsList=[]
@@ -2140,5 +2140,5 @@
         STAXResult
       </return>
     </sequence>
-  </function>
+  </function>  
 </stax>

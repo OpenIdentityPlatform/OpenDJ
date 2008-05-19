@@ -1486,7 +1486,7 @@
         _id = '%s#%d' % (strftime('%Y-%m-%d %H:%M:%S',localtime()),random.randint(0,999))
         
         if not env:
-          if isWindows:
+          if is_windows_platform(location):
             env=['PATH=C:\Windows;C:\Windows\system32;%s' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
           else:
             env=['PATH=/bin:/usr/bin:%s' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
@@ -1613,7 +1613,7 @@
       </call>
                                 
       <script>
-        if isWindows:
+        if is_windows_platform(location):
           _cmd = 'tskill'
           _args = STAXResult
         else:
@@ -2029,10 +2029,10 @@
           cp = 'CLASSPATH=%s:.' % classpath
         else:
           cp = 'CLASSPATH=.'
-          
-        if isWindows:
+       
+        if is_windows_platform(location):
           cp = cp.replace(':', ';')
-          
+        
         if location == STAXServiceMachine:
           cmd = '%s/bin/javac' % local_java_home
           env = ['%s' % cp]        
@@ -2040,7 +2040,7 @@
           cmd = '%s/bin/javac' % JAVA_HOME
           env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp]          
       </script>
-      
+
       <call function="'listFolderByExtension'" >
         { 
         'location'   : location ,
