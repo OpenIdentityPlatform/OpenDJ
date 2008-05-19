@@ -285,6 +285,7 @@
     uid employeeNumber initials givenName pager mobile \
     cn sn telephoneNumber street homePhone l mail st'
           
+            dsSizeLimit = 10000
           </script>
           
           <call function="'writeMessage'">
@@ -293,6 +294,12 @@
           }
           </call>
           
+          <call function="'writeMessage'">
+          { 'fileFd'  : fileFd,
+            'content' : '(Only a max of %s entries will be compared)' 
+                         % (dsSizeLimit)
+          }
+          </call>
           
           <!-- == Retrieve the tree from the reference server == -->
           <call function="'ldapSearch'">
@@ -306,10 +313,17 @@
               'dsFilter'       : 'objectclass=*',
               'dsAttributes'   : dsAttributes,
               'outputFile'     : referenceTree,
-              'fileFd'         : fileFd
+              'expectedRC'     : 'noCheck',
+              'fileFd'         : fileFd,
+              'dsSortOrder'    : '+cn',
+              'dsSizeLimit'    : dsSizeLimit
             }
           </call>
-          <if expr="STAXResult[0] != 0">
+          <script>
+            ldapSearchRC = STAXResult[0]
+          </script>
+          
+          <if expr="(ldapSearchRC == 0) or (ldapSearchRC == 4)">
             <!-- == If the reference tree could not be retrieved,  == -->
             <!-- == return an error                                == -->
             <sequence>
@@ -330,14 +344,17 @@
               'dsFilter'       : 'objectclass=*',
               'dsAttributes'   : dsAttributes,
               'outputFile'     : sampleTree,
-              'fileFd'         : fileFd
+              'expectedRC'     : 'noCheck',
+              'fileFd'         : fileFd,
+              'dsSortOrder'    : '+cn',
+              'dsSizeLimit'    : dsSizeLimit
             }
           </call>
           <script>
             ldapSearchRC = STAXResult[0]
           </script>
           
-          <if expr="ldapSearchRC == 0">
+          <if expr="(ldapSearchRC == 0) or (ldapSearchRC == 4)">
             <sequence>
               <!-- == Check if file is empty == -->
               <call function="'isEmptyFile'">
