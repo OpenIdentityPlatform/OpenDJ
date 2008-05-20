@@ -2140,5 +2140,128 @@
         STAXResult
       </return>
     </sequence>
-  </function>  
+  </function>
+
+  <function name="GetDSConfigProperties">
+    <function-prolog>
+      This function get the value of the given server's attributes
+      It will call dsconfig, then extract the attributes value.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstanceHost" 
+                        type="optional" 
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
+      <function-arg-def name="subcommand" type="required">
+        <function-arg-description>
+          dsconfig subcommand to execute
+          e.g. get-backend-prop
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
+      <function-arg-def name="optionsString" type="optional">
+        <function-arg-description>
+          String containing the dsconfig options
+          e.g. --backend-name userRoot --property base-dn
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
+      <function-arg-def name="myVariableName" type="required">
+        <function-arg-description>
+          Variable containing the dsconfig properties
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>      
+    </function-map-args>
+    <sequence>
+
+      <script>
+        if optionsString:
+          optionsString = '%s --script-friendly' % optionsString
+        else:
+          optionsString = '--script-friendly'
+      </script>
+      
+      <!-- Call dsconfig -->
+      <call function="'dsconfig'">
+        {
+        'location'       : location ,
+        'dsPath'         : dsPath ,
+        'dsInstanceHost' : dsInstanceHost ,
+        'dsInstancePort' : dsInstancePort ,
+        'dsInstanceDn'   : dsInstanceDn ,
+        'dsInstancePswd' : dsInstancePswd ,
+        'subcommand'     : subcommand ,
+        'optionsString'  : optionsString ,
+        'expectedRC'     : expectedRC
+        }
+      </call>
+  
+      <if expr='RC == 0'>
+        <script>
+          vars()[myVariableName] = create_property_table(STAXResult[0][1], '\t')
+        </script>
+      </if>
+
+      <return>
+        STAXResult
+      </return>
+      
+    </sequence>
+  </function>
+
 </stax>

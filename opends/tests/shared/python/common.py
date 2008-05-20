@@ -35,6 +35,7 @@ __all__ = [ "format_testcase",
             "report_generation", 
             "compare_file", 
             "is_windows_platform", 
+            "create_property_table", 
             "exception_thrown" ]
 
 class format_testcase:
@@ -192,3 +193,16 @@ def is_windows_platform(host):
       return Boolean.TRUE
     else:
       return Boolean.FALSE
+
+def create_property_table(output, separator):
+    table = {}
+
+    for line in output.splitlines():
+      key = line.split(separator)[0].strip()
+      try:
+        value = line.split(separator)[1].strip()
+      except IndexError:
+        value = '-'
+      table[key] = value
+
+    return table
