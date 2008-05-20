@@ -378,19 +378,22 @@
                     'name'     : 'STAF/Config/STAFRoot'
                     }
                   </call>                                                       
-                  <script>jstaf_jarfile = '%s/lib/JSTAF.jar' % STAFResult</script> 
+                  <script>jstaf_jarfile='%s/lib/JSTAF.jar' % STAFResult</script> 
                   
                   <!---   Compile snmp java files on controler host -->
                   <message>
                     'Compile Java files under %s on %s' \
                     % (javaLocalDir, STAXServiceMachine)
                   </message>
+                  <script>
+                    opends_jarfile='%s/%s' % (TMPDIR,SNMP_OPENDS_JARFILE)
+                  </script>
                   <call function="'compileJava'" >
                     {
                     'location'   : STAXServiceMachine,
                     'foldername' : javaLocalDir,
-                    'classpath'  : '%s/%s:%s:%s' \
-                    % (TMPDIR,SNMP_OPENDS_JARFILE, SNMP_OPENDMK_JARFILE, jstaf_jarfile)
+                    'classpath'  : '%s%s%s%s%s' \
+                    % (opends_jarfile,pathSeparator,SNMP_OPENDMK_JARFILE,pathSeparator,jstaf_jarfile)
                     }
                   </call>
                   

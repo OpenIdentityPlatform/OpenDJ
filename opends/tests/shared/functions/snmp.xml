@@ -151,11 +151,11 @@
         
         STAFCmd='SNMPGet'
         
-        snmpPath = '%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir)
-        cp = 'CLASSPATH=%s/%s:%s/jdmkrt.jar:.' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE, snmpPath)
-        
-        if is_windows_platform(location):
-          cp = cp.replace(':', ';')
+        opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE)
+        snmpPath='%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir)
+        jdmk_jarfile='%s/jdmkrt.jar' % snmpPath
+        cp = 'CLASSPATH=%s%s%s%s.' \
+        % (opends_jarfile,pathSeparator,jdmk_jarfile,pathSeparator)
         
         env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp] 
       </script>
@@ -308,11 +308,11 @@
         
         STAFCmd='SNMPSet'
         
-        snmpPath = '%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir)
-        cp = 'CLASSPATH=%s/%s:%s/jdmkrt.jar:.' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE, snmpPath)
-        
-        if is_windows_platform(location):
-          cp = cp.replace(':', ';')
+        opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE)
+        snmpPath='%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir)
+        jdmk_jarfile='%s/jdmkrt.jar' % snmpPath
+        cp = 'CLASSPATH=%s%s%s%s.' \
+        % (opends_jarfile,pathSeparator,jdmk_jarfile,pathSeparator)
         
         env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp] 
       </script>
@@ -417,13 +417,12 @@
         STAFCmdParams=' '.join(STAFCmdParamsList)
         
         STAFCmd='SNMPTrapListener'
-        
-        snmpPath = '%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir)
-        cp = 'CLASSPATH=%s/%s:%s/jdmkrt.jar:%s:.' \
-        % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE, snmpPath, jstaf_jarfile)
-        
-        if is_windows_platform(location):
-          cp = cp.replace(':', ';')
+
+        opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE)
+        snmpPath='%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir)
+        jdmk_jarfile='%s/jdmkrt.jar' % snmpPath
+        cp = 'CLASSPATH=%s%s%s%s%s%s.' \
+        % (opends_jarfile,pathSeparator,jdmk_jarfile,pathSeparator,jstaf_jarfile,pathSeparator)
         
         env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp] 
       </script>
