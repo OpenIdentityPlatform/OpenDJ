@@ -1492,8 +1492,6 @@ final class PropertyValueEditor {
     // Creates a new property editor for the specified property.
     private ReadOnlyPropertyViewer(ManagedObject<?> mo,
         PropertyDefinition<?> pd) {
-      Validator.ensureTrue(!pd.hasOption(PropertyOption.MULTI_VALUED));
-
       this.mo = mo;
       this.pd = pd;
     }
