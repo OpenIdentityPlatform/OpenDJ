@@ -530,23 +530,37 @@
           
           <if expr="workingDir != NOT_DEFINED">
             <sequence>
-              <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-                      file="'%s/%s.xml' % (workingDir,client.getName())"/>
-              <call function="'%s' % client.getName()">
-              { 
-                'workingDir' : workingDir,
-                'client'     : client,
-                'instances'  : instances,
-                'duration'   : duration,
-                'suffix'     : suffix,
-                'outFile'    : outFile,
-                'fileFd'     : fileFd
-              }
+              <!-- Check that staf is running on the client -->
+              <call function="'pingStaf'">
+                { 'targetHost' : client.getHost(),
+                  'fileFd'     : fileFd}
               </call>
               <script>
-                errNum = STAXResult
-                timerKilled = FALSE
+                pingRC = STAXResult[0]
               </script>
+              <if expr="pingRC == 0">
+                <sequence>
+                  <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                          file="'%s/%s.xml' % (workingDir,client.getName())"/>
+                  <call function="'%s' % client.getName()">
+                  { 
+                    'workingDir' : workingDir,
+                    'client'     : client,
+                    'instances'  : instances,
+                    'duration'   : duration,
+                    'suffix'     : suffix,
+                    'outFile'    : outFile,
+                    'fileFd'     : fileFd
+                  }
+                  </call>
+                  <script>errNum = STAXResult</script>
+                </sequence>
+              <else>
+                <!-- staf does not answer ping on client host -->
+                <script> errNum = 1 </script>
+              </else>
+              </if>
+              <script>timerKilled = FALSE</script>
             </sequence>
           </if>
           

@@ -71,6 +71,10 @@
       <!--========  Set some attributes to add in instance objects   ======-->
       <paralleliterate in="instances" var="instance">
         <sequence>
+          <call function="'pingStaf'">
+            { 'targetHost' : instance.getHost(),
+              'fileFd'     : NO_FILE}
+          </call>
           <call function="'getOSvariables'">
             { 'hostname' : instance.getHost() }
           </call>
@@ -145,6 +149,10 @@
       <if expr="len(clients) > 0">
         <paralleliterate in="clients" var="client">
           <sequence>
+            <call function="'pingStaf'">
+              { 'targetHost' : client.getHost(),
+                'fileFd'     : NO_FILE}
+            </call>
             <script>
               client.setLogDir('%s/client_%s_id%s' % \
               (LOG_DIR,client.getName(),client.getId()))
