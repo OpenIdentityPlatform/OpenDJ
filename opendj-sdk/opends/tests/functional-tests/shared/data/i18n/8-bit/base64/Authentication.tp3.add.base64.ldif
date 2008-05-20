@@ -1,0 +1,7 @@
+# dn: cn=WRITE Test Entry, ou=Authentication Tests,o=Çándide Rùiz 
+dn:: Y249V1JJVEUgVGVzdCBFbnRyeSwgb3U9QXV0aGVudGljYXRpb24gVGVzdHMsIG89w4fDoW5kaWRlIFLDuWl6
+objectclass: top
+objectclass: person
+cn: WRITE Test Entry
+sn: Jeff
+

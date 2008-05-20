@@ -1,0 +1,21 @@
+This directory contains files with base64 encoded UTF-8.
+The operation of converting UTF-8 data to base64 has been done because of issue 2813.
+
+From Matthew : 
+ "If LDIF data containing non-ASCII data is provided to either ldapmodify or import-ldif then the behavior is undefined. Ideally, the tools should "do the right thing" and use either the default character set encoding to decode the values or default to UTF-8 unless otherwise specified via a CLI option. I think I prefer the second option.
+This problem is currently being tracked by issue https://opends.dev.java.net/issues/show_bug.cgi?id=2813.
+
+> In these tests for DSEE, ldif files containing double-byte data converted to UTF-8 are imported (with ldapmodify -a).
+> Today, with openDS and taking into account issue 2813, do you think such files can be imported, or do I need to convert them to base64 before, to avoid an 'undefined behavior' ?
+I would convert them to base64. 
+
+
+The base64 tool delivered with opends has been used that way :
+aconit[sgouvern]$ base64 encode -d "o=�\207ándide Rùiz"
+bz3Dh8OhbmRpZGUgUsO5aXo=
+
+ 	-> all the dn must be encoded, not only the value
+
+
+The format to be used as per the LDIF encoding rules in ldif files is :
+   dn:: <base-64 encoded DN>

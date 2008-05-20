@@ -1,0 +1,5 @@
+dn: cn=WRITE Test Entry, ou=Authentication Tests, o=Çándide Rùiz
+changetype: modify
+add: telephoneNumber
+telephoneNumber: +33 4 76 01 23 45
+

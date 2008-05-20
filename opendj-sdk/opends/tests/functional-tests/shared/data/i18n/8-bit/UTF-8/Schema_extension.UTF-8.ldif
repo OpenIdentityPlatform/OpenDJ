@@ -1,0 +1,16 @@
+# We must use ASCII characters for attribute and object class names.
+# This file contains 8-bit characters to test if the server rejects non ASCII names
+# for attribute and object class names.
+#
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributeTypes: ( Çlose-oid NAME 'Çlose' DESC 'User Defined Attribute' SUP name SINGLE-VALUE X-ORIGIN 'I18n Tests' )
+attributeTypes: ( Crèkä-oid NAME 'Crèkä' DESC 'User Defined Attribute' SYNTAX 1.3.6.1.4.1.1466.115.121.1.5 X-ORIGIN 'I18n Tests' )
+attributeTypes: ( Fråncêscô-oid NAME 'Fråncêscô' DESC 'User Defined Attribute' SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE X-ORIGIN 'I18n Tests' )
+attributeTypes: ( Ryndérs-oid NAME 'Ryndérs' DESC 'User Defined Attribute' SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE X-ORIGIN 'I18n Tests' )
+attributeTypes: ( Callânân-oid NAME 'Callânân' DESC 'User Defined Attribute' SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE X-ORIGIN 'I18n Tests' )
+attributeTypes: ( Ännheimè-oid NAME 'Ännheimè' DESC 'User Defined Attribute' SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE X-ORIGIN 'I18n Tests' )
+-
+add: objectClasses
+objectClasses: ( Çéliné-oid NAME 'Çéliné' DESC 'User Defined objectClass' SUP top MUST Ännheimè  MAY ( Çlose $ Crèkä $ Fråncêscô $ Ryndérs $ Callânân ) X-ORIGIN 'I18n Tests' )
