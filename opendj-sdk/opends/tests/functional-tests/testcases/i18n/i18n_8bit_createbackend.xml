@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2007-2008 Sun Microsystems, Inc.
+ ! -->
+
+<stax>
+  <defaultcall function="main_8bit_createbackend"/>
+  <function name="main_8bit_createbackend">
+    <sequence>
+      <block name="'8bit_createbackend'">
+        <sequence>
+            
+          <script>
+            if not CurrentTestPath.has_key('i18n'):
+              CurrentTestPath['group']='i18n'
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+          
+          <call function="'testSuite_Preamble'"/>
+              
+              <!--- Test Case information
+              #@TestMarker          setup
+              #@TestName            setup: create and initialize backend with
+                                    8-bit data
+              #@TestIssue           none
+              #@TestPurpose         check that 8-bit data can be used for
+                                    backend creation and initialization
+              #@TestPreamble        none
+              #@TestStep            create backends with dsconfig, using
+                                    8-bit characters.
+                                    base-dn are "o=Çándide Rùiz"
+                                    "o=Çéliné Ändrè" "o=Rôséñe Tàrqùinio"
+                                    "o=Feâtlëss Watérmân" and "o=Älka Màrzella"
+              #@TestPostamble       none
+              #@TestResult          Success if  returns 0.
+          -->
+          <testcase name="getTestCaseName
+          ('Create and initialize Directory backend for 8-bit i18n tests')">
+            <sequence>
+                
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'Create Directory Backend for 8-bit i18n tests'
+              </message>
+                
+              <script>
+                backends = {
+                  'Candide'  : ('o=Çándide Rùiz', 'Candide'),
+                  'Celine'   : ('o=Çéliné Ändrè', 'Celine'),
+                  'Rosene'   : ('o=Rôséñe Tàrqùinio', 'Rosene'),
+                  'Featless' : ('o=Feâtlëss Watérmân', 'Featless'),
+                  'Alka'     : ('o=Älka Màrzella', 'Alka')
+                 }     
+              </script>
+              
+              <iterate var="backend" in="backends.keys()">
+              <sequence>
+                  <message>
+          'Import 8-bit test data [%s | %s | %s/%s/db/%s | %s/%s/import-tmp]' %\
+                      (backends.get(backend)[0],\
+                       backends.get(backend)[1],\
+                       DIRECTORY_INSTANCE_DIR, OPENDSNAME,\
+                       backends.get(backend)[1],\
+                       DIRECTORY_INSTANCE_DIR, OPENDSNAME)
+                  </message>
+
+                  <message>
+                   'Create database backend %s.' % backends.get(backend)[1]
+                  </message>
+                  <script>
+                    options=[]
+                    options.append('--backend-name %s' % backends.get(backend)[1])
+                    options.append('--set db-directory:%s' % backends.get(backend)[1])
+                    options.append('--set base-dn:"%s"' % backends.get(backend)[0])
+                    options.append('--set enabled:true')
+                    options.append('--set writability-mode:enabled')
+                    options.append('-t local-db')
+                    createBackendOptions=' '.join(options)
+                  </script>
+
+                  <call function="'dsconfig'">
+                    { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                      'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                      'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                      'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                      'subcommand'     : 'create-backend',
+                      'optionsString'  : createBackendOptions
+                    }
+                  </call>
+                  
+                </sequence>
+            </iterate>
+                
+              <call function="'checktestRC'">
+                {
+                'returncode' : RC ,
+                'result'     : STAXResult
+                }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          <call function="'testSuite_Postamble'"/>
+          
+        </sequence>
+      </block>
+    </sequence>
+  </function>
+</stax>
