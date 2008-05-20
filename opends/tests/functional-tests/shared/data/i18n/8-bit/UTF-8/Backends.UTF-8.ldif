@@ -1,0 +1,100 @@
+# Bachens for I18n tests.
+#
+# Backend Candide for Authentication tests.
+#
+dn: cn=Candide,cn=ldbm database,cn=plugins,cn=config
+objectclass: top
+objectclass: extensibleObject
+objectclass: nsBackendInstance
+cn: Candide
+nsslapd-suffix: o=Çándide Rùiz
+
+dn: cn="o=Çándide Rùiz",cn=mapping tree,cn=config
+objectclass: top
+objectclass: extensibleObject
+objectclass: nsMappingTree
+cn: "o=Çándide Rùiz"
+nsslapd-state: backend
+nsslapd-backend: Candide
+
+# Backend Celine for LDAP commands tests. 
+#
+dn: cn=Celine,cn=ldbm database,cn=plugins,cn=config
+objectclass: top
+objectclass: extensibleObject
+objectclass: nsBackendInstance
+cn: Celine
+nsslapd-suffix: o=Çéliné Ändrè
+
+dn: cn="o=Çéliné Ändrè",cn=mapping tree,cn=config
+objectclass: top
+objectclass: extensibleObject
+objectclass: nsMappingTree
+cn: "o=Çéliné Ändrè"
+nsslapd-state: backend
+nsslapd-backend: Celine
+
+# Backend Rosene for LDAP commands tests.
+#
+dn: cn=Rosene,cn=ldbm database,cn=plugins,cn=config
+objectclass: top
+objectclass: extensibleObject
+objectclass: nsBackendInstance
+cn: Rosene
+nsslapd-suffix: o=Rôséñe Tàrqùinio
+
+dn: cn="o=Rôséñe Tàrqùinio",cn=mapping tree,cn=config
+objectclass: top
+objectclass: extensibleObject
+objectclass: nsMappingTree
+cn: "o=Rôséñe Tàrqùinio"
+nsslapd-state: backend
+nsslapd-backend: Rosene
+
+# Backend Featless for 8-bit rejection tests.
+#
+dn: cn=Featless,cn=ldbm database,cn=plugins,cn=config
+objectclass: top
+objectclass: extensibleObject
+objectclass: nsBackendInstance
+cn: Featless
+nsslapd-suffix: o=Feâtlëss Watérmân
+
+dn: cn="o=Feâtlëss Watérmân",cn=mapping tree,cn=config
+objectclass: top
+objectclass: extensibleObject
+objectclass: nsMappingTree
+cn: "o=Feâtlëss Watérmân"
+nsslapd-state: backend
+nsslapd-backend: Featless
+
+# Create the root entry for the backend Featless
+dn: o=Feâtlëss Watérmân
+objectclass: top
+objectclass: organization
+o: Feâtlëss Watérmân
+
+# Backend Alka for data sorting tests.
+#
+dn: cn=Alka,cn=ldbm database,cn=plugins,cn=config
+objectclass: top
+objectclass: extensibleObject
+objectclass: nsBackendInstance
+cn: Alka
+nsslapd-suffix: o=Älka Màrzella
+
+dn: cn="o=Älka Màrzella",cn=mapping tree,cn=config
+objectclass: top
+objectclass: extensibleObject
+objectclass: nsMappingTree
+cn: "o=Älka Màrzella"
+nsslapd-state: backend
+nsslapd-backend: Alka
+
+# Create the root entry for the backend Alka
+dn: o=Älka Màrzella
+objectclass: top
+objectclass: organization
+o: Älka Màrzella
+
+
