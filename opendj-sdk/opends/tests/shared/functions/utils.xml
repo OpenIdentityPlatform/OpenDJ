@@ -2026,12 +2026,9 @@
       <!-- Build the command -->
       <script>
         if classpath:
-          cp = 'CLASSPATH=%s:.' % classpath
+          cp = 'CLASSPATH=%s%s.' % (classpath, pathSeparator)
         else:
           cp = 'CLASSPATH=.'
-       
-        if is_windows_platform(location):
-          cp = cp.replace(':', ';')
         
         if location == STAXServiceMachine:
           cmd = '%s/bin/javac' % local_java_home
