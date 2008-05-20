@@ -26,6 +26,69 @@
  !      Copyright 2008 Sun Microsystems, Inc.
  ! -->
 <stax>
+  <function name="pingStaf" scope="local">
+    <function-prolog>
+      This function ping staf daemon on remoteHost
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional"
+                                        default="STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="targetHost" type="required">
+        <function-arg-description>
+          The name of the host to be ping
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor to write message in
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+    
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'pingStaf',
+        'fileFd'  : fileFd }
+      </call>
+      
+      <call function="'writeMessage'">
+       { 'content'  : 'Ping staf on machine %s' % targetHost,
+         'fileFd'   : fileFd }
+      </call>
+      <stafcmd name="'STAF Command: Copy File'">
+        <location>'%s' % location</location>
+        <service>'ping'</service>
+        <request>'PING MACHINE %s' % targetHost </request>
+      </stafcmd>
+      <script>
+        cmdRC=RC
+        cmdResult=STAFResult
+      </script>
+      <call function="'checkRC'">
+        { 'returncode' : cmdRC,
+          'result'     : cmdResult,
+          'fileFd'     : fileFd }
+      </call>
+      <if expr="cmdRC != 0">
+        <script>errMsg = 'Can not ping staf on %s' % targetHost </script>
+      <else>
+        <script>errMsg = 'Can ping staf on %s' % targetHost </script>
+      </else>
+      </if>
+      <call function="'writeEndTagOperation'">{'fileFd' : fileFd}</call>
+      <return>
+        [ cmdRC , errMsg ]
+      </return>
+    </sequence>
+  </function>
+  
+  
   <function name="copyFile" scope="local">
     <function-prolog>
       This function copies a source file to destination file to host
