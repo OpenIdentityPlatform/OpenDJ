@@ -2103,25 +2103,24 @@
       <script>
         # returns first free port in [port; port+5]
         # if no free port in this interval, return -1
-        import socket
-        import sys
-        s = None
+        from java.net import Socket
+        from java.net import InetAddress
+        from java.io  import IOException
+        
+        hostAddr = InetAddress.getByName(host)
         i = 0
+        
         while 1:
-          try:
             i = i + 1
             if i > 5:
-              port = -1
-              break
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.bind((host, port))
-            s.listen(1)
-            s.close()
-            break
-          except socket.error:
-            if s:
-              s.close()
-            port = port + 1
+                port = -1
+                break
+            try:
+                s = Socket(hostAddr, port)
+                s.close()
+                port = port + 1
+            except IOException, ioe:
+                break
       </script>
       <return>port</return>
     </sequence>
