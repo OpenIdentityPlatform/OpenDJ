@@ -83,6 +83,7 @@
               'fileFd'     : fileFd
             }
           </call>
+          <script>errNum += 1</script>
         </sequence>
       <else>
         <sequence>
