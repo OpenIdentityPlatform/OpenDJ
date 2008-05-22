@@ -33,6 +33,11 @@
   <!-- ************************************************************ -->
   <function name="verdict" scope="local">
     <function-map-args>
+      <function-arg-def name="phase" type="required">
+        <function-arg-description>
+          phase object
+        </function-arg-description>
+      </function-arg-def>
       <function-arg-def name="instances" type="required">
         <function-arg-description>
           list of instance objects
@@ -58,25 +63,56 @@
     <sequence>
       <!--==========  Call preambule  =========-->
       <call function="'phasePreamble'">
-      { 'phaseName' : 'verdict',
-        'fileFd'    : LOG_MAIN_FD }
+      { 'phase'  : phase,
+        'fileFd' : LOG_MAIN_FD }
       </call>
       
-      
+      <script>
+        items = STAXGlobal([])
+      </script>
       <!--== Check if previous phases raised some errors ==-->
-      <if expr="ERR_NUM_INSTALL != 0 and ERR_NUM_INSTALL != ''">
-        <script> ERR_NUM[0] += 1 </script>
+      <!-- installation -->
+      <call function="'checkPhaseResult'">
+      { 'phase' : PHASE_INSTALLATION }
+      </call>
+      <if expr="STAXResult != []">
+        <script> items.append(STAXResult) </script>
       </if>
-      <if expr="ERR_NUM_GEN_LDIF != 0 and ERR_NUM_GEN_LDIF != ''">
-        <script> ERR_NUM[0] += 1 </script>
+      <!-- pre-configuration -->
+      <call function="'checkPhaseResult'">
+      { 'phase' : PHASE_PRE_CONFIGURATION }
+      </call>
+      <if expr="STAXResult != []">
+        <script> items.append(STAXResult) </script>
       </if>
-      <if expr="ERR_NUM_CONFIGURATION != 0 and ERR_NUM_CONFIGURATION != ''">
-        <script> ERR_NUM[0] += 1 </script>
+      <!-- gen-ldif -->
+      <call function="'checkPhaseResult'">
+      { 'phase' : PHASE_GEN_LDIF }
+      </call>
+      <if expr="STAXResult != []">
+        <script> items.append(STAXResult) </script>
       </if>
-      <if expr="ERR_NUM_SCHEDULER != 0 and ERR_NUM_SCHEDULER != ''">
-        <script> ERR_NUM[0] += 1 </script>
+      <!-- configuration -->
+      <call function="'checkPhaseResult'">
+      { 'phase' : PHASE_CONFIGURATION }
+      </call>
+      <if expr="STAXResult != []">
+        <script> items.append(STAXResult) </script>
       </if>
-      
+      <!-- post-configuration -->
+      <call function="'checkPhaseResult'">
+      { 'phase' : PHASE_POST_CONFIGURATION }
+      </call>
+      <if expr="STAXResult != []">
+        <script> items.append(STAXResult) </script>
+      </if>
+      <!-- scheduler -->
+      <call function="'checkPhaseResult'">
+      { 'phase' : PHASE_SCHEDULER }
+      </call>
+      <if expr="STAXResult != []">
+        <script> items.append(STAXResult) </script>
+      </if>
       
       <!--== If configuration/schedulers phases have been run ==-->
       <!--== then do some basic checks : isalive ==-->
@@ -136,6 +172,9 @@
                     'fileFd'    : cFileFd
                   }
                   </call>
+                  <script>
+                   items.append(['instance %s' % instance.getName(),STAXResult])
+                  </script>
                 </sequence>
               </if>
               
@@ -165,11 +204,30 @@
         </sequence>
       </if>
       
+      
+      <!--==== Calculate phase percentage  ==========-->
+      <script>
+        nbItems = len(items)
+        nbItemSuccess = 0
+        percentageResult = 0
+      </script>
+      <iterate in="items" var="item">
+        <script>
+          if item[1] == 0:
+            nbItemSuccess += 1
+        </script>
+      </iterate>
+      <script>
+        percentageResult = nbItemSuccess * 100
+        percentageResult = percentageResult / nbItems
+        phase.setPercentage(percentageResult)
+      </script>
+      
       <!--==========  Call postphase =========-->
       <call function="'phasePostamble'">
       {
-        'phaseName' : 'verdict',
-        'fileFd'    : LOG_MAIN_FD
+        'phase'  : phase,
+        'fileFd' : LOG_MAIN_FD
       }
       </call>
       
@@ -179,6 +237,47 @@
   
   
   
+  <!-- ************************************************************ -->
+  <function name="checkPhaseResult" scope="local">
+    <function-map-args>
+      <function-arg-def name="phase" type="required">
+        <function-arg-description>
+          phase object
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <script>
+        result = []
+      </script>
+      <if expr="phase.getRun() == 'true'">
+        <sequence>
+          <call function="'writeStartTagOperation'">
+          { 'tagName' : 'checkPhaseResult',
+            'fileFd'  : LOG_MAIN_FD }
+          </call>
+          <call function="'writeMessage'">
+          { 'content' : 'Check number of error for %s phase' % phase.getName(),
+            'fileFd'  : LOG_MAIN_FD }
+          </call>
+          <call function="'checkRC'">
+          {
+            'returncode' : phase.getErrNum(),
+            'result'     : '',
+            'fileFd'     : LOG_MAIN_FD
+          }
+          </call>
+          <call function="'writeEndTagOperation'">
+          {'fileFd'  : LOG_MAIN_FD}
+          </call>
+          <script>
+            result = [ 'phase %s' % phase.getName() , phase.getErrNum() ]
+          </script>
+        </sequence>
+      </if>
+      <return> result </return>
+    </sequence>
+  </function>
   
   
 </stax>

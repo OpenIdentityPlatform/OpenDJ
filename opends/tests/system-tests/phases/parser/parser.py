@@ -54,6 +54,54 @@ FALSE = 1
 
 
 #
+# Class for phases
+#
+class Phase:
+  "Describes the phase of a system test run"
+  def __init__(self, name):
+    self.name       = name
+    self.run        = 'false'
+    self.start      = NOT_DEFINED
+    self.stop       = NOT_DEFINED
+    self.errNum     = NOT_DEFINED
+    self.percentage = NOT_DEFINED
+    
+  def getName(self):
+    return self.name
+    
+  def setRun(self,run):
+    self.run = run
+    
+  def getRun(self):
+    return self.run
+    
+  def setStartTime(self,start):
+    self.start = start
+    
+  def getStartTime(self):
+    return self.start
+    
+  def setStopTime(self,stop):
+    self.stop = stop
+    
+  def getStopTime(self):
+    return self.stop
+    
+  def setErrNum(self,errNum):
+    self.errNum = errNum
+    
+  def getErrNum(self):
+    return self.errNum
+    
+  def setPercentage(self,percentage):
+    self.percentage = percentage
+    
+  def getPercentage(self):
+    return self.percentage
+
+
+
+#
 # Class for suffix
 #
 

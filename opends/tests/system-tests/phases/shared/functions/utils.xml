@@ -120,7 +120,10 @@
     </function-prolog>
     
     <function-map-args>
-      <function-arg-def name="phaseName" type="required">
+      <function-arg-def name="phase" type="required">
+        <function-arg-description>
+          phase object
+        </function-arg-description>
       </function-arg-def>
       <function-arg-def name="tagAttr" type="optional" default='[]'>
         <function-arg-description>
@@ -134,23 +137,24 @@
     <sequence>
       <!-- Start time of test suite -->      
       <script>
-        phaseStartTime=strftime("%Y%m%d@%H:%M:%S",localtime())
+        phase.setStartTime(strftime("%Y%m%d@%H:%M:%S",localtime()))
         ERR_NUM[0] = 0
         if tagAttr == []:
-          tagAttr = [['date',phaseStartTime]]
+          tagAttr = [['date',phase.getStartTime()]]
         else:
-          tagAttr.append(['date',phaseStartTime])
+          tagAttr.append(['date',phase.getStartTime()])
+        
       </script>
       
       <message log="1">''</message>
       <message log="1">
         '=================== START PHASE %s @ %s  ========================='\
-        % (phaseName,phaseStartTime)
+        % (phase.getName(),phase.getStartTime())
       </message>
       
       <call function="'writeStartTagPhase'">
       {
-        'tagName' : phaseName ,
+        'tagName' : phase.getName(),
         'tagAttr' : tagAttr,
         'fileFd'  : fileFd
       }
@@ -167,9 +171,9 @@
       Performs all the post operations for a phase
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="phaseName" type="required">
+      <function-arg-def name="phase" type="required">
         <function-arg-description>
-          Name of the phase
+          phase object
         </function-arg-description>
       </function-arg-def>
       <function-arg-def name="fileFd" type="required">
@@ -181,25 +185,24 @@
     
     <sequence>
       
-      <if expr="phaseName == 'verdict'">
-        <message log="1">
-          '== Found a TOTAL of %s Error(s)' % (ERR_NUM[0])
-        </message>
-      <else>
-        <message log="1">
-          '== Found %s Error(s) during this phase' % (ERR_NUM[0])
-        </message>
-      </else>
-      </if>
+      <script>
+        phase.setRun('true')
+        phase.setStopTime(strftime("%Y%m%d@%H:%M:%S",localtime()))
+        phase.setErrNum(ERR_NUM[0])
+      </script>
+      
+      <message log="1">
+        '== Found %s Error(s) during this phase' % (phase.getErrNum())
+      </message>
       <message log="1">
         '===================  STOP PHASE %s  ============================' \
-        % (phaseName)
+        % (phase.getName())
       </message>
       
       <call function="'writeTag'">
       {
         'tagName' : 'phaseResult',
-        'tagAttr' : [['errNum',ERR_NUM[0]]] ,
+        'tagAttr' : [['errNum',phase.getErrNum()]] ,
         'fileFd'  : LOG_MAIN_FD
       }
       </call>

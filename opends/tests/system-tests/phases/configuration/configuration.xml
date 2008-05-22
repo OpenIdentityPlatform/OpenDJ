@@ -33,6 +33,11 @@
   <!-- ************************************************************ -->
   <function name="configuration" scope="local">
     <function-map-args>
+      <function-arg-def name="phase" type="required">
+        <function-arg-description>
+          phase object
+        </function-arg-description>
+      </function-arg-def>
       <function-arg-def name="instances" type="required">
         <function-arg-description>
           list of instances classes
@@ -48,8 +53,8 @@
     <sequence>
       <!-- == Call preambule == -->
       <call function="'phasePreamble'">
-      { 'phaseName' : 'configuration' ,
-        'fileFd'    : LOG_MAIN_FD }
+      { 'phase'  : PHASE_CONFIGURATION,
+        'fileFd' : LOG_MAIN_FD }
       </call>
       
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
@@ -105,8 +110,8 @@
       <!-- ==  Call postphase == -->
       <call function="'phasePostamble'">
       {
-        'phaseName' : 'configuration',
-        'fileFd'    : LOG_MAIN_FD
+        'phase'  : PHASE_CONFIGURATION,
+        'fileFd' : LOG_MAIN_FD
       }
       </call>
     

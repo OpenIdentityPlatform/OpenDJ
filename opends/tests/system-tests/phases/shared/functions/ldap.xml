@@ -262,6 +262,8 @@
             if instanceIndex != lastIndex:
               instance2 = instances[instanceIndex + 1]
       </script>
+      
+      
       <if expr="instance2 != NOT_DEFINED">
         <sequence>
           <call function="'writeStartTagStep'">
@@ -323,12 +325,12 @@
             ldapSearchRC = STAXResult[0]
           </script>
           
-          <if expr="(ldapSearchRC == 0) or (ldapSearchRC == 4)">
+          <if expr="ldapSearchRC != 0">
             <!-- == If the reference tree could not be retrieved,  == -->
             <!-- == return an error                                == -->
             <sequence>
               <call function="'writeEndTagStep'">{ 'fileFd' : fileFd}</call>
-              <return> [1, None] </return>
+              <return> [FALSE, None] </return>
             </sequence>
           </if>
           
@@ -354,7 +356,7 @@
             ldapSearchRC = STAXResult[0]
           </script>
           
-          <if expr="(ldapSearchRC == 0) or (ldapSearchRC == 4)">
+          <if expr="ldapSearchRC == 0">
             <sequence>
               <!-- == Check if file is empty == -->
               <call function="'isEmptyFile'">

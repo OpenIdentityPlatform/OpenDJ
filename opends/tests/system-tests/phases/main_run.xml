@@ -101,15 +101,7 @@
         DOMAIN[0]       = ''
         
         ERR_NUM = STAXGlobal([0])
-        ERR_NUM_PARSER             = ''
-        ERR_NUM_INSTALL            = ''
-        ERR_NUM_GEN_LDIF           = ''
-        ERR_NUM_PRE_CONFIGURATION  = ''
-        ERR_NUM_CONFIGURATION      = ''
-        ERR_NUM_POST_CONFIGURATION = ''
-        ERR_NUM_SCHEDULER          = ''
-        ERR_NUM_VERDICT            = ''
-        ERR_NUM_TOTAL              = 0
+        ERR_NUM_TOTAL   = 0
         
         SHARED_FUNC_DIR = '%s/phases/shared/functions' % TESTS_DIR
       </script>
@@ -181,6 +173,19 @@
         LOG_MAIN_FD.write(str)
       </script>
       
+      <!-- ======= Create object for each phase ====================== -->
+      <script>
+        sys.path.append("%s/phases/parser" % TESTS_DIR )
+        from parser import *
+        PHASE_PARSER             = Phase('parser')
+        PHASE_INSTALLATION       = Phase('installation')
+        PHASE_GEN_LDIF           = Phase('generateldif')
+        PHASE_PRE_CONFIGURATION  = Phase('preconfiguration')
+        PHASE_CONFIGURATION      = Phase('configuration')
+        PHASE_POST_CONFIGURATION = Phase('postconfiguration')
+        PHASE_SCHEDULER          = Phase('scheduler')
+        PHASE_VERDICT            = Phase('verdict')
+      </script>
       
       <!-- ============ PARSER ======================================= -->
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
@@ -193,10 +198,11 @@
         suffix    = result[2]
         scheduler = result[3]
         scenario  = result[4]
-        ERR_NUM_PARSER = ERR_NUM[0]
+        PHASE_PARSER.setRun('true')
+        PHASE_PARSER.setErrNum(ERR_NUM[0])
         ERR_NUM_TOTAL  = ERR_NUM_TOTAL + ERR_NUM[0]
       </script>
-      <if expr="ERR_NUM_PARSER != 0">
+      <if expr="PHASE_PARSER.getErrNum() != 0">
         <return/>
       </if>
       
@@ -223,13 +229,13 @@
             file="'%s/phases/installation/installation.xml' % (TESTS_DIR)"/>
           <call function="'installation'">
             {
+              'phase'     : PHASE_INSTALLATION,
               'instances' : instances,
               'suffix'    : suffix
             }
           </call>
           <script>
-            ERR_NUM_INSTALL = ERR_NUM[0]
-            ERR_NUM_TOTAL   = ERR_NUM_TOTAL + ERR_NUM[0]
+            ERR_NUM_TOTAL = ERR_NUM_TOTAL + ERR_NUM[0]
           </script>
         </sequence>
       </if>
@@ -249,15 +255,15 @@
               <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
                       file="'%s' % preConfigurationFile"/>
               <call function="'preConfiguration'">
-              { 
+              {
+                'phase'     : PHASE_PRE_CONFIGURATION,
                 'instances' : instances,
                 'suffix'    : suffix,
                 'scheduler' : scheduler
               }
               </call>
               <script>
-                ERR_NUM_PRE_CONFIGURATION = ERR_NUM[0]
-                ERR_NUM_TOTAL             = ERR_NUM_TOTAL + ERR_NUM[0]
+                ERR_NUM_TOTAL = ERR_NUM_TOTAL + ERR_NUM[0]
               </script>
             </sequence>
           <else>
@@ -281,11 +287,13 @@
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/phases/generateLdif/generateLdif.xml' % (TESTS_DIR)"/>
           <call function="'generateLdif'">
-            { 'suffix'       : suffix }
+            { 
+              'phase'  : PHASE_GEN_LDIF,
+              'suffix' : suffix
+            }
           </call>
           <script>
-            ERR_NUM_GEN_LDIF = ERR_NUM[0]
-            ERR_NUM_TOTAL    = ERR_NUM_TOTAL + ERR_NUM[0]
+            ERR_NUM_TOTAL = ERR_NUM_TOTAL + ERR_NUM[0]
           </script>
         </sequence>
       </if>
@@ -298,13 +306,13 @@
             file="'%s/phases/configuration/configuration.xml' % TESTS_DIR"/>
           <call function="'configuration'">
             {
+              'phase'     : PHASE_CONFIGURATION,
               'instances' : instances ,
               'suffix'    : suffix
             }
           </call>
           <script>
-            ERR_NUM_CONFIGURATION = ERR_NUM[0]
-            ERR_NUM_TOTAL         = ERR_NUM_TOTAL + ERR_NUM[0]
+            ERR_NUM_TOTAL = ERR_NUM_TOTAL + ERR_NUM[0]
           </script>
         </sequence>
       </if>
@@ -325,14 +333,14 @@
                       file="'%s' % postConfigurationFile"/>
               <call function="'postConfiguration'">
               { 
+                'phase'     : PHASE_POST_CONFIGURATUON,
                 'instances' : instances,
                 'suffix'    : suffix,
                 'scheduler' : scheduler
               }
               </call>
               <script>
-                ERR_NUM_POST_CONFIGURATION = ERR_NUM[0]
-                ERR_NUM_TOTAL              = ERR_NUM_TOTAL + ERR_NUM[0]
+                ERR_NUM_TOTAL = ERR_NUM_TOTAL + ERR_NUM[0]
               </script>
             </sequence>
           <else>
@@ -365,6 +373,7 @@
             file="'%s/phases/scheduler/scheduler.xml' % (TESTS_DIR)"/>
           <call function="'scheduler'">
             {
+              'phase'     : PHASE_SCHEDULER,
               'instances' : instances,
               'suffix'    : suffix,
               'scheduler' : scheduler,
@@ -372,8 +381,7 @@
             }
           </call>
           <script>
-            ERR_NUM_SCHEDULER = ERR_NUM[0]
-            ERR_NUM_TOTAL     = ERR_NUM_TOTAL + ERR_NUM[0]
+            ERR_NUM_TOTAL = ERR_NUM_TOTAL + ERR_NUM[0]
           </script>
         </sequence>
       </if>
@@ -395,20 +403,21 @@
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/phases/verdict/verdict.xml' % (TESTS_DIR)"/>
       <call function="'verdict'">
-        { 'instances'        : instances,
+        { 
+          'phase'            : PHASE_VERDICT,
+          'instances'        : instances,
           'suffix'           : suffix,
           'runConfiguration' : runConfiguration,
           'runScheduler'     : runScheduler
         }
       </call>
       <script>
-        ERR_NUM_VERDICT = ERR_NUM[0]
-        ERR_NUM_TOTAL   = ERR_NUM_TOTAL + ERR_NUM[0]
+        ERR_NUM_TOTAL = ERR_NUM_TOTAL + ERR_NUM[0]
       </script>
       
       <!-- ====== Write information phases to xml report ============ -->
       <!-- == Write phase summary == -->
-      <!-- (this function is in log phase and use ERR_NUM_* variables) -->
+      <!-- this function is in log/log.xml file -->
       <call function="'writeSummary'">
         {
           'scenario' : scenario,
@@ -424,9 +433,10 @@
         }
       </call>
       
+      
     </sequence>
     
-    </function>
+  </function>
 
 
 </stax>

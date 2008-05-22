@@ -20,6 +20,7 @@
       <xsl:apply-templates select="instance"/>
       <xsl:apply-templates select="operation"/>
       <xsl:apply-templates select="message"/>
+      <xsl:apply-templates select="operationResult"/>
     </p>
     </body>
     </html>
