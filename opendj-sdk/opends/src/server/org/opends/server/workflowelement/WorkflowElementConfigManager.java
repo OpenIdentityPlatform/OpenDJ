@@ -35,7 +35,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.ClassPropertyDefinition;
@@ -49,7 +48,7 @@ import org.opends.server.admin.std.server.WorkflowElementCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
@@ -67,18 +66,12 @@ public class WorkflowElementConfigManager
                   ConfigurationDeleteListener<WorkflowElementCfg>
 
 {
-  // A mapping between the DNs of the config entries and the associated
-  // workflow elements.
-  private ConcurrentHashMap<DN, WorkflowElement> workflowElements;
-
-
 
   /**
    * Creates a new instance of this workflow config manager.
    */
   public WorkflowElementConfigManager()
   {
-    workflowElements = new ConcurrentHashMap<DN, WorkflowElement>();
   }
 
 
@@ -113,18 +106,38 @@ public class WorkflowElementConfigManager
     //Initialize the existing workflows.
     for (String workflowName : rootConfiguration.listWorkflowElements())
     {
-      WorkflowElementCfg workflowConfiguration =
-        rootConfiguration.getWorkflowElement(workflowName);
-      workflowConfiguration.addChangeListener(this);
-
-      if (workflowConfiguration.isEnabled())
-      {
-        loadAndRegisterWorkflowElement(workflowConfiguration);
-      }
+      loadAndRegisterWorkflowElement(workflowName);
     }
   }
 
+  /**
+   * Return the associated workflowElement is enabled if the
+   * workflow is enabled.
+   *
+   * @param workflowName workflow identifier
+   * @return workflowelement associated with the workflowName of null
+   * @throws org.opends.server.config.ConfigException Exception will reading
+   *         the config
+   * @throws org.opends.server.types.InitializationException Exception while
+   *         initializing the workflow element
+   */
+  public WorkflowElement loadAndRegisterWorkflowElement(String workflowName)
+          throws ConfigException, InitializationException {
+    ServerManagementContext managementContext =
+         ServerManagementContext.getInstance();
+    RootCfg rootConfiguration =
+         managementContext.getRootConfiguration();
+    WorkflowElementCfg workflowConfiguration =
+        rootConfiguration.getWorkflowElement(workflowName);
+    workflowConfiguration.addChangeListener(this);
 
+    if (workflowConfiguration.isEnabled())
+    {
+      return (loadAndRegisterWorkflowElement(workflowConfiguration));
+    }
+
+    return (null);
+  }
 
   /**
    * {@inheritDoc}
@@ -220,10 +233,10 @@ public class WorkflowElementConfigManager
 
 
     WorkflowElement workflowElement =
-      workflowElements.remove(configuration.dn());
+            DirectoryServer.getWorkflowElement(configuration.dn().toString());
     if (workflowElement != null)
     {
-      workflowElement.deregister();
+      DirectoryServer.deregisterWorkflowElement(workflowElement);
       workflowElement.finalizeWorkflowElement();
     }
 
@@ -278,7 +291,7 @@ public class WorkflowElementConfigManager
 
     // Get the existing workflow element if it's already enabled.
     WorkflowElement existingWorkflowElement =
-      workflowElements.get(configuration.dn());
+            DirectoryServer.getWorkflowElement(configuration.dn().toString());
 
     // If the new configuration has the workflow element disabled,
     // then disable it if it is enabled, or do nothing if it's already disabled.
@@ -286,8 +299,7 @@ public class WorkflowElementConfigManager
     {
       if (existingWorkflowElement != null)
       {
-        workflowElements.remove(configuration.dn());
-        existingWorkflowElement.deregister();
+        DirectoryServer.deregisterWorkflowElement(existingWorkflowElement);
         existingWorkflowElement.finalizeWorkflowElement();
       }
 
@@ -320,8 +332,8 @@ public class WorkflowElementConfigManager
    * Loads a class and instanciates it as a workflow element. The workflow
    * element is initialized and registered with the server.
    *
-   * @param workflowCfg  the workflow element configuration
-   *
+   * @param workflowElementCfg  the workflow element configuration
+   * @return WorkflowElement
    * @throws InitializationException If a problem occurs while trying to
    *                            decode a provided string as a DN or if
    *                            the workflow element ID for a provided
@@ -329,7 +341,7 @@ public class WorkflowElementConfigManager
    *                            ID of an existing workflow during workflow
    *                            registration.
    */
-  private void loadAndRegisterWorkflowElement(
+  WorkflowElement loadAndRegisterWorkflowElement(
       WorkflowElementCfg workflowElementCfg
       ) throws InitializationException
   {
@@ -341,16 +353,13 @@ public class WorkflowElementConfigManager
     try
     {
       // register the workflow element
-      workflowElement.register();
-
-      // keep the workflow element in the list of configured workflow
-      // elements
-      workflowElements.put(workflowElementCfg.dn(), workflowElement);
+      DirectoryServer.registerWorkflowElement(workflowElement);
     }
-    catch (ConfigException de)
+    catch (DirectoryException de)
     {
       throw new InitializationException(de.getMessageObject());
     }
+    return (workflowElement);
   }
 
 

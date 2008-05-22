@@ -170,13 +170,21 @@ import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.ensureNotNull;
-import org.opends.server.util.*;
+import org.opends.server.util.MultiOutputStream;
+import org.opends.server.util.RuntimeInformation;
+import org.opends.server.util.SetupUtils;
+import org.opends.server.util.StaticUtils;
+import org.opends.server.util.TimeThread;
+import org.opends.server.util.Validator;
+import org.opends.server.util.VersionCompatibilityIssue;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
-import org.opends.server.workflowelement.*;
-import org.opends.server.workflowelement.localbackend.*;
+import org.opends.server.workflowelement.WorkflowElement;
+import org.opends.server.workflowelement.WorkflowElementConfigManager;
+import
+  org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
 import org.opends.server.protocols.internal.InternalConnectionHandler;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.crypto.CryptoManagerSync;
@@ -699,6 +707,11 @@ public class DirectoryServer
 
   // The writability mode for the Directory Server.
   private WritabilityMode writabilityMode;
+
+  // The mappings between the names and WorkflowElements
+  // registered with the Directory Server
+  private ConcurrentHashMap<String, WorkflowElement> workflowElements =
+          new ConcurrentHashMap<String, WorkflowElement>();
 
   // The workflow configuration mode (auto or manual).
   private WorkflowConfigurationMode workflowConfigurationMode;
@@ -2788,7 +2801,7 @@ public class DirectoryServer
     // First of all re-initialize the current workflow configuration
     NetworkGroup.resetConfig();
     WorkflowImpl.resetConfig();
-    WorkflowElement.resetConfig();
+    directoryServer.workflowElements.clear();
 
     // Then configure the workflows
     workflowElementConfigManager = new WorkflowElementConfigManager();
@@ -2818,7 +2831,7 @@ public class DirectoryServer
     // First of all re-initialize the current workflow configuration
     NetworkGroup.resetConfig();
     WorkflowImpl.resetConfig();
-    WorkflowElement.resetConfig();
+    directoryServer.workflowElements.clear();
 
     // For each base DN in a backend create a workflow and register
     // the workflow with the default network group
@@ -9819,8 +9832,6 @@ public class DirectoryServer
     return isAuto;
   }
 
-
-
   /**
    * Retrieves the workflow configuration mode.
    *
@@ -9831,7 +9842,94 @@ public class DirectoryServer
     return directoryServer.workflowConfigurationMode;
   }
 
+  /**
+   * Return the WorkflowElement associated with a name.
+   *
+   * @param workflowElementID the name of the requested workflow element
+   * @return the associated workflow element or null
+   */
+  public static WorkflowElement getWorkflowElement(String workflowElementID) {
+    return(directoryServer.workflowElements.get(workflowElementID));
+  }
 
+  /**
+   * Return the WorkflowElement associated with a name and try to
+   * create it if it does not exists yet.
+   *
+   * @param workflowElementID the name of the requested workflow element
+   * @return the associated workflow element
+   * @throws ConfigException if the configuration is invalid
+   * @throws InitializationException if the initialization failed
+   */
+  public static WorkflowElement getOrCreateWorkflowElement(
+          String workflowElementID)
+    throws ConfigException, InitializationException {
+
+    WorkflowElement we = directoryServer.workflowElements.get(
+      workflowElementID);
+
+    if (we == null) {
+      we = directoryServer.workflowElementConfigManager.
+        loadAndRegisterWorkflowElement(workflowElementID);
+    }
+
+    return (we);
+  }
+
+  /**
+   * Registers the provided workflow element from the Directory Server.
+   *
+   * @param  we  The workflow element to register. It must not be
+   *                  {@code null}.
+   * @throws  DirectoryException  If the workflow element ID for the
+   *              provided workflow element conflicts with the ID of
+   *              an existing workflow element.
+   */
+  public static void registerWorkflowElement(WorkflowElement we)
+    throws DirectoryException {
+    ensureNotNull(we);
+
+    String workflowElementID = we.getWorkflowElementID();
+    ensureNotNull(workflowElementID);
+
+    synchronized (directoryServer)
+    {
+      if (directoryServer.workflowElements.containsKey(workflowElementID)) {
+        Message message = ERR_REGISTER_WORKFLOW_ELEMENT_ALREADY_EXISTS.get(
+                workflowElementID);
+      } else {
+        directoryServer.workflowElements.put(workflowElementID, we);
+      }
+    }
+  }
+
+  /**
+   * Deregisters the provided workflow element from the Directory Server.
+   *
+   * @param  we  The workflow element to deregister. It must not be
+   *                  {@code null}.
+   */
+  public static void deregisterWorkflowElement(WorkflowElement we) {
+    ensureNotNull(we);
+
+    String workflowElementID = we.getWorkflowElementID();
+    ensureNotNull(workflowElementID);
+
+    synchronized (directoryServer)
+    {
+      directoryServer.workflowElements.remove(workflowElementID);
+    }
+  }
+
+  /**
+   * Verifies if the provided workflow element ID is already registered.
+   *
+   * @param workflowElementID workflow element identifier
+   * @return boolean indicating if workflow element is already registered
+   */
+  public static boolean isWorkflowElementRegistered(String workflowElementID) {
+    return (directoryServer.workflowElements.containsKey(workflowElementID));
+  }
 
   /**
    * Print messages for start-ds "-F" option (full version information).

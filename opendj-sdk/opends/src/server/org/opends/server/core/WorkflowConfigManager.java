@@ -294,7 +294,7 @@ public class WorkflowConfigManager
     // Create the root workflow element to associate with the workflow
     String rootWorkflowElementID = workflowCfg.getWorkflowElement();
     WorkflowElement rootWorkflowElement =
-      WorkflowElement.getWorkflowElement(rootWorkflowElementID);
+      DirectoryServer.getWorkflowElement(rootWorkflowElementID);
 
     // Get the base DN targeted by the workflow
     DN baseDN = workflowCfg.getBaseDN();

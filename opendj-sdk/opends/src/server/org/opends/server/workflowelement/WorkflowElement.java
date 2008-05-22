@@ -26,15 +26,10 @@
  */
 package org.opends.server.workflowelement;
 
-import static org.opends.server.util.Validator.ensureNotNull;
 import static org.opends.messages.ConfigMessages.*;
 
 import java.util.List;
-import java.util.TreeMap;
-
-import org.opends.messages.Message;
 import org.opends.server.admin.std.server.WorkflowElementCfg;
-import org.opends.server.config.ConfigException;
 import org.opends.server.types.Operation;
 import org.opends.server.types.CanceledOperationException;
 
@@ -61,17 +56,6 @@ public abstract class WorkflowElement
   // The workflow element identifier.
   private String workflowElementID = null;
 
-
-  // The set of workflow elements registered with the server.
-  // The workflow element identifier is used as a key in the map.
-  private static TreeMap<String, WorkflowElement> registeredWorkflowElements =
-    new TreeMap<String, WorkflowElement>();
-
-
-  // A lock to protect access to the registered workflow elements.
-  private static Object registeredWorkflowElementsLock = new Object();
-
-
   // The parent of the workflow element (null if the workflow element is
   // the root of the processing tree).
   private WorkflowElement<?> parent = null;
@@ -84,7 +68,6 @@ public abstract class WorkflowElement
   {
     // There is nothing to do in the constructor.
   }
-
 
   /**
    * Initializes the instance of the workflow element.
@@ -123,7 +106,7 @@ public abstract class WorkflowElement
    *          for this workflow element, or {@code false} if not.
    */
   public boolean isConfigurationAcceptable(
-      WorkflowElementCfg configuration,
+      T configuration,
       List<String> unacceptableReasons)
   {
     // This default implementation does not perform any special
@@ -142,7 +125,6 @@ public abstract class WorkflowElement
   {
     // No action is required by default.
   }
-
 
   /**
    * Executes the workflow element for an operation.
@@ -191,78 +173,5 @@ public abstract class WorkflowElement
   {
     return workflowElementID;
   }
-
-
-  /**
-   * Registers the workflow element (this) with the server.
-   *
-   * @throws  ConfigException  If the workflow element ID for the provided
-   *                           workflow element conflicts with the workflow
-   *                           element ID of an existing workflow element.
-   */
-  public void register()
-      throws ConfigException
-  {
-    ensureNotNull(workflowElementID);
-
-    synchronized (registeredWorkflowElementsLock)
-    {
-      // the workflow element must not be already registered
-      if (registeredWorkflowElements.containsKey(workflowElementID))
-      {
-        Message message = ERR_CONFIG_WORKFLOW_ELEMENT_ALREADY_REGISTERED.get(
-            workflowElementID);
-        throw new ConfigException(message);
-      }
-
-      TreeMap<String, WorkflowElement> newWorkflowElements =
-        new TreeMap<String, WorkflowElement>(registeredWorkflowElements);
-      newWorkflowElements.put(workflowElementID, this);
-      registeredWorkflowElements = newWorkflowElements;
-    }
-  }
-
-
-  /**
-   * Deregisters the workflow element (this) with the server.
-   */
-  public void deregister()
-  {
-    ensureNotNull(workflowElementID);
-
-    synchronized (registeredWorkflowElementsLock)
-    {
-      TreeMap<String, WorkflowElement> newWorkflowElements =
-        new TreeMap<String, WorkflowElement>(registeredWorkflowElements);
-      newWorkflowElements.remove(workflowElementID);
-      registeredWorkflowElements = newWorkflowElements;
-    }
-  }
-
-
-  /**
-   * Gets a workflow element that was registered with the server.
-   *
-   * @param workflowElementID  the ID of the workflow element to get
-   * @return the requested workflow element
-   */
-  public static WorkflowElement getWorkflowElement(
-      String workflowElementID)
-  {
-    return registeredWorkflowElements.get(workflowElementID);
-  }
-
-
-  /**
-   * Resets all the registered workflows.
-   */
-  public static void resetConfig()
-  {
-    synchronized (registeredWorkflowElementsLock)
-    {
-      registeredWorkflowElements = new TreeMap<String, WorkflowElement>();
-    }
-  }
-
 }
 
