@@ -88,7 +88,7 @@
           <xsl:with-param name="phaseName" select="'Installation'" />
         </xsl:call-template>
       </xsl:when>
-      <xsl:when test="$phaseName = 'generateLdif'">
+      <xsl:when test="$phaseName = 'generateldif'">
         <a name="generateLdif"/>
         <xsl:call-template name="parsePhase">
           <xsl:with-param name="phaseName" select="'GenerateLdif'" />
@@ -169,18 +169,42 @@
     <a href="#{$name}"><xsl:value-of select="$name" /> </a>
   </td>
   <td>
-    <xsl:variable name="result" select="normalize-space(@result)"/>
-    <b>
+    <xsl:variable name="percentage" select="normalize-space(@percentage)"/>
     <xsl:choose>
-      <xsl:when test="$result='0'">
-       <span class="pass">PASS</span>
+      <!-- Display percentage first if exist else the number of error -->
+      <xsl:when test="$percentage != 'ERROR_not_defined'">
+        <xsl:choose>
+          <xsl:when test="$percentage > '90'">
+            <b>
+              <span class="pass"><xsl:value-of select="$percentage"/>%</span>
+            </b>
+          </xsl:when>
+          <xsl:otherwise>
+            <b>
+              <span class="fail"><xsl:value-of select="$percentage"/>%</span>
+            </b>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:when>
+      
+      <!-- Display number of error -->
       <xsl:otherwise>
-       <span class="fail">FAIL</span>
+        <xsl:variable name="errNum" select="normalize-space(@errNum)"/>
+        <b>
+        <xsl:choose>
+          <xsl:when test="$errNum='0'">
+           <span class="pass">PASS</span>
+          </xsl:when>
+          <xsl:otherwise>
+           <span class="fail">FAIL</span>
+          </xsl:otherwise>
+         </xsl:choose>
+         </b>
       </xsl:otherwise>
-     </xsl:choose>
-     </b>
-  </td></tr>
+    </xsl:choose>
+  </td>
+  
+  </tr>
 </xsl:template>
 
 

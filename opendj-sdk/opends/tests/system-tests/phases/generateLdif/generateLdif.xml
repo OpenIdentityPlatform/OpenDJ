@@ -33,6 +33,11 @@
   <!-- ************************************************************ -->
   <function name="generateLdif" scope="local">
     <function-map-args>
+      <function-arg-def name="phase" type="required">
+        <function-arg-description>
+          phase object
+        </function-arg-description>
+      </function-arg-def>
       <function-arg-def name="suffix" type="required">
         <function-arg-description>
           suffix
@@ -43,8 +48,8 @@
     <sequence>
       <!--==========  Call preambule  =========-->
       <call function="'phasePreamble'">
-      { 'phaseName' : 'generateLdif' ,
-        'fileFd'    : LOG_MAIN_FD }
+      { 'phase'  : phase,
+        'fileFd' : LOG_MAIN_FD }
       </call>
       
       <!--==========  Define variables  =========-->
@@ -248,8 +253,8 @@
       <!--==========  Call postphase =========-->
       <call function="'phasePostamble'">
       {
-        'phaseName' : 'generateLdif',
-        'fileFd'    : LOG_MAIN_FD
+        'phase'  : phase,
+        'fileFd' : LOG_MAIN_FD
       }
       </call>
     

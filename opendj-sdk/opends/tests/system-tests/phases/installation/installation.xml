@@ -33,6 +33,11 @@
   <!-- ************************************************************ -->
   <function name="installation" scope="local">
     <function-map-args>
+      <function-arg-def name="phase" type="required">
+        <function-arg-description>
+          phase object
+        </function-arg-description>
+      </function-arg-def>
       <function-arg-def name="instances" type="required">
         <function-arg-description>
           list of instances
@@ -49,8 +54,8 @@
     <sequence>
       <!--==========  Call preambule  =========-->
       <call function="'phasePreamble'">
-      { 'phaseName' : 'installation' ,
-        'fileFd'    : LOG_MAIN_FD }
+      { 'phase'  : phase,
+        'fileFd' : LOG_MAIN_FD }
       </call>
       
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
@@ -93,8 +98,8 @@
       <!--==========  Call postphase =========-->
       <call function="'phasePostamble'">
       {
-        'phaseName' : 'installation',
-        'fileFd'    : LOG_MAIN_FD
+        'phase'  : phase,
+        'fileFd' : LOG_MAIN_FD
       }
       </call>
       

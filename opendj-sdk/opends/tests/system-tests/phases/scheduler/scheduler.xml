@@ -33,6 +33,11 @@
   <!-- ************************************************************ -->
   <function name="scheduler" scope="local">
     <function-map-args>
+      <function-arg-def name="phase" type="required">
+        <function-arg-description>
+          phase object
+        </function-arg-description>
+      </function-arg-def>
       <function-arg-def name="instances" type="required">
         <function-arg-description>
           instance object
@@ -64,9 +69,9 @@
         tagAttr.append(['duration',durationValue])
       </script>
       <call function="'phasePreamble'">
-      { 'phaseName' : 'scheduler' ,
-        'tagAttr'   : tagAttr,
-        'fileFd'    : LOG_MAIN_FD }
+      { 'phase'   : phase,
+        'tagAttr' : tagAttr,
+        'fileFd'  : LOG_MAIN_FD }
       </call>
       
       <!--==== Get the clients list from all modules ==============-->
@@ -85,20 +90,37 @@
             'suffix'    : suffix
           }
           </call>
-          <!--==========  Merge files    ==========-->
+          <!--============   Merge files      ===========-->
           <call function="'mergeClientsFiles'">
           {
             'scheduler' : scheduler,
             'fileFd'    : LOG_MAIN_FD
           }
           </call>
+          <!--==== Calculate phase percentage  ==========-->
+          <script>
+            nbClients = len(clients)
+            nbClientSuccess = 0
+            percentageResult = 0
+          </script>
+          <iterate in="clients" var="client">
+            <script>
+              if client.getResult() == 'SUCCESS':
+                nbClientSuccess += 1
+            </script>
+          </iterate>
+          <script>
+            percentageResult = nbClientSuccess * 100
+            percentageResult = percentageResult / nbClients
+            phase.setPercentage(percentageResult)
+          </script>
         </sequence>
       </if>
       <!--==========  Call postphase =========-->
       <call function="'phasePostamble'">
       {
-        'phaseName' : 'scheduler',
-        'fileFd'    : LOG_MAIN_FD
+        'phase'  : phase,
+        'fileFd' : LOG_MAIN_FD
       }
       </call>
     </sequence>
@@ -417,6 +439,7 @@
       <else>
         <script>
           result = 'FAIL'
+          ERR_NUM[0] += 1
         </script>
       </else>
       </if>

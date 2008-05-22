@@ -100,7 +100,9 @@
           'fileFd'     : fileFd
         }
       </call>
-      <script> _errNum += STAXResult[0] </script>
+      <if expr="STAXResult[0] == FALSE">
+        <script> _errNum += 1 </script>
+      </if>
       
       
       <!--== Check error/access logs =========-->
@@ -112,6 +114,7 @@
         }
       </call>
       <script> _errNum += STAXResult </script>
+      
       
       <return> _errNum </return>
     </sequence>

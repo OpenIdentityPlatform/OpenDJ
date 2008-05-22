@@ -114,48 +114,36 @@
     </function-map-args>
     <sequence>
       <script>
+        def writeSummaryTag(objPhase):
+          if objPhase.getRun() == 'true':
+            str = '&lt;phaseSummmary'
+            str = '%s name=\"%s\"'       % (str,objPhase.getName())
+            str = '%s errNum=\"%s\"'     % (str,objPhase.getErrNum())
+            str = '%s percentage=\"%s\"' % (str,objPhase.getPercentage())
+            str = '%s start=\"%s\"'      % (str,objPhase.getStartTime())
+            str = '%s stop=\"%s\"'       % (str,objPhase.getStopTime())
+            str = '%s/&gt;\n' % str
+            fileFd.write(str)
+        
+        
         fileFd.write('&lt;summary&gt;\n')
         
         # write scenario informations into summary part
         str = '&lt;scenario name=\"%s\"' % scenario.getName()
         str = '%s duration=\"%s%s\" &gt;\n' % \
               (str,scenario.getDurationTime(),scenario.getDurationUnit())
-        str = '%s %s \n&lt;/scenario&gt;' % \
+        str = '%s %s \n&lt;/scenario&gt;\n' % \
               (str,scenario.getDescription())
         fileFd.write(str)
         
-        if ERR_NUM_PARSER != '':
-          str = '&lt;phaseSummmary name=\"parser\" result=\"%s\"/&gt;\n' % \
-                ERR_NUM_PARSER
-          fileFd.write(str)
-        if ERR_NUM_INSTALL != '':
-          str = '&lt;phaseSummmary name=\"installation\" result=\"%s\"/&gt;\n'%\
-                ERR_NUM_INSTALL
-          fileFd.write(str)
-        if ERR_NUM_GEN_LDIF != '':
-          str = '&lt;phaseSummmary name=\"generateLdif\" result=\"%s\"/&gt;\n'%\
-                ERR_NUM_GEN_LDIF
-          fileFd.write(str)
-        if ERR_NUM_PRE_CONFIGURATION != '':
-          str = '&lt;phaseSummmary name=\"preconfiguration\" result=\"%s\"/&gt;\n'%\
-                ERR_NUM_PRE_CONFIGURATION
-          fileFd.write(str)
-        if ERR_NUM_CONFIGURATION != '':
-          str = '&lt;phaseSummmary name=\"configuration\" result=\"%s\"/&gt;\n'%\
-                ERR_NUM_CONFIGURATION
-          fileFd.write(str)
-        if ERR_NUM_POST_CONFIGURATION != '':
-          str = '&lt;phaseSummmary name=\"postconfiguration\" result=\"%s\"/&gt;\n'%\
-                ERR_NUM_POST_CONFIGURATION
-          fileFd.write(str)
-        if ERR_NUM_SCHEDULER != '':
-          str = '&lt;phaseSummmary name=\"scheduler\" result=\"%s\"/&gt;\n' % \
-                ERR_NUM_SCHEDULER
-          fileFd.write(str)
-        if ERR_NUM_VERDICT != '':
-          str = '&lt;phaseSummmary name=\"verdict\" result=\"%s\"/&gt;\n' % \
-                ERR_NUM_VERDICT
-          fileFd.write(str)
+        writeSummaryTag(PHASE_PARSER)
+        writeSummaryTag(PHASE_INSTALLATION)
+        writeSummaryTag(PHASE_GEN_LDIF)
+        writeSummaryTag(PHASE_PRE_CONFIGURATION)
+        writeSummaryTag(PHASE_CONFIGURATION)
+        writeSummaryTag(PHASE_POST_CONFIGURATION)
+        writeSummaryTag(PHASE_SCHEDULER)
+        writeSummaryTag(PHASE_VERDICT)
         
         fileFd.write('&lt;/summary&gt;\n')
       </script>

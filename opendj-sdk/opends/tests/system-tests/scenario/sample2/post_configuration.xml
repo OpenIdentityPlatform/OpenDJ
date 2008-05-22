@@ -31,6 +31,11 @@
   
   <function name="postConfiguration" scope="local">
     <function-map-args>
+      <function-arg-def name="phase" type="required">
+        <function-arg-description>
+          phase object
+        </function-arg-description>
+      </function-arg-def>
       <function-arg-def name="instances" type="required">
         <function-arg-description>
           list of instances classes
@@ -57,8 +62,8 @@
     
     <!-- ================= Call preambule ======================== -->
       <call function="'phasePreamble'">
-      { 'phaseName' : 'postconfiguration',
-        'fileFd'    : LOG_MAIN_FD }
+      { 'phase'  : phase,
+        'fileFd' : LOG_MAIN_FD }
       </call>
       
       
@@ -149,8 +154,8 @@
       <!-- ================= Call postambule ======================= -->
       <call function="'phasePostamble'">
       {
-        'phaseName' : 'postconfiguration',
-        'fileFd'    : LOG_MAIN_FD
+        'phase'  : phase,
+        'fileFd' : LOG_MAIN_FD
       }
       </call>
     </sequence>
