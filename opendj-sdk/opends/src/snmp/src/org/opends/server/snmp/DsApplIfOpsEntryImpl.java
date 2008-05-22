@@ -93,6 +93,15 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
   }
 
   /**
+   * Getter for the "DsApplIfProtocol" variable.
+   * @return an OID representing the connection handler:port
+   */
+  public String getDsApplIfProtocol() {
+//      return  new String("1.3.6.1..27.3.") + portNumber;
+      return DsApplIfProtocol;
+  }
+
+  /**
    * {@inheritDoc}
    * @return DsApplIfSearchOps
    */

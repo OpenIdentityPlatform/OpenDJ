@@ -31,7 +31,6 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -189,8 +188,7 @@ public final class SNMPConnectionHandler
      */
     @Override()
     public Collection<HostPort> getListeners() {
-        // There are no listeners for this connection handler.
-        return Collections.<HostPort>emptySet();
+        return this.listeners;
     }
 
     /**
@@ -199,7 +197,7 @@ public final class SNMPConnectionHandler
     @Override()
     public Collection<ClientConnection> getClientConnections() {
         // There are no client connections for this connection handler.
-        return Collections.<ClientConnection>emptySet();
+        return this.connectionList;
     }
 
     /**
@@ -264,7 +262,7 @@ public final class SNMPConnectionHandler
     @SuppressWarnings("unchecked")
     private void addFile(File file) {
         try {
-            URL u = new URL("jar:file://"+ file.toString()+"!/");
+            URL u = new URL("jar:file:/"+ file.toString()+"!/");
             Class[] parameters = new Class[]{URL.class};
             URLClassLoader sysloader =
               (URLClassLoader)ClassLoader.getSystemClassLoader();

@@ -271,6 +271,21 @@ public class SNMPMonitor {
       });
   }
 
+ /**
+   * Wrapper for SNMP Byte[].
+   * @param s value string
+   * @return a Byte[]
+   */
+  public static Byte[] string2ByteArray(String s) {
+    byte[] b = s.getBytes();
+    Byte[] barray = new Byte[b.length];
+    for (int index=0; index<b.length; index++) {
+        barray[index] = new Byte(b[index]);
+    }
+    return barray;
+  }
+
+
   /**
    * Wrapper for SNMP Counter32.
    * @param v value

@@ -39,7 +39,6 @@ import com.sun.management.snmp.InetAddressAcl;
 import com.sun.management.snmp.SnmpEngineParameters;
 import com.sun.management.snmp.UserAcl;
 
-import java.net.InetAddress;
 import java.util.Iterator;
 import java.util.Set;
 import javax.management.MBeanServer;
@@ -363,7 +362,7 @@ public class SNMPClassLoaderProvider {
                     (InetAddressAcl) new SNMPInetAddressAcl(configuration);
 
             adaptor = new SnmpV3AdaptorServer(engineParameters, null, acls,
-                    configuration.getListenPort(), InetAddress.getLocalHost());
+                    configuration.getListenPort(), null);
 
             // Enable the community to context translation for V1/V2 to V3
             adaptor.enableCommunityStringAtContext();
