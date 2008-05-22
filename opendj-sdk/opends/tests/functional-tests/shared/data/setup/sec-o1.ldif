@@ -1,0 +1,20 @@
+dn: o=o1
+objectclass: top
+objectclass: organization
+aci: (targetattr = "*")(version 3.0;acl "test";allow (all) userdn = "ldap:/
+ //anyone";)
+o: o1
+
+dn: cn=user_1,o=o1
+objectclass: top
+objectclass: inetOrgPerson
+cn: user_1
+sn: snofuser_user_1
+userPassword: user_1
+
+dn: cn=user_2,o=o1
+objectclass: top
+objectclass: inetOrgPerson
+cn: user_2
+sn: snofuser_user_2
+userPassword: user_2
