@@ -453,18 +453,12 @@ public class DNContext {
           return parentID;
         }
       }
-      int i=0;
       //If the parent is in the pending map, another thread is working on the
       //parent entry; wait until that thread is done with the parent.
       while(isPending(parentDN)) {
         try {
-          Thread.sleep(50);
-          if(i == 3) {
-            return null;
-          }
-          i++;
+          Thread.sleep(10);
         } catch (Exception e) {
-          return null;
         }
       }
       parentID = dn2id.get(null, parentDN, LockMode.DEFAULT);
