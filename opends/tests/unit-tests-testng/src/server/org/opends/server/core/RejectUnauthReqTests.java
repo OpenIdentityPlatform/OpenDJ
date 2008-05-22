@@ -77,6 +77,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     if(authentication)
       args = new String []
       {
+        "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
         "-D","cn=directory manager",
@@ -87,6 +88,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     else
       args = new String[]
       {
+        "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
         "-a",
@@ -114,6 +116,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     if(authentication)
       args = new String[]
       {
+        "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
         "-D","cn=directory manager",
@@ -123,6 +126,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     else
       args = new String[]
       {
+        "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
         "-f", path
@@ -144,6 +148,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     if(authentication)
       args = new String[]
       {
+        "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
         "-D", "cn=Directory Manager",
@@ -154,6 +159,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     else
       args = new String[]
       {
+        "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
         "o:test",
@@ -181,6 +187,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     if(authentication)
       args = new String[]
       {
+        "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
         "-D","cn=directory manager",
@@ -190,6 +197,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     else
       args = new String[]
       {
+        "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
         "-f", path
@@ -211,6 +219,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     if(authentication)
       args = new String[]
       {
+        "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
         "-V", "3",
@@ -221,6 +230,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     else
       args = new String[]
       {
+        "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
         "o=mod_rejectTestCase,o=test"
@@ -252,6 +262,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   public void testAuthSearchDefCfg()
   {
     String[] args = {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
@@ -275,6 +286,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   public void testUnauthSearchDefCfg()
   {
     String[] args = {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-b", "",
@@ -396,6 +408,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   {
     String[] argSearch =
     {
+    "--noPropertiesFile",
      "-h", "127.0.0.1",
      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
      "-D", "cn=directory manager",
@@ -487,6 +500,7 @@ public class RejectUnauthReqTests extends CoreTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
@@ -512,6 +526,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   public void testSearchNewCfg()
   {
     String[] args = {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-b", "",
@@ -522,6 +537,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     assertFalse(LDAPSearch.mainSearch(args, false, null, null)==0);
 
     String[] authArgs =  {
+      "--noPropertiesFile",
      "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
@@ -575,6 +591,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   {
     String[] argSearch =
     {
+    "--noPropertiesFile",
      "-h", "127.0.0.1",
      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
      "-D", "cn=directory manager",
@@ -721,6 +738,7 @@ public class RejectUnauthReqTests extends CoreTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",

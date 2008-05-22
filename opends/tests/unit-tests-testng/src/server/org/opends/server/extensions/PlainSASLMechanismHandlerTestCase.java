@@ -425,6 +425,7 @@ public class PlainSASLMechanismHandlerTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=PLAIN",
@@ -545,6 +546,7 @@ public class PlainSASLMechanismHandlerTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=PLAIN",
@@ -586,6 +588,7 @@ public class PlainSASLMechanismHandlerTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=PLAIN",
@@ -627,6 +630,7 @@ public class PlainSASLMechanismHandlerTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=PLAIN",

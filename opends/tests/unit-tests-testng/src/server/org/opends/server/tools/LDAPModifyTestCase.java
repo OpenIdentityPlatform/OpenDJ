@@ -774,6 +774,7 @@ public class LDAPModifyTestCase
       "-o", "mech=CRAM-MD5",
       "-o", "authid=u:test.user",
       "-w", "password",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 

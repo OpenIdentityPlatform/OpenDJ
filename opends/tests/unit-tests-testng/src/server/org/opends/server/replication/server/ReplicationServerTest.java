@@ -1467,6 +1467,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
        "-b", "dc=replicationChanges",
        "-s", "sub",
+      "--noPropertiesFile",
        "(objectClass=*)"
      };
 
@@ -1489,6 +1490,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        "-w", "password",
        "-b", "dc=replicationChanges",
        "-s", "sub",
+       "--noPropertiesFile",
        "(objectClass=*)"
      };
 
@@ -1517,6 +1519,7 @@ public class ReplicationServerTest extends ReplicationTestCase
            "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
            "-D", "cn=Directory Manager",
            "-w", "password",
+           "--noPropertiesFile",
            "-a",
            "-f", path
        };

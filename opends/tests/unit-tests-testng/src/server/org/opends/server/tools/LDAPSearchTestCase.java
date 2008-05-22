@@ -1085,6 +1085,7 @@ public class LDAPSearchTestCase
       "-w", "password",
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
