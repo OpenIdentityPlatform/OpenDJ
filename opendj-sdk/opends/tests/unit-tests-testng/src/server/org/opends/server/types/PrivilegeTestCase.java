@@ -678,6 +678,7 @@ public class PrivilegeTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", userDN,
@@ -741,6 +742,7 @@ public class PrivilegeTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", userDN,
@@ -757,6 +759,7 @@ public class PrivilegeTestCase
 
       args = new String[]
       {
+        "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
         "-D", userDN,
@@ -1587,6 +1590,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -1618,6 +1622,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -1649,6 +1654,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -1680,6 +1686,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -1711,6 +1718,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -1742,6 +1750,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -1773,6 +1782,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -1804,6 +1814,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -1835,6 +1846,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -1866,6 +1878,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -1897,6 +1910,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -1928,6 +1942,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -1959,6 +1974,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=PLAIN",
@@ -1989,6 +2005,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=PLAIN",
@@ -2019,6 +2036,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=PLAIN",
@@ -2049,6 +2067,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=PLAIN",
@@ -2079,6 +2098,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=PLAIN",
@@ -2109,6 +2129,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=PLAIN",
@@ -2139,6 +2160,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=PLAIN",
@@ -2169,6 +2191,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=PLAIN",
@@ -2199,6 +2222,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=PLAIN",
@@ -2229,6 +2253,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=PLAIN",
@@ -2259,6 +2284,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=PLAIN",
@@ -2289,6 +2315,7 @@ public class PrivilegeTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=PLAIN",
@@ -2319,6 +2346,7 @@ public class PrivilegeTestCase
     // Make sure that the operation fails when the privilege is not disabled.
     String[] searchArgs =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=PLAIN",

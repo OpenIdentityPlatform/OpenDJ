@@ -225,6 +225,7 @@ public class FingerprintCertificateMapperTestCase
 
       String[] args =
       {
+        "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
         "-Z",
@@ -286,6 +287,7 @@ public class FingerprintCertificateMapperTestCase
 
       String[] args =
       {
+        "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
         "-Z",
@@ -344,6 +346,7 @@ public class FingerprintCertificateMapperTestCase
 
       String[] args =
       {
+        "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
         "-Z",
@@ -416,6 +419,7 @@ public class FingerprintCertificateMapperTestCase
 
       String[] args =
       {
+        "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
         "-Z",

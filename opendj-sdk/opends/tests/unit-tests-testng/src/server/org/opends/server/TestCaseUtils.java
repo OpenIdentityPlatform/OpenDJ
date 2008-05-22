@@ -1216,6 +1216,7 @@ public final class TestCaseUtils {
     String path = createTempFile(lines);
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(serverLdapPort),
       "-D", "cn=Directory Manager",

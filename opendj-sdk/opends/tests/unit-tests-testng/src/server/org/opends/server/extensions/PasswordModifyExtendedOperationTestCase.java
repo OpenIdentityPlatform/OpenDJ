@@ -182,6 +182,7 @@ public class PasswordModifyExtendedOperationTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
@@ -204,6 +205,7 @@ public class PasswordModifyExtendedOperationTestCase
     // Now change the password back to what it was.
     args = new String[]
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
@@ -236,6 +238,7 @@ public class PasswordModifyExtendedOperationTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
@@ -259,6 +262,7 @@ public class PasswordModifyExtendedOperationTestCase
     // Now change the password back to what it was.
     args = new String[]
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
@@ -292,6 +296,7 @@ public class PasswordModifyExtendedOperationTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-a", "dn:cn=Directory Manager",
@@ -313,6 +318,7 @@ public class PasswordModifyExtendedOperationTestCase
     // Now change the password back to what it was.
     args = new String[]
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-a", "dn:cn=Directory Manager",
@@ -369,6 +375,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "uid=test.user,o=test",
@@ -433,6 +440,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "uid=test.user,o=test",
@@ -496,6 +504,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "uid=test.user,o=test",
@@ -551,6 +560,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "uid=test.user,o=test",
@@ -615,6 +625,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "uid=test.user,o=test",
@@ -679,6 +690,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-a", "dn:uid=test.user,o=test",
@@ -742,6 +754,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-a", "u:test.user",
@@ -805,6 +818,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
@@ -840,6 +854,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
@@ -870,6 +885,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
@@ -901,6 +917,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
@@ -931,6 +948,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
@@ -962,6 +980,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
@@ -993,6 +1012,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
@@ -1045,6 +1065,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
@@ -1108,6 +1129,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
@@ -1167,6 +1189,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
@@ -1219,6 +1242,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-a", "dn:uid=test.user,o=test",
@@ -1347,6 +1371,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "uid=test.user,o=test",
@@ -1414,6 +1439,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "uid=test.user,o=test",
@@ -1482,6 +1508,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "uid=test.user,o=test",
@@ -1550,6 +1577,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-a", "dn:uid=test.user,o=test",
@@ -1617,6 +1645,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "uid=test.user,o=test",
@@ -1684,6 +1713,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "uid=test.user,o=test",
@@ -1752,6 +1782,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "uid=test.user,o=test",
@@ -1818,6 +1849,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "uid=test.user,o=test",
@@ -1898,6 +1930,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-a", "dn:uid=test.user,o=test",
@@ -1982,6 +2015,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-a", "dn:uid=test.user,o=test",
@@ -2055,6 +2089,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "uid=test.user,o=test",
@@ -2124,6 +2159,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-a", "dn:uid=test.user,o=test",
@@ -2194,6 +2230,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "uid=test.user,o=test",
@@ -2263,6 +2300,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-a", "dn:uid=test.user,o=test",
@@ -2331,6 +2369,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
@@ -2405,6 +2444,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
@@ -2482,6 +2522,7 @@ public class PasswordModifyExtendedOperationTestCase
 
       String[] args =
       {
+        "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
         "-a", "dn:uid=test.user,o=test",
@@ -2553,6 +2594,7 @@ public class PasswordModifyExtendedOperationTestCase
 
       String[] args =
       {
+        "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
         "-a", "dn:uid=test.user,o=test",

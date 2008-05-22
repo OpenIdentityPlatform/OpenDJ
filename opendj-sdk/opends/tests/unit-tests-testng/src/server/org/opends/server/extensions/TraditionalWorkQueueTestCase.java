@@ -124,6 +124,7 @@ public class TraditionalWorkQueueTestCase
     // unneeded worker threads can die off.
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-b", "",

@@ -116,6 +116,7 @@ public class LockdownModeTaskTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
     assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
@@ -142,6 +143,7 @@ public class LockdownModeTaskTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Admin,o=test",
       "-w", "password",
+      "--noPropertiesFile",
       "-f", taskFile
     };
     assertFalse(LDAPModify.mainModify(args, false, null, System.err) == 0);
@@ -157,6 +159,7 @@ public class LockdownModeTaskTestCase
         "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
         "-D", "cn=Directory Manager",
         "-w", "password",
+      "--noPropertiesFile",
         "-f", taskFile
       };
       assertFalse(LDAPModify.mainModify(args, false, null, System.err) == 0);
@@ -171,6 +174,7 @@ public class LockdownModeTaskTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "-f", taskFile
     };
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
@@ -192,6 +196,7 @@ public class LockdownModeTaskTestCase
         "-w", "password",
         "-b", "",
         "-s", "base",
+        "--noPropertiesFile",
         "(objectClass=*)"
       };
       assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
@@ -207,6 +212,7 @@ public class LockdownModeTaskTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
     assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
@@ -223,6 +229,7 @@ public class LockdownModeTaskTestCase
       "-w", "password",
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
     assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
@@ -238,6 +245,7 @@ public class LockdownModeTaskTestCase
       "-w", "password",
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
     assertEquals(LDAPSearch.mainSearch(args, false, null, null), 0);
@@ -262,6 +270,7 @@ public class LockdownModeTaskTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "-f", taskFile
     };
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
@@ -279,6 +288,7 @@ public class LockdownModeTaskTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
     assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);

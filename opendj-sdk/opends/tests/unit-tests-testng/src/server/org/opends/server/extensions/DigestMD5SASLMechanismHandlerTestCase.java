@@ -228,6 +228,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -279,6 +280,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -330,6 +332,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -381,6 +384,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -430,6 +434,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -479,6 +484,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -528,6 +534,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -577,6 +584,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -626,6 +634,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -656,6 +665,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -686,6 +696,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -716,6 +727,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -760,6 +772,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -789,6 +802,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
   {
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -840,6 +854,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -888,6 +903,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -932,6 +948,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
@@ -976,6 +993,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
 
     String[] args =
     {
+      "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-o", "mech=DIGEST-MD5",
