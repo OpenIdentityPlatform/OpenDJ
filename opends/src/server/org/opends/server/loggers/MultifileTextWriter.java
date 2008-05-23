@@ -336,7 +336,7 @@ public class MultifileTextWriter
   }
 
   /**
-   * Set the internval in which the rotator thread checks to see if the log
+   * Set the interval in which the rotator thread checks to see if the log
    * file should be rotated.
    *
    * @param interval The interval to check if the log file needs to be rotated.
