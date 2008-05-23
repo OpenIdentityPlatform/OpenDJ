@@ -403,7 +403,13 @@ public class ServerController {
           boolean connected = false;
           Configuration config = installation.getCurrentConfiguration();
           int port = config.getPort();
-          String ldapUrl = "ldap://0.0.0.0:" + port;
+          String hostName = application.getUserData().getHostName();
+          if (hostName == null)
+          {
+            hostName = "localhost";
+          }
+          hostName = ConnectionUtils.getHostNameForLdapUrl(hostName);
+          String ldapUrl = "ldap://"+hostName+":" + port;
 
           // See if the application has prompted for credentials.  If
           // not we'll just try to connect anonymously.
