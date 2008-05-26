@@ -25,9 +25,12 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
 
 
+
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.nio.channels.CancelledKeyException;
@@ -39,20 +42,16 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.opends.messages.Message;
 import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.InitializationException;
-
-import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.loggers.ErrorLogger;
-import static org.opends.messages.ProtocolMessages.*;
-
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DisconnectReason;
-import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.types.InitializationException;
 
 
 
@@ -83,23 +82,20 @@ public class LDAPRequestHandler
 
 
   // Indicates whether the Directory Server is in the process of shutting down.
-  private boolean shutdownRequested;
+  private volatile boolean shutdownRequested = false;
+
+  // The current set of selection keys.
+  private volatile SelectionKey[] keys = new SelectionKey[0];
 
   // The queue that will be used to hold the set of pending connections that
   // need to be registered with the selector.
-  private ConcurrentLinkedQueue<LDAPClientConnection> pendingConnections;
-
-  // The connection handler with which this request handler is associated.
-  private LDAPConnectionHandler connectionHandler;
+  private final ConcurrentLinkedQueue<LDAPClientConnection> pendingConnections;
 
   // The selector that will be used to monitor the client connections.
-  private Selector selector;
+  private final Selector selector;
 
   // The name to use for this request handler.
-  private String handlerName;
-
-  // Lock for preventing concurrent updates to the select keys.
-  private final Object selectorKeyLock = new Object();
+  private final String handlerName;
 
 
 
@@ -124,9 +120,7 @@ public class LDAPRequestHandler
           " for connection handler " + connectionHandler.toString());
 
 
-    this.connectionHandler = connectionHandler;
-
-    handlerName         = getName();
+    handlerName        = getName();
     pendingConnections = new ConcurrentLinkedQueue<LDAPClientConnection>();
 
     try
@@ -180,13 +174,18 @@ public class LDAPRequestHandler
   {
     // Operate in a loop until the server shuts down.  Each time through the
     // loop, check for new requests, then check for new connections.
-    while (! shutdownRequested)
+    while (!shutdownRequested)
     {
-      int selectedKeys = 0;
+      // Create a copy of the selection keys which can be used in a
+      // thread-safe manner by getClientConnections. This copy is only
+      // updated once per loop, so may not be accurate.
+      keys = selector.keys().toArray(new SelectionKey[0]);
 
+      int selectedKeys = 0;
       try
       {
-        selectedKeys = selector.select();
+        // We timeout every second so that we can refresh the key list.
+        selectedKeys = selector.select(1000);
       }
       catch (Exception e)
       {
@@ -196,6 +195,12 @@ public class LDAPRequestHandler
         }
 
         // FIXME -- Should we do something else with this?
+      }
+
+      if (shutdownRequested)
+      {
+        // Avoid further processing and disconnect all clients.
+        break;
       }
 
       if (selectedKeys > 0)
@@ -306,9 +311,7 @@ public class LDAPRequestHandler
         {
           SocketChannel socketChannel = c.getSocketChannel();
           socketChannel.configureBlocking(false);
-          synchronized (selectorKeyLock) {
-            socketChannel.register(selector, SelectionKey.OP_READ, c);
-          }
+          socketChannel.register(selector, SelectionKey.OP_READ, c);
         }
         catch (Exception e)
         {
@@ -323,19 +326,83 @@ public class LDAPRequestHandler
         }
       }
     }
+
+    // Disconnect all active connections.
+    SelectionKey[] keyArray = selector.keys().toArray(new SelectionKey[0]);
+    for (SelectionKey key : keyArray)
+    {
+      LDAPClientConnection c = (LDAPClientConnection) key.attachment();
+
+      try
+      {
+        key.channel().close();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+
+      try
+      {
+        key.cancel();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+
+      try
+      {
+        c.disconnect(DisconnectReason.SERVER_SHUTDOWN, true,
+            ERR_LDAP_REQHANDLER_DEREGISTER_DUE_TO_SHUTDOWN.get());
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
+
+    // Disconnect all pending connections.
+    while (!pendingConnections.isEmpty())
+    {
+      LDAPClientConnection c = pendingConnections.remove();
+      try
+      {
+        c.disconnect(DisconnectReason.SERVER_SHUTDOWN, true,
+            ERR_LDAP_REQHANDLER_DEREGISTER_DUE_TO_SHUTDOWN.get());
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
   }
 
 
 
   /**
-   * Registers the provided client connection with this request handler so that
-   * any requests received from that client will be processed.
+   * Registers the provided client connection with this request
+   * handler so that any requests received from that client will be
+   * processed.
    *
-   * @param  clientConnection  The client connection to be registered with this
-   *                           request handler.
-   *
-   * @return  <CODE>true</CODE> if the client connection was properly registered
-   *          with this request handler, or <CODE>false</CODE> if not.
+   * @param clientConnection
+   *          The client connection to be registered with this request
+   *          handler.
+   * @return <CODE>true</CODE> if the client connection was properly
+   *         registered with this request handler, or
+   *         <CODE>false</CODE> if not.
    */
   public boolean registerClient(LDAPClientConnection clientConnection)
   {
@@ -371,94 +438,6 @@ public class LDAPRequestHandler
 
 
   /**
-   * Deregisters the provided client connection from this request handler so it
-   * will no longer look for requests from that client.
-   *
-   * @param  clientConnection  The client connection to deregister from this
-   *                           request handler.
-   */
-  public void deregisterClient(LDAPClientConnection clientConnection)
-  {
-    SelectionKey[] keyArray;
-    synchronized (selectorKeyLock) {
-      keyArray = selector.keys().toArray(new SelectionKey[0]);
-    }
-
-    for (SelectionKey key : keyArray)
-    {
-      LDAPClientConnection conn = (LDAPClientConnection) key.attachment();
-      if (clientConnection.equals(conn))
-      {
-        try
-        {
-          key.channel().close();
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
-
-        try
-        {
-          key.cancel();
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
-      }
-    }
-  }
-
-
-
-  /**
-   * Deregisters all clients associated with this request handler.
-   */
-  public void deregisterAllClients()
-  {
-    SelectionKey[] keyArray;
-    synchronized (selectorKeyLock) {
-      keyArray = selector.keys().toArray(new SelectionKey[0]);
-    }
-
-    for (SelectionKey key : keyArray)
-    {
-      try
-      {
-        key.channel().close();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
-
-      try
-      {
-        key.cancel();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
-    }
-  }
-
-
-
-  /**
    * Retrieves the set of all client connections that are currently registered
    * with this request handler.
    *
@@ -467,14 +446,9 @@ public class LDAPRequestHandler
    */
   public Collection<LDAPClientConnection> getClientConnections()
   {
-    SelectionKey[] keyArray;
-    synchronized (selectorKeyLock) {
-      keyArray = selector.keys().toArray(new SelectionKey[0]);
-    }
-
     ArrayList<LDAPClientConnection> connList =
-         new ArrayList<LDAPClientConnection>(keyArray.length);
-    for (SelectionKey key : keyArray)
+      new ArrayList<LDAPClientConnection>(keys.length);
+    for (SelectionKey key : keys)
     {
       connList.add((LDAPClientConnection) key.attachment());
     }
@@ -519,44 +493,7 @@ public class LDAPRequestHandler
   public void processServerShutdown(Message reason)
   {
     shutdownRequested = true;
-
-    Collection<LDAPClientConnection> clientConnections = getClientConnections();
-    deregisterAllClients();
-
-    if (clientConnections != null)
-    {
-      for (LDAPClientConnection c : clientConnections)
-      {
-        try
-        {
-          c.disconnect(DisconnectReason.SERVER_SHUTDOWN, true,
-                       ERR_LDAP_REQHANDLER_DEREGISTER_DUE_TO_SHUTDOWN.get(
-                               reason));
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
-      }
-    }
-
-    try
-    {
-      if (selector != null)
-      {
-        selector.wakeup();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
+    selector.wakeup();
   }
 }
 
