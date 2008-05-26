@@ -387,13 +387,18 @@
                   </message>
                   <script>
                     opends_jarfile='%s/%s' % (TMPDIR,SNMP_OPENDS_JARFILE)
+                    
+                    if is_windows_platform(STAXServiceMachine):
+                      separator=';'
+                    else:
+                      separator=':'
                   </script>
                   <call function="'compileJava'" >
                     {
                     'location'   : STAXServiceMachine,
                     'foldername' : javaLocalDir,
                     'classpath'  : '%s%s%s%s%s' \
-                    % (opends_jarfile,pathSeparator,SNMP_OPENDMK_JARFILE,pathSeparator,jstaf_jarfile)
+                    % (opends_jarfile,separator,SNMP_OPENDMK_JARFILE,separator,jstaf_jarfile)
                     }
                   </call>
                   

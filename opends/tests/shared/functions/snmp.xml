@@ -151,11 +151,16 @@
         
         STAFCmd='SNMPGet'
         
+        if is_windows_platform(location):
+          separator=';'
+        else:
+          separator=':'
+        
         opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE)
         snmpPath='%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir)
         jdmk_jarfile='%s/jdmkrt.jar' % snmpPath
         cp = 'CLASSPATH=%s%s%s%s.' \
-        % (opends_jarfile,pathSeparator,jdmk_jarfile,pathSeparator)
+        % (opends_jarfile,separator,jdmk_jarfile,separator)
         
         env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp] 
       </script>
@@ -308,11 +313,16 @@
         
         STAFCmd='SNMPSet'
         
+        if is_windows_platform(location):
+          separator=';'
+        else:
+          separator=':'
+          
         opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE)
         snmpPath='%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir)
         jdmk_jarfile='%s/jdmkrt.jar' % snmpPath
         cp = 'CLASSPATH=%s%s%s%s.' \
-        % (opends_jarfile,pathSeparator,jdmk_jarfile,pathSeparator)
+        % (opends_jarfile,separator,jdmk_jarfile,separator)
         
         env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp] 
       </script>
@@ -417,12 +427,17 @@
         STAFCmdParams=' '.join(STAFCmdParamsList)
         
         STAFCmd='SNMPTrapListener'
-
+        
+        if is_windows_platform(location):
+          separator=';'
+        else:
+          separator=':'
+          
         opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE)
         snmpPath='%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir)
         jdmk_jarfile='%s/jdmkrt.jar' % snmpPath
         cp = 'CLASSPATH=%s%s%s%s%s%s.' \
-        % (opends_jarfile,pathSeparator,jdmk_jarfile,pathSeparator,jstaf_jarfile,pathSeparator)
+        % (opends_jarfile,separator,jdmk_jarfile,separator,jstaf_jarfile,separator)
         
         env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp] 
       </script>
