@@ -1119,5 +1119,142 @@
   </sequence>
   </function>
   
+    
+    <!-- Backup function -->
+    <function name="backup" scope="local">
+      <function-prolog>
+        This function performs a backup in online or offline mode
+      </function-prolog>  
+      <function-map-args>
+        <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+          <function-arg-description>
+            Location of target host
+          </function-arg-description>
+          <function-arg-property name="type" value="hostname"/>
+        </function-arg-def>
+        <function-arg-def name="dsPath" type="required">
+          <function-arg-description>
+            Pathname to installation root
+          </function-arg-description>
+        </function-arg-def>
+        <function-arg-def name="dsInstanceHost" type="optional">
+          <function-arg-description>
+            Directory server hostname or IP address
+          </function-arg-description>
+          <function-arg-property name="type" value="hostname"/>
+        </function-arg-def>
+        <function-arg-def name="dsInstancePort" type="optional">
+          <function-arg-description>
+            Directory server port number
+          </function-arg-description>        
+          <function-arg-property name="type" value="hostname"/>
+        </function-arg-def>
+        <function-arg-def name="dsInstanceDn" type="optional">
+          <function-arg-description>
+            Bind DN
+          </function-arg-description>
+          <function-arg-property name="type" value="DN"/>
+        </function-arg-def>
+        <function-arg-def name="dsInstancePswd" type="optional">
+          <function-arg-description>
+            Bind password
+          </function-arg-description>      
+        </function-arg-def>
+        <function-arg-def name="backEnd" type="optional" default="DIRECTORY_INSTANCE_BE">
+          <function-arg-description>
+            Optional the name of the database backend
+          </function-arg-description>
+          <function-arg-property name="type" value="string"/>
+        </function-arg-def>      
+        <function-arg-def name="backupDir" type="required">
+          <function-arg-description>
+            The directory where the backup files will be placed
+          </function-arg-description>
+          <function-arg-property name="type" value="filename"/>
+        </function-arg-def>
+        <function-arg-def name="extraParams" type="optional" default="''">
+          <function-arg-description>
+            Optional extra parameters for specific test cases
+          </function-arg-description>
+          <function-arg-property name="type" value="string"/>
+        </function-arg-def>      
+        <function-arg-def name="fileFd" type="required">
+          <function-arg-description>
+            output file descriptor
+          </function-arg-description>
+        </function-arg-def>
+        <function-arg-def name="startTask" type="optional">
+          <function-arg-description>
+            Start time for task
+          </function-arg-description>
+          <function-arg-property name="type" value="integer"/>
+        </function-arg-def>        
+      </function-map-args>
+      
+      <sequence>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          dsBinPath='%s/bin' % (dsPath)
+          STAFCmd='%s/backup' % (dsBinPath)
+
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+        
+        if dsInstancePort:
+          STAFCmdParamsList.append('-p %s' % dsInstancePort)
+        
+        if dsInstanceDn:
+          STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
+        
+        if dsInstancePswd:
+          STAFCmdParamsList.append('-w "%s"' % dsInstancePswd)
+          
+	if backupDir:
+	  STAFCmdParamsList.append('-d %s' % backupDir)
+
+	if backEnd:
+	  STAFCmdParamsList.append('-n %s' % backEnd)
+
+	if extraParams:
+	  STAFCmdParamsList.append('%s' % extraParams)
+
+	if startTask:
+	  STAFCmdParamsList.append('-t %s' % startTask)
+
+	STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'Backup',
+        'fileFd'  : fileFd }
+      </call>
+      <call function="'writeMessage'">
+      { 'fileFd'  : fileFd,
+        'content' : '%s %s' % (STAFCmd, STAFCmdParams)
+      }
+      </call>
+
+      <call function="'runCommand'">
+        { 'name'      : 'Backup Script',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'path'      : dsBinPath,
+          'fileFd'    : fileFd
+        }
+      </call>
+      
+      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+      
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+  
+    
 </stax>
 
