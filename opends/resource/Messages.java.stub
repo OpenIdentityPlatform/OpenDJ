@@ -44,7 +44,7 @@ import static org.opends.messages.Severity.*;
 public final class ${CLASS_NAME} {
 
   /** Base property for resource bundle containing messages */
-  private static final String BASE = "${BASE}";
+  private static final String BASE = "messages/${BASE}";
 
   private static ClassLoader webstartClassLoader;
 
@@ -96,7 +96,7 @@ public final class ${CLASS_NAME} {
     }
     else
     {
-      cl = null;
+      cl = ${CLASS_NAME}.class.getClassLoader();
     }
     return cl;
   }

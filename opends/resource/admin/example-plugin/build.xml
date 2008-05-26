@@ -30,6 +30,9 @@
     This is the build script for an OpenDS Directory Server extension.
   </description>
 
+  <!-- Import extra tasks from ant-contrib (for, if-then-else, ...) -->
+  <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+
   <!-- CONFIGURE: The name of the extension's Jar file. -->
   <property name="pkg.name" value="example-plugin" />
 
@@ -43,15 +46,19 @@
   <property name="build.dir" location="build" />
   <property name="src.dir" location="src" />
   <property name="src.gen.dir" location="src-generated" />
+  <!-- alias variable as needed by the ant task that generates messages -->
+  <property name="msg.javagen.dir" location="${src.gen.dir}" />
   <property name="lib.dir" location="lib" />
   <property name="ext.dir" location="ext" />
   <property name="resource.dir" location="resource" />
   <property name="admin.dir" location="${resource.dir}/admin" />
   <property name="config.dir" location="${resource.dir}/config" />
   <property name="schema.dir" location="${resource.dir}/schema" />
+  <property name="msg.dir"    location="${resource.dir}/messages" />
   <property name="classes.dir" location="${build.dir}/classes" />
   <property name="javadoc.dir" location="${build.dir}/javadoc" />
   <property name="package.dir" location="${build.dir}/package" />
+  <property name="message.dir" location="${build.dir}/message" />
   <property name="jar.file" value="${pkg.name}.jar" />
 
   <!-- Location of OpenDS components - should not need changing. -->
@@ -84,7 +91,7 @@
   </target>
 
   <!-- Compile the Directory Server extension source files. -->
-  <target name="compile" depends="init,compileadmin" description="Compile the Directory Server extension source files.">
+  <target name="compile" depends="init,compileadmin,generate-messages" description="Compile the Directory Server extension source files.">
     <mkdir dir="${classes.dir}" />
     <javac srcdir="${src.dir}:${src.gen.dir}" destdir="${classes.dir}" optimize="true" excludes="**/package-info.java" debug="on" debuglevel="lines,source" source="1.5" target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
@@ -250,5 +257,58 @@
       <schema namespace="http://www.opends.org/admin-ldap" file="${admin.dir}/admin-ldap.xsd" />
       <schema namespace="http://www.opends.org/admin-cli" file="${admin.dir}/admin-cli.xsd" />
     </schemavalidate>
+  </target>
+
+  <!-- Generate messages from all .properties files located in the message directory and declared in a package-->
+  <target name="generate-messages" description="Generate messages for extension.">
+    <if>
+      <available file="${msg.dir}" type="dir" property="message.dir.is-present"/>
+      <then>
+        <!-- list of files properties -->
+        <path id="messages.properties">
+          <!-- Note: a package is required and properties file at the root of the
+           !         message directory will be ignored
+           ! -->
+          <fileset dir="${msg.dir}" includes="*/**/*.properties" />
+        </path>
+        <property name="msg.dir.list" refid="messages.properties" />
+
+        <!-- includes lib/*.jar into classpath (actually build-tools.jar) -->
+        <path id="msg.classpath">
+          <fileset dir="${lib.dir}">
+            <include name="*.jar" />
+          </fileset>
+        </path>
+        <property name="build-tools.jar" refid="msg.classpath" />
+
+        <typedef name="genmsg"
+                 classname="org.opends.build.tools.GenerateMessageFile"
+                 classpathref="msg.classpath">
+        </typedef>
+
+        <!-- set property if the list is not empty -->
+        <if>
+          <length string="${msg.dir.list}" when="greater" length="0" />
+          <then>
+            <!-- Generate the message catalogs for all messages located
+             !   in the messages directory
+             ! -->
+            <mkdir dir="${classes.dir}/messages" />
+            <for param="file" delimiter=":" list="${msg.dir.list}">
+              <sequential>
+                <genmsg sourceProps="@{file}" />
+                <copy file="@{file}" todir="${classes.dir}/messages"/>
+              </sequential>
+            </for>
+          </then>
+          <else>
+            <echo message="No messages found: ${message.dir} is empty" />
+          </else>
+        </if>
+      </then>
+      <else>
+        <echo message="No messages found: ${msg.dir} is missing" />
+      </else>
+    </if>
   </target>
 </project>

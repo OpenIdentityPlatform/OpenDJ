@@ -140,10 +140,11 @@
   <property name="configguide.resource.dir" location="resource/admin/config-guide" />
 
   <!-- Properties for generating messages. -->
-  <property name="msg.prop.dir"    location="src/messages/messages" />
-  <property name="msg.javagen.dir" location="src/messages/generated" />
+  <property name="msg.dir"         location="src/messages" />
+  <property name="msg.prop.dir"    location="${msg.dir}/messages" />
+  <property name="msg.javagen.dir" location="${msg.dir}/generated" />
   <property name="msg.package.dir" location="${classes.dir}/messages" />
-  <property name="msg.src.dir"     location="src/messages/src" />
+  <property name="msg.src.dir"     location="${msg.dir}/src" />
 
   <!-- Properties for SNMP extension. -->
   <property name="snmp.mib.dir"      location="src/snmp/resource/mib" />
@@ -2031,6 +2032,8 @@
 
     <mkdir dir="${buildtools.classes.dir}" />
 
+    <copy file="${resource.dir}/Messages.java.stub" todir="${buildtools.classes.dir}/org/opends/build/tools/resource"/>
+
     <javac srcdir="${src.dir}:${msg.src.dir}" destdir="${buildtools.classes.dir}"
            sourcepath=""
            includes="org/opends/messages/Severity.java,
@@ -2221,6 +2224,7 @@
     <mkdir dir="${plugin.temp.dir}/example-plugin/resource/admin" />
     <mkdir dir="${plugin.temp.dir}/example-plugin/resource/config" />
     <mkdir dir="${plugin.temp.dir}/example-plugin/resource/schema" />
+    <mkdir dir="${plugin.temp.dir}/example-plugin/resource/messages" />
     <copy todir="${plugin.temp.dir}/example-plugin/src">
       <fileset dir="${admin.defn.dir}" includes="**/*.xml" />
     </copy>
@@ -2234,7 +2238,9 @@
     <copy todir="${plugin.temp.dir}/example-plugin/src/com/example/opends">
       <fileset dir="${admin.rules.dir}/example-plugin" includes="*.java,*.xml" excludes="build.xml" />
     </copy>
-
+    <copy todir="${plugin.temp.dir}/example-plugin/lib" file="${build.dir}/build-tools/build-tools.jar" />
+    <copy todir="${plugin.temp.dir}/example-plugin/resource/messages/com/example/opends/messages" file="${admin.rules.dir}/example-plugin/example_plugin.properties" />
+    <copy todir="${plugin.temp.dir}/example-plugin/resource/messages/com/example/opends/messages" file="${admin.rules.dir}/example-plugin/example_plugin_fr.properties" />
     <!-- Package up the plugin in the OpenDS package folder. -->
     <zip destfile="${pdir}/example-plugin.zip">
       <zipfileset dir="${plugin.temp.dir}" filemode="644" dirmode="755" />

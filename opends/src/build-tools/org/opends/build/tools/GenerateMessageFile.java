@@ -39,7 +39,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.DataOutputStream;
@@ -50,6 +52,7 @@ import java.util.ArrayList;
 import java.util.UnknownFormatConversionException;
 import java.util.Calendar;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.HashSet;
@@ -71,8 +74,14 @@ public class GenerateMessageFile extends Task {
   static private final String MESSAGES_FILE_STUB =
           "resource/Messages.java.stub";
 
-  static private final String REGISTRY_FILE_NAME =
-          "src/messages/generated/org/opends/messages/descriptors.reg";
+  /*
+   * The registry filename is the result of the concatenation of the
+   * location of where the source are generated, the package name and the
+   * DESCRIPTORS_REG value.
+   */
+  static private String REGISTRY_FILE_NAME;
+
+  static private final String DESCRIPTORS_REG = "descriptors.reg";
 
   /**
    * Used to set a category for all messages in the property file.
@@ -155,6 +164,31 @@ public class GenerateMessageFile extends Task {
             .toString();
   }
 
+  /*
+   * ISO_LANGUAGES contains all official supported languages for i18n
+   */
+  private static final List<String> ISO_LANGUAGES =
+                                        Arrays.asList(Locale.getISOLanguages());
+  /*
+   * ISO_COUNTRIES contains all official supported countries for i18n
+   */
+  private static final List<String> ISO_COUNTRIES =
+                                        Arrays.asList(Locale.getISOCountries());
+
+  /*
+   * A Pattern instance that matches "<label>_<language>_<country>.properties"
+   * where <label> can be anything including '_'
+   *       <language> a two characters code contained in the ISO_LANGUAGES list
+   *       <country> a two characters code contained in the ISO_COUNTRIES list
+   */  
+  private static final Pattern LANGUAGE_COUNTRY_MATCHER =
+                       Pattern.compile("(.*)_([a-z]{2})_([A-Z]{2}).properties");
+  /*
+   * A Pattern instance that matches "<label>_<language>.properties"
+   * where <label> and <language> have same definition as above.
+   */
+  private static final Pattern LANGUAGE_MATCHER =
+                       Pattern.compile("(.*)_([a-z]{2}).properties");
 
   /**
    * Representation of a format specifier (for example %s).
@@ -450,6 +484,51 @@ public class GenerateMessageFile extends Task {
    */
   public void setDestJava(File dest) {
     this.dest = dest;
+
+    /*
+     * Set the descriptors.reg pathname to the same directory as the one used
+     * to generate files and ensure all messages are generated in one place.
+     */
+    String projectBase = null;
+    try {
+      projectBase = getProject().getBaseDir().getCanonicalPath();
+    } catch( java.io.IOException e) {
+      throw new BuildException("Error processing " + dest +
+            ": unable to retrieve project's directory of ant's project (" +
+            e + ")");
+    }
+
+    String registry = dest.getAbsolutePath();
+    // strip project directory prefix and replace properties filename with
+    // $DESCRIPTORS_REG
+    registry = registry.substring(projectBase.length()+1,
+                                 registry.lastIndexOf(File.separator)+1)
+                       .concat(DESCRIPTORS_REG);
+
+    if ( REGISTRY_FILE_NAME == null ) {
+      REGISTRY_FILE_NAME = registry;
+    } else {
+      if ( ! REGISTRY_FILE_NAME.equals(registry) ) {
+        // multiple messages are generated in several packages
+        StringBuilder sb = new StringBuilder();
+        // full pathname of $REGISTRY_FILE_NAME
+        sb.append(projectBase)
+          .append(File.separator)
+          .append(REGISTRY_FILE_NAME);
+        // change from generated directory to properties files directory
+        sb.replace(0,
+                   getProject().getProperty("msg.javagen.dir").length(),
+                   getProject().getProperty("msg.dir"));
+        // replace properties filename with source filename
+        sb.replace(sb.lastIndexOf(File.separator)+1,
+                   sb.length(),
+                   source.getName());
+        throw new BuildException("Error processing " + dest +
+              ": all messages must be located in the same package thus " +
+              "name of the source file should be " + sb);
+
+      }
+    }
   }
 
   /**
@@ -466,6 +545,63 @@ public class GenerateMessageFile extends Task {
    */
   @Override
   public void execute() throws BuildException {
+
+    if ( this.dest == null ) {
+      // this is an example-plugin call:
+      // - check the source file is not a localization
+      // - guess the destination filename from source filename
+      String sourcefilename = source.getAbsolutePath();
+      int filenameIndex = sourcefilename.lastIndexOf(File.separator)+1;
+      String pathname = sourcefilename.substring(0, filenameIndex);
+      String filename = sourcefilename.substring(filenameIndex);
+
+      /*
+       * Make sure only <label>.properties are generated thus avoiding to
+       * generate messages for localized properties files.
+       */
+      Matcher matcher = LANGUAGE_COUNTRY_MATCHER.matcher(filename);
+      if ( matcher.find() ) {
+        if ( ISO_LANGUAGES.contains(matcher.group(2))
+          && ISO_COUNTRIES.contains(matcher.group(3)) ) {
+          // do not generate message for <label>_<language>_<country>.properties
+          return;
+        }
+      }
+
+      matcher = LANGUAGE_MATCHER.matcher(filename);
+      if ( matcher.find() ) {
+        if ( ISO_LANGUAGES.contains(matcher.group(2)) ) {
+          // do not generate message for <label>_<language>.properties
+          return;
+        }
+      }
+      // filename without ".properties"
+      filename = filename.substring(0, filename.length()-11);
+      // change to src-generated directory keeping package name
+      pathname = pathname.replace(getProject().getProperty("msg.dir"),
+                                  getProject().getProperty("msg.javagen.dir"));
+
+      // append characters from filename to pathname starting with an uppercase
+      // letter, ignoring '_' and uppering all characters prefixed with "_" 
+      StringBuilder sb = new StringBuilder(pathname);
+      boolean upperCaseNextChar = true;
+      for(char c : filename.toCharArray()) {
+        if ( c == '_' ) {
+          upperCaseNextChar = true;
+          continue;
+        }
+        if ( upperCaseNextChar ) {
+          sb.append(Character.toUpperCase(c));
+          upperCaseNextChar = false;
+        } else {
+          sb.append(c);
+        }
+      }
+      sb.append("Messages.java");
+
+      setDestJava(new File(sb.toString()));
+    }
+
     BufferedReader stubReader = null;
     PrintWriter destWriter = null;
     try {
@@ -492,8 +628,8 @@ public class GenerateMessageFile extends Task {
         log("Generating " + dest.getName() + " from " + source.getName());
       }
 
-      stubReader = new BufferedReader(new InputStreamReader(
-          new FileInputStream(getStubFile()), "UTF-8"));
+      stubReader = new BufferedReader(new InputStreamReader(getStubFile(),
+                                                            "UTF-8"));
       destWriter = new PrintWriter(dest, "UTF-8");
       String stubLine;
       Properties properties = new Properties();
@@ -700,16 +836,16 @@ public class GenerateMessageFile extends Task {
 
   private String getBase() {
     String srcPath = unixifyPath(source.getAbsolutePath());
-    String base = srcPath.substring(srcPath.lastIndexOf("messages/"));
-    if (base.endsWith(".properties")) {
-      base = base.substring(0, base.length() - ".properties".length());
-    }
+    String base = srcPath.substring(srcPath.lastIndexOf("/") + 1,
+                                    srcPath.length() - ".properties".length());
     return base;
   }
 
   private String getPackage() {
     String destPath = unixifyPath(dest.getAbsolutePath());
-    String c = destPath.substring(destPath.indexOf("org/opends"));
+    String msgJavaGenDir = unixifyPath(
+                                   getProject().getProperty("msg.javagen.dir"));
+    String c = destPath.substring(msgJavaGenDir.length()+1);
     c = c.replace('/', '.');
     c = c.substring(0, c.lastIndexOf(".")); // strip .java
     c = c.substring(0, c.lastIndexOf(".")); // strip class name
@@ -815,8 +951,31 @@ public class GenerateMessageFile extends Task {
     return path.replace("\\", "/");
   }
 
-  private File getStubFile() {
-    return new File(getProjectBase(), MESSAGES_FILE_STUB);
+  /*
+   * Returns the stub file ("resource/Messages.java.stub") from the appropriate
+   * location: ant or jar file.
+   */
+  private InputStream getStubFile() {
+    InputStream result = null;
+
+    File stub = new File(getProjectBase(), MESSAGES_FILE_STUB);
+    if ( stub.exists() ) {
+      // this is the OpenDS's ant project calling
+      // Stub is located at OPENDS_ROOT/resource/Messages.java.stub
+      try {
+        result = new FileInputStream(stub);
+      } catch (FileNotFoundException e) {
+        // should neven happen
+        throw new BuildException("Unable to load template " +
+              MESSAGES_FILE_STUB + ":  " + e.getMessage());
+      }
+    } else {
+      // this is the example plugin's ant project calling
+      // Stub is located at build-tools.jar:resource/Messages.java.stub
+      result = getClass().getResourceAsStream(MESSAGES_FILE_STUB);
+    }
+
+    return result;
   }
 
   /**
