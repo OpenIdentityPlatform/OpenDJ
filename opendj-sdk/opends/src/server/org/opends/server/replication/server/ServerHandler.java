@@ -1004,8 +1004,12 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
         (referenceGenerationId != generationId))
     {
       logError(ERR_IGNORING_UPDATE_TO.get(
+               this.replicationServerDomain.getReplicationServer().
+                 getMonitorInstanceName(),
                update.getDn(),
-               this.getMonitorInstanceName()));
+               this.getMonitorInstanceName(),
+               Long.toString(generationId),
+               Long.toString(referenceGenerationId)));
 
       return;
     }

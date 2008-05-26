@@ -115,8 +115,12 @@ public class ServerWriter extends DirectoryThread
             || (handler.getGenerationId() == -1))
         {
           logError(ERR_IGNORING_UPDATE_TO.get(
+              this.replicationServerDomain.getReplicationServer().
+                getMonitorInstanceName(),
               update.getDn(),
-              this.handler.getMonitorInstanceName()));
+              this.handler.getMonitorInstanceName(),
+              Long.toString(handler.getGenerationId()),
+              Long.toString(referenceGenerationId)));
           continue;
         }
 
