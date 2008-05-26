@@ -211,17 +211,26 @@
         nbItemSuccess = 0
         percentageResult = 0
       </script>
-      <iterate in="items" var="item">
+      <if expr="nbItems > 0 ">
+        <sequence>
+          <iterate in="items" var="item">
+            <script>
+              if item[1] == 0:
+                nbItemSuccess += 1
+            </script>
+          </iterate>
+          <script>
+            percentageResult = nbItemSuccess * 100
+            percentageResult = percentageResult / nbItems
+            phase.setPercentage(percentageResult)
+          </script>
+        </sequence>
+      <else>
         <script>
-          if item[1] == 0:
-            nbItemSuccess += 1
+          phase.setPercentage('100')
         </script>
-      </iterate>
-      <script>
-        percentageResult = nbItemSuccess * 100
-        percentageResult = percentageResult / nbItems
-        phase.setPercentage(percentageResult)
-      </script>
+      </else>
+      </if>
       
       <!--==========  Call postphase =========-->
       <call function="'phasePostamble'">
