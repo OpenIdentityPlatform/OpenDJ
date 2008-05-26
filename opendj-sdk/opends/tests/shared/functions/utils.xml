@@ -2025,8 +2025,13 @@
 
       <!-- Build the command -->
       <script>
+        if is_windows_platform(location):
+          separator=';'
+        else:
+          separator=':'
+        
         if classpath:
-          cp = 'CLASSPATH=%s%s.' % (classpath, pathSeparator)
+          cp = 'CLASSPATH=%s%s.' % (classpath, separator)
         else:
           cp = 'CLASSPATH=.'
         
