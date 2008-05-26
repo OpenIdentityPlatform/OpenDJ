@@ -425,6 +425,14 @@
         }
       </call>
       
+      <!-- ====== Write global result for system test run ============ -->
+      <script>
+        str = '&lt;globalResult percentage="%s"/&gt;\n' % \
+              PHASE_VERDICT.getPercentage()
+        LOG_MAIN_FD.write(str)
+      </script>
+      
+      
       <!-- ============ POSTAMBLE ==================================== -->
       <call function="'mainPostamble'">
         {

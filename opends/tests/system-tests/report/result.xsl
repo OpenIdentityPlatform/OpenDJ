@@ -51,7 +51,23 @@
       }
     </script>
     
-    <h1>System Test Report</h1>
+    <h1>
+      System Test Report <br/>
+      <xsl:variable name="globalPerc" select="globalResult/@percentage"/>
+        <xsl:choose>
+          <xsl:when test="$globalPerc > '90'">
+            <b>
+              <span class="pass"><xsl:value-of select="$globalPerc"/>%</span>
+            </b>
+          </xsl:when>
+          <xsl:otherwise>
+            <b>
+              <span class="fail"><xsl:value-of select="$globalPerc"/>%</span>
+            </b>
+          </xsl:otherwise>
+        </xsl:choose>
+    </h1>
+    
     <xsl:apply-templates select="summary" />
     <xsl:apply-templates select="topology"/>
     <xsl:apply-templates select="phase" />
