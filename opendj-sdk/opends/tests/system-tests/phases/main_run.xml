@@ -333,7 +333,7 @@
                       file="'%s' % postConfigurationFile"/>
               <call function="'postConfiguration'">
               { 
-                'phase'     : PHASE_POST_CONFIGURATUON,
+                'phase'     : PHASE_POST_CONFIGURATION,
                 'instances' : instances,
                 'suffix'    : suffix,
                 'scheduler' : scheduler
