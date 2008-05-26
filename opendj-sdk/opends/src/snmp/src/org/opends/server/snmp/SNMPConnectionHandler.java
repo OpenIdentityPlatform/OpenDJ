@@ -262,7 +262,8 @@ public final class SNMPConnectionHandler
     @SuppressWarnings("unchecked")
     private void addFile(File file) {
         try {
-            URL u = new URL("jar:file:/"+ file.toString()+"!/");
+            String url = "jar:" + file.toURI().toURL() + "!/";
+            URL u = new URL(url);
             Class[] parameters = new Class[]{URL.class};
             URLClassLoader sysloader =
               (URLClassLoader)ClassLoader.getSystemClassLoader();
