@@ -2525,12 +2525,23 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * their change dbs.
    *
    * @param generationIdNewValue The new value of the generation Id.
+   * @throws DirectoryException when an error occurs
    */
   public void resetGenerationId(Long generationIdNewValue)
+  throws DirectoryException
   {
     if (debugEnabled())
       TRACER.debugInfo(
           this.getName() + "resetGenerationId" + generationIdNewValue);
+
+    if (!isConnected())
+    {
+      ResultCode resultCode = ResultCode.OTHER;
+      Message message = ERR_RESET_GENERATION_CONN_ERR_ID.get(
+          baseDN.toNormalizedString());
+      throw new DirectoryException(
+         resultCode, message);
+    }
 
     ResetGenerationId genIdMessage = null;
     if (generationIdNewValue == null)

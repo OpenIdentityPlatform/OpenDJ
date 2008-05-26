@@ -150,7 +150,15 @@ public class SetGenerationIdTask extends Task
     debugInfo("setGenerationIdTask is starting on domain%s" +
         domain.getBaseDN());
 
-    domain.resetGenerationId(generationId);
+    try
+    {
+      domain.resetGenerationId(generationId);
+    }
+    catch(DirectoryException de)
+    {
+      logError(de.getMessageObject());
+      return TaskState.STOPPED_BY_ERROR;
+    }
 
     debugInfo("setGenerationIdTask is ending SUCCESSFULLY");
     return TaskState.COMPLETED_SUCCESSFULLY;
