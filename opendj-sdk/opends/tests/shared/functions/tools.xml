@@ -1365,7 +1365,7 @@
           Expected return code value. Default value is 0.
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
-        <function-arg-property name="type" value="integer"/>     
+        <function-arg-property name="type" value="integer"/>
       </function-arg-def>
     </function-map-args>
     <sequence>
@@ -1403,4 +1403,271 @@
       <return>STAXResult</return>
     </sequence>
   </function>
+  
+  <!-- This function uses manage-account to manage users account-->
+  <function name="manageAccountWithScript">
+    <function-prolog>
+      This function uses manage-account to manage users account
+    </function-prolog>
+    
+    <function-map-args>
+      
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath" />
+      </function-arg-def>
+  
+      <function-arg-def name="dsInstanceHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
+      </function-arg-def>
+   
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+      
+      <function-arg-def name="targetDn" type="required">
+        <function-arg-description>
+        Specifies the DN of the user entry for which to get and set password 
+        policy state information
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+     
+      <function-arg-def name="dsBindPasswordFile" type="optional">
+        <function-arg-description>
+          Bind password file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      
+      <function-arg-def name="subcommand" type="required">
+        <function-arg-description>
+          manage-account subcommand to execute
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
+      <function-arg-def name="Help" type="optional">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="help" value="option"/>
+      </function-arg-def>
+      
+      <function-arg-def name="dsVersion" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      
+      <function-arg-def name="dsCertNickname" type="optional">
+        <function-arg-description>
+          Nickname of certificate for SSL client authentication
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      
+      <function-arg-def name="dsKeyStorePath" type="optional">
+        <function-arg-description>
+          Certificate keystore path
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      
+      <function-arg-def name="dsSaslOption" type="optional">
+        <function-arg-description>
+          SASL bind options
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      
+      <function-arg-def name="dsTrustStorePath" type="optional">
+        <function-arg-description>
+          Certificate trust store path
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      
+      <function-arg-def name="dsUseStartTLS" type="optional">
+        <function-arg-description>
+          Use StartTLS to secure communication with the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      
+      <function-arg-def name="dsTrustStorePassword" type="optional">
+        <function-arg-description>
+          Certificate trust store PIN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      
+      <function-arg-def name="dsTrustStorePasswordFile" type="optional">
+        <function-arg-description>
+          Certificate trust store PIN file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      
+      <function-arg-def name="dsKeyStorePasswordFile" type="optional">
+        <function-arg-description>
+          Certificate keystore PIN file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      
+      <function-arg-def name="dsKeyStorePassword" type="optional">
+        <function-arg-description>
+          Certificate keystore PIN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      
+      <function-arg-def name="dsUseSSL" type="optional">
+        <function-arg-description>
+          Use SSL for secure communication with the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      
+      <function-arg-def name="dsTrustAll" type="optional">
+        <function-arg-description>
+          Trust all server SSL certificates
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+   
+    </function-map-args>
+    
+    <sequence>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder)
+          STAFCmd='%s/manage-account%s' % (dsBinPath,fileExt)
+        
+        STAFCmdParamsList.append(subcommand)
+        
+        if targetDn:
+          STAFCmdParamsList.append('-b "%s"' % targetDn)
+          
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+          
+        if dsInstanceDn:
+          STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
+
+        if dsInstancePswd:
+          STAFCmdParamsList.append('-w %s' % dsInstancePswd)
+          
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+         
+        if dsBindPasswordFile:
+          STAFCmdParamsList.append('-j %s' % dsBindPasswordFile)
+         
+        if dsKeyStorePath:
+          STAFCmdParamsList.append('-K %s' % dsKeyStorePath)
+          
+        if dsCertNickname:
+          STAFCmdParamsList.append('-N %s' % dsCertNickname)
+        
+        if dsSaslOption:
+          STAFCmdParamsList.append('-o %s' % dsSaslOption)
+          
+        if dsInstancePort:
+          STAFCmdParamsList.append('-p %s' % dsInstancePort)
+          
+        if dsTrustStorePath:
+          STAFCmdParamsList.append('-P %s' % dsTrustStorePath)
+          
+        if dsUseStartTLS:
+          STAFCmdParamsList.append('-q')
+                    
+        if dsTrustStorePassword:
+          STAFCmdParamsList.append('--trustStorePassword %s' % dsTrustStorePassword)
+                             
+        if dsTrustStorePasswordFile:
+          STAFCmdParamsList.append('-U %s' % dsTrustStorePasswordFile)
+        
+        if dsKeyStorePasswordFile:
+          STAFCmdParamsList.append('-u %s' % dsKeyStorePasswordFile)
+                    
+        if dsVersion:
+          STAFCmdParamsList.append('-V')
+                                     
+        if dsKeyStorePassword:
+          STAFCmdParamsList.append('-W %s' % dsKeyStorePassword)
+          
+        if dsTrustAll:
+          STAFCmdParamsList.append('-X')
+                          
+        if dsUseSSL:
+          STAFCmdParamsList.append('-Z')
+         
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <call function="'runCommand'" >
+        { 'name'      : 'Manage-account script',
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'location'  : location,
+          'expectedRC': expectedRC
+        }
+      </call>
+      <return>
+        STAXResult
+      </return>
+    </sequence>
+  </function>
+  
 </stax>
