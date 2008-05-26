@@ -29,7 +29,6 @@ import org.opends.messages.Message;
 
 
 
-import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.DirectoryThread;
@@ -100,11 +99,9 @@ public class IdleTimeLimitThread
         } catch (InterruptedException ie) {}
 
         sleepTime = 5000L;
-        for (ConnectionHandler ch : DirectoryServer.getConnectionHandlers())
+        for (ConnectionHandler<?> ch : DirectoryServer.getConnectionHandlers())
         {
-          ConnectionHandler<? extends ConnectionHandlerCfg> connHandler =
-               (ConnectionHandler<? extends ConnectionHandlerCfg>) ch;
-          for (ClientConnection c : connHandler.getClientConnections())
+          for (ClientConnection c : ch.getClientConnections())
           {
             long idleTime = c.getIdleTime();
             if (idleTime > 0)
