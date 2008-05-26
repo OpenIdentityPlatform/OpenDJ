@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.plugin.StartupPluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
@@ -45,6 +45,8 @@ import org.opends.messages.Category;
 import org.opends.messages.Severity;
 
 import com.example.opends.server.ExamplePluginCfg;
+
+import static com.example.opends.messages.ExamplePluginMessages.*;
 
 /**
  * The example plugin implementation class. This plugin will output
@@ -95,8 +97,8 @@ public class ExamplePlugin extends
         // This is fine.
         break;
       default:
-        throw new ConfigException(Message.raw("Invalid plugin type " + t
-            + " for the example plugin."));
+        Message message = ERR_INITIALIZE_PLUGIN.get(String.valueOf(t));
+        throw new ConfigException(message);
       }
     }
 
@@ -119,11 +121,11 @@ public class ExamplePlugin extends
    * @return  The result of the startup plugin processing.
    */
   @Override
-  public StartupPluginResult doStartup() {
+  public PluginResult.Startup doStartup() {
     // Log the provided message.
-    logError(Message.raw(Category.CONFIG, Severity.NOTICE,
-        "Example plugin message '" + config.getMessage() + "'."));
-    return StartupPluginResult.SUCCESS;
+    Message message = NOTE_DO_STARTUP.get(String.valueOf(config.getMessage()));
+    logError(message);
+    return PluginResult.Startup.continueStartup();
   }
 
 
@@ -143,10 +145,10 @@ public class ExamplePlugin extends
     // Log a message to say that the configuration has changed. This
     // isn't necessary, but we'll do it just to show that the change
     // has taken effect.
-    logError(Message.raw(Category.CONFIG, Severity.NOTICE,
-        "Example plugin message has been changed from '"
-            + this.config.getMessage() + "' to '"
-            + config.getMessage() + "'"));
+    Message message = NOTE_APPLY_CONFIGURATION_CHANGE.get(
+                                      String.valueOf(this.config.getMessage()),
+                                      String.valueOf(config.getMessage()));
+    logError(message);
 
     // Update the configuration.
     this.config = config;

@@ -64,7 +64,7 @@ public final class Message implements CharSequence, Formattable,
    * Creates an uninternationalized message that will render itself
    * the same way regardless of the locale requested in
    * <code>toString(Locale)</code>.  The message will have a
-   * category of <code>Categore.USER_DEFINED</code> and a severity
+   * category of <code>Category.USER_DEFINED</code> and a severity
    * of <code>Severity.INFORMATION</code>
    *
    * Note that the types for <code>args</code> must be consistent with any
