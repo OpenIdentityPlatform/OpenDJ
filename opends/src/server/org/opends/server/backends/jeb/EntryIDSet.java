@@ -510,7 +510,7 @@ public class EntryIDSet implements Iterable<EntryID>
     if (!this.isDefined())
     {
       // Assume there are no overlap between IDs in that set with this set
-      if(undefinedSize != Long.MAX_VALUE && that.size() > 0)
+      if(undefinedSize != Long.MAX_VALUE)
       {
         undefinedSize += that.size();
       }
@@ -616,12 +616,10 @@ public class EntryIDSet implements Iterable<EntryID>
 
     if (!this.isDefined())
     {
-      // Can't simply subtract the undefined size of this set to that set since
-      // we don't know if there are any duplicates. In this case, we can't
-      // maintain the undefined size anymore.
-      if(undefinedSize != Long.MAX_VALUE && that.size() > 0)
+      // Assume all IDs in the given set exists in this set.
+      if(undefinedSize != Long.MAX_VALUE)
       {
-        undefinedSize = Long.MAX_VALUE;
+        undefinedSize -= that.size();
       }
       return;
     }
