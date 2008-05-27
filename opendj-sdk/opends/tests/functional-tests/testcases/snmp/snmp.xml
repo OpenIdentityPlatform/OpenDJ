@@ -54,7 +54,8 @@
 
           <script>
             STOP_RUN = 'False'
-
+            SNMP_PROPERTIES = {}
+            
             testList = []
             testList.append(['.','snmp_setup'])
             testList.append(['.','snmp_v1_defaultconf'])

@@ -102,11 +102,11 @@ public class SNMPSet {
             user = val;
             break;
           case 'l':
-            if (val.compareTo("NoAuthNoPriv") == 0) {
+            if (val.compareTo("noauthnopriv") == 0) {
               securityLevel = SnmpDefinitions.noAuthNoPriv;
-            } else if (val.compareTo("AuthNoPriv") == 0) {
+            } else if (val.compareTo("authnopriv") == 0) {
               securityLevel = SnmpDefinitions.authNoPriv;
-            } else if (val.compareTo("AuthPriv") == 0) {
+            } else if (val.compareTo("authpriv") == 0) {
               securityLevel = SnmpDefinitions.authPriv;
             } else {
               System.out.println(
@@ -242,7 +242,7 @@ public class SNMPSet {
 
           // Set the context name
           //
-          if (community.compareTo("default") != 0) {
+          if (community.compareTo("null") != 0) {
             paramsV3.setContextName(community.getBytes());
           }
 

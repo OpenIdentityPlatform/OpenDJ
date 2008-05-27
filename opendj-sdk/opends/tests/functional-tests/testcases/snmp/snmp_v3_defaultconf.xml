@@ -51,18 +51,22 @@
 
           <call function="'testSuite_Preamble'"/>
 
-          <!--- Define default value for securityFile -->
+          <!--- Define default value for securityFile, securityLevel,
+                context and oid -->
           <script>
             securityFile = '%s/snmp/manager.security' % logsRemoteDataDir
+            securityLevel = SNMP_PROPERTIES['security-level']    
+            context = SNMP_PROPERTIES['community']
+            oid = 'dsServerType.1' 
           </script>
 
           <!--- Test Case information
             #@TestMarker          SNMP v3 with default configuration
-            #@TestName            snmp_v3_defaultconf: get with snmpAdmin user
-                                  and OpenDS context
+            #@TestName            v3_defaultconf: get with snmpAdmin user
+                                  and default context
             #@TestIssue           none
             #@TestPurpose         Check that a SNMP Get request with snmpAdmin
-                                  user and OpenDS context fails with
+                                  user and default context fails with
                                   authorizationError.
             #@TestPreamble        none
             #@TestStep            SNMP Get request.
@@ -70,14 +74,14 @@
             #@TestResult          Success if SNMPGet returns 0.
           -->
           <testcase name="getTestCaseName
-          ('snmp_v3_defaultconf: get with snmpAdmin and OpenDS context')">
+          ('v3_defaultconf: get with snmpAdmin and default context')">
 
             <sequence>
 
               <call function="'testCase_Preamble'"/>
 
               <message>
-                'snmp_v3_defaultconf: get with snmpAdmin and OpenDS context'
+                'v3_defaultconf: get with snmpAdmin and default context'
               </message>
 
               <call function="'SNMPGet'">
@@ -86,10 +90,10 @@
                 'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'          : SNMP_PORT ,
                 'snmpUser'          : 'snmpAdmin' ,
-                'snmpCommunity'     : 'OpenDS' ,
-                'snmpSecurityLevel' : 'AuthNoPriv' ,
+                'snmpCommunity'     : context ,
+                'snmpSecurityLevel' : securityLevel ,
                 'snmpSecurityFile'  : securityFile ,
-                'snmpOIDs'          : 'dsServerType.1' ,
+                'snmpOIDs'          : oid ,
                 'snmpStatus'        : 'authorizationError'
                 }
               </call>
@@ -102,11 +106,11 @@
 
           <!--- Test Case information
             #@TestMarker          SNMP v3 with default configuration
-            #@TestName            snmp_v3_defaultconf: get with snmpAdmin user
-                                  and default context
+            #@TestName            v3_defaultconf: get with snmpAdmin user
+                                  and null context
             #@TestIssue           none
             #@TestPurpose         Check that a SNMP Get request with snmpAdmin
-                                  user and default context succeeds but the OIDs
+                                  user and null context succeeds but the OIDs
                                   values are not correct.
             #@TestPreamble        none
             #@TestStep            SNMP Get request.
@@ -114,14 +118,14 @@
             #@TestResult          Success if SNMPGet returns 0.
           -->
           <testcase name="getTestCaseName
-          ('snmp_v3_defaultconf: get with snmpAdmin and default context')">
+          ('v3_defaultconf: get with snmpAdmin and null context')">
 
             <sequence>
 
               <call function="'testCase_Preamble'"/>
 
               <message>
-                'snmp_v3_defaultconf: get with snmpAdmin and default context'
+                'v3_defaultconf: get with snmpAdmin and null context'
               </message>
 
               <call function="'SNMPGet'">
@@ -130,10 +134,10 @@
                 'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'          : SNMP_PORT ,
                 'snmpUser'          : 'snmpAdmin' ,
-                'snmpCommunity'     : 'default' ,
-                'snmpSecurityLevel' : 'AuthNoPriv' ,
+                'snmpCommunity'     : 'null' ,
+                'snmpSecurityLevel' : securityLevel ,
                 'snmpSecurityFile'  : securityFile ,
-                'snmpOIDs'          : 'dsServerType.1' ,
+                'snmpOIDs'          : oid ,
                 'snmpStatus'        : 'noError' ,
                 'snmpValidOIDs'     : 'False'
                 }
@@ -147,11 +151,11 @@
 
           <!--- Test Case information
             #@TestMarker          SNMP v3 with default configuration
-            #@TestName            snmp_v3_defaultconf: det with snmpAdmin user
+            #@TestName            v3_defaultconf: det with snmpAdmin user
                                   and OpenDS context
             #@TestIssue           none
             #@TestPurpose         Check that a SNMP Set request with snmpAdmin
-                                  user and OpenDS context fails with
+                                  user and default context fails with
                                   authorizationError.
             #@TestPreamble        none
             #@TestStep            SNMP Set request.
@@ -159,14 +163,14 @@
             #@TestResult          Success if SNMPSet returns 0.
           -->
           <testcase name="getTestCaseName
-          ('snmp_v3_defaultconf: set with snmpAdmin and OpenDS context')">
+          ('v3_defaultconf: set with snmpAdmin and default context')">
 
             <sequence>
 
               <call function="'testCase_Preamble'"/>
 
               <message>
-                'snmp_v3_defaultconf: set with snmpAdmin and OpenDS context'
+                'v3_defaultconf: set with snmpAdmin and default context'
               </message>
 
               <call function="'SNMPSet'">
@@ -175,10 +179,10 @@
                 'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'          : SNMP_PORT ,
                 'snmpUser'          : 'snmpAdmin' ,
-                'snmpCommunity'     : 'OpenDS' ,
-                'snmpSecurityLevel' : 'AuthNoPriv' ,
+                'snmpCommunity'     : context ,
+                'snmpSecurityLevel' : securityLevel ,
                 'snmpSecurityFile'  : securityFile ,
-                'snmpOIDs'          : 'dsServerType.1' ,
+                'snmpOIDs'          : oid ,
                 'snmpStatus'        : 'authorizationError'
                 }
               </call>
@@ -191,25 +195,25 @@
 
           <!--- Test Case information
             #@TestMarker          SNMP v3 with default configuration
-            #@TestName            snmp_v3_defaultconf: set with snmpAdmin user
-                                  and default context
+            #@TestName            v3_defaultconf: set with snmpAdmin user
+                                  and null context
             #@TestIssue           none
             #@TestPurpose         Check that a SNMP Set request with snmpAdmin
-                                  user and default context fails with noAccess.
+                                  user and null context fails with noAccess.
             #@TestPreamble        none
             #@TestStep            SNMP Set request.
             #@TestPostamble       none
             #@TestResult          Success if SNMPSet returns 0.
           -->
           <testcase name="getTestCaseName
-          ('snmp_v3_defaultconf: set with snmpAdmin and default context')">
+          ('v3_defaultconf: set with snmpAdmin and null context')">
 
             <sequence>
 
               <call function="'testCase_Preamble'"/>
 
               <message>
-                'snmp_v3_defaultconf: set with snmpAdmin and default context'
+                'v3_defaultconf: set with snmpAdmin and null context'
               </message>
 
               <call function="'SNMPSet'">
@@ -218,10 +222,10 @@
                 'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'          : SNMP_PORT ,
                 'snmpUser'          : 'snmpAdmin' ,
-                'snmpCommunity'     : 'default' ,
-                'snmpSecurityLevel' : 'AuthNoPriv' ,
+                'snmpCommunity'     : 'null' ,
+                'snmpSecurityLevel' : securityLevel ,
                 'snmpSecurityFile'  : securityFile ,
-                'snmpOIDs'          : 'dsServerType.1' ,
+                'snmpOIDs'          : oid ,
                 'snmpStatus'        : 'noAccess'
                 }
               </call>
@@ -234,11 +238,11 @@
 
           <!--- Test Case information
             #@TestMarker          SNMP v3 with default configuration
-            #@TestName            snmp_v3_defaultconf: get with defaultUser user
-                                  and OpenDS context
+            #@TestName            v3_defaultconf: get with defaultUser user
+                                  and default context
             #@TestIssue           none
             #@TestPurpose         Check that a SNMP Get request with defaultUser
-                                  user and OpenDS context fails with
+                                  user and default context fails with
                                   authorizationError.
             #@TestPreamble        none
             #@TestStep            SNMP Get request.
@@ -246,14 +250,14 @@
             #@TestResult          Success if SNMPGet returns 0.
           -->
           <testcase name="getTestCaseName
-          ('snmp_v3_defaultconf: get with defaultUser and OpenDS context')">
+          ('v3_defaultconf: get with defaultUser and default context')">
 
             <sequence>
 
               <call function="'testCase_Preamble'"/>
 
               <message>
-                'snmp_v3_defaultconf: get with defaultUser and OpenDS context'
+                'v3_defaultconf: get with defaultUser and default context'
               </message>
 
               <call function="'SNMPGet'">
@@ -262,10 +266,10 @@
                 'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'          : SNMP_PORT ,
                 'snmpUser'          : 'defaultUser' ,
-                'snmpCommunity'     : 'OpenDS' ,
-                'snmpSecurityLevel' : 'AuthNoPriv' ,
+                'snmpCommunity'     : context ,
+                'snmpSecurityLevel' : securityLevel ,
                 'snmpSecurityFile'  : securityFile ,
-                'snmpOIDs'          : 'dsServerType.1' ,
+                'snmpOIDs'          : oid ,
                 'snmpStatus'        : 'authorizationError'
                 }
               </call>
@@ -278,11 +282,11 @@
 
           <!--- Test Case information
             #@TestMarker          SNMP v3 with default configuration
-            #@TestName            snmp_v3_defaultconf: get with defaultUser user
-                                  and default context
+            #@TestName            v3_defaultconf: get with defaultUser user
+                                  and null context
             #@TestIssue           none
             #@TestPurpose         Check that a SNMP Get request with defaultUser
-                                  user and default context succeeds but the OIDs
+                                  user and null context succeeds but the OIDs
                                   values are not correct.
             #@TestPreamble        none
             #@TestStep            SNMP Get request.
@@ -290,14 +294,14 @@
             #@TestResult          Success if SNMPGet returns 0.
           -->
           <testcase name="getTestCaseName
-          ('snmp_v3_defaultconf: get with defaultUser and default context')">
+          ('v3_defaultconf: get with defaultUser and null context')">
 
             <sequence>
 
               <call function="'testCase_Preamble'"/>
 
               <message>
-                'snmp_v3_defaultconf: get with defaultUser and default context'
+                'v3_defaultconf: get with defaultUser and null context'
               </message>
 
               <call function="'SNMPGet'">
@@ -306,10 +310,10 @@
                 'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'          : SNMP_PORT ,
                 'snmpUser'          : 'defaultUser' ,
-                'snmpCommunity'     : 'default' ,
-                'snmpSecurityLevel' : 'AuthNoPriv' ,
+                'snmpCommunity'     : 'null' ,
+                'snmpSecurityLevel' : securityLevel ,
                 'snmpSecurityFile'  : securityFile ,
-                'snmpOIDs'          : 'dsServerType.1' ,
+                'snmpOIDs'          : oid ,
                 'snmpStatus'        : 'noError' ,
                 'snmpValidOIDs'     : 'False'
                 }
@@ -323,11 +327,11 @@
 
           <!--- Test Case information
             #@TestMarker          SNMP v3 with default configuration
-            #@TestName            snmp_v3_defaultconf: set with defaultUser user
-                                  and OpenDS context
+            #@TestName            v3_defaultconf: set with defaultUser user
+                                  and default context
             #@TestIssue           none
             #@TestPurpose         Check that a SNMP Set request with defaultUser
-                                  user and OpenDS context fails with
+                                  user and default context fails with
                                   authorizationError.
             #@TestPreamble        none
             #@TestStep            SNMP Set request.
@@ -335,14 +339,14 @@
             #@TestResult          Success if SNMPSet returns 0.
           -->
           <testcase name="getTestCaseName
-          ('snmp_v3_defaultconf: set with defaultUser and OpenDS context')">
+          ('v3_defaultconf: set with defaultUser and default context')">
 
             <sequence>
 
               <call function="'testCase_Preamble'"/>
 
               <message>
-                'snmp_v3_defaultconf: set with defaultUser and OpenDS context'
+                'v3_defaultconf: set with defaultUser and default context'
               </message>
 
               <call function="'SNMPSet'">
@@ -351,10 +355,10 @@
                 'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'          : SNMP_PORT ,
                 'snmpUser'          : 'defaultUser' ,
-                'snmpCommunity'     : 'OpenDS' ,
-                'snmpSecurityLevel' : 'AuthNoPriv' ,
+                'snmpCommunity'     : context ,
+                'snmpSecurityLevel' : securityLevel ,
                 'snmpSecurityFile'  : securityFile ,
-                'snmpOIDs'          : 'dsServerType.1' ,
+                'snmpOIDs'          : oid ,
                 'snmpStatus'        : 'authorizationError'
                 }
               </call>
@@ -367,25 +371,25 @@
 
           <!--- Test Case information
             #@TestMarker          SNMP v3 with default configuration
-            #@TestName            snmp_v3_defaultconf: set with defaultUser user
-                                  and default context
+            #@TestName            v3_defaultconf: set with defaultUser user
+                                  and null context
             #@TestIssue           none
             #@TestPurpose         Check that a SNMP Set request with defaultUser
-                                  user and default context fails with noAccess.
+                                  user and null context fails with noAccess.
             #@TestPreamble        none
             #@TestStep            SNMP Set request.
             #@TestPostamble       none
             #@TestResult          Success if SNMPSet returns 0.
           -->
           <testcase name="getTestCaseName
-          ('snmp_v3_defaultconf: set with defaultUser and default context')">
+          ('v3_defaultconf: set with defaultUser and null context')">
 
             <sequence>
 
               <call function="'testCase_Preamble'"/>
 
               <message>
-                'snmp_v3_defaultconf: set with defaultUser and default context'
+                'v3_defaultconf: set with defaultUser and null context'
               </message>
 
               <call function="'SNMPSet'">
@@ -394,10 +398,10 @@
                 'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'          : SNMP_PORT ,
                 'snmpUser'          : 'defaultUser' ,
-                'snmpCommunity'     : 'default' ,
-                'snmpSecurityLevel' : 'AuthNoPriv' ,
+                'snmpCommunity'     : 'null' ,
+                'snmpSecurityLevel' : securityLevel ,
                 'snmpSecurityFile'  : securityFile ,
-                'snmpOIDs'          : 'dsServerType.1' ,
+                'snmpOIDs'          : oid ,
                 'snmpStatus'        : 'noAccess'
                 }
               </call>
@@ -410,51 +414,7 @@
 
           <!--- Test Case information
             #@TestMarker          SNMP v3 with default configuration
-            #@TestName            snmp_v3_defaultconf: get with unknown user
-                                  and OpenDS context
-            #@TestIssue           none
-            #@TestPurpose         Check that a SNMP Get request with unknown
-                                  user and OpenDS context fails with
-                                  SnmpStatusException.
-            #@TestPreamble        none
-            #@TestStep            SNMP Get request.
-            #@TestPostamble       none
-            #@TestResult          Success if SNMPGet returns 0.
-          -->
-          <testcase name="getTestCaseName
-          ('snmp_v3_defaultconf: get with unknown user and OpenDS context')">
-
-            <sequence>
-
-              <call function="'testCase_Preamble'"/>
-
-              <message>
-                'snmp_v3_defaultconf: get with unknown user and OpenDS context'
-              </message>
-
-              <call function="'SNMPGet'">
-                {
-                'snmpVersion'       : '3',
-                'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
-                'snmpPort'          : SNMP_PORT ,
-                'snmpUser'          : 'myUser' ,
-                'snmpCommunity'     : 'OpenDS' ,
-                'snmpSecurityLevel' : 'AuthNoPriv' ,
-                'snmpSecurityFile'  : securityFile ,
-                'snmpOIDs'          : 'dsServerType.1' ,
-                'snmpStatus'        : 'SnmpStatusException'
-                }
-              </call>
-
-              <call function="'testCase_Postamble'"/>
-
-            </sequence>
-
-          </testcase>
-
-          <!--- Test Case information
-            #@TestMarker          SNMP v3 with default configuration
-            #@TestName            snmp_v3_defaultconf: get with unknown user
+            #@TestName            v3_defaultconf: get with unknown user
                                   and default context
             #@TestIssue           none
             #@TestPurpose         Check that a SNMP Get request with unknown
@@ -466,14 +426,14 @@
             #@TestResult          Success if SNMPGet returns 0.
           -->
           <testcase name="getTestCaseName
-          ('snmp_v3_defaultconf: get with unknown user and default context')">
+          ('v3_defaultconf: get with unknown user and default context')">
 
             <sequence>
 
               <call function="'testCase_Preamble'"/>
 
               <message>
-                'snmp_v3_defaultconf: get with unknown user and default context'
+                'v3_defaultconf: get with unknown user and default context'
               </message>
 
               <call function="'SNMPGet'">
@@ -482,10 +442,10 @@
                 'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'          : SNMP_PORT ,
                 'snmpUser'          : 'myUser' ,
-                'snmpCommunity'     : 'default' ,
-                'snmpSecurityLevel' : 'AuthNoPriv' ,
+                'snmpCommunity'     : context ,
+                'snmpSecurityLevel' : securityLevel ,
                 'snmpSecurityFile'  : securityFile ,
-                'snmpOIDs'          : 'dsServerType.1' ,
+                'snmpOIDs'          : oid ,
                 'snmpStatus'        : 'SnmpStatusException'
                 }
               </call>
@@ -498,38 +458,38 @@
 
           <!--- Test Case information
             #@TestMarker          SNMP v3 with default configuration
-            #@TestName            snmp_v3_defaultconf: set with unknown user
-                                  and OpenDS context
+            #@TestName            v3_defaultconf: get with unknown user
+                                  and null context
             #@TestIssue           none
-            #@TestPurpose         Check that a SNMP Set request with unknown
-                                  user and OpenDS context fails with
+            #@TestPurpose         Check that a SNMP Get request with unknown
+                                  user and null context fails with
                                   SnmpStatusException.
             #@TestPreamble        none
-            #@TestStep            SNMP Set request.
+            #@TestStep            SNMP Get request.
             #@TestPostamble       none
-            #@TestResult          Success if SNMPSet returns 0.
+            #@TestResult          Success if SNMPGet returns 0.
           -->
           <testcase name="getTestCaseName
-          ('snmp_v3_defaultconf: set with unknown user and OpenDS context')">
+          ('v3_defaultconf: get with unknown user and default context')">
 
             <sequence>
 
               <call function="'testCase_Preamble'"/>
 
               <message>
-                'snmp_v3_defaultconf: set with unknown user and OpenDS context'
+                'v3_defaultconf: get with unknown user and default context'
               </message>
 
-              <call function="'SNMPSet'">
+              <call function="'SNMPGet'">
                 {
                 'snmpVersion'       : '3',
                 'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'          : SNMP_PORT ,
                 'snmpUser'          : 'myUser' ,
-                'snmpCommunity'     : 'OpenDS' ,
-                'snmpSecurityLevel' : 'AuthNoPriv' ,
+                'snmpCommunity'     : 'null' ,
+                'snmpSecurityLevel' : securityLevel ,
                 'snmpSecurityFile'  : securityFile ,
-                'snmpOIDs'          : 'dsServerType.1' ,
+                'snmpOIDs'          : oid ,
                 'snmpStatus'        : 'SnmpStatusException'
                 }
               </call>
@@ -542,7 +502,7 @@
 
           <!--- Test Case information
             #@TestMarker          SNMP v3 with default configuration
-            #@TestName            snmp_v3_defaultconf: set with unknown user
+            #@TestName            v3_defaultconf: set with unknown user
                                   and default context
             #@TestIssue           none
             #@TestPurpose         Check that a SNMP Set request with unknown
@@ -554,14 +514,14 @@
             #@TestResult          Success if SNMPSet returns 0.
           -->
           <testcase name="getTestCaseName
-          ('snmp_v3_defaultconf: set with unknown user and default context')">
+          ('v3_defaultconf: set with unknown user and default context')">
 
             <sequence>
 
               <call function="'testCase_Preamble'"/>
 
               <message>
-                'snmp_v3_defaultconf: set with unknown user and default context'
+                'v3_defaultconf: set with unknown user and OpenDS context'
               </message>
 
               <call function="'SNMPSet'">
@@ -570,10 +530,54 @@
                 'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'          : SNMP_PORT ,
                 'snmpUser'          : 'myUser' ,
-                'snmpCommunity'     : 'default' ,
-                'snmpSecurityLevel' : 'AuthNoPriv' ,
+                'snmpCommunity'     : context ,
+                'snmpSecurityLevel' : securityLevel ,
                 'snmpSecurityFile'  : securityFile ,
-                'snmpOIDs'          : 'dsServerType.1' ,
+                'snmpOIDs'          : oid ,
+                'snmpStatus'        : 'SnmpStatusException'
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+
+          <!--- Test Case information
+            #@TestMarker          SNMP v3 with default configuration
+            #@TestName            v3_defaultconf: set with unknown user
+                                  and null context
+            #@TestIssue           none
+            #@TestPurpose         Check that a SNMP Set request with unknown
+                                  user and default context fails with
+                                  SnmpStatusException.
+            #@TestPreamble        none
+            #@TestStep            SNMP Set request.
+            #@TestPostamble       none
+            #@TestResult          Success if SNMPSet returns 0.
+          -->
+          <testcase name="getTestCaseName
+          ('v3_defaultconf: set with unknown user and null context')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'v3_defaultconf: set with unknown user and null context'
+              </message>
+
+              <call function="'SNMPSet'">
+                {
+                'snmpVersion'       : '3',
+                'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
+                'snmpPort'          : SNMP_PORT ,
+                'snmpUser'          : 'myUser' ,
+                'snmpCommunity'     : 'null' ,
+                'snmpSecurityLevel' : securityLevel ,
+                'snmpSecurityFile'  : securityFile ,
+                'snmpOIDs'          : oid ,
                 'snmpStatus'        : 'SnmpStatusException'
                 }
               </call>

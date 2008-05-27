@@ -95,7 +95,7 @@
 
           </testcase>
 
-          <!-- Check if 'opendmkPath' already created -->
+          <!-- Check if 'opendmkPath' exists -->
           <call function="'GetEntry'">
             {
             'location'  : STAF_REMOTE_HOSTNAME ,
@@ -225,7 +225,52 @@
                 </sequence>
 
               </testcase>
+              
+              <!--- Test Case information
+                #@TestMarker          setup
+                #@TestName            setup: get SNMP connection handler 
+                                      properties
+                #@TestIssue           none
+                #@TestPurpose         Get SNMP connection handler properties.
+                #@TestPreamble        none
+                #@TestStep            get SNMP connection handler properties
+                                      using dsconfig.
+                #@TestPostamble       none
+                #@TestResult          Success if GetDSConfigProperties returns 0
+              -->
+              <testcase name="getTestCaseName
+              ('setup: get SNMP Connection Handler properties')">
 
+                <sequence>
+
+                  <call function="'testCase_Preamble'"/>
+
+                  <message>
+                    'setup: get SNMP Connection Handler properties'
+                  </message>
+             
+                  <script>  
+                    options = '--handler-name "SNMP Connection Handler"'
+                  </script>
+                  
+                  <call function="'GetDSConfigProperties'">
+                    {
+                    'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'  : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'    : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
+                    'subcommand'      : 'get-connection-handler-prop' ,
+                    'optionsString'   : options ,
+                    'myVariableName'  : 'SNMP_PROPERTIES'
+                    }
+                  </call>
+              
+                  <call function="'testCase_Postamble'"/>
+
+                </sequence>
+
+              </testcase>
+              
             </sequence>
             <else>
               <sequence>

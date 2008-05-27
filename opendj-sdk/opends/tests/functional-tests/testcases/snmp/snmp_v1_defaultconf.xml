@@ -50,28 +50,34 @@
           </script>
 
           <call function="'testSuite_Preamble'"/>
+          
+          <!--- Define default value for community and oid -->          
+          <script>
+            community = '%s@%s' \
+              % (SNMP_PROPERTIES['community'], SNMP_PROPERTIES['community'])
+            oid = 'dsServerType.1' 
+          </script>
 
           <!--- Test Case information
             #@TestMarker          SNMP v1 with default configuration
-            #@TestName            snmp_v1_defaultconf: get with OpenDS@OpenDS
-                                  commnunity
+            #@TestName            v1_defaultconf: get with default commnunity
             #@TestIssue           none
-            #@TestPurpose         Check that a SNMP Get request with
-                                  OpenDS@OpenDS community succeeds.
+            #@TestPurpose         Check that a SNMP Get request with default
+                                  community succeeds.
             #@TestPreamble        none
             #@TestStep            SNMP Get request.
             #@TestPostamble       none
             #@TestResult          Success if SNMPGet returns 0.
           -->
           <testcase name="getTestCaseName
-          ('snmp_v1_defaultconf: get with OpenDS@OpenDS commnunity')">
+          ('v1_defaultconf: get with default commnunity')">
 
             <sequence>
 
               <call function="'testCase_Preamble'"/>
 
               <message>
-                'snmp_v1_defaultconf: get with OpenDS@OpenDS community'
+                'v1_defaultconf: get with default community'
               </message>
 
               <call function="'SNMPGet'">
@@ -79,8 +85,8 @@
                 'snmpVersion'   : '1',
                 'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'      : SNMP_PORT ,
-                'snmpCommunity' : 'OpenDS@OpenDS' ,
-                'snmpOIDs'      : 'dsServerType.1' ,
+                'snmpCommunity' : community ,
+                'snmpOIDs'      : oid ,
                 'snmpStatus'    : 'noError'
                 }
               </call>
@@ -93,7 +99,7 @@
 
           <!--- Test Case information
             #@TestMarker          SNMP v1 with default configuration
-            #@TestName            snmp_v1_defaultconf: get with wrong commnunity
+            #@TestName            v1_defaultconf: get with wrong commnunity
             #@TestIssue           none
             #@TestPurpose         Check that a SNMP Get request with wrong
                                   community fails with noSuchName.
@@ -103,14 +109,14 @@
             #@TestResult          Success if SNMPGet returns 0.
           -->
           <testcase name="getTestCaseName
-          ('snmp_v1_defaultconf: get with wrong community')">
+          ('v1_defaultconf: get with wrong community')">
 
             <sequence>
 
               <call function="'testCase_Preamble'"/>
 
               <message>
-                'snmp_v1_defaultconf: get with wrong community'
+                'v1_defaultconf: get with wrong community'
               </message>
 
               <call function="'SNMPGet'">
@@ -119,7 +125,7 @@
                 'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'      : SNMP_PORT ,
                 'snmpCommunity' : 'OpenDS' ,
-                'snmpOIDs'      : 'dsServerType.1' ,
+                'snmpOIDs'      : oid ,
                 'snmpStatus'    : 'noSuchName'
                 }
               </call>
@@ -132,25 +138,24 @@
 
           <!--- Test Case information
             #@TestMarker          SNMP v1 with default configuration
-            #@TestName            snmp_v1_defaultconf: set with OpenDS@OpenDS
-                                  commnunity
+            #@TestName            v1_defaultconf: set with default commnunity
             #@TestIssue           none
-            #@TestPurpose         Check that a SNMP Set request with
-                                  OpenDS@OpenDS community fails with noSuchName.
+            #@TestPurpose         Check that a SNMP Set request with default
+                                  community fails with noSuchName.
             #@TestPreamble        none
             #@TestStep            SNMP Set request.
             #@TestPostamble       none
             #@TestResult          Success if SNMPSet returns 0.
           -->
           <testcase name="getTestCaseName
-          ('snmp_v1_defaultconf: set with OpenDS@OpenDS community')">
+          ('v1_defaultconf: set with default community')">
 
             <sequence>
 
               <call function="'testCase_Preamble'"/>
 
               <message>
-                'snmp_v1_defaultconf: set with OpenDS@OpenDS community'
+                'v1_defaultconf: set with default community'
               </message>
 
               <call function="'SNMPSet'">
@@ -158,8 +163,8 @@
                 'snmpVersion'   : '1',
                 'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'      : SNMP_PORT ,
-                'snmpCommunity' : 'OpenDS@OpenDS' ,
-                'snmpOIDs'      : 'dsServerType.1' ,
+                'snmpCommunity' : community ,
+                'snmpOIDs'      : oid ,
                 'snmpStatus'    : 'noSuchName'
                 }
               </call>
@@ -172,7 +177,7 @@
 
           <!--- Test Case information
             #@TestMarker          SNMP v1 with default configuration
-            #@TestName            snmp_v1_defaultconf: set with wrong commnunity
+            #@TestName            v1_defaultconf: set with wrong commnunity
             #@TestIssue           none
             #@TestPurpose         Check that a SNMP Set request with wrong
                                   community fails with noSuchName.
@@ -182,14 +187,14 @@
             #@TestResult          Success if SNMPSet returns 0.
           -->
           <testcase name="getTestCaseName
-          ('snmp_v1_defaultconf: set with wrong community')">
+          ('v1_defaultconf: set with wrong community')">
 
             <sequence>
 
               <call function="'testCase_Preamble'"/>
 
               <message>
-                'snmp_v1_defaultconf: set with wrong community'
+                'v1_defaultconf: set with wrong community'
               </message>
 
               <call function="'SNMPSet'">
@@ -198,7 +203,7 @@
                 'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'      : SNMP_PORT ,
                 'snmpCommunity' : 'OpenDS' ,
-                'snmpOIDs'      : 'dsServerType.1' ,
+                'snmpOIDs'      : oid ,
                 'snmpStatus'    : 'noSuchName'
                 }
               </call>
