@@ -53,14 +53,15 @@
           
           <!--- Define default value for community -->          
           <script>
+            community = '%s' % SNMP_PROPERTIES['community']
             timerDuration = '5m'
           </script>
           
           <!--- Test Case information
             #@TestMarker          SNMP trap with default configuration
             #@TestName            trap_defaultconf: trap on stop-ds
-            #@TestIssue           3241
-            #@TestPurpose         Check that a trap is sent on OpenDS trap
+            #@TestIssue           none
+            #@TestPurpose         Check that a trap is sent on default trap
                                   community after stop-ds command.
             #@TestPreamble        none
             #@TestStep            Run the trap listener, it send an event to
@@ -90,7 +91,7 @@
                         'location'          : STAF_REMOTE_HOSTNAME ,
                         'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
-                        'snmpTrapCommunity' : 'OpenDS' ,
+                        'snmpTrapCommunity' : community ,
                         'snmpTrapNumber'    : '1,0,0,0,0,0'
                         }
                       </call>
@@ -167,11 +168,6 @@
                     }
                   </call>
                 </sequence>
-                <else>
-                  <script>
-                    knownIssue(3241)
-                  </script>
-                </else>
               </if>
 
               <call function="'testCase_Postamble'"/>
@@ -183,8 +179,8 @@
           <!--- Test Case information
             #@TestMarker          SNMP trap with default configuration
             #@TestName            trap_defaultconf: trap on start-ds
-            #@TestIssue           3241
-            #@TestPurpose         Check that a trap is sent on OpenDS trap
+            #@TestIssue           none
+            #@TestPurpose         Check that a trap is sent on default trap
                                   community after start-ds command.
             #@TestPreamble        none
             #@TestStep            Run the trap listener, it send an event to
@@ -214,7 +210,7 @@
                         {
                         'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
-                        'snmpTrapCommunity' : 'OpenDS' ,
+                        'snmpTrapCommunity' : community ,
                         'snmpTrapNumber'    : '1,0,0,0,0,0'
                         }
                       </call>
@@ -291,11 +287,6 @@
                     }
                   </call>
                 </sequence>
-                <else>
-                  <script>
-                    knownIssue(3241)
-                  </script>
-                </else>
               </if>
 
               <call function="'testCase_Postamble'"/>
@@ -307,8 +298,8 @@
           <!--- Test Case information
             #@TestMarker          SNMP trap with default configuration
             #@TestName            trap_defaultconf: trap on stop-ds -R
-            #@TestIssue           3241
-            #@TestPurpose         Check that 2 traps are sent on OpenDS trap
+            #@TestIssue           none
+            #@TestPurpose         Check that 2 traps are sent on default trap
                                   community after stop-ds -R command.
             #@TestPreamble        none
             #@TestStep            Run the trap listener, it send an event to
@@ -338,7 +329,7 @@
                         {
                         'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
-                        'snmpTrapCommunity' : 'OpenDS' ,
+                        'snmpTrapCommunity' : community ,
                         'snmpTrapNumber'    : '2,0,0,0,0,0'
                         }
                       </call>
@@ -418,11 +409,6 @@
                     }
                   </call>
                 </sequence>
-                <else>
-                  <script>
-                    knownIssue(3241)
-                  </script>
-                </else>
               </if>
 
               <call function="'testCase_Postamble'"/>
