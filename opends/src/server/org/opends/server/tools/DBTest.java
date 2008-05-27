@@ -498,7 +498,7 @@ public class DBTest
 
   private int listRootContainers()
   {
-    TreeMap<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
+    Map<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
     int count = 0;
 
     // Create a table of their properties.
@@ -525,7 +525,7 @@ public class DBTest
 
   private int listEntryContainers(Argument backendID)
   {
-    TreeMap<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
+    Map<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
     BackendImpl backend = null;
 
     for(BackendImpl b : jeBackends.values())
@@ -646,7 +646,7 @@ public class DBTest
   private int listDatabaseContainers(Argument backendID,
                                      Argument baseDN)
   {
-    TreeMap<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
+    Map<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
     BackendImpl backend = null;
     DN base = null;
 
@@ -821,7 +821,7 @@ public class DBTest
   private int listIndexStatus(Argument backendID,
                               Argument baseDN)
   {
-    TreeMap<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
+    Map<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
     BackendImpl backend = null;
     DN base = null;
 
@@ -985,7 +985,7 @@ public class DBTest
                                     Argument maxDataSize,
                                     Argument minDataSize)
   {
-    TreeMap<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
+    Map<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
     BackendImpl backend = null;
     DN base = null;
 
@@ -1583,7 +1583,7 @@ public class DBTest
     }
   }
 
-  private TreeMap<LocalDBBackendCfg, BackendImpl> getJEBackends()
+  private Map<LocalDBBackendCfg, BackendImpl> getJEBackends()
   {
     ArrayList<Backend> backendList = new ArrayList<Backend>();
     ArrayList<BackendCfg>  entryList   = new ArrayList<BackendCfg>();
@@ -1591,8 +1591,8 @@ public class DBTest
     int code = BackendToolUtils.getBackends(backendList, entryList, dnList);
     // TODO: Throw error if return code is not 0
 
-    TreeMap<LocalDBBackendCfg, BackendImpl> jeBackends =
-        new TreeMap<LocalDBBackendCfg, BackendImpl>();
+    LinkedHashMap<LocalDBBackendCfg, BackendImpl> jeBackends =
+        new LinkedHashMap<LocalDBBackendCfg, BackendImpl>();
     for(int i = 0; i < backendList.size(); i++)
     {
       Backend backend = backendList.get(i);
