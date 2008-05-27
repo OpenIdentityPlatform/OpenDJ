@@ -394,8 +394,9 @@ public abstract class TaskTool implements TaskScheduleInformation {
         }
       }
 
+      LDAPConnection conn = null;
       try {
-        LDAPConnection conn = argParser.connect(out, err);
+        conn = argParser.connect(out, err);
         TaskClient tc = new TaskClient(conn);
         TaskEntry taskEntry = tc.schedule(this);
         Message startTime = taskEntry.getScheduledStartTime();
@@ -474,6 +475,19 @@ public abstract class TaskTool implements TaskScheduleInformation {
         Message message = e.getMessageObject();
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;
+      } finally
+      {
+        if (conn != null)
+        {
+          try
+          {
+            conn.close(null);
+          }
+          catch (Throwable t)
+          {
+            // Ignore.
+          }
+        }
       }
     } else {
       ret = processLocal(initializeServer, out, err);
