@@ -88,6 +88,7 @@
                     'listAttributes'         : listAttrs ,
                     'changetype'             : 'replace' }
             </call>
+
             
   
             <call function="'testCase_Postamble'"/>
@@ -365,16 +366,19 @@
                'Security: Grace Login: Reset Pwd, User resetting password'
             </message>
 
-            <call function="'modifyAnAttribute'">
+
+             <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : 'uid=kwinters,%s' % basedn ,
                     'dsInstancePswd'         : 'forsook' ,
-                    'DNToModify'             : 'uid=kwinters,%s' % basedn ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'newforsook' ,
-                    'changetype'             : 'replace' }
+                    'dsAuthzID'              : 'dn:uid=kwinters,%s' % basedn ,
+                    'dsNewPassword'          : 'newforsook' }
              </call>
+             
+            <script>
+              knownIssue(3249)
+            </script>
     
             <message>
                'Security: Grace Login: Reset Pwd, Admin reset max password age'
