@@ -830,17 +830,22 @@ implements AciTargetMatchContext, AciEvalContext {
       return matched;
     }
 
-  /**
-   * {@inheritDoc}
-   */
+    /**
+     * {@inheritDoc}
+     */
     public boolean isMemberOf(Group group) {
-        boolean ret;
-        try {
+      boolean ret;
+      try {
+        Entry e = getClientEntry();
+        if(e != null) {
+          ret=group.isMember(e);
+        } else {
           ret=group.isMember(getClientDN());
-        } catch (DirectoryException ex) {
-            ret=false;
         }
-        return  ret;
+      } catch (DirectoryException ex) {
+        ret=false;
+      }
+      return  ret;
     }
 
   /**
