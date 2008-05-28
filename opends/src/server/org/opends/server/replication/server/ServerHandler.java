@@ -508,8 +508,14 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
             }
             else
             {
-              // The remote has no genId. We don't change anything for the
-              // current RS.
+              // The remote RS had no genId while the local one has one genID.
+              // In our start msg, we have just sent our local genID to
+              // the remote RS that will immediatly adopt it
+              // So let's store our local genID as the genID of the remote RS.
+              // It is necessary to do so, in order to not have a 'bad genID'
+              // error when we will try to send updates to the remote RS
+              // (before receiving the infoMsg from the remote RS !!!)
+              generationId = localGenerationId;
             }
           }
           else
