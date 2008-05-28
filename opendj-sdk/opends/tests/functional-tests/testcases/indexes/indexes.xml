@@ -26,8 +26,8 @@
  !      Copyright 2007-2008 Sun Microsystems, Inc.
  ! -->
 <stax>
-  <defaultcall function="indexes" />
-  <function name="indexes">
+  <defaultcall function="main_indexes" />
+  <function name="main_indexes">
     <block name="'indexes'">
       <sequence>
         <script>

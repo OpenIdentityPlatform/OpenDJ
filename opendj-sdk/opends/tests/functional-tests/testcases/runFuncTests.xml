@@ -92,7 +92,7 @@
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/indexes/indexes.xml' % TESTS_DIR" />
       <!--
-      add keyword 'indexes' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
+      add keyword 'main_indexes' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
 
       <import machine="STAF_LOCAL_HOSTNAME"
