@@ -1169,6 +1169,7 @@ public class Index extends DatabaseContainer
     Cursor cursor = curLocal.get();
     if(cursor != null) {
       cursor.close();
+      curLocal.remove();
     }
   }
   /**
