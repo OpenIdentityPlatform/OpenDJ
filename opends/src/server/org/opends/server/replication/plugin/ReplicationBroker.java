@@ -302,6 +302,7 @@ public class ReplicationBroker implements InternalSearchListener
                 message = DEBUG_CHANGES_SENT.get();
                 logError(message);
               }
+              replayOperations.clear();
             }
 
             replicationServer = tmpReadableServerName;
