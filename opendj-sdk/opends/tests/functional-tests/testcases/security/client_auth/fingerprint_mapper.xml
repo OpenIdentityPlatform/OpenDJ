@@ -114,8 +114,12 @@
             string_len=len(certificateResult)
             index_MD5=certificateResult.find("MD5:") 
             index_SHA1=certificateResult.find("SHA1:")
+            index_Signature=certificateResult.find("Signature algorithm name:")
             MD5_fingerprint_cert1=certificateResult[index_MD5+5:index_SHA1].strip()
-            SHA1_fingerprint_cert1=certificateResult[index_SHA1+5:string_len].strip()
+            if index_Signature == -1:
+              SHA1_fingerprint_cert1=certificateResult[index_SHA1+5:string_len].strip()
+            else:
+              SHA1_fingerprint_cert1=certificateResult[index_SHA1+5:index_Signature].strip()             
       </script>
     
    <message>'MD5 fingerprint for %s is  : %s ' %  (USER_1_CERT,MD5_fingerprint_cert1)</message>      
@@ -137,8 +141,12 @@
             string_len=len(certificateResult)
             index_MD5=certificateResult.find("MD5:") 
             index_SHA1=certificateResult.find("SHA1:")
+            index_Signature=certificateResult.find("Signature algorithm name:")
             MD5_fingerprint_cert2=certificateResult[index_MD5+5:index_SHA1].strip()
-            SHA1_fingerprint_cert2=certificateResult[index_SHA1+5:string_len].strip()
+            if index_Signature == -1:
+              SHA1_fingerprint_cert2=certificateResult[index_SHA1+5:string_len].strip()
+            else:
+              SHA1_fingerprint_cert2=certificateResult[index_SHA1+5:index_Signature].strip()   
       </script>
   
    <message>'MD5 fingerprint for %s is  : %s ' %  (USER_2_CERT,MD5_fingerprint_cert2)</message>      
@@ -487,8 +495,12 @@
             string_len=len(certificateResult)
             index_MD5=certificateResult.find("MD5:") 
             index_SHA1=certificateResult.find("SHA1:")
+            index_Signature=certificateResult.find("Signature algorithm name:")
             MD5_fingerprint_cert1=certificateResult[index_MD5+5:index_SHA1].strip()
-            SHA1_fingerprint_cert1=certificateResult[index_SHA1+5:string_len].strip()
+            if index_Signature == -1:
+              SHA1_fingerprint_cert1=certificateResult[index_SHA1+5:string_len].strip()
+            else:
+              SHA1_fingerprint_cert1=certificateResult[index_SHA1+5:index_Signature].strip()   
       </script>
 
  
@@ -512,8 +524,12 @@
             string_len=len(certificateResult)
             index_MD5=certificateResult.find("MD5:") 
             index_SHA1=certificateResult.find("SHA1:")
+            index_Signature=certificateResult.find("Signature algorithm name:")
             MD5_fingerprint_cert2=certificateResult[index_MD5+5:index_SHA1].strip()
-            SHA1_fingerprint_cert2=certificateResult[index_SHA1+5:string_len].strip()
+            if index_Signature == -1:
+              SHA1_fingerprint_cert2=certificateResult[index_SHA1+5:string_len].strip()
+            else:
+              SHA1_fingerprint_cert2=certificateResult[index_SHA1+5:index_Signature].strip()   
       </script>
 
  
