@@ -53,7 +53,7 @@
           
           <!--- Define default value for community -->          
           <script>
-            community = '%s' % SNMP_PROPERTIES['community']
+            trapsCommunity = '%s' % SNMP_PROPERTIES['traps-community']
             timerDuration = '5m'
           </script>
           
@@ -91,7 +91,7 @@
                         'location'          : STAF_REMOTE_HOSTNAME ,
                         'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
-                        'snmpTrapCommunity' : community ,
+                        'snmpTrapCommunity' : trapsCommunity ,
                         'snmpTrapNumber'    : '1,0,0,0,0,0'
                         }
                       </call>
@@ -210,7 +210,7 @@
                         {
                         'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
-                        'snmpTrapCommunity' : community ,
+                        'snmpTrapCommunity' : trapsCommunity ,
                         'snmpTrapNumber'    : '1,0,0,0,0,0'
                         }
                       </call>
@@ -329,7 +329,7 @@
                         {
                         'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
-                        'snmpTrapCommunity' : community ,
+                        'snmpTrapCommunity' : trapsCommunity ,
                         'snmpTrapNumber'    : '2,0,0,0,0,0'
                         }
                       </call>
