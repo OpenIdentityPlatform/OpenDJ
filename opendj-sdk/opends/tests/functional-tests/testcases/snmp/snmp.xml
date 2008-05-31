@@ -39,7 +39,7 @@
 
           <!--- Test Group information
             #@TestGroupName          SNMP tests
-            #@TestGroupPurpose       Test the tools commands.
+            #@TestGroupPurpose       Test the SNMP Connection Handler.
           -->
           <script>
             CurrentTestPath['group'] = 'snmp'
@@ -58,10 +58,18 @@
             
             testList = []
             testList.append(['.','snmp_setup'])
+            testList.append(['.','snmp_defaultproperties'])
             testList.append(['.','snmp_v1_defaultconf'])
             testList.append(['.','snmp_v2c_defaultconf'])
             testList.append(['.','snmp_v3_defaultconf'])
             testList.append(['.','snmp_trap_defaultconf'])
+            #testList.append(['.','snmp_mibvalues'])
+            testList.append(['.','snmp_v1_customconf'])
+            testList.append(['.','snmp_v2c_customconf'])
+            testList.append(['.','snmp_v3_customconf'])
+            testList.append(['.','snmp_trap_customconf'])
+            testList.append(['.','snmp_registermbean'])
+            testList.append(['.','snmp_status'])
             testList.append(['.','snmp_cleanup'])
           </script>
 

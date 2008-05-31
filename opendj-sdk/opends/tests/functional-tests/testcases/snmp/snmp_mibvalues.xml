@@ -1,0 +1,637 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="snmp_mibvalues"/>
+
+  <function name="snmp_mibvalues">
+
+    <sequence>
+
+      <block name="'snmp_mibvalues'">
+
+        <sequence>
+
+          <!--- Test Suite information
+            #@TestSuiteName       SNMP MIB values
+            #@TestSuitePurpose    Check SNMP MIB values.
+            #@TestSuiteGroup      SNMP MIB values
+            #@TestScript          snmp_mibvalues.xml
+          -->
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group'] = 'snmp'
+            CurrentTestPath['suite'] = STAXCurrentBlock
+          </script>
+
+          <call function="'testSuite_Preamble'"/>
+          
+          <!--- Desactivate the verbose mode -->
+          <script>
+            VERBOSE_MODE = 'False'
+          </script>
+          
+          <!-- Default values -->
+          <script>
+            community = '%s@%s' \
+            % (SNMP_PROPERTIES['community'], SNMP_PROPERTIES['community'])
+          </script>
+          
+          <!--- Test Case information
+            #@TestMarker          SNMP MIB values
+            #@TestName            snmp_mibvalues: TODO
+            #@TestIssue           none
+            #@TestPurpose         TODO.
+            #@TestPreamble        none
+            #@TestStep            TODO.
+            #@TestPostamble       none
+            #@TestResult          TODO.
+          -->
+          <testcase name="getTestCaseName
+          ('snmp_mibvalues: check the number of connection handler')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'snmp_mibvalues: check the number of connection handler'
+              </message>
+
+              <call function="'SNMPGet'">
+                {
+                'snmpVersion'   : '1',
+                'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
+                'snmpPort'      : SNMP_PORT ,
+                'snmpCommunity' : community ,
+                'snmpOIDs'      : '' ,
+                'snmpStatus'    : 'noError' ,
+                'snmpWalk'      : 'True'
+                }
+              </call>
+
+              <script>
+                DEFAULT_VALUES = create_table_fromoutput(STAXResult[0][1])
+                nbHandler = get_handler_count(DEFAULT_VALUES)
+                indexLDAP = get_handler_index(DEFAULT_VALUES, '1.3.6.1.27.3.%s'\
+                                         % DIRECTORY_INSTANCE_PORT)
+              </script>
+              
+              <if expr="nbHandler == 3">
+                <sequence>
+                  <script>
+                    msg1 = 'The number of connection handler is correct.\n'
+                    msg2 = 'Current value: %s' % nbHandler
+                    msg = '%s%s' % (msg1, msg2)
+                  </script>
+                  <message>
+                    '%s' % msg
+                  </message>
+                  <tcstatus result="'pass'"></tcstatus>
+                </sequence>
+                <else>
+                  <sequence>
+                    <script>
+                      msg1 = 'The number of connection handler is wrong.\n'
+                      msg2 = 'Expected value: 3\n'
+                      msg3 = 'Current value: %s' % nbHandler
+                      msg = '%s%s%s' % (msg1, msg2, msg3)
+                    </script>
+                    <message>
+                      '%s' % msg
+                    </message>
+                    <tcstatus result="'fail'"></tcstatus>
+                  </sequence>
+                </else>
+              </if>
+              
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+
+          <!--- Test Case information
+            #@TestMarker          SNMP MIB values
+            #@TestName            snmp_mibvalues: TODO
+            #@TestIssue           none
+            #@TestPurpose         TODO.
+            #@TestPreamble        none
+            #@TestStep            TODO.
+            #@TestPostamble       none
+            #@TestResult          TODO.
+          -->
+          <testcase name="getTestCaseName
+          ('snmp_mibvalues: check value of dsServerType entry')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'snmp_mibvalues: check value of dsServerType entry'
+              </message>
+
+              <script>
+                dsServerType = DEFAULT_VALUES['dsServerType.1']
+                dsVersion = DSInfo.getServerVersion(DSInfo.ServerDict['server version'])
+                dsBuild = DSInfo.getServerBuildId(DSInfo.ServerDict['server buildid'])
+                dsServer = 'OpenDS Directory Server %s - %s' \
+                           % (dsVersion, dsBuild)
+              </script>
+
+              <if expr="dsServerType == dsServer">
+                <sequence>
+                  <script>
+                    msg1 = 'Value for dsServerType entry is correct.\n'
+                    msg2 = 'Current value: %s' % dsServer
+                    msg = '%s%s' % (msg1, msg2)
+                  </script>
+                  <message>
+                    '%s' % msg
+                  </message>
+                  <tcstatus result="'pass'"></tcstatus>
+                </sequence>
+                <else>
+                  <sequence>
+                    <script>
+                      msg1 = 'Value for dsServerType entry is wrong.\n'
+                      msg2 = 'Expected value: %s\n' % dsServerType
+                      msg3 = 'Current value: %s' % dsServer
+                      msg = '%s%s%s' % (msg1, msg2, msg3)
+                    </script>
+                    <message>
+                      '%s' % msg
+                    </message>
+                    <tcstatus result="'fail'"></tcstatus>
+                  </sequence>
+                </else>
+              </if>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+
+          <!--- Test Case information
+            #@TestMarker          SNMP MIB values
+            #@TestName            snmp_mibvalues: TODO
+            #@TestIssue           none
+            #@TestPurpose         TODO.
+            #@TestPreamble        none
+            #@TestStep            TODO.
+            #@TestPostamble       none
+            #@TestResult          TODO.
+          -->
+          <testcase name="getTestCaseName
+          ('snmp_mibvalues: check value of dsServerDescription entry')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'snmp_mibvalues: check value of dsServerDescription entry'
+              </message>
+
+              <script>
+                dsServerDescription = DEFAULT_VALUES['dsServerDescription.1']
+                dsPath = '%s/%s/bin' % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
+              </script>
+
+              <if expr="dsServerDescription == dsPath">
+                <sequence>
+                  <script>
+                    msg1 = 'Value for dsServerDescription entry is correct.\n'
+                    msg2 = 'Current value: %s' % dsPath
+                    msg = '%s%s' % (msg1, msg2)
+                  </script>
+                  <message>
+                    '%s' % msg
+                  </message>
+                  <tcstatus result="'pass'"></tcstatus>
+                </sequence>
+                <else>
+                  <sequence>
+                    <script>
+                      msg1 = 'Value for dsServerDescription entry is wrong.\n'
+                      msg2 = 'Expected value: %s\n' % dsServerDescription
+                      msg3 = 'Current value: %s' % dsPath
+                      msg = '%s%s%s' % (msg1, msg2, msg3)
+                    </script>
+                    <message>
+                      '%s' % msg
+                    </message>
+                    <tcstatus result="'fail'"></tcstatus>
+                  </sequence>
+                </else>
+              </if>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+
+          <!--- Test Case information
+            #@TestMarker          SNMP MIB values
+            #@TestName            snmp_mibvalues: TODO
+            #@TestIssue           none
+            #@TestPurpose         TODO.
+            #@TestPreamble        none
+            #@TestStep            TODO.
+            #@TestPostamble       none
+            #@TestResult          TODO.
+          -->
+          <testcase name="getTestCaseName
+          ('snmp_mibvalues: check value of dsApplIfSearchOps entry')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'snmp_mibvalues: check value of dsApplIfSearchOps entry'
+              </message>
+
+              <script>
+                dn = 'uid=user.2,o=snmp tests,dc=example,dc=com'
+              </script>
+              <call function="'ldapCompareWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsDn'             : ['postalCode:64447' ,
+                                      '%s' % dn] ,
+                'expectedRC'       : 'noCheck'
+                }
+              </call>
+
+              <!--- Increment default values -->
+              <script>
+                key = 'dsApplIfReadOps.%s' % indexLDAP
+                DEFAULT_VALUES[key] = \
+                  str(int(DEFAULT_VALUES[key]) + 1)
+                key = 'dsApplIfSearchOps.%s' % indexLDAP
+                DEFAULT_VALUES[key] = \
+                  str(int(DEFAULT_VALUES[key]) + 1)
+              </script>
+              
+              <call function="'compareSNMPValues'">
+                {
+                'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
+                'snmpPort'      : SNMP_PORT ,
+                'snmpCommunity' : community
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+
+          <!--- Test Case information
+            #@TestMarker          SNMP MIB values
+            #@TestName            snmp_mibvalues: TODO
+            #@TestIssue           none
+            #@TestPurpose         TODO.
+            #@TestPreamble        none
+            #@TestStep            TODO.
+            #@TestPostamble       none
+            #@TestResult          TODO.
+          -->
+          <testcase name="getTestCaseName
+          ('snmp_mibvalues: check value of dsApplIfAddEntryOps entry')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'snmp_mibvalues: check value of dsApplIfAddEntryOps entry'
+              </message>
+
+              <script>
+                dn = 'uid=user.2,o=snmp tests,dc=example,dc=com'
+              </script>
+              <call function="'ldapCompareWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsDn'             : ['postalCode:64447' ,
+                                      '%s' % dn] ,
+                'expectedRC'       : 'noCheck'
+                }
+              </call>
+
+              <!--- Increment default values -->
+              <script>
+                key = 'dsApplIfReadOps.%s' % indexLDAP
+                DEFAULT_VALUES[key] = \
+                  str(int(DEFAULT_VALUES[key]) + 1)
+                key = 'dsApplIfAddEntryOps.%s' % indexLDAP
+                DEFAULT_VALUES[key] = \
+                  str(int(DEFAULT_VALUES[key]) + 1)
+              </script>
+              
+              <call function="'compareSNMPValues'">
+                {
+                'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
+                'snmpPort'      : SNMP_PORT ,
+                'snmpCommunity' : community
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+          
+           <!--- Test Case information
+            #@TestMarker          SNMP MIB values
+            #@TestName            snmp_mibvalues: TODO
+            #@TestIssue           none
+            #@TestPurpose         TODO.
+            #@TestPreamble        none
+            #@TestStep            TODO.
+            #@TestPostamble       none
+            #@TestResult          TODO.
+          -->
+          <testcase name="getTestCaseName
+          ('snmp_mibvalues: check value of dsApplIfRemoveEntryOps entry')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'snmp_mibvalues: check value of dsApplIfRemoveEntryOps entry'
+              </message>
+
+              <script>
+                dn = 'uid=user.2,o=snmp tests,dc=example,dc=com'
+              </script>
+              <call function="'ldapCompareWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsDn'             : ['postalCode:64447' ,
+                                      '%s' % dn] ,
+                'expectedRC'       : 'noCheck'
+                }
+              </call>
+
+              <!--- Increment default values -->
+              <script>
+                key = 'dsApplIfReadOps.%s' % indexLDAP
+                DEFAULT_VALUES[key] = \
+                  str(int(DEFAULT_VALUES[key]) + 1)
+                key = 'dsApplIfRemoveEntryOps.%s' % indexLDAP
+                DEFAULT_VALUES[key] = \
+                  str(int(DEFAULT_VALUES[key]) + 1)
+              </script>
+              
+              <call function="'compareSNMPValues'">
+                {
+                'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
+                'snmpPort'      : SNMP_PORT ,
+                'snmpCommunity' : community
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+          
+          <!--- Test Case information
+            #@TestMarker          SNMP MIB values
+            #@TestName            snmp_mibvalues: TODO
+            #@TestIssue           none
+            #@TestPurpose         TODO.
+            #@TestPreamble        none
+            #@TestStep            TODO.
+            #@TestPostamble       none
+            #@TestResult          TODO.
+          -->
+          <testcase name="getTestCaseName
+          ('snmp_mibvalues: check value of dsApplIfCompareOps entry')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'snmp_mibvalues: check value of dsApplIfCompareOps entry'
+              </message>
+
+              <script>
+                dn = 'uid=user.2,o=snmp tests,dc=example,dc=com'
+              </script>
+              <call function="'ldapCompareWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsDn'             : ['postalCode:64447' ,
+                                      '%s' % dn] ,
+                'expectedRC'       : 'noCheck'
+                }
+              </call>
+
+              <!--- Increment default values -->
+              <script>
+                key = 'dsApplIfReadOps.%s' % indexLDAP
+                DEFAULT_VALUES[key] = \
+                  str(int(DEFAULT_VALUES[key]) + 1)
+                key = 'dsApplIfCompareOps.%s' % indexLDAP
+                DEFAULT_VALUES[key] = \
+                  str(int(DEFAULT_VALUES[key]) + 1)
+              </script>
+              
+              <call function="'compareSNMPValues'">
+                {
+                'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
+                'snmpPort'      : SNMP_PORT ,
+                'snmpCommunity' : community
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+          
+          <!--- Test Case information
+            #@TestMarker          SNMP MIB values
+            #@TestName            snmp_mibvalues: TODO
+            #@TestIssue           none
+            #@TestPurpose         TODO.
+            #@TestPreamble        none
+            #@TestStep            TODO.
+            #@TestPostamble       none
+            #@TestResult          TODO.
+          -->
+          <testcase name="getTestCaseName
+          ('snmp_mibvalues: check value of dsApplIfModifyEntryOps entry')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'snmp_mibvalues: check value of dsApplIfModifyEntryOps entry'
+              </message>
+
+              <script>
+                dn = 'uid=user.2,o=snmp tests,dc=example,dc=com'
+              </script>
+              <call function="'ldapCompareWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsDn'             : ['postalCode:64447' ,
+                                      '%s' % dn] ,
+                'expectedRC'       : 'noCheck'
+                }
+              </call>
+
+              <!--- Increment default values -->
+              <script>
+                key = 'dsApplIfReadOps.%s' % indexLDAP
+                DEFAULT_VALUES[key] = \
+                  str(int(DEFAULT_VALUES[key]) + 1)
+                key = 'dsApplIfModifyEntryOps.%s' % indexLDAP
+                DEFAULT_VALUES[key] = \
+                  str(int(DEFAULT_VALUES[key]) + 1)
+              </script>
+              
+              <call function="'compareSNMPValues'">
+                {
+                'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
+                'snmpPort'      : SNMP_PORT ,
+                'snmpCommunity' : community
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+          
+          <!--- Test Case information
+            #@TestMarker          SNMP MIB values
+            #@TestName            snmp_mibvalues: TODO
+            #@TestIssue           none
+            #@TestPurpose         TODO.
+            #@TestPreamble        none
+            #@TestStep            TODO.
+            #@TestPostamble       none
+            #@TestResult          TODO.
+          -->
+          <testcase name="getTestCaseName
+          ('snmp_mibvalues: check value of dsApplIfModifyRDNOps entry')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'snmp_mibvalues: check value of dsApplIfModifyRDNOps entry'
+              </message>
+
+              <script>
+                dn = 'uid=user.2,o=snmp tests,dc=example,dc=com'
+              </script>
+              <call function="'ldapCompareWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsDn'             : ['postalCode:64447' ,
+                                      '%s' % dn] ,
+                'expectedRC'       : 'noCheck'
+                }
+              </call>
+
+              <!--- Increment default values -->
+              <script>
+                key = 'dsApplIfReadOps.%s' % indexLDAP
+                DEFAULT_VALUES[key] = \
+                  str(int(DEFAULT_VALUES[key]) + 1)
+                key = 'dsApplIfModifyRDNOps.%s' % indexLDAP
+                DEFAULT_VALUES[key] = \
+                  str(int(DEFAULT_VALUES[key]) + 1)
+              </script>
+              
+              <call function="'compareSNMPValues'">
+                {
+                'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
+                'snmpPort'      : SNMP_PORT ,
+                'snmpCommunity' : community
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+          
+          <!--- Activate the verbose mode -->
+          <script>
+            VERBOSE_MODE = 'True'
+          </script>
+          
+          <call function="'testSuite_Postamble'"/>
+
+        </sequence>
+
+      </block>
+
+    </sequence>
+
+  </function>
+
+</stax>
