@@ -31,6 +31,9 @@ localEngineBoots=0
 
 # User and security configuration
 userEntry=0x8000002a017f000001000000a1,snmpAdmin,null,usmHMACMD5AuthProtocol,passadmin
-userEntry=0x8000002a017f000001000000a1,defaultUser,,usmHMACMD5AuthProtocol,password
-userEntry=0x8000002a017f000001000000a1,myUser,,usmHMACMD5AuthProtocol,mypasswd
-userEntry=0x8000002a017f000001000000a1,myUser2,,usmHMACMD5AuthProtocol,mypasswd2
+userEntry=0x8000002a017f000001000000a1,defaultUser,,usmHMACMD5AuthProtocol,password,,,3,true
+
+userEntry=0x8000002a017f000001000000a1,myUser1,,usmNoAuthProtocol
+userEntry=0x8000002a017f000001000000a1,myUser2,,usmHMACMD5AuthProtocol,mypasswd
+userEntry=0x8000002a017f000001000000a1,myUser3,,usmHMACMD5AuthProtocol,mypasswd,usmDESPrivProtocol,mypasswd
+userEntry=0x8000002a017f000001000000a1,myUser4,,usmHMACMD5AuthProtocol,mypasswd2
