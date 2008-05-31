@@ -36,6 +36,7 @@ __all__ = [ "format_testcase",
             "compare_file", 
             "is_windows_platform", 
             "create_property_table", 
+            "compare_property_table", 
             "exception_thrown" ]
 
 class format_testcase:
@@ -202,7 +203,33 @@ def create_property_table(output, separator):
       try:
         value = line.split(separator)[1].strip()
       except IndexError:
-        value = '-'
+        value = ''
       table[key] = value
 
     return table
+
+def compare_property_table(refTable, newTable):
+    import re
+
+    result = ''
+
+    refKeys=newTable.keys()
+    for refKey in refKeys:
+      if not refTable.has_key(refKey):
+        result = result + 'ERROR: Entry ' + refKey + ' does not exists'
+        result = result + ' in the reference table.\n'
+
+    refKeys=refTable.keys()
+    for refKey in refKeys:
+      if not newTable.has_key(refKey):
+        result = result + 'ERROR: Entry ' + refKey + ' does not exists'
+        result = result + ' in the new table.\n'
+      else:
+        result = result + refKey + '=> expected: ' + refTable[refKey] 
+        result = result + ' , result: ' + newTable[refKey] + '\n'
+
+        if refTable[refKey] != newTable[refKey]:
+          result = result + 'ERROR: Value for ' + refKey 
+          result = result + ' should be the same.\n'
+
+    return result
