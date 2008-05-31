@@ -1,0 +1,720 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="snmp_status"/>
+
+  <function name="snmp_status">
+
+    <sequence>
+
+      <block name="'snmp_status'">
+
+        <sequence>
+
+          <!--- Test Suite information
+            #@TestSuiteName       SNMP Connection Handler status
+            #@TestSuitePurpose    Check SNMP Connection Handler status.
+            #@TestSuiteGroup      SNMP Connection Handler status
+            #@TestScript          snmp_status.xml
+          -->
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group'] = 'snmp'
+            CurrentTestPath['suite'] = STAXCurrentBlock
+          </script>
+
+          <call function="'testSuite_Preamble'"/>
+
+          <!--- Define default values -->
+          <script>
+            community = '%s@%s' \
+              % (SNMP_PROPERTIES['community'], SNMP_PROPERTIES['community'])
+            oid = 'dsServerType.1'
+          </script>
+
+          <!--- Test Case information
+            #@TestMarker          SNMP Connection Handler status
+            #@TestName            status: check status when the server is
+                                  stopped/started
+            #@TestIssue           none
+            #@TestPurpose         Check status when the server is
+                                  stopped/started.
+            #@TestPreamble        none
+            #@TestStep            stop the server
+            #@TestStep            check status using status command
+            #@TestStep            start the server
+            #@TestStep            check status using status command
+            #@TestStep            do a SNMP get request to check that the
+                                  connection handler
+            #@TestPostamble       none
+            #@TestResult          Success if output of status is correct.
+          -->
+          <testcase name="getTestCaseName
+          ('status: status when the server is stopped/started')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'status: stop DS running on port %s' \
+                % (DIRECTORY_INSTANCE_PORT)
+              </message>
+
+              <call function="'StopDsWithScript'">
+                {
+                'location'  : STAF_REMOTE_HOSTNAME ,
+                'dsHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsPort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsBindDN'  : DIRECTORY_INSTANCE_DN ,
+                'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+                }
+              </call>
+
+              <message>
+                'status: status when the server is stopped'
+              </message>
+
+              <call function="'StatusWithScript'">
+                {
+                'dsBindDN'  : DIRECTORY_INSTANCE_DN ,
+                'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'checktestString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : '0.0.0.0:%s : SNMP     : Enabled' \
+                                   % SNMP_PORT
+                }
+              </call>
+
+              <message>
+                'status: start DS to run on port %s' \
+                % (DIRECTORY_INSTANCE_PORT)
+              </message>
+
+              <call function="'StartDsWithScript'">
+                { 'location' : STAF_REMOTE_HOSTNAME }
+              </call>
+              <!--- Check that DS started -->
+              <call function="'isAlive'">
+                {
+                'noOfLoops'        : 5 ,
+                'noOfMilliSeconds' : 2000
+                }
+              </call>
+
+              <message>
+                'status: status when the server is started'
+              </message>
+
+              <call function="'StatusWithScript'">
+                {
+                'dsBindDN'  : DIRECTORY_INSTANCE_DN ,
+                'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'checktestString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : '0.0.0.0:%s : SNMP     : Enabled' \
+                                   % SNMP_PORT
+                }
+              </call>
+
+              <message>
+                'status: get request'
+              </message>
+
+              <call function="'SNMPGet'">
+                {
+                'snmpVersion'   : '1',
+                'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
+                'snmpPort'      : SNMP_PORT ,
+                'snmpCommunity' : community ,
+                'snmpOIDs'      : oid ,
+                'snmpStatus'    : 'noError'
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+
+          <!--- Test Case information
+            #@TestMarker          SNMP Connection Handler status
+            #@TestName            status: check status when the connection
+                                  handler is disabled/enabled
+            #@TestIssue           none
+            #@TestPurpose         Check status when the SNMP connection handler
+                                  is disabled/enabled.
+            #@TestPreamble        none
+            #@TestStep            disable the SNMP connection handler
+            #@TestStep            check status using status command
+            #@TestStep            enable the SNMP connection handler
+            #@TestStep            check status using status command
+            #@TestPostamble       none
+            #@TestResult          Success if output of status is correct.
+          -->
+          <testcase name="getTestCaseName
+          ('status: status when SNMP Connection Handler is disabled/enabled')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'status: disable the SNMP Connection Handler'
+              </message>
+
+              <call function="'dsconfig'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'set-connection-handler-prop' ,
+                'objectType'       : 'handler-name' ,
+                'objectName'       : 'SNMP Connection Handler' ,
+                'optionsString'    : '--set enabled:false'
+                }
+              </call>
+
+              <message>
+                'status: status when the SNMP connection handler is disabled'
+              </message>
+
+              <call function="'StatusWithScript'">
+                {
+                'dsBindDN'  : DIRECTORY_INSTANCE_DN ,
+                'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'checktestString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : '0.0.0.0:%s : SNMP     : Disabled' \
+                                   % SNMP_PORT
+                }
+              </call>
+
+              <message>
+                'status: get request'
+              </message>
+
+              <call function="'SNMPGet'">
+                {
+                'snmpVersion'   : '1',
+                'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
+                'snmpPort'      : SNMP_PORT ,
+                'snmpCommunity' : community ,
+                'snmpOIDs'      : oid ,
+                'snmpStatus'    : 'reqTimeout'
+                }
+              </call>
+
+              <message>
+                'status: enable the SNMP Connection Handler'
+              </message>
+
+              <call function="'dsconfig'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'set-connection-handler-prop' ,
+                'objectType'       : 'handler-name' ,
+                'objectName'       : 'SNMP Connection Handler' ,
+                'optionsString'    : '--set enabled:true'
+                }
+              </call>
+
+              <message>
+                'status: status when the SNMP connection handler is enabled'
+              </message>
+
+              <call function="'StatusWithScript'">
+                {
+                'dsBindDN'  : DIRECTORY_INSTANCE_DN ,
+                'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'checktestString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : '0.0.0.0:%s : SNMP     : Enabled' \
+                                   % SNMP_PORT
+                }
+              </call>
+
+              <message>
+                'status: get request'
+              </message>
+
+              <call function="'SNMPGet'">
+                {
+                'snmpVersion'   : '1',
+                'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
+                'snmpPort'      : SNMP_PORT ,
+                'snmpCommunity' : community ,
+                'snmpOIDs'      : oid ,
+                'snmpStatus'    : 'noError'
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+
+          <!--- Test Case information
+            #@TestMarker          SNMP Connection Handler status
+            #@TestName            status: check error message and status when
+                                  the opendmk-jarfile property is set to a
+                                  wrong value
+            #@TestIssue           none
+            #@TestPurpose         Check error message and status when
+                                  the opendmk-jarfile property is set to a
+                                  wrong value.
+            #@TestPreamble        none
+            #@TestStep            set opendmk-jarfile property to a wrong value
+            #@TestStep            restart the server
+            #@TestStep            check that an error message is displayed at
+                                  startup
+            #@TestStep            check status using status command
+            #@TestStep            restore value for opendmk-jarfile property
+            #@TestStep            disable the SNMP connection handler
+            #@TestStep            enable the SNMP connection handler
+            #@TestPostamble       none
+            #@TestResult          Success if an error message is displayed and
+                                  if the output of status is correct.
+          -->
+          <testcase name="getTestCaseName
+          ('status: status with a wrong opendmk-jarfile value')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'status: set opendmk-jarfile property to a wrong value'
+              </message>
+
+              <call function="'dsconfig'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'set-connection-handler-prop' ,
+                'objectType'       : 'handler-name' ,
+                'objectName'       : 'SNMP Connection Handler' ,
+                'optionsString'    : '--set opendmk-jarfile:wrong_file'
+                }
+              </call>
+
+              <message>
+                'status: restart DS running on port %s' \
+                % (DIRECTORY_INSTANCE_PORT)
+              </message>
+              <call function="'StopDsWithScript'">
+                {
+                'location'  : STAF_REMOTE_HOSTNAME ,
+                'dsHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsPort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsBindDN'  : DIRECTORY_INSTANCE_DN ,
+                'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+                }
+              </call>
+              <call function="'StartDsWithScript'">
+                { 'location' : STAF_REMOTE_HOSTNAME }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <!--- Check that DS started -->
+              <call function="'isAlive'">
+                {
+                'noOfLoops'        : 5 ,
+                'noOfMilliSeconds' : 2000
+                }
+              </call>
+
+              <script>
+                msg1 = 'You do not have the appropriated OpenDMK jar files to'
+                msg2 = 'enable the SNMP Connection Handler. Please go under'
+                msg3 = 'http:\/\/opendmk.dev.java.net and set the'
+                msg4 = 'ds-cfg-opendmk-jarfile configuration parameter to set'
+                msg5 = 'the full path of the required jdmkrt.jar file.'
+                msg6 = 'The SNMP connection Handler didn\'t started'
+                msg = '%s %s %s %s %s %s' % (msg1, msg2, msg3, msg4, msg5, msg6)
+              </script>
+
+              <call function="'checktestString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : msg
+                }
+              </call>
+
+              <message>
+                'status: status when the server is started'
+              </message>
+
+              <call function="'StatusWithScript'">
+                {
+                'dsBindDN'  : DIRECTORY_INSTANCE_DN ,
+                'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'checktestString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : '0.0.0.0:%s : SNMP     : Enabled' \
+                                   % SNMP_PORT
+                }
+              </call>
+
+              <message>
+                'status: get request'
+              </message>
+
+              <call function="'SNMPGet'">
+                {
+                'snmpVersion'   : '1',
+                'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
+                'snmpPort'      : SNMP_PORT ,
+                'snmpCommunity' : community ,
+                'snmpOIDs'      : oid ,
+                'snmpStatus'    : 'reqTimeout'
+                }
+              </call>
+
+              <message>
+                'status: restore value for opendmk-jarfile property'
+              </message>
+
+              <call function="'dsconfig'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'set-connection-handler-prop' ,
+                'objectType'       : 'handler-name' ,
+                'objectName'       : 'SNMP Connection Handler' ,
+                'optionsString'    : '--set opendmk-jarfile:%s' \
+                                     % SNMP_PROPERTIES['opendmk-jarfile']
+                }
+              </call>
+
+              <message>
+                'status: disable the SNMP Connection Handler'
+              </message>
+
+              <call function="'dsconfig'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'set-connection-handler-prop' ,
+                'objectType'       : 'handler-name' ,
+                'objectName'       : 'SNMP Connection Handler' ,
+                'optionsString'    : '--set enabled:true'
+                }
+              </call>
+              <message>
+                'status: enable the SNMP Connection Handler'
+              </message>
+
+              <call function="'dsconfig'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'set-connection-handler-prop' ,
+                'objectType'       : 'handler-name' ,
+                'objectName'       : 'SNMP Connection Handler' ,
+                'optionsString'    : '--set enabled:true'
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+
+          <!--- Test Case information
+            #@TestMarker          SNMP Connection Handler status
+            #@TestName            status: check error message and status when
+                                  the security-agent-file property is set to a
+                                  wrong value
+            #@TestIssue           none
+            #@TestPurpose         Check error message and status when
+                                  the security-agent-file property is set to a
+                                  wrong value.
+            #@TestPreamble        none
+            #@TestStep            set security-agent-file property to a wrong
+                                  value
+            #@TestStep            restart the server
+            #@TestStep            check that an error message is displayed at
+                                  startup
+            #@TestStep            check status using status command
+            #@TestStep            restore value for security-agent-file property
+            #@TestStep            disable the SNMP connection handler
+            #@TestStep            enable the SNMP connection handler
+            #@TestPostamble       none
+            #@TestResult          Success if an error message is displayed and
+                                  if the output of status is correct.
+          -->
+          <testcase name="getTestCaseName
+          ('status: status with a wrong security-agent-file value')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'status: set the security-agent-file to a wrong value'
+              </message>
+
+              <call function="'dsconfig'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'set-connection-handler-prop' ,
+                'objectType'       : 'handler-name' ,
+                'objectName'       : 'SNMP Connection Handler' ,
+                'optionsString'    : '--set security-agent-file:wrong_file'
+                }
+              </call>
+
+              <message>
+                'status: restart DS running on port %s' \
+                % (DIRECTORY_INSTANCE_PORT)
+              </message>
+              <call function="'StopDsWithScript'">
+                {
+                'location'  : STAF_REMOTE_HOSTNAME ,
+                'dsHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsPort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsBindDN'  : DIRECTORY_INSTANCE_DN ,
+                'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+                }
+              </call>
+              <call function="'StartDsWithScript'">
+                { 'location' : STAF_REMOTE_HOSTNAME }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <!--- Check that DS started -->
+              <call function="'isAlive'">
+                {
+                'noOfLoops'        : 5 ,
+                'noOfMilliSeconds' : 2000
+                }
+              </call>
+
+              <script>
+                msg1 = 'An unexpected error occurred while trying to initialize'
+                msg2 = 'the SNMP Connection Hanlder. Please check the'
+                msg3 = 'configuration attributes'
+                msg = '%s %s %s' % (msg1, msg2, msg3)
+              </script>
+
+              <call function="'checktestString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : msg
+                }
+              </call>
+
+              <script>
+                msg1 = 'You do not have the appropriated OpenDMK jar files to'
+                msg2 = 'enable the SNMP Connection Handler. Please go under'
+                msg3 = 'http:\/\/opendmk.dev.java.net and set the'
+                msg4 = 'ds-cfg-opendmk-jarfile configuration parameter to set'
+                msg5 = 'the full path of the required jdmkrt.jar file.'
+                msg6 = 'The SNMP connection Handler didn\'t started'
+                msg = '%s %s %s %s %s %s' % (msg1, msg2, msg3, msg4, msg5, msg6)
+              </script>
+              <call function="'checktestStringNotPresent'">
+                {
+                'returnString' : returnString ,
+                'testString'   : msg
+                }
+              </call>
+
+              <message>
+                'status: status when the server is started'
+              </message>
+
+              <call function="'StatusWithScript'">
+                {
+                'dsBindDN'  : DIRECTORY_INSTANCE_DN ,
+                'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'checktestString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : '0.0.0.0:%s : SNMP     : Enabled' \
+                                   % SNMP_PORT
+                }
+              </call>
+
+              <message>
+                'status: get request'
+              </message>
+
+              <call function="'SNMPGet'">
+                {
+                'snmpVersion'   : '1',
+                'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
+                'snmpPort'      : SNMP_PORT ,
+                'snmpCommunity' : community ,
+                'snmpOIDs'      : oid ,
+                'snmpStatus'    : 'reqTimeout'
+                }
+              </call>
+
+              <message>
+                'status: restore value for security-agent-file property'
+              </message>
+
+              <call function="'dsconfig'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'set-connection-handler-prop' ,
+                'objectType'       : 'handler-name' ,
+                'objectName'       : 'SNMP Connection Handler' ,
+                'optionsString'    : '--set security-agent-file:%s' \
+                                     % SNMP_PROPERTIES['security-agent-file']
+                }
+              </call>
+
+              <message>
+                'status: disable the SNMP Connection Handler'
+              </message>
+
+              <call function="'dsconfig'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'set-connection-handler-prop' ,
+                'objectType'       : 'handler-name' ,
+                'objectName'       : 'SNMP Connection Handler' ,
+                'optionsString'    : '--set enabled:true'
+                }
+              </call>
+
+              <message>
+                'status: enable the SNMP Connection Handler'
+              </message>
+
+              <call function="'dsconfig'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'set-connection-handler-prop' ,
+                'objectType'       : 'handler-name' ,
+                'objectName'       : 'SNMP Connection Handler' ,
+                'optionsString'    : '--set enabled:true'
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+
+          <call function="'testSuite_Postamble'"/>
+
+        </sequence>
+
+      </block>
+
+    </sequence>
+
+  </function>
+
+</stax>

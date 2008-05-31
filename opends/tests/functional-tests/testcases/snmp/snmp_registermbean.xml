@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="snmp_registermbean"/>
+
+  <function name="snmp_registermbean">
+
+    <sequence>
+
+      <block name="'snmp_registermbean'">
+
+        <sequence>
+
+          <!--- Test Suite information
+            #@TestSuiteName       SNMP Connection Handler register mbean
+            #@TestSuitePurpose    Check SNMP Connection Handler register mbean.
+            #@TestSuiteGroup      SNMP Connection Handler register mbean.
+            #@TestScript          snmp_registermbean.xml
+          -->
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group'] = 'snmp'
+            CurrentTestPath['suite'] = STAXCurrentBlock
+          </script>
+
+          <call function="'testSuite_Preamble'"/>
+
+          <!--- Define default values -->
+          <script>
+            refRegisteredMbeanProp = SNMP_PROPERTIES['registered-mbean']
+            defCommunityProp = SNMP_PROPERTIES['community']
+            defCommunity = '%s@%s' %(defCommunityProp, defCommunityProp)
+            oid = 'dsServerType.1'
+          </script>
+
+          <!--- Test Case information
+            #@TestMarker          SNMP Connection Handler register mbean
+            #@TestName            registermbean: TODO
+            #@TestIssue           none
+            #@TestPurpose         TODO.
+            #@TestPreamble        none
+            #@TestStep            TODO.
+            #@TestPostamble       none
+            #@TestResult          TODO.
+          -->
+          <testcase name="getTestCaseName
+          ('registermbean: check that there is no error at startup')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'registermbean: set the register-mbean property to true'
+              </message>
+
+              <call function="'dsconfig'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'set-connection-handler-prop' ,
+                'objectType'       : 'handler-name' ,
+                'objectName'       : 'SNMP Connection Handler' ,
+                'optionsString'    : '--set registered-mbean:true'
+                }
+              </call>
+
+              <message>
+                'status: restart DS running on port %s' \
+                % (DIRECTORY_INSTANCE_PORT)
+              </message>
+              <call function="'StopDsWithScript'">
+                {
+                'location'  : STAF_REMOTE_HOSTNAME ,
+                'dsHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsPort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsBindDN'  : DIRECTORY_INSTANCE_DN ,
+                'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+                }
+              </call>
+              <call function="'StartDsWithScript'">
+                { 'location' : STAF_REMOTE_HOSTNAME }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <!--- Check that DS started -->
+              <call function="'isAlive'">
+                {
+                'noOfLoops'        : 5 ,
+                'noOfMilliSeconds' : 2000
+                }
+              </call>
+
+              <call function="'checktestStringNotPresent'">
+                {
+                'returnString' : returnString ,
+                'testString'   : 'category=PROTOCOL severity=SEVERE_ERROR'
+                }
+              </call>
+              
+              <message>
+                'registermbean: get to check the SNMPConnection Handler'
+              </message>
+
+              <call function="'SNMPGet'">
+                {
+                'snmpVersion'   : '1',
+                'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
+                'snmpPort'      : SNMP_PORT ,
+                'snmpCommunity' : defCommunity ,
+                'snmpOIDs'      : oid ,
+                'snmpStatus'    : 'noError'
+                }
+              </call>              
+              
+              <message>
+                'registermbean: restore the register-mbean property'
+              </message>
+
+              <call function="'dsconfig'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'set-connection-handler-prop' ,
+                'objectType'       : 'handler-name' ,
+                'objectName'       : 'SNMP Connection Handler' ,
+                'optionsString'    : '--set registered-mbean:%s' \
+                                     % refRegisteredMbeanProp
+                }
+              </call>
+
+              <message>
+                'registermbean: restart the SNMP Connection Handler'
+              </message>
+
+              <call function="'restartSNMPConnectionHandler'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+
+          <!--- Test Case information
+            #@TestMarker          SNMP Connection Handler register mbean
+            #@TestName            registermbean: TODO
+            #@TestIssue           none
+            #@TestPurpose         TODO.
+            #@TestPreamble        none
+            #@TestStep            TODO.
+            #@TestPostamble       none
+            #@TestResult          TODO.
+          -->
+          <testcase name="getTestCaseName
+          ('registermbean: set the register-mbean property to a wrong value')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'registermbean: set register-mbean property to a wrong value'
+              </message>
+
+              <call function="'dsconfig'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'set-connection-handler-prop' ,
+                'objectType'       : 'handler-name' ,
+                'objectName'       : 'SNMP Connection Handler' ,
+                'optionsString'    : '--set registered-mbean:myValue' ,
+                'expectedRC'       : 1
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+                msg1 = 'The value "myValue" is not a valid value for the'
+                msg2 = 'SNMP Connection Handler\nproperty "registered-mbean"'
+                msg3 = 'which has the following syntax: false | true'
+                msg = '%s %s %s' % (msg1, msg2, msg3)
+              </script>
+
+              <call function="'checktestString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : msg
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+
+          <call function="'testSuite_Postamble'"/>
+
+        </sequence>
+
+      </block>
+
+    </sequence>
+
+  </function>
+
+</stax>
