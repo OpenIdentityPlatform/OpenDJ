@@ -73,7 +73,8 @@ public class SNMPGet {
               " -l <securityLevel>" +
               " -f <securityFile>" +
               " -s <connectionStatus>" +
-              " -n <checkOIDs>");
+              " -n <checkOIDs>" +
+              " -w <snmpwalk>");
       rc = 1;
     } else {
       for (int i = 0; i < args.length; i++) {
@@ -120,6 +121,9 @@ public class SNMPGet {
             break;
           case 'n':
             validOIDs = new Boolean(val).booleanValue();
+            break;
+          case 'w':
+            walk = new Boolean(val).booleanValue();
             break;
           default:
             System.out.println("Unknown option -" + opt.charAt(1) + ".");
@@ -207,6 +211,11 @@ public class SNMPGet {
           // Custom engine parameters
           final SnmpEngineParameters engineParameters =
                   new SnmpEngineParameters();
+
+          // Activate encryption
+          engineParameters.activateEncryption();
+
+          // Set the security file
           engineParameters.setSecurityFile(securityFile);
 
           // Create the session
@@ -257,30 +266,32 @@ public class SNMPGet {
           agentV3.setMaxTries(maxRetries);
           agentV3.setParams(paramsV3);
 
-          // Discover timeliness of creation and boot
-          //
-         try {
-            agentV3.processUsmTimelinessDiscovery();
-         } catch (SnmpStatusException e) {
-           if (connectStatus.compareTo("SnmpStatusException") == 0) {
-             System.out.println(
-                     "connect() of SNMPGet catched as expected a " +
-                     "SNMP status exception: " + e.getMessage() + "\"");
-           } else {
-             System.out.println(
-                     "connect() of SNMPGet should not catch a " +
-                     "SNMP status exception: " + e.getMessage() + "\"");
+          if (securityLevel != SnmpDefinitions.noAuthNoPriv) {
+            // Discover timeliness of creation and boot
+            //
+            try {
+              agentV3.processUsmTimelinessDiscovery();
+            } catch (SnmpStatusException e) {
+              if (connectStatus.compareTo("SnmpStatusException") == 0) {
+                System.out.println(
+                        "connect() of SNMPGet catched as expected a " +
+                        "SNMP status exception: " + e.getMessage() + "\"");
+              } else {
+                System.out.println(
+                        "connect() of SNMPGet should not catch a " +
+                        "SNMP status exception: " + e.getMessage() + "\"");
+                
+                rc = 1;
+              }
+            } catch (Exception e) {
+              System.out.println(
+                      "connect() of SNMPGet catched an unexpected exception: " +
+                      e.getMessage() + "\"");
 
-             rc = 1;
-           }
-          } catch (Exception e) {
-            System.out.println(
-                    "connect() of SNMPGet catched an unexpected exception: " +
-                    e.getMessage() + "\"");
-
-            rc = 1;
+              rc = 1;
+            }
           }
-
+          
           if (rc == 0) {
             // Set the default peer (agent) to a SnmpSession
             //
@@ -318,15 +329,25 @@ public class SNMPGet {
    */
   public int getRequest() {
     int rc = 0;
+    String previousOID = "";
 
     try {
       // Build the list of variables you want to query
       //
       final SnmpVarBindList list = new SnmpVarBindList("Get varbind list");
 
-      // Read all TEST-MIB variables.
+      // Read specific OIDs
       //
-      list.addVarBind(oids);
+      if (walk) {
+        // Walk request
+        //
+         list.addVarBind("0.0");
+         previousOID = "0.0";
+      } else {
+        // Get request
+        //
+        list.addVarBind(oids);
+      }
 
       // Make the SNMP get request
       //
@@ -335,103 +356,148 @@ public class SNMPGet {
               " GET request for SNMP agent on \"" + remoteHost +
               "\" at port \"" + port + "\".");
 
-      // Get request
-      //
-      SnmpRequest request = session.snmpGetRequest(null, list);
-
-      // Check for a timeout of the request
-      //
-      boolean completed = request.waitForCompletion((maxRetries + 1) * timeOut);
-      if (completed == false) {
-        System.out.println(
-                "getRequest() of SNMPGet: Request timed out, " +
-                "check reachability of agent.");
-
-        // Print request
-        //
-        System.out.println(
-                "getRequest() of SNMPGet: Request= " +
-                request.toString() + ".");
-
-        rc = 1;
-      }
-
-      if (rc == 0) {
-        System.out.println(
-                "getRequest() of SNMPGet: Finish SNMP V" +
-                version + " GET request.");
-
-        // Now we have a response. Check if the response contains an error
-        //
-        String errorStatus = SnmpRequest.snmpErrorToString(
-                request.getErrorStatus());
-        if (errorStatus.compareTo("noError") != 0) {
-          System.out.println(
-                  "getRequest() of SNMPGet: Error status= " +
-                  errorStatus + ".");
-
-          System.out.println(
-                  "getRequest() of SNMPGet: Error index= " +
-                  request.getErrorIndex() + ".");
-
-          if (errorStatus.compareTo(connectStatus) == 0) {
-            System.out.println(
-                    "getRequest() of SNMPGet: Get request failed as " +
-                    "expected with " + connectStatus + " status.");
-          } else {
-            System.out.println(
-                    "getRequest() of SNMPGet: Get request should " +
-                    "fail with " + connectStatus + " status.");
-
-            rc = 1;
-          }
-        } else {
-          // Now we shall display the content of the result
+      while (previousOID.compareTo("end") != 0) {
+        SnmpRequest request = null;
+        if (walk) {
+          // Walk request
           //
-          SnmpVarBindList resp = request.getResponseVarBindList();
+          request = session.snmpGetNextRequest(null, list);
+        } else {
+          // Get request
+          //
+          request = session.snmpGetRequest(null, list);
+        }
 
-          System.out.println("getRequest() of SNMPGet: Result=");
+        // Check for a timeout of the request
+        //
+        boolean completed =
+                request.waitForCompletion((maxRetries + 1) * timeOut);
+        if (completed == false) {
+          if (connectStatus.compareTo("reqTimeout") != 0) {
+            System.out.println(
+                    "getRequest() of SNMPGet: Request timed out, " +
+                    "check reachability of agent.");
 
-          for (int i = 0; i < resp.getVarBindCount(); i++) {
-            System.out.println(resp.getVarBindAt(i));
-          }
-
-          if (connectStatus.compareTo("noError") != 0) {
-            // Request should failed
+            // Print request
             //
             System.out.println(
-                    "getRequest() of SNMPGet: Get request should " +
-                    "fail with " + connectStatus + " status.");
+                    "getRequest() of SNMPGet: Request= " +
+                    request.toString() + ".");
 
             rc = 1;
           } else {
-            if (validOIDs) {
-              // Check that we obtain correct values for the OIDs
-              //
-              if (resp.checkForValidValues()) {
+            System.out.println(
+                    "getRequest() of SNMPGet: Request timed out as expected.");
+          }
+        }
+
+        if (rc == 0 && completed) {
+          System.out.println(
+                  "getRequest() of SNMPGet: Finish SNMP V" +
+                  version + " GET request.");
+
+          // Now we have a response. Check if the response contains an error
+          //
+          String errorStatus = SnmpRequest.snmpErrorToString(
+                  request.getErrorStatus());
+          if (errorStatus.compareTo("noError") != 0) {
+            System.out.println(
+                    "getRequest() of SNMPGet: Error status= " +
+                    errorStatus + ".");
+
+            System.out.println(
+                    "getRequest() of SNMPGet: Error index= " +
+                    request.getErrorIndex() + ".");
+
+            if (errorStatus.compareTo(connectStatus) == 0) {
+              System.out.println(
+                      "getRequest() of SNMPGet: Get request failed as " +
+                      "expected with " + connectStatus + " status.");
+            } else {
+              if (walk && errorStatus.compareTo("noSuchName") == 0) {
                 System.out.println(
-                        "getRequest() of SNMPGet: Returned values for" +
-                        " OIDs are correct.");
+                        "getRequest() of SNMPGet: Get request failed as " +
+                        "expected with " + connectStatus + " status.");
               } else {
                 System.out.println(
-                        "getRequest() of SNMPGet: Returned values for" +
-                        " OIDs are not correct.");
+                        "getRequest() of SNMPGet: Get request should " +
+                        "fail with " + connectStatus + " status.");
 
                 rc = 1;
               }
-            } else {
-              // Check that we obtain incorrect values for the OIDs
-              //
-              if (resp.checkForValidValues()) {
-                System.out.println(
-                        "getRequest() of SNMPGet: Returned values for" +
-                        " OIDs should not be correct.");
+            }
 
-                rc = 1;
+            previousOID = "end";
+          } else {
+            // Now we shall display the content of the result
+            //
+            SnmpVarBindList resp = request.getResponseVarBindList();
+
+            System.out.println("getRequest() of SNMPGet: Result=");
+
+            String tmpOID = "";
+            String realOID = "";
+            for (int i = 0; i < resp.getVarBindCount(); i++) {
+              tmpOID = resp.getVarBindAt(i).getOid().toString();
+              int endIndex = tmpOID.lastIndexOf(".");
+              String indexOID = tmpOID.substring(endIndex, tmpOID.length());
+
+              realOID = tmpOID.substring(0, endIndex);
+              if (realOID.startsWith("1.3.6.1.2.1.66.2")) {
+                endIndex = realOID.lastIndexOf(".");
+                realOID = realOID.substring(0, endIndex);
+              }
+
+              String name = resp.getVarBindAt(i).resolveVarName(realOID).getName();
+              String value = resp.getVarBindAt(i).getStringValue();
+              System.out.println(name + indexOID + "=" + value);
+
+              if (walk) {
+                list.removeVarBind(previousOID);
+                list.addVarBind(tmpOID);
+                previousOID = tmpOID;
               } else {
-                System.out.println(
-                        "getRequest() of SNMPGet: Returned values for" +
-                        " OIDs are not correct as expected.");
+                previousOID = "end";
+              }
+            }
+
+            if (connectStatus.compareTo("noError") != 0) {
+              // Request should failed
+              //
+              System.out.println(
+                      "getRequest() of SNMPGet: Get request should " +
+                      "fail with " + connectStatus + " status.");
+
+              rc = 1;
+            } else {
+              if (validOIDs) {
+                // Check that we obtain correct values for the OIDs
+                //
+                if (resp.checkForValidValues()) {
+                  System.out.println(
+                          "getRequest() of SNMPGet: Returned values for" +
+                          " OIDs are correct.");
+                } else {
+                  System.out.println(
+                          "getRequest() of SNMPGet: Returned values for" +
+                          " OIDs are not correct.");
+
+                  rc = 1;
+                }
+              } else {
+                // Check that we obtain incorrect values for the OIDs
+                //
+                if (resp.checkForValidValues()) {
+                  System.out.println(
+                          "getRequest() of SNMPGet: Returned values for" +
+                          " OIDs should not be correct.");
+
+                  rc = 1;
+                } else {
+                  System.out.println(
+                          "getRequest() of SNMPGet: Returned values for" +
+                          " OIDs are not correct as expected.");
+                }
               }
             }
           }
@@ -511,6 +577,7 @@ public class SNMPGet {
   String securityFile = null;
   static String connectStatus = null;
   boolean validOIDs = true;
+  boolean walk = false;
 
   // SnmpSession
   SnmpSession session = null;

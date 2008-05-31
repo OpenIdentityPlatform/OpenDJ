@@ -44,8 +44,10 @@ userEntry=localEngineID,defaultUser,,usmHMACMD5AuthProtocol,password,,,3,true
 ## BEGIN: Test users ##
 #######################
 
-userEntry=localEngineID,myUser,,usmHMACMD5AuthProtocol,mypasswd
-userEntry=localEngineID,myUser2,,usmHMACMD5AuthProtocol,mypasswd2
+userEntry=localEngineID,myUser1,,usmNoAuthProtocol
+userEntry=localEngineID,myUser2,,usmHMACMD5AuthProtocol,mypasswd
+userEntry=localEngineID,myUser3,,usmHMACMD5AuthProtocol,mypasswd,usmDESPrivProtocol,mypasswd
+userEntry=localEngineID,myUser4,,usmHMACMD5AuthProtocol,mypasswd2
 
 #######################
 ## END: Test users   ##

@@ -57,48 +57,54 @@
       <function-arg-def name="snmpPort" type="required">
         <function-arg-description>
           Directory server SNMP port number
-        </function-arg-description>      
+        </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
       <function-arg-def name="snmpOIDs" type="optional">
         <function-arg-description>
-          Bind password
+          SNMP OID to query
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
-      </function-arg-def>      
+      </function-arg-def>
       <function-arg-def name="snmpCommunity" type="required">
         <function-arg-description>
-          Bind DN
+          SNMP community/context
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
+        <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="snmpUser" type="optional">
         <function-arg-description>
-          Bind DN
+          SNMP user used for v3 requests
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
+        <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="snmpSecurityLevel" type="optional">
         <function-arg-description>
-          Bind DN
+          SNMP security level used for v3 requests
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
-      </function-arg-def>      
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
       <function-arg-def name="snmpSecurityFile" type="optional">
         <function-arg-description>
-          Bind password
+          Path to the SNMP security file
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="snmpStatus" type="required">
         <function-arg-description>
-          Bind password
+          Expected status of the SNMP request
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="snmpValidOIDs" type="optional">
         <function-arg-description>
-          Bind password
+          Check if the values returned for the OIDs are correct
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="snmpWalk" type="optional">
+        <function-arg-description>
+          Perform a walk request
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
@@ -107,70 +113,79 @@
           Expected return code value. Default value is 0
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
-        <function-arg-property name="type" value="integer"/>      
+        <function-arg-property name="type" value="integer"/>
       </function-arg-def>
     </function-map-args>
-    
+
     <sequence>
       <!-- Build the command -->
       <script>
         STAFCmdParamsList=[]
         STAFCmdParams=''
-        
+
         if snmpVersion:
-          STAFCmdParamsList.append('-v %s' % snmpVersion)          
-        
-        if snmpHost:          
+          STAFCmdParamsList.append('-v %s' % snmpVersion)
+
+        if snmpHost:
           STAFCmdParamsList.append('-h %s' % snmpHost)
-        
+
         if snmpPort:
           STAFCmdParamsList.append('-p %s' % snmpPort)
-          
+
         if snmpOIDs:
           STAFCmdParamsList.append('-o %s' % snmpOIDs)
-        
+
         if snmpCommunity:
-          STAFCmdParamsList.append('-c %s' % snmpCommunity)          
-          
+          STAFCmdParamsList.append('-c %s' % snmpCommunity)
+
         if snmpUser:
           STAFCmdParamsList.append('-u %s' % snmpUser)
 
         if snmpSecurityLevel:
-          STAFCmdParamsList.append('-l %s' % snmpSecurityLevel)  
-          
+          STAFCmdParamsList.append('-l %s' % snmpSecurityLevel)
+
         if snmpSecurityFile:
           STAFCmdParamsList.append('-f %s' % snmpSecurityFile)
-        
+
         if snmpStatus:
           STAFCmdParamsList.append('-s %s' % snmpStatus)
-        
+
         if snmpValidOIDs:
           STAFCmdParamsList.append('-n %s' % snmpValidOIDs)
-        
+
+        if snmpWalk:
+          STAFCmdParamsList.append('-w %s' % snmpWalk)
+
         STAFCmdParams=' '.join(STAFCmdParamsList)
-        
+
         STAFCmd='SNMPGet'
-        
+
         if is_windows_platform(location):
           separator=';'
         else:
           separator=':'
-        
+
         opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE)
         snmpPath='%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir)
         jdmk_jarfile='%s/jdmkrt.jar' % snmpPath
-        cp = 'CLASSPATH=%s%s%s%s.' \
-        % (opends_jarfile,separator,jdmk_jarfile,separator)
-        
-        env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp] 
+
+        emma_jarfile='%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+        if os.path.exists(emma_jarfile):
+          cp = 'CLASSPATH=%s%s%s%s%s%s.' \
+          % (opends_jarfile,separator,jdmk_jarfile,separator,emma_jarfile,separator)
+        else:
+          cp = 'CLASSPATH=%s%s%s%s.' \
+          % (opends_jarfile,separator,jdmk_jarfile,separator)
+
+        env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp]
       </script>
-      
+
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
-      
+
       <call function="'runCommand'" >
-        { 
+        {
         'name'       : 'SNMP Get' ,
         'command'    : '%s/bin/java' % JAVA_HOME ,
         'arguments'  : '%s %s' % (STAFCmd, STAFCmdParams) ,
@@ -180,11 +195,11 @@
         'expectedRC' : expectedRC
         }
       </call>
-      
+
       <return>
         STAXResult
       </return>
-      
+
     </sequence>
   </function>
 
@@ -219,48 +234,48 @@
       <function-arg-def name="snmpPort" type="required">
         <function-arg-description>
           Directory server SNMP port number
-        </function-arg-description>      
+        </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
-      </function-arg-def>  
+      </function-arg-def>
       <function-arg-def name="snmpOIDs" type="optional">
         <function-arg-description>
-          Bind password
+          SNMP OID to query
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="snmpCommunity" type="required">
         <function-arg-description>
-          Bind DN
+          SNMP community/context
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
+        <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="snmpUser" type="optional">
         <function-arg-description>
-          Bind DN
+          SNMP user used for v3 requests
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
+        <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="snmpSecurityLevel" type="optional">
         <function-arg-description>
-          Bind DN
+          SNMP security level used for v3 requests
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
-      </function-arg-def>  
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
       <function-arg-def name="snmpSecurityFile" type="optional">
         <function-arg-description>
-          Bind password
+          Path to the SNMP security file
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="snmpStatus" type="required">
         <function-arg-description>
-          Bind password
+          Expected status of the SNMP request
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="snmpValidOIDs" type="optional">
         <function-arg-description>
-          Bind password
+          Check if the values returned for the OIDs are correct
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
@@ -269,28 +284,28 @@
           Expected return code value. Default value is 0
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
-        <function-arg-property name="type" value="integer"/>      
+        <function-arg-property name="type" value="integer"/>
       </function-arg-def>
     </function-map-args>
-    
+
     <sequence>
       <!-- Build the command -->
       <script>
         STAFCmdParamsList=[]
         STAFCmdParams=''
-        
+
         if snmpVersion:
-          STAFCmdParamsList.append('-v %s' % snmpVersion)          
-        
-        if snmpHost:          
+          STAFCmdParamsList.append('-v %s' % snmpVersion)
+
+        if snmpHost:
           STAFCmdParamsList.append('-h %s' % snmpHost)
-        
+
         if snmpPort:
           STAFCmdParamsList.append('-p %s' % snmpPort)
 
         if snmpOIDs:
           STAFCmdParamsList.append('-o %s' % snmpOIDs)
-          
+
         if snmpCommunity:
           STAFCmdParamsList.append('-c %s' % snmpCommunity)
 
@@ -298,41 +313,47 @@
           STAFCmdParamsList.append('-u %s' % snmpUser)
 
         if snmpSecurityLevel:
-          STAFCmdParamsList.append('-l %s' % snmpSecurityLevel)  
-          
+          STAFCmdParamsList.append('-l %s' % snmpSecurityLevel)
+
         if snmpSecurityFile:
-          STAFCmdParamsList.append('-f %s' % snmpSecurityFile)  
-        
+          STAFCmdParamsList.append('-f %s' % snmpSecurityFile)
+
         if snmpStatus:
           STAFCmdParamsList.append('-s %s' % snmpStatus)
-        
+
         if snmpValidOIDs:
           STAFCmdParamsList.append('-n %s' % snmpValidOIDs)
-        
+
         STAFCmdParams=' '.join(STAFCmdParamsList)
-        
+
         STAFCmd='SNMPSet'
-        
+
         if is_windows_platform(location):
           separator=';'
         else:
           separator=':'
-          
+
         opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE)
         snmpPath='%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir)
         jdmk_jarfile='%s/jdmkrt.jar' % snmpPath
-        cp = 'CLASSPATH=%s%s%s%s.' \
-        % (opends_jarfile,separator,jdmk_jarfile,separator)
-        
-        env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp] 
+
+        emma_jarfile='%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+        if os.path.exists(emma_jarfile):
+          cp = 'CLASSPATH=%s%s%s%s%s%s.' \
+          % (opends_jarfile,separator,jdmk_jarfile,separator,emma_jarfile,separator)
+        else:
+          cp = 'CLASSPATH=%s%s%s%s.' \
+          % (opends_jarfile,separator,jdmk_jarfile,separator)
+
+        env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp]
       </script>
-      
+
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
-      
+
       <call function="'runCommand'" >
-        { 
+        {
         'name'       : 'SNMP Set' ,
         'command'    : '%s/bin/java' % JAVA_HOME ,
         'arguments'  : '%s %s' % (STAFCmd, STAFCmdParams) ,
@@ -342,11 +363,11 @@
         'expectedRC' : expectedRC
         }
       </call>
-      
+
       <return>
         STAXResult
       </return>
-      
+
     </sequence>
   </function>
 
@@ -367,24 +388,24 @@
       <function-arg-def name="snmpHost" type="required">
         <function-arg-description>
           Directory server SNMP port number
-        </function-arg-description>      
+        </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
-      </function-arg-def>        
+      </function-arg-def>
       <function-arg-def name="snmpTrapPort" type="required">
         <function-arg-description>
           Directory server SNMP port number
-        </function-arg-description>      
+        </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
-      </function-arg-def>  
+      </function-arg-def>
       <function-arg-def name="snmpTrapCommunity" type="required">
         <function-arg-description>
-          Bind DN
+          SNMP trap community
         </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
-      </function-arg-def>  
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
       <function-arg-def name="snmpTrapNumber" type="required">
         <function-arg-description>
-          Bind password
+          Number of expected traps
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
@@ -393,61 +414,61 @@
           Expected return code value. Default value is 0
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
-        <function-arg-property name="type" value="integer"/>      
+        <function-arg-property name="type" value="integer"/>
       </function-arg-def>
     </function-map-args>
-    
+
     <sequence>
       <call function="'ResolveVar'" >
-        { 
+        {
         'location' : location ,
         'type'     : 'STRING',
         'name'     : 'STAF/Config/STAFRoot'
         }
-      </call>                                                       
-      <script>jstaf_jarfile = '%s/lib/JSTAF.jar' % STAFResult</script> 
-      
+      </call>
+      <script>jstaf_jarfile = '%s/lib/JSTAF.jar' % STAFResult</script>
+
       <!-- Build the command -->
       <script>
         STAFCmdParamsList=[]
         STAFCmdParams=''
-        
+
         if snmpHost:
-          STAFCmdParamsList.append('-h %s' % snmpHost)          
-        
+          STAFCmdParamsList.append('-h %s' % snmpHost)
+
         if snmpTrapPort:
           STAFCmdParamsList.append('-p %s' % snmpTrapPort)
-          
+
         if snmpTrapCommunity:
           STAFCmdParamsList.append('-c %s' % snmpTrapCommunity)
-          
+
         if snmpTrapNumber:
           STAFCmdParamsList.append('-t %s' % snmpTrapNumber)
-          
+
         STAFCmdParams=' '.join(STAFCmdParamsList)
-        
+
         STAFCmd='SNMPTrapListener'
-        
+
         if is_windows_platform(location):
           separator=';'
         else:
           separator=':'
-          
+
         opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE)
         snmpPath='%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir)
         jdmk_jarfile='%s/jdmkrt.jar' % snmpPath
         cp = 'CLASSPATH=%s%s%s%s%s%s.' \
         % (opends_jarfile,separator,jdmk_jarfile,separator,jstaf_jarfile,separator)
-        
-        env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp] 
+
+        env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp]
       </script>
-      
+
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
-      
+
       <call function="'runCommand'" >
-        { 
+        {
         'name'       : 'SNMP Trap Listener' ,
         'command'    : '%s/bin/java' % JAVA_HOME ,
         'arguments'  : '%s %s' % (STAFCmd, STAFCmdParams) ,
@@ -457,11 +478,215 @@
         'expectedRC' : expectedRC
         }
       </call>
-      
+
       <return>
         STAXResult
       </return>
-      
+
     </sequence>
   </function>
+
+  <!-- Restart SNMP Connection Handler -->
+  <function name="restartSNMPConnectionHandler" scope="local">
+    <function-prolog>
+      This function restart the SNMP Connection Handler using dsconfig
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath" />
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
+      </function-arg-def>
+
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+    </function-map-args>
+
+    <sequence>
+      <!-- Build the command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder)
+
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+
+        if dsInstancePort:
+          STAFCmdParamsList.append('-p %s' % dsInstancePort)
+
+        if dsInstanceDn:
+          STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
+
+        if dsInstancePswd:
+          STAFCmdParamsList.append('-w "%s"' % dsInstancePswd)
+
+        STAFCmdParamsList.append('-n')
+
+        STAFCmdParamsList.append('set-connection-handler-prop')
+        STAFCmdParamsList.append('--handler-name "SNMP Connection Handler"')
+
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+
+        STAFCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
+      </script>
+
+      <call function="'runCommand'">
+        {
+        'name'      : 'Disable the SNMP Connection Handler' ,
+        'location'  : location ,
+        'command'   : STAFCmd ,
+        'arguments' : '%s --set enabled:false' % STAFCmdParams ,
+        'expectedRC': expectedRC
+        }
+      </call>
+
+      <call function="'runCommand'">
+        {
+        'name'      : 'Enable the SNMP Connection Handler' ,
+        'location'  : location ,
+        'command'   : STAFCmd ,
+        'arguments' : '%s --set enabled:true' % STAFCmdParams ,
+        'expectedRC': expectedRC
+        }
+      </call>
+
+      <return>
+        STAXResult
+      </return>
+
+    </sequence>
+  </function>
+
+  <!-- Compare SNMP values -->
+  <function name="compareSNMPValues" scope="local">
+    <function-prolog>
+      This function compare SNMP Values
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      <function-arg-def name="snmpHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      <function-arg-def name="snmpPort" type="required">
+        <function-arg-description>
+          Directory server SNMP port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="snmpCommunity" type="required">
+        <function-arg-description>
+          SNMP community/context
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <message>
+        'get the current mib values'
+      </message>
+
+      <call function="'SNMPGet'">
+        {
+        'location'      : location ,
+        'snmpVersion'   : '1',
+        'snmpHost'      : snmpHost ,
+        'snmpPort'      : snmpPort ,
+        'snmpCommunity' : snmpCommunity ,
+        'snmpOIDs'      : '' ,
+        'snmpStatus'    : 'noError' ,
+        'snmpWalk'      : 'True' ,
+        'expectedRC'    : expectedRC
+        }
+      </call>
+
+      <script>
+        CURRENT_VALUES = {}
+        CURRENT_VALUES = create_table_fromoutput(STAXResult[0][1])
+
+        result = compare_snmp_values(DEFAULT_VALUES, CURRENT_VALUES)
+      </script>
+
+      <message>
+        'result: %s' % result
+      </message>
+
+      <call function="'checktestStringNotPresent'">
+        {
+        'returnString' : result ,
+        'testString'   : 'ERROR'
+        }
+      </call>
+
+      <return>
+        STAXResult
+      </return>
+
+    </sequence>
+  </function>
+
 </stax>

@@ -207,6 +207,11 @@ public class SNMPSet {
           // Custom engine parameters
           final SnmpEngineParameters engineParameters =
                   new SnmpEngineParameters();
+          
+          // Activate encryption
+          engineParameters.activateEncryption();
+          
+          // Set the security file
           engineParameters.setSecurityFile(securityFile);
 
           // Create the session
