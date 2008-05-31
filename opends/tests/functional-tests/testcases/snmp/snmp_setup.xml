@@ -183,6 +183,99 @@
 
               <!--- Test Case information
                 #@TestMarker          setup
+                #@TestName            setup: get default SNMP connection handler
+                                      properties
+                #@TestIssue           none
+                #@TestPurpose         Get default SNMP connection handler
+                                      properties.
+                #@TestPreamble        none
+                #@TestStep            get default SNMP connection handler
+                                      properties using dsconfig.
+                #@TestPostamble       none
+                #@TestResult          Success if GetDSConfigProperties returns 0
+              -->
+              <testcase name="getTestCaseName
+              ('setup: get default SNMP Connection Handler properties')">
+
+                <sequence>
+
+                  <call function="'testCase_Preamble'"/>
+
+                  <message>
+                    'setup: get default SNMP Connection Handler properties'
+                  </message>
+
+                  <script>
+                    options = '--handler-name "SNMP Connection Handler"'
+                  </script>
+
+                  <call function="'GetDSConfigProperties'">
+                    {
+                    'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'  : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'    : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
+                    'subcommand'      : 'get-connection-handler-prop' ,
+                    'optionsString'   : options ,
+                    'myVariableName'  : 'DEFAULT_PROPERTIES'
+                    }
+                  </call>
+
+                  <call function="'testCase_Postamble'"/>
+
+                </sequence>
+
+              </testcase>
+
+              <!--- Test Case information
+                #@TestMarker          setup
+                #@TestName            setup: check SNMP Connection Handler is
+                                      disabled
+                #@TestIssue           none
+                #@TestPurpose         Check SNMP Connection Handler is disabled.
+                #@TestPreamble        none
+                #@TestStep            check SNMP Connection Handler is
+                                      disabled using status command
+                #@TestPostamble       none
+                #@TestResult          Success if output of status is correct.
+              -->
+              <testcase name="getTestCaseName
+              ('setup: check SNMP Connection Handler is disabled')">
+
+                <sequence>
+
+                  <call function="'testCase_Preamble'"/>
+
+                  <message>
+                    'setup: check SNMP Connection Handler is disabled'
+                  </message>
+
+                  <call function="'StatusWithScript'">
+                    {
+                    'dsBindDN'  : DIRECTORY_INSTANCE_DN ,
+                    'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+                    }
+                  </call>
+
+                  <script>
+                    returnString = STAXResult[0][1]
+                  </script>
+
+                  <call function="'checktestString'">
+                    {
+                    'returnString'   : returnString ,
+                    'expectedString' : ': SNMP     : Disabled'
+                    }
+                  </call>
+
+                  <call function="'testCase_Postamble'"/>
+
+                </sequence>
+
+              </testcase>
+
+              <!--- Test Case information
+                #@TestMarker          setup
                 #@TestName            setup: enable SNMP Connection Handler
                 #@TestIssue           none
                 #@TestPurpose         Enable SNMP Connection Handler.
@@ -225,10 +318,57 @@
                 </sequence>
 
               </testcase>
-              
+
               <!--- Test Case information
                 #@TestMarker          setup
-                #@TestName            setup: get SNMP connection handler 
+                #@TestName            setup: check SNMP Connection Handler is
+                                      enabled
+                #@TestIssue           none
+                #@TestPurpose         Check SNMP Connection Handler is enabled.
+                #@TestPreamble        none
+                #@TestStep            check SNMP Connection Handler is
+                                      enabled using status command
+                #@TestPostamble       none
+                #@TestResult          Success if output of status is correct.
+              -->
+              <testcase name="getTestCaseName
+              ('setup: check SNMP Connection Handler is enabled')">
+
+                <sequence>
+
+                  <call function="'testCase_Preamble'"/>
+
+                  <message>
+                    'setup: check SNMP Connection Handler is enabled'
+                  </message>
+
+                  <call function="'StatusWithScript'">
+                    {
+                    'dsBindDN'  : DIRECTORY_INSTANCE_DN ,
+                    'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+                    }
+                  </call>
+
+                  <script>
+                    returnString = STAXResult[0][1]
+                  </script>
+
+                  <call function="'checktestString'">
+                    {
+                    'returnString'   : returnString ,
+                    'expectedString' : ': SNMP     : Enabled'
+                    }
+                  </call>
+
+                  <call function="'testCase_Postamble'"/>
+
+                </sequence>
+
+              </testcase>
+
+              <!--- Test Case information
+                #@TestMarker          setup
+                #@TestName            setup: get SNMP connection handler
                                       properties
                 #@TestIssue           none
                 #@TestPurpose         Get SNMP connection handler properties.
@@ -248,11 +388,11 @@
                   <message>
                     'setup: get SNMP Connection Handler properties'
                   </message>
-             
-                  <script>  
+
+                  <script>
                     options = '--handler-name "SNMP Connection Handler"'
                   </script>
-                  
+
                   <call function="'GetDSConfigProperties'">
                     {
                     'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
@@ -264,13 +404,13 @@
                     'myVariableName'  : 'SNMP_PROPERTIES'
                     }
                   </call>
-              
+
                   <call function="'testCase_Postamble'"/>
 
                 </sequence>
 
               </testcase>
-              
+
             </sequence>
             <else>
               <sequence>
