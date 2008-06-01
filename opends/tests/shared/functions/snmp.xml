@@ -409,6 +409,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="outputFile" type="required">
+        <function-arg-description>
+          File to which the output should be written
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
@@ -466,15 +472,18 @@
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
-
+              <message>
+                'TOFTOF: %s' % outputFile
+              </message>
       <call function="'runCommand'" >
         {
         'name'       : 'SNMP Trap Listener' ,
         'command'    : '%s/bin/java' % JAVA_HOME ,
         'arguments'  : '%s %s' % (STAFCmd, STAFCmdParams) ,
         'location'   : location ,
-        'path'       : '%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir),
+        'path'       : snmpPath ,
         'env'        : env ,
+        'outputFile' : outputFile ,
         'expectedRC' : expectedRC
         }
       </call>
@@ -644,7 +653,7 @@
         <function-arg-property name="type" value="integer"/>
       </function-arg-def>
     </function-map-args>
-    
+
     <sequence>
       <message>
         'get the current mib values'
@@ -689,4 +698,124 @@
     </sequence>
   </function>
 
+  <!-- Check timer result -->
+  <function name="checkTimerResult" scope="local">
+    <function-prolog>
+      This function compare SNMP Values
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      <function-arg-def name="outputFile" type="required">
+        <function-arg-description>
+          File containing output
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="timerDuration" type="required">
+        <function-arg-description>
+          Timer duration
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="timerRC" type="required">
+        <function-arg-description>
+          Return code value of the timer
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+    </function-map-args>
+
+    <sequence>
+      
+      <if expr="timerRC == 1 or timerRC == 0">
+        <sequence>
+          
+          <if expr="timerRC == 0">
+            <sequence>
+              <tcstatus result="'pass'"></tcstatus>
+              
+              <message>
+                'Process TrapListener ended before timer duration: %s' \
+                % timerDuration
+              </message>
+              
+              <stafcmd name="'Delete file %s' % outputFile">
+                <location>location</location>
+                <service>'FS'</service>
+                <request>'DELETE ENTRY %s CONFIRM' % outputFile</request>
+              </stafcmd>
+            </sequence>
+            <else>
+              <sequence>
+                <tcstatus result="'fail'"></tcstatus>
+                
+                <message>
+                  'Process TrapListener still running after timer duration: %s' \
+                  % timerDuration
+                </message>
+                
+                <stafcmd name="'Get output from TrapListener'">
+                  <location>location</location>
+                  <service>'FS'</service>
+                  <request>'GET FILE %s' % outputFile</request>
+                </stafcmd>
+                
+                <if expr="RC == 0">
+                  <sequence>
+                    <log message="1">'Output:%s' % STAFResult</log>
+                    
+                    <stafcmd name="'Delete file %s' % outputFile">
+                      <location>location</location>
+                      <service>'FS'</service>
+                      <request>'DELETE ENTRY %s CONFIRM' % outputFile</request>
+                    </stafcmd>
+                  </sequence>
+                  <else>
+                    <log message="1">
+                      'STAF %s FS GET FILE %s failed with RC=%s Result=%s' % \
+                      (location, outputFile, RC, STAFResult)
+                    </log>
+                  </else>
+                </if>
+                
+                <message>
+                  'Delete event from the trap listener'
+                </message>
+                
+                <call function="'DeleteEvent'">
+                  {
+                  'location' : location ,
+                  'name'     : 'SNMPTrapListener/Ready'
+                  }
+                </call>
+                
+                <message>
+                  'Delete event from the trap listener'
+                </message>
+                
+                <call function="'DeleteEvent'">
+                  {
+                  'location' : location ,
+                  'name'     : 'SendTrap/Complete'
+                  }
+                </call>
+              </sequence>
+            </else>
+          </if>
+        </sequence>
+        <else>
+          <tcstatus result="'fail'">'Timer failed to begin.'</tcstatus>
+        </else>
+      </if>
+      
+    </sequence>
+  </function>
+  
 </stax>

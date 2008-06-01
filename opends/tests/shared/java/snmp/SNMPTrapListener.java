@@ -170,9 +170,9 @@ public class SNMPTrapListener implements SnmpTrapListener {
 
       // Post event to notice that the trap listener is ready
       System.out.println(
-              "run() of SNMPTrapListener: Send \"SNMPTrapLister/Ready\" event" +
-              " to " + remoteHost + ".");
-      handle.submit2(remoteHost, "SEM", "PULSE EVENT SNMPTrapLister/Ready");
+              "run() of SNMPTrapListener: Send \"SNMPTrapListener/Ready\"" +
+              " event to " + remoteHost + ".");
+      handle.submit2(remoteHost, "SEM", "PULSE EVENT SNMPTrapListener/Ready");
 
       // Wait event which notices that all the traps have been sent
       System.out.println(
