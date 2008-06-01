@@ -50,7 +50,7 @@ def create_table_fromoutput(output):
 
     return table
 
-def compare_snmp_values(refTable, newTable):
+def compare_snmp_values(refTable, newTable, index):
     import re
 
     result = ''
@@ -67,18 +67,18 @@ def compare_snmp_values(refTable, newTable):
         result = result + 'ERROR: Entry ' + refKey + ' does not exists'
         result = result + ' in the new table.\n'
       else:
-        result = result + refKey + '=> expected: ' + refTable[refKey] 
+        result = result + refKey + '=> expected: ' + refTable[refKey]
         result = result + ' , result: ' + newTable[refKey] + '\n'
 
-      pattern1 = re.compile('dsApplIfOutBytes.*')
-      pattern2 = re.compile('dsApplIfInBytes.*')
-      if pattern1.search(refKey) != None or pattern2.search(refKey) != None:
-        if refTable[refKey] > newTable[refKey]:
-          result = result + 'ERROR: Value for ' + refKey 
+      pattern1 = 'dsApplIfOutBytes.%s' % index
+      pattern2 = 'dsApplIfInBytes.%s' % index
+      if refKey == pattern1 or refKey == pattern2:
+        if int(newTable[refKey]) <= int(refTable[refKey]):
+          result = result + 'ERROR: Value for ' + refKey
           result = result + ' should be greater.\n'
       else:
         if refTable[refKey] != newTable[refKey]:
-          result = result + 'ERROR: Value for ' + refKey 
+          result = result + 'ERROR: Value for ' + refKey
           result = result + ' should be the same.\n'
 
     return result

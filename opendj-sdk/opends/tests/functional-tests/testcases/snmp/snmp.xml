@@ -55,7 +55,7 @@
           <script>
             STOP_RUN = 'False'
             SNMP_PROPERTIES = {}
-            
+
             testList = []
             testList.append(['.','snmp_setup'])
             testList.append(['.','snmp_defaultproperties'])
@@ -63,7 +63,7 @@
             testList.append(['.','snmp_v2c_defaultconf'])
             testList.append(['.','snmp_v3_defaultconf'])
             testList.append(['.','snmp_trap_defaultconf'])
-            #testList.append(['.','snmp_mibvalues'])
+            testList.append(['.','snmp_mibvalues'])
             testList.append(['.','snmp_v1_customconf'])
             testList.append(['.','snmp_v2c_customconf'])
             testList.append(['.','snmp_v3_customconf'])

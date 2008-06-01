@@ -645,6 +645,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="index" type="required">
+        <function-arg-description>
+          Index for the out/in bytes check
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
@@ -677,7 +683,7 @@
         CURRENT_VALUES = {}
         CURRENT_VALUES = create_table_fromoutput(STAXResult[0][1])
 
-        result = compare_snmp_values(DEFAULT_VALUES, CURRENT_VALUES)
+        result = compare_snmp_values(DEFAULT_VALUES, CURRENT_VALUES, index)
       </script>
 
       <message>
@@ -733,19 +739,19 @@
     </function-map-args>
 
     <sequence>
-      
+
       <if expr="timerRC == 1 or timerRC == 0">
         <sequence>
-          
+
           <if expr="timerRC == 0">
             <sequence>
               <tcstatus result="'pass'"></tcstatus>
-              
+
               <message>
                 'Process TrapListener ended before timer duration: %s' \
                 % timerDuration
               </message>
-              
+
               <stafcmd name="'Delete file %s' % outputFile">
                 <location>location</location>
                 <service>'FS'</service>
@@ -755,22 +761,22 @@
             <else>
               <sequence>
                 <tcstatus result="'fail'"></tcstatus>
-                
+
                 <message>
                   'Process TrapListener still running after timer duration: %s' \
                   % timerDuration
                 </message>
-                
+
                 <stafcmd name="'Get output from TrapListener'">
                   <location>location</location>
                   <service>'FS'</service>
                   <request>'GET FILE %s' % outputFile</request>
                 </stafcmd>
-                
+
                 <if expr="RC == 0">
                   <sequence>
                     <log message="1">'Output:%s' % STAFResult</log>
-                    
+
                     <stafcmd name="'Delete file %s' % outputFile">
                       <location>location</location>
                       <service>'FS'</service>
@@ -784,22 +790,22 @@
                     </log>
                   </else>
                 </if>
-                
+
                 <message>
                   'Delete event from the trap listener'
                 </message>
-                
+
                 <call function="'DeleteEvent'">
                   {
                   'location' : location ,
                   'name'     : 'SNMPTrapListener/Ready'
                   }
                 </call>
-                
+
                 <message>
                   'Delete event from the trap listener'
                 </message>
-                
+
                 <call function="'DeleteEvent'">
                   {
                   'location' : location ,
@@ -814,8 +820,8 @@
           <tcstatus result="'fail'">'Timer failed to begin.'</tcstatus>
         </else>
       </if>
-      
+
     </sequence>
   </function>
-  
+
 </stax>
