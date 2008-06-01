@@ -57,7 +57,8 @@
             newTrapsCommunityProp = 'myCommunity'
             newTrapsDestProp = DIRECTORY_INSTANCE_HOST
             wrongTrapsDestProp = 'wrongtrapdestination'
-            timerDuration = '5m'
+            outputFile2 = '%s/timer.out' % DIRECTORY_INSTANCE_DIR
+            timerDuration2 = '5m'
           </script>
 
           <!--- Test Case information
@@ -71,7 +72,7 @@
             #@TestResult          TODO.
           -->
           <testcase name="getTestCaseName
-          ('trap_customconf: trap on stop-ds')">
+          ('trap_customconf: change the community property')">
 
             <sequence>
 
@@ -106,7 +107,7 @@
                 }
               </call>
 
-              <timer duration="timerDuration">
+              <timer duration="timerDuration2">
                 <sequence>
                   <parallel>
                     <sequence>
@@ -120,7 +121,8 @@
                         'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
                         'snmpTrapCommunity' : defTrapsCommunityProp ,
-                        'snmpTrapNumber'    : '0,2,0,0,0,0'
+                        'snmpTrapNumber'    : '0,2,0,0,0,0' ,
+                        'outputFile'        : outputFile2
                         }
                       </call>
                     </sequence>
@@ -132,7 +134,7 @@
                       <call function="'WaitEvent'">
                         {
                         'location' : STAF_REMOTE_HOSTNAME ,
-                        'name'     : 'SNMPTrapLister/Ready'
+                        'name'     : 'SNMPTrapListener/Ready'
                         }
                       </call>
 
@@ -142,7 +144,7 @@
                       <call function="'DeleteEvent'">
                         {
                         'location' : STAF_REMOTE_HOSTNAME ,
-                        'name'     : 'SNMPTrapLister/Ready'
+                        'name'     : 'SNMPTrapListener/Ready'
                         }
                       </call>
 
@@ -171,37 +173,18 @@
                 </sequence>
               </timer>
 
-              <script>timerRC = RC</script>
+              <script>timerRC2 = RC</script>
 
-              <if expr="timerRC == 1">
-                <sequence>
-                  <tcstatus result="'fail'"></tcstatus>
+              <call function="'checkTimerResult'">
+                {
+                'location'      : STAF_REMOTE_HOSTNAME ,
+                'outputFile'    : outputFile2 ,
+                'timerDuration' : timerDuration2 ,
+                'timerRC'       : timerRC2
+                }
+              </call>
 
-                  <message>
-                    'trap_customconf: timeout occurred'
-                  </message>
-                  <message>
-                    'trap_customconf: delete event from the trap listener'
-                  </message>
-                  <call function="'DeleteEvent'">
-                    {
-                    'location' : STAF_REMOTE_HOSTNAME ,
-                    'name'     : 'SNMPTrapLister/Ready'
-                    }
-                  </call>
-                  <message>
-                    'trap_customconf: delete event from the trap listener'
-                  </message>
-                  <call function="'DeleteEvent'">
-                    {
-                    'location' : STAF_REMOTE_HOSTNAME ,
-                    'name'     : 'SendTrap/Complete'
-                    }
-                  </call>
-                </sequence>
-              </if>
-
-              <timer duration="timerDuration">
+              <timer duration="timerDuration2">
                 <sequence>
                   <parallel>
                     <sequence>
@@ -215,7 +198,8 @@
                         'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
                         'snmpTrapCommunity' : newTrapsCommunityProp ,
-                        'snmpTrapNumber'    : '2,0,0,0,0,0'
+                        'snmpTrapNumber'    : '2,0,0,0,0,0' ,
+                        'outputFile'        : outputFile2
                         }
                       </call>
                     </sequence>
@@ -227,7 +211,7 @@
                       <call function="'WaitEvent'">
                         {
                         'location' : STAF_REMOTE_HOSTNAME ,
-                        'name'     : 'SNMPTrapLister/Ready'
+                        'name'     : 'SNMPTrapListener/Ready'
                         }
                       </call>
 
@@ -237,7 +221,7 @@
                       <call function="'DeleteEvent'">
                         {
                         'location' : STAF_REMOTE_HOSTNAME ,
-                        'name'     : 'SNMPTrapLister/Ready'
+                        'name'     : 'SNMPTrapListener/Ready'
                         }
                       </call>
 
@@ -266,35 +250,16 @@
                 </sequence>
               </timer>
 
-              <script>timerRC = RC</script>
+              <script>timerRC2 = RC</script>
 
-              <if expr="timerRC == 1">
-                <sequence>
-                  <tcstatus result="'fail'"></tcstatus>
-
-                  <message>
-                    'trap_customconf: timeout occurred'
-                  </message>
-                  <message>
-                    'trap_customconf: delete event from the trap listener'
-                  </message>
-                  <call function="'DeleteEvent'">
-                    {
-                    'location' : STAF_REMOTE_HOSTNAME ,
-                    'name'     : 'SNMPTrapLister/Ready'
-                    }
-                  </call>
-                  <message>
-                    'trap_customconf: delete event from the trap listener'
-                  </message>
-                  <call function="'DeleteEvent'">
-                    {
-                    'location' : STAF_REMOTE_HOSTNAME ,
-                    'name'     : 'SendTrap/Complete'
-                    }
-                  </call>
-                </sequence>
-              </if>
+              <call function="'checkTimerResult'">
+                {
+                'location'      : STAF_REMOTE_HOSTNAME ,
+                'outputFile'    : outputFile2 ,
+                'timerDuration' : timerDuration2 ,
+                'timerRC'       : timerRC2
+                }
+              </call>
 
               <message>
                 'trap_customconf: restore the traps-community property'
@@ -344,7 +309,7 @@
             #@TestResult          TODO.
           -->
           <testcase name="getTestCaseName
-          ('trap_customconf: set traps-destination property to a correct value')">
+          ('trap_customconf: set traps-destination property to correct value')">
 
             <sequence>
 
@@ -381,7 +346,7 @@
                 }
               </call>
 
-              <timer duration="timerDuration">
+              <timer duration="timerDuration2">
                 <sequence>
                   <parallel>
                     <sequence>
@@ -395,7 +360,8 @@
                         'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
                         'snmpTrapCommunity' : defTrapsCommunityProp ,
-                        'snmpTrapNumber'    : '2,0,0,0,0,0'
+                        'snmpTrapNumber'    : '2,0,0,0,0,0' ,
+                        'outputFile'        : outputFile2
                         }
                       </call>
                     </sequence>
@@ -407,7 +373,7 @@
                       <call function="'WaitEvent'">
                         {
                         'location' : STAF_REMOTE_HOSTNAME ,
-                        'name'     : 'SNMPTrapLister/Ready'
+                        'name'     : 'SNMPTrapListener/Ready'
                         }
                       </call>
 
@@ -417,7 +383,7 @@
                       <call function="'DeleteEvent'">
                         {
                         'location' : STAF_REMOTE_HOSTNAME ,
-                        'name'     : 'SNMPTrapLister/Ready'
+                        'name'     : 'SNMPTrapListener/Ready'
                         }
                       </call>
 
@@ -446,35 +412,16 @@
                 </sequence>
               </timer>
 
-              <script>timerRC = RC</script>
+              <script>timerRC2 = RC</script>
 
-              <if expr="timerRC == 1">
-                <sequence>
-                  <tcstatus result="'fail'"></tcstatus>
-
-                  <message>
-                    'trap_customconf: timeout occurred'
-                  </message>
-                  <message>
-                    'trap_customconf: delete event from the trap listener'
-                  </message>
-                  <call function="'DeleteEvent'">
-                    {
-                    'location' : STAF_REMOTE_HOSTNAME ,
-                    'name'     : 'SNMPTrapLister/Ready'
-                    }
-                  </call>
-                  <message>
-                    'trap_customconf: delete event from the trap listener'
-                  </message>
-                  <call function="'DeleteEvent'">
-                    {
-                    'location' : STAF_REMOTE_HOSTNAME ,
-                    'name'     : 'SendTrap/Complete'
-                    }
-                  </call>
-                </sequence>
-              </if>
+              <call function="'checkTimerResult'">
+                {
+                'location'      : STAF_REMOTE_HOSTNAME ,
+                'outputFile'    : outputFile2 ,
+                'timerDuration' : timerDuration2 ,
+                'timerRC'       : timerRC2
+                }
+              </call>
 
               <message>
                 'trap_customconf: restore the traps-destination property'
@@ -560,7 +507,7 @@
                 }
               </call>
 
-              <timer duration="timerDuration">
+              <timer duration="timerDuration2">
                 <sequence>
                   <parallel>
                     <sequence>
@@ -574,7 +521,8 @@
                         'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
                         'snmpTrapCommunity' : defTrapsCommunityProp ,
-                        'snmpTrapNumber'    : '0,0,0,0,0,0'
+                        'snmpTrapNumber'    : '0,0,0,0,0,0' ,
+                        'outputFile'        : outputFile2
                         }
                       </call>
                     </sequence>
@@ -586,7 +534,7 @@
                       <call function="'WaitEvent'">
                         {
                         'location' : STAF_REMOTE_HOSTNAME ,
-                        'name'     : 'SNMPTrapLister/Ready'
+                        'name'     : 'SNMPTrapListener/Ready'
                         }
                       </call>
 
@@ -596,7 +544,7 @@
                       <call function="'DeleteEvent'">
                         {
                         'location' : STAF_REMOTE_HOSTNAME ,
-                        'name'     : 'SNMPTrapLister/Ready'
+                        'name'     : 'SNMPTrapListener/Ready'
                         }
                       </call>
 
@@ -625,35 +573,16 @@
                 </sequence>
               </timer>
 
-              <script>timerRC = RC</script>
+              <script>timerRC2 = RC</script>
 
-              <if expr="timerRC == 1">
-                <sequence>
-                  <tcstatus result="'fail'"></tcstatus>
-
-                  <message>
-                    'trap_customconf: timeout occurred'
-                  </message>
-                  <message>
-                    'trap_customconf: delete event from the trap listener'
-                  </message>
-                  <call function="'DeleteEvent'">
-                    {
-                    'location' : STAF_REMOTE_HOSTNAME ,
-                    'name'     : 'SNMPTrapLister/Ready'
-                    }
-                  </call>
-                  <message>
-                    'trap_customconf: delete event from the trap listener'
-                  </message>
-                  <call function="'DeleteEvent'">
-                    {
-                    'location' : STAF_REMOTE_HOSTNAME ,
-                    'name'     : 'SendTrap/Complete'
-                    }
-                  </call>
-                </sequence>
-              </if>
+              <call function="'checkTimerResult'">
+                {
+                'location'      : STAF_REMOTE_HOSTNAME ,
+                'outputFile'    : outputFile2 ,
+                'timerDuration' : timerDuration2 ,
+                'timerRC'       : timerRC2
+                }
+              </call>
 
               <message>
                 'trap_customconf: restore the traps-destination property'
@@ -684,11 +613,11 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
                 }
               </call>
-              
+
               <script>
                 knownIssue(3304)
               </script>
-              
+
               <call function="'testCase_Postamble'"/>
 
             </sequence>
@@ -727,7 +656,7 @@
                 'objectName'       : 'SNMP Connection Handler' ,
                 'optionsString'    : '--add traps-destination:%s \
                                       --add traps-destination:%s' \
-                          % (wrongTrapsDestProp, newTrapsDestProp)
+                                     % (wrongTrapsDestProp, newTrapsDestProp)
                 }
               </call>
 
@@ -744,7 +673,7 @@
                 }
               </call>
 
-              <timer duration="timerDuration">
+              <timer duration="timerDuration2">
                 <sequence>
                   <parallel>
                     <sequence>
@@ -758,7 +687,8 @@
                         'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
                         'snmpTrapCommunity' : defTrapsCommunityProp ,
-                        'snmpTrapNumber'    : '2,0,0,0,0,0'
+                        'snmpTrapNumber'    : '2,0,0,0,0,0' ,
+                        'outputFile'        : outputFile2
                         }
                       </call>
                     </sequence>
@@ -770,7 +700,7 @@
                       <call function="'WaitEvent'">
                         {
                         'location' : STAF_REMOTE_HOSTNAME ,
-                        'name'     : 'SNMPTrapLister/Ready'
+                        'name'     : 'SNMPTrapListener/Ready'
                         }
                       </call>
 
@@ -780,7 +710,7 @@
                       <call function="'DeleteEvent'">
                         {
                         'location' : STAF_REMOTE_HOSTNAME ,
-                        'name'     : 'SNMPTrapLister/Ready'
+                        'name'     : 'SNMPTrapListener/Ready'
                         }
                       </call>
 
@@ -809,35 +739,16 @@
                 </sequence>
               </timer>
 
-              <script>timerRC = RC</script>
+              <script>timerRC2 = RC</script>
 
-              <if expr="timerRC == 1">
-                <sequence>
-                  <tcstatus result="'fail'"></tcstatus>
-
-                  <message>
-                    'trap_customconf: timeout occurred'
-                  </message>
-                  <message>
-                    'trap_customconf: delete event from the trap listener'
-                  </message>
-                  <call function="'DeleteEvent'">
-                    {
-                    'location' : STAF_REMOTE_HOSTNAME ,
-                    'name'     : 'SNMPTrapLister/Ready'
-                    }
-                  </call>
-                  <message>
-                    'trap_customconf: delete event from the trap listener'
-                  </message>
-                  <call function="'DeleteEvent'">
-                    {
-                    'location' : STAF_REMOTE_HOSTNAME ,
-                    'name'     : 'SendTrap/Complete'
-                    }
-                  </call>
-                </sequence>
-              </if>
+              <call function="'checkTimerResult'">
+                {
+                'location'      : STAF_REMOTE_HOSTNAME ,
+                'outputFile'    : outputFile2 ,
+                'timerDuration' : timerDuration2 ,
+                'timerRC'       : timerRC2
+                }
+              </call>
 
               <message>
                 'trap_customconf: restore the traps-destination property'
@@ -932,7 +843,7 @@
             </sequence>
 
           </testcase>
-          
+
           <call function="'testSuite_Postamble'"/>
 
         </sequence>

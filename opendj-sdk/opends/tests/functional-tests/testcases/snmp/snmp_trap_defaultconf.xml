@@ -50,13 +50,14 @@
           </script>
 
           <call function="'testSuite_Preamble'"/>
-          
-          <!--- Define default value for community -->          
+
+          <!--- Define default value for community -->
           <script>
             trapsCommunity = '%s' % SNMP_PROPERTIES['traps-community']
+            outputFile = '%s/timer.out' % DIRECTORY_INSTANCE_DIR
             timerDuration = '5m'
           </script>
-          
+
           <!--- Test Case information
             #@TestMarker          SNMP trap with default configuration
             #@TestName            trap_defaultconf: trap on stop-ds
@@ -77,7 +78,7 @@
           <testcase name="getTestCaseName('trap_defaultconf: trap on stop-ds')">
 
             <sequence>
-              
+
               <timer duration="timerDuration">
                 <sequence>
                   <parallel>
@@ -85,14 +86,15 @@
                       <message>
                         'trap_defaultconf: run the trap listener'
                       </message>
-                      
+
                       <call function="'SNMPTrapListener'">
                         {
                         'location'          : STAF_REMOTE_HOSTNAME ,
                         'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
                         'snmpTrapCommunity' : trapsCommunity ,
-                        'snmpTrapNumber'    : '1,0,0,0,0,0'
+                        'snmpTrapNumber'    : '1,0,0,0,0,0' ,
+                        'outputFile'        : outputFile
                         }
                       </call>
                     </sequence>
@@ -100,35 +102,35 @@
                       <message>
                         'trap_defaultconf: wait event from the trap listener'
                       </message>
-                      
+
                       <call function="'WaitEvent'">
                         {
                         'location' : STAF_REMOTE_HOSTNAME ,
-                        'name'     : 'SNMPTrapLister/Ready'
+                        'name'     : 'SNMPTrapListener/Ready'
                         }
                       </call>
-                      
+
                       <message>
                         'trap_defaultconf: delete event from the trap listener'
                       </message>
                       <call function="'DeleteEvent'">
                         {
                         'location' : STAF_REMOTE_HOSTNAME ,
-                        'name'     : 'SNMPTrapLister/Ready'
+                        'name'     : 'SNMPTrapListener/Ready'
                         }
                       </call>
-                      
+
                       <message>
                         'trap_defaultconf: stop the server'
                       </message>
                       <call function="'StopDsWithScript'">
                         { 'location' : STAF_REMOTE_HOSTNAME }
                       </call>
-                      
+
                       <message>
                         'trap_defaultconf: send event to the trap listener'
                       </message>
-                      
+
                       <call function="'SendEvent'">
                         {
                         'location' : STAF_REMOTE_HOSTNAME ,
@@ -139,36 +141,17 @@
                   </parallel>
                 </sequence>
               </timer>
-              
+
               <script>timerRC = RC</script>
 
-              <if expr="timerRC == 1">
-                <sequence>
-                  <tcstatus result="'fail'"></tcstatus>
-                  
-                  <message>
-                    'trap_defaultconf: timeout occurred'
-                  </message>
-                  <message>
-                    'trap_defaultconf: delete event from the trap listener'
-                  </message>
-                  <call function="'DeleteEvent'">
-                    {
-                    'location' : STAF_REMOTE_HOSTNAME ,
-                    'name'     : 'SNMPTrapLister/Ready'
-                    }
-                  </call>
-                  <message>
-                    'trap_defaultconf: delete event from the trap listener'
-                  </message>
-                  <call function="'DeleteEvent'">
-                    {
-                    'location' : STAF_REMOTE_HOSTNAME ,
-                    'name'     : 'SendTrap/Complete'
-                    }
-                  </call>
-                </sequence>
-              </if>
+              <call function="'checkTimerResult'">
+                {
+                'location'      : STAF_REMOTE_HOSTNAME ,
+                'outputFile'    : outputFile ,
+                'timerDuration' : timerDuration ,
+                'timerRC'       : timerRC
+                }
+              </call>
 
               <call function="'testCase_Postamble'"/>
 
@@ -197,7 +180,7 @@
           ('trap_defaultconf: trap on start-ds')">
 
             <sequence>
-              
+
               <timer duration="timerDuration">
                 <sequence>
                   <parallel>
@@ -205,13 +188,14 @@
                       <message>
                         'trap_defaultconf: run the trap listener'
                       </message>
-                      
+
                       <call function="'SNMPTrapListener'">
                         {
                         'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
                         'snmpTrapCommunity' : trapsCommunity ,
-                        'snmpTrapNumber'    : '1,0,0,0,0,0'
+                        'snmpTrapNumber'    : '1,0,0,0,0,0' ,
+                        'outputFile'        : outputFile
                         }
                       </call>
                     </sequence>
@@ -219,35 +203,35 @@
                       <message>
                         'trap_defaultconf: wait event from the trap listener'
                       </message>
-                      
+
                       <call function="'WaitEvent'">
                         {
                         'location' : STAF_REMOTE_HOSTNAME ,
-                        'name'     : 'SNMPTrapLister/Ready'
+                        'name'     : 'SNMPTrapListener/Ready'
                         }
                       </call>
-                      
+
                       <message>
                         'trap_defaultconf: delete event from the trap listener'
                       </message>
                       <call function="'DeleteEvent'">
                         {
                         'location' : STAF_REMOTE_HOSTNAME ,
-                        'name'     : 'SNMPTrapLister/Ready'
+                        'name'     : 'SNMPTrapListener/Ready'
                         }
                       </call>
-                      
+
                       <message>
                         'trap_defaultconf: start the server'
                       </message>
                       <call function="'StartDsWithScript'">
                         { 'location' : STAF_REMOTE_HOSTNAME }
                       </call>
-                      
+
                       <message>
                         'trap_defaultconf: send event to the trap listener'
                       </message>
-                      
+
                       <call function="'SendEvent'">
                         {
                         'location' : STAF_REMOTE_HOSTNAME ,
@@ -258,36 +242,17 @@
                   </parallel>
                 </sequence>
               </timer>
-              
+
               <script>timerRC = RC</script>
 
-              <if expr="timerRC == 1">
-                <sequence>
-                  <tcstatus result="'fail'"></tcstatus>
-                  
-                  <message>
-                    'trap_defaultconf: timeout occurred'
-                  </message>
-                  <message>
-                    'trap_defaultconf: delete event from the trap listener'
-                  </message>
-                  <call function="'DeleteEvent'">
-                    {
-                    'location' : STAF_REMOTE_HOSTNAME ,
-                    'name'     : 'SNMPTrapLister/Ready'
-                    }
-                  </call>
-                  <message>
-                    'trap_defaultconf: delete event from the trap listener'
-                  </message>
-                  <call function="'DeleteEvent'">
-                    {
-                    'location' : STAF_REMOTE_HOSTNAME ,
-                    'name'     : 'SendTrap/Complete'
-                    }
-                  </call>
-                </sequence>
-              </if>
+              <call function="'checkTimerResult'">
+                {
+                'location'      : STAF_REMOTE_HOSTNAME ,
+                'outputFile'    : outputFile ,
+                'timerDuration' : timerDuration ,
+                'timerRC'       : timerRC
+                }
+              </call>
 
               <call function="'testCase_Postamble'"/>
 
@@ -316,7 +281,7 @@
           ('trap_defaultconf: trap on stop-ds -R')">
 
             <sequence>
-              
+
               <timer duration="timerDuration">
                 <sequence>
                   <parallel>
@@ -324,13 +289,14 @@
                       <message>
                         'trap_defaultconf: run the trap listener'
                       </message>
-                      
+
                       <call function="'SNMPTrapListener'">
                         {
                         'snmpHost'          : DIRECTORY_INSTANCE_HOST ,
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
                         'snmpTrapCommunity' : trapsCommunity ,
-                        'snmpTrapNumber'    : '2,0,0,0,0,0'
+                        'snmpTrapNumber'    : '2,0,0,0,0,0' ,
+                        'outputFile'        : outputFile
                         }
                       </call>
                     </sequence>
@@ -338,24 +304,24 @@
                       <message>
                         'trap_defaultconf: wait event from the trap listener'
                       </message>
-                      
+
                       <call function="'WaitEvent'">
                         {
                         'location' : STAF_REMOTE_HOSTNAME ,
-                        'name'     : 'SNMPTrapLister/Ready'
+                        'name'     : 'SNMPTrapListener/Ready'
                         }
                       </call>
-                      
+
                       <message>
                         'trap_defaultconf: delete event from the trap listener'
                       </message>
                       <call function="'DeleteEvent'">
                         {
                         'location' : STAF_REMOTE_HOSTNAME ,
-                        'name'     : 'SNMPTrapLister/Ready'
+                        'name'     : 'SNMPTrapListener/Ready'
                         }
                       </call>
-                      
+
                       <message>
                         'trap_defaultconf: restart the server'
                       </message>
@@ -365,11 +331,11 @@
                         'dsRestart' : 'True'
                         }
                       </call>
-                      
+
                       <message>
                         'trap_defaultconf: send event to the trap listener'
                       </message>
-                      
+
                       <call function="'SendEvent'">
                         {
                         'location' : STAF_REMOTE_HOSTNAME ,
@@ -380,36 +346,17 @@
                   </parallel>
                 </sequence>
               </timer>
-              
+
               <script>timerRC = RC</script>
 
-              <if expr="timerRC == 1">
-                <sequence>
-                  <tcstatus result="'fail'"></tcstatus>
-                  
-                  <message>
-                    'trap_defaultconf: timeout occurred'
-                  </message>
-                  <message>
-                    'trap_defaultconf: delete event from the trap listener'
-                  </message>
-                  <call function="'DeleteEvent'">
-                    {
-                    'location' : STAF_REMOTE_HOSTNAME ,
-                    'name'     : 'SNMPTrapLister/Ready'
-                    }
-                  </call>
-                  <message>
-                    'trap_defaultconf: delete event from the trap listener'
-                  </message>
-                  <call function="'DeleteEvent'">
-                    {
-                    'location' : STAF_REMOTE_HOSTNAME ,
-                    'name'     : 'SendTrap/Complete'
-                    }
-                  </call>
-                </sequence>
-              </if>
+              <call function="'checkTimerResult'">
+                {
+                'location'      : STAF_REMOTE_HOSTNAME ,
+                'outputFile'    : outputFile ,
+                'timerDuration' : timerDuration ,
+                'timerRC'       : timerRC
+                }
+              </call>
 
               <call function="'testCase_Postamble'"/>
 
