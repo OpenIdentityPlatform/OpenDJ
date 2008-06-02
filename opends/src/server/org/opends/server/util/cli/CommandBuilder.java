@@ -249,15 +249,15 @@ public class CommandBuilder
   }
 
   // Chars that require special treatment when passing them to command-line.
-  private final char[] charsToEscape = {' ', '\t', '\n', '|', ';', '<', '>',
-      '(', ')', '$', '`', '\\', '"', '\''};
+  private final static char[] charsToEscape = {' ', '\t', '\n', '|', ';', '<',
+    '>', '(', ')', '$', '`', '\\', '"', '\''};
   /**
    * This method simply takes a value and tries to transform it (with escape or
    * '"') characters so that it can be used in a command line.
    * @param value the String to be treated.
    * @return the transformed value.
    */
-  private String escapeValue(String value)
+  public static String escapeValue(String value)
   {
     StringBuilder b = new StringBuilder();
     if (SetupUtils.isUnix())

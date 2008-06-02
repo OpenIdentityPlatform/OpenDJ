@@ -3828,6 +3828,20 @@ public final class ConfigConstants
        NAME_PREFIX_TASK + "import-ldif-file";
 
 
+  /**
+   * The name of the attribute in an import task definition that specifies the
+   * path to the file containing the template data to import.
+   */
+  public static final String ATTR_IMPORT_TEMPLATE_FILE =
+       NAME_PREFIX_TASK + "import-template-file";
+
+
+  /**
+   * The name of the attribute in an import task definition that specifies the
+   * random seed to be used when we pass a template file to the import.
+   */
+  public static final String ATTR_IMPORT_RANDOM_SEED =
+       NAME_PREFIX_TASK + "import-random-seed";
 
   /**
    * The name of the attribute in an import task definition that specifies
