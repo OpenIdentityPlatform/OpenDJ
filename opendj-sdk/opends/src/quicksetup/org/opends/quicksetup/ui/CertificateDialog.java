@@ -125,10 +125,13 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     getContentPane().add(createPanel());
     setModal(true);
     pack();
-    if (getPreferredSize().width > parent.getWidth())
+    if (parent != null)
     {
-      setPreferredSize(new Dimension(Math.max(parent.getWidth() - 20, 600),
-          getPreferredSize().height));
+      if (getPreferredSize().width > parent.getWidth())
+      {
+        setPreferredSize(new Dimension(Math.max(parent.getWidth() - 20, 600),
+            getPreferredSize().height));
+      }
     }
     pack();
     int minWidth = (int) getPreferredSize().getWidth();
