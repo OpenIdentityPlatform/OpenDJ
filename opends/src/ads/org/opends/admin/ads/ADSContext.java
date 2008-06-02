@@ -789,16 +789,25 @@ public class ADSContext
           try
           {
             SearchControls sc1 = new SearchControls();
-
             sc1.setSearchScope(SearchControls.ONELEVEL_SCOPE);
             final String attrIDs[] = { "ds-cfg-public-key-certificate;binary" };
             sc1.setReturningAttributes(attrIDs);
-            SearchResult certEntry =
-              dirContext.search(getInstanceKeysContainerDN(),
-              "(ds-cfg-key-id="+keyId+")", sc).next();
-            Attribute certAttr = certEntry.getAttributes().get(attrIDs[0]);
-            properties.put(ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE,
-                certAttr.get());
+
+            NamingEnumeration<SearchResult> ne2 = dirContext.search(
+                getInstanceKeysContainerDN(),
+                "(ds-cfg-key-id="+keyId+")", sc);
+            if (ne2.hasMore())
+            {
+              SearchResult certEntry = ne2.next();
+              Attribute certAttr = certEntry.getAttributes().get(attrIDs[0]);
+              properties.put(ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE,
+                  certAttr.get());
+            }
+            else
+            {
+              LOG.log(Level.WARNING, "Could not find public key for "+
+                  properties);
+            }
           }
           catch (NameNotFoundException x)
           {
