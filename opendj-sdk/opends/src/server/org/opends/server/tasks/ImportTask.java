@@ -30,8 +30,10 @@ import org.opends.messages.TaskMessages;
 
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.tools.makeldif.TemplateFile;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -57,11 +59,13 @@ import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Random;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -85,6 +89,14 @@ public class ImportTask extends Task
     argDisplayMap.put(
             ATTR_IMPORT_LDIF_FILE,
             INFO_IMPORT_ARG_LDIF_FILE.get());
+
+    argDisplayMap.put(
+        ATTR_IMPORT_TEMPLATE_FILE,
+        INFO_IMPORT_ARG_TEMPLATE_FILE.get());
+
+    argDisplayMap.put(
+        ATTR_IMPORT_RANDOM_SEED,
+        INFO_IMPORT_ARG_RANDOM_SEED.get());
 
     argDisplayMap.put(
             ATTR_IMPORT_APPEND,
@@ -169,6 +181,8 @@ public class ImportTask extends Task
   ArrayList<String>  includeBranchStrings    = null;
   ArrayList<String>  includeFilterStrings    = null;
   ArrayList<String>  ldifFiles               = null;
+  String templateFile = null;
+  int randomSeed = 0;
 
   private LDIFImportConfig importConfig;
 
@@ -209,6 +223,7 @@ public class ImportTask extends Task
     Entry taskEntry = getTaskEntry();
 
     AttributeType typeLdifFile;
+    AttributeType typeTemplateFile;
     AttributeType typeAppend;
     AttributeType typeReplaceExisting;
     AttributeType typeBackendID;
@@ -225,9 +240,12 @@ public class ImportTask extends Task
     AttributeType typeIsCompressed;
     AttributeType typeIsEncrypted;
     AttributeType typeClearBackend;
+    AttributeType typeRandomSeed;
 
     typeLdifFile =
          getAttributeType(ATTR_IMPORT_LDIF_FILE, true);
+    typeTemplateFile =
+         getAttributeType(ATTR_IMPORT_TEMPLATE_FILE, true);
     typeAppend =
          getAttributeType(ATTR_IMPORT_APPEND, true);
     typeReplaceExisting =
@@ -260,11 +278,16 @@ public class ImportTask extends Task
          getAttributeType(ATTR_IMPORT_IS_ENCRYPTED, true);
     typeClearBackend =
          getAttributeType(ATTR_IMPORT_CLEAR_BACKEND, true);
+    typeRandomSeed =
+         getAttributeType(ATTR_IMPORT_RANDOM_SEED, true);
 
     List<Attribute> attrList;
 
     attrList = taskEntry.getAttribute(typeLdifFile);
     ldifFiles = TaskUtils.getMultiValueString(attrList);
+
+    attrList = taskEntry.getAttribute(typeTemplateFile);
+    templateFile = TaskUtils.getSingleValueString(attrList);
 
     attrList = taskEntry.getAttribute(typeAppend);
     append = TaskUtils.getBoolean(attrList, false);
@@ -313,6 +336,9 @@ public class ImportTask extends Task
 
     attrList = taskEntry.getAttribute(typeClearBackend);
     clearBackend = TaskUtils.getBoolean(attrList, false);
+
+    attrList = taskEntry.getAttribute(typeRandomSeed);
+    randomSeed = TaskUtils.getSingleValueInteger(attrList, 0);
 
     // Make sure that either the "includeBranchStrings" argument or the
     // "backendID" argument was provided.
@@ -756,8 +782,42 @@ public class ImportTask extends Task
     }
 
     // Create the LDIF import configuration to use when reading the LDIF.
-    ArrayList<String> fileList = new ArrayList<String>(ldifFiles);
-    importConfig = new LDIFImportConfig(fileList);
+    if (templateFile != null)
+    {
+      Random random;
+      try
+      {
+        random = new Random(randomSeed);
+      }
+      catch (Exception e)
+      {
+        random = new Random();
+      }
+
+      String resourcePath = DirectoryServer.getServerRoot() + File.separator +
+                            PATH_MAKELDIF_RESOURCE_DIR;
+      TemplateFile tf = new TemplateFile(resourcePath, random);
+
+      ArrayList<Message> warnings = new ArrayList<Message>();
+      try
+      {
+        tf.parse(templateFile, warnings);
+      }
+      catch (Exception e)
+      {
+        Message message = ERR_LDIFIMPORT_CANNOT_PARSE_TEMPLATE_FILE.get(
+            templateFile, e.getMessage());
+        logError(message);
+        return TaskState.STOPPED_BY_ERROR;
+      }
+
+      importConfig = new LDIFImportConfig(tf);
+    }
+    else
+    {
+      ArrayList<String> fileList = new ArrayList<String>(ldifFiles);
+      importConfig = new LDIFImportConfig(fileList);
+    }
     importConfig.setAppendToExistingData(append);
     importConfig.setReplaceExistingEntries(replaceExisting);
     importConfig.setCompressed(isCompressed);

@@ -465,13 +465,33 @@ public class ImportLDIF extends TaskTool {
     // Required attributes
     //
     ArrayList<ASN1OctetString> values;
+
     List<String> fileList = ldifFiles.getValues();
-    if (fileList != null && fileList.size() > 0) {
-      values = new ArrayList<ASN1OctetString>(fileList.size());
-      for (String file : fileList) {
-        values.add(new ASN1OctetString(file));
+    if ((fileList != null) && (fileList.size() > 0))
+    {
+      if (fileList != null && fileList.size() > 0) {
+        values = new ArrayList<ASN1OctetString>(fileList.size());
+        for (String file : fileList) {
+          values.add(new ASN1OctetString(file));
+        }
+        attributes.add(new LDAPAttribute(ATTR_IMPORT_LDIF_FILE, values));
       }
-      attributes.add(new LDAPAttribute(ATTR_IMPORT_LDIF_FILE, values));
+    }
+
+    String templateFileValue = templateFile.getValue();
+    if (templateFileValue != null)
+    {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(templateFileValue));
+      attributes.add(new LDAPAttribute(ATTR_IMPORT_TEMPLATE_FILE, values));
+    }
+
+    String randomSeedValue = randomSeed.getValue();
+    if (randomSeedValue != null)
+    {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString(randomSeedValue));
+      attributes.add(new LDAPAttribute(ATTR_IMPORT_RANDOM_SEED, values));
     }
 
     //
