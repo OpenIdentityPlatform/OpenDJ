@@ -465,7 +465,7 @@ public class ConfigureWindowsService
     }
     catch (Throwable t)
     {
-      err.println("Fucking throwable: "+t);
+      err.println("Unexpected throwable: "+t);
       t.printStackTrace();
       returnValue = SERVICE_ENABLE_ERROR;
       msg = ERR_WINDOWS_SERVICE_ENABLE_ERROR.get();
