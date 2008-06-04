@@ -448,10 +448,11 @@ public class WorkThread extends DirectoryThread {
    * @param element The work element containing the entry.
    * @return An entry ID.
    * @throws DatabaseException If a database error occurs.
-   * @throws JebException If a JEB error occurs.
+   * @throws DirectoryException If an error occurs.
    */
   private EntryID
-  processDN2ID(WorkElement element) throws DatabaseException, JebException {
+  processDN2ID(WorkElement element)
+      throws DatabaseException, DirectoryException {
     Entry entry = element.getEntry();
     DNContext context = element.getContext();
     DN2ID dn2id = context.getEntryContainer().getDN2ID();

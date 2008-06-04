@@ -975,11 +975,19 @@ public class LDAPClientConnection
     // Indicate that this connection is no longer valid.
     connectionValid = false;
 
-    MessageBuilder msgBuilder = new MessageBuilder();
-    msgBuilder.append(disconnectReason.getClosureMessage());
-    msgBuilder.append(": ");
-    msgBuilder.append(message);
-    cancelAllOperations(new CancelRequest(true, msgBuilder.toMessage()));
+    if(message != null)
+    {
+      MessageBuilder msgBuilder = new MessageBuilder();
+      msgBuilder.append(disconnectReason.getClosureMessage());
+      msgBuilder.append(": ");
+      msgBuilder.append(message);
+      cancelAllOperations(new CancelRequest(true, msgBuilder.toMessage()));
+    }
+    else
+    {
+      cancelAllOperations(new CancelRequest(true,
+          disconnectReason.getClosureMessage()));
+    }
     finalizeConnectionInternal();
 
 

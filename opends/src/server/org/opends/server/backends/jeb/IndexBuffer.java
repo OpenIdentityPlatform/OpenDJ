@@ -143,10 +143,9 @@ public class IndexBuffer
    * @param txn The database transaction to be used for the updates.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
-   * @throws JebException If an error occurs in the JE backend.
    */
   public void flush(Transaction txn)
-      throws DatabaseException, DirectoryException, JebException
+      throws DatabaseException, DirectoryException
   {
     TreeMap<byte[], BufferedIndexValues> bufferedValues;
     BufferedVLVValues bufferedVLVValues;

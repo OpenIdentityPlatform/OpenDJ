@@ -35,6 +35,7 @@ import com.sleepycat.je.*;
 
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
+import org.opends.server.core.DirectoryServer;
 
 /**
  * Represents the database containing the LDAP entries. The database key is
@@ -213,11 +214,11 @@ public class ID2Entry extends DatabaseContainer
    * @param id The desired entry ID which forms the key.
    * @param lockMode The JE locking mode to be used for the read.
    * @return The requested entry, or null if there is no such record.
-   * @throws JebException If an error occurs in the JE backend.
+   * @throws DirectoryException If a problem occurs while getting the entry.
    * @throws DatabaseException If an error occurs in the JE database.
    */
   public Entry get(Transaction txn, EntryID id, LockMode lockMode)
-       throws JebException, DatabaseException
+       throws DirectoryException, DatabaseException
   {
     DatabaseEntry key = id.getDatabaseEntry();
     DatabaseEntry data = new DatabaseEntry();
@@ -248,7 +249,8 @@ public class ID2Entry extends DatabaseContainer
         catch (Exception e)
         {
           Message message = ERR_JEB_ENTRY_DATABASE_CORRUPT.get(id.toString());
-          throw new JebException(message);
+          throw new DirectoryException(
+              DirectoryServer.getServerErrorResultCode(), message);
         }
         break;
 
@@ -257,7 +259,8 @@ public class ID2Entry extends DatabaseContainer
       default   :
         Message message =
             ERR_JEB_INCOMPATIBLE_ENTRY_VERSION.get(id.toString(), entryVersion);
-        throw new JebException(message);
+        throw new DirectoryException(
+              DirectoryServer.getServerErrorResultCode(), message);
     }
 
     if (entry != null)

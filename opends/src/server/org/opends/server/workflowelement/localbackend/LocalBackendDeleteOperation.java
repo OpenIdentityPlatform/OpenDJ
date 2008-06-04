@@ -333,10 +333,6 @@ deleteProcessing:
         }
 
 
-        // Check for a request to cancel this operation.
-        checkIfCanceled(true);
-
-
         // Get the backend to use for the delete.  If there is none, then fail.
         if (backend == null)
         {

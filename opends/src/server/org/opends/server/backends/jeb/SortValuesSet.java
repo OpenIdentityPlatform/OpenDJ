@@ -102,10 +102,9 @@ public class SortValuesSet
    * otherwise.
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws DatabaseException If an error occurs in the JE database.
-   * @throws JebException If an error occurs in the JE database.
    */
   public boolean add(long entryID, AttributeValue[] values)
-      throws JebException, DatabaseException, DirectoryException
+      throws DatabaseException, DirectoryException
   {
     if(values == null)
     {
@@ -223,10 +222,9 @@ public class SortValuesSet
    * otherwise.
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws DatabaseException If an error occurs in the JE database.
-   * @throws JebException If an error occurs in the JE database.
    */
   public boolean remove(long entryID, AttributeValue[] values)
-      throws JebException, DatabaseException, DirectoryException
+      throws DatabaseException, DirectoryException
   {
     if(entryIDs == null || entryIDs.length == 0)
     {
@@ -416,10 +414,9 @@ public class SortValuesSet
    * if it is found or a negative index if its not found.
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws DatabaseException If an error occurs in the JE database.
-   * @throws JebException If an error occurs in the JE database.
    */
   int binarySearch(long entryID, AttributeValue[] values)
-      throws JebException, DatabaseException, DirectoryException
+      throws DatabaseException, DirectoryException
   {
     if(entryIDs == null || entryIDs.length == 0)
     {
@@ -509,10 +506,9 @@ public class SortValuesSet
    * the database or NULL if this set is empty.
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws DatabaseException If an error occurs in the JE database.
-   * @throws JebException If an error occurs in the JE database.
    */
   public byte[] getKeyBytes()
-      throws JebException, DatabaseException, DirectoryException
+      throws DatabaseException, DirectoryException
   {
     if(entryIDs == null || entryIDs.length == 0)
     {
@@ -550,10 +546,9 @@ public class SortValuesSet
    * the database or NULL if this set is empty or unbounded.
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws DatabaseException If an error occurs in the JE database.
-   * @throws JebException If an error occurs in the JE database.
    */
   public SortValues getKeySortValues()
-      throws JebException, DatabaseException, DirectoryException
+      throws DatabaseException, DirectoryException
   {
     if(entryIDs == null || entryIDs.length == 0)
     {
@@ -656,10 +651,9 @@ public class SortValuesSet
    * @return The byte array representation of the attribute value.
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws DatabaseException If an error occurs in the JE database.
-   * @throws JebException If an error occurs in the JE database.
    */
   public byte[] getValue(int index)
-      throws JebException, DatabaseException, DirectoryException
+      throws DatabaseException, DirectoryException
   {
     if(valuesBytesOffsets == null)
     {

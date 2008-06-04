@@ -606,9 +606,6 @@ modifyProcessing:
         }
 
 
-        // Check for a request to cancel this operation.
-        checkIfCanceled(true);
-
         // Actually perform the modify operation.  This should also include
         // taking care of any synchronization that might be needed.
         if (backend == null)

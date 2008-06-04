@@ -83,11 +83,6 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.11
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.12
-  NAME 'ds-cfg-subtree-delete-size-limit'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.13
   NAME 'ds-cfg-alternate-bind-dn'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
@@ -1546,11 +1541,6 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.317
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   USAGE directoryOperation
   X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.318
-  NAME 'ds-cfg-subtree-delete-batch-size'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.319
   NAME 'ds-cfg-substring-length'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
@@ -2278,14 +2268,12 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.6
   STRUCTURAL
   MUST ds-cfg-db-directory
   MAY ( ds-cfg-index-entry-limit $
-        ds-cfg-subtree-delete-size-limit $
         ds-cfg-preload-time-limit $
         ds-cfg-import-queue-size $
         ds-cfg-import-thread-count $
         ds-cfg-entries-compressed $
         ds-cfg-db-directory-permissions $
         ds-cfg-db-cache-percent $
-        ds-cfg-subtree-delete-batch-size $
         ds-cfg-db-cache-size $
         ds-cfg-db-txn-no-sync $
         ds-cfg-db-txn-write-no-sync $
@@ -2628,7 +2616,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.39
         ds-cfg-workflow-configuration-mode $
         ds-cfg-save-config-on-successful-startup $
         ds-cfg-etime-resolution $
-        ds-cfg-entry-cache-preload )
+        ds-cfg-entry-cache-preload $
+        ds-cfg-max-allowed-client-connections)
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.40
   NAME 'ds-cfg-root-dn-user'

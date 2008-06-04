@@ -341,11 +341,10 @@ public class AttributeIndex
    *         entry ID already exists for some keys.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
-   * @throws JebException If an error occurs in the JE backend.
    */
   public boolean addEntry(IndexBuffer buffer, EntryID entryID,
                           Entry entry)
-       throws DatabaseException, DirectoryException, JebException
+       throws DatabaseException, DirectoryException
   {
     boolean success = true;
 
@@ -403,10 +402,9 @@ public class AttributeIndex
    *         entry ID already exists for some keys.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
-   * @throws JebException If an error occurs in the JE backend.
    */
   public boolean addEntry(Transaction txn, EntryID entryID, Entry entry)
-       throws DatabaseException, DirectoryException, JebException
+       throws DatabaseException, DirectoryException
   {
     boolean success = true;
 
@@ -461,11 +459,10 @@ public class AttributeIndex
    * @param entry       The contents of the deleted entry.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
-   * @throws JebException If an error occurs in the JE backend.
    */
   public void removeEntry(IndexBuffer buffer, EntryID entryID,
                           Entry entry)
-       throws DatabaseException, DirectoryException, JebException
+       throws DatabaseException, DirectoryException
   {
     if (equalityIndex != null)
     {
@@ -501,10 +498,9 @@ public class AttributeIndex
    * @param entry       The contents of the deleted entry.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
-   * @throws JebException If an error occurs in the JE backend.
    */
   public void removeEntry(Transaction txn, EntryID entryID, Entry entry)
-       throws DatabaseException, DirectoryException, JebException
+       throws DatabaseException, DirectoryException
   {
     if (equalityIndex != null)
     {

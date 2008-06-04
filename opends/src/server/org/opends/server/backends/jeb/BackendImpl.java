@@ -30,7 +30,6 @@ import org.opends.messages.Message;
 import java.io.IOException;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Lock;
 
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
@@ -733,15 +732,6 @@ public class BackendImpl
       }
       throw createDirectoryException(e);
     }
-    catch (JebException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessageObject());
-    }
     finally
     {
       ec.sharedLock.unlock();
@@ -758,7 +748,7 @@ public class BackendImpl
    */
   @Override()
   public void addEntry(Entry entry, AddOperation addOperation)
-      throws DirectoryException
+      throws DirectoryException, CanceledOperationException
   {
     writerBegin();
     DN entryDN = entry.getDN();
@@ -788,15 +778,6 @@ public class BackendImpl
       }
       throw createDirectoryException(e);
     }
-    catch (JebException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessageObject());
-    }
     finally
     {
       ec.sharedLock.unlock();
@@ -811,7 +792,7 @@ public class BackendImpl
    */
   @Override()
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
-      throws DirectoryException
+      throws DirectoryException, CanceledOperationException
   {
     writerBegin();
 
@@ -840,15 +821,6 @@ public class BackendImpl
       }
       throw createDirectoryException(e);
     }
-    catch (JebException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessageObject());
-    }
     finally
     {
       ec.sharedLock.unlock();
@@ -863,7 +835,7 @@ public class BackendImpl
    */
   @Override()
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
-      throws DirectoryException
+      throws DirectoryException, CanceledOperationException
   {
     writerBegin();
 
@@ -893,15 +865,6 @@ public class BackendImpl
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       throw createDirectoryException(e);
-    }
-    catch (JebException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessageObject());
     }
     finally
     {
@@ -944,19 +907,9 @@ public class BackendImpl
                                    msg);
     }
 
-    Lock containerLock = currentContainer.sharedLock;
+    currentContainer.sharedLock.lock();
     try
     {
-      containerLock.lock();
-
-      if(currentContainer.getNumSubordinates(currentDN, true) >
-         currentContainer.getSubtreeDeleteBatchSize())
-      {
-        containerLock.unlock();
-        containerLock = currentContainer.exclusiveLock;
-        containerLock.lock();
-      }
-
       currentContainer.renameEntry(currentDN, entry, modifyDNOperation);
     }
     catch (DatabaseException e)
@@ -967,18 +920,9 @@ public class BackendImpl
       }
       throw createDirectoryException(e);
     }
-    catch (JebException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessageObject());
-    }
     finally
     {
-      containerLock.unlock();
+      currentContainer.sharedLock.unlock();
       writerEnd();
     }
   }
@@ -990,7 +934,7 @@ public class BackendImpl
    */
   @Override()
   public void search(SearchOperation searchOperation)
-      throws DirectoryException
+      throws DirectoryException, CanceledOperationException
   {
     readerBegin();
 
@@ -1018,16 +962,6 @@ public class BackendImpl
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       throw createDirectoryException(e);
-    }
-    catch (JebException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      Message message = ERR_JEB_DATABASE_EXCEPTION.get(e.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
     }
     finally
     {
