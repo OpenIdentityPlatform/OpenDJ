@@ -55,7 +55,6 @@ public class SNMPUserAcl implements UserAcl {
      * Admin User for cloning mechanism.
      */
     private static final String ADMIN_USER = "snmpAdmin";
-
     /**
      * Current Security Configuration for the SNMP Connection Handler.
      */
@@ -75,7 +74,7 @@ public class SNMPUserAcl implements UserAcl {
     /**
      * Configured Security level.
      */
-    private SecurityLevel securityLevel;
+    private int securityLevel;
 
     /**
      * {@inheritDoc}
@@ -91,7 +90,10 @@ public class SNMPUserAcl implements UserAcl {
         // Get the traps destinations
         this.trapDestinations = this.currentConfig.getTrapsDestination();
         // Get the min security level to accept
-        this.securityLevel = this.currentConfig.getSecurityLevel();
+        SecurityLevel level = this.currentConfig.getSecurityLevel();
+        this.securityLevel =
+                SNMPConnectionHandlerDefinitions.SECURITY_LEVELS.get(
+                level.toString());
     }
 
     /**
@@ -126,21 +128,23 @@ public class SNMPUserAcl implements UserAcl {
 
     /**
      * {@inheritDoc}
+     * @param user
+     * @param contextName
+     * @param securityLevel
      */
     public boolean checkReadPermission(String user, String contextName,
             int securityLevel) {
 
         // Special check for the defaultUser
-        if ((user.equals(ADMIN_USER))
-            && (contextName.equals("null"))
-            && ((this.securityLevel.ordinal() + 1) >= securityLevel)) {
+        if ((user.equals(ADMIN_USER)) && (contextName.equals("null"))
+                && ((checkSecurityLevel(securityLevel)))) {
             return true;
         }
 
         // Else
-        if ((checkReadPermission(user))  &&
+        if ((checkReadPermission(user)) &&
                 ((checkContextName(contextName))) &&
-                ((this.securityLevel.ordinal() + 1) >= securityLevel)) {
+                (checkSecurityLevel(securityLevel))) {
             return true;
         }
         return false;
@@ -148,6 +152,7 @@ public class SNMPUserAcl implements UserAcl {
 
     /**
      * {@inheritDoc}
+     * @return true if the context is correct, false otherwise.
      */
     public boolean checkContextName(String contextName) {
         return this.contextName.equals(contextName);
@@ -155,6 +160,8 @@ public class SNMPUserAcl implements UserAcl {
 
     /**
      * {@inheritDoc}
+     * @param user to check the write permission.
+     * @return true if the user has the write permission, false otherwise.
      */
     public boolean checkWritePermission(String user) {
         if (user.equals(ADMIN_USER)) {
@@ -170,7 +177,20 @@ public class SNMPUserAcl implements UserAcl {
             int securityLevel) {
         if ((checkWritePermission(user)) &&
                 (contextName.equals("null")) &&
-                ((this.securityLevel.ordinal() + 1) >= securityLevel)) {
+                (checkSecurityLevel(securityLevel))) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Check the incoming security level of the request.
+     * @param securityLevel
+     * @return true if the securityLevel is appropriated, else return false
+     */
+    private boolean checkSecurityLevel(int securityLevel) {
+
+        if (securityLevel >= this.securityLevel) {
             return true;
         }
         return false;
