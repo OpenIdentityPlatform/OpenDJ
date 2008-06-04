@@ -427,6 +427,18 @@ public class ServerController {
           InitialLdapContext ctx = null;
           for (int i=0; i<20 && !connected; i++)
           {
+            if ((i == 10) && !"localhost".equals(hostName))
+            {
+              // Try with local host.  This might be necessary in certain
+              // network configurations.
+              ldapUrl = "ldap://localhost:" + port;
+            }
+            if (i == 15)
+            {
+              // Try with 0.0.0.0.  This might be necessary in certain
+              // network configurations.
+              ldapUrl = "ldap://0.0.0.0:" + port;
+            }
             try
             {
               ctx = Utils.createLdapContext(
@@ -456,7 +468,7 @@ public class ServerController {
             {
               try
               {
-                Thread.sleep(5000);
+                Thread.sleep(7500);
               }
               catch (Throwable t)
               {
