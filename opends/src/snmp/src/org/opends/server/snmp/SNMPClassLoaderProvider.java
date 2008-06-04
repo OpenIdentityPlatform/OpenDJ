@@ -26,6 +26,7 @@
  */
 package org.opends.server.snmp;
 
+import com.sun.management.comm.CommunicatorServer;
 import java.io.File;
 
 import org.opends.server.loggers.debug.DebugLogger;
@@ -39,10 +40,14 @@ import com.sun.management.snmp.InetAddressAcl;
 import com.sun.management.snmp.SnmpEngineParameters;
 import com.sun.management.snmp.UserAcl;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.SortedSet;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import org.opends.messages.Message;
 import org.opends.server.admin.std.server.SNMPConnectionHandlerCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
@@ -51,6 +56,7 @@ import org.opends.server.util.StaticUtils;
 import org.opends.server.util.Validator;
 
 import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 
 /**
  * The SNMPClassLoaderProvider.
@@ -103,6 +109,7 @@ public class SNMPClassLoaderProvider {
     private ObjectName UsmObjName;
     private SnmpV3AdaptorServer snmpAdaptor;
     private String contextName;
+    private boolean sentTraps = true;
 
     /**
      * Default constructor.
@@ -226,8 +233,7 @@ public class SNMPClassLoaderProvider {
             this.snmpAdaptor = this.getSnmpAdaptor(this.currentConfig);
 
             if (this.snmpAdaptor == null) {
-                throw new Exception(
-                      ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get().toString());
+                throw new Exception();
             }
 
             // Create the Usm MIB to allow user management
@@ -241,21 +247,42 @@ public class SNMPClassLoaderProvider {
                     this.snmpAdaptor.registerUsmMib(server, this.UsmObjName);
                 } catch (Exception ex) {
                     throw new Exception(
-                       ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get().toString());
+                      ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get().toString());
                 }
             }
 
             this.snmpAdaptor.start();
 
-            // Send a coldStart SNMP Trap.
-            this.snmpAdaptor.setTrapPort(snmpTrapPort);
-            this.snmpAdaptor.snmpV1Trap(
-                    null,
-                    this.currentConfig.getTrapsCommunity(),
-                    0,
-                    0,
-                    null);
+            // Test  the snmpAdaptor State
+            while (this.snmpAdaptor.getState() == CommunicatorServer.STARTING) {
+                Thread.sleep(1000);
+            }
 
+            // Check if the snmpAdaptor is online
+            if (this.snmpAdaptor.getState() != CommunicatorServer.ONLINE) {
+                throw new Exception(
+                      ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get().toString());
+            }
+
+            // Check the trap destinations before trying to sent traps
+            this.sentTraps =
+                    checkTrapsDestinations(
+                    this.currentConfig.getTrapsDestination());
+
+            if (this.sentTraps == false) {
+                Message message =
+                        ERR_SNMP_CONNHANDLER_NO_VALID_TRAP_DESTINATIONS.get();
+                logError(message);
+            } else {
+                // Send a coldStart SNMP Trap.
+                this.snmpAdaptor.setTrapPort(snmpTrapPort);
+                this.snmpAdaptor.snmpV1Trap(
+                        null,
+                        this.currentConfig.getTrapsCommunity(),
+                        0,
+                        0,
+                        null);
+            }
             // Create an instance of the customized MIB
             this.mibObjName = new ObjectName(
                     SNMPConnectionHandlerDefinitions.SNMP_DOMAIN +
@@ -286,14 +313,15 @@ public class SNMPClassLoaderProvider {
 
         try {
 
-            // Send a trap when stop
-            this.snmpAdaptor.snmpV1Trap(
-                    null,
-                    this.currentConfig.getTrapsCommunity(),
-                    0,
-                    0,
-                    null);
-
+            if (this.sentTraps == true) {
+                // Send a trap when stop
+                this.snmpAdaptor.snmpV1Trap(
+                        null,
+                        this.currentConfig.getTrapsCommunity(),
+                        0,
+                        0,
+                        null);
+            }
             String[] names = this.snmpAdaptor.getMibs();
 
             // Stop the SNMP Adaptor
@@ -372,6 +400,31 @@ public class SNMPClassLoaderProvider {
             TRACER.debugError("Could not instanciate the SNMP Adaptor");
             return null;
         }
+    }
+
+    private boolean checkTrapsDestinations(SortedSet destinations) {
+
+        // If the traps destinations is empty, the traps have to be sent
+        // to localhosts
+        if ((destinations == null) || (destinations.isEmpty())) {
+            return true;
+        }
+
+        boolean found = false;
+        for (Iterator iter = destinations.iterator(); iter.hasNext();) {
+            String dest = null;
+            try {
+                dest = (String) iter.next();
+                InetAddress addr = InetAddress.getByName(dest);
+                found = true;
+            } catch (UnknownHostException ex) {
+                Message message = ERR_SNMP_CONNHANDLER_TRAPS_DESTINATION.get(
+                        dest);
+                logError(message);
+            }
+        }
+        return found;
+
     }
 }
 
