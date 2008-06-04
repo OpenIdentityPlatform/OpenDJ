@@ -260,6 +260,16 @@ searchProcessing:
 
         break searchProcessing;
       }
+      catch (CanceledOperationException coe)
+      {
+        if (persistentSearch != null)
+        {
+          DirectoryServer.deregisterPersistentSearch(persistentSearch);
+          setSendResponse(true);
+        }
+
+        throw coe;
+      }
       catch (Exception e)
       {
         if (debugEnabled())

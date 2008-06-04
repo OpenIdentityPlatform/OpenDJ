@@ -582,13 +582,6 @@ public class SearchOperationBasis
   public final boolean returnEntry(Entry entry, List<Control> controls)
   {
     boolean typesOnly = getTypesOnly();
-    // See if the operation has been abandoned.  If so, then don't send the
-    // entry and indicate that the search should end.
-    if (getCancelRequest() != null)
-    {
-      setResultCode(ResultCode.CANCELED);
-      return false;
-    }
 
     // See if the size limit has been exceeded.  If so, then don't send the
     // entry and indicate that the search should end.
@@ -1005,15 +998,6 @@ public class SearchOperationBasis
    */
   public final boolean returnReference(DN dn, SearchResultReference reference)
   {
-    // See if the operation has been abandoned.  If so, then don't send the
-    // reference and indicate that the search should end.
-    if (getCancelRequest() != null)
-    {
-      setResultCode(ResultCode.CANCELED);
-      return false;
-    }
-
-
     // See if the time limit has expired.  If so, then don't send the entry and
     // indicate that the search should end.
     if ((getTimeLimit() > 0) && (TimeThread.getTime() >=

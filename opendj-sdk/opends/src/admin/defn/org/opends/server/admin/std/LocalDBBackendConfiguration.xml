@@ -383,55 +383,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="subtree-delete-size-limit" advanced="true">
-    <adm:synopsis>
-      Specifies the maximum number of entries that may be deleted from
-      the backend when using the subtree delete control.
-    </adm:synopsis>
-    <adm:description>
-      If a subtree delete operation targets a subtree with more than
-      this number of entries, then multiple passes may be required to
-      remove all entries in that subtree.
-    </adm:description>
-    <adm:default-behavior>
-      <adm:defined>
-        <adm:value>100000</adm:value>
-      </adm:defined>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:integer lower-limit="0" upper-limit="2147483647" />
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-subtree-delete-size-limit</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
-  <adm:property name="subtree-delete-batch-size" advanced="true">
-    <adm:synopsis>
-      Specifies the maximum number of entries that may be deleted from
-      the backend when using the subtree delete control within a single
-      transaction.
-    </adm:synopsis>
-    <adm:description>
-      If a subtree delete operation targets a subtree with more than
-      this number of entries, then additional transactions are used to
-      remove the remaining entries in that subtree.
-    </adm:description>
-    <adm:default-behavior>
-      <adm:defined>
-        <adm:value>5000</adm:value>
-      </adm:defined>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:integer lower-limit="0" upper-limit="2147483647" />
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-subtree-delete-batch-size</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
   <adm:property name="db-cache-percent">
     <adm:synopsis>
       Specifies the percentage of JVM memory to allocate to the database cache.

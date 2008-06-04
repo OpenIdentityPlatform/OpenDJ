@@ -826,4 +826,26 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="max-allowed-client-connections">
+    <adm:synopsis>
+      Specifies the maximum number of client connections that may be
+      established at any given time
+    </adm:synopsis>
+    <adm:description>
+      A value of 0 indicates that unlimited client connection is allowed.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>0</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="0" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-max-allowed-client-connections</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>

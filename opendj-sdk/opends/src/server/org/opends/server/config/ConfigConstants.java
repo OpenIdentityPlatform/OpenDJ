@@ -1356,15 +1356,6 @@ public final class ConfigConstants
 
 
   /**
-   * The name of the configuration attribute that indicates the maximum number
-   * of client connections that may be established at any given time.
-   */
-  public static final String ATTR_MAX_ALLOWED_CONNS =
-       "ds-cfg-max-allowed-client-connections";
-
-
-
-  /**
    * The name of the configuration attribute that indicates the maximum allowed
    * size of a request in bytes.
    */

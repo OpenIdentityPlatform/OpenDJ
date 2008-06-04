@@ -420,7 +420,6 @@ ds-cfg-base-dn: dc=unindexed,dc=jeb
 ds-cfg-db-directory: db_unindexed
 ds-cfg-db-directory-permissions: 700
 ds-cfg-index-entry-limit: 1
-ds-cfg-subtree-delete-size-limit: 100000
 ds-cfg-preload-time-limit: 0 seconds
 ds-cfg-import-queue-size: 100
 ds-cfg-import-thread-count: 8
@@ -653,7 +652,6 @@ ds-cfg-base-dn: dc=rebuild, dc=jeb
 ds-cfg-db-directory: db_rebuild
 ds-cfg-db-directory-permissions: 700
 ds-cfg-index-entry-limit: 10
-ds-cfg-subtree-delete-size-limit: 100000
 ds-cfg-preload-time-limit: 0 seconds
 ds-cfg-import-queue-size: 100
 ds-cfg-import-thread-count: 8
@@ -826,7 +824,6 @@ ds-cfg-base-dn: dc=importtest1, dc=com
 ds-cfg-db-directory: db_import_test
 ds-cfg-db-directory-permissions: 700
 ds-cfg-index-entry-limit: 10
-ds-cfg-subtree-delete-size-limit: 100000
 ds-cfg-preload-time-limit: 0 seconds
 ds-cfg-import-queue-size: 100
 ds-cfg-import-thread-count: 8
@@ -994,7 +991,6 @@ ds-cfg-base-dn: dc=verify, dc=jeb
 ds-cfg-db-directory: db_verify
 ds-cfg-db-directory-permissions: 700
 ds-cfg-index-entry-limit: 10
-ds-cfg-subtree-delete-size-limit: 100000
 ds-cfg-preload-time-limit: 0 seconds
 ds-cfg-import-queue-size: 100
 ds-cfg-import-thread-count: 8
@@ -1196,7 +1192,6 @@ ds-cfg-base-dn: dc=vlvtest,dc=com
 ds-cfg-db-directory: db_index_test
 ds-cfg-db-directory-permissions: 700
 ds-cfg-index-entry-limit: 13
-ds-cfg-subtree-delete-size-limit: 100000
 ds-cfg-preload-time-limit: 0 seconds
 ds-cfg-import-queue-size: 100
 ds-cfg-import-thread-count: 8

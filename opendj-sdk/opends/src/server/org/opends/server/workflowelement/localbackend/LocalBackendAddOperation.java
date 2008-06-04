@@ -607,10 +607,6 @@ addProcessing:
         }
 
 
-        // Check for a request to cancel this operation.
-        checkIfCanceled(true);
-
-
         // If it is not a private backend, then check to see if the server or
         // backend is operating in read-only mode.
         if (! backend.isPrivateBackend())

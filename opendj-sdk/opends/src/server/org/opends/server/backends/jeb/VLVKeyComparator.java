@@ -266,8 +266,6 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
    *          values with regard to ordering.
    * @throws DatabaseException If an error occurs during an operation on a
    * JE database.
-   * @throws JebException If an error occurs during an operation on a
-   * JE database.
    * @throws DirectoryException  If an error occurs while trying to
    *                              normalize the value (e.g., if it is
    *                              not acceptable for use with the
@@ -275,7 +273,7 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
    */
   public int compare(SortValuesSet set, int index,
                                 long entryID, AttributeValue[] values)
-      throws JebException, DatabaseException, DirectoryException
+      throws DatabaseException, DirectoryException
   {
     for (int j=0; j < orderingRules.length; j++)
     {

@@ -554,9 +554,6 @@ modifyDNProcessing:
         }
 
 
-        // Check for a request to cancel this operation.
-        checkIfCanceled(true);
-
         // Actually perform the modify DN operation.
         // This should include taking
         // care of any synchronization that might be needed.

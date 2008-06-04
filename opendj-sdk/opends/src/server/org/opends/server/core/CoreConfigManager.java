@@ -355,6 +355,9 @@ public class CoreConfigManager
 
     DirectoryServer.setUseNanoTime(globalConfig.getEtimeResolution() ==
       GlobalCfgDefn.EtimeResolution.NANOSECONDS);
+
+    DirectoryServer.setMaxAllowedConnections(
+        globalConfig.getMaxAllowedClientConnections());
   }
 
 

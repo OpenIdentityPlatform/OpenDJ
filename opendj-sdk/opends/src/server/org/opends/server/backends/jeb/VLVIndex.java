@@ -540,8 +540,6 @@ public class VLVIndex extends DatabaseContainer
    * @param mods The sequence of modifications in the Modify operation.
    * @return True if the modification was successfully processed or False
    * otherwise.
-   * @throws JebException If an error occurs during an operation on a
-   * JE database.
    * @throws DatabaseException If an error occurs during an operation on a
    * JE database.
    * @throws DirectoryException If a Directory Server error occurs.
@@ -551,7 +549,7 @@ public class VLVIndex extends DatabaseContainer
                           Entry oldEntry,
                           Entry newEntry,
                           List<Modification> mods)
-       throws DatabaseException, DirectoryException, JebException
+       throws DatabaseException, DirectoryException
   {
     DN oldEntryDN = oldEntry.getDN();
     DN newEntryDN = newEntry.getDN();
@@ -911,12 +909,11 @@ public class VLVIndex extends DatabaseContainer
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server
    * error occurs.
-   * @throws JebException If an error occurs in the JE backend.
    */
   public void updateIndex(Transaction txn,
                           TreeSet<SortValues> addedValues,
                           TreeSet<SortValues> deletedValues)
-      throws DirectoryException, DatabaseException, JebException
+      throws DirectoryException, DatabaseException
   {
     // Handle cases where nothing is changed early to avoid
     // DB access.
@@ -1135,14 +1132,13 @@ public class VLVIndex extends DatabaseContainer
    *         search criteria.
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws DatabaseException If an error occurs in the JE database.
-   * @throws JebException If an error occurs in the JE database.
    */
   public EntryIDSet evaluate(Transaction txn,
                              SearchOperation searchOperation,
                              ServerSideSortRequestControl sortControl,
                              VLVRequestControl vlvRequest,
                              StringBuilder debugBuilder)
-      throws DirectoryException, DatabaseException, JebException
+      throws DirectoryException, DatabaseException
   {
     if(!trusted || rebuildRunning)
     {
