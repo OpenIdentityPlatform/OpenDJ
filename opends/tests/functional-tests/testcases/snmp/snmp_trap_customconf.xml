@@ -654,9 +654,21 @@
                 'subcommand'       : 'set-connection-handler-prop' ,
                 'objectType'       : 'handler-name' ,
                 'objectName'       : 'SNMP Connection Handler' ,
-                'optionsString'    : '--add traps-destination:%s \
-                                      --add traps-destination:%s' \
-                                     % (wrongTrapsDestProp, newTrapsDestProp)
+                'optionsString'    : '--set traps-destination:%s' \
+                                     % wrongTrapsDestProp
+                }
+              </call>
+              <call function="'dsconfig'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'set-connection-handler-prop' ,
+                'objectType'       : 'handler-name' ,
+                'objectName'       : 'SNMP Connection Handler' ,
+                'optionsString'    : '--add traps-destination:%s' \
+                                     % newTrapsDestProp
                 }
               </call>
 
@@ -816,9 +828,8 @@
                 'subcommand'       : 'set-connection-handler-prop' ,
                 'objectType'       : 'handler-name' ,
                 'objectName'       : 'SNMP Connection Handler' ,
-                'optionsString'    : '--add traps-community:%s  \
-                                      --add traps-community:%s' \
-                              % (newTrapsCommunityProp, defTrapsCommunityProp) ,
+                'optionsString'    : '--add traps-community:%s' \
+                                     % newTrapsCommunityProp ,
                 'expectedRC'       : 1
                 }
               </call>

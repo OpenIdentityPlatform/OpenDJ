@@ -432,7 +432,12 @@
         'name'     : 'STAF/Config/STAFRoot'
         }
       </call>
-      <script>jstaf_jarfile = '%s/lib/JSTAF.jar' % STAFResult</script>
+      <script>
+        if is_windows_platform(location):
+          jstaf_jarfile='%s\\bin\\JSTAF.jar' % STAFResult
+        else:
+          jstaf_jarfile='%s/lib/JSTAF.jar' % STAFResult
+      </script>
 
       <!-- Build the command -->
       <script>

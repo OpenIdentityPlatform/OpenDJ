@@ -354,9 +354,19 @@
                 'subcommand'       : 'set-connection-handler-prop' ,
                 'objectType'       : 'handler-name' ,
                 'objectName'       : 'SNMP Connection Handler' ,
-                'optionsString'    : '--add allowed-user:%s \
-                                      --add allowed-user:%s' \
-                                      % (defUser, otherUser)
+                'optionsString'    : '--set allowed-user:%s' % defUser
+                }
+              </call>
+              <call function="'dsconfig'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'set-connection-handler-prop' ,
+                'objectType'       : 'handler-name' ,
+                'objectName'       : 'SNMP Connection Handler' ,
+                'optionsString'    : '--add allowed-user:%s' % otherUser
                 }
               </call>
 
