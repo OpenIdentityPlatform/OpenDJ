@@ -473,29 +473,28 @@ deleteProcessing:
       }
       finally
       {
-        LockManager.unlock(entryDN, entryLock);
-      }
-    }
-
-
-    for (SynchronizationProvider provider :
-        DirectoryServer.getSynchronizationProviders())
-    {
-      try
-      {
-        provider.doPostOperation(this);
-      }
-      catch (DirectoryException de)
-      {
-        if (debugEnabled())
+        for (SynchronizationProvider provider :
+          DirectoryServer.getSynchronizationProviders())
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
+          try
+          {
+            provider.doPostOperation(this);
+          }
+          catch (DirectoryException de)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
+            }
+
+            logError(ERR_DELETE_SYNCH_POSTOP_FAILED.get(getConnectionID(),
+                getOperationID(), getExceptionMessage(de)));
+            setResponseData(de);
+            break;
+          }
         }
 
-        logError(ERR_DELETE_SYNCH_POSTOP_FAILED.get(getConnectionID(),
-            getOperationID(), getExceptionMessage(de)));
-        setResponseData(de);
-        break;
+        LockManager.unlock(entryDN, entryLock);
       }
     }
 

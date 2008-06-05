@@ -717,6 +717,27 @@ addProcessing:
       }
       finally
       {
+        for (SynchronizationProvider provider :
+          DirectoryServer.getSynchronizationProviders())
+        {
+          try
+          {
+            provider.doPostOperation(this);
+          }
+          catch (DirectoryException de)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
+            }
+
+            logError(ERR_ADD_SYNCH_POSTOP_FAILED.get(getConnectionID(),
+                getOperationID(), getExceptionMessage(de)));
+            setResponseData(de);
+            break;
+          }
+        }
+
         if (entryLock != null)
         {
           LockManager.unlock(entryDN, entryLock);
@@ -726,27 +747,6 @@ addProcessing:
         {
           LockManager.unlock(parentDN, parentLock);
         }
-      }
-    }
-
-    for (SynchronizationProvider provider :
-        DirectoryServer.getSynchronizationProviders())
-    {
-      try
-      {
-        provider.doPostOperation(this);
-      }
-      catch (DirectoryException de)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
-
-        logError(ERR_ADD_SYNCH_POSTOP_FAILED.get(getConnectionID(),
-            getOperationID(), getExceptionMessage(de)));
-        setResponseData(de);
-        break;
       }
     }
 
