@@ -172,7 +172,7 @@ public class WorkThread extends DirectoryThread {
    * @throws DirectoryException If a directory error occurs.
    * @throws JebException If a JEB error occurs.
    */
-  private void process(WorkElement element)
+  public void process(WorkElement element)
   throws DatabaseException, DirectoryException, JebException {
     EntryID entryID;
     if((entryID = processDN2ID(element)) == null)
