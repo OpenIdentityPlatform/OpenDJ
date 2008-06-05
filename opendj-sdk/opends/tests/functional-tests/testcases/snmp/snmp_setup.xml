@@ -417,14 +417,14 @@
 
               <!--- Test Case information
                 #@TestMarker          setup
-                #@TestName            setup: enable SNMP Connection Handler
+                #@TestName            setup: warning
                 #@TestIssue           none
-                #@TestPurpose         Enable SNMP Connection Handler.
+                #@TestPurpose         Warning
                 #@TestPreamble        none
-                #@TestStep            enable SNMP Connection Handler using
-                                      dsconfig.
+                #@TestStep            Print a warning message to indicate that
+                                      the SNMP_OPENDMK_LIBDIR is not set.
                 #@TestPostamble       none
-                #@TestResult          Success if dsconfig returns 0.
+                #@TestResult          Always fails.
               -->
               <testcase name="getTestCaseName('setup: Warning')">
 

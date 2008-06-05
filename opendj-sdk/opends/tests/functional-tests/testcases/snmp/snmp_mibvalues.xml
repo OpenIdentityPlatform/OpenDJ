@@ -180,14 +180,14 @@
                 build = DSInfo.ServerDict['server buildid']
                 dsBuild = DSInfo.getServerBuildId(build)
                 dsServer = 'OpenDS Directory Server %s - %s' \
-                           % (dsVersion, dsBuild)
+                           % (dsVersion.rstrip(), dsBuild)
               </script>
 
               <if expr="dsServerType == dsServer">
                 <sequence>
                   <script>
                     msg1 = 'Value for dsServerType entry is correct.\n'
-                    msg2 = 'Current value: %s' % dsServer
+                    msg2 = 'Current value: %s' % dsServerType
                     msg = '%s%s' % (msg1, msg2)
                   </script>
                   <message>
@@ -199,8 +199,8 @@
                   <sequence>
                     <script>
                       msg1 = 'Value for dsServerType entry is wrong.\n'
-                      msg2 = 'Expected value: %s\n' % dsServerType
-                      msg3 = 'Current value: %s' % dsServer
+                      msg2 = 'Expected value: %s\n' % dsServer
+                      msg3 = 'Current value: %s' % dsServerType
                       msg = '%s%s%s' % (msg1, msg2, msg3)
                     </script>
                     <message>
@@ -240,14 +240,18 @@
 
               <script>
                 dsServerDescription = DEFAULT_VALUES['dsServerDescription.1']
-                dsPath = '%s/%s/bin' % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
+                if is_windows_platform(DIRECTORY_INSTANCE_HOST):
+                  dsPath = '%s/%s/bat' % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
+                  dsPath = dsPath.replace('/', '\\')
+                else:
+                  dsPath = '%s/%s/bin' % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
               </script>
 
               <if expr="dsServerDescription == dsPath">
                 <sequence>
                   <script>
                     msg1 = 'Value for dsServerDescription entry is correct.\n'
-                    msg2 = 'Current value: %s' % dsPath
+                    msg2 = 'Current value: %s' % dsServerDescription
                     msg = '%s%s' % (msg1, msg2)
                   </script>
                   <message>
@@ -259,8 +263,8 @@
                   <sequence>
                     <script>
                       msg1 = 'Value for dsServerDescription entry is wrong.\n'
-                      msg2 = 'Expected value: %s\n' % dsServerDescription
-                      msg3 = 'Current value: %s' % dsPath
+                      msg2 = 'Expected value: %s\n' % dsPath
+                      msg3 = 'Current value: %s' % dsServerDescription
                       msg = '%s%s%s' % (msg1, msg2, msg3)
                     </script>
                     <message>
@@ -824,9 +828,9 @@
                     newid = 2000 + loop
                     newDn = 'uid=user.%s' % newid
 
-                    templateFile = 'template.ldif'
+                    templateFile = 'template-%s.ldif' % loop
                     templatePath = '%s/%s' % (TMPDIR, templateFile)
-                    ldifFile = 'moddn.ldif'
+                    ldifFile = 'moddn-%s.ldif' % loop
                     ldifPath = '%s/%s' % (DIRECTORY_INSTANCE_DIR, ldifFile)
                     ldifLines = []
                     ldifLines.append('dn: %s' % userDn)
@@ -876,19 +880,19 @@
                     'filename' : ldifPath
                     }
                   </call>
+
+                  <!--- Delete locally the ldif file used for moddn -->
+                  <message>
+                    'Delete locally %s' % templatePath
+                  </message>
+                  <call function="'deleteFile'">
+                    {
+                    'location' : STAXServiceMachine ,
+                    'filename' : templatePath
+                    }
+                  </call>
                 </sequence>
               </loop>
-
-              <!--- Delete locally the ldif file used for moddn -->
-              <message>
-                'Delete locally %s' % templatePath
-              </message>
-              <call function="'deleteFile'">
-                {
-                'location' : STAXServiceMachine ,
-                'filename' : templatePath
-                }
-              </call>
 
               <message>
                 'snmp_mibvalues: increment the snmp values'

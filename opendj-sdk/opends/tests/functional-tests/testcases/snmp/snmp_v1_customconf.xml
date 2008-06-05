@@ -404,9 +404,21 @@
                 'subcommand'       : 'set-connection-handler-prop' ,
                 'objectType'       : 'handler-name' ,
                 'objectName'       : 'SNMP Connection Handler' ,
-                'optionsString'    : '--add allowed-manager:%s \
-                                      --add allowed-manager:%s' \
-                                     % (wrongManagerProp, newManagerProp)
+                'optionsString'    : '--set allowed-manager:%s' \
+                                     % wrongManagerProp
+                }
+              </call>
+              <call function="'dsconfig'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'set-connection-handler-prop' ,
+                'objectType'       : 'handler-name' ,
+                'objectName'       : 'SNMP Connection Handler' ,
+                'optionsString'    : '--add allowed-manager:%s' \
+                                     % newManagerProp
                 }
               </call>
 
@@ -505,17 +517,22 @@
                 'subcommand'       : 'set-connection-handler-prop' ,
                 'objectType'       : 'handler-name' ,
                 'objectName'       : 'SNMP Connection Handler' ,
-                'optionsString'    : '--add community:%s  \
-                                      --add community:%s' \
-                                     % (newCommunityProp, defCommunityProp) ,
+                'optionsString'    : '--add community:%s' % newCommunityProp ,
                 'expectedRC'       : 1
                 }
               </call>
 
               <script>
                 returnString = STAXResult[0][1]
+
+                if is_windows_platform(DIRECTORY_INSTANCE_HOST):
+                  newline = '\r\n'
+                else:
+                  newline = '\n'
+
                 msg1 = 'It is not possible to specify multiple values for the'
-                msg2 = 'SNMP Connection Handler\nproperty "community" as it'
+                msg2 = 'SNMP Connection Handler%sproperty "community" as it' \
+                       % newline
                 msg3 = 'is single-valued'
                 msg = '%s %s %s' % (msg1, msg2, msg3)
               </script>
