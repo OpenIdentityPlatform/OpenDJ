@@ -141,6 +141,15 @@ public class Importer implements Thread.UncaughtExceptionHandler {
   //Set to true if substring indexes are defined.
   private boolean hasSubIndexes = false;
 
+  //Work thread 0, used to add the first 20 or so entries single threaded.
+  private WorkThread workThread0;
+
+  //Counter for thread 0;
+  private int worker0Proc=0;
+
+  //Max thread 0 adds.
+  private static final int maxWorker0 = 20;
+
   /**
    * Create a new import job with the specified ldif import config.
    *
@@ -185,6 +194,9 @@ public class Importer implements Thread.UncaughtExceptionHandler {
                 bufferManager, rootContainer, importMap);
         t.setUncaughtExceptionHandler(this);
         threads.add(t);
+        if(i == 0) {
+          workThread0 = t;
+        }
         t.start();
       }
     }
@@ -444,10 +456,19 @@ public class Importer implements Thread.UncaughtExceptionHandler {
    * @param DNContext The import context.
    * @param entry The entry to process.
    */
-  private void processEntry(DNContext DNContext, Entry entry) {
-    //Add this DN to the pending map.
-    DNContext.addPending(entry.getDN());
-    addEntryQueue(DNContext, entry);
+  private void processEntry(DNContext DNContext, Entry entry)
+               throws DirectoryException, DatabaseException, JebException {
+    if(worker0Proc < maxWorker0) {
+       DNContext.addPending(entry.getDN());
+       WorkElement element =
+            WorkElement.decode(entry, DNContext);
+        workThread0.process(element);
+        worker0Proc++;
+    } else {
+      //Add this DN to the pending map.
+      DNContext.addPending(entry.getDN());
+      addEntryQueue(DNContext, entry);
+    }
   }
 
   /**

@@ -455,11 +455,11 @@ public class DNContext {
       }
       int i=0;
       //If the parent is in the pending map, another thread is working on the
-      //parent entry; wait until that thread is done with the parent.
+      //parent entry; wait 500ms until that thread is done with the parent.
       while(isPending(parentDN)) {
         try {
           Thread.sleep(50);
-          if(i == 5) {
+          if(i == 10) {
             return null;
           }
           i++;
