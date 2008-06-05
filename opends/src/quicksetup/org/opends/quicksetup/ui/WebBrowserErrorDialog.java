@@ -175,6 +175,7 @@ public class WebBrowserErrorDialog extends JDialog
     gbc.weighty = 0.0;
     gbc.insets = UIFactory.getButtonsPanelInsets();
     p.add(p2, gbc);
+    getRootPane().setDefaultButton(copyButton);
     return p;
   }
 
