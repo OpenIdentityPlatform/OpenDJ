@@ -33,6 +33,8 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
@@ -71,6 +73,8 @@ public class ConfigFromLDAP
     new HashMap<String, Integer>();
   private HashMap<String, Long> hmAgeOfOldestMissingChanges =
     new HashMap<String, Long>();
+  private static final Logger LOG = Logger.getLogger(
+      ConfigFromLDAP.class.getName());
 
   private String dn;
   private String pwd;
@@ -242,8 +246,9 @@ public class ConfigFromLDAP
     }
     catch (Throwable t)
     {
-      // Bug
-      t.printStackTrace();
+      // Bug: this is not necessarily a bug on our side (see issue 3318).
+      // Just log it.
+      LOG.log(Level.SEVERE, "Unexpected error reading configuration: "+t, t);
       errorMessage = ERR_READING_CONFIG_LDAP.get(t.toString());
     }
   }
