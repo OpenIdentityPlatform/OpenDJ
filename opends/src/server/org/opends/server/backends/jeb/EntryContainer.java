@@ -1856,6 +1856,11 @@ public class EntryContainer
       EntryContainer.transactionAbort(txn);
       throw directoryException;
     }
+    catch (CanceledOperationException coe)
+    {
+      EntryContainer.transactionAbort(txn);
+      throw coe;
+    }
     catch (Exception e)
     {
       EntryContainer.transactionAbort(txn);
@@ -2407,6 +2412,11 @@ public class EntryContainer
     {
       EntryContainer.transactionAbort(txn);
       throw directoryException;
+    }
+    catch (CanceledOperationException coe)
+    {
+      EntryContainer.transactionAbort(txn);
+      throw coe;
     }
     catch (Exception e)
     {
