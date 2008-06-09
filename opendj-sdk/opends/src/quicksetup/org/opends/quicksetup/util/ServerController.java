@@ -403,7 +403,11 @@ public class ServerController {
           boolean connected = false;
           Configuration config = installation.getCurrentConfiguration();
           int port = config.getPort();
-          String hostName = application.getUserData().getHostName();
+          String hostName = null;
+          if (application != null)
+          {
+            hostName = application.getUserData().getHostName();
+          }
           if (hostName == null)
           {
             hostName = "localhost";
