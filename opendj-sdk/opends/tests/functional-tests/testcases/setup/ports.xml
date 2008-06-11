@@ -375,6 +375,27 @@
             }
           </call>
 
+          <!--- Temporary fix to avoid remaning processes
+                when this testcase fails -->
+          <script>
+            cmd = '%s/%s/%s/stop-ds%s' \
+                  % (ODS_UNZIPPED, OPENDSNAME, fileFolder, fileExt)
+          </script>
+          <if expr="os.path.exists(cmd)" >
+            <sequence>
+              <message>'Stop instance'</message>
+              <call function="'StopDsWithScript'">
+                { 'location'  : STAF_REMOTE_HOSTNAME,
+                'dsPath'      : '%s/%s' % (ODS_UNZIPPED, OPENDSNAME),
+                'dsPort'      : 1,
+                'dsBindDN'    : 'cn=Directory Manager' ,
+                'dsBindPwd'   : 'kangourou' ,
+                'expectedRC'  : 'noCheck'
+                }
+              </call>
+            </sequence>
+          </if>
+
           <call function="'testCase_Postamble'"/>
         </sequence>
       </testcase> 
