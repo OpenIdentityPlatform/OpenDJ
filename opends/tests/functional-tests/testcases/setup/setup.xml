@@ -42,7 +42,7 @@
           -->
           <script>
             CurrentTestPath['group'] = 'setup'
-            OUT_GROUP    = '%s/setup' % logsTempDir
+            OUT_GROUP    = '%s/setup' % DIRECTORY_INSTANCE_DIR
             ODS_UNZIPPED = '%s/unzipped' % OUT_GROUP
           </script>
           

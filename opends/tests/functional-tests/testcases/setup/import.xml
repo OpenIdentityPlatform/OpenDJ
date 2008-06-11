@@ -127,7 +127,7 @@
               'service'   :  'ZIP',
               'request'   :  'UNZIP',
               'arguments' :  'ZIPFILE %s/%s TODIRECTORY %s RESTOREPERMISSION' \
-                % (ZIPPATH, ZIPNAME, IMP_I1_BASE)
+                % (DIRECTORY_INSTANCE_DIR, ZIPNAME, IMP_I1_BASE)
             }
           </call>
 
@@ -306,7 +306,7 @@
               'service'   :  'ZIP',
               'request'   :  'UNZIP',
               'arguments' :  'ZIPFILE %s/%s TODIRECTORY %s RESTOREPERMISSION' \
-                % (ZIPPATH, ZIPNAME, IMP_I2_BASE)
+                % (DIRECTORY_INSTANCE_DIR, ZIPNAME, IMP_I2_BASE)
             }
           </call>
 

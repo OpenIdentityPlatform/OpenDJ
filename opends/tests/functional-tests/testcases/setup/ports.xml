@@ -260,7 +260,7 @@
               'service'   :  'ZIP',
               'request'   :  'UNZIP',
               'arguments' :  'ZIPFILE %s/%s TODIRECTORY %s RESTOREPERMISSION' \
-                % (ZIPPATH, ZIPNAME, PORTS_I1_BASE)
+                % (DIRECTORY_INSTANCE_DIR, ZIPNAME, PORTS_I1_BASE)
             }
           </call>
 
@@ -293,7 +293,7 @@
           </call>
 
           <script>
-            c = '%s/bin/start-ds%s' % (PORTS_I1_ROOT, fileExt)
+            c = '%s/%s/start-ds%s' % (PORTS_I1_ROOT, fileFolder, fileExt)
             p = []
             p = ' '.join(p)
           </script>
