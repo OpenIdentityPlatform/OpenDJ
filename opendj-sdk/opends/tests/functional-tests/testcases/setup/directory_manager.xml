@@ -157,7 +157,7 @@
               'service'   :  'ZIP',
               'request'   :  'UNZIP',
               'arguments' :  'ZIPFILE %s/%s TODIRECTORY %s RESTOREPERMISSION' \
-                % (ZIPPATH, ZIPNAME, DM_I1_BASE)
+                % (DIRECTORY_INSTANCE_DIR, ZIPNAME, DM_I1_BASE)
             }
           </call>
 
@@ -214,7 +214,7 @@
               'service'   :  'ZIP',
               'request'   :  'UNZIP',
               'arguments' :  'ZIPFILE %s/%s TODIRECTORY %s RESTOREPERMISSION' \
-                % (ZIPPATH, ZIPNAME, DM_I2_BASE)
+                % (DIRECTORY_INSTANCE_DIR, ZIPNAME, DM_I2_BASE)
             }
           </call>
 
@@ -252,7 +252,7 @@
                   is setup -->
           <message>'Configure replication between I1 - I2 on o=o1'</message>
           <script>
-            c = '%s/bin/dsconfig%s' % (DM_I1_ROOT, fileExt)
+            c = '%s/%s/dsconfig%s' % (DM_I1_ROOT, fileFolder, fileExt)
             p = []
             p.append('create-backend --bindDN "cn=directory manager"')
             p.append('--bindPassword kangourou --port %s' % (DM_I1_PORT))
@@ -275,7 +275,7 @@
           </call>
           
           <script>
-            c = '%s/bin/dsconfig%s' % (DM_I2_ROOT, fileExt)
+            c = '%s/%s/dsconfig%s' % (DM_I2_ROOT, fileFolder, fileExt)
             p = []
             p.append('create-backend --bindDN "cn=DM" --bindPassword kangourou')
             p.append('--port %s --backend-name o1' % DM_I2_PORT)
@@ -300,7 +300,7 @@
           </call>
           
           <script>
-            c = '%s/bin/import-ldif%s' % (DM_I1_ROOT, fileExt)
+            c = '%s/%s/import-ldif%s' % (DM_I1_ROOT, fileFolder, fileExt)
             p = []
             p.append('--bindDN "cn=directory manager" --bindPassword kangourou')
             p.append('--port %s --backendID o1' % DM_I1_PORT)
@@ -321,7 +321,7 @@
           </call>
           
           <script>
-            c = '%s/bin/dsreplication%s' % (DM_I1_ROOT, fileExt)
+            c = '%s/%s/dsreplication%s' % (DM_I1_ROOT, fileFolder, fileExt)
             p = []
             p.append('enable --host1 %s' % STAF_REMOTE_HOSTNAME)
             p.append('--bindDN1 "cn=directory manager"')
@@ -350,7 +350,7 @@
           </call>
 
           <script>
-            c = '%s/bin/dsreplication%s' % (DM_I1_ROOT, fileExt)
+            c = '%s/%s/dsreplication%s' % (DM_I1_ROOT, fileFolder, fileExt)
             p = []
             p.append('initialize -I admin -w secret12 --baseDN "o=o1"')
             p.append('--hostSource %s' % STAF_REMOTE_HOSTNAME)
@@ -377,7 +377,7 @@
           <!-- 4. Backup I1 & I2 and copy LDIF files in I1 & I2 -->
           <message>'Backup I1 and I2 - copy LDIF files in I1 and I2'</message>
           <script>
-            c = '%s/bin/backup%s' % (DM_I1_ROOT, fileExt)
+            c = '%s/%s/backup%s' % (DM_I1_ROOT, fileFolder, fileExt)
             p = []
             p.append('--backendID o1 --port %s' % DM_I1_PORT)
             p.append('--bindDN "cn=directory manager"')
@@ -399,7 +399,7 @@
           </call>
           
           <script>
-            c = '%s/bin/backup%s' % (DM_I2_ROOT, fileExt)
+            c = '%s/%s/backup%s' % (DM_I2_ROOT, fileFolder, fileExt)
             p = []
             p.append('--backendID o1 --port %s' % DM_I2_PORT)
             p.append('--bindDN "cn=DM" --bindPassword "kangourou"')
@@ -636,7 +636,7 @@
               'service'   :  'ZIP',
               'request'   :  'UNZIP',
               'arguments' :  'ZIPFILE %s/%s TODIRECTORY %s RESTOREPERMISSION' \
-                % (ZIPPATH, ZIPNAME, DM_I3_BASE)
+                % (DIRECTORY_INSTANCE_DIR, ZIPNAME, DM_I3_BASE)
             }
           </call>
 

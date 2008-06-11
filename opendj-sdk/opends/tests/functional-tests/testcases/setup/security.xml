@@ -176,7 +176,7 @@
               'service'   :  'ZIP',
               'request'   :  'UNZIP',
               'arguments' :  'ZIPFILE %s/%s TODIRECTORY %s RESTOREPERMISSION' \
-                % (ZIPPATH, ZIPNAME, SEC_I1_BASE)
+                % (DIRECTORY_INSTANCE_DIR, ZIPNAME, SEC_I1_BASE)
             }
           </call>
 
@@ -213,7 +213,7 @@
           <!-- 1.2. Check I1 -->
           <message>'++ Check status of I1'</message> 
           <script>
-            c = '%s/bin/status%s' % (SEC_I1_ROOT, fileExt)
+            c = '%s/%s/status%s' % (SEC_I1_ROOT, fileFolder, fileExt)
             p = []
             p.append('--no-prompt')
             p.append('--bindDN "%s" --bindPassword "%s"' % (DM_DN, DM_PW))
@@ -347,7 +347,7 @@
           <!-- 2.2. Check I2 -->
           <message>'++ Check status of I2'</message> 
           <script>
-            c = '%s/bin/status%s' % (SEC_I2_ROOT, fileExt)
+            c = '%s/%s/status%s' % (SEC_I2_ROOT, fileFolder, fileExt)
             p = []
             p.append('--no-prompt')
             p.append('--bindDN "%s" --bindPassword "%s"' % (DM_DN, DM_PW))
@@ -422,7 +422,7 @@
           <!-- 3.1. Config: create backend I1 -->
           <message>'++ create backend on I1'</message> 
           <script>
-            c = '%s/bin/dsconfig%s' % (SEC_I1_ROOT, fileExt)
+            c = '%s/%s/dsconfig%s' % (SEC_I1_ROOT, fileFolder, fileExt)
             p = []
             p.append('create-backend --bindDN "%s"' % DM_DN)
             p.append('--bindPassword "%s" --port %s' % (DM_PW, SEC_I1_PORT))
@@ -447,7 +447,7 @@
           <!-- 3.2. Config: create backend I2 -->
           <message>'++ create backend on I2'</message> 
           <script>
-            c = '%s/bin/dsconfig%s' % (SEC_I2_ROOT, fileExt)
+            c = '%s/%s/dsconfig%s' % (SEC_I2_ROOT, fileFolder, fileExt)
             p = []
             p.append('create-backend --bindDN "%s"' % DM_DN)
             p.append('--bindPassword "%s" --port %s' % (DM_PW, SEC_I2_PORT))
@@ -472,7 +472,7 @@
           <!-- 3.3. Import data I1 -->
           <message>'++ Import data on I1'</message> 
           <script>
-            c = '%s/bin/import-ldif%s' % (SEC_I1_ROOT, fileExt)
+            c = '%s/%s/import-ldif%s' % (SEC_I1_ROOT, fileFolder, fileExt)
             p = []
             p.append('--bindDN "%s" --bindPassword "%s"' % (DM_DN, DM_PW))
             p.append('--port %s --backendID o1' % SEC_I1_PORT)
@@ -495,7 +495,7 @@
           <!-- 3.4. Enable replication I1-I2 -->
           <message>'++ Enable replication I1-I2'</message> 
           <script>
-            c = '%s/bin/dsreplication%s' % (SEC_I1_ROOT, fileExt)
+            c = '%s/%s/dsreplication%s' % (SEC_I1_ROOT, fileFolder, fileExt)
             p = []
             p.append('enable --host1 %s' % STAF_REMOTE_HOSTNAME)
             p.append('--bindDN1 "%s"' % DM_DN)
@@ -526,7 +526,7 @@
           <!-- 3.5. Initialize replication -->
           <message>'++ Initialize replication I1-I2'</message> 
           <script>
-            c = '%s/bin/dsreplication%s' % (SEC_I1_ROOT, fileExt)
+            c = '%s/%s/dsreplication%s' % (SEC_I1_ROOT, fileFolder, fileExt)
             p = []
             p.append('initialize -I admin -w secret12 --baseDN "o=o1"')
             p.append('--hostSource %s' % STAF_REMOTE_HOSTNAME)
@@ -552,7 +552,7 @@
           <!-- 4.1. Check SSL I1 -->
           <message>'++ Check SSL I1'</message> 
           <script>
-            c = '%s/bin/ldapsearch%s' % (SEC_I1_ROOT, fileExt)
+            c = '%s/%s/ldapsearch%s' % (SEC_I1_ROOT, fileFolder, fileExt)
             p = []
             p.append('--hostname %s' % STAF_REMOTE_HOSTNAME)
             p.append('--port %s' % SEC_I1_SPORT)
@@ -589,7 +589,7 @@
           <!-- 4.2. Check SSL I2 -->
           <message>'++ Check SSL I2'</message> 
           <script>
-            c = '%s/bin/ldapsearch%s' % (SEC_I2_ROOT, fileExt)
+            c = '%s/%s/ldapsearch%s' % (SEC_I2_ROOT, fileFolder, fileExt)
             p = []
             p.append('--hostname %s' % STAF_REMOTE_HOSTNAME)
             p.append('--port %s' % SEC_I2_SPORT)
@@ -626,7 +626,7 @@
           <!-- 4.3. Check not-StartTLS I1 -->
           <message>'++ Check not-StartTLS I1'</message> 
           <script>
-            c = '%s/bin/ldapsearch%s' % (SEC_I1_ROOT, fileExt)
+            c = '%s/%s/ldapsearch%s' % (SEC_I1_ROOT, fileFolder, fileExt)
             p = []
             p.append('--hostname %s' % STAF_REMOTE_HOSTNAME)
             p.append('--port %s' % SEC_I1_PORT)
@@ -651,7 +651,7 @@
           <!-- 4.4. Check StartTLS I2 -->
           <message>'++ Check StartTLS OK on I2'</message> 
           <script>
-            c = '%s/bin/ldapsearch%s' % (SEC_I2_ROOT, fileExt)
+            c = '%s/%s/ldapsearch%s' % (SEC_I2_ROOT, fileFolder, fileExt)
             p = []
             p.append('--hostname %s' % STAF_REMOTE_HOSTNAME)
             p.append('--port %s' % SEC_I2_PORT)
