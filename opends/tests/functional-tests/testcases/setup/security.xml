@@ -882,6 +882,27 @@
             }
           </call>
 
+          <!--- Temporary fix to avoid remaning processes
+                when this testcase fails -->
+          <script>
+            cmd = '%s/%s/%s/stop-ds%s' \
+            % (ODS_UNZIPPED, OPENDSNAME, fileFolder, fileExt)
+          </script>
+          <if expr="os.path.exists(cmd)" >
+            <sequence>
+              <message>'Stop I1'</message>
+              <call function="'StopDsWithScript'">
+                { 'location'  : STAF_REMOTE_HOSTNAME,
+                'dsPath'      : SEC_I1_ROOT,
+                'dsPort'      : SEC_I1_PORT,
+                'dsBindDN'    : DM_DN ,
+                'dsBindPwd'   : DM_PW ,
+                'expectedRC'  : 'noCheck'
+                }
+              </call>
+            </sequence>
+          </if>
+
           <!-- 6.3. Uninstall I2 -->
           <message>'++ Uninstall I2'</message> 
           <script>
@@ -905,6 +926,27 @@
               'outputFile': '%s/sec-uninstall-i2.txt' % OUT_GROUP,
             }
           </call>
+
+          <!--- Temporary fix to avoid remaning processes
+                when this testcase fails -->
+          <script>
+            cmd = '%s/%s/%s/stop-ds%s' \
+            % (ODS_UNZIPPED, OPENDSNAME, fileFolder, fileExt)
+          </script>
+          <if expr="os.path.exists(cmd)" >
+            <sequence>
+              <message>'Stop I2'</message>
+              <call function="'StopDsWithScript'">
+                { 'location'  : STAF_REMOTE_HOSTNAME,
+                'dsPath'      : SEC_I2_ROOT,
+                'dsPort'      : SEC_I2_PORT,
+                'dsBindDN'    : DM_DN ,
+                'dsBindPwd'   : DM_PW ,
+                'expectedRC'  : 'noCheck'
+                }
+              </call>
+            </sequence>
+          </if>
 
           <call function="'testCase_Postamble'"/>
 
