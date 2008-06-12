@@ -144,7 +144,23 @@
         writeSummaryTag(PHASE_POST_CONFIGURATION)
         writeSummaryTag(PHASE_SCHEDULER)
         writeSummaryTag(PHASE_VERDICT)
-        
+      </script>
+      <!-- write link to comments.txt file -->
+      <script>
+        commentsFile  = 'comments.txt'
+        commentsFilePath = '%s/%s' % (LOG_DIR,commentsFile)
+        commentsFileFd = open(commentsFilePath,'w')
+        commentsFileFd.write('Additional comments...\n')
+        commentsFileFd.close()
+      </script>
+      <call function="'writeMessage'">
+      { 
+        'content' : 'Additional comments : %s' % commentsFile,
+        'xlink'   : commentsFile,
+        'fileFd'  : fileFd
+      }
+      </call>
+      <script>
         fileFd.write('&lt;/summary&gt;\n')
       </script>
     </sequence>

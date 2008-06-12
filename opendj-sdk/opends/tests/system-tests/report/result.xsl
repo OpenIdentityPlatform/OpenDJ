@@ -164,10 +164,24 @@
     
     <table id="summaryTable">
       <xsl:apply-templates select="phaseSummmary" />
+      <xsl:apply-templates select="message" />
     </table>
   </p>
- </xsl:template>
- 
+</xsl:template>
+
+<!-- ============= message node =============== -->
+<xsl:template match="message">
+  <xsl:choose>
+    <xsl:when test="@xlink:href">
+      <a href="{@xlink:href}"><xsl:value-of select="." /></a>
+    </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="." />
+      </xsl:otherwise>
+    </xsl:choose>
+   <br/>
+</xsl:template>
+
 <!-- ================= Display scenario informations ============ -->
 <xsl:template match="scenario">
   <b>Scenario name</b> : <xsl:value-of select="normalize-space(@name)"/> <br/>
