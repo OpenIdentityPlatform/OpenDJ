@@ -582,7 +582,7 @@ public class StatusPanelController implements ServerStatusChangeListener,
     argList.toArray(args);
     ProcessBuilder pb = new ProcessBuilder(args);
     Map<String, String> env = pb.environment();
-    env.put(SetupUtils.OPENDS_JAVA_HOME, System.getProperty("java.home"));
+    env.remove(SetupUtils.OPENDS_JAVA_ARGS);
     try
     {
       Process process = pb.start();
@@ -696,8 +696,7 @@ public class StatusPanelController implements ServerStatusChangeListener,
     argList.toArray(args);
     ProcessBuilder pb = new ProcessBuilder(args);
     Map<String, String> env = pb.environment();
-    env.put(SetupUtils.OPENDS_JAVA_HOME, System.getProperty("java.home"));
-
+    env.remove(SetupUtils.OPENDS_JAVA_ARGS);
     try
     {
       Process process = pb.start();

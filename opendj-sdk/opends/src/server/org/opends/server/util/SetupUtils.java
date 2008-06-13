@@ -62,6 +62,11 @@ public class SetupUtils
   public static final String OPENDS_JAVA_HOME = "OPENDS_JAVA_HOME";
 
   /**
+   * Specific environment variable used by the scripts to set java arguments.
+   */
+  public static final String OPENDS_JAVA_ARGS = "OPENDS_JAVA_ARGS";
+
+  /**
    * Java property used to know which are the jar files that must be downloaded
    * lazily.  The current code in WebStartDownloader that uses this property
    * assumes that the URL are separated with an space.
