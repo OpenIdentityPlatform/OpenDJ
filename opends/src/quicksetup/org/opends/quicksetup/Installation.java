@@ -518,6 +518,17 @@ public class Installation {
   }
 
   /**
+   * Returns the path to the set-java-home file.
+   *
+   * @return the path to the set-java-home file.
+   */
+  public File getSetJavaHomeFile() {
+    return new File(getLibrariesDirectory(),
+        Utils.isWindows()?SET_JAVA_PROPERTIES_FILE_WINDOWS :
+          SET_JAVA_PROPERTIES_FILE_UNIX);
+  }
+
+  /**
    * Creates a File object representing config/upgrade/schema.ldif.current
    * which the server creates the first time it starts if there are schema
    * customizations.

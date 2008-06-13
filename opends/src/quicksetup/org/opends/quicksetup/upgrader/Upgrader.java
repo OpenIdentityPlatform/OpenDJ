@@ -69,6 +69,7 @@ import org.opends.quicksetup.ui.QuickSetup;
 import org.opends.quicksetup.ui.FieldName;
 import org.opends.quicksetup.upgrader.ui.UpgraderReviewPanel;
 import org.opends.quicksetup.upgrader.ui.WelcomePanel;
+import org.opends.server.tools.JavaPropertiesTool;
 
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -709,6 +710,9 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
       checkAbort();
 
+      getUserData().setStartServer(
+          getInstallation().getStatus().isServerRunning());
+
       try {
         LOG.log(Level.INFO, "initializing upgrade");
         setCurrentProgressStep(UpgradeProgressStep.INITIALIZING);
@@ -899,6 +903,41 @@ public class Upgrader extends GuiApplication implements CliApplication {
           } catch (ApplicationException e) {
             LOG.log(Level.INFO,
                 "Error applying tools properties changes", e);
+            throw e;
+          }
+        }
+
+        if (migration.mustRunDSJavaProperties())
+        {
+          try {
+            LOG.log(Level.INFO, "Upgrading script with java properties");
+//          Launch the script
+            String propertiesFile = new File(
+                getInstallation().getConfigurationDirectory(),
+                Installation.DEFAULT_JAVA_PROPERTIES_FILE).getAbsolutePath();
+            String setJavaFile =
+              getInstallation().getSetJavaHomeFile().getAbsolutePath();
+            String[] args =
+            {
+                "--propertiesFile", propertiesFile,
+                "--destinationFile", setJavaFile,
+                "--quiet"
+            };
+
+            int returnValue = JavaPropertiesTool.mainCLI(args);
+
+            if ((returnValue !=
+              JavaPropertiesTool.ErrorReturnCode.SUCCESSFUL.getReturnCode()) &&
+              returnValue !=
+              JavaPropertiesTool.ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode())
+            {
+              throw new ApplicationException(ReturnCode.APPLICATION_ERROR,
+              ERR_ERROR_CREATING_JAVA_HOME_SCRIPTS.get(returnValue), null);
+            }
+            LOG.log(Level.INFO, "scripts successfully upgraded");
+          } catch (ApplicationException e) {
+            LOG.log(Level.INFO,
+                "Error upgrading scripts", e);
             throw e;
           }
         }

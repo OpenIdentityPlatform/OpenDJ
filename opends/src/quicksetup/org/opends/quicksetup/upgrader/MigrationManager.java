@@ -77,6 +77,7 @@ public class MigrationManager {
   private File backupDir;
   private UserInteraction ui;
   private boolean isSchemaCustomized;
+  private boolean mustRunDSJavaProperties;
 
   /**
    * Creates a new parameterized instance.
@@ -164,6 +165,7 @@ public class MigrationManager {
       throw ApplicationException.createFileSystemException(
               INFO_ERROR_DETERMINING_CUSTOM_CONFIG.get(), e);
     }
+    mustRunDSJavaProperties = installation.getSetJavaHomeFile().exists();
   }
 
   /**
@@ -225,6 +227,17 @@ public class MigrationManager {
   public boolean mustMigrateToolProperties()
   {
    return !installation.getToolsPropertiesFile().exists();
+  }
+
+  /**
+   * Tells whether a set-java-home file exists and so if we have to run
+   * dsjavaproperties to regenerate it.
+   * @return <CODE>true</CODE> if the set-java-home file exists and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean mustRunDSJavaProperties()
+  {
+    return mustRunDSJavaProperties;
   }
 
   /**
