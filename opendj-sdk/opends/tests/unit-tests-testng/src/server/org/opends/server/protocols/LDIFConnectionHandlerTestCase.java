@@ -82,7 +82,8 @@ public class LDIFConnectionHandlerTestCase
     TestCaseUtils.dsconfig(
       "set-connection-handler-prop",
       "--handler-name", "LDIF Connection Handler",
-      "--set", "ldif-directory:" + tempDir.getAbsolutePath());
+      "--set", "ldif-directory:" + tempDir.getAbsolutePath(),
+      "--set", "enabled:true");
 
     try
     {
@@ -186,7 +187,8 @@ public class LDIFConnectionHandlerTestCase
     TestCaseUtils.dsconfig(
       "set-connection-handler-prop",
       "--handler-name", "LDIF Connection Handler",
-      "--set", "ldif-directory:" + tempDir.getAbsolutePath());
+      "--set", "ldif-directory:" + tempDir.getAbsolutePath(),
+      "--set", "enabled:true");
 
     try
     {
@@ -270,7 +272,8 @@ public class LDIFConnectionHandlerTestCase
     TestCaseUtils.dsconfig(
       "set-connection-handler-prop",
       "--handler-name", "LDIF Connection Handler",
-      "--set", "ldif-directory:" + tempDir.getAbsolutePath());
+      "--set", "ldif-directory:" + tempDir.getAbsolutePath(),
+      "--set", "enabled:true");
 
     try
     {
@@ -349,6 +352,11 @@ public class LDIFConnectionHandlerTestCase
   public void testGenericConnectionHandlerMethods()
          throws Exception
   {
+    TestCaseUtils.dsconfig(
+        "set-connection-handler-prop",
+        "--handler-name", "LDIF Connection Handler",
+        "--set", "enabled:true");
+    
     // Get the connection handler from the server.
     LDIFConnectionHandler connHandler = null;
     for (ConnectionHandler handler : DirectoryServer.getConnectionHandlers())
