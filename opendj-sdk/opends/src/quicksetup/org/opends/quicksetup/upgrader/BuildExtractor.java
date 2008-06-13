@@ -202,14 +202,18 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
             new BuildExtractorCliHelper((UpgradeLauncher)launcher);
     UpgradeUserData uud = helper.createUserData(args);
 
-    // Build Extractor is always quiet
-    uud.setQuiet(true);
+    if (uud != null)
+    {
+      // Build Extractor is always quiet
+      uud.setQuiet(true);
 
-    // The user may have indicated the operation via interactivity
-    if (UpgradeUserData.Operation.UPGRADE.equals(uud.getOperation())) {
-      isUpgrade = true;
-    } else if (UpgradeUserData.Operation.REVERSION.equals(uud.getOperation())) {
-      isReversion = true;
+      // The user may have indicated the operation via interactivity
+      if (UpgradeUserData.Operation.UPGRADE.equals(uud.getOperation())) {
+        isUpgrade = true;
+      } else if (UpgradeUserData.Operation.REVERSION.equals(
+          uud.getOperation())) {
+        isReversion = true;
+      }
     }
 
     return uud;

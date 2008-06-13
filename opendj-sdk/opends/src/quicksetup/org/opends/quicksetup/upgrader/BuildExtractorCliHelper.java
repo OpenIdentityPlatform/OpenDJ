@@ -32,7 +32,9 @@ import static org.opends.messages.UtilityMessages.*;
 
 import org.opends.messages.Message;
 
+import org.opends.quicksetup.CliUserInteraction;
 import org.opends.quicksetup.UserDataException;
+import org.opends.quicksetup.UserInteraction;
 import org.opends.server.util.cli.CLIException;
 import org.opends.server.util.cli.Menu;
 import org.opends.server.util.cli.MenuBuilder;
@@ -141,6 +143,21 @@ public class BuildExtractorCliHelper extends UpgraderCliHelper {
                   ERR_CONFIRMATION_TRIES_LIMIT_REACHED.get(
                       CONFIRMATION_MAX_TRIES));
             }
+          }
+          System.out.println();
+          Message cont = INFO_CONTINUE_BUTTON_LABEL.get();
+          Message cancel = INFO_CANCEL_BUTTON_LABEL.get();
+          UserInteraction ui = new CliUserInteraction();
+          if (cancel.equals(ui.confirm(
+              INFO_UPGRADE_CONFIRM_TITLE.get(),
+              INFO_UPGRADE_CONFIRM_PROMPT.get(
+                      uud.getInstallPackage().getAbsolutePath()),
+              INFO_REVERT_CONFIRM_TITLE.get(),
+              UserInteraction.MessageType.WARNING,
+              new Message[] { cont, cancel },
+              cont))) {
+            LOG.log(Level.INFO, "User canceled upgrade.");
+            return null;
           }
         } else {
           uud.setOperation(UpgradeUserData.Operation.REVERSION);
