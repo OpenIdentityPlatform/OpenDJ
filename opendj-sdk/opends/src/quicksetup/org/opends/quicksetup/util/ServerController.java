@@ -139,6 +139,7 @@ public class ServerController {
       ProcessBuilder pb = new ProcessBuilder(args);
       Map<String, String> env = pb.environment();
       env.put(SetupUtils.OPENDS_JAVA_HOME, System.getProperty("java.home"));
+      env.remove(SetupUtils.OPENDS_JAVA_ARGS);
 
       try {
         Process process = pb.start();
@@ -311,6 +312,7 @@ public class ServerController {
       pb.directory(installation.getBinariesDirectory());
       Map<String, String> env = pb.environment();
       env.put(SetupUtils.OPENDS_JAVA_HOME, System.getProperty("java.home"));
+      env.remove(SetupUtils.OPENDS_JAVA_ARGS);
 
       // Upgrader's classpath contains jars located in the temporary
       // directory that we don't want locked by the directory server
