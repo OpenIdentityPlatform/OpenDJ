@@ -703,7 +703,9 @@ public class ReplicationBroker implements InternalSearchListener
 
   /**
    * Search for the changes that happened since fromChangeNumber
-   * based on the historical attribute.
+   * based on the historical attribute. The only changes that will
+   * be send will be the one generated on the serverId provided in
+   * fromChangeNumber.
    * @param baseDn the base DN
    * @param fromChangeNumber The change number from which we want the changes
    * @param resultListener that will process the entries returned.
@@ -718,9 +720,16 @@ public class ReplicationBroker implements InternalSearchListener
   {
     InternalClientConnection conn =
       InternalClientConnection.getRootConnection();
+    Short serverId = fromChangeNumber.getServerId();
+
+    String maxValueForId = "ffffffffffffffff" +
+      String.format("%04x", serverId) + "ffffffff";
+
     LDAPFilter filter = LDAPFilter.decode(
-      "(" + Historical.HISTORICALATTRIBUTENAME +
-      ">=dummy:" + fromChangeNumber + ")");
+       "(&(" + Historical.HISTORICALATTRIBUTENAME + ">=dummy:"
+       + fromChangeNumber + ")(" + Historical.HISTORICALATTRIBUTENAME +
+       "<=dummy:" + maxValueForId + "))");
+
     LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
     attrs.add(Historical.HISTORICALATTRIBUTENAME);
     attrs.add(Historical.ENTRYUIDNAME);
