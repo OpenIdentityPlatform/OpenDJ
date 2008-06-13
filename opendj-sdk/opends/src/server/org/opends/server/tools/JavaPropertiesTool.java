@@ -260,28 +260,66 @@ public class JavaPropertiesTool extends ConsoleApplication
     {
       String line;
       // Parse the file manually since '\' in windows paths can generate issues.
+      boolean slashInLastLine = false;
+      String key = null;
+      StringBuilder sbValue = null;
       while ((line = reader.readLine()) != null)
       {
         line = line.trim();
         if (!line.startsWith("#"))
         {
-          int index = line.indexOf('=');
-          if (index != -1)
+          if (!slashInLastLine)
           {
-            String key = line.substring(0, index);
-            if (key.indexOf(' ') == -1)
+            key = null;
+            sbValue = new StringBuilder();
+            int index = line.indexOf('=');
+            if (index > 0)
             {
-              if (index < line.length())
+              key = line.substring(0, index);
+              if (key.indexOf(' ') != -1)
               {
-                String value = line.substring(index+1);
-                properties.setProperty(key, value);
-              }
-              else
-              {
-                properties.setProperty(key, "");
+                key = null;
               }
             }
           }
+
+          // Consider the space: in windows the user might add a path ending
+          // with '\'. With this approach we minimize the possibilities of
+          // error.
+          boolean hasSlash = line.endsWith(" \\");
+
+          if (hasSlash)
+          {
+            line = line.substring(0, line.length() - 1);
+          }
+
+          String lineValue = null;
+
+          if (slashInLastLine)
+          {
+            lineValue = line;
+          }
+          else if (key != null)
+          {
+            int index = line.indexOf('=');
+            if ((index != -1) && ((index + 1) < line.length()))
+            {
+              lineValue = line.substring(index+1);
+            }
+          }
+          if ((lineValue != null) && (lineValue.length() > 0))
+          {
+            if (sbValue == null)
+            {
+              sbValue = new StringBuilder();
+            }
+            sbValue.append(lineValue);
+          }
+          if (!hasSlash && (key != null) && (sbValue != null))
+          {
+            properties.put(key, sbValue.toString());
+          }
+          slashInLastLine = hasSlash;
         }
       }
     }
