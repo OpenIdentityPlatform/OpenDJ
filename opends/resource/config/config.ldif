@@ -469,7 +469,7 @@ objectClass: ds-cfg-connection-handler
 objectClass: ds-cfg-ldif-connection-handler
 cn: LDIF Connection Handler
 ds-cfg-java-class: org.opends.server.protocols.LDIFConnectionHandler
-ds-cfg-enabled: true
+ds-cfg-enabled: false
 ds-cfg-ldif-directory: config/auto-process-ldif
 ds-cfg-poll-interval: 5 seconds
 
