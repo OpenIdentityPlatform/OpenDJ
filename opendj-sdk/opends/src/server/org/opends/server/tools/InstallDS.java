@@ -2342,7 +2342,6 @@ public class InstallDS extends ConsoleApplication
         Message.raw(InstallReviewPanel.getDataDisplayString(uData)),
     };
     int maxWidth = 0;
-    StringBuilder sb = new StringBuilder();
     for (Message l : labels)
     {
       maxWidth = Math.max(maxWidth, l.length());
@@ -2350,6 +2349,7 @@ public class InstallDS extends ConsoleApplication
 
     for (int i=0; i<labels.length; i++)
     {
+      StringBuilder sb = new StringBuilder();
       if (values[i] != null)
       {
         Message l = labels[i];
@@ -2361,7 +2361,6 @@ public class InstallDS extends ConsoleApplication
         {
           if (j != 0)
           {
-            sb.append(Constants.LINE_SEPARATOR);
             for (int k=0; k <= maxWidth; k++)
             {
               sb.append(" ");
@@ -2374,13 +2373,13 @@ public class InstallDS extends ConsoleApplication
               sb.append(" ");
             }
           }
-          sb.append(lines[j].toString());
+          sb.append(lines[j]);
+          println(Message.raw(sb));
+          sb = new StringBuilder();
         }
-        sb.append(Constants.LINE_SEPARATOR);
       }
     }
 
-    println(Message.raw(sb));
     println();
     if (uData.getStartServer())
     {
