@@ -133,7 +133,18 @@ public class HistoricalCsnOrderingMatchingRule
   public ByteString normalizeValue(ByteString value)
   {
     String[] token = value.stringValue().split(":", 3);
-    return new ASN1OctetString(token[1]);
+
+    /* Change the format of the value to index and start
+     * with the serverId. In that manner, the search response
+     * time is optimised for a particulare serverId.
+     * The format of the key is now :
+     * serverId + timestamp + seqNum
+     */
+    String timestamp = token[1].substring(0,16);
+    String serverId = token[1].substring(16,20);
+    String seqNumber = token[1].substring(20, 28);
+
+    return new ASN1OctetString(serverId + timestamp + seqNumber);
   }
 
   /**
