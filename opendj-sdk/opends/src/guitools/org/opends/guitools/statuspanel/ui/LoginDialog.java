@@ -248,13 +248,14 @@ public class LoginDialog extends JDialog
     tfPwd = UIFactory.makeJPasswordField(null,
         INFO_LOGIN_PWD_TOOLTIP.get(),
         UIFactory.PASSWORD_FIELD_SIZE, UIFactory.TextStyle.PASSWORD_FIELD);
+    gbc.weightx = 1.0;
     p2.add(p3, gbc);
     gbc.insets = UIFactory.getEmptyInsets();
-    gbc.gridwidth = GridBagConstraints.RELATIVE;
-    gbc.weightx = 0.0;
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.weightx = 0.2;
     p3.add(tfPwd, gbc);
     gbc.gridwidth = GridBagConstraints.REMAINDER;
-    gbc.weightx = 1.0;
+    gbc.weightx = 0.8;
     p3.add(Box.createHorizontalGlue(), gbc);
 
 
