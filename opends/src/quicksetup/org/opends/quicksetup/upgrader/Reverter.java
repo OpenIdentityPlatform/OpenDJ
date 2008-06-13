@@ -1071,7 +1071,7 @@ public class Reverter extends Application implements CliApplication {
               userInteraction(), currentVersion, newVersion);
       uo.notifyUser();
       if (uo.noServerStartFollowingOperation()) {
-        // Some issue dicatates that we don't try and restart the server
+        // Some issue dictates that we don't try and restart the server
         // after this operation.  It may be that the databases are no
         // longer readable after the reversion or something equally earth
         // shattering.
