@@ -151,7 +151,7 @@
             id = element[0]
             instance = element[1]
           </script>
-          <!-- Parrallel copy, all instances except instance 0 wait 1 sec -->
+          <!-- Parrallel copy, all instances except instance 0 wait 2 sec -->
           <!-- This prevent copying the same folder in case of NFS        -->
           <if expr="id != 0">
             <call function="'sleep'">
@@ -177,6 +177,29 @@
               'fileFd'        : NO_FILE
             }
           </call>
+          <!-- Copy data that are under the scenario directory -->
+          <call function="'isFile'">
+          {
+            'location' : STAXServiceMachine,
+            'fileName' : '%s/scenario/%s/data' % \
+                         (TESTS_DIR,DIR_NAME),
+          }
+          </call>
+          <script>
+            fileExist = STAXResult
+          </script>
+          <if expr="fileExist == TRUE">
+            <call function="'copyFolder'">
+            {
+              'remoteHost'    : '%s%s' % (instance.getHost(),DOMAIN[0]),
+              'fromDirectory' : '%s/scenario/%s/data' % \
+                                (TESTS_DIR,DIR_NAME),
+              'toDirectory'   : '%s/scenario/%s/data' % \
+                                (LOCAL_TESTS_DIR,DIR_NAME),
+              'fileFd'        : NO_FILE
+            }
+            </call>
+          </if>
         </sequence>
       </paralleliterate>
       
@@ -249,7 +272,7 @@
                     client = element[1]
                   </script>
                   <!-- Parrallel copy, all instances except             -->
-                  <!-- client 0 wait 1 sec. This prevent copying        -->
+                  <!-- client 0 wait 2 sec. This prevent copying        -->
                   <!-- the same folder in case of NFS                   -->
                   <if expr="id != 0">
                     <call function="'sleep'">
