@@ -500,7 +500,8 @@ public class RmiConnector
       // Close the socket
       try
       {
-        rmiSsf.close();
+        if (rmiSsf != null)
+          rmiSsf.close();
       }
       catch (IOException e)
       {

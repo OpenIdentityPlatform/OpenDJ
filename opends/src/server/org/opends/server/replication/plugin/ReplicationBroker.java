@@ -1018,6 +1018,7 @@ public class ReplicationBroker implements InternalSearchListener
    */
   public void stop()
   {
+    stopHeartBeat();
     replicationServer = "stopped";
     shutdown = true;
     connected = false;
