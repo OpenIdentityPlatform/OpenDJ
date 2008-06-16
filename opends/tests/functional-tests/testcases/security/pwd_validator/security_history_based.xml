@@ -33,12 +33,38 @@
 
       <sequence>
 
+        <!--- Test Suite information
+         #@TestSuiteName       History based
+         #@TestSuitePurpose    Reject Passwords looking in the History Base
+         #@TestSuiteGroup      History Based
+         #@TestScript          security_history_based.xml
+        -->
+        
+        <!--- Define default value for basedn -->
+        <script>
+        basedn1 = 'ou=people,ou=password tests,'
+        basedn = '%s o=Pwd Validator Tests,dc=example,dc=com' % basedn1
+        msg = 'Security: Pwd Validator: History Based:'
+        </script>
+     
+        <!--- Test Case information
+          #@TestMarker       History Based
+          #@TestName         History Based: Preamble
+          #@TestIssue        none
+          #@TestPurpose      Preamble Enabling History Based Validator
+          #@TestPreamble     none
+          #@TestStep         Admin Enabling History Based Validator set
+                             password-history-count to 3
+          #@TestPostamble    none
+          #@TestResult       Success if the test is PASS
+        -->
+        
         <testcase name="getTestCaseName('History Based: Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: History Based: Preamble - Admin Enabling Validator'
+            '%s Preamble - Admin Enabling Validator' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -55,82 +81,117 @@
             
           </sequence>
         </testcase>
-
-        <testcase name="getTestCaseName('History Based: user modifying password 1')">
+        
+        <!--- Test Case information
+          #@TestMarker       History Based
+          #@TestName         History Based: user modify password 1
+          #@TestIssue        none
+          #@TestPurpose      user modify password 1
+          #@TestPreamble     none
+          #@TestStep         user modify password 1 from sprain to sprainone 
+                             RC 0
+          #@TestStep         user modify password back to old password sprain 
+                             RC 53
+          #@TestStep         user binding with password 1 sprainone RC 0
+          #@TestPostamble    none
+          #@TestResult       Success if the 3 tests are PASS
+        -->
+        
+<testcase name="getTestCaseName('History Based: user modifying password 1')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: History Based: user modifying password 1'
+            '%s user modifying password 1' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=scarter,%s' % basedn,
                     'dsInstancePswd'         : 'sprain' ,
-                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'sprainone' ,
-                    'changetype'             : 'replace'  }
+                    'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
+                    'dsNewPassword'          : 'sprainone' }
             </call>
             
             <message>
-               'Security: Pwd Validator: History Based: user modifying password back to old password'
+            '%s user modifying password back to old password' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=scarter,%s' % basedn,
                     'dsInstancePswd'         : 'sprainone' ,
-                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'sprain' ,
-                    'changetype'             : 'replace'  ,
+                    'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
+                    'dsNewPassword'          : 'sprain' ,
                     'expectedRC'             : 53 }
             </call>
             
+	    <script>
+              knownIssue(3270)
+            </script>
             <message>
-               'Security: Pwd Validator: History Based: user binding with password 1'
+            '%s user binding with password 1' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=scarter,%s' % basedn,
                 'dsInstancePswd'   : 'sprainone' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
 
+            <script>
+              knownIssue(3270)
+            </script>
+
             <call function="'testCase_Postamble'"/>
             
           </sequence>
         </testcase>
         
-        <testcase name="getTestCaseName('History Based: user modifying password 2')">
+        <!--- Test Case information
+          #@TestMarker       History Based
+          #@TestName         History Based: user modifying password 2
+          #@TestIssue        none
+          #@TestPurpose      user modifying password 2
+          #@TestPreamble     none
+          #@TestStep         user modify password from sprainone to spraintwo 
+                             RC 0
+          #@TestStep         user modify password back to old passwords sprain 
+                             and sprainone RC 53
+          #@TestStep         user binding with password 2 spraintwo RC 0
+          #@TestPostamble    none
+          #@TestResult       Success if the 3 tests are PASS
+        -->
+        
+<testcase name="getTestCaseName('History Based: user modifying password 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: History Based: user modifying password 2'
+            '%s user modifying password 2' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=scarter,%s' % basedn,
                     'dsInstancePswd'         : 'sprainone' ,
-                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'spraintwo' ,
-                    'changetype'             : 'replace'  }
+                    'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
+                    'dsNewPassword'          : 'spraintwo'  }
             </call>
-            
+           
+            <script>
+              knownIssue(3270)
+            </script>
+ 
             <message>
-               'Security: Pwd Validator: History Based: user modifying password back to old passwords'
+            '%s user modifying password back to old passwords' % msg
             </message>
 
             <script>
@@ -138,59 +199,82 @@
             </script>
             
             <iterate var="pwds" in="modify_pwds" indexvar="index">
-              <call function="'modifyAnAttribute'">
+              <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=scarter,%s' % basedn,
                     'dsInstancePswd'         : 'spraintwo' ,
-                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : '%s' % pwds ,
-                    'changetype'             : 'replace'  ,
+                    'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
+                    'dsNewPassword'          : '%s' % pwds ,
                     'expectedRC'             : 53 }
               </call>
             </iterate>
-            
+ 
+            <script>
+              knownIssue(3270)
+            </script>
+           
             <message>
-               'Security: Pwd Validator: History Based: user binding with password 2'
+            '%s user binding with password 2' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=scarter,%s' % basedn ,
                 'dsInstancePswd'   : 'spraintwo' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
 
+            <script>
+              knownIssue(3270)
+            </script>
+
             <call function="'testCase_Postamble'"/>
             
           </sequence>
         </testcase>
         
-        <testcase name="getTestCaseName('History Based: user modifying password 3')">
+        <!--- Test Case information
+          #@TestMarker       History Based
+          #@TestName         History Based: user modifying password 3
+          #@TestIssue        none
+          #@TestPurpose      user modifying password 3
+          #@TestPreamble     none
+          #@TestStep         user modify password from spraintwo to sprainthree 
+                             RC 0
+          #@TestStep         user modify password back to old passwords sprain 
+                             sprainone and spraintwo RC 53
+          #@TestStep         user binding with password 3 sprainthree RC 0
+          #@TestPostamble    none
+          #@TestResult       Success if the 3 tests are PASS
+        -->
+        
+<testcase name="getTestCaseName('History Based: user modifying password 3')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: History Based: user modifying password 3'
+            '%s user modifying password 3' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=scarter,%s' % basedn,
                     'dsInstancePswd'         : 'spraintwo' ,
-                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'sprainthree' ,
-                    'changetype'             : 'replace'  }
+                    'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
+                    'dsNewPassword'          : 'sprainthree'  }
             </call>
+
+            <script>
+              knownIssue(3270)
+            </script>
             
             <message>
-               'Security: Pwd Validator: History Based: user modifying password back to old passwords'
+            '%s user modifying password back to old passwords' % msg
             </message>
 
             <script>
@@ -198,59 +282,85 @@
             </script>
             
             <iterate var="pwds" in="modify_pwds" indexvar="index">
-              <call function="'modifyAnAttribute'">
+              <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=scarter,%s' % basedn,
                     'dsInstancePswd'         : 'sprainthree' ,
-                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : '%s' % pwds ,
-                    'changetype'             : 'replace'  ,
+                    'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
+                    'dsNewPassword'          : '%s' % pwds ,
                     'expectedRC'             : 53 }
               </call>
             </iterate>
+
+            <script>
+              knownIssue(3270)
+            </script>
+
             
             <message>
-               'Security: Pwd Validator: History Based: user binding with password 3'
+            '%s user binding with password 3' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=scarter,%s' % basedn,
                 'dsInstancePswd'   : 'sprainthree' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
 
+            <script>
+              knownIssue(3270)
+            </script>
+
             <call function="'testCase_Postamble'"/>
             
           </sequence>
         </testcase>
         
-        <testcase name="getTestCaseName('History Based: user modifying password 4')">
+        <!--- Test Case information
+          #@TestMarker       History Based
+          #@TestName         History Based: user modifying password 4
+          #@TestIssue        none
+          #@TestPurpose      user modifying password 4
+          #@TestPreamble     none
+          #@TestStep         user modify password from sprainthree to sprainfour
+                             RC 0
+          #@TestStep         user modify password back to last 3 passwords 
+                             sprainone spraintwo  and sprainthree RC 53
+          #@TestStep         user modify password back to  original password
+                             sprain RC 0
+          #@TestStep         user binding with original password sprain RC 0
+          #@TestPostamble    none
+          #@TestResult       Success if the 4 tests are PASS
+        -->
+        
+<testcase name="getTestCaseName('History Based: user modifying password 4')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: History Based: user modifying password 4'
+            '%s user modifying password 4' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=scarter,%s' % basedn,
                     'dsInstancePswd'         : 'sprainthree' ,
-                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'sprainfour' ,
-                    'changetype'             : 'replace'  }
+                    'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn ,
+                    'dsNewPassword'          : 'sprainfour'   }
             </call>
+
+            <script>
+              knownIssue(3270)
+            </script>
             
             <message>
-               'Security: Pwd Validator: History Based: user modifying password back to old passwords'
+            '%s user modifying password back to old passwords' % msg
             </message>
 
             <script>
@@ -258,42 +368,46 @@
             </script>
             
             <iterate var="pwds" in="modify_pwds" indexvar="index">
-              <call function="'modifyAnAttribute'">
+              <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=scarter,%s' % basedn,
                     'dsInstancePswd'         : 'sprainfour' ,
-                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : '%s' % pwds ,
-                    'changetype'             : 'replace'  ,
+                    'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
+                    'dsNewPassword'          : '%s' % pwds ,
                     'expectedRC'             : 53 }
               </call>
             </iterate>
             
+            <script>
+              knownIssue(3270)
+            </script>
+
             <message>
-               'Security: Pwd Validator: History Based: user modifying password to original one'
+            '%s user modifying password to original one' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=scarter,%s' % basedn ,
                     'dsInstancePswd'         : 'sprainfour' ,
-                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'sprain' ,
-                    'changetype'             : 'replace'  }
+                    'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
+                    'dsNewPassword'          : 'sprain'   }
             </call>
-            
+ 
+            <script>
+              knownIssue(3270)
+            </script>
+           
             <message>
-               'Security: Pwd Validator: History Based: user binding with original password'
+            '%s user binding with original password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=scarter,%s' % basedn,
                 'dsInstancePswd'   : 'sprain' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -304,13 +418,25 @@
             
           </sequence>
         </testcase>
+         
+         <!--- Test Case information
+          #@TestMarker       History Based
+          #@TestName         History Based: Modify password history duration
+          #@TestIssue        none
+          #@TestPurpose      user modifying password history duration
+          #@TestPreamble     none
+          #@TestStep         set password-history-duration to 10 s
+          #@TestPostamble    none
+          #@TestResult       Success if the test is PASS
+        -->
         
-        <testcase name="getTestCaseName('History Based: Modify password history duration')">
+        <testcase name="getTestCaseName
+        ('History Based: Modify password history duration')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: History Based: Admin modifying password history duration'
+            '%s Admin modifying password history duration' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -328,7 +454,25 @@
           </sequence>
         </testcase>
 
-        <testcase name="getTestCaseName('History Based: user modifying password after duration')">
+        <!--- Test Case information
+          #@TestMarker       History Based
+          #@TestName         History Based: user modifying password after 
+                             duration
+          #@TestIssue        none
+          #@TestPurpose      The "Password History Duration" property specifies 
+                             the maximum length of time that a formerly-used 
+                             password should remain in the user's password 
+                             history
+          #@TestPreamble     none
+          #@TestStep         Sleep of 15 seconds
+          #@TestStep         user modifying password after duration RC 0
+          #@TestStep         user binding with password after duration RC 0
+          #@TestPostamble    none
+          #@TestResult       Success if the 3 tests are PASS
+        -->
+        
+        <testcase name="getTestCaseName
+        ('History Based: user modifying password after duration')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -341,28 +485,26 @@
             </call>
             
             <message>
-               'Security: Pwd Validator: History Based: user modifying password after duration'
+            '%s user modifying password after duration' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=scarter,%s' % basedn,
                     'dsInstancePswd'         : 'sprain' ,
-                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'sprainone' ,
-                    'changetype'             : 'replace'  }
+                    'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn ,
+                    'dsNewPassword'          : 'sprainone' , }
             </call>
             
             <message>
-               'Security: Pwd Validator: History Based: user binding with password after duration'
+            '%s user binding with password after duration' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=scarter,%s' % basedn,
                 'dsInstancePswd'   : 'sprainone' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -374,11 +516,25 @@
           </sequence>
         </testcase>
         
+        <!--- Test Case information
+          #@TestMarker       History Based
+          #@TestName         History Based: Postamble
+          #@TestIssue        none
+          #@TestPurpose      Postamble Admin resetting password history duration
+                             and count
+          #@TestPreamble     none
+          #@TestStep         reset password-history-duration to 0 d
+          #@TestStep         reset password-history-count to 0
+          #@TestStep         user modifying password back to old passwords RC 0
+          #@TestStep         user Searching With Password sprain RC 0
+          #@TestPostamble    none
+          #@TestResult       Success if the 3 tests are PASS
+        -->
         <testcase name="getTestCaseName('History Based: Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: History Based: Postamble Step 1. Admin resetting password history duration'
+            '%s Postamble Step 1. Admin resets password history duration' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -392,7 +548,7 @@
             </call>
             
             <message>
-               'Security: Pwd Validator: History Based: Postamble Step 2. Admin resetting password history count'
+            '%s Postamble Step 2. Admin resetting password history count' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -407,50 +563,44 @@
             
             <!--- User Change Password -->
             <message>
-               'Security: Pwd Validator: History Based: Postamble Step 3. user modifying password back to old passwords'
+            '%s Postamble Step 3. user modify pwd back to old passwords' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=scarter,%s' % basedn,
                     'dsInstancePswd'         : 'sprainone' ,
-                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'spraintwo' ,
-                    'changetype'             : 'replace'   }
+                    'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
+                    'dsNewPassword'          : 'spraintwo'  }
             </call>
             
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=scarter,%s' % basedn,
                     'dsInstancePswd'         : 'spraintwo' ,
-                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'sprainthree' ,
-                    'changetype'             : 'replace'   }
+                    'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn ,
+                    'dsNewPassword'          : 'sprainthree'    }
             </call>
             
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=scarter,%s' % basedn,
                     'dsInstancePswd'         : 'sprainthree' ,
-                    'DNToModify'             : 'uid=scarter, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'sprain' ,
-                    'changetype'             : 'replace'   }
+                    'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
+                    'dsNewPassword'          : 'sprain'    }
             </call>
             
             <message>
-               'Security: Pwd Validator: History Based: Postamble Step 4. User Searching With Password'
+            '%s Postamble Step 4. User Searching With Password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=scarter,%s' % basedn,
                 'dsInstancePswd'   : 'sprain' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,

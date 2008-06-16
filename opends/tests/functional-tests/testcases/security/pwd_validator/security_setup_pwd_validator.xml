@@ -32,8 +32,29 @@
   <function name="setup_pwd_validator">
 
       <sequence>
+        
+        <!--- Test Suite information
+          #@TestSuiteName       setup Password Validator
+          #@TestSuitePurpose    Setup for the Password Validator test suite.
+          #@TestSuiteGroup      setup Password Validator
+          #@TestScript          security_setup_pwd_validator.xml
+        -->
+          
+        <script>
+        path = '%s/security/pwd_validator' % logsRemoteDataDir
+        </script>
+     
+        <!--- Test Case information
+          #@TestMarker          setup Password Validator
+          #@TestName            setup: Add Initials Entries
+          #@TestIssue           none
+          #@TestPurpose         Add Entries for Password Validator Tests
+          #@TestPreamble        none
+          #@TestStep            Add pwd_validator_startup.ldif
+          #@TestPostamble       none
+          #@TestResult          Success if addEntry returns 0.
+        -->
 
-        <!--- Test Case : Add Entries for Password Validator Tests -->
         <testcase name="getTestCaseName('Add Initial Entries')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -42,12 +63,12 @@
             </message>
 
             <call function="'addEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/pwd_validator/pwd_validator_startup.ldif' % logsRemoteDataDir }
-            </call>
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeAdded'   : '%s/pwd_validator_startup.ldif' % path }
+  </call>
 
             <call function="'testCase_Postamble'"/>
             

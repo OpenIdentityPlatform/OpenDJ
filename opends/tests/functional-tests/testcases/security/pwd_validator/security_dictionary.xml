@@ -32,13 +32,41 @@
   <function name="dictionary">
 
       <sequence>
+        
+        <!--- Test Suite information
+         #@TestSuiteName       Dictionary
+         #@TestSuitePurpose    Reject Passwords Matching Dictionary
+         #@TestSuiteGroup      Dictionary
+         #@TestScript          security_dictionary.xml
+        -->
+        
+        <!--- Define default value for basedn -->
+        <script>
+        basedn1 = 'ou=people,ou=password tests,'
+        basedn = '%s o=Pwd Validator Tests,dc=example,dc=com' % basedn1
+        msg = 'Security: Pwd Validator: Dictionary:'
+        </script>
+     
+     
+        <!--- Test Case information
+          #@TestMarker       Dictionary
+          #@TestName         Dictionary: Preamble
+          #@TestIssue        none
+          #@TestPurpose      Preamble Enabling Dictionary Validator
+          #@TestPreamble     none
+          #@TestStep         Admin Enabling Dictionary modifyPwdValidator
+          #@TestStep         Admin Enabling Validator modifyPwdPolicy 
+                             password-validator:Dictionary
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
 
         <testcase name="getTestCaseName('Dictionary: Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Dictionary: Preamble - Admin Enabling Dictionary'
+            '%s Preamble - Admin Enabling Dictionary' % msg
             </message>
 
             <call function="'modifyPwdValidator'">
@@ -53,7 +81,7 @@
             </call>
             
             <message>
-               'Security: Pwd Validator: Dictionary: Preamble - Admin Enabling Validator'
+            '%s Preamble - Admin Enabling Validator' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -71,38 +99,52 @@
           </sequence>
         </testcase>
 
-        <testcase name="getTestCaseName('Dictionary: user modifying password to string with all letters')">
+        <!--- Test Case information
+          #@TestMarker       Dictionary
+          #@TestName         Dictionary: user modifying password to a 
+                             dictionary letter string
+          string with all letters
+          #@TestIssue        none
+          #@TestPurpose      dictionary string with all letters
+          #@TestPreamble     none
+          #@TestStep         user modifying password to string with all letters
+                             matching a dictionary word zymochemistry RC 53
+          #@TestStep         user binding with invalid password RC 49
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
+        
+        <testcase name="getTestCaseName
+        ('Dictionary: user modifying password to string with all letters')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Dictionary: user modifying password to string with all letters'
+            '%s user modifying password to string with all letters' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=abergin,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=abergin,%s' % basedn,
                     'dsInstancePswd'         : 'inflict' ,
-                    'DNToModify'             : 'uid=abergin, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'zymochemistry' ,
-                    'changetype'             : 'replace' , 
+                    'dsAuthzID'              : 'dn:uid=abergin, %s' % basedn,
+                    'dsNewPassword'          : 'zymochemistry' ,
                     'expectedRC'             : 53  }
             </call>
             
             <message>
-               'Security: Pwd Validator: Dictionary: user binding with invalid password'
+            '%s user binding with invalid password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=abergin,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=abergin,%s' % basedn,
                 'dsInstancePswd'   : 'zymochemistry' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base', 
+                'extraParams'      : '-s base',
                 'expectedRC'       : 49 }
             </call>
 
@@ -111,38 +153,51 @@
           </sequence>
         </testcase>
         
-        <testcase name="getTestCaseName('Dictionary: Using Using Reverse Password')">
+        <!--- Test Case information
+          #@TestMarker       Dictionary
+          #@TestName         Dictionary: user modifying password to a Reverse 
+                             password
+          #@TestIssue        none
+          #@TestPurpose      dictionary string with reverse password 
+                             (set to true by default)
+          #@TestPreamble     none
+          #@TestStep         user modifying password to a reverse password 
+                             from inflict to tcilfni RC 53
+          #@TestStep         user binding with invalid password RC 49
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
+        
+ <testcase name="getTestCaseName('Dictionary: Using Using Reverse Password')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Dictionary: user modifying password to reverse word'
+            '%s user modifying password to reverse password' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=abergin,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=abergin,%s' % basedn,
                     'dsInstancePswd'         : 'inflict' ,
-                    'DNToModify'             : 'uid=abergin, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'sbbad' ,
-                    'changetype'             : 'replace' , 
+                    'dsAuthzID'              : 'dn:uid=abergin, %s' % basedn ,
+                    'dsNewPassword'          : 'tcilfni' ,
                     'expectedRC'             : 53  }
             </call>
             
             <message>
-               'Security: Pwd Validator: Dictionary: user binding with invalid password'
+            '%s user binding with invalid password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=abergin,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'sbbad' ,
+                'dsInstanceDn'     : 'uid=abergin,%s' % basedn ,
+                'dsInstancePswd'   : 'tcilfni' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base', 
+                'extraParams'      : '-s base',
                 'expectedRC'       : 49 }
             </call>
 
@@ -151,7 +206,22 @@
           </sequence>
         </testcase>
         
-        <testcase name="getTestCaseName('Dictionary: Disable Reverse Password')">
+        <!--- Test Case information
+          #@TestMarker       Dictionary
+          #@TestName         Dictionary: Disable Reverse Password
+          #@TestIssue        none
+          #@TestPurpose      Disable Reverse Password and test
+          #@TestPreamble     none
+          #@TestStep         Disable Reverse Password set test-reversed-password
+                             to false
+          #@TestStep         user modifying password to a reverse password 
+                             from inflict to tcilfni RC 0
+          #@TestStep         user binding with valid password RC 0
+          #@TestPostamble    none
+          #@TestResult       Success if the 3 tests are PASS
+        -->
+        
+<testcase name="getTestCaseName('Dictionary: Disable Reverse Password')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -177,34 +247,32 @@
           </sequence>
         </testcase>
 
-        <testcase name="getTestCaseName('Dictionary: Using Using Reverse Password 2')">
+<testcase name="getTestCaseName('Dictionary: Using Reverse Password 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Dictionary: user modifying password to reverse word 2'
+            '%s user modifying password to reverse password 2' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=abergin,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=abergin,%s' % basedn,
                     'dsInstancePswd'         : 'inflict' ,
-                    'DNToModify'             : 'uid=abergin, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'sbbad' ,
-                    'changetype'             : 'replace' }
+                    'dsAuthzID'              : 'dn:uid=abergin, %s' % basedn ,
+                    'dsNewPassword'          : 'tcilfni'  }
             </call>
 
             <message>
-               'Security: Pwd Validator: Dictionary: user binding with valid password'
+            '%s user binding with valid password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=abergin,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'sbbad' ,
+                'dsInstanceDn'     : 'uid=abergin,%s' % basedn ,
+                'dsInstancePswd'   : 'tcilfni' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
@@ -219,11 +287,25 @@
           </sequence>
         </testcase>
         
-        <testcase name="getTestCaseName('Dictionary: Postamble')">
+        <!--- Test Case information
+          #@TestMarker       Dictionary
+          #@TestName         Dictionary: Postamble
+          #@TestIssue        none
+          #@TestPurpose      Postamble Disabling Dictionary Validator
+          #@TestPreamble     none
+          #@TestStep         Admin Disabling Validator modifyPwdPolicy 
+                             remove password-validator:Dictionary
+          #@TestStep         User Changing Password with zymochemistry RC 0
+          #@TestStep         User Searching with valid Password RC 0
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
+        
+         <testcase name="getTestCaseName('Dictionary: Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Dictionary: Postamble Step 1. Admin Resetting Maximum Pwd Length'
+            '%s Postamble Step 1. Admin  Disabling Validator' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -239,28 +321,26 @@
             
             <!--- User Change Password -->
             <message>
-               'Security: Pwd Validator: Dictionary: Postamble Step 2. User Changing Password'
+            '%s Postamble Step 2. User Changing Password' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=abergin,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
-                    'dsInstancePswd'         : 'sbbad' ,
-                    'DNToModify'             : 'uid=abergin, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'zymochemistry' ,
-                    'changetype'             : 'replace' }
+                    'dsInstanceDn'           : 'dn:uid=abergin,%s' % basedn ,
+                    'dsInstancePswd'         : 'tcilfni' ,
+                    'dsAuthzID'              : 'dn:uid=abergin, %s' % basedn,
+                    'dsNewPassword'          : 'zymochemistry'  }
             </call>
             
             <message>
-               'Security: Pwd Validator: Dictionary: Postamble Step 3. User Searching With Password'
+            '%s Postamble Step 3. User Searching With Password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=abergin,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=abergin,%s' % basedn ,
                 'dsInstancePswd'   : 'zymochemistry' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,

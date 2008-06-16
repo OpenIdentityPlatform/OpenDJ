@@ -33,12 +33,44 @@
 
       <sequence>
 
+                <!--- Test Suite information
+         #@TestSuiteName       Multiple Validators
+         #@TestSuitePurpose    Check Multiple Validators
+         #@TestSuiteGroup      Multiple Validators
+         #@TestScript          security_mult_validators.xml
+        -->
+        
+        <!--- Define default value for basedn -->
+        <script>
+        basedn1 = 'ou=people,ou=password tests,'
+        basedn = '%s o=Pwd Validator Tests,dc=example,dc=com' % basedn1
+        msg = 'Security: Pwd Validator: Multiple Validators:'
+        msg1 = '--set enabled:true  --set test-reversed-password:true '
+        </script>
+     
+        <!--- Test Case information
+          #@TestMarker       Multiple Validators
+          #@TestName         Multiple Validators: Preamble
+          #@TestIssue        none
+          #@TestPurpose      Preamble Enabling Multiple Validators
+          #@TestPreamble     none
+          #@TestStep         Admin Enabling one validator set password-validator
+                             to Attribute Value
+          #@TestStep         Admin creating a custom validator 
+                             Custom Attribute Value
+          #@TestStep         Admin enabling custom validator
+          #@TestStep         Admin enabling third validator set 
+                             password-validator to Repeated Characters
+          #@TestPostamble    none
+          #@TestResult       Success if the 4 tests are PASS
+        -->
+        
         <testcase name="getTestCaseName('Multiple Validators: Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Multiple Validators: Preamble Step 1. Admin enabling one validator'
+            '%s Preamble Step 1. Admin enabling one validator' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -52,7 +84,7 @@
             </call>
             
             <message>
-               'Security: Pwd Validator: Multiple Validators: Preamble Step 2. Admin creating a custom validator'
+            '%s Preamble Step 2. Admin creating a custom validator' % msg
             </message>
 
             <call function="'dsconfig'">
@@ -60,15 +92,15 @@
               'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-              'subcommand'           : 'create-password-validator' ,    
+              'subcommand'           : 'create-password-validator' ,
               'objectType'           : 'validator-name' ,
               'objectName'           : 'Custom Attribute Value',
-              'optionsString'        : '--type attribute-value --set enabled:true  --set test-reversed-password:true ',
-              'expectedRC'           : 0 } 
+              'optionsString'        : '--type attribute-value %s ' % msg1,
+              'expectedRC'           : 0 }
             </call>          
             
             <message>
-               'Security: Pwd Validator: Multiple Validators: Preamble Step 3. Admin enabling custom validator'
+            '%s Preamble Step 3. Admin enabling custom validator' % msg
             </message>
 
             <call function="'dsconfigSet'">
@@ -85,7 +117,7 @@
             </call>
             
             <message>
-               'Security: Pwd Validator: Multiple Validators: Preamble Step 4. Admin enabling third validator'
+            '%s Preamble Step 4. Admin enabling third validator' % msg
             </message>
 
             <call function="'dsconfigSet'">
@@ -106,11 +138,24 @@
           </sequence>
         </testcase>
 
-        <testcase name="getTestCaseName('Multiple Validators: add attribute sn to one validator')">
+       <!--- Test Case information
+          #@TestMarker       Multiple Validators
+          #@TestName         Multiple Validators: add attribute sn to one 
+                             validator
+          #@TestIssue        none
+          #@TestPurpose      add attribute sn to one validator
+          #@TestPreamble     none
+          #@TestStep         add attribute sn to one validator
+          #@TestPostamble    none
+          #@TestResult       Success if the test is PASS
+        -->
+        
+        <testcase name="getTestCaseName
+        ('Multiple Validators: add attribute sn to one validator')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Multiple Validators: add attribute sn to one validator'
+            '%s add attribute sn to one validator' % msg
             </message>
             
             <call function="'modifyPwdValidator'">
@@ -129,38 +174,49 @@
           </sequence>
         </testcase>
         
-        <testcase name="getTestCaseName('Multiple Validators: user modifying password to sn')">
+        <!--- Test Case information
+          #@TestMarker       Multiple Validators
+          #@TestName         Multiple Validators: user modifying password to sn
+          #@TestIssue        none
+          #@TestPurpose      user modifying password to sn
+          #@TestPreamble     none
+          #@TestStep         user modifying password to sn RC 53
+          #@TestStep         user binding with invalid password RC 49
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
+        
+        <testcase name="getTestCaseName
+        ('Multiple Validators: user modifying password to sn')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Multiple Validators: user modifying password to sn'
+            '%s user modifying password to sn' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=cschmith,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=cschmith,%s' % basedn,
                     'dsInstancePswd'         : 'hypotenuse' ,
-                    'DNToModify'             : 'uid=cschmith, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'Schmith' ,
-                    'changetype'             : 'replace' , 
+                    'dsAuthzID'              : 'dn:uid=cschmith, %s' % basedn ,
+                    'dsNewPassword'          : 'Schmith' ,
                     'expectedRC'             : 53  }
             </call>
             
             <message>
-               'Security: Pwd Validator: Multiple Validators: user binding with invalid password'
+            '%s user binding with invalid password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=cschmith,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=cschmith,%s' % basedn,
                 'dsInstancePswd'   : 'Schmith' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base', 
+                'extraParams'      : '-s base',
                 'expectedRC'       : 49 }
             </call>
 
@@ -169,11 +225,25 @@
           </sequence>
         </testcase>
 
-        <testcase name="getTestCaseName('Multiple Validators: add attribute givenName to custom validator')">
+        <!--- Test Case information
+          #@TestMarker       Multiple Validators
+          #@TestName         Multiple Validators: add attribute givenName 
+                             to custom validator
+          #@TestIssue        none
+          #@TestPurpose      add attribute givenName to custom validator
+          #@TestPreamble     none
+          #@TestStep         for the custom validator Custom Attribute Value
+                             set match-attribute to givenName
+          #@TestPostamble    none
+          #@TestResult       Success if the test is PASS
+        -->
+        
+        <testcase name="getTestCaseName
+        ('Multiple Validators: add attribute givenName to custom validator')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Multiple Validators: add attribute sn to one validator'
+            '%s add attribute sn to one validator' % msg
             </message>
             
             <call function="'modifyPwdValidator'">
@@ -192,38 +262,52 @@
           </sequence>
         </testcase>
         
-        <testcase name="getTestCaseName('Multiple Validators: user modifying password to givenName')">
+        <!--- Test Case information
+          #@TestMarker       Multiple Validators
+          #@TestName         Multiple Validators: user modifying password to 
+                             givenName
+          #@TestIssue        none
+          #@TestPurpose      user modifying password to givenName
+          #@TestPreamble     none
+          #@TestStep         user modifying password to givenName RC 53
+          #@TestStep         user binding with invalid password RC 49
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
+        
+        <testcase name="getTestCaseName
+        ('Multiple Validators: user modifying password to givenName')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Multiple Validators: user modifying password to givenName'
+            '%s user modifying password to givenName' % msg
             </message>
 
             <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=cschmith,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=cschmith,%s' % basedn,
                     'dsInstancePswd'         : 'hypotenuse' ,
-                    'DNToModify'             : 'uid=cschmith, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'DNToModify'             : 'uid=cschmith, %s' % basedn,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'Chris' ,
-                    'changetype'             : 'replace' , 
+                    'changetype'             : 'replace' ,
                     'expectedRC'             : 53  }
             </call>
             
             <message>
-               'Security: Pwd Validator: Multiple Validators: user binding with invalid password'
+            '%s user binding with invalid password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=dmiller,%s' % basedn,
                 'dsInstancePswd'   : 'Chris' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base', 
+                'extraParams'      : '-s base',
                 'expectedRC'       : 49 }
             </call>
 
@@ -232,38 +316,53 @@
           </sequence>
         </testcase>
 
-        <testcase name="getTestCaseName('Multiple Validators: user modifying password to aaaaaa')">
+        
+        <!--- Test Case information
+          #@TestMarker       Multiple Validators
+          #@TestName         Multiple Validators: user modifying password to 
+                             aaaaaa
+          #@TestIssue        none
+          #@TestPurpose      user modifying password to aaaaaa
+          #@TestPreamble     none
+          #@TestStep         user modifying password to aaaaaa RC 53
+          #@TestStep         user binding with invalid password RC 49
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
+        
+        <testcase name="getTestCaseName
+        ('Multiple Validators: user modifying password to aaaaaa')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Multiple Validators: user modifying password to aaaaaa'
+            '%s user modifying password to aaaaaa' % msg
             </message>
 
             <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=cschmith,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=cschmith,%s' % basedn,
                     'dsInstancePswd'         : 'hypotenuse' ,
-                    'DNToModify'             : 'uid=cschmith, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'DNToModify'             : 'uid=cschmith, %s' % basedn ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'aaaaaa' ,
-                    'changetype'             : 'replace' , 
+                    'changetype'             : 'replace' ,
                     'expectedRC'             : 53  }
             </call>
             
             <message>
-               'Security: Pwd Validator: Multiple Validators: user binding with invalid password'
+            '%s user binding with invalid password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=dmiller,%s' % basedn ,
                 'dsInstancePswd'   : 'aaaaaa' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base', 
+                'extraParams'      : '-s base',
                 'expectedRC'       : 49 }
             </call>
 
@@ -272,11 +371,28 @@
           </sequence>
         </testcase>
 
+        <!--- Test Case information
+          #@TestMarker       Multiple Validators
+          #@TestName         Multiple Validators: Postamble
+          #@TestIssue        none
+          #@TestPurpose      Postamble: Admin resetting pwd validator
+          #@TestPreamble     none
+          #@TestStep         Admin Resetting password-validator
+          #@TestStep         User Changing Password to sn RC 0
+          #@TestStep         User binding with valid password RC 0
+          #@TestStep         User Changing Password to givenName RC 0
+          #@TestStep         User binding with valid password RC 0
+          #@TestStep         User Changing Password to aaaaaa RC 0
+          #@TestStep         User binding with valid password RC 0
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
+        
         <testcase name="getTestCaseName('Multiple Validators: Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Multiple Validators: Postamble Step 1. Admin Resetting Maximum Pwd Length'
+            '%s Postamble Step 1. Admin Resetting password-validator' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -291,28 +407,28 @@
             
             <!--- User Change Password -->
             <message>
-               'Security: Pwd Validator: Multiple Validators: Postamble Step 2. User Changing Password'
+            '%s Postamble Step 2. User Changing Password to sn' % msg
             </message>
 
             <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=cschmith,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=cschmith,%s' % basedn,
                     'dsInstancePswd'         : 'hypotenuse' ,
-                    'DNToModify'             : 'uid=cschmith, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'DNToModify'             : 'uid=cschmith, %s' % basedn,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'Schmith' ,
                     'changetype'             : 'replace' }
             </call>
             
             <message>
-               'Security: Pwd Validator: Multiple Validators: Postamble Step 3. User Searching With Password'
+            '%s Postamble Step 3. User Searching With Password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=cschmith,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=cschmith,%s' % basedn,
                 'dsInstancePswd'   : 'Schmith' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -320,28 +436,28 @@
             </call>
 
             <message>
-               'Security: Pwd Validator: Multiple Validators: Postamble Step 4. User Changing Password'
+            '%s Postamble Step 4. User Changing Password to givenName' % msg
             </message>
 
             <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=cschmith,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=cschmith,%s' % basedn,
                     'dsInstancePswd'         : 'Schmith' ,
-                    'DNToModify'             : 'uid=cschmith, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'DNToModify'             : 'uid=cschmith, %s' % basedn,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'Chris' ,
                     'changetype'             : 'replace' }
             </call>
             
             <message>
-               'Security: Pwd Validator: Multiple Validators: Postamble Step 5. User Searching With Password'
+            '%s Postamble Step 5. User Searching With Password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=cschmith,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=cschmith,%s' % basedn,
                 'dsInstancePswd'   : 'Chris' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -349,28 +465,28 @@
             </call>
 
             <message>
-               'Security: Pwd Validator: Multiple Validators: Postamble Step 6. User Changing Password'
+            '%s Postamble Step 6. User Changing Password to aaaaaa' % msg
             </message>
 
             <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=cschmith,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=cschmith,%s' % basedn,
                     'dsInstancePswd'         : 'Chris' ,
-                    'DNToModify'             : 'uid=cschmith, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'DNToModify'             : 'uid=cschmith, %s' % basedn,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'aaaaaa' ,
                     'changetype'             : 'replace' }
             </call>
             
             <message>
-               'Security: Pwd Validator: Multiple Validators: Postamble Step 7. User Searching With Password'
+            '%s Postamble Step 7. User Searching With Password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=cschmith,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=cschmith,%s' % basedn,
                 'dsInstancePswd'   : 'aaaaaa' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
