@@ -9572,6 +9572,17 @@ public class DirectoryServer
       Message message = ERR_DSCORE_CANNOT_START.get(ie.getMessage());
       shutDown(directoryServer.getClass().getName(), message);
     }
+    catch (ConfigException ce)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
+      }
+
+      Message message = ERR_DSCORE_CANNOT_START.get(ce.getMessage()
+          + " " + ce.getCause().getLocalizedMessage());
+      shutDown(directoryServer.getClass().getName(), message);
+    }
     catch (Exception e)
     {
       Message message = ERR_DSCORE_CANNOT_START.get(

@@ -403,6 +403,13 @@ public class SynchronizationProviderConfigManager
       provider.initializeSynchronizationProvider(configuration);
     } catch (Exception e)
     {
+      try
+      {
+        provider.finalizeSynchronizationProvider();
+      }
+      catch(Exception ce)
+      {}
+
       // Handle the exception: put a message in the unacceptable reasons.
       Message message = ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(
               String.valueOf(className), String.valueOf(configuration.dn()));
