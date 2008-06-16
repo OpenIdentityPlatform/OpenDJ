@@ -32,13 +32,41 @@
   <function name="character_set">
 
       <sequence>
+        
+        <!--- Test Suite information
+         #@TestSuiteName       Character Set
+         #@TestSuitePurpose    Reject Passwords Matching Character set
+         #@TestSuiteGroup      Character Set
+         #@TestScript          security_character_set.xml
+        -->
+        
+        <!--- Define default value for basedn -->
+        <script>
+        basedn1 = 'ou=people,ou=password tests,'
+        basedn = '%s o=Pwd Validator Tests,dc=example,dc=com' % basedn1
+        val = 'cn=Character Set,cn=Password Validators,cn=config'
+        msg = 'Security: Pwd Validator: Character Set:'
+        </script>
 
+        <!--- Test Case information
+          #@TestMarker       Character Set
+          #@TestName         Character Set Preamble
+          #@TestIssue        none
+          #@TestPurpose      Character Set Preamble
+          #@TestPreamble     none
+          #@TestStep         Check ds-cfg-enabled exists
+          #@TestStep         Admin Enabling Validator Character Set
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
+        
+        
         <testcase name="getTestCaseName('Character Set: Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Character Set: Preamble Step 1. Checking existence of ds-cfg-password-validator-length'
+            '%s Preamble Step 1. Check ds-cfg-enabled exists' % msg
             </message>
 
             <call function="'compareEntry'">
@@ -47,11 +75,11 @@
                 'dsInstanceDn'       : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,
                 'attrToBeCompared'   : 'ds-cfg-enabled:true',
-                'entryToBeCompared'  : 'cn=Character Set,cn=Password Validators,cn=config' }
+                'entryToBeCompared'  : val }
             </call>
 
             <message>
-               'Security: Pwd Validator: Character Set: Preamble Step 2. Admin Enabling Validator'
+            '%s Preamble Step 2. Admin Enabling Validator' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -69,38 +97,50 @@
           </sequence>
         </testcase>
 
-        <testcase name="getTestCaseName('Character Set: user modifying password to string with all letters')">
+        <!--- Test Case information
+          #@TestMarker       Character Set
+          #@TestName         Character Set : Pwd with all letters
+          #@TestIssue        none
+          #@TestPurpose      Pwd with all letters
+          #@TestPreamble     none
+          #@TestStep         user modifying password to string with all letters 
+                             RC 53
+          #@TestStep         user binding with invalid password RC 49
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
+        
+        <testcase name="getTestCaseName
+        ('Character Set: user modifying password to string with all letters')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Attribute Value: user modifying password to string with all letters'
+            '%s user modifying password to string with all letters' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=gfarmer,%s' % basedn,
                     'dsInstancePswd'         : 'ruling' ,
-                    'DNToModify'             : 'uid=gfarmer, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'newruling' ,
-                    'changetype'             : 'replace' , 
+                    'dsAuthzID'              : 'dn:uid=gfarmer, %s' % basedn,
+                    'dsNewPassword'          : 'newruling' ,
                     'expectedRC'             : 53  }
             </call>
             
             <message>
-               'Security: Pwd Validator: Character Set: user binding with invalid password'
+            '%s user binding with invalid password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=gfarmer,%s' % basedn,
                 'dsInstancePswd'   : 'newruling' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base', 
+                'extraParams'      : '-s base',
                 'expectedRC'       : 49 }
             </call>
 
@@ -109,38 +149,50 @@
           </sequence>
         </testcase>
         
-        <testcase name="getTestCaseName('Character Set: user modifying password to string with all numbers')">
+        <!--- Test Case information
+          #@TestMarker       Character Set
+          #@TestName         Character Set : Pwd with all numbers
+          #@TestIssue        none
+          #@TestPurpose      Pwd with all numbers
+          #@TestPreamble     none
+          #@TestStep         user modifying password to string with all numbers 
+                             RC 53
+          #@TestStep         user binding with invalid password RC 49
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
+        
+        <testcase name="getTestCaseName
+        ('Character Set: user modifying password to string with all numbers')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Attribute Value: user modifying password to string with all numbers'
+            '%s user modifying password to string with all numbers' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=gfarmer,%s' % basedn,
                     'dsInstancePswd'         : 'ruling' ,
-                    'DNToModify'             : 'uid=gfarmer, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : '123456789' ,
-                    'changetype'             : 'replace' , 
+                    'dsAuthzID'              : 'dn:uid=gfarmer, %s' % basedn,
+                    'dsNewPassword'          : '123456789' ,
                     'expectedRC'             : 53  }
             </call>
             
             <message>
-               'Security: Pwd Validator: Character Set: user binding with invalid password'
+            '%s user binding with invalid password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=gfarmer,%s' % basedn,
                 'dsInstancePswd'   : '123456789' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base', 
+                'extraParams'      : '-s base',
                 'expectedRC'       : 49 }
             </call>
 
@@ -149,11 +201,26 @@
           </sequence>
         </testcase>
         
-        <testcase name="getTestCaseName('Character Set: change letter characters')">
+        <!--- Test Case information
+          #@TestMarker       Character Set
+          #@TestName         Character Set : Pwd with all letters
+          #@TestIssue        none
+          #@TestPurpose      Pwd with all letters
+          #@TestPreamble     none
+          #@TestStep         modifyPwdValidator character-set to 3:0123456789
+          #@TestStep         modifyPwdValidator character-set to 
+                             1:ABCDEFGHIJKLMNOPQRSTUVWXYZ
+          #@TestStep         modifyPwdValidator character-set to 
+                             3:abcdefghijklmnopqrstuvwxyz
+          #@TestPostamble    none
+          #@TestResult       Success if the 3 tests are PASS
+        -->
+        
+   <testcase name="getTestCaseName('Character Set: change letter characters')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Attribute Value: add attribute sn'
+            'Security: Pwd Validator: Character Set: change letter characters'
             </message>
             
             <call function="'modifyPwdValidator'">
@@ -194,38 +261,50 @@
           </sequence>
         </testcase>
         
-        <testcase name="getTestCaseName('Character Set: user modifying password to string with all letters 2')">
+        <!--- Test Case information
+          #@TestMarker       Character Set
+          #@TestName         Character Set : Pwd with just letters
+          #@TestIssue        none
+          #@TestPurpose      Pwd with just letters
+          #@TestPreamble     none
+          #@TestStep         user modifying password to string with just letters 
+                             RC 53
+          #@TestStep         user binding with invalid password RC 49
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
+        
+        <testcase name="getTestCaseName
+      ('Character Set: user modifying password to string with just letters 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Attribute Value: user modifying password to string with all letters 2'
+            '%s user modifying password to string with just letters 2' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=gfarmer,%s' % basedn,
                     'dsInstancePswd'         : 'ruling' ,
-                    'DNToModify'             : 'uid=gfarmer, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'newruling' ,
-                    'changetype'             : 'replace' , 
+                    'dsAuthzID'              : 'dn:uid=gfarmer, %s' % basedn,
+                    'dsNewPassword'          : 'newruling' ,
                     'expectedRC'             : 53  }
             </call>
             
             <message>
-               'Security: Pwd Validator: Character Set: user binding with invalid password'
+            '%s user binding with invalid password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=gfarmer,%s' % basedn,
                 'dsInstancePswd'   : 'newruling' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base', 
+                'extraParams'      : '-s base',
                 'expectedRC'       : 49 }
             </call>
 
@@ -234,38 +313,50 @@
           </sequence>
         </testcase>
         
-        <testcase name="getTestCaseName('Character Set: user modifying password to string with all numbers 2')">
+        <!--- Test Case information
+          #@TestMarker       Character Set
+          #@TestName         Character Set : Pwd with just numbers
+          #@TestIssue        none
+          #@TestPurpose      Pwd with just numbers
+          #@TestPreamble     none
+          #@TestStep         user modifying password to string with just numbers
+                             RC 53
+          #@TestStep         user binding with invalid password RC 49
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
+        
+        <testcase name="getTestCaseName
+     ('Character Set: user modifying password to string with just numbers 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Attribute Value: user modifying password to string with all numbers 2'
+            '%s user modifying password to string with just numbers 2' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=gfarmer,%s' % basedn,
                     'dsInstancePswd'         : 'ruling' ,
-                    'DNToModify'             : 'uid=gfarmer, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : '123456789' ,
-                    'changetype'             : 'replace' , 
+                    'dsAuthzID'              : 'dn:uid=gfarmer, %s' % basedn,
+                    'dsNewPassword'          : '123456789' ,
                     'expectedRC'             : 53  }
             </call>
             
             <message>
-               'Security: Pwd Validator: Character Set: user binding with invalid password'
+            '%s user binding with invalid password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=gfarmer,%s' % basedn ,
                 'dsInstancePswd'   : '123456789' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base', 
+                'extraParams'      : '-s base',
                 'expectedRC'       : 49 }
             </call>
 
@@ -274,33 +365,44 @@
           </sequence>
         </testcase>
         
-        <testcase name="getTestCaseName('Character Set: user modifying password to valid string')">
+        <!--- Test Case information
+          #@TestMarker       Character Set
+          #@TestName         Character Set : Pwd with a valid string
+          #@TestIssue        none
+          #@TestPurpose      Pwd with a valid string
+          #@TestPreamble     none
+          #@TestStep         user modifying password to a valid string RC 0
+          #@TestStep         user binding with valid password RC 0
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
+        
+        <testcase name="getTestCaseName
+        ('Character Set: user modifying password to valid string')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Attribute Value: user modifying password to valid string'
+            '%s user modifying password to valid string' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=gfarmer,%s' % basedn ,
                     'dsInstancePswd'         : 'ruling' ,
-                    'DNToModify'             : 'uid=gfarmer, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'Newruling123' ,
-                    'changetype'             : 'replace'  }
+                    'dsAuthzID'              : 'dn:uid=gfarmer, %s' % basedn ,
+                    'dsNewPassword'          : 'Newruling123' ,  }
             </call>
             
             <message>
-               'Security: Pwd Validator: Character Set: user binding with valid password'
+            '%s user binding with valid password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=gfarmer,%s' % basedn ,
                 'dsInstancePswd'   : 'Newruling123' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -312,11 +414,23 @@
           </sequence>
         </testcase>
         
+        <!--- Test Case information
+          #@TestMarker       Character Set
+          #@TestName         Character Set : Disable Validator
+          #@TestIssue        none
+          #@TestPurpose      Disbale Validator
+          #@TestPreamble     none
+          #@TestStep         reset password-validator RC 0
+          #@TestStep         set propertyName Character-Set to false
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
+        
         <testcase name="getTestCaseName('Character Set: disable validator')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Attribute Value: add attribute sn'
+               'Security: Pwd Validator: Character Set: disable validator'
             </message>
             
             <call function="'modifyPwdPolicy'">
@@ -345,34 +459,44 @@
           </sequence>
         </testcase>
         
+        <!--- Test Case information
+          #@TestMarker       Character Set
+          #@TestName         Character Set : Pwd with a valid string 2
+          #@TestIssue        none
+          #@TestPurpose      Pwd with a valid string 2
+          #@TestPreamble     none
+          #@TestStep         user modifying password to a valid string RC 0
+          #@TestStep         user binding with valid password RC 0
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
         
-        <testcase name="getTestCaseName('Character Set: user modifying password to valid string 2')">
+        <testcase name="getTestCaseName
+        ('Character Set: user modifying password to valid string 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Attribute Value: user modifying password to valid string 2'
+            '%s user modifying password to valid string 2' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=gfarmer,%s' % basedn,
                     'dsInstancePswd'         : 'Newruling123' ,
-                    'DNToModify'             : 'uid=gfarmer, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'newruling' ,
-                    'changetype'             : 'replace'  }
+                    'dsAuthzID'              : 'dn:uid=gfarmer, %s' % basedn,
+                    'dsNewPassword'          : 'newruling' }
             </call>
             
             <message>
-               'Security: Pwd Validator: Character Set: user binding with valid password'
+            '%s user binding with valid password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=gfarmer,%s' % basedn,
                 'dsInstancePswd'   : 'newruling' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -384,11 +508,24 @@
           </sequence>
         </testcase>
         
+        <!--- Test Case information
+          #@TestMarker       Character Set
+          #@TestName         Character Set : Postamble
+          #@TestIssue        none
+          #@TestPurpose      Postamble
+          #@TestPreamble     none
+          #@TestStep         remove password-validator:Character Set
+          #@TestStep         User Changing Password with just letters
+          #@TestStep         User Searching Password with just letters
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
+        
         <testcase name="getTestCaseName('Character Set: Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Character Set: Postamble Step 1. Admin Resetting Maximum Pwd Length'
+            '%s Postamble Step 1. Admin Resetting password-validator' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -404,28 +541,26 @@
             
             <!--- User Change Password -->
             <message>
-               'Security: Pwd Validator: Character Set: Postamble Step 2. User Changing Password'
+            '%s Postamble Step 2. User Changing Password' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=gfarmer,%s' % basedn,
                     'dsInstancePswd'         : 'newruling' ,
-                    'DNToModify'             : 'uid=gfarmer, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'newnewruling' ,
-                    'changetype'             : 'replace' }
+                    'dsAuthzID'              : 'dn:uid=gfarmer, %s' % basedn,
+                    'dsNewPassword'          : 'newnewruling'  }
             </call>
             
             <message>
-               'Security: Pwd Validator: Character Set: Postamble Step 3. User Searching With Password'
+            '%s Postamble Step 3. User Searching With Password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=gfarmer,%s' % basedn,
                 'dsInstancePswd'   : 'newnewruling' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
