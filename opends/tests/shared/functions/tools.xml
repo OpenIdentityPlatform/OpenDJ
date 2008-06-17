@@ -1580,6 +1580,13 @@
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
       </function-arg-def>
+      
+      <function-arg-def name="dsOperationValue" type="optional">
+        <function-arg-description>
+          dsOperationValue is true or false
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def> 
    
     </function-map-args>
     
@@ -1652,6 +1659,9 @@
                           
         if dsUseSSL:
           STAFCmdParamsList.append('-Z')
+          
+        if dsOperationValue:
+          STAFCmdParamsList.append('-O %s' % dsOperationValue)
          
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
