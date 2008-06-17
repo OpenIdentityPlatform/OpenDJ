@@ -32,21 +32,69 @@
   <function name="test_account">
 
       <sequence>
-
-        <!--- Test case: User Bind Before Deactivation -->
+        
+        <!--- Test Suite information
+         #@TestSuiteName       Test Account
+         #@TestSuitePurpose    Test Account Status
+         #@TestSuiteGroup      Test Account
+         #@TestScript          security_test_account.xml
+        -->
+        
+        <!--- Define default value for basedn -->
+        <script>
+        basedn1 = 'ou=activation tests,o=Account Activation Tests,'
+        basedn = '%s dc=example,dc=com' % basedn1
+        msg = 'Security: Account Activation:'
+         </script>
+     
+     
+        <!--- Test Case information
+          #@TestMarker       Test Account
+          #@TestName         Test Account: Preamble
+          #@TestIssue        none
+          #@TestPurpose      Preamble : User Bind Before Deactivation
+          #@TestPreamble     none
+          #@TestStep         Check account is Enabled with manage-account
+          #@TestStep         User scarter binds RC 0
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
+        
         <testcase name="getTestCaseName('Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Account Activation: Preamble - Checking User Bind Before Deactivation'
+            '%s Preamble - Step 1. Check account is Enabled ' % msg
+            </message>
+
+            <call function="'manageAccountWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'get-account-is-disabled' ,
+                'targetDn'         : 'uid=scarter,ou=people,%s' % basedn  }
+            </call>
+            
+            <script> 
+             returnString = STAXResult[0][1]
+            </script>
+            
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'Account Is Disabled:  false' }
+            </call>
+            
+            <message>
+            '%s Preamble - Step 2. Checking User Bind Before Deactivation' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=scarter,ou=people,%s' % basedn ,
                 'dsInstancePswd'   : 'sprain' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -55,7 +103,17 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Admin Deactivate User-->
+        
+        <!--- Test Case information
+          #@TestMarker       Test Account
+          #@TestName         Test Account: Admin Deactivating User
+          #@TestIssue        none
+          #@TestPurpose      Admin Deactivating User
+          #@TestPreamble     none
+          #@TestStep         Disabling account with manage-account
+          #@TestPostamble    none
+          #@TestResult       Success if the test is PASS
+        -->
         <testcase name="getTestCaseName('Admin Deactivate User')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -63,75 +121,110 @@
                'Security: Account Activation: Admin Deactivating User'
             </message>
 
-            <call function="'modifyAnAttribute'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'uid=scarter,ou=People,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'ds-pwp-account-disabled' ,
-                    'newAttributeValue'      : 'true' ,
-                    'changetype'             : 'replace' }
+           <call function="'manageAccountWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'set-account-is-disabled' ,
+                'dsOperationValue' : 'true' ,
+                'targetDn'         : 'uid=scarter,ou=people,%s' % basedn  }
             </call>
+            
+            <script> 
+             returnString = STAXResult[0][1]
+            </script>
+            
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'Account Is Disabled:  true' }
+            </call>
+       
             
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
-        <!--- Test Case : User Bind After Deactivation-->
+        <!--- Test Case information
+          #@TestMarker       Test Account
+          #@TestName         Test Account: User Binding After Deactivation
+          #@TestIssue        none
+          #@TestPurpose      User Binding After Deactivation
+          #@TestPreamble     none
+          #@TestStep         User scarter binds RC 49
+          #@TestPostamble    none
+          #@TestResult       Success if the test is PASS
+        -->
         <testcase name="getTestCaseName('User Bind After Deactivation')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Acct Act: User Binding After Deactivation'
+               '%s User Binding After Deactivation' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=scarter,ou=people,%s' % basedn,
                 'dsInstancePswd'   : 'sprain' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base',
-                'expectedRC'       : 49 }    
+                'expectedRC'       : 49 }
             </call>
 
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
 
-       <!--- Test case: Admin Reactivate User -->
+        <!--- Test Case information
+          #@TestMarker       Test Account
+          #@TestName         Test Account: Admin Reactivating User
+          #@TestIssue        none
+          #@TestPurpose      Admin Reactivating User
+          #@TestPreamble     none
+          #@TestStep         Reenabling account with manage-account
+          #@TestStep         User scarter binds RC 0
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
         <testcase name="getTestCaseName('Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Account Activation: Postamble Step 1.  Admin Reactivating User'
+            '%s Postamble Step 1.  Admin Reactivating User' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'uid=scarter,ou=People,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'ds-pwp-account-disabled' ,
-                    'newAttributeValue'      : 'false' ,
-                    'changetype'             : 'replace' }
+            <call function="'manageAccountWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'clear-account-is-disabled' ,
+                'targetDn'         : 'uid=scarter,ou=people,%s' % basedn  }
+            </call>
+            
+            <script> 
+             returnString = STAXResult[0][1]
+            </script>
+            
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'Account Is Disabled:  false' }
             </call>
         
             <message>
-               'Security: Account Activation: Postamble Step 2.  Checking User Bind After Reactivation'
+            '%s Postamble Step 2.  Checking User Bind After Reactivation' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=scarter,ou=people,%s' % basedn ,
                 'dsInstancePswd'   : 'sprain' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }        
+                'extraParams'      : '-s base' }
             </call>
 
             <call function="'testCase_Postamble'"/>
