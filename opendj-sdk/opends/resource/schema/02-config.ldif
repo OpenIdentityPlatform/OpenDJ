@@ -3737,3 +3737,11 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.181
         ds-cfg-security-agent-file $
         ds-cfg-opendmk-jarfile )
   X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.182
+  NAME 'ds-cfg-extension'
+  SUP top
+  STRUCTURAL
+  MUST ( cn $
+         ds-cfg-java-class $
+         ds-cfg-enabled )
+  X-ORIGIN 'OpenDS Directory Server' )
