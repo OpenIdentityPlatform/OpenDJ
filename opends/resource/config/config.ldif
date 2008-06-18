@@ -2220,3 +2220,9 @@ ds-cfg-java-class: org.opends.server.extensions.TraditionalWorkQueue
 ds-cfg-num-worker-threads: 24
 ds-cfg-max-work-queue-capacity: 0
 
+dn: cn=Extensions,cn=config
+objectClass: top
+objectClass: ds-cfg-branch
+objectClass: ds-cfg-plugin-root
+cn: Extensions
+

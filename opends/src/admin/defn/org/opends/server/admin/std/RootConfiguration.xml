@@ -450,6 +450,12 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
+  <adm:relation name="extension">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>cn=Extensions,cn=config</ldap:rdn-sequence>
+    </adm:profile>
+   </adm:relation>
   <adm:product-name>OpenDS Directory Server</adm:product-name>
   <adm:tag-definition name="logging">
     <adm:synopsis>Logging</adm:synopsis>
