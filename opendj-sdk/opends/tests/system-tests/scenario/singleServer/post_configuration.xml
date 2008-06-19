@@ -1,0 +1,968 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+! -->
+<stax>
+
+  <defaultcall function="postConfiguration"/>
+
+
+  <function name="postConfiguration" scope="local">
+    <function-map-args>
+      <function-arg-def name="phase" type="required">
+        <function-arg-description>
+          phase object
+        </function-arg-description>
+      </function-arg-def>      
+      <function-arg-def name="instances" type="required">
+        <function-arg-description>
+          list of instances classes
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="suffix" type="required">
+        <function-arg-description>
+          suffix class
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="scheduler" type="required">
+        <function-arg-description>
+          suffix class
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+
+    <sequence>
+      <!-- ================= Call preambule ======================== -->
+      <call function="'phasePreamble'">
+  	{ 'phase'	 : phase,
+        'fileFd'    : LOG_MAIN_FD }
+      </call>
+
+      <message>'debug get first instance'</message>
+        <!--
+      <script>
+        res=instances[0]
+      </script>
+      <message>'debug get first instance %s ' % res.getName()</message>
+      
+      -->
+      <!-- ================= Display in stance names ================ -->
+      <iterate in="instances" var="instance">
+        <sequence>
+
+          <!-- == Write tag for xml report -->
+          <call function="'writeStartTagInstance'">
+            {
+            'instance' : instance,
+            'fileFd'   : LOG_MAIN_FD
+            }
+          </call>
+
+          <call function="'writeMessage'">
+            {
+            'fileFd'  : LOG_MAIN_FD,
+            'content' : 'my instance is : %s' % instance.getName()
+            }
+          </call>
+
+          
+          <!-- ################################################# -->
+          <!-- Configure Log rotation policy -->
+          <call function="'dsconfig'">
+            { 'location'   : instance.getHost(),
+            'dsPath'       : instance.getInstallDir(),
+            'dsInstanceHost'  : instance.getHost(),
+            'dsInstancePort'  : instance.getLDAPPort(),
+            'dsInstanceDn'    : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
+            'subcommand'	: 'set-log-rotation-policy-prop',
+            'objectType'	: 'policy-name',
+            'objectName'	: 'Size Limit Rotation Policy',
+            'optionsString'  : '--set file-size-limit:15mb',
+            'expectedRC'	: 0,
+             'fileFd'         : LOG_MAIN_FD
+            }
+          </call>
+        
+          <!-- ################################################# -->
+          <!-- Activate the plugins Attribut UID -->
+          <call function="'dsconfig'">
+            { 'location'   : instance.getHost(),
+            'dsPath'       : instance.getInstallDir(),
+            'dsInstanceHost'  : instance.getHost(),
+            'dsInstancePort'  : instance.getLDAPPort(),
+            'dsInstanceDn'    : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
+            'subcommand'      : 'set-plugin-prop',
+            'objectType'      : 'plugin-name' ,
+            'objectName'      : 'UID Unique Attribute',
+            'optionsString'   : '--set enabled:true',
+            'expectedRC'      : 0,
+            'fileFd'         : LOG_MAIN_FD
+            }
+          </call>
+          <!-- Activate the plugins Referential Integrity-->
+          <call function="'dsconfig'">
+            {  'location'     : instance.getHost(),
+            'dsPath'          : instance.getInstallDir(),
+            'dsInstanceHost'  : instance.getHost(),
+            'dsInstancePort'  : instance.getLDAPPort(),
+            'dsInstanceDn'    : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
+            'subcommand'      : 'set-plugin-prop' ,
+            'objectType'      : 'plugin-name' ,
+            'objectName'      : 'Referential Integrity',
+            'optionsString'   : '--set enabled:true',
+            'expectedRC'      : 0,
+            'fileFd'         : LOG_MAIN_FD}
+          </call>
+          
+          
+          <!-- ################################################# -->
+          <!--  CreateDynamic group under ou=QA Engineers,dc=com -->
+          <!-- there is 3 dynamics groups to group all the entries depending--> 
+          <!-- on the mailEXT value ; group1, group2 or group3   -->
+          <!-- ################################################# -->
+         
+          <!--  ===========================  -->
+          <!--  create QA_dynamic_group1_dn  -->
+          <!--  ===========================  -->
+          <script>
+            QA_dynamic_group1_dn="cn=QA_dynamic_group1,%s" % suffix.getSuffixDn()
+            listAttr = []
+            listAttr.append('objectclass:top')
+            listAttr.append('objectclass:groupOfURLs')
+            listAttr.append('ou:Groups')
+            listAttr.append('memberURL:ldap:///ou=QA Engineers,dc=com??sub?(mailEXT=group1)')
+          </script>
+          
+          <call function="'addAnEntry'">
+            { 'location'   : instance.getHost(),
+            'dsPath'       : instance.getInstallDir(),
+            'dsInstanceHost'  : instance.getHost(),
+            'dsInstancePort'  : instance.getLDAPPort(),
+            'dsInstanceDn'    : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
+            'DNToAdd'         : QA_dynamic_group1_dn,
+            'listAttributes'  : listAttr,
+            'expectedRC'      :  0,
+            'fileFd'          : LOG_MAIN_FD
+            }
+          </call>
+
+
+ 
+      
+          
+          <!--  ===========================  -->
+          <!--  create QA_dynamic_group2_dn  -->
+          <!--  ===========================  -->
+          
+          <script>
+            QA_dynamic_group2_dn="cn=QA_dynamic_group2,%s" % suffix.getSuffixDn()
+            listAttr = []
+            listAttr.append('objectclass:top')
+            listAttr.append('objectclass:groupOfURLs')
+            listAttr.append('ou:Groups')
+            listAttr.append('memberURL:ldap:///ou=QA Engineers,dc=com??sub?(mailEXT=group2)')
+          </script>
+          
+          <call function="'addAnEntry'">
+            { 'location'   : instance.getHost(),
+            'dsPath'       : instance.getInstallDir(),
+            'dsInstanceHost'  : instance.getHost(),
+            'dsInstancePort'  : instance.getLDAPPort(),
+            'dsInstanceDn'    : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
+            'DNToAdd'         : QA_dynamic_group2_dn,
+            'listAttributes'  : listAttr,
+            'expectedRC'      :  0,
+            'fileFd'          : LOG_MAIN_FD
+            }
+          </call>          
+
+          <!--  ===========================  -->
+          <!--  create QA_dynamic_group2_dn  -->
+          <!--  ===========================  -->          
+          <script>
+            QA_dynamic_group3_dn="cn=QA_dynamic_group3,%s" % suffix.getSuffixDn()
+            listAttr = []
+            listAttr.append('objectclass:top')
+            listAttr.append('objectclass:groupOfURLs')
+            listAttr.append('ou:Groups')
+            listAttr.append('memberURL:ldap:///ou=QA Engineers,dc=com??sub?(mailEXT=group3)')
+          </script>
+          
+          <call function="'addAnEntry'">
+            { 'location'   : instance.getHost(),
+            'dsPath'       : instance.getInstallDir(),
+            'dsInstanceHost'  : instance.getHost(),
+            'dsInstancePort'  : instance.getLDAPPort(),
+            'dsInstanceDn'    : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
+            'DNToAdd'         : QA_dynamic_group3_dn,
+            'listAttributes'  : listAttr,
+            'expectedRC'      :  0,
+            'fileFd'          : LOG_MAIN_FD
+            }
+          </call>
+          
+          
+ 
+          <!--  ===============================  -->
+          <!--  Define ACI for dynamic group 1   -->
+          <!--  ===============================  -->       
+                
+         <!--  Set Aci to allow read and write access on ou=QA Engineers,dc=com for attribut mailEXT -->
+          <script>
+            curr_aci="(targetattr=\"mailEXT\")(version 3.0; acl \" mailEXT add_aci_for_dyn_group1_QA\"; allow (all) groupdn=\"ldap:///%s\";)" % QA_dynamic_group1_dn
+          </script>
+          
+          <call function="'modifyAnAttribute'">
+            { 'dsPath'       : instance.getInstallDir(),
+            'dsInstanceHost' : instance.getHost(),
+            'dsInstancePort' : instance.getLDAPPort(),
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+            'DNToModify'     : "ou=QA Engineers,dc=com",
+            'attributeName'   : 'aci',
+            'newAttributeValue'  : curr_aci,
+            'changetype'         : 'add',
+            'expectedRC'         :  0,
+            'fileFd'             : LOG_MAIN_FD
+            }
+          </call>     
+         <!--  Set Aci to allow read access on ou=QA Engineers,dc=com for all attributs except mailEXT -->
+          <script>
+            curr_aci="(targetattr!=\"mailEXT\")(version 3.0; acl \" not mailEXT read add_aci_for_dyn_group1_QA\"; allow (read,search) groupdn=\"ldap:///%s\";)" % QA_dynamic_group1_dn
+          </script>
+          
+          <call function="'modifyAnAttribute'">
+            { 'dsPath'       : instance.getInstallDir(),
+            'dsInstanceHost' : instance.getHost(),
+            'dsInstancePort' : instance.getLDAPPort(),
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+            'DNToModify'     : "ou=QA Engineers,dc=com",
+            'attributeName'   : 'aci',
+            'newAttributeValue'  : curr_aci,
+            'changetype'         : 'add',
+            'expectedRC'         :  0,
+            'fileFd'             : LOG_MAIN_FD
+            }
+          </call>     
+          <!--  Set Aci to allow  write and delete access on ou=QA Engineers,dc=com for all attributs except mailEXT -->
+          <script>
+            curr_aci="(targetattr!=\"mailEXT\")(version 3.0; acl \" not mailEXT write add_aci_for_dyn_group1_QA\"; allow (write,add,delete) groupdn=\"ldap:///%s\";)" % QA_dynamic_group1_dn
+          </script>
+          
+          <call function="'modifyAnAttribute'">
+            { 'dsPath'       : instance.getInstallDir(),
+            'dsInstanceHost' : instance.getHost(),
+            'dsInstancePort' : instance.getLDAPPort(),
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+            'DNToModify'     : "ou=QA Engineers,dc=com",
+            'attributeName'   : 'aci',
+            'newAttributeValue'  : curr_aci,
+            'changetype'         : 'add',
+            'expectedRC'         :  0,
+            'fileFd'             : LOG_MAIN_FD
+            }
+          </call>              
+          <!--  ===============================  -->
+          <!--  Define ACI for dynamic group 2   -->
+          <!--  ===============================  -->       
+          
+          
+          <!--  Set Aci to allow read and write access on attribut descriptionEXT -->
+          <!-- access on ou=QA Engineers,dc=com -->
+          <script>
+            curr_aci="(targetattr=\"descriptionEXT\")(version 3.0; acl \"aci_1_for_dyn_group2_QA\"; allow (read,search,write,add) groupdn=\"ldap:///%s\";)" % QA_dynamic_group2_dn
+          </script>
+          
+          <call function="'modifyAnAttribute'">
+            { 'dsPath'       : instance.getInstallDir(),
+            'dsInstanceHost' : instance.getHost(),
+            'dsInstancePort' : instance.getLDAPPort(),
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+            'DNToModify'     : "ou=QA Engineers,dc=com",
+            'attributeName'   : 'aci',
+            'newAttributeValue'  : curr_aci,
+            'changetype'         : 'add',
+            'expectedRC'         :  0,
+            'fileFd'             : LOG_MAIN_FD
+            }
+          </call>          
+
+
+          <!--  Set Aci to allow all  access on all the attributs except descriptionEXT -->
+          <!-- access on ou=QA Engineers,dc=com -->
+          <script>
+            curr_aci="(targetattr!=\"descriptionEXT\")(version 3.0; acl \"aci_2_for_dyn_group2_QA\"; allow (all) groupdn=\"ldap:///%s\";)" % QA_dynamic_group2_dn
+          </script>
+          
+          <call function="'modifyAnAttribute'">
+            { 'dsPath'       : instance.getInstallDir(),
+            'dsInstanceHost' : instance.getHost(),
+            'dsInstancePort' : instance.getLDAPPort(),
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+            'DNToModify'     : "ou=QA Engineers,dc=com",
+            'attributeName'   : 'aci',
+            'newAttributeValue'  : curr_aci,
+            'changetype'         : 'add',
+            'expectedRC'         :  0,
+            'fileFd'             : LOG_MAIN_FD
+            }
+          </call>                    
+
+
+          <!--  Set Aci to Deny all  access on attributs postalCode -->
+          <!-- access on ou=QA Engineers,dc=com -->
+          <script>
+            curr_aci="(targetattr=\"postalCode\")(version 3.0; acl \"aci_2_for_dyn_group2_QA\"; allow (all) groupdn=\"ldap:///%s\";)" % QA_dynamic_group2_dn
+          </script>
+          
+          <call function="'modifyAnAttribute'">
+            { 'dsPath'       : instance.getInstallDir(),
+            'dsInstanceHost' : instance.getHost(),
+            'dsInstancePort' : instance.getLDAPPort(),
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+            'DNToModify'     : "ou=QA Engineers,dc=com",
+            'attributeName'   : 'aci',
+            'newAttributeValue'  : curr_aci,
+            'changetype'         : 'add',
+            'expectedRC'         :  0,
+            'fileFd'             : LOG_MAIN_FD
+            }
+          </call>                              
+          
+          <!--  ===============================  -->
+          <!--  Define ACI for dynamic group 3   -->
+          <!--  ===============================  -->       
+          
+          
+          <!--  Set Aci to allow all access on attributs jpegPhoto -->
+          <script>
+            curr_aci="(targetattr=\"jpegPhoto\")(version 3.0; acl \"aci_1_for_dyn_group3_QA\"; allow (all) groupdn=\"ldap:///%s\";)" % QA_dynamic_group3_dn
+          </script>
+          
+          <call function="'modifyAnAttribute'">
+            { 'dsPath'       : instance.getInstallDir(),
+            'dsInstanceHost' : instance.getHost(),
+            'dsInstancePort' : instance.getLDAPPort(),
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+            'DNToModify'     : "ou=QA Engineers,dc=com",
+            'attributeName'   : 'aci',
+            'newAttributeValue'  : curr_aci,
+            'changetype'         : 'add',
+            'expectedRC'         :  0,
+            'fileFd'             : LOG_MAIN_FD
+            }
+          </call>          
+
+      
+          <!--  Set Aci to allow all access on all attributs except jpegPhoto -->
+          <script>
+            curr_aci="(targetattr!=\"jpegPhoto\")(version 3.0; acl \"aci_2_for_dyn_group3_QA\"; allow (all) groupdn=\"ldap:///%s\";)" % QA_dynamic_group3_dn
+          </script>
+          
+          <call function="'modifyAnAttribute'">
+            { 'dsPath'       : instance.getInstallDir(),
+            'dsInstanceHost' : instance.getHost(),
+            'dsInstancePort' : instance.getLDAPPort(),
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+            'DNToModify'     : "ou=QA Engineers,dc=com",
+            'attributeName'   : 'aci',
+            'newAttributeValue'  : curr_aci,
+            'changetype'         : 'add',
+            'expectedRC'         :  0,
+            'fileFd'             : LOG_MAIN_FD
+            }
+          </call>                    
+          
+ 
+          
+          <!--  ===========================  -->
+          <!--  Password policy              -->
+          <!--  ===========================  -->       
+          
+          <!-- Create a password policy for group1-->
+          <call function="'dsconfig'">
+            { 'location'   : instance.getHost(),
+            'dsPath'       : instance.getInstallDir(),
+            'dsInstanceHost' : instance.getHost(),
+            'dsInstancePort' : instance.getLDAPPort(),
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+            'subcommand'     : 'create-password-policy',
+            'objectType'     : 'policy-name',
+            'objectName'     : 'password_policy_group1',
+            'optionsString'  : '--set allow-user-password-changes:true \
+                                --type generic \
+                                --set default-password-storage-scheme:"Salted SHA-1" \
+                                --set password-attribute:userpassword',
+            'expectedRC'	: 0,
+             'fileFd'         : LOG_MAIN_FD
+            }
+          </call> 
+          <message>'debug %s' % QA_dynamic_group1_dn</message>
+          
+         <!-- Assign this password policy to the group1-->
+          <call function="'dsconfig'">
+            { 'location'   : instance.getHost(),
+            'dsPath'       : instance.getInstallDir(),
+            'dsInstanceHost' : instance.getHost(),
+            'dsInstancePort' : instance.getLDAPPort(),
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+            'subcommand'     : 'create-virtual-attribute',
+            'objectType'     : 'name',
+            'objectName'     : 'virtual attribute for password_policy_group1',
+            'optionsString'  : '--type user-defined \
+                                --set enabled:true \
+                                --set attribute-type:ds-pwp-password-policy-dn \
+                                --set group-dn:%s \
+                                --set conflict-behavior:real-overrides-virtual \
+                                --set value:"cn=password_policy_group1,cn=Password Policies,cn=config"' % QA_dynamic_group1_dn,
+            'expectedRC'	: 0,
+             'fileFd'         : LOG_MAIN_FD
+            }
+          </call> 
+
+          
+          <!-- Create a password policy for group2-->
+          <call function="'dsconfig'">
+            { 'location'   : instance.getHost(),
+            'dsPath'       : instance.getInstallDir(),
+            'dsInstanceHost' : instance.getHost(),
+            'dsInstancePort' : instance.getLDAPPort(),
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+            'subcommand'     : 'create-password-policy',
+            'objectType'     : 'policy-name',
+            'objectName'     : 'password_policy_group2',
+            'optionsString'  : '--set allow-user-password-changes:true \
+                                --type generic \
+                                --set default-password-storage-scheme:"Salted MD5" \
+                                --set password-attribute:userpassword',
+            'expectedRC'	: 0,
+             'fileFd'         : LOG_MAIN_FD
+            }
+          </call> 
+          <message>'debug %s' % QA_dynamic_group2_dn</message>
+          
+         <!-- Assign this password policy to the group2-->
+          <call function="'dsconfig'">
+            { 'location'   : instance.getHost(),
+            'dsPath'       : instance.getInstallDir(),
+            'dsInstanceHost' : instance.getHost(),
+            'dsInstancePort' : instance.getLDAPPort(),
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+            'subcommand'     : 'create-virtual-attribute',
+            'objectType'     : 'name',
+            'objectName'     : 'virtual attribute for password_policy_group2',
+            'optionsString'  : '--type user-defined \
+                                --set enabled:true \
+                                --set attribute-type:ds-pwp-password-policy-dn \
+                                --set group-dn:%s \
+                                --set conflict-behavior:real-overrides-virtual \
+                                --set value:"cn=password_policy_group1,cn=Password Policies,cn=config"' % QA_dynamic_group2_dn,
+            'expectedRC'	: 0,
+             'fileFd'         : LOG_MAIN_FD
+            }
+          </call> 
+          
+          <!--  ===========================  -->
+          <!--  Manage certificates          -->
+          <!--  ===========================  -->       
+          
+          <!-- Get the keystore password from keystore.pin file  -->
+          <call function="'getFile'">
+            {
+            'location' : instance.getHost(),
+            'filename' : '%s/config/keystore.pin' % instance.getInstallDir(),
+            'format'   : '""'
+            }
+          </call>
+
+          <script>
+            # getFile returns: STAXResult = [cmdRC, cmdResult]
+            server_storepass = STAXResult[1]
+
+            SERVER_CERT_DIR = '%s/CERT_%s' %  (instance.getLogDir(),instance.getHost())
+            SERVER_CERT_FILE = '%s/server_cert.txt' %  SERVER_CERT_DIR
+            SERVER_STOREPASS = server_storepass
+          </script>
+
+          <!-- Create a directory to store the server certificate-->
+          <call function="'createFolder'">
+            { 'location' : instance.getHost(),
+            'foldername' : SERVER_CERT_DIR,
+            'fileFd'	 : LOG_MAIN_FD
+            }
+          </call>
+
+          <!-- Export the server Cert -->
+          <message>'----  Export the  Server Certicate ----'</message>
+          <call function="'ExportCertificate'">
+            { 'dsPath'     : instance.getInstallDir(),
+            'location'   : instance.getHost(),
+            'certAlias'  : 'server-cert' ,
+            'outputfile' : SERVER_CERT_FILE,
+            'storepass'  : server_storepass,
+            'storetype'  : 'JKS',
+            'fileFd'     : LOG_MAIN_FD,
+            }
+          </call>
+
+          <!-- == Wrcd pluite tag for xml report -->
+          <call function="'writeEndTagInstance'">
+            { 'fileFd'    : LOG_MAIN_FD }
+          </call>
+
+        </sequence>
+      </iterate>
+
+
+      <!--== Get the enabled clients list from all modules ==-->
+      <call function="'getEnabledClients'">{'scheduler':scheduler}</call>
+      <script>clients = STAXResult </script>
+
+
+      <!--======= Create instance log dir on instance's host =====-->
+      <iterate in="clients" var="client">
+        <sequence>
+
+            <if expr="client.getName() == 'secureSearch' or client.getName() == 'secureModifyEntries' or client.getName() == 'secureUserpasswordModify'">
+              <sequence>
+
+                <!-- == Write tag for xml report -->
+                <call function="'writeStartTagClient'">
+                  {
+                  'client' : client,
+                  'fileFd' : LOG_MAIN_FD
+                  }
+                </call>
+
+                <!-- Get the informations about the Server Instance for this client -->
+                <script>
+                  cParams = client.getParams()
+                  serverInstanceFromClient = cParams[0][1]
+                  baseDN_for_userMapping = cParams[1][1]
+                  certAlias = cParams[7][1]
+
+                  sys.path.append("%s/phases/scheduler" % TESTS_DIR )
+                  from scheduler import getInstance
+                  serverInstance = getInstance(serverInstanceFromClient,instances)
+                </script>
+
+
+                <!-- informations about the Client certificate DB -->
+                <!-- The client certificate DB is generated on the client host -->
+                <script>
+                  CLIENT_CERT_TMP="%s/CERT_%s_%s" %  \
+                  (client.getLogDir(),client.getName(),client.getId())
+                  CLIENT_KEYSTORE_DIR="%s/config" % (CLIENT_CERT_TMP)
+                  CLIENT_KEYSTORE="%s/keystore" % CLIENT_KEYSTORE_DIR
+                  USER_DN  ="uid=%s,%s" % (certAlias,baseDN_for_userMapping)
+                  USER_CERT_FILE_RFC="%s/client_cert_rfc.txt" % CLIENT_CERT_TMP
+                  USER_CERT_FILE="%s/client_cert.txt" % CLIENT_CERT_TMP
+                  CLIENT_KEYPASS="password"
+                  CLIENT_STOREPASS="password"
+                </script>
+
+                <call function="'writeMessage'">
+                  {
+                  'fileFd'  : LOG_MAIN_FD,
+                  'content' : 'Create folder %s on %s ' %
+                  (CLIENT_CERT_TMP,client.getHost())
+                  }
+                </call>
+
+                <!-- Create folder on the client host where are store client keystore
+                and certificate-->
+                <call function="'createFolder'">
+                  { 'location' : client.getHost(),
+                  'foldername' : CLIENT_KEYSTORE_DIR,
+                  'fileFd'	 : LOG_MAIN_FD
+                  }
+                </call>
+                <!-- On the client Host, generate a JKS client certificate  : certAlias -->
+                <call function="'genCertificate'">
+                  { 'dsPath'     : CLIENT_CERT_TMP,
+                  'location'     : client.getHost(),
+                  'certAlias'    : certAlias,
+                  'dname'        : USER_DN,
+                  'storepass'    : CLIENT_STOREPASS,
+                  'keystore'     : CLIENT_KEYSTORE,
+                  'keypass'      : CLIENT_KEYPASS,
+                  'storetype'    : 'JKS',
+                  'fileFd'       : LOG_MAIN_FD
+                  }
+                </call>
+
+                <!-- Self-Sign client Certificate : certAlias    -->
+                <message>'---- Self-Signing client Certificate : %s ---- ' % (certAlias)</message>
+
+                <call function="'SelfSignCertificate'">
+                  { 'dsPath'    : CLIENT_CERT_TMP,
+                  'location'    : client.getHost(),
+                  'certAlias'   : certAlias,
+                  'storepass'   : CLIENT_STOREPASS,
+                  'keypass'     : CLIENT_KEYPASS,
+                  'keystore'    : CLIENT_KEYSTORE,
+                  'storetype'   : 'JKS' ,
+                  'fileFd'      : LOG_MAIN_FD
+                  }
+                </call>
+
+                <!-- export client certificate : certAlias -->
+                <message> '----  Export the  client certificate : %s ---- ' % (certAlias)</message>
+                <call function="'ExportCertificate'">
+                  { 'dsPath'   : CLIENT_CERT_TMP,
+                  'location'   : client.getHost(),
+                  'certAlias'  : certAlias,
+                  'outputfile' : USER_CERT_FILE,
+                  'storepass'  : CLIENT_STOREPASS,
+                  'keystore'   : CLIENT_KEYSTORE,
+                  'storetype'  : 'JKS',
+                  'fileFd'     : LOG_MAIN_FD
+                  }
+                </call>
+
+                <!-- export client certificate  RFC format : certAlias -->
+                <message> '----  Export the  client certificate in RFC : %s ---- ' % (certAlias)</message>
+
+                <call function="'ExportCertificate'">
+                  { 'dsPath'   : CLIENT_CERT_TMP,
+                  'location'   : client.getHost(),
+                  'certAlias'  : certAlias,
+                  'outputfile' : USER_CERT_FILE_RFC,
+                  'storepass'  : CLIENT_STOREPASS,
+                  'keystore'   : CLIENT_KEYSTORE,
+                  'format'     : 'rfc',
+                  'storetype'  : 'JKS',
+                  'fileFd'     : LOG_MAIN_FD
+                  }
+                </call>
+
+                <!-- Get the keystore password from keystore.pin file  -->
+                <call function="'getFile'">
+                  {
+                  'location' : serverInstance.getHost(),
+                  'filename' : '%s/config/keystore.pin' % serverInstance.getInstallDir(),
+                  'format'   : '""'
+                  }
+                </call>
+                <script>
+                  # getFile returns: STAXResult = [cmdRC, cmdResult]
+                  server_storepass = STAXResult[1]
+                </script>
+
+                <!-- The directory containing the client certificates DB
+                     is copied on the server instance -->
+                <!-- and the directory containing the server certificate DB
+                     is copied on the associated client -->
+                <script>
+
+                  REMOTE_CLIENT_CERT_TMP="%s/CERT_%s_%s" % (serverInstance.getLogDir(),client.getName(),client.getId())
+                  REMOTE_USER_CERT_FILE="%s/client_cert.txt" % REMOTE_CLIENT_CERT_TMP
+
+                  REMOTE_SERVER_CERT_TMP = "%s/CERT_%s" % (client.getLogDir(),serverInstance.getHost())
+                  REMOTE_SERVER_CERT_FILE = '%s/server_cert.txt' %  REMOTE_SERVER_CERT_TMP
+
+                  SERVER_CERT_TMP = "%s/CERT_%s" % (serverInstance.getLogDir(),serverInstance.getHost())
+                  SERVER_STOREPASS = server_storepass
+                </script>
+
+
+                <!--== Copy the directory containing the server cert DB on the Client host -->
+                <call function="'copyFolder'">
+                  { 'location'    : serverInstance.getHost(),
+                  'remoteHost'    : client.getHost(),
+                  'fromDirectory' : SERVER_CERT_TMP,
+                  'toDirectory'   : REMOTE_SERVER_CERT_TMP,
+                  'fileFd'        : LOG_MAIN_FD
+                  }
+                </call>
+
+                <!--== Copy the directory containing the client cert DB on the Server Host -->
+                <call function="'copyFolder'">
+                  { 'location'    : client.getHost(),
+                  'remoteHost'    : serverInstance.getHost(),
+                  'fromDirectory' : CLIENT_CERT_TMP,
+                  'toDirectory'   : REMOTE_CLIENT_CERT_TMP,
+                  'fileFd'        : LOG_MAIN_FD
+                  }
+                </call>
+
+                <call function="'writeMessage'">
+                  {
+                  'fileFd'  : LOG_MAIN_FD,
+                  'content' : 'Import server certificate under %s on %s ' % (CLIENT_KEYSTORE,client.getHost())
+                  }
+                </call>
+
+                <!-- Import the server Certificate in the client database -->
+                <message>'----  Import the  Server Certificate in the client keystore----'</message>
+                <call function="'ImportCertificate'">
+                  { 'dsPath'  : CLIENT_CERT_TMP,
+                  'location'  : client.getHost(),
+                  'certAlias' : 'server-cert',
+                  'inputfile' : REMOTE_SERVER_CERT_FILE,
+                  'storepass' : CLIENT_STOREPASS,
+                  'keystore'  : CLIENT_KEYSTORE,
+                  'storetype' : 'JKS',
+                  'fileFd'    : LOG_MAIN_FD
+                  }
+                </call>
+
+                <!-- Import the client Certificates in the server trustore  -->
+                <message> '----  Import the  client Certificates %s in  the server trustore' % (certAlias)</message>
+
+                <call function="'ImportCertificate'">
+                  {  'dsPath'  : serverInstance.getInstallDir(),
+                  'location'   : serverInstance.getHost(),
+                  'certAlias'  : certAlias,
+                  'keystore'   : 'truststore',
+                  'inputfile'  : REMOTE_USER_CERT_FILE,
+                  'storepass'  : server_storepass,
+                  'storetype'  : 'JKS',
+                  'fileFd'     : LOG_MAIN_FD
+                  }
+                </call>
+
+                  <call function="'create_mapping_user'">
+                  {  'instance'  : serverInstance,
+                  'certAlias'    : certAlias,
+                  'client_cert_directory'  : REMOTE_CLIENT_CERT_TMP,
+                  'user_dn'      : USER_DN,
+                  'base_dn'      : baseDN_for_userMapping,
+                  'fileFd'       : LOG_MAIN_FD
+                  }
+                </call>
+
+                <!-- == Write tag for xml report -->
+                <call function="'writeEndTagClient'">
+                  { 'fileFd'    : LOG_MAIN_FD }
+                </call>
+              </sequence>
+            </if>
+        </sequence>
+      </iterate>
+
+      
+      
+      <!-- ================= Call postambule ======================= -->
+      <call function="'phasePostamble'">
+        { 'phase'	 : phase,
+        'fileFd'    : LOG_MAIN_FD
+        }
+      </call>
+    </sequence>
+  </function>
+
+  
+  
+  
+
+  <!-- ************************************************************ -->
+  <function name="create_mapping_user" scope="local">
+    <function-map-args>
+      <function-arg-def name="instance" type="required">
+      </function-arg-def>
+      <function-arg-def name="certAlias" type="required">
+      </function-arg-def>
+      <function-arg-def name="client_cert_directory" type="required">
+      </function-arg-def>
+      <function-arg-def name="base_dn" type="required">
+      </function-arg-def>
+      <function-arg-def name="user_dn" type="required">
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+      </function-arg-def>
+    </function-map-args>
+
+    <sequence>
+
+      <call function="'writeMessage'">
+        {
+        'fileFd'  : fileFd,
+        'content' : 'Create the user %s' % user_dn
+        }
+      </call>
+      <!--  create user entry on the Instance server -->
+      <message>'######  Add an entry  ###### '</message>
+      <script>
+        listAttr = []
+        listAttr.append('objectclass:top')
+        listAttr.append('objectclass:organizationalperson')
+        listAttr.append('objectclass:inetorgperson')
+        listAttr.append('objectclass:person')
+        listAttr.append('objectclass:ds-certificate-user')
+        listAttr.append('objectclass:strongAuthenticationUser')
+        listAttr.append('objectclass:inetorgpersonext')
+        listAttr.append('userCertificate;binary:  bad_certificate')
+        listAttr.append('givenname:%s' % certAlias)
+        listAttr.append('userpassword:userpassword')
+        listAttr.append('mailEXT: group1')
+        listAttr.append('descriptionEXT: this is  mapping client description')        
+        listAttr.append('sn:%s' % certAlias)
+        listAttr.append('cn:%s' % certAlias)
+      </script>
+
+      <call function="'addAnEntry'">
+        { 'location'   : instance.getHost(),
+        'dsPath'       : instance.getInstallDir(),
+        'dsInstanceHost'  : instance.getHost(),
+        'dsInstancePort'  : instance.getLDAPPort(),
+        'dsInstanceDn'    : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
+        'DNToAdd'         : user_dn,
+        'listAttributes'  : listAttr,
+        'expectedRC'      :  0,
+        'fileFd'          : fileFd
+        }
+      </call>
+
+	  <call function="'ldapSearch'">
+            { 'dsPath'		: instance.getInstallDir(),
+            'dsInstanceHost'  : instance.getHost(),
+	    'dsInstancePort'  : serverInstance.getLDAPPort(),
+	    'dsBaseDN'		: suffix.getSuffixDn(),
+	    'dsScope'		: 'base',
+	    'dsFilter'		: 'objectclass=*',
+            'dsInstanceDn'   : user_dn,
+            'dsInstancePswd' : "userpassword",
+	    'expectedRC'	:  0,
+	    'fileFd'		: fileFd
+            }
+          </call>
+      
+       <call function="'writeMessage'">
+        {
+        'fileFd'  : fileFd,
+        'content' : 'Add the aci to the user %s' % user_dn
+        }
+      </call>
+      <script>
+        curr_aci="(targetattr=\"*\")(version 3.0; acl \"add_aci\"; allow (search,read,write) userdn=\"ldap:///%s\";)" % user_dn
+      </script>
+    
+      <call function="'modifyAnAttribute'">
+        { 'dsPath'       : instance.getInstallDir(),
+        'dsInstanceHost' : instance.getHost(),
+        'dsInstancePort' : instance.getLDAPPort(),
+        'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+        'DNToModify'     : base_dn,
+        'attributeName'   : 'aci',
+        'newAttributeValue'  : curr_aci,
+        'changetype'         : 'add',
+        'expectedRC'         :  0,
+        'fileFd'             : fileFd
+        }
+      </call>
+      
+      <!-- Read the certificate exported as RFC -->
+      <call function="'getFile'">
+        { 'location'    : instance.getHost(),
+        'filename'    : '%s/client_cert_rfc.txt ' % (client_cert_directory)
+        }
+      </call>
+      <message>
+        'Certificate contents:\n %s' % cmdResult
+      </message>
+
+      <!-- Extract BEGIN CERTIFICATE and END CERTIFICATE -->
+      <script>
+        certList=cmdResult.split('\n')
+        ret_str = ""
+        for line in certList:
+          index_cert = line.find("CERTIFICATE")
+          if index_cert == -1:
+            ret_str+=line.strip()
+      </script>
+
+      <script>
+        listAttr = []
+        listAttr.append('dn: %s' % user_dn)
+        listAttr.append('changetype: modify')
+        listAttr.append('replace: userCertificate;binary')
+        listAttr.append('userCertificate;binary:: %s' % ret_str)
+      </script>
+
+      <!-- Write out the ldif -->
+      <script>
+        LdifFile = '%s/cert_ldif' % instance.getLogDir()
+        outfile = open(LdifFile,"w")
+
+        for line in listAttr:
+          outfile.write("%s\n" % line)
+
+        outfile.close()
+      </script>
+
+      <call function="'modifyEntry'">
+        { 'dsPath'       : instance.getInstallDir(),
+        'dsInstanceHost' : instance.getHost(),
+        'dsInstancePort' : instance.getLDAPPort(),
+        'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+        'entryToBeModified'  : '%s' % LdifFile,
+        'expectedRC'        :  0,
+        'fileFd'             : fileFd
+        }
+      </call>
+
+
+      <call function="'modifyAnAttribute'">
+        { 'dsPath'       : instance.getInstallDir(),
+        'dsInstanceHost' : instance.getHost(),
+        'dsInstancePort' : instance.getLDAPPort(),
+        'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+        'DNToModify'     : user_dn,
+        'attributeName'   : 'userCertificate;binary',
+        'newAttributeValue'  : ret_str,
+        'changetype'         : 'modify',
+        'expectedRC'         :  0,
+        'fileFd'             : fileFd
+        }
+      </call>
+
+    </sequence>
+  </function>
+
+
+</stax>
