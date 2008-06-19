@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE systemTestConfiguration SYSTEM "../conf.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+
+
+<!--==================================================================-->
+<!-- This conf.xml file is an example                                 -->
+<!-- BEFORE running system-tests, you need to set up your environment -->
+<!--==================================================================-->
+
+
+<systemTestConfiguration>
+  
+  <!-- ================= Global Parameters ===================== -->
+  <!-- =============  Should be the first node   =============== -->
+  <globalParameters>
+    <scenario>
+      <name>Single server</name>
+      <description>This system test implements a single server</description>
+    </scenario>
+    <opendsZip>/qa/realtmp/smaguin/OpenDS/SunOpenDS_SE1.0/opends/OpenDS-1.0.0.zip</opendsZip>
+    <domain>france.sun.com</domain>
+    
+  </globalParameters>
+ 
+  
+  <!-- ================= Instance ============================== -->
+  <instance name="I1" product="opends" role="ldapServer">
+    <host>localhost</host>
+    <installDir>/usr/opends/system</installDir>
+    <ports>
+      <ldap>1234</ldap>
+      <ldaps>1235</ldaps>
+      <jmx>1238</jmx>
+      <replicationServer>1237</replicationServer>
+    </ports>
+    <tuning>
+      <java xms="2g" xmx="2g"
+            xxNewSize="512m" xxMaxNewSize="512m"
+            xxSurvivorRatio="6" xxPermSize="128m"
+            xxMaxPermSize="128m" xxUseConcMarkSweepGC="true"/>
+      <databaseCachePercentage>40</databaseCachePercentage>
+      <replicationPurgeDelay unit="h">4</replicationPurgeDelay>
+    </tuning>
+    <security certificate="generateSelfSigned" sslEnabled="true" startTlsEnabled="true" ></security> 
+  </instance>
+    
+  
+  <!-- ================= Suffix  ============================== -->
+  <suffix dn="dc=com">
+    
+    <topology>
+      <element instanceName="I1" initRule="importLdif" />
+    </topology>
+    
+    <tree nbOfEntries="200000">
+      <branch name="ou=QA Engineers,dc=com">
+        <subordinateTemplate type="inetOrgPersonEXT_Jpeg_1MB" percentage="100"/>
+      </branch>
+      <branch name="ou=Dev,dc=com">
+        <subordinateTemplate type="inetOrgPersonEXT_Jpeg_1MB" percentage="10"/>
+      </branch>
+    </tree>
+    
+  </suffix>
+  
+  <!-- ================= Scheduler  =========================== -->
+  <!-- [1] duration must be more than 1 minute                  -->
+  <!-- [2] dependencyId is a list of client id ie : 1,2         -->
+  <!--     if using it, specify id attribute for each clients   -->
+  
+  <!-- Requirements -->
+  <!-- the certAlias must be unique -->
+ 
+  <scheduler>
+    <duration unit="m">60</duration>
+    
+    <!--== Module 1 ==-->
+     <module name="task_mod" enabled="false">
+
+      <client id="1" name="tasks" host="lehon" start="t0"
+              stop="t50">
+        <serverInstance>I1</serverInstance>
+        <nbTasks>50</nbTasks>
+        <delaySec>5000</delaySec>
+      </client>
+  
+    </module>
+    
+
+   
+    <module name="password" enabled="true">
+      
+      <client id="61" name="secureUserpasswordModify" host="nott" start="t0"
+              stop="t20">
+        <serverInstance>I1</serverInstance>
+        <baseDn>ou=QA Engineers,dc=com</baseDn>
+        <nbCnx>1</nbCnx>
+        <nbMaxOp>450000</nbMaxOp>
+        <attribute>userpassword</attribute>
+        <protocol>ssl</protocol>        
+        <certAlias>client-cert-61</certAlias>
+        <delaySec>10</delaySec>
+      </client>    
+    </module>
+    
+    
+    <module name="modify_ssl_sasl" enabled="true">    
+        
+      <client id="2" name="secureModifyEntries" host="garm" start="t20"
+              stop="t50">
+        <serverInstance>I1</serverInstance>
+        <baseDn>ou=QA Engineers,dc=com</baseDn>
+        <nbCnx>10</nbCnx>
+        <nbMaxOp>100000</nbMaxOp>
+        <attribute>mailEXT</attribute>
+        <protocol>ssl</protocol>
+        <authentication>EXTERNAL</authentication>
+        <certAlias>client-cert-2</certAlias>
+        <operation>modify</operation>
+        <delaySec>2</delaySec>
+      </client>
+    </module>
+      
+   <module name="modify_ssl_bind" enabled="true">
+      <client id="3" name="secureModifyEntries" host="nott" start="t50"
+              stop="t70">
+        <serverInstance>I1</serverInstance>
+        <baseDn>ou=QA Engineers,dc=com</baseDn>
+        <nbCnx>10</nbCnx>
+        <nbMaxOp>100000</nbMaxOp>
+        <attribute>mailEXT</attribute>
+        <protocol>ssl</protocol>
+        <authentication>simple</authentication>
+        <certAlias>client-cert-3</certAlias>
+        <operation>modify</operation>
+        <delaySec>2</delaySec>
+      </client>
+    </module>
+    
+    
+    <module name="search_ssl_bind" enabled="true">    
+      
+      <client id="44" name="secureSearch" host="nott" start="t70"
+              stop="t90">
+        <serverInstance>I1</serverInstance>
+        <baseDn>ou=QA Engineers,dc=com</baseDn>
+        <nbCnx>6</nbCnx>
+        <nbMaxOp>450000</nbMaxOp>
+        <attribute>description</attribute>
+        <protocol>ssl</protocol>        
+        <authentication>simple</authentication>
+        <certAlias>client-cert-44</certAlias>
+        <delaySec>2</delaySec>
+      </client>     
+      
+    </module>
+       
+    <!--== Module 2 ==-->
+     <module name="charge_multipl" enabled="true">
+
+       <client id="40" name="secureSearch" host="garm" start="t90"
+              stop="t100">
+        <serverInstance>I1</serverInstance>
+        <baseDn>ou=QA Engineers,dc=com</baseDn>
+        <nbCnx>6</nbCnx>
+        <nbMaxOp>450000</nbMaxOp>
+        <attribute>mailEXT</attribute>
+        <protocol>ssl</protocol>        
+        <authentication>simple</authentication>
+        <certAlias>client-cert-40</certAlias>
+        <delaySec>2</delaySec>
+      </client>
+     
+
+      <client id="41" name="secureModifyEntries" host="aud" start="t80"
+              stop="t100">
+        <serverInstance>I1</serverInstance>
+        <baseDn>ou=QA Engineers,dc=com</baseDn>
+        <nbCnx>10</nbCnx>
+        <nbMaxOp>100000</nbMaxOp>
+        <attribute>mailEXT</attribute>
+        <protocol>ssl</protocol>
+        <authentication>EXTERNAL</authentication>
+        <certAlias>client-cert-41</certAlias>
+        <operation>modify</operation>
+        <delaySec>2</delaySec>
+      </client>
+     
+       <client id="42" name="secureSearch" host="aud" start="t80"
+              stop="t100">
+        <serverInstance>I1</serverInstance>
+        <baseDn>ou=QA Engineers,dc=com</baseDn>
+        <nbCnx>6</nbCnx>
+        <nbMaxOp>450000</nbMaxOp>
+        <attribute>description</attribute>
+        <protocol>simple</protocol>        
+        <authentication>simple</authentication>
+        <certAlias>client-cert-42</certAlias>
+        <delaySec>2</delaySec>
+       </client>
+    </module>
+    
+    
+    <!--== Module add/delete ==-->
+    <module name="addAndDelete" enabled="false">
+      
+      <client id="10" name="addDeleteLoad" host="nott" start="t80"
+              stop="t100">
+        <serverInstance>I1</serverInstance>
+        <baseDn>ou=QA Engineers,dc=com</baseDn>
+        <nbCnx>50</nbCnx>
+      </client>
+    </module>
+    
+  </scheduler>
+  
+</systemTestConfiguration>
+
