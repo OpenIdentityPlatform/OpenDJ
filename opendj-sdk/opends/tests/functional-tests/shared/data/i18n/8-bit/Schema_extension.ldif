@@ -4,10 +4,10 @@
 dn: cn=schema
 changetype: modify
 add: attributeTypes
-attributeTypes: ( I18n-singlename-oid NAME 'I18n-singlename' DESC 'User Çéliné Ändrè Defined Attribute' SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE X-ORIGIN 'I18n Tests' )
-attributeTypes: ( I18n-cn-oid NAME 'I18n-cn' DESC 'User Çéliné Ändrè Defined Attribute' SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 X-ORIGIN 'I18n Tests' )
-attributeTypes: ( I18n-sn-oid NAME 'I18n-sn' DESC 'User Çéliné Ändrè Defined Attribute' SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 X-ORIGIN 'I18n Tests' )
+attributeTypes: ( I18n-singlename-oid NAME 'I18n-singlename' DESC 'User Çéliné Ändrè Defined Attribute' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'I18n Tests' )
+attributeTypes: ( I18n-cn-oid NAME 'I18n-cn' DESC 'User Çéliné Ändrè Defined Attribute' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'I18n Tests' )
+attributeTypes: ( I18n-sn-oid NAME 'I18n-sn' DESC 'User Çéliné Ändrè Defined Attribute' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'I18n Tests' )
 -
 add: objectClasses
-objectClasses: ( I18n-Person-oid NAME 'I18n-Person' DESC 'User Çéliné Ändrè Defined objectClass' SUP top MUST I18n-cn MAY ( I18n-singlename $ I18n-sn ) X-ORIGIN 'I18n Tests' )
+objectClasses: ( I18n-Person-oid NAME 'I18n-Person' DESC 'User Çéliné Ändrè Defined objectClass' SUP top STRUCTURAL MUST I18n-cn MAY ( I18n-singlename $ I18n-sn ) X-ORIGIN 'I18n Tests' )
 
