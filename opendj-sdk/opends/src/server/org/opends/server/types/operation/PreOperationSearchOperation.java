@@ -150,7 +150,7 @@ public interface PreOperationSearchOperation
 
   /**
    * Retrieves the set of requested attributes for this search
-   * operation.  Its contents should not be be altered.
+   * operation.  Its contents should not be altered.
    *
    * @return  The set of requested attributes for this search
    *          operation.
