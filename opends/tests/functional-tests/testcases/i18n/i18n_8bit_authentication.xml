@@ -60,12 +60,19 @@
             }
           </call>
           
+          <!---
+            #@TestSuiteName             8bit_authentication
+            #@TestSuitePurpose          Test the usage of acis containing 8-bit
+                                        characters.
+            #@TestSuiteGroup            i18n
+            #@TestScript                i18n_8bit_authentication.xml
+          -->
 
           <call function="'testSuite_Preamble'"/>
 
           
           <!--- Test Case information
-          #@TestMarker        i18n 8-bit Authentication Tests
+          #@TestMarker        8bit_authentication
           #@TestName          Group: i18n 8-bit: user'd DN and password
                               contain 8-bit characters
           #@TestPurpose       check that user with DN and password containing
@@ -117,7 +124,7 @@
           
           
           <!--- Test Case information
-          #@TestMarker        i18n 8-bit Authentication Tests
+          #@TestMarker        8bit_authentication
           #@TestName          Group: i18n 8-bit: user'd DN and password contain
                               8-bit characters
           #@TestPurpose       check that user with DN and password containing
@@ -154,7 +161,7 @@
           
           
           <!--- Test Case information
-          #@TestMarker      i18n 8-bit Authentication Tests
+          #@TestMarker      8bit_authentication
           #@TestName        Group: i18n 8-bit: user'd DN and password contain
                             8-bit characters
           #@TestPurpose     check that user with DN and password containing
@@ -228,7 +235,7 @@
 
           
           <!--- Test Case information
-          #@TestMarker      i18n 8-bit Authentication Tests
+          #@TestMarker      8bit_authentication
           #@TestName        Group: i18n 8-bit: user'd DN and password contain
                             8-bit characters
           #@TestPurpose     check that user with DN and password containing

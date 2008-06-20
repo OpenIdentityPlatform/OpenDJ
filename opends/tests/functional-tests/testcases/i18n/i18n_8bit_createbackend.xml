@@ -32,17 +32,25 @@
     <sequence>
       <block name="'8bit_createbackend'">
         <sequence>
-            
+
           <script>
             if not CurrentTestPath.has_key('i18n'):
               CurrentTestPath['group']='i18n'
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
           
+          <!---
+            #@TestSuiteName             8bit_createbackend
+            #@TestSuitePurpose          Test the usage of dsconfig create-backend 
+                                        with 8-bit characters params.
+            #@TestSuiteGroup            i18n
+            #@TestScript                i18n_8bit_createbackend.xml
+          -->
+          
           <call function="'testSuite_Preamble'"/>
               
               <!--- Test Case information
-              #@TestMarker          setup
+              #@TestMarker          8bit_createbackend
               #@TestName            setup: create and initialize backend with
                                     8-bit data
               #@TestIssue           none
@@ -66,7 +74,7 @@
               <message>
                 'Create Directory Backend for 8-bit i18n tests'
               </message>
-                
+                  
               <script>
                 backends = {
                   'Candide'  : ('o=Çándide Rùiz', 'Candide'),
@@ -91,6 +99,7 @@
                   <message>
                    'Create database backend %s.' % backends.get(backend)[1]
                   </message>
+                  
                   <script>
                     options=[]
                     options.append('--backend-name %s' % backends.get(backend)[1])
