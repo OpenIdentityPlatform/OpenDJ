@@ -43,12 +43,20 @@
               CurrentTestPath['group']='i18n'
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
-
+          
+          <!---
+            #@TestSuiteName             8bit_schemaExtension
+            #@TestSuitePurpose          Test the extension of the schema with attributes 
+                                        and objectclasses containing 8-bit characters.
+            #@TestSuiteGroup            i18n
+            #@TestScript                i18n_8bit_schemaExtension.xml
+          -->
+          
           <call function="'testSuite_Preamble'"/>
 
           
           <!--- Test Case information
-          #@TestMarker          i18n 8-bit schema Extension Tests
+          #@TestMarker          8bit_schemaExtension
           #@TestName            Group: i18n 8-bit: extend schema using latin-1
                                 characters
           #@TestID              
@@ -83,7 +91,7 @@
           </testcase>
           
           <!--- Test Case information
-          #@TestMarker          i18n 8-bit schema Extension Tests
+          #@TestMarker          8bit_schemaExtension
           #@TestName            Group: i18n 8-bit: extend schema using 8-bit UTF-8 characters
           #@TestID              
           #@TestPurpose         check that schema extension with attributes or objectclasses
@@ -114,7 +122,7 @@
           </testcase>
           
           <!--- Test Case information
-          #@TestMarker          i18n 8-bit schema Extension Tests
+          #@TestMarker          8bit_schemaExtension
           #@TestName            Group: i18n 8-bit: extend schema using ascii
                                 characters
           #@TestID              
@@ -138,7 +146,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/i18n/8-bit/Schema_extension.ldif' \
+                'entryToBeAdded'   : '%s/i18n/8-bit/base64/Schema_extension.base64.ldif' \
                                      % logsRemoteDataDir ,
                 'expectedRC'       : 0
                 }
