@@ -36,6 +36,11 @@
       <block name="'i18n'">
       
         <sequence>
+            
+          <!--
+            #@TestGroupName             i18n
+            #@TestGroupPurpose          To test the i18n capability of the product.
+          -->
     
           <script>
             CurrentTestPath={}
@@ -44,6 +49,63 @@
           </script>
       
           <call function="'testGroup_Preamble'"/>
+          
+          <message>
+                'Setting up LANG and LC_ALL environment variables'
+          </message>
+              
+          <call function="'GetVar'">
+           {
+           'location'      : STAF_REMOTE_HOSTNAME ,
+           'type'          : 'system' ,
+           'variable'      : 'STAF/Env/LC_ALL'
+           }
+          </call>                       
+          <script> 
+              lc_all=STAFResult 
+          </script>
+          
+          <call function="'GetVar'">
+           {
+           'location'      : STAF_REMOTE_HOSTNAME ,
+           'type'          : 'system' ,
+           'variable'      : 'STAF/Env/LANG'
+           }
+          </call>                       
+          <script>
+              lang=STAFResult
+          </script>
+         
+          <call function="'SetVar'">
+           {
+           'location'      : STAF_REMOTE_HOSTNAME ,
+           'type'          : 'system' ,
+           'variable'      : 'STAF/Env/LC_ALL=en_US.ISO8859-1'
+           }
+          </call>                
+         
+          <call function="'SetVar'">
+           {
+           'location'      : STAF_REMOTE_HOSTNAME ,
+           'type'          : 'system' ,
+           'variable'      : 'STAF/Env/LANG=en_US.ISO8859-1'
+           }
+          </call>
+          
+          <call function="'GetVar'">
+           {
+           'location'      : STAF_REMOTE_HOSTNAME ,
+           'type'          : 'system' ,
+           'variable'      : 'STAF/Env/LANG'
+           }
+          </call>
+          <script>
+              Newlang=STAFResult
+          </script>
+          
+          <message>
+                'LANG is now set to %s ' % Newlang
+          </message>
           
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/i18n/i18n_setup.xml' % (TESTS_DIR)"/>
@@ -65,9 +127,36 @@
           <call function="'main_8bit_authentication'" />
           
           <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/i18n/i18n_8bit_dataComparison.xml'
+            % (TESTS_DIR)"/>
+          <call function="'main_8bit_dataComparison'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/i18n/i18n_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'i18n_cleanup'" />
           
+          
+          <message>
+                'Restoring LANG and LC_ALL environment variables'
+          </message>
+          
+          <call function="'SetVar'">
+           {
+           'location'      : STAF_REMOTE_HOSTNAME ,
+           'type'          : 'system' ,
+           'variable'      : lc_all
+           }
+         </call>                
+         
+         <call function="'SetVar'">
+           {
+           'location'      : STAF_REMOTE_HOSTNAME ,
+           'type'          : 'system' ,
+           'variable'      : lang
+           }
+         </call> 
+         
+         
           <call function="'testGroup_Postamble'"/>
         
         </sequence>
