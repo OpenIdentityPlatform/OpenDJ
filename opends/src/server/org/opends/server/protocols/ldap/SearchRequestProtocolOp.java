@@ -42,6 +42,7 @@ import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.LDAPException;
+import org.opends.server.types.RawFilter;
 import org.opends.server.types.SearchScope;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -81,7 +82,7 @@ public class SearchRequestProtocolOp
   private int timeLimit;
 
   // The filter for this search request.
-  private LDAPFilter filter;
+  private RawFilter filter;
 
   // The set of requested attributes for this search request.
   private LinkedHashSet<String> attributes;
@@ -108,7 +109,7 @@ public class SearchRequestProtocolOp
   public SearchRequestProtocolOp(ASN1OctetString baseDN, SearchScope scope,
                                  DereferencePolicy dereferencePolicy,
                                  int sizeLimit, int timeLimit,
-                                 boolean typesOnly, LDAPFilter filter,
+                                 boolean typesOnly, RawFilter filter,
                                  LinkedHashSet<String> attributes)
   {
     this.baseDN            = baseDN;
@@ -281,7 +282,7 @@ public class SearchRequestProtocolOp
    *
    * @return  The filter for this search request.
    */
-  public LDAPFilter getFilter()
+  public RawFilter getFilter()
   {
     return filter;
   }
@@ -293,7 +294,7 @@ public class SearchRequestProtocolOp
    *
    * @param  filter  The filter for this search request.
    */
-  public void setFilter(LDAPFilter filter)
+  public void setFilter(RawFilter filter)
   {
     this.filter = filter;
   }
@@ -582,10 +583,10 @@ public class SearchRequestProtocolOp
     }
 
 
-    LDAPFilter filter;
+    RawFilter filter;
     try
     {
-      filter = LDAPFilter.decode(elements.get(6));
+      filter = RawFilter.decode(elements.get(6));
     }
     catch (Exception e)
     {

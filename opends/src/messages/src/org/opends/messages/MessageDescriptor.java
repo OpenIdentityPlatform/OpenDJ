@@ -1082,7 +1082,7 @@ public abstract class MessageDescriptor {
   private final Map<Locale,String> formatStrMap = new HashMap<Locale,String>();
 
   /**
-   * Obtains the category of this descriptor.  Gauranteed not to be null.
+   * Obtains the category of this descriptor.  Guaranteed not to be null.
    * @return Category of this message
    */
   public final Category getCategory() {

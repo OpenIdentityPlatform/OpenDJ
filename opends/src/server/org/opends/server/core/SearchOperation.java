@@ -202,7 +202,7 @@ public interface SearchOperation extends Operation
 
   /**
    * Retrieves the set of requested attributes for this search operation.  Its
-   * contents should not be be altered.
+   * contents should not be altered.
    *
    * @return  The set of requested attributes for this search operation.
    */

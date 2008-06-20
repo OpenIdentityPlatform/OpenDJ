@@ -2471,7 +2471,7 @@ public class SchemaBackend
    * @param  ditContentRule       The DIT content rule to add or replace in the
    *                              server schema.
    * @param  schema               The schema to which the DIT content rule
-   *                              should be be added.
+   *                              should be added.
    * @param  modifiedSchemaFiles  The names of the schema files containing
    *                              schema elements that have been updated as part
    *                              of the schema modification.
@@ -2741,7 +2741,7 @@ public class SchemaBackend
    * @param  ditStructureRule     The DIT structure rule to add or replace in
    *                              the server schema.
    * @param  schema               The schema to which the DIT structure rule
-   *                              should be be added.
+   *                              should be added.
    * @param  modifiedSchemaFiles  The names of the schema files containing
    *                              schema elements that have been updated as part
    *                              of the schema modification.
