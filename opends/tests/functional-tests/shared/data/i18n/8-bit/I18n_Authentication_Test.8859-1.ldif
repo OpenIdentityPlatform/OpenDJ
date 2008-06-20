@@ -1,0 +1,49 @@
+# ACIs with 8-bit characters.
+# The attribute userPassword is a binary.
+# So it MUST not be converted. We have to convert this file into UTF-8 and then change
+# the line which contains the userPassword by the original line ( non converted ).
+#
+dn: o=Çándide Rùiz
+objectClass: top
+objectClass: organization
+o: Çándide Rùiz
+
+dn: ou=Authentication Tests, o=Çándide Rùiz
+objectclass: top
+objectclass: organizationalUnit
+ou: Authentication Tests
+description: Root for Authentication Tests.
+aci: (target="ldap:///ou=Authentication Tests, o=Çándide Rùiz")(targetattr="*")(version 3.0; acl "Çándide acl 1"; allow(read, search) userdn = "ldap:///cn=John, ou=Authentication Tests, o=Çándide Rùiz";) 
+aci: (target="ldap:///ou=Authentication Tests, o=Çándide Rùiz")(targetattr="*")(version 3.0; acl "Çándide acl 2"; allow(add) userdn = "ldap:///cn=Bill, ou=Authentication Tests, o=Çándide Rùiz";) 
+aci: (target="ldap:///ou=Authentication Tests, o=Çándide Rùiz")(targetattr="*")(version 3.0; acl "Çándide acl 3"; allow(add, write) userdn = "ldap:///cn=Çándide, ou=Authentication Tests, o=Çándide Rùiz";) 
+aci: (target="ldap:///ou=Authentication Tests, o=Çándide Rùiz")(targetattr="*")(version 3.0; acl "Çándide acl 4"; allow(all) userdn = "ldap:///cn=Rôséñe, ou=Authentication Tests, o=Çándide Rùiz";) 
+aci: (target="ldap:///ou=Authentication Tests, o=Çándide Rùiz")(targetattr="seeAlso")(version 3.0; acl "Çándide acl 5"; deny(all) userdn = "ldap:///cn=Rôséñe, ou=Authentication Tests, o=Çándide Rùiz";) 
+
+# User with 7-bit DN and 7-bit passwords.
+dn: cn=John, ou=Authentication Tests, o=Çándide Rùiz
+objectclass: top
+objectclass: person
+sn: Jeff
+userPassword: siroe
+
+# User with 7-bit DN and 8-bit passwords.
+dn: cn=Bill, ou=Authentication Tests, o=Çándide Rùiz
+objectclass: top
+objectclass: person
+sn: Jeff
+userPassword: siröé
+
+# User with 8-bit DN and 7-bit passwords.
+dn: cn=Çándide, ou=Authentication Tests, o=Çándide Rùiz
+objectclass: top
+objectclass: person
+sn: Jeff
+userPassword: siroe
+
+# User with 8-bit DN and 8-bit passwords.
+dn: cn=Rôséñe, ou=Authentication Tests, o=Çándide Rùiz
+objectclass: top
+objectclass: person
+sn: Jeff
+userPassword: siröé
+
