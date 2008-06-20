@@ -19,3 +19,8 @@ bz3Dh8OhbmRpZGUgUsO5aXo=
 
 The format to be used as per the LDIF encoding rules in ldif files is :
    dn:: <base-64 encoded DN>
+
+All base64 values in the ldif files in this directory had been converted being in LANG=en_US.ISO8859-1 using the following command :
+echo "nonAsciiValue\c" | iconv -f 8859-1 -t UTF-8 | base64 encode
+
+base64 being the base64 tool delivered with opends
