@@ -35,7 +35,6 @@
   <!-- always define all the parameters below                       -->
   <function name="restartDs" scope="local">
     <function-map-args>
-      <function-arg-def name="workingDir" type="required"/>
       <function-arg-def name="client"     type="required"/>
       <function-arg-def name="instances"  type="required"/>
       <function-arg-def name="duration"   type="required"/>

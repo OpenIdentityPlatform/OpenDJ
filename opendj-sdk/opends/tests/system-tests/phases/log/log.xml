@@ -80,24 +80,28 @@
     <sequence>
       <if expr="type == 'client'">
         <script>
-          logFile = '%s/%s_%s_%s_%s.xml' % \
-                    ( LOG_TMP_DIR,prefix,\
+          logName = '%s_%s_%s_%s' % \
+                    ( prefix,\
                       object.getName(),object.getHost(),object.getId())
         </script>
       <elseif expr="type == 'instance'">
         <script>
-          logFile = '%s/%s_%s_%s.xml' % \
-          (LOG_TMP_DIR,prefix,object.getName(),object.getHost())
+          logName = '%s_%s_%s' % (prefix,object.getName(),object.getHost())
         </script>
       </elseif>
       <else>
         <script>
-          logFile = 'getLogFileName_%s' % NOT_DEFINED
+          logName = 'getLogFileName_%s' % NOT_DEFINED
         </script>
       </else>
       </if>
+      
+      <script>
+        logFile = '%s/%s.xml' % (LOG_TMP_DIR,logName)
+      </script>
+      
       <return>
-        logFile
+        [ logFile , logName ]
       </return>
     </sequence>
   </function>
@@ -212,7 +216,7 @@
                     }
                   </call>
                   <script>
-                    cFileList.append(STAXResult)
+                    cFileList.append(STAXResult[0])
                   </script>
                 </sequence>
               </iterate>

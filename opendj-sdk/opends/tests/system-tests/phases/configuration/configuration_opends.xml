@@ -137,7 +137,7 @@
             }
           </call>
           <script>
-            logFile = STAXResult
+            logFile = STAXResult[0]
             
             fileList.append(logFile)
             
@@ -223,7 +223,7 @@
             }
           </call>
           <script>
-            logFile = STAXResult
+            logFile = STAXResult[0]
             
             # reopen existing files, no need to add in fileList variable 
             # as it has already been added
@@ -580,7 +580,7 @@
             }
           </call>
           <script>
-            logFile = STAXResult
+            logFile = STAXResult[0]
             # reopen existing files, no need to add in fileList variable
             # as it has already been added
             cFileFd = open(logFile,'a')
@@ -839,7 +839,7 @@
             }
           </call>
           <script>
-            logFile = STAXResult
+            logFile = STAXResult[0]
             # reopen existing files, no need to add in fileList variable
             # as it has already been added
             cFileFd = open(logFile,'a')
@@ -909,7 +909,7 @@
             }
           </call>
           <script>
-            logFile = STAXResult
+            logFile = STAXResult[0]
             # reopen existing files, no need to add in fileList variable
             # as it has already been added
             cFileFd = open(logFile,'a')
@@ -978,7 +978,7 @@
             }
           </call>
           <script>
-            logFile = STAXResult
+            logFile = STAXResult[0]
             # reopen existing files, no need to add in fileList variable
             # as it has already been added
             cFileFd = open(logFile,'a')

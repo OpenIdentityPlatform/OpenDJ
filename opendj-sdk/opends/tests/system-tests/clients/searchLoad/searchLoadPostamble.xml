@@ -27,13 +27,12 @@
  ! -->
 <stax>
 
-  <defaultcall function="verdictOpends"/>
-
+  <defaultcall function="searchLoadPostamble"/>
 
   <!-- ************************************************************ -->
-  <!-- Client is automatically called by the scheduler and must     -->
-  <!-- always define all the parameters below                       -->
-  <function name="verdictOpends" scope="local">
+  <!-- Client postamble is automatically called by the scheduler    -->
+  <!-- and must always define all the parameters below              -->
+  <function name="searchLoadPostamble" scope="local">
     <function-map-args>
       <function-arg-def name="client"     type="required"/>
       <function-arg-def name="instances"  type="required"/>
@@ -44,84 +43,71 @@
     </function-map-args>
     
     <sequence>
-    
       <!-- ===================   Comments   =================== -->
       <!-- client is run under paralleliterate tag              -->
       <!-- each variables defined are internal                  -->
       <!-- client should have its own err_num variable in order -->
       <!-- to inform scheduler if it has pass/fail status       -->
-      <!-- nb of failed is still managed by ERR_NUM[0]          -->
       <script>
-        errNum   = STAXGlobal(0)
-        fileList = STAXGlobal([])
+        errNum = 0
+        msg = ''
       </script>
-      
-      <!--== Get the list of opends instances in the topology == -->
-      <call function="'getOpendsInstancesInATopology'">
-        { 'suffix' : suffix }
+      <!-- ==================    Parser     =================== -->
+      <!-- parse the client parameters :                        -->
+      <!-- params is [[param1,val1],[param2,val2],...]          -->
+      <!-- get the ldap instance parameters                     -->
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+              file="'%s/%sLib.xml' % (client.getPath(),client.getName())"/>
+      <call function="'%sParser' % client.getName()">
+      {
+        'client'     : client,
+        'instances'  : instances,
+        'duration'   : duration,
+        'suffix'     : suffix
+      }
       </call>
-      <script>
-        opendsInstances = STAXResult
-      </script>
-      <paralleliterate in="opendsInstances" var="instance">
+      <if expr="msg.find('ERROR') != -1">
         <sequence>
-          <!-- parallel process, all variables defined        -->
-          <!-- and values set below are local to the sequence -->
-          <call function="'getLogFileName'">
-            { 'type'   : 'instance',
-              'object' : instance,
-              'prefix' : '%s_id%s' % (client.getName(),client.getId())
+          <message>'%s' % msg</message>
+          <call function="'writeOperationResult'">
+            {
+              'returncode' : '1',
+              'expected'   : '0',
+              'result'     : msg,
+              'status'     : 'ERROR',
+              'fileFd'     : fileFd
             }
           </call>
           <script>
-            logFile = STAXResult
-            
-            fileList.append(logFile)
-            
-            cFileFd = open(logFile,'w')
-          </script>
-          <call function="'writeStartTagInstance'">
-          {
-            'instance'  : instance,
-            'fileFd'    : cFileFd
-          }
-          </call>
-          
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-           file="'%s/phases/shared/functions/opendstools.xml' % TESTS_DIR"/>
-          <call function="'verdict4OpendsInstance'">
-          {
-            'instance'  : instance,
-            'instances' : opendsInstances,
-            'suffix'    : suffix,
-            'fileFd'    : cFileFd
-          }
-          </call>
-          <script>
-            errNum += STAXResult
-          </script>
-          
-          <call function="'writeEndTagInstance'">
-            {'fileFd' : cFileFd}
-          </call>
-          <script>
-            cFileFd.close()
+            errNum += 1
           </script>
         </sequence>
-      </paralleliterate>
-      
-      <!--==========  Merge files    ==========-->
-      <call function="'mergeFiles'">
-        {
-          'fileList' : fileList,
-          'fileFd'   : fileFd
-        }
-      </call>
+      <else>
+        <sequence>
+          <process name="'%s:%s: Grep' % (client.getHost(),client.getName())">
+            <location>client.getHost()</location>
+            <command mode="'shell'">
+              "grep 'TOTAL' %s | cut -d ' ' -f3-" % outFile
+            </command>
+            <envs>['PATH=/bin:/usr/bin']</envs>
+            <stderr mode="'stdout'"/>
+            <stdout/>
+            <returnstdout/>
+          </process>
+          <script>
+            summary = STAXResult[0][1]
+          </script>
+          <call function="'writeMessage'">
+          {'content' : 'Summary %s' % (summary),
+           'fileFd'  : fileFd}
+          </call>
+        </sequence>
+      </else>
+      </if>
       
       <return> errNum </return>
+      
     </sequence>
   </function>
-  
-  
-  
+
 </stax>

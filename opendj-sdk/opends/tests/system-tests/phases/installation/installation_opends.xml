@@ -64,7 +64,7 @@
             }
           </call>
           <script>
-            logFile = STAXResult
+            logFile = STAXResult[0]
             
             fileList.append(logFile)
             

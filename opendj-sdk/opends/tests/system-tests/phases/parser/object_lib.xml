@@ -86,5 +86,60 @@
       <return>clients</return>
     </sequence>
   </function>
+  
+  
+  <!-- ************************************************************ -->
+  <function name="clientSetPath">
+    <function-map-args>
+      <function-required-arg name="client"/>
+    </function-map-args>
+    <sequence>
+      <script>
+        localWorkingDir = '%s/scenario/%s/clients/%s' % \
+                           (LOCAL_TESTS_DIR,DIR_NAME,client.getName())
+        sharedWorkingdir = '%s/clients/%s/' % \
+                           (LOCAL_TESTS_DIR,client.getName())
+      </script>
+      
+      <call function="'isFile'">
+      {
+        'location' : client.getHost(),
+        'fileName' : '%s/%s.xml' % (localWorkingDir,client.getName())
+      }
+      </call>
+      <script>
+        localClientExist = STAXResult
+      </script>
+      
+      <call function="'isFile'">
+      {
+        'location' : client.getHost(),
+        'fileName' : '%s/%s.xml' % (sharedWorkingdir,client.getName())
+      }
+      </call>
+      <script>
+        sharedClientExist = STAXResult
+      </script>
+      
+      <!-- use local client by default else the shared client -->
+      <if expr="localClientExist == TRUE">
+        <script> client.setPath(localWorkingDir) </script>
+      <elseif expr="sharedClientExist == TRUE">
+        <script> client.setPath(sharedWorkingdir) </script>
+      </elseif>
+      <else>
+        <sequence>
+          <message>
+            'ERROR : cant find files %s/%s.xml, %s/%s.xml'% \
+            (localWorkingDir,client.getName(),\
+             sharedWorkingdir,client.getName())
+          </message>
+          <script> ERR_NUM[0] += 1 </script>
+        </sequence>
+      </else>
+      </if>
+    </sequence>
+  </function>
+  
 </stax>
 

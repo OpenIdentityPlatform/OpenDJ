@@ -47,9 +47,9 @@
         <call function="'main_run'">
         {
          'configurationFile': fConf,
-         'runInstallation'  : 'true',
-         'runGenerateLdif'  : 'true',
-         'runConfiguration' : 'true',
+         'runInstallation'  : 'false',
+         'runGenerateLdif'  : 'false',
+         'runConfiguration' : 'false',
          'runScheduler'     : 'true'
         }
         </call>
