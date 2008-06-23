@@ -346,6 +346,23 @@
         </sequence>
       </if>
       
+      
+      <!-- Set path to clients -->
+      <!-- set local client by default if exist in the scenario -->
+      <!-- else get the shared client if exist -->
+      <call function="'getEnabledClients'">{'scheduler':scheduler}</call>
+      <script>clients = STAXResult </script>
+      <if expr="len(clients) > 0">
+        <paralleliterate in="clients" var="client">
+          <sequence>
+            <call function="'clientSetPath'">
+            { 'client' : client }
+            </call>
+          </sequence>
+        </paralleliterate>
+      </if>
+      
+      
       <message log="1">
         '== Found %s Error(s) during this phase' % (ERR_NUM[0])
       </message>

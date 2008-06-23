@@ -1197,11 +1197,11 @@
       <script>
         STAFCmdParamsList=[]
         STAFCmdParams=''
-
+        
         if dsPath:
           dsBinPath='%s/bin' % (dsPath)
           STAFCmd='%s/backup' % (dsBinPath)
-
+        
         if dsInstanceHost:
           STAFCmdParamsList.append('-h %s' % dsInstanceHost)
         
@@ -1213,20 +1213,20 @@
         
         if dsInstancePswd:
           STAFCmdParamsList.append('-w "%s"' % dsInstancePswd)
-          
-	if backupDir:
-	  STAFCmdParamsList.append('-d %s' % backupDir)
-
-	if backEnd:
-	  STAFCmdParamsList.append('-n %s' % backEnd)
-
-	if extraParams:
-	  STAFCmdParamsList.append('%s' % extraParams)
-
-	if startTask:
-	  STAFCmdParamsList.append('-t %s' % startTask)
-
-	STAFCmdParams=' '.join(STAFCmdParamsList)
+        
+        if backupDir:
+          STAFCmdParamsList.append('-d %s' % backupDir)
+        
+        if backEnd:
+          STAFCmdParamsList.append('-n %s' % backEnd)
+        
+        if extraParams:
+          STAFCmdParamsList.append('%s' % extraParams)
+        
+        if startTask:
+          STAFCmdParamsList.append('-t %s' % startTask)
+        
+        STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
       
       <call function="'writeStartTagOperation'">

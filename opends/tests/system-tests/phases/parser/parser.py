@@ -456,6 +456,7 @@ class Client:
     self.logDir     = NOT_DEFINED
     self.startDate  = NOT_DEFINED
     self.stopDate   = NOT_DEFINED
+    self.path       = NOT_DEFINED
     
   def getId(self):
     return self.iid
@@ -513,6 +514,12 @@ class Client:
     
   def setStopDate(self,stopDate):
     self.stopDate = stopDate
+    
+  def getPath(self):
+    return self.path
+    
+  def setPath(self,path):
+    self.path = path
 
 
 ###########################

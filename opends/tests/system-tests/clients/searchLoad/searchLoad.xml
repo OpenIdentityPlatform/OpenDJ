@@ -28,14 +28,13 @@
 <stax>
 
   <defaultcall function="searchLoad"/>
-
-
+  
+  
   <!-- ************************************************************ -->
   <!-- Client is automatically called by the scheduler and must     -->
   <!-- always define all the parameters below                       -->
-  <function name="searchLoad" scope="local">
+  <function name="searchLoad">
     <function-map-args>
-      <function-arg-def name="workingDir" type="required"/>
       <function-arg-def name="client"     type="required"/>
       <function-arg-def name="instances"  type="required"/>
       <function-arg-def name="duration"   type="required"/>
@@ -55,70 +54,20 @@
         msg = ''
       </script>
       
-      <!-- ==================    Preamble   =================== -->
+      <!-- ==================    Parser     =================== -->
       <!-- parse the client parameters :                        -->
       <!-- params is [[param1,val1],[param2,val2],...]          -->
       <!-- get the ldap instance parameters                     -->
-      
-      <script>
-        compilDir = '%s/%s_%s' % (workingDir,client.getHost(),client.getId())
-        
-        #
-        # Extract client parameters from client.getParams()
-        #
-        cParams = client.getParams()
-        try:
-          serverInstanceFromClient = cParams[0][1]
-        except IndexError:
-          serverInstanceFromClient = NOT_DEFINED
-          msg = '%s\nERROR: serverInstanceFromClient undefined,mandatory' % msg
-        try:
-          baseDn = cParams[1][1]
-        except IndexError:
-          baseDn = NOT_DEFINED
-          msg = '%s\nERROR: baseDn undefined,mandatory' % msg
-        try:
-          nbCnx = cParams[2][1]
-        except IndexError:
-          nbCnx = NOT_DEFINED
-          msg = '%s\nERROR: nbCnx undefined,mandatory' % msg
-        try:
-          nbMaxSearch = cParams[3][1]
-        except IndexError:
-          nbMaxSearch = NOT_DEFINED
-          msg = '%s\nERROR: nbMaxOperations undefined,mandatory' % msg
-        try:
-          attributeName = cParams[4][1]
-        except IndexError:
-          attributeName = NOT_DEFINED
-        
-        #
-        # setup parms to run the client
-        #
-        if serverInstanceFromClient != NOT_DEFINED:
-          sys.path.append("%s/phases/scheduler" % TESTS_DIR )
-          from scheduler import getInstance
-          serverInstance = getInstance(serverInstanceFromClient,instances)
-          if (serverInstance == 'ERROR'):
-            msg = '%s\nERROR: cant find client instance named' % msg
-            msg = '%s %s in server instance list' % \
-                  (msg,serverInstanceFromClient)
-            
-          else:
-            # remove sec, try to finish before timer kill -9 the client
-            duration = duration - 20
-            
-            parms=[]
-            parms.append('-h %s -p %s' % \
-                       (serverInstance.getHost(),serverInstance.getLDAPPort()))
-            parms.append('-b "%s"' % baseDn)
-            parms.append('-D "%s" -w "%s"' % \
-                        (DIRECTORY_INSTANCE_DN,DIRECTORY_INSTANCE_PSWD))
-            parms.append('-t %s -M %s -d %s' % (nbCnx,nbMaxSearch,duration))
-            if attributeName != NOT_DEFINED:
-              parms.append('-a %s' % attributeName)
-            parms = ' '.join(parms)
-      </script>
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+              file="'%s/%sLib.xml' % (client.getPath(),client.getName())"/>
+      <call function="'%sParser' % client.getName()">
+      {
+        'client'     : client,
+        'instances'  : instances,
+        'duration'   : duration,
+        'suffix'     : suffix
+      }
+      </call>
       
       <if expr="msg.find('ERROR') != -1">
         <sequence>
@@ -138,78 +87,6 @@
         </sequence>
       <else>
         <sequence>
-          
-          <!-- ==== Add execute permission to build.ksh file ==== -->
-          <call function="'writeStartTagOperation'">
-          { 'tagName' : 'chmod',
-            'fileFd'  : fileFd }
-          </call>
-          <call function="'writeMessage'">
-          {'content' : 'Add execute permission to build.ksh file',
-           'fileFd'  : fileFd}
-          </call>
-          
-          
-          <process name="'%s: chmod +x build.ksh' % client.getHost()">
-            <location>client.getHost()</location>
-            <command mode="'shell'">'chmod +x build.ksh'</command>
-            <parms/>
-            <workdir>workingDir</workdir>
-            <envs>['PATH=/bin:/usr/bin']</envs>
-            <stderr mode="'stdout'"/>
-            <stdout/>
-            <returnstdout/>
-          </process>
-          <call function="'checkRC'">
-            { 'returncode' : RC,
-              'result'     : STAXResult[0][1],
-              'fileFd'     : fileFd }
-          </call>
-          <script>
-            errNum += STAXResult
-          </script>
-          <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
-          
-          
-          <!-- ==== Build client : run build.ksh file ==== -->
-          <call function="'writeStartTagOperation'">
-          { 'tagName' : 'build',
-            'fileFd'  : fileFd }
-          </call>
-          <call function="'writeMessage'">
-          {'content' : 'Build client',
-           'fileFd'  : fileFd}
-          </call>
-          
-          <!-- Build Client in unique directory (compilDir), avoid          -->
-          <!-- conflict if same client is run several time at the same time -->
-          <process name="'%s: build %s' % (client.getHost(),client.getName())">
-            <location>client.getHost()</location>
-            <command mode="'shell'">'./build.ksh'</command>
-            <parms/>
-            <workdir>workingDir</workdir>
-            <envs>['PATH=%s/bin:/bin:/usr/bin' % JAVA_HOME,'COMPILDIR=%s' % compilDir ]</envs>
-            <stderr mode="'stdout'"/>
-            <stdout/>
-            <returnstdout/>
-          </process>
-          <call function="'checkRC'">
-            { 'returncode' : RC,
-              'result'     : STAXResult[0][1],
-              'fileFd'     : fileFd }
-          </call>
-          <if expr="RC != 0">
-            <message>
-              'FAILED to build client %s on %s' % \
-              (client.getName(),client.getHost())
-            </message>
-          </if>
-          <script>
-            errNum += STAXResult
-          </script>
-          <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
-          
-          
           <!-- ========== Run the client ========== -->
           <call function="'writeStartTagOperation'">
           { 'tagName' : 'run',
@@ -223,9 +100,11 @@
           </call>
           
           <script>
-            cParam = '-client -Xmx1G -Xms1G'
-            cParam = '%s -XX:NewRatio=1 -XX:SurvivorRatio=100' % cParam
-            cParam = '%s -cp %s/clients/LDAPjdk/ldapjdk.jar' % (cParam,LOCAL_TESTS_DIR)
+            cParam = '-client'
+            # cParam = '%s -Xmx1G -Xms1G' % cParam
+            # cParam = '%s -XX:NewRatio=1 -XX:SurvivorRatio=100' % cParam
+            cParam = '%s -cp %s/clients/LDAPjdk/ldapjdk.jar' % \
+                     (cParam,LOCAL_TESTS_DIR)
             cParam = '%s:%s/search.jar' % (cParam,compilDir)
             cParam = '%s Client %s' % (cParam,parms)
             
@@ -233,11 +112,17 @@
                         (client.getHost(),client.getName(),
                          serverInstance.getName())
           </script>
+          <call function="'writeMessage'">
+          { 'fileFd'  : fileFd,
+            'content' : 'cmd : cd %s ; %s/bin/java %s' % \
+                        (client.getPath(),JAVA_HOME,cParam)
+          }
+          </call>
           <process name="'%s' % titleName">
             <location>client.getHost()</location>
             <command>'%s/bin/java' % JAVA_HOME</command>
             <parms>cParam </parms>
-            <workdir>workingDir</workdir>
+            <workdir>client.getPath()</workdir>
             <envs>['PATH=%s/bin:/bin:/usr/bin' % JAVA_HOME]</envs>
             <stderr mode="'stdout'"/>
             <stdout>outFile</stdout>
@@ -255,28 +140,9 @@
           </script>
           <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
           
-          <!-- ========== Postamble ========== -->
           <call function="'writeMessage'">
           {'content' : 'Output file %s' % outFile,
            'xlink'   : outFile,
-           'fileFd'  : fileFd}
-          </call>
-          
-          <process name="'%s:%s: Grep' % (client.getHost(),client.getName())">
-            <location>client.getHost()</location>
-            <command mode="'shell'">
-              "grep 'TOTAL' %s | cut -d ' ' -f3-" % outFile
-            </command>
-            <envs>['PATH=/bin:/usr/bin']</envs>
-            <stderr mode="'stdout'"/>
-            <stdout/>
-            <returnstdout/>
-          </process>
-          <script>
-            summary = STAXResult[0][1]
-          </script>
-          <call function="'writeMessage'">
-          {'content' : 'Summary %s' % (summary),
            'fileFd'  : fileFd}
           </call>
           
@@ -289,7 +155,6 @@
     </sequence>
     
   </function>
-  
   
   
 </stax>

@@ -140,7 +140,6 @@
     <sequence>
       <!--==========  Define variables  =========-->
       <script>
-        fileList = STAXGlobal([])
         finishedClients = STAXGlobal([])
       </script>
       
@@ -188,8 +187,7 @@
             }
           </call>
           <script>
-            logFile = STAXResult
-            fileList.append(logFile)
+            logFile = STAXResult[0]
             fileFd = open(logFile,'w')
           </script>
           <!-- == Write tag for xml report -->
@@ -308,14 +306,14 @@
       <script>
         startTime=strftime("%Y%m%d@%H:%M:%S",localtime())
         client.setStartDate(startTime)
-        errNum = NOT_DEFINED
+        errNum = 0
       </script>
       
       <!--=============== Log info =======================================-->
       <if expr="client.getHost() == NOT_DEFINED">
         <sequence>
           <script>
-            str = '++ Start client %s'         % (client.getName())
+            str = '++ START CLIENT %s'         % (client.getName())
             str = '%s (id=%s)'                 % (str, client.getId())
             str = '%s at %s'                   % (str, startTime)
             str = '%s, max duration is %s sec' % (str, duration)
@@ -330,7 +328,7 @@
       <else>
         <sequence>
           <script>
-            str = '++ Start client %s'         % (client.getName())
+            str = '++ START CLIENT %s'         % (client.getName())
             str = '%s (id=%s)'                 % (str, client.getId())
             str = '%s running on %s'           % (str, client.getHost())
             str = '%s at %s'                   % (str, startTime)
@@ -346,65 +344,43 @@
       </else>
       </if>
       
-      
-      <!--=============== Start the client under a timer =================-->
-      <!--== open logfile for details                                   ==-->
-      <!-- All informations loged in this this function will              -->
-      <!-- not be displayed in the main report, to avoid broken xml file  -->
-       <call function="'getLogFileName'">
-        {
-          'type'   : 'client',
-          'object' : client,
-          'prefix' : 'client_details'
-        }
-      </call>
-      <script>
-        logFileDetails = STAXResult
-        logFileDetailsRelativePath = logFileDetails.replace(LOG_DIR,'.')
-        fileList.append(logFileDetails)
-        fileFdDetails = open(logFileDetails,'w')
-        outFile = '%s/client_%s_id%s.txt' % \
-                  (client.getLogDir(),client.getName(),client.getId())
-      </script>
-      
-      <call function="'startTimer'">
+      <!--=============== Run client phases ==============================-->
+      <call function="'runClientPreamble'">
       { 
-        'client'     : client,
-        'instances'  : instances,
-        'duration'   : duration,
-        'suffix'     : suffix,
-        'outFile'    : outFile,
-        'fileFd'     : fileFdDetails
+        'client'    : client,
+        'instances' : instances,
+        'duration'  : duration,
+        'suffix'    : suffix,
+        'fileFd'    : fileFd
       }
       </call>
-      <script>
-        fileFdDetails.close()
-        errNum = STAXResult[0]
-        timerKilled = STAXResult[1]
+      <script> errNum += STAXResult </script>
+      
+      <call function="'runClientMain'">
+      { 
+        'client'    : client,
+        'instances' : instances,
+        'duration'  : duration,
+        'suffix'    : suffix,
+        'fileFd'    : fileFd
+      }
+      </call>
+      <script> 
+        errNum += STAXResult[0]
+        outFileRun = STAXResult[1]
       </script>
       
-      <!--=============== Analyze client run status ======================-->
-      <if expr="timerKilled == TRUE">
-        <sequence>
-          <script>
-            errMsg = 'ERROR: client %s has been killed,' % client.getName()
-          </script>
-          <call function="'writeMessage'">
-            {
-              'content' : errMsg,
-              'fileFd'  : fileFd
-            }
-          </call>
-          <message> errMsg </message>
-          <script>
-            ERR_NUM[0] += 1
-          </script>
-        </sequence>
-      </if>
-      
-      <script>
-        finishedClients.append(client.getId())
-      </script>
+      <call function="'runClientPostamble'">
+      { 
+        'client'    : client,
+        'instances' : instances,
+        'duration'  : duration,
+        'suffix'    : suffix,
+        'outFile'   : outFileRun,
+        'fileFd'    : fileFd
+      }
+      </call>
+      <script> errNum += STAXResult </script>
       
       <!--=============== Log info =======================================-->
       <script>
@@ -412,23 +388,9 @@
         client.setStopDate(stopTime)
       </script>
       <message>
-        '-- Stop %s client (id %s) running on %s at %s' %\
+        '-- STOP CLIENT %s (id %s) running on %s at %s' %\
         (client.getName(),client.getId(),client.getHost(),stopTime)
       </message>
-      <call function="'writeMessage'">
-      { 
-        'content' : 'Details of the client : %s' % logFileDetails,
-        'xlink'   : logFileDetailsRelativePath,
-        'fileFd'  : fileFd
-      }
-      </call>
-      <call function="'writeMessage'">
-      { 
-        'content' : 'Client outPuts : %s' % outFile,
-        'xlink'   : outFile,
-        'fileFd'  : fileFd
-      }
-      </call>
       
       
       <!--=============== Set client result ==============================-->
@@ -456,6 +418,336 @@
         ERR_NUM[0] += errNum
       </script> -->
       
+    </sequence>
+  </function>
+  
+  
+  <!-- ************************************************************ -->
+  <function name="runClientPreamble" scope="local">
+    <function-map-args>
+      <function-arg-def name="client" type="required"/>
+      <function-arg-def name="duration" type="required"/>
+      <function-arg-def name="instances" type="required"/>
+      <function-arg-def name="suffix" type="required"/>
+      <function-arg-def name="fileFd" type="required"/>
+    </function-map-args>
+    
+    <sequence>
+      <call function="'isFile'">
+      {
+        'location' : client.getHost(),
+        'fileName' : '%s/%sPreamble.xml' % (client.getPath(),client.getName()),
+      }
+      </call>
+      <script>
+        fileExist = STAXResult
+      </script>
+      <if expr="fileExist == TRUE">
+        <sequence>
+          <script>
+            errNum = 0
+          </script>
+          <!--============= Start the client under a timer =================-->
+          <!--== open logfile for details                                 ==-->
+          <!-- All informations loged in this this function will            -->
+          <!-- not be displayed in the main report, to avoid broken xml file-->
+           <call function="'getLogFileName'">
+            {
+              'type'   : 'client',
+              'object' : client,
+              'prefix' : 'client_details_preamble'
+            }
+          </call>
+          <script>
+            logFileDetails = STAXResult[0]
+            logFileDetailsName = STAXResult[1]
+            logFileDetailsRelativePath = logFileDetails.replace(LOG_DIR,'.')
+            fileFdDetails = open(logFileDetails,'w')
+            outFile = '%s/%s.txt' % (client.getLogDir(),logFileDetailsName)
+          </script>
+          <message>
+            '   Start preamble for %s (id=%s) running on %s' % \
+            (client.getName(),client.getId(), client.getHost())
+          </message>
+          <!-- ==== Log info ====================================-->
+          <!--== Write root tag for xml details file -->
+          <script>
+            str = '&lt;?xml version=\"1.0\" encoding=\"UTF-8\"'
+            str = '%s standalone=\"no\"?&gt;\n' % str
+            str = '%s &lt;?xml-stylesheet type="text/xsl"' % str
+            str = '%s href="clientDetails.xsl"?>\n' % str
+            fileFdDetails.write(str)
+          </script>
+          <call function="'writeStartTagClient'">
+          {
+            'client'          : client,
+            'extraParameters' : 'xmlns:xlink="http://www.w3.org/1999/xlink"',
+            'fileFd'          : fileFdDetails
+          }
+          </call>
+          <call function="'writeMessage'">
+          {
+            'content' : 'Client Preamble details',
+            'fileFd'  : fileFdDetails,
+          }
+          </call>
+          
+          <!--=============== run preamble =================================-->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+           file="'%s/%sPreamble.xml' % (client.getPath(),client.getName())"/>
+          <call function="'%sPreamble' % client.getName()">
+          { 
+            'client'     : client,
+            'instances'  : instances,
+            'duration'   : duration,
+            'suffix'     : suffix,
+            'outFile'    : outFile,
+            'fileFd'     : fileFdDetails
+          }
+          </call>
+          <script>
+            errNum = STAXResult
+          </script>
+          <!--=============== Log info =====================================-->
+          <call function="'writeMessage'">
+          { 
+            'content' : 'Client preamble : %s' % logFileDetails,
+            'xlink'   : logFileDetailsRelativePath,
+            'fileFd'  : fileFd
+          }
+          </call>
+          <!--== Close root tag for xml details file -->
+          <call function="'writeEndTagClient'">
+          { 'fileFd'    : fileFdDetails }
+          </call>
+          <script> fileFdDetails.close() </script>
+          <message>
+            '   Stop pretamble for %s (id=%s) running on %s' % \
+            (client.getName(),client.getId(), client.getHost())
+          </message>
+        </sequence>
+      <else>
+        <message>
+          '   File not found, skip preamble : %s/%sPreamble.xml' % \
+          (client.getPath(),client.getName())
+        </message>
+      </else>
+      </if>
+      <return>errNum</return>
+    </sequence>
+  </function>
+  
+  
+  <!-- ************************************************************ -->
+  <function name="runClientPostamble" scope="local">
+    <function-map-args>
+      <function-arg-def name="client" type="required"/>
+      <function-arg-def name="duration" type="required"/>
+      <function-arg-def name="instances" type="required"/>
+      <function-arg-def name="suffix" type="required"/>
+      <function-arg-def name="outFile" type="required"/>
+      <function-arg-def name="fileFd" type="required"/>
+    </function-map-args>
+    
+    <sequence>
+      <call function="'isFile'">
+      {
+        'location' : client.getHost(),
+        'fileName' : '%s/%sPostamble.xml'%(client.getPath(),client.getName()),
+      }
+      </call>
+      <script>
+        fileExist = STAXResult
+      </script>
+      <if expr="fileExist == TRUE">
+        <sequence>
+          <script>
+            errNum = 0
+          </script>
+          <!--============= Start the client under a timer =================-->
+          <!--== open logfile for details                                 ==-->
+          <!-- All informations loged in this this function will            -->
+          <!-- not be displayed in the main report, to avoid broken xml file-->
+           <call function="'getLogFileName'">
+            {
+              'type'   : 'client',
+              'object' : client,
+              'prefix' : 'client_details_postamble'
+            }
+          </call>
+          <script>
+            logFileDetails = STAXResult[0]
+            logFileDetailsName = STAXResult[1]
+            logFileDetailsRelativePath = logFileDetails.replace(LOG_DIR,'.')
+            fileFdDetails = open(logFileDetails,'w')
+          </script>
+          <message>
+            '   Start postamble for %s (id=%s) running on %s' % \
+            (client.getName(),client.getId(), client.getHost())
+          </message>
+          <!-- ==== Log info ====================================-->
+          <!--== Write root tag for xml details file -->
+          <script>
+            str = '&lt;?xml version=\"1.0\" encoding=\"UTF-8\"'
+            str = '%s standalone=\"no\"?&gt;\n' % str
+            str = '%s &lt;?xml-stylesheet type="text/xsl"' % str
+            str = '%s href="clientDetails.xsl"?>\n' % str
+            fileFdDetails.write(str)
+          </script>
+          <call function="'writeStartTagClient'">
+          {
+            'client'          : client,
+            'extraParameters' : 'xmlns:xlink="http://www.w3.org/1999/xlink"',
+            'fileFd'          : fileFdDetails
+          }
+          </call>
+          <call function="'writeMessage'">
+          {
+            'content' : 'Client Postamble details',
+            'fileFd'  : fileFdDetails,
+          }
+          </call>
+          <!--=============== run postamble ================================-->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+           file="'%s/%sPostamble.xml' % (client.getPath(),client.getName())"/>
+          <call function="'%sPostamble' % client.getName()">
+          { 
+            'client'     : client,
+            'instances'  : instances,
+            'duration'   : duration,
+            'suffix'     : suffix,
+            'outFile'    : outFile,
+            'fileFd'     : fileFdDetails
+          }
+          </call>
+          <script>
+            errNum = STAXResult
+          </script>
+          <!--=============== Log info =====================================-->
+          <call function="'writeMessage'">
+          { 
+            'content' : 'Client postamble : %s' % logFileDetails,
+            'xlink'   : logFileDetailsRelativePath,
+            'fileFd'  : fileFd
+          }
+          </call>
+          <!--== Close root tag for xml details file -->
+          <call function="'writeEndTagClient'">
+          { 'fileFd'    : fileFdDetails }
+          </call>
+          <script> fileFdDetails.close() </script>
+          <message>
+            '   Stop postamble for %s (id=%s) running on %s' % \
+            (client.getName(),client.getId(), client.getHost())
+          </message>
+        </sequence>
+      <else>
+        <message>
+          '   File not found, skip postamble : %s/%sPostamble.xml' % \
+          (client.getPath(),client.getName())
+        </message>
+      </else>
+      </if>
+      <return>errNum</return>
+    </sequence>
+  </function>
+  
+  
+  <!-- ************************************************************ -->
+  <function name="runClientMain" scope="local">
+    <function-map-args>
+      <function-arg-def name="client" type="required"/>
+      <function-arg-def name="duration" type="required"/>
+      <function-arg-def name="instances" type="required"/>
+      <function-arg-def name="suffix" type="required"/>
+      <function-arg-def name="fileFd" type="required"/>
+    </function-map-args>
+    
+    <sequence>
+      <script>
+        errNum = 0
+      </script>
+      <!--=============== Start the client under a timer =================-->
+      <!--== open logfile for details                                   ==-->
+      <!-- All informations loged in this this function will              -->
+      <!-- not be displayed in the main report, to avoid broken xml file  -->
+       <call function="'getLogFileName'">
+        {
+          'type'   : 'client',
+          'object' : client,
+          'prefix' : 'client_details'
+        }
+      </call>
+      <script>
+        logFileDetails = STAXResult[0]
+        logFileDetailsName = STAXResult[1]
+        logFileDetailsRelativePath = logFileDetails.replace(LOG_DIR,'.')
+        fileFdDetails = open(logFileDetails,'w')
+        outFile = '%s/%s.txt' % (client.getLogDir(),logFileDetailsName)
+      </script>
+      <message>
+        '   Start run for %s (id=%s) running on %s' % \
+        (client.getName(),client.getId(), client.getHost())
+      </message>
+      <call function="'startTimer'">
+      { 
+        'client'     : client,
+        'instances'  : instances,
+        'duration'   : duration,
+        'suffix'     : suffix,
+        'outFile'    : outFile,
+        'fileFd'     : fileFdDetails
+      }
+      </call>
+      <script>
+        fileFdDetails.close()
+        errNum += STAXResult[0]
+        timerKilled = STAXResult[1]
+      </script>
+      
+      <!--=============== Analyze client run status ======================-->
+      <if expr="timerKilled == TRUE">
+        <sequence>
+          <script>
+            errMsg = 'ERROR: client %s has been killed,' % client.getName()
+          </script>
+          <call function="'writeMessage'">
+            {
+              'content' : errMsg,
+              'fileFd'  : fileFd
+            }
+          </call>
+          <message> errMsg </message>
+          <script>
+            ERR_NUM[0] += 1
+          </script>
+        </sequence>
+      </if>
+      
+      <script>
+        finishedClients.append(client.getId())
+      </script>
+      
+      <!--=============== Log info =======================================-->
+      <call function="'writeMessage'">
+      { 
+        'content' : 'Details of the client : %s' % logFileDetails,
+        'xlink'   : logFileDetailsRelativePath,
+        'fileFd'  : fileFd
+      }
+      </call>
+      <call function="'writeMessage'">
+      { 
+        'content' : 'Client outPuts : %s' % outFile,
+        'xlink'   : outFile,
+        'fileFd'  : fileFd
+      }
+      </call>
+      <message>
+        '   Stop run for %s (id=%s) running on %s' % \
+        (client.getName(),client.getId(), client.getHost())
+      </message>
+      <return> [ errNum , outFile ]</return>
     </sequence>
   </function>
 
@@ -492,103 +784,43 @@
       <!--=============== Select local/shared client file ================-->
       <script>
         timerKilled = TRUE
-        workingDir  = NOT_DEFINED
-        localWorkingDir = '%s/scenario/%s/clients/%s' % \
-                           (LOCAL_TESTS_DIR,DIR_NAME,client.getName())
-        sharedWorkingdir = '%s/clients/%s/' % \
-                           (LOCAL_TESTS_DIR,client.getName())
       </script>
-      
-      <!-- Check if local file exists before launching it-->
-      <call function="'isFile'">
-      {
-        'location' : STAXServiceMachine,
-        'fileName' : '%s/%s.xml' % (localWorkingDir,client.getName())
-      }
-      </call>
-      <script>
-        localClientExist = STAXResult
-      </script>
-      <!-- Check if remote file exists before launching it-->
-      <call function="'isFile'">
-      {
-        'location' : STAXServiceMachine,
-        'fileName' : '%s/%s.xml' % (sharedWorkingdir,client.getName())
-      }
-      </call>
-      <script>
-        sharedClientExist = STAXResult
-      </script>
-      
       
       <!--================================================================-->
       <!--====== run the client, exit if time exceed duration time  ======-->
       <timer duration="'%ss' % duration">
         <sequence>
-          <!-- use local client by default else the shared client -->
-          <if expr="localClientExist == TRUE">
-            <script> workingDir = localWorkingDir </script>
-          <elseif expr="sharedClientExist == TRUE">
-            <script> workingDir = sharedWorkingdir </script>
-          </elseif>
-          <else>
+          <!-- Check that staf is running on the client -->
+          <call function="'pingStaf'">
+            { 'targetHost' : client.getHost(),
+              'fileFd'     : fileFd}
+          </call>
+          <script>
+            pingRC = STAXResult[0]
+          </script>
+          <if expr="pingRC == 0">
             <sequence>
-              <script>
-                str = 'ERROR : cant find files %s/%s.xml and %s/%s.xml' % \
-                (localWorkingDir,client.getName(),\
-                 sharedWorkingdir,client.getName())
-              </script>
-              <message>
-                str
-              </message>
-              <call function="'writeMessage'">
-              { 'fileFd'  : fileFd,
-                'content' : str
+              <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+               file="'%s/%s.xml' % (client.getPath(),client.getName())"/>
+              <call function="'%s' % client.getName()">
+              { 
+                'client'     : client,
+                'instances'  : instances,
+                'duration'   : duration,
+                'suffix'     : suffix,
+                'outFile'    : outFile,
+                'fileFd'     : fileFd
               }
               </call>
-              <script>ERR_NUM[0] += 1</script>
+              <script>errNum = STAXResult</script>
             </sequence>
+          <else>
+            <!-- staf does not answer ping on client host -->
+            <script> errNum = 1 </script>
           </else>
           </if>
-          
-          <if expr="workingDir != NOT_DEFINED">
-            <sequence>
-              <!-- Check that staf is running on the client -->
-              <call function="'pingStaf'">
-                { 'targetHost' : client.getHost(),
-                  'fileFd'     : fileFd}
-              </call>
-              <script>
-                pingRC = STAXResult[0]
-              </script>
-              <if expr="pingRC == 0">
-                <sequence>
-                  <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-                          file="'%s/%s.xml' % (workingDir,client.getName())"/>
-                  <call function="'%s' % client.getName()">
-                  { 
-                    'workingDir' : workingDir,
-                    'client'     : client,
-                    'instances'  : instances,
-                    'duration'   : duration,
-                    'suffix'     : suffix,
-                    'outFile'    : outFile,
-                    'fileFd'     : fileFd
-                  }
-                  </call>
-                  <script>errNum = STAXResult</script>
-                </sequence>
-              <else>
-                <!-- staf does not answer ping on client host -->
-                <script> errNum = 1 </script>
-              </else>
-              </if>
-              <script>timerKilled = FALSE</script>
-            </sequence>
-          </if>
-          
+          <script>timerKilled = FALSE</script>
         </sequence>
-      
       </timer>
       
       
