@@ -870,6 +870,10 @@
           <script>timerKilled = FALSE</script>
         </sequence>
       </timer>
+      <if expr="timerKilled == TRUE">
+        <!-- TBD try to finished xml client detail file -->
+        <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+      </if>
       
       
       <!--=============== Log info =======================================-->
