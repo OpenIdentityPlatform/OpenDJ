@@ -44,7 +44,7 @@
         <!-- directoryName must have the name of the current directory -->
     
        <script>
-          DIR_NAME   = 'single'
+          DIR_NAME   = 'singleServer'
           fConf     = '%s/scenario/%s/conf.xml' % (TESTS_DIR,DIR_NAME)
           fPreConf  = '%s/scenario/%s/pre_configuration.xml' % \
                       (TESTS_DIR,DIR_NAME)
