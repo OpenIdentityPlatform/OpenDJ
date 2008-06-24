@@ -189,11 +189,17 @@
           <script>
             logFile = STAXResult[0]
             fileFd = open(logFile,'w')
+            
+            params = client.getParams()
+            paramsList = ''
+            for p in params:
+              paramsList = '%s%s:%s ' % (paramsList,p[0],p[1])
           </script>
           <!-- == Write tag for xml report -->
           <call function="'writeStartTagClient'">
           {
             'client' : client,
+            'extraParameters' : 'params=\"%s\"' % paramsList,
             'fileFd' : fileFd 
           }
           </call>
@@ -319,11 +325,11 @@
             str = '%s, max duration is %s sec' % (str, duration)
           </script>
           <message> str </message>
-          <call function="'writeMessage'">
+          <!--<call function="'writeMessage'">
           { 'fileFd'  : fileFd,
             'content' : 'Client id %s' % client.getId()
           }
-          </call>
+          </call>-->
         </sequence>
       <else>
         <sequence>
@@ -335,11 +341,11 @@
             str = '%s, max duration is %s sec' % (str, duration)
           </script>
           <message> str </message>
-          <call function="'writeMessage'">
+          <!--<call function="'writeMessage'">
           { 'fileFd'  : fileFd,
             'content' : str
           }
-          </call>
+          </call>-->
         </sequence>
       </else>
       </if>
@@ -444,8 +450,13 @@
       </script>
       <if expr="fileExist == TRUE">
         <sequence>
+          <call function="'writeStartTagOperation'">
+          { 'tagName' : 'clientPreamble',
+            'fileFd'  : fileFd }
+          </call>
           <script>
             errNum = 0
+            errMsg = ''
           </script>
           <!--============= Start the client under a timer =================-->
           <!--== open logfile for details                                 ==-->
@@ -511,7 +522,7 @@
           <!--=============== Log info =====================================-->
           <call function="'writeMessage'">
           { 
-            'content' : 'Client preamble : %s' % logFileDetails,
+            'content' : 'Client preamble',
             'xlink'   : logFileDetailsRelativePath,
             'fileFd'  : fileFd
           }
@@ -525,6 +536,14 @@
             '   Stop pretamble for %s (id=%s) running on %s' % \
             (client.getName(),client.getId(), client.getHost())
           </message>
+          <call function="'checkRC'">
+          {
+            'returncode' : errNum,
+            'result'     : errMsg,
+            'fileFd'     : fileFd
+          }
+          </call>
+          <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
         </sequence>
       <else>
         <message>
@@ -561,8 +580,13 @@
       </script>
       <if expr="fileExist == TRUE">
         <sequence>
+          <call function="'writeStartTagOperation'">
+          { 'tagName' : 'clientPostamble',
+            'fileFd'  : fileFd }
+          </call>
           <script>
             errNum = 0
+            errMsg = ''
           </script>
           <!--============= Start the client under a timer =================-->
           <!--== open logfile for details                                 ==-->
@@ -626,7 +650,7 @@
           <!--=============== Log info =====================================-->
           <call function="'writeMessage'">
           { 
-            'content' : 'Client postamble : %s' % logFileDetails,
+            'content' : 'Client postamble',
             'xlink'   : logFileDetailsRelativePath,
             'fileFd'  : fileFd
           }
@@ -640,6 +664,14 @@
             '   Stop postamble for %s (id=%s) running on %s' % \
             (client.getName(),client.getId(), client.getHost())
           </message>
+          <call function="'checkRC'">
+          {
+            'returncode' : errNum,
+            'result'     : errMsg,
+            'fileFd'     : fileFd
+          }
+          </call>
+          <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
         </sequence>
       <else>
         <message>
@@ -664,8 +696,13 @@
     </function-map-args>
     
     <sequence>
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'clientRun',
+        'fileFd'  : fileFd }
+      </call>
       <script>
         errNum = 0
+        errMsg = ''
       </script>
       <!--=============== Start the client under a timer =================-->
       <!--== open logfile for details                                   ==-->
@@ -705,6 +742,22 @@
         timerKilled = STAXResult[1]
       </script>
       
+      <!--=============== Log info =======================================-->
+      <call function="'writeMessage'">
+      { 
+        'content' : 'Details of the client',
+        'xlink'   : logFileDetailsRelativePath,
+        'fileFd'  : fileFd
+      }
+      </call>
+      <call function="'writeMessage'">
+      { 
+        'content' : 'Client outPuts',
+        'xlink'   : outFile,
+        'fileFd'  : fileFd
+      }
+      </call>
+      
       <!--=============== Analyze client run status ======================-->
       <if expr="timerKilled == TRUE">
         <sequence>
@@ -712,41 +765,36 @@
             errMsg = 'ERROR: client %s has been killed,' % client.getName()
           </script>
           <call function="'writeMessage'">
-            {
-              'content' : errMsg,
-              'fileFd'  : fileFd
-            }
+          {
+            'content' : errMsg,
+            'fileFd'  : fileFd
+          }
           </call>
           <message> errMsg </message>
           <script>
-            ERR_NUM[0] += 1
+            errNum += 1
           </script>
         </sequence>
+      <else>
+        <message>
+          '   Stop run for %s (id=%s) running on %s' % \
+          (client.getName(),client.getId(), client.getHost())
+        </message>
+      </else>
       </if>
       
       <script>
         finishedClients.append(client.getId())
       </script>
+      <call function="'checkRC'">
+      {
+        'returncode' : errNum,
+        'result'     : errMsg,
+        'fileFd'     : fileFd
+      }
+      </call>
+      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
       
-      <!--=============== Log info =======================================-->
-      <call function="'writeMessage'">
-      { 
-        'content' : 'Details of the client : %s' % logFileDetails,
-        'xlink'   : logFileDetailsRelativePath,
-        'fileFd'  : fileFd
-      }
-      </call>
-      <call function="'writeMessage'">
-      { 
-        'content' : 'Client outPuts : %s' % outFile,
-        'xlink'   : outFile,
-        'fileFd'  : fileFd
-      }
-      </call>
-      <message>
-        '   Stop run for %s (id=%s) running on %s' % \
-        (client.getName(),client.getId(), client.getHost())
-      </message>
       <return> [ errNum , outFile ]</return>
     </sequence>
   </function>

@@ -689,10 +689,7 @@
     </a>
     [Start : <xsl:value-of select="clientResult/@startDate"/> / 
     Stop : <xsl:value-of select="clientResult/@stopDate"/>].
-    <p id="{$i}" style="display: none">
-      <xsl:call-template name="parseChildPhase" />
-    </p>
-    Client ends with status :
+    <b>Status : </b>
       <xsl:variable name="clientStatus" 
                     select="normalize-space(clientResult/@status)"/>
       <xsl:choose>
@@ -703,6 +700,11 @@
           <b><span class="fail">FAIL</span></b>
         </xsl:otherwise>
       </xsl:choose>
+    <br/>
+    <p id="{$i}" style="display: none">
+      Paramaters : <i> <xsl:value-of select="normalize-space(@params)"/> </i>
+      <xsl:call-template name="parseChildPhase" />
+    </p>
       
   </li><br/>
 </xsl:template>

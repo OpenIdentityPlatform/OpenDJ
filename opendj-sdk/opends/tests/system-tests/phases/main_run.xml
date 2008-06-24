@@ -307,7 +307,7 @@
           <call function="'configuration'">
             {
               'phase'     : PHASE_CONFIGURATION,
-              'instances' : instances ,
+              'instances' : instances,
               'suffix'    : suffix
             }
           </call>

@@ -53,7 +53,7 @@
     <sequence>
       <!-- == Call preambule == -->
       <call function="'phasePreamble'">
-      { 'phase'  : PHASE_CONFIGURATION,
+      { 'phase'  : phase,
         'fileFd' : LOG_MAIN_FD }
       </call>
       
@@ -110,7 +110,7 @@
       <!-- ==  Call postphase == -->
       <call function="'phasePostamble'">
       {
-        'phase'  : PHASE_CONFIGURATION,
+        'phase'  : phase,
         'fileFd' : LOG_MAIN_FD
       }
       </call>
