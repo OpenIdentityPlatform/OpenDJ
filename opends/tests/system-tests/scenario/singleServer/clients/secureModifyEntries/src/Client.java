@@ -63,7 +63,7 @@ public class Client {
     static ArrayList<String> DNList;
     static long delayCnx=1000;
     static long delaySec=1;
-  
+    static long delayPrint=60000;
     
     public Client()
     {
@@ -150,12 +150,12 @@ public class Client {
             int seconds=0;
             // initialize startup
             long t1=System.currentTimeMillis();
-            
+            long print_t1=System.currentTimeMillis();             
             // work until Max duration is reached
             while (true) {
 
                 long new_t1=System.currentTimeMillis();
-
+                long print_t2=System.currentTimeMillis(); 
 		// end of the  system test. Exit
                 if ( ( timeTostopTest != 0 ) && ( new_t1 > timeTostopTest ) ) { 
                   
@@ -165,11 +165,24 @@ public class Client {
 		    }
                     break; 
                 }
-                
+                 // status every delayPrint
+                 if ( (print_t2 - print_t1) >= delayPrint ) {
+                        duration=((print_t2-print_t1)/1000);
+                        println("INFO",  "Rate: " + (total_nb_mod/duration) + " mod/sec");
+                        print_t1=System.currentTimeMillis();
+                        try {
+                          synchronized(this) {
+                            total_nb_mod=0;
+                          }
+                        } catch ( Exception e2 ) {
+                          System.out.println("E2");
+                          e2.printStackTrace();
+                        }
+                 }
 		// status every delayCnx
                 if ( (new_t1 - t1) >= delayCnx) {
 
-                    println("INFO",  (nb_mod_done/delaySec) + "  mod/sec.");
+ //                   println("INFO",  (nb_mod_done/delaySec) + "  mod/sec.");
 
 		    // inform all the threads the max nb searchs has been reached
 		    synchronized (this) {
@@ -196,11 +209,7 @@ public class Client {
 			e1.printStackTrace();
 		    }
 
-                    if ( (seconds++) >= 9 ) {
-                        duration=((new_t1-startup)/1000);
-                        println("INFO",  "Avg rate: " + (total_nb_mod/duration) + " mod/sec. after " + getTime(duration));
-                        seconds=0;
-                    }
+                
                     t1=new_t1;
                 }
             }
@@ -237,52 +246,52 @@ public class Client {
 
 	// BaseDN
 	suffix = System.getProperty("suffix"); 
-	println ("INFO" , "suffix " + suffix);
+	println ("INFO" , "CONFIG suffix " + suffix);
 	
 	// nb_threads
 	String snb_threads = System.getProperty("nb_threads"); 
 	nb_threads = Integer.parseInt(snb_threads);
 	
-	println ("INFO" , "nb_threads " + snb_threads);
+	println ("INFO" , "CONFIG nb_threads " + snb_threads);
 	
 	// test duration
 	String sMaxDuration = System.getProperty("maxDuration"); 
 	maxDuration = Long.parseLong(sMaxDuration);
-	println ("INFO" , "maxDuration " + maxDuration);
+	println ("INFO" , "CONFIG maxDuration " + maxDuration);
         
 	// credential for simple bind
 	bindDN = System.getProperty("bindDN"); 
 	bindPW = System.getProperty("bindPW"); 
-	println ("INFO" , "bindDN " + bindDN);
+	println ("INFO" , "CONFIG bindDN " + bindDN);
 	
 	// Max number of searchs
 	String sNB_MAX_mod = System.getProperty("NB_MAX_mod"); 
 	NB_MAX_mod = Integer.parseInt(sNB_MAX_mod);
-	println ("INFO" , "sNB_MAX_mod " + sNB_MAX_mod);
+	println ("INFO" , "CONFIG sNB_MAX_mod " + sNB_MAX_mod);
 	
 	// attribute to modify or add 
 	attributeName = System.getProperty("attributeName");
-	println ("INFO" , "attributeName " + attributeName);        
+	println ("INFO" , "CONFIG attributeName " + attributeName);        
 
         // operation to perform: modify or add 
 	operation = System.getProperty("operation");
-	println ("INFO" , "operation " + operation);        
+	println ("INFO" , "CONFIG operation " + operation);        
 	// hostname
 	hostname = System.getProperty("hostname");
 
 	// protocol : SSL or TLS
 	protocol = System.getProperty("protocol");
-	println ("INFO" , "protocol " + protocol);        
+	println ("INFO" , "CONFIG protocol " + protocol);        
         
         // authentication : EXTERNAL or simple
 	authentication = System.getProperty("authentication");
-	println ("INFO" , "authentication " + authentication);    
+	println ("INFO" , "CONFIG authentication " + authentication);    
    
         // delay Sec  before closing conx
         String sdelaySec = System.getProperty("delaySec"); 
 	delaySec =  Long.parseLong(sdelaySec);
         delayCnx = delaySec * 1000;
-	println ("INFO" , "delayCnx " + delayCnx);
+	println ("INFO" , "CONFIG delayCnx " + delayCnx);
         
         if ( maxDuration != 0 ) {
           maxDuration= maxDuration * 1000;

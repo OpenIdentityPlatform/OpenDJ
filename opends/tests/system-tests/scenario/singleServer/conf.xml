@@ -97,26 +97,14 @@
   <!-- the certAlias must be unique -->
  
   <scheduler>
-    <duration unit="m">60</duration>
-    
-    <!--== Module 1 ==-->
-     <module name="task_mod" enabled="false">
-
-      <client id="1" name="tasks" host="lehon" start="t0"
-              stop="t50">
-        <serverInstance>I1</serverInstance>
-        <nbTasks>50</nbTasks>
-        <delaySec>5000</delaySec>
-      </client>
-  
-    </module>
+    <duration unit="m">900</duration>
     
 
    
     <module name="password" enabled="true">
       
       <client id="61" name="secureUserpasswordModify" host="nott" start="t0"
-              stop="t20">
+              stop="t10">
         <serverInstance>I1</serverInstance>
         <baseDn>ou=QA Engineers,dc=com</baseDn>
         <nbCnx>1</nbCnx>
@@ -131,8 +119,8 @@
     
     <module name="modify_ssl_sasl" enabled="true">    
         
-      <client id="2" name="secureModifyEntries" host="garm" start="t20"
-              stop="t50">
+      <client id="2" name="secureModifyEntries" host="aud" start="t10"
+              stop="t30">
         <serverInstance>I1</serverInstance>
         <baseDn>ou=QA Engineers,dc=com</baseDn>
         <nbCnx>10</nbCnx>
@@ -147,8 +135,8 @@
     </module>
       
    <module name="modify_ssl_bind" enabled="true">
-      <client id="3" name="secureModifyEntries" host="nott" start="t50"
-              stop="t70">
+      <client id="3" name="secureModifyEntries" host="aud" start="t30"
+              stop="t50">
         <serverInstance>I1</serverInstance>
         <baseDn>ou=QA Engineers,dc=com</baseDn>
         <nbCnx>10</nbCnx>
@@ -165,8 +153,8 @@
     
     <module name="search_ssl_bind" enabled="true">    
       
-      <client id="44" name="secureSearch" host="nott" start="t70"
-              stop="t90">
+      <client id="44" name="secureSearch" host="aud" start="t50"
+              stop="t65">
         <serverInstance>I1</serverInstance>
         <baseDn>ou=QA Engineers,dc=com</baseDn>
         <nbCnx>6</nbCnx>
@@ -179,25 +167,42 @@
       </client>     
       
     </module>
-       
-    <!--== Module 2 ==-->
-     <module name="charge_multipl" enabled="true">
+   
 
-       <client id="40" name="secureSearch" host="garm" start="t90"
-              stop="t100">
+     <module name="task_mod" enabled="true">
+
+      <client id="1" name="tasks" host="aud" start="t50"
+              stop="t80">
+        <serverInstance>I1</serverInstance>
+        <nbTasks>50</nbTasks>
+        <delaySec>3600</delaySec>
+      </client>
+    </module>
+    
+
+    
+       
+    <module name="search_starttls_bind" enabled="true">    
+      
+      <client id="50" name="secureSearch" host="aud" start="t65"
+              stop="t80">
         <serverInstance>I1</serverInstance>
         <baseDn>ou=QA Engineers,dc=com</baseDn>
         <nbCnx>6</nbCnx>
         <nbMaxOp>450000</nbMaxOp>
-        <attribute>mailEXT</attribute>
-        <protocol>ssl</protocol>        
+        <attribute>description</attribute>
+        <protocol>starttls</protocol>        
         <authentication>simple</authentication>
-        <certAlias>client-cert-40</certAlias>
+        <certAlias>client-cert-50</certAlias>
         <delaySec>2</delaySec>
-      </client>
-     
+      </client>     
+      
+    </module>
+    
+    <!--== Module 2 ==-->
+     <module name="charge_multipl" enabled="true">
 
-      <client id="41" name="secureModifyEntries" host="aud" start="t80"
+      <client id="41" name="secureModifyEntries" host="nott" start="t80"
               stop="t100">
         <serverInstance>I1</serverInstance>
         <baseDn>ou=QA Engineers,dc=com</baseDn>
@@ -205,7 +210,7 @@
         <nbMaxOp>100000</nbMaxOp>
         <attribute>mailEXT</attribute>
         <protocol>ssl</protocol>
-        <authentication>EXTERNAL</authentication>
+        <authentication>simple</authentication>
         <certAlias>client-cert-41</certAlias>
         <operation>modify</operation>
         <delaySec>2</delaySec>
@@ -218,7 +223,7 @@
         <nbCnx>6</nbCnx>
         <nbMaxOp>450000</nbMaxOp>
         <attribute>description</attribute>
-        <protocol>simple</protocol>        
+        <protocol>starttls</protocol>        
         <authentication>simple</authentication>
         <certAlias>client-cert-42</certAlias>
         <delaySec>2</delaySec>
@@ -236,7 +241,75 @@
         <nbCnx>50</nbCnx>
       </client>
     </module>
-    
+
+    <module name="test" enabled="false">    
+
+      <client id="99" name="secureSearch" host="nott" start="t0"
+              stop="t20">
+        <serverInstance>I1</serverInstance>
+        <baseDn>ou=QA Engineers,dc=com</baseDn>
+        <nbCnx>6</nbCnx>
+        <nbMaxOp>450000</nbMaxOp>
+        <attribute>description</attribute>
+        <protocol>starttls</protocol>        
+        <authentication>EXTERNAL</authentication>
+        <certAlias>client-cert-99</certAlias>
+        <delaySec>2</delaySec>
+      </client>
+      
+      <client id="991" name="secureSearch" host="nott" start="t20"
+              stop="t40">
+        <serverInstance>I1</serverInstance>
+        <baseDn>ou=QA Engineers,dc=com</baseDn>
+        <nbCnx>6</nbCnx>
+        <nbMaxOp>450000</nbMaxOp>
+        <attribute>description</attribute>
+        <protocol>ssl</protocol>        
+        <authentication>EXTERNAL</authentication>
+        <certAlias>client-cert-991</certAlias>
+        <delaySec>2</delaySec>
+      </client>      
+      
+      <client id="992" name="secureSearch" host="nott" start="t40"
+              stop="t60">
+        <serverInstance>I1</serverInstance>
+        <baseDn>ou=QA Engineers,dc=com</baseDn>
+        <nbCnx>6</nbCnx>
+        <nbMaxOp>450000</nbMaxOp>
+        <attribute>description</attribute>
+        <protocol>ssl</protocol>        
+        <authentication>simple</authentication>
+        <certAlias>client-cert-992</certAlias>
+        <delaySec>2</delaySec>
+      </client>            
+
+      <client id="993" name="secureSearch" host="nott" start="t60"
+              stop="t80">
+        <serverInstance>I1</serverInstance>
+        <baseDn>ou=QA Engineers,dc=com</baseDn>
+        <nbCnx>6</nbCnx>
+        <nbMaxOp>450000</nbMaxOp>
+        <attribute>description</attribute>
+        <protocol>simple</protocol>        
+        <authentication>simple</authentication>
+        <certAlias>client-cert-993</certAlias>
+        <delaySec>2</delaySec>
+      </client>            
+  
+
+     <client id="994" name="secureSearch" host="nott" start="t80"
+              stop="t100">
+        <serverInstance>I1</serverInstance>
+        <baseDn>ou=QA Engineers,dc=com</baseDn>
+        <nbCnx>6</nbCnx>
+        <nbMaxOp>450000</nbMaxOp>
+        <attribute>description</attribute>
+        <protocol>starttls</protocol>        
+        <authentication>simple</authentication>
+        <certAlias>client-cert-994</certAlias>
+        <delaySec>2</delaySec>
+      </client>          
+      </module>    
   </scheduler>
   
 </systemTestConfiguration>

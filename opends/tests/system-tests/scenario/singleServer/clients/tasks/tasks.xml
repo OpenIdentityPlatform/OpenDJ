@@ -133,6 +133,7 @@
           <script>
             cpt=0
             intdelaySec= int(delaySec)
+            intdelayMilliSec = intdelaySec * 1000
             intnbTasks= int(nbTasks)
             allowednbTasks= duration / intdelaySec
             listBackupFolder = []
@@ -168,11 +169,11 @@
                 BackupFolder = '%s/backup_schedule_asynchronous_%s' % (serverInstance.getInstallDir(),cpt)
                 listBackupFolder.append(BackupFolder)
               </script>
-
+              
               <!--=== Sleep and wait to start the client when specified ===-->
               <call function="'sleep'">
                 { 'location' : serverInstance.getHost(),
-                'sleepForMilliSeconds' : intdelaySec,
+                'sleepForMilliSeconds' : intdelayMilliSec,
                 'fileFd'   : fileFd
                 }
               </call>
