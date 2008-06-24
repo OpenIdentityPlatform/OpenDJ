@@ -32,10 +32,13 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.Attribute;
-import javax.naming.directory.DirContext;
+//import javax.naming.directory.DirContext;
 import javax.naming.Context;
-import javax.naming.directory.InitialDirContext;
-
+//import javax.naming.directory.InitialDirContext;
+import javax.naming.ldap.*;
+import javax.naming.ldap.StartTlsResponse;
+import javax.naming.ldap.StartTlsRequest;
+import javax.net.ssl.*;
 
 public class Worker extends Thread {
   
@@ -64,8 +67,9 @@ public class Worker extends Thread {
 
     try {
       
-      DirContext ctx = null;
-      
+     LdapContext ctx = null; 
+     StartTlsResponse tls = null;
+     
       // Set the properties 
      Hashtable envLdap = client.set_properties_LDAP();
       
@@ -88,7 +92,16 @@ public class Worker extends Thread {
          
         }
         // bind
-        ctx = new InitialDirContext(envLdap);
+        ctx = new InitialLdapContext(envLdap,null);
+   
+        if ( client.protocol.equals("starttls")) {
+          // Start TLS
+          tls = (StartTlsResponse) ctx.extendedOperation(new StartTlsRequest());
+          SSLSession sess = tls.negotiate();
+   
+          ctx.addToEnvironment(Context.SECURITY_AUTHENTICATION, client.authentication);
+          
+        }
         
         
         //String filter = "(objectclass=*)";
@@ -119,6 +132,9 @@ public class Worker extends Thread {
               
               client.inc_srchs_done();
             } else {
+              if ( client.protocol.equals("starttls")) {
+                tls.close();
+              }
               ctx.close();
               client.thread_go_to_sleep();
               break;
