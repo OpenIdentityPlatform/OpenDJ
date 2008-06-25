@@ -33,18 +33,42 @@
 
     <sequence>
       
-      <!--- Test case: User Bind Before Deactivation -->
-      <testcase name="getTestCaseName('Preamble')">
+        <!--- Test Suite information
+         #@TestSuiteName       Account Expiration
+         #@TestSuitePurpose    Test Account Expiration
+         #@TestSuiteGroup      Account Expiration
+         #@TestScript          security_account_expiration.xml
+        -->
+              
+        <!--- Define default value for basedn -->
+        <script>
+        basedn1 = 'ou=people,ou=activation tests,o=Account Activation Tests,'
+        basedn = '%s dc=example,dc=com' % basedn1
+        msg = 'Security: Account Expiration:'
+        msg1 = '%s : Postamble' % msg
+         </script>
+      
+        <!--- Test Case information
+          #@TestMarker       Account Expiration
+          #@TestName         User Bind Before Deactivation
+          #@TestIssue        none
+          #@TestPurpose      User Bind Before Deactivation
+          #@TestPreamble     none
+          #@TestStep         User binds RC 0
+          #@TestPostamble    none
+          #@TestResult       Success if the test is PASS
+        -->
+        <testcase name="getTestCaseName('Preamble')">
         <sequence>
           <call function="'testCase_Preamble'"/>
           <message>
-             'Security: Account Expiration: Preamble - Checking User Bind Before Expiration'
+             '%s Preamble - Checking User Bind Before Expiration' % msg
           </message>
 
           <call function="'SearchObject'">
             { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
               'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'     : 'uid=abergin,ou=people,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
+              'dsInstanceDn'     : 'uid=abergin,%s' % basedn,
               'dsInstancePswd'   : 'inflict' ,
               'dsBaseDN'         : 'dc=example,dc=com' ,
               'dsFilter'         : 'objectclass=*'  ,
@@ -55,52 +79,120 @@
         </sequence>
       </testcase>
 
-      <!--- Test Case : Admin Expire User-->
+        <!--- Test Case information
+          #@TestMarker       Account Expiration
+          #@TestName         Admin expire user
+          #@TestIssue        none
+          #@TestPurpose      Admin expire user
+          #@TestPreamble     none
+          #@TestStep         modifyAnAttribute ds-pwp-account-expiration-time
+          #@TestStep         verify with manageAccountWithScript
+                             get-account-expiration-time
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 test are PASS
+        -->
       <testcase name="getTestCaseName('Admin Expire User')">
         <sequence>
           <call function="'testCase_Preamble'"/>
           <message>
-             'Security: Account Expiration Admin Expiring User'
+             'Security: Account Expiration: Admin Expiring User'
           </message>
 
           <call function="'modifyAnAttribute'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'uid=abergin,ou=People,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'ds-pwp-account-expiration-time' ,
-                    'newAttributeValue'      : '20061111161234Z' ,
-                    'changetype'             : 'replace' }
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+              'DNToModify'             : 'uid=abergin,%s' % basedn,
+              'attributeName'          : 'ds-pwp-account-expiration-time' ,
+              'newAttributeValue'      : '20061111161234Z' ,
+              'changetype'             : 'replace' }
           </call>
           
+          <message>
+             'Security: Account Expiration: verify with manage-account '
+          </message>
+
+          <call function="'manageAccountWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'get-account-expiration-time' ,
+                'targetDn'         : 'uid=abergin,ou=people,%s' % basedn  }
+          </call>
+          
+          <script>
+              knownIssue(3396)
+          </script>
+            
           <call function="'testCase_Postamble'"/>
         </sequence>
       </testcase>
 
-      <!--- Test Case : User Bind After Expiration-->
+        <!--- Test Case information
+          #@TestMarker       Account Expiration
+          #@TestName         User Bind After Expiration
+          #@TestIssue        none
+          #@TestPurpose      User Bind After Expiration
+          #@TestPreamble     none
+          #@TestStep         User binds RC 49
+          #@TestStep         Check output manage-account 
+                             get-authentication-failure-times
+          #@TestPostamble    none 
+          #@TestResult       Success if the test is PASS
+        -->
       <testcase name="getTestCaseName('User Bind After Expiration')">
         <sequence>
           <call function="'testCase_Preamble'"/>
           <message>
-             'Security: Acct Exp: User Binding After Expiration'
+             'Security: Account Expiration: User Binding After Expiration'
           </message>
 
           <call function="'SearchObject'">
             { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
               'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'     : 'uid=abergin,ou=people,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
+              'dsInstanceDn'     : 'uid=abergin,%s' % basedn ,
               'dsInstancePswd'   : 'inflict' ,
               'dsBaseDN'         : 'dc=example,dc=com' ,
               'dsFilter'         : 'objectclass=*'  ,
               'extraParams'      : '-s base',
-              'expectedRC'       : 49  }  
+              'expectedRC'       : 49  }
           </call>
+          
+          <message>
+             'Security: Account Expiration: verify with manage-account '
+          </message>
+
+          <call function="'manageAccountWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'get-authentication-failure-times' ,
+                'targetDn'         : 'uid=abergin,ou=people,%s' % basedn  }
+          </call>
+          
+          <script>
+              knownIssue(3396)
+          </script>
 
           <call function="'testCase_Postamble'"/>
         </sequence>
       </testcase>
 
+        <!--- Test Case information
+          #@TestMarker       Account Expiration
+          #@TestName         Admin Expire User in Future
+          #@TestIssue        none
+          #@TestPurpose      Admin Expire User in Future
+          #@TestPreamble     none
+          #@TestStep         modifyAnAttribute ds-pwp-account-expiration-time
+          #@TestStep         verify with manageAccountWithScript
+                             get-account-expiration-time
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 test are PASS
+        -->
       <testcase name="getTestCaseName('Admin Expire User in Future')">
         <sequence>
           <call function="'testCase_Preamble'"/>
@@ -109,21 +201,47 @@
           </message>
 
           <call function="'modifyAnAttribute'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'uid=abergin,ou=People,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'ds-pwp-account-expiration-time' ,
-                    'newAttributeValue'      : '20361111161234Z' ,
-                    'changetype'             : 'replace' }
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+              'DNToModify'             : 'uid=abergin,%s' % basedn ,
+              'attributeName'          : 'ds-pwp-account-expiration-time' ,
+              'newAttributeValue'      : '20361111161234Z' ,
+              'changetype'             : 'replace' }
           </call>
+          
+          <message>
+             'Security: Account Expiration: verify with manage-account '
+          </message>
+
+          <call function="'manageAccountWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'get-account-expiration-time' ,
+                'targetDn'         : 'uid=abergin,ou=people,%s' % basedn  }
+          </call>
+          
+          <script>
+              knownIssue(3396)
+          </script>
             
           <call function="'testCase_Postamble'"/>
         </sequence>
       </testcase>
 
-      <!--- Test Case : User Bind After Expiration-->
+        <!--- Test Case information
+          #@TestMarker       Account Expiration
+          #@TestName         User Bind With Future Expiration
+          #@TestIssue        none
+          #@TestPurpose      User Bind With Future Expiration
+          #@TestPreamble     none
+          #@TestStep         User binds RC 0
+          #@TestPostamble    none
+          #@TestResult       Success if the test is PASS
+        -->
       <testcase name="getTestCaseName('User Bind With Future Expiration')">
         <sequence>
           <call function="'testCase_Preamble'"/>
@@ -134,49 +252,79 @@
           <call function="'SearchObject'">
             { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
               'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'     : 'uid=abergin,ou=people,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
+              'dsInstanceDn'     : 'uid=abergin,%s' % basedn ,
               'dsInstancePswd'   : 'inflict' ,
               'dsBaseDN'         : 'dc=example,dc=com' ,
               'dsFilter'         : 'objectclass=*'  ,
-              'extraParams'      : '-s base' }        
+              'extraParams'      : '-s base' }
           </call>
 
           <call function="'testCase_Postamble'"/>
         </sequence>
       </testcase>
 
-     <!--- Test case: Admin Reactivate User -->
+        <!--- Test Case information
+          #@TestMarker       Account Expiration
+          #@TestName         Admin Reactivate User
+          #@TestIssue        none
+          #@TestPurpose      Admin Reactivate User
+          #@TestPreamble     none
+          #@TestStep         Admin removing User Expiration remove
+                             ds-pwp-account-expiration-time
+          #@TestStep         Check User Bind After Removing Expiration RC 0
+          #@TestStep         verify with manageAccountWithScript
+                             get-account-expiration-time
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 test are PASS
+        -->
       <testcase name="getTestCaseName('Postamble')">
         <sequence>
           <call function="'testCase_Preamble'"/>
           <message>
-             'Security: Account Expiration: Postamble Step 1.  Admin Removing User Expiration'
+             '%s Postamble Step 1.  Admin Removing User Expiration' % msg
           </message>
 
           <call function="'modifyAnAttribute'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'uid=abergin,ou=People,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'ds-pwp-account-expiration-time' ,
-                    'newAttributeValue'      : '20361111161234Z' ,
-                    'changetype'             : 'delete' }
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+              'DNToModify'             : 'uid=abergin,%s' % basedn ,
+              'attributeName'          : 'ds-pwp-account-expiration-time' ,
+              'newAttributeValue'      : '20361111161234Z' ,
+              'changetype'             : 'delete' }
           </call>
           
           <message>
-             'Security: Account Expiration Postamble Step 2.  Checking User Bind After Removing Expiration'
+             '%s Step 2. Check User Bind After Removing Expiration' % msg1
           </message>
 
           <call function="'SearchObject'">
             { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
               'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'     : 'uid=abergin,ou=people,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
+              'dsInstanceDn'     : 'uid=abergin,%s' % basedn,
               'dsInstancePswd'   : 'inflict' ,
               'dsBaseDN'         : 'dc=example,dc=com' ,
               'dsFilter'         : 'objectclass=*'  ,
-              'extraParams'      : '-s base'  }  
+              'extraParams'      : '-s base'  }
           </call>
+          
+          <message>
+             '%s Step 3. Verify with manage-account ' % msg
+          </message>
+
+          <call function="'manageAccountWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'get-account-expiration-time' ,
+                'targetDn'         : 'uid=abergin,ou=people,%s' % basedn  }
+          </call>
+          
+          <script>
+              knownIssue(3396)
+          </script>
           
           <call function="'testCase_Postamble'"/>
 
