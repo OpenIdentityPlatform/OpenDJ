@@ -36,6 +36,7 @@ import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -758,6 +759,15 @@ public final class DSConfig extends ConsoleApplication {
       {
         println(ERR_DSCFG_CANNOT_WRITE_EQUIVALENT_COMMAND_LINE_FILE.get(file));
         return 1;
+      }
+      else
+      {
+        File f = new File(file);
+        if (f.isDirectory())
+        {
+          println(ERR_DSCFG_EQUIVALENT_COMMAND_LINE_FILE_DIRECTORY.get(file));
+          return 1;
+        }
       }
     }
 
