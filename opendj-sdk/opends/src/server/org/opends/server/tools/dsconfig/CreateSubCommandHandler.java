@@ -1468,7 +1468,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
           INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
       for (Object value : mod.getModificationValues())
       {
-        arg.addValue(propName+':'+value);
+        arg.addValue(propName+':'+getArgumentValue(value));
       }
       break;
     case SET:
@@ -1478,7 +1478,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
           INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
       for (Object value : mod.getModificationValues())
       {
-        arg.addValue(propName+':'+value);
+        arg.addValue(propName+':'+getArgumentValue(value));
       }
       break;
     case RESET:
@@ -1495,7 +1495,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
           INFO_DSCFG_DESCRIPTION_REMOVE_PROP_VAL.get());
       for (Object value : mod.getModificationValues())
       {
-        arg.addValue(propName+':'+value);
+        arg.addValue(propName+':'+getArgumentValue(value));
       }
       arg = null;
       break;

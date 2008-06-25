@@ -456,7 +456,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                             INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
                             INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
                         arg.addValue(cvc.getPropertyDefinition().getName()+':'+
-                            cvc.getValue());
+                            getArgumentValue(cvc.getValue()));
                         builder.addArgument(arg);
                       }
                       catch (Throwable t)
@@ -972,7 +972,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
           INFO_DSCFG_DESCRIPTION_REMOVE_PROP_VAL.get());
       for (Object value : mod.getModificationValues())
       {
-        arg.addValue(propName+':'+value);
+        arg.addValue(propName+':'+getArgumentValue(value));
       }
       break;
     case ADD:
@@ -982,7 +982,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
           INFO_DSCFG_DESCRIPTION_ADD_PROP_VAL.get());
       for (Object value : mod.getModificationValues())
       {
-        arg.addValue(propName+':'+value);
+        arg.addValue(propName+':'+getArgumentValue(value));
       }
       break;
     case SET:
@@ -992,7 +992,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
           INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
       for (Object value : mod.getModificationValues())
       {
-        arg.addValue(propName+':'+value);
+        arg.addValue(propName+':'+getArgumentValue(value));
       }
       break;
     default:
