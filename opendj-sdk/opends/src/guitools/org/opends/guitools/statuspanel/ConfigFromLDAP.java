@@ -679,7 +679,7 @@ public class ConfigFromLDAP
     ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
     ctls.setReturningAttributes(
         new String[] {
-            "jvmVersion"
+            "javaVersion"
         });
     String filter = "(objectclass=*)";
 
@@ -690,7 +690,7 @@ public class ConfigFromLDAP
     {
       SearchResult sr = (SearchResult)listeners.next();
 
-      v = getFirstValue(sr, "jvmVersion");
+      v = getFirstValue(sr, "javaVersion");
 
     }
     return v;
