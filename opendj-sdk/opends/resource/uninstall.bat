@@ -41,12 +41,10 @@ if "%~1" == "" goto callLaunch
 goto callJava
 
 :callLaunch
-if exist "%DIR_HOME%\lib\set-java-args.bat" DO call "%DIR_HOME%\lib\set-java-args.bat"
 "%DIR_HOME%\lib\winlauncher.exe" launch "%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.guitools.uninstaller.UninstallLauncher
 goto end
 
 :callJava
-if exist "%DIR_HOME%\lib\set-java-args.bat" DO call "%DIR_HOME%\lib\set-java-args.bat"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=uninstall"
 "%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.guitools.uninstaller.UninstallLauncher %*
 
