@@ -109,10 +109,13 @@ class Phase:
 class Scenario:
   "Describes the scenario main informations"
   def __init__(self, name, description):
-    self.name         = name
-    self.description  = description
-    self.durationUnit = NOT_DEFINED
-    self.durationTime = NOT_DEFINED
+    self.name           = name
+    self.description    = description
+    self.durationUnit   = NOT_DEFINED
+    self.durationTime   = NOT_DEFINED
+    self.jdmkrtPath     = NOT_DEFINED
+    self.jcommonPath    = NOT_DEFINED
+    self.jfreechartPath = NOT_DEFINED
     
   def getName(self):
     return self.name
@@ -131,7 +134,26 @@ class Scenario:
     
   def setDurationTime(self,durationTime):
     self.durationTime = durationTime
-
+    
+  def getJdmkrtPath(self):
+    return self.jdmkrtPath
+    
+  def setJdmkrtPath(self,jdmkrtPath):
+    self.jdmkrtPath = jdmkrtPath
+    
+  def getJcommonPath(self):
+    return self.jcommonPath
+    
+  def setJcommonPath(self,jcommonPath):
+    self.jcommonPath = jcommonPath
+    
+  def getJfreechartPath(self):
+    return self.jfreechartPath
+    
+  def setJfreechartPath(self,jfreechartPath):
+    self.jfreechartPath = jfreechartPath
+    
+    
 
 ###########################
 class SubordinateTemplate:
@@ -384,7 +406,7 @@ class Instance:
 class OpendsInstance(Instance):
   "Describes an opends Instance"
   def __init__(self, iid, name, product, role, host, installDir, tarball, \
-               portLDAP, portLDAPS, portJMX, portREPL, \
+               portLDAP, portLDAPS, portJMX, portREPL, portSNMP, portJVM, \
                sslEnabled, certificate, startTlsEnabled, \
                secureReplication,tuning):
     # from instance object
@@ -400,6 +422,8 @@ class OpendsInstance(Instance):
     self.portLDAPS       = portLDAPS
     self.portJMX         = portJMX
     self.portREPL        = portREPL
+    self.portSNMP        = portSNMP
+    self.portJVM         = portJVM
     self.javaVersion     = NOT_DEFINED
     self.sslEnabled      = sslEnabled
     self.certificate     = certificate
@@ -415,6 +439,12 @@ class OpendsInstance(Instance):
     
   def getREPLPort(self):
     return self.portREPL
+    
+  def getSNMPPort(self):
+    return self.portSNMP
+    
+  def getJVMPort(self):
+    return self.portJVM
     
   def getJavaVersion(self):
     return self.javaVersion
@@ -711,8 +741,10 @@ def parseOpenDs(cId,cName,cProduct,cRole,opendsZip,thisChild):
   cInstallDir      = NOT_DEFINED
   cPortLDAP        = '1389'
   cPortLDAPS       = '1636'
-  cPortJMX         = '1390'
+  cPortJMX         = '1689'
   cPortREPL        = '1391'
+  cPortSNMP        = NOT_DEFINED
+  cPortJVM         = NOT_DEFINED
   cSslEnabled      = 'false'
   cCertificate     = NOT_DEFINED
   cStartTlsEnabled = 'false'
@@ -769,6 +801,14 @@ def parseOpenDs(cId,cName,cProduct,cRole,opendsZip,thisChild):
             elif (thisPort.getNodeType() == Node.ELEMENT_NODE and
                 thisPort.getNodeName() == 'replicationServer'):
               cPortREPL = _getPropValue(thisPort)
+            elif (thisPort.getNodeType() == Node.ELEMENT_NODE and
+                thisPort.getNodeName() == 'snmp'):
+              cPortSNMP = _getPropValue(thisPort)
+            elif (thisPort.getNodeType() == Node.ELEMENT_NODE and
+                thisPort.getNodeName() == 'jvm'):
+              cPortJVM = _getPropValue(thisPort)
+              if cPortJVM == '':
+                cPortJVM = NOT_DEFINED
             # must be at the end of the if case
             elif (thisPort.getNodeType() == Node.TEXT_NODE or
                   thisPort.getNodeType() == Node.COMMENT_NODE):
@@ -859,7 +899,8 @@ def parseOpenDs(cId,cName,cProduct,cRole,opendsZip,thisChild):
   cInstallDir = '%s/%s/%s' % (cInstallDir,cName,_fileName)
   return [msg,OpendsInstance(cId,cName,cProduct,cRole,cHost,cInstallDir,\
                              opendsZip,\
-                             cPortLDAP,cPortLDAPS,cPortJMX,cPortREPL,\
+                             cPortLDAP,cPortLDAPS,cPortJMX, \
+                             cPortREPL,cPortSNMP,cPortJVM,\
                              cSslEnabled,cCertificate,cStartTlsEnabled,\
                              cSecureReplication,cOpendsTuning)]
 
@@ -1244,11 +1285,14 @@ def parseClients(thisChild):
 # Parse global parameters node 
 #
 def parseGlobalParameters(thisChild):
-  msg        = ''
-  result     = []
-  scenario   = NOT_DEFINED
-  opendsZip  = NOT_DEFINED
-  domain     = NOT_DEFINED
+  msg             = ''
+  result          = []
+  scenario        = NOT_DEFINED
+  opendsZip       = NOT_DEFINED
+  domain          = NOT_DEFINED
+  cJdmkrtPath     = NOT_DEFINED
+  cJcommonPath    = NOT_DEFINED
+  cJfreeChartPath = NOT_DEFINED
   
   #
   # Parsing second level
@@ -1275,6 +1319,17 @@ def parseGlobalParameters(thisChild):
         scenario = cResult[1]
         msg = '%s\n%s' % (msg,cResult[0])
       
+      elif (thisSubChild.getNodeType() == Node.ELEMENT_NODE and
+          thisSubChild.getNodeName() == 'jdmkrt'):
+        cJdmkrtPath = _getPropValue(thisSubChild)
+      
+      elif (thisSubChild.getNodeType() == Node.ELEMENT_NODE and
+          thisSubChild.getNodeName() == 'jfreechart'):
+        cJfreeChartPath = _getPropValue(thisSubChild)
+      
+      elif (thisSubChild.getNodeType() == Node.ELEMENT_NODE and
+          thisSubChild.getNodeName() == 'jcommon'):
+        cJcommonPath = _getPropValue(thisSubChild)
       
       # must be at the end of the if case
       elif (thisSubChild.getNodeType() == Node.TEXT_NODE or
@@ -1294,6 +1349,14 @@ def parseGlobalParameters(thisChild):
     
   if (opendsZip == NOT_DEFINED):
     msg = '%s\n ERROR: parseGlobalParameters() : opendsZip not defined' % (msg)
+    
+  if (cJdmkrtPath != NOT_DEFINED):
+    scenario.setJdmkrtPath(cJdmkrtPath)
+  if (cJfreeChartPath != NOT_DEFINED):
+    scenario.setJfreechartPath(cJfreeChartPath)
+  if (cJcommonPath != NOT_DEFINED):
+    scenario.setJcommonPath(cJcommonPath)
+
 
   return [msg,scenario,opendsZip,domain]
 

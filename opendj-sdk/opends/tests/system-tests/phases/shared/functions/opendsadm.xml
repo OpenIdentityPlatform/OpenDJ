@@ -131,7 +131,13 @@
       <script>
         STAFCmdParamsList=[]
         STAFCmdParams=''
-
+        
+        # define environment variables
+        env = []
+        env.append('PATH=/bin:/usr/bin:%s' % dsBinPath)
+        env.append('JAVA_HOME=%s' % JAVA_HOME)
+        env.append('OPENDS_JAVA_HOME=%s' % JAVA_HOME)
+        
         if dsPath:
           STAFCmd='%s/setup' % (dsPath)
           STAFCmdParamsList.append('--cli')

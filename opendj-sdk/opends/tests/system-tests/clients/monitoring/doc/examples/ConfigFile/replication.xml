@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE config SYSTEM "./config.dtd">
+<config>
+  <protocol name="LDAP">
+    <attribute name="modifyRequests" baseDN="cn=LDAP Connection Handler 0.0.0.0 port 1389 Statistics,cn=monitor" output="average"/>
+    <attribute name="missing-changes" baseDN="cn=monitor" filter="(&#038;(missing-changes=*)(cn=Direct LDAP Server dc=example,dc=com*))" scope="onelevel"/>
+  </protocol>
+</config>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE config SYSTEM "./config.dtd">
+<config>
+  <protocol name="LDAP">
+    <attribute name="modifyRequests" baseDN="cn=LDAP Connection Handler 0.0.0.0 port ${port} Statistics,cn=monitor" filter="(objectclass=*)" />
+    <attribute name="searchRequests" baseDN="cn=LDAP Connection Handler 0.0.0.0 port ${port} Statistics,cn=monitor" filter="(objectclass=*)" />
+  </protocol>
+  <protocol name="JMX">
+    <attribute name="modifyRequests" MBeanName="org.opends.server:Name=rootDSE,Rdn1=cn-monitor,Rdn2=cn-LDAP_Connection_Handler_0000_port_${port}_Statistics" output="value"/>
+    <attribute name="searchRequests" MBeanName="org.opends.server:Name=rootDSE,Rdn1=cn-monitor,Rdn2=cn-LDAP_Connection_Handler_0000_port_${port}_Statistics" output="diff"/>
+  </protocol>
+  <protocol name="SNMP">
+    <attribute oid="dsApplIfModifyEntryOps" />
+	  <attribute oid="dsApplIfSearchOps" output="average" />
+  </protocol>
+</config>

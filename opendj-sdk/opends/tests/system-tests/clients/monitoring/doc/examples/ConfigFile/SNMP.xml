@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE config SYSTEM "./config.dtd">
+<config>
+  <protocol name="SNMP">
+	  <attribute oid="dsApplIfUnauthBinds" />
+  </protocol>
+</config>

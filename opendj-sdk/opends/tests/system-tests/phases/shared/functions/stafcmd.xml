@@ -656,7 +656,74 @@
       
     </sequence>
   </function>
-
+  
+  
+  <!-- List a folder by extension -->
+  <function name="listFolderByExtension" scope="local">
+    <function-prolog>
+        This function lists a folder by extension
+    </function-prolog>
+    
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="foldername" type="required">
+        <function-arg-description>
+          Name of folder to be list
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+    </function-arg-def>
+      <function-arg-def name="extension" type="required">
+        <function-arg-description>
+          he name of the file extension (default txt)
+        </function-arg-description>
+        <function-arg-property name="type" value="file extension"/>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor, wildcard : NO_FILE to not write information in a file
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'createFolder',
+        'fileFd'  : fileFd }
+      </call>
+      
+      <stafcmd name="'STAF Command: list folder by extension'">
+        <location>'%s' % location</location>
+        <service>'fs'</service>
+        <request>' LIST DIRECTORY %s EXT %s ' % (foldername,extension)</request>
+      </stafcmd>
+      
+      <script>
+        cmdRC=RC
+        cmdResult=STAFResult
+      </script>
+      
+      <if expr="cmdRC != 0">
+        <script> cmdResult = 'Folder does not exist.' </script>
+      </if>
+      
+      <call function="'checkRC'">
+        { 
+        'returncode' : cmdRC,
+        'result'     : cmdResult,
+        'fileFd'     : fileFd
+        }
+      </call>
+      
+      <call function="'writeEndTagOperation'">{'fileFd' : fileFd}</call>
+      
+      <return>[cmdRC,cmdResult]</return>
+    </sequence>
+  </function>	  
   
   
   <function name="getFile">
