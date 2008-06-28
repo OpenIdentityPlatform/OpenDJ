@@ -95,6 +95,15 @@
       </call>
       
       
+      <!--== OpenDS Instance : configure SNMP ==-->
+      <call function="'configureSNMP'">
+        {
+          'topoInstances' : topoInstances,
+          'filePrefix'    : filePrefix
+        }
+      </call>
+      
+      
       <!-- == Post operations == -->
       <call function="'configureOpendsPostamble'">
         {
@@ -944,6 +953,89 @@
           <script>
             cFileFd.close()
           </script>
+        </sequence>
+      </paralleliterate>
+    </sequence>
+  </function>
+  
+  
+  <!-- ************************************************************ -->
+  <function name="configureSNMP" scope="local">
+    <function-prolog>
+      This function configure SNMP for all openDS instances in the topology
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="topoInstances" type="required">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="filePrefix" type="required">
+        <function-arg-description>
+          prefix for output files
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+    
+      <!--== Configure SNMP ==-->
+      <paralleliterate in="topoInstances" var="instance">
+        <sequence>
+          <if expr="instance.getSNMPPort() != NOT_DEFINED">
+            <sequence>
+              <call function="'getLogFileName'">
+                { 'type'   : 'instance',
+                  'object' : instance,
+                  'prefix' : filePrefix
+                }
+              </call>
+              <script>
+                logFile = STAXResult[0]
+                jdmkrt  = '%s/lib/extensions/jdmkrt.jar' % \
+                          instance.getInstallDir()
+                # reopen existing files, no need to add in fileList variable
+                # as it has already been added
+                cFileFd = open(logFile,'a')
+              </script>
+              
+              <call function="'copyFile'">
+              {
+                'srcFile'    : scenario.getJdmkrtPath(),
+                'destFile'   : jdmkrt,
+                'location'   : STAXServiceMachine,
+                'remoteHost' : instance.getHost(),
+                'fileFd'     : cFileFd
+              }
+              </call>
+              
+              <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                file="'%s/opendscfg.xml' % (SHARED_FUNC_DIR)"/>
+              <call function="'dsconfig'">
+              {
+                'location'       : instance.getHost(),
+                'dsInstanceHost' : instance.getHost(),
+                'dsPath'         : instance.getInstallDir(),
+                'dsInstancePort' : instance.getLDAPPort(),
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'set-connection-handler-prop' ,
+                'objectType'     : 'handler-name' ,
+                'objectName'     : 'SNMP Connection Handler' ,
+                'optionsString'  : '--set enabled:true \
+                                    --set listen-port:%s \
+                                    --set opendmk-jarfile:%s' \
+                                 % (instance.getSNMPPort(), jdmkrt),
+                'fileFd'  : cFileFd
+              }
+              </call>
+              
+              <script>
+                cFileFd.close()
+                cFileFd = ''
+              </script>
+            </sequence>
+          </if>
         </sequence>
       </paralleliterate>
     </sequence>

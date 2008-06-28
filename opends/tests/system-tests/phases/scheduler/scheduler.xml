@@ -764,12 +764,6 @@
           <script>
             errMsg = 'ERROR: client %s has been killed,' % client.getName()
           </script>
-          <call function="'writeMessage'">
-          {
-            'content' : errMsg,
-            'fileFd'  : fileFd
-          }
-          </call>
           <message> errMsg </message>
           <script>
             errNum += 1

@@ -1,0 +1,1789 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0 Beta (Linux)">
+	<META NAME="AUTHOR" CONTENT="Florian Fauvarque">
+	<META NAME="CREATED" CONTENT="20080626;16574500">
+	<META NAME="CHANGEDBY" CONTENT="Florian Fauvarque">
+	<META NAME="CHANGED" CONTENT="20080626;18264500">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+	<STYLE TYPE="text/css">
+	<!--
+		@page { size: 21cm 29.7cm; margin-left: 2cm; margin-right: 1.64cm; margin-top: 2cm; margin-bottom: 2cm }
+		P { margin-bottom: 0.21cm }
+		TD P { margin-bottom: 0cm }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="fr-FR" DIR="LTR">
+<P LANG="en-US" ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT SIZE=5 STYLE="font-size: 20pt"><B>MonitoringClient
+0.5.0</B></FONT></P>
+<P LANG="en-US" ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P LANG="en-US" ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT SIZE=5><B>How
+to:</B></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT SIZE=3><B>Compile
+the client and make a jar:</B></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-right: -0.9cm; margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3>$ cd
+/qa/opends/workspaces/florian/MonitoringClient-dist/MonitoringClient/
+</FONT>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>$ javac -sourcepath src -cp
+lib/jdmkrt.jar:lib/snmp-mib2605.jar
+src/org/opends/testqa/monitoringclient/*.java -d build/classes/</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>$ jar cfe MonitoringClient.jar
+org.opends.testqa.monitoringclient.MonitoringClient -C build/classes/
+.</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P LANG="en-US" ALIGN=JUSTIFY STYLE="font-weight: medium"><FONT COLOR="#000000"><FONT SIZE=3>To
+compile and launch the client, two external libraries have to be
+included: </FONT></FONT>
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm; font-weight: medium"><FONT COLOR="#000000"><FONT SIZE=3>jdmkrt.jar
+	: can be retrieved from the openDMK website (opendmk.dev.java.net)
+	or from <BR>/usr/pkg/opends/OpenDMK/OpenDMK-bin/lib/jdmkrt.jar</FONT></FONT></P>
+	<LI><P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><FONT COLOR="#000000"><FONT SIZE=3>snmp-mib2605.jar
+	: can be found in the OpenDS zip in lib/extensions/snmp-mib2605.jar </FONT></FONT>
+	</P>
+</UL>
+<P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><BR><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT SIZE=3><B>Compile
+the chart generator and make a jar:</B></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3>$ cd
+/qa/opends/workspaces/florian/MonitoringClient-dist/ChartGenerator/ </FONT>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>javac -sourcepath src -cp
+lib/<FONT COLOR="#000000">jcommon-1.0.13.jar</FONT>:lib/jfreechart-1.0.10.jar
+src/org/opends/testqa/monitoringclient/*.java -d build/classes/</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>jar cfe ChartGenerator.jar
+org.opends.testqa.monitoringclient.ChartGenerator -C build/classes/ .</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P LANG="en-US" ALIGN=JUSTIFY STYLE="font-weight: medium"><FONT COLOR="#000000"><FONT SIZE=3>To
+compile and launch the client, two external libraries have to be
+included: </FONT></FONT>
+</P>
+<UL>
+	<LI VALUE=1><P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><FONT COLOR="#000000"><FONT SIZE=3>jcommon-1.0.13.jar
+	: can be retrieved from the JFreeChart website
+	http://www.jfree.org/jfreechart/</FONT></FONT></P>
+	<LI><P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><FONT COLOR="#000000"><FONT SIZE=3>jfreechart-1.0.10.jar
+	: can be retrieved from the JFreeChart website
+	http://www.jfree.org/jfreechart/ </FONT></FONT>
+	</P>
+</UL>
+<P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><BR><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><FONT COLOR="#000000"><FONT SIZE=3>Theses
+libraries are on GNU / GPL licence, which isn't compatible with the
+CDLL.</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><BR><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT><FONT COLOR="#000000"><FONT SIZE=3><B>Launch
+the monitoring client:</B></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><FONT COLOR="#000000"><FONT SIZE=3>java
+-cp lib/jdmkrt.jar:lib/snmp-mib2605.jar:MonitoringClient.jar
+org.opends.testqa.monitoringclient.MonitoringClient -h havmann -p
+1389 -w toto123 </FONT></FONT>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><BR><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><BR><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT><FONT COLOR="#000000"><FONT SIZE=3><B>Launch
+the chart generator:</B></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><FONT COLOR="#000000"><FONT SIZE=3>java
+-cp
+lib/jcommon-1.0.13.jar:lib/jfreechart-1.0.10.jar:ChartGenerator.jar
+org.opends.testqa.monitoringclient.ChartGenerator</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT><BR><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT><FONT COLOR="#000000"><FONT SIZE=3><B>Monitor
+the server with JMX:</B></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><FONT COLOR="#000000"><FONT SIZE=3>Before
+monitoring OpenDS with JMX,the JMX Connection Handler have to be
+enable.</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><FONT COLOR="#000000"><FONT SIZE=3>For
+the procedure, see 
+https://www.opends.org/wiki/page/AccessingOpenDSMonitoringInformationThroughJconsole</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><BR><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT><FONT COLOR="#000000"><FONT SIZE=3><B>Monitor
+the server with SNMP:</B></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><FONT COLOR="#000000"><FONT SIZE=3>Before
+monitoring OpenDS with JMX,the SNMP Connection Handler have to be
+enable.</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><FONT COLOR="#000000"><FONT SIZE=3>For
+the procedure, see</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><FONT COLOR="#000000"><FONT SIZE=3>https://www.opends.org/wiki/page/HowToMonitorOpenDSThroughSNMP</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><BR><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT><FONT SIZE=3><B>Monitor the JVM of the
+server:</B></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><FONT SIZE=3>To
+monitor the JVM of the server, you have to add in the file
+config/java.properties after the words “start-ds.java-args=-server”
+the properties “-Dcom.sun.management.jmxremote.port=1650
+-Dcom.sun.management.jmxremote.authenticate=false
+-Dcom.sun.management.jmxremote.ssl=false”.</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><FONT SIZE=3>After,
+you must launch the tool dsjavaproperties, then reboot the server.</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><BR><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; page-break-before: always">
+<FONT SIZE=5><B>Specifications</B></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT SIZE=4><B>Specification
+of the command line arguments</B></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT><FONT COLOR="#000000"><FONT SIZE=3><B>$
+java -jar MonitoringClient.java [-h &lt;hostname&gt;] [-p &lt;LDAPport&gt;]
+[-x &lt;JMXport&gt;] <BR>[-m &lt;JVMport&gt;] [-s &lt;SNMPport] [-D
+&lt;bindDN&gt;] -w &lt;bindPW&gt; [-f &lt;configFile&gt;] <BR>[-r
+&lt;repository&gt;][-i &lt;interval&gt;] [-u &lt;timeUnit&gt;]</B></FONT></FONT></P>
+<P LANG="en-US" ALIGN=JUSTIFY><BR><BR>
+</P>
+<TABLE WIDTH=643 BORDER=1 BORDERCOLOR="#000000" CELLPADDING=4 CELLSPACING=0>
+	<COL WIDTH=36>
+	<COL WIDTH=82>
+	<COL WIDTH=56>
+	<COL WIDTH=37>
+	<COL WIDTH=103>
+	<COL WIDTH=279>
+	<TR VALIGN=TOP>
+		<TD WIDTH=36 HEIGHT=14>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>Short flag</FONT></P>
+		</TD>
+		<TD WIDTH=82>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>Long flag </FONT>
+			</P>
+		</TD>
+		<TD WIDTH=56>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>Type</FONT></P>
+		</TD>
+		<TD WIDTH=37>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>Required</FONT></P>
+		</TD>
+		<TD WIDTH=103>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>Default value</FONT></P>
+		</TD>
+		<TD WIDTH=279>
+			<P LANG="en-US" ALIGN=LEFT><FONT SIZE=3>Description</FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=36>
+			<P LANG="en-US" ALIGN=CENTER><FONT COLOR="#000000"><FONT SIZE=3>-h</FONT></FONT></P>
+		</TD>
+		<TD WIDTH=82>
+			<P LANG="en-US" ALIGN=CENTER><FONT COLOR="#000000"><FONT SIZE=3>--hostname</FONT></FONT></P>
+		</TD>
+		<TD WIDTH=56>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>String</FONT></P>
+		</TD>
+		<TD WIDTH=37>
+			<P LANG="en-US" ALIGN=CENTER><A NAME="DDE_LINK5"></A><FONT SIZE=3>no</FONT></P>
+		</TD>
+		<TD WIDTH=103>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>localhost</FONT></P>
+		</TD>
+		<TD WIDTH=279>
+			<P LANG="en-US" ALIGN=LEFT><FONT SIZE=3>Directory server hostname
+			or IP address</FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=36>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>-p</FONT></P>
+		</TD>
+		<TD WIDTH=82>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>--LDAPport</FONT></P>
+		</TD>
+		<TD WIDTH=56>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>Int</FONT></P>
+		</TD>
+		<TD WIDTH=37>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>no</FONT></P>
+		</TD>
+		<TD WIDTH=103>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>389</FONT></P>
+		</TD>
+		<TD WIDTH=279>
+			<P LANG="en-US" ALIGN=LEFT><FONT SIZE=3>Directory server LDAP port
+			number </FONT>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=36>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>-x</FONT></P>
+		</TD>
+		<TD WIDTH=82>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>--JMXport</FONT></P>
+		</TD>
+		<TD WIDTH=56>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>Int</FONT></P>
+		</TD>
+		<TD WIDTH=37>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>no</FONT></P>
+		</TD>
+		<TD WIDTH=103>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>Retrieved by a LDAP
+			search</FONT></P>
+		</TD>
+		<TD WIDTH=279>
+			<P LANG="en-US" ALIGN=LEFT><FONT SIZE=3>Directory server JMX port
+			number</FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=36>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>-m </FONT>
+			</P>
+		</TD>
+		<TD WIDTH=82>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>--JVMport</FONT></P>
+		</TD>
+		<TD WIDTH=56>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>Int</FONT></P>
+		</TD>
+		<TD WIDTH=37>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>no</FONT></P>
+		</TD>
+		<TD WIDTH=103>
+			<P LANG="en-US" ALIGN=CENTER><BR>
+			</P>
+		</TD>
+		<TD WIDTH=279>
+			<P LANG="en-US" ALIGN=LEFT><FONT SIZE=3>JMX port number of the
+			host JVM</FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=36>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>-s</FONT></P>
+		</TD>
+		<TD WIDTH=82>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>--SNMPport</FONT></P>
+		</TD>
+		<TD WIDTH=56>
+			<P LANG="en-US" ALIGN=CENTER><BR>
+			</P>
+		</TD>
+		<TD WIDTH=37>
+			<P LANG="en-US" ALIGN=CENTER><BR>
+			</P>
+		</TD>
+		<TD WIDTH=103>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>8089</FONT></P>
+		</TD>
+		<TD WIDTH=279>
+			<P LANG="en-US" ALIGN=LEFT><FONT SIZE=3>Directory server SNMP port
+			number</FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=36>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>-D</FONT></P>
+		</TD>
+		<TD WIDTH=82>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>--bindDN</FONT></P>
+		</TD>
+		<TD WIDTH=56>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>String</FONT></P>
+		</TD>
+		<TD WIDTH=37>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>no</FONT></P>
+		</TD>
+		<TD WIDTH=103>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>cn=Directory Manager</FONT></P>
+		</TD>
+		<TD WIDTH=279>
+			<P LANG="en-US" ALIGN=LEFT><A NAME="DDE_LINK7"></A><FONT SIZE=3>DN
+			to use to bind to the server</FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=36>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>-w</FONT></P>
+		</TD>
+		<TD WIDTH=82>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>--bindPW</FONT></P>
+		</TD>
+		<TD WIDTH=56>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>String</FONT></P>
+		</TD>
+		<TD WIDTH=37>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>yes</FONT></P>
+		</TD>
+		<TD WIDTH=103>
+			<P LANG="en-US" ALIGN=CENTER><BR>
+			</P>
+		</TD>
+		<TD WIDTH=279>
+			<P LANG="en-US" ALIGN=LEFT><FONT SIZE=3>Password to use to bind to
+			the server</FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=36>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>-f</FONT></P>
+		</TD>
+		<TD WIDTH=82>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>--configFile</FONT></P>
+		</TD>
+		<TD WIDTH=56>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>String</FONT></P>
+		</TD>
+		<TD WIDTH=37>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>no</FONT></P>
+		</TD>
+		<TD WIDTH=103>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>config.xml</FONT></P>
+		</TD>
+		<TD WIDTH=279>
+			<P LANG="en-US" ALIGN=LEFT><FONT SIZE=3>Config file to use to
+			monitor the server</FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=36>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>-i</FONT></P>
+		</TD>
+		<TD WIDTH=82>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>--interval</FONT></P>
+		</TD>
+		<TD WIDTH=56>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>Int</FONT></P>
+		</TD>
+		<TD WIDTH=37>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>no</FONT></P>
+		</TD>
+		<TD WIDTH=103>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>3</FONT></P>
+		</TD>
+		<TD WIDTH=279>
+			<P LANG="en-US" ALIGN=LEFT><FONT SIZE=3>Interval of time between
+			each attributes retrieving</FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=36 HEIGHT=15>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>-u</FONT></P>
+		</TD>
+		<TD WIDTH=82>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>--timeUnit</FONT></P>
+		</TD>
+		<TD WIDTH=56>
+			<P LANG="en-US" ALIGN=CENTER><FONT COLOR="#000000"><FONT SIZE=3>s
+			| min | h</FONT></FONT></P>
+		</TD>
+		<TD WIDTH=37>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>no</FONT></P>
+		</TD>
+		<TD WIDTH=103>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>s</FONT></P>
+		</TD>
+		<TD WIDTH=279>
+			<P LANG="en-US" ALIGN=LEFT><FONT SIZE=3>Time unit of the interval
+			of time</FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P LANG="en-US" ALIGN=JUSTIFY><BR><BR>
+</P>
+<P LANG="en-US" ALIGN=JUSTIFY><FONT SIZE=3>If there is a space in the
+value of an argument command line, the value have to be enclose by
+quotes marks. Ex: <FONT COLOR="#000000"><SPAN STYLE="font-weight: medium">$
+java -jar MonitoringClient.jar -D &quot;Directory Manager&quot;.</SPAN></FONT></FONT></P>
+<P LANG="en-US" ALIGN=JUSTIFY><FONT SIZE=3><B>Example of command to
+launch the client:</B></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="font-weight: medium"><FONT SIZE=3>java
+-cp lib/jdmkrt.jar:lib/snmp-mib2605.jar:MonitoringClient.jar 
+org.opends.testqa.monitoringclient.MonitoringClient -h havmann -p
+1389 -w toto123 <FONT COLOR="#000000">-f replication.xml -i 10</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; page-break-before: always">
+<FONT SIZE=4><B>Specification of the config file</B></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>To specify which attributes have to be monitored, a XML
+file must be put in the same directory as the file config.dtd. When
+the client parse the config file, it verify that the syntax of the
+file is valid for the XML norm, is conform to the DTD and is conform
+to the client specifications.</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>It is possible to replace the LDAP port number in the
+XML file by ${port}. So it's possible to use the same config file
+also when the LDAP port are not the same.</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>The config file must have the header :</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>&lt;<FONT COLOR="#000080"><B>?xml</B></FONT><B>
+</B>version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;
+standalone=&quot;no&quot;?&gt;</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>&lt;<FONT COLOR="#000080"><B>!DOCTYPE config SYSTEM</B></FONT>
+&quot;./config.dtd&quot;&gt;</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>It has three markups : </FONT>
+</P>
+<UL>
+	<LI><P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#0000ff"><FONT SIZE=3><SPAN STYLE="font-style: normal"><SPAN STYLE="text-decoration: none"><SPAN STYLE="font-weight: medium">config</SPAN></SPAN></SPAN></FONT></FONT><FONT SIZE=3><SPAN STYLE="font-weight: medium">:
+	the root markup of the document</SPAN></FONT></P>
+	<LI><P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#0000ff"><FONT SIZE=3><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: medium">protocol</SPAN></SPAN></FONT></FONT><FONT SIZE=3><SPAN STYLE="font-weight: medium">:
+	protocol to use for retrieving the attributes</SPAN></FONT></P>
+	<LI><P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#0000ff"><FONT SIZE=3><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: medium">attribute</SPAN></SPAN></FONT></FONT><FONT SIZE=3><SPAN STYLE="font-weight: medium">:
+	attribute to monitor</SPAN></FONT></P>
+</UL>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT SIZE=3><SPAN STYLE="font-weight: medium">The
+</SPAN></FONT><FONT COLOR="#0000ff"><FONT SIZE=3><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: medium">config</SPAN></SPAN></FONT></FONT><FONT SIZE=3><SPAN STYLE="font-weight: medium">
+markup haven't any parameter and include at least one </SPAN></FONT><FONT COLOR="#0000ff"><FONT SIZE=3><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: medium">protocol</SPAN></SPAN></FONT></FONT><FONT SIZE=3><SPAN STYLE="font-weight: medium">
+markup.</SPAN></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT SIZE=3><SPAN STYLE="font-weight: medium">The
+</SPAN></FONT><FONT COLOR="#0000ff"><FONT SIZE=3><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: medium">protocol</SPAN></SPAN></FONT></FONT><FONT SIZE=3><SPAN STYLE="font-weight: medium">
+markup have three parameters and include at least one </SPAN></FONT><FONT COLOR="#0000ff"><FONT SIZE=3><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: medium">attribute</SPAN></SPAN></FONT></FONT><FONT SIZE=3><SPAN STYLE="font-weight: medium">
+</SPAN></FONT><FONT COLOR="#000000"><FONT SIZE=3><SPAN STYLE="font-weight: medium">markup:</SPAN></FONT></FONT></P>
+<TABLE WIDTH=100% BORDER=1 BORDERCOLOR="#000000" CELLPADDING=4 CELLSPACING=0>
+	<COL WIDTH=35*>
+	<COL WIDTH=30*>
+	<COL WIDTH=28*>
+	<COL WIDTH=22*>
+	<COL WIDTH=140*>
+	<TR VALIGN=TOP>
+		<TD WIDTH=14%>
+			<P LANG="en-US" ALIGN=CENTER>Name of the attribute</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P LANG="en-US" ALIGN=CENTER>Type</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>Required</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P LANG="en-US" ALIGN=CENTER>Default value</P>
+		</TD>
+		<TD WIDTH=55%>
+			<P LANG="en-US" ALIGN=LEFT>Description</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=14%>
+			<P LANG="en-US" ALIGN=CENTER STYLE="font-style: normal; font-weight: medium">
+			<FONT COLOR="#008000">name</FONT></P>
+		</TD>
+		<TD WIDTH=12%>
+			<P LANG="en-US" ALIGN=CENTER>“LDAP” | “JMX” | “JVM” |
+			“SNMP” 
+			</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>yes</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P LANG="en-US" ALIGN=CENTER><BR>
+			</P>
+		</TD>
+		<TD WIDTH=55%>
+			<P LANG="en-US" ALIGN=LEFT>The name of the protocol</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=14%>
+			<P LANG="en-US" ALIGN=CENTER STYLE="font-style: normal; font-weight: medium">
+			<FONT COLOR="#008000">delay</FONT></P>
+		</TD>
+		<TD WIDTH=12%>
+			<P LANG="en-US" ALIGN=CENTER>Integer</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>no</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P LANG="en-US" ALIGN=CENTER>0</P>
+		</TD>
+		<TD WIDTH=55%>
+			<P LANG="en-US" ALIGN=LEFT><A NAME="DDE_LINK8"></A>Number of time
+			unit to wait before making the request, used in functional tests
+			for desynchronize the producers</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=14%>
+			<P LANG="en-US" ALIGN=CENTER STYLE="font-style: normal; font-weight: medium">
+			<FONT COLOR="#008000">charge</FONT></P>
+		</TD>
+		<TD WIDTH=12%>
+			<P LANG="en-US" ALIGN=CENTER>Integer</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>no</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P LANG="en-US" ALIGN=CENTER>0</P>
+		</TD>
+		<TD WIDTH=55%>
+			<P LANG="en-US" ALIGN=LEFT>Number of time unit to wait after the
+			request before stocking the datas in the datas buffer, used used
+			in functional tests for simulate an important charge of the server
+			and then trigger the timeout</P>
+		</TD>
+	</TR>
+</TABLE>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+ 
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; page-break-before: always">
+<FONT SIZE=3><SPAN STYLE="font-weight: medium">The parameters of a
+</SPAN></FONT><FONT COLOR="#0000ff"><FONT SIZE=3><SPAN STYLE="font-weight: medium">attribute</SPAN></FONT></FONT><FONT SIZE=3><SPAN STYLE="font-weight: medium">
+markup depends of the protocol used. </SPAN></FONT>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT SIZE=3><SPAN STYLE="font-weight: medium">Parameters
+for a </SPAN></FONT><FONT COLOR="#0000ff"><FONT SIZE=3><SPAN STYLE="font-weight: medium">attribute</SPAN></FONT></FONT><FONT SIZE=3><SPAN STYLE="font-weight: medium">
+markup include in a LDAP </SPAN></FONT><FONT COLOR="#0000ff"><FONT SIZE=3><SPAN STYLE="font-weight: medium">protocol</SPAN></FONT></FONT><FONT SIZE=3><SPAN STYLE="font-weight: medium">
+markup:</SPAN></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<TABLE WIDTH=100% BORDER=1 BORDERCOLOR="#000000" CELLPADDING=4 CELLSPACING=0>
+	<COL WIDTH=35*>
+	<COL WIDTH=34*>
+	<COL WIDTH=27*>
+	<COL WIDTH=49*>
+	<COL WIDTH=111*>
+	<TR VALIGN=TOP>
+		<TD WIDTH=14%>
+			<P LANG="en-US" ALIGN=CENTER>Name of the attribute</P>
+		</TD>
+		<TD WIDTH=13%>
+			<P LANG="en-US" ALIGN=CENTER>Type</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>Required</P>
+		</TD>
+		<TD WIDTH=19%>
+			<P LANG="en-US" ALIGN=CENTER>Default value</P>
+		</TD>
+		<TD WIDTH=43%>
+			<P LANG="en-US" ALIGN=LEFT>Description</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=14%>
+			<P LANG="en-US" ALIGN=CENTER STYLE="font-style: normal; font-weight: medium">
+			<FONT COLOR="#008000">name</FONT></P>
+		</TD>
+		<TD WIDTH=13%>
+			<P LANG="en-US" ALIGN=CENTER>String 
+			</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>yes</P>
+		</TD>
+		<TD WIDTH=19%>
+			<P LANG="en-US" ALIGN=CENTER><BR>
+			</P>
+		</TD>
+		<TD WIDTH=43%>
+			<P LANG="en-US" ALIGN=LEFT>The name of the attribute to monitor</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=14%>
+			<P LANG="en-US" ALIGN=CENTER STYLE="font-style: normal; font-weight: medium">
+			<FONT COLOR="#008000">baseDN</FONT></P>
+		</TD>
+		<TD WIDTH=13%>
+			<P LANG="en-US" ALIGN=CENTER>String</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>yes</P>
+		</TD>
+		<TD WIDTH=19%>
+			<P LANG="en-US" ALIGN=CENTER><BR>
+			</P>
+		</TD>
+		<TD WIDTH=43%>
+			<P LANG="en-US" ALIGN=LEFT>The base dn to retrieve the attribute</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=14%>
+			<P LANG="en-US" ALIGN=CENTER STYLE="font-style: normal; font-weight: medium">
+			<FONT COLOR="#008000">filter</FONT></P>
+		</TD>
+		<TD WIDTH=13%>
+			<P LANG="en-US" ALIGN=CENTER><A NAME="DDE_LINK9"></A>String</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>no</P>
+		</TD>
+		<TD WIDTH=19%>
+			<P LANG="en-US" ALIGN=CENTER>&quot;(objectclass=*)&quot;</P>
+		</TD>
+		<TD WIDTH=43%>
+			<P LANG="en-US" ALIGN=LEFT>filterRFC-1558 compliant LDAP search
+			filter</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=14%>
+			<P LANG="en-US" ALIGN=CENTER STYLE="font-style: normal; font-weight: medium">
+			<FONT COLOR="#008000">scope</FONT></P>
+		</TD>
+		<TD WIDTH=13%>
+			<P LANG="en-US" ALIGN=CENTER>“base” | “onelevel” | “sub”</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>no</P>
+		</TD>
+		<TD WIDTH=19%>
+			<P LANG="en-US" ALIGN=CENTER>“sub”</P>
+		</TD>
+		<TD WIDTH=43%>
+			<P LANG="en-US" ALIGN=LEFT>The scope to retrieve the attribute</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=14% HEIGHT=15>
+			<P LANG="en-US" ALIGN=CENTER STYLE="font-style: normal; font-weight: medium">
+			<FONT COLOR="#008000">output</FONT></P>
+		</TD>
+		<TD WIDTH=13%>
+			<P LANG="en-US" ALIGN=CENTER>“value” | “diff” | “average”</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>no</P>
+		</TD>
+		<TD WIDTH=19%>
+			<P LANG="en-US" ALIGN=CENTER>“value”</P>
+		</TD>
+		<TD WIDTH=43%>
+			<P LANG="en-US" ALIGN=LEFT>The way of the result of the search
+			will be displayed. 
+			</P>
+		</TD>
+	</TR>
+</TABLE>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=4><FONT SIZE=3>Parameters for a </FONT><FONT COLOR="#0000ff"><FONT SIZE=3>attribute</FONT></FONT><FONT SIZE=3>
+markup include in a JMX or JVM </FONT><FONT COLOR="#0000ff"><FONT SIZE=3>protocol</FONT></FONT><FONT SIZE=3>
+markup:</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<TABLE WIDTH=100% BORDER=1 BORDERCOLOR="#000000" CELLPADDING=4 CELLSPACING=0>
+	<COL WIDTH=41*>
+	<COL WIDTH=28*>
+	<COL WIDTH=27*>
+	<COL WIDTH=32*>
+	<COL WIDTH=128*>
+	<TR VALIGN=TOP>
+		<TD WIDTH=16%>
+			<P LANG="en-US" ALIGN=CENTER>Name of the attribute</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>Type</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>Required</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P LANG="en-US" ALIGN=CENTER>Default value</P>
+		</TD>
+		<TD WIDTH=50%>
+			<P LANG="en-US" ALIGN=LEFT>Description</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=16%>
+			<P LANG="en-US" ALIGN=CENTER STYLE="font-style: normal; font-weight: medium">
+			<FONT COLOR="#008000">name</FONT></P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>String 
+			</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER><A NAME="DDE_LINK15"></A>yes</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P LANG="en-US" ALIGN=CENTER><BR>
+			</P>
+		</TD>
+		<TD WIDTH=50%>
+			<P LANG="en-US" ALIGN=LEFT>The name of the attribute to monitor</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=16%>
+			<P LANG="en-US" ALIGN=CENTER STYLE="font-style: normal; font-weight: medium">
+			<FONT COLOR="#008000">MBeanName</FONT></P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>String</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>yes</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P LANG="en-US" ALIGN=CENTER><BR>
+			</P>
+		</TD>
+		<TD WIDTH=50%>
+			<P LANG="en-US" ALIGN=LEFT>The name of the MBean to retrieve the
+			attribute</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=16% HEIGHT=15>
+			<P LANG="en-US" ALIGN=CENTER STYLE="font-style: normal; font-weight: medium">
+			<FONT COLOR="#008000">output</FONT></P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>“value” | “diff” | “average”</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>no</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P LANG="en-US" ALIGN=CENTER>“value”</P>
+		</TD>
+		<TD WIDTH=50%>
+			<P LANG="en-US" ALIGN=LEFT>The way of the result of the search
+			will be displayed.</P>
+		</TD>
+	</TR>
+</TABLE>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=4><FONT SIZE=3>Parameters for a </FONT><FONT COLOR="#0000ff"><FONT SIZE=3>attribute</FONT></FONT><FONT SIZE=3>
+markup include in a SNMP </FONT><FONT COLOR="#0000ff"><FONT SIZE=3>protocol</FONT></FONT><FONT SIZE=3>
+markup:</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<TABLE WIDTH=100% BORDER=1 BORDERCOLOR="#000000" CELLPADDING=4 CELLSPACING=0>
+	<COL WIDTH=41*>
+	<COL WIDTH=28*>
+	<COL WIDTH=27*>
+	<COL WIDTH=32*>
+	<COL WIDTH=128*>
+	<TR VALIGN=TOP>
+		<TD WIDTH=16%>
+			<P LANG="en-US" ALIGN=CENTER>Name of the attribute</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>Type</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>Required</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P LANG="en-US" ALIGN=CENTER>Default value</P>
+		</TD>
+		<TD WIDTH=50%>
+			<P LANG="en-US" ALIGN=LEFT>Description</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=16%>
+			<P LANG="en-US" ALIGN=CENTER STYLE="font-style: normal; font-weight: medium">
+			<FONT COLOR="#008000">oid</FONT></P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>String</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>yes</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P LANG="en-US" ALIGN=CENTER><BR>
+			</P>
+		</TD>
+		<TD WIDTH=50%>
+			<P LANG="en-US" ALIGN=LEFT>The oid of the attribute to monitor. It
+			have to be  an entry of the table <SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: medium">DsApplIfOpsTable</SPAN></SPAN></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=16%>
+			<P LANG="en-US" ALIGN=CENTER STYLE="font-style: normal; font-weight: medium">
+			<FONT COLOR="#008000">output</FONT></P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>“value” | “diff” | “average”</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P LANG="en-US" ALIGN=CENTER>no</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P LANG="en-US" ALIGN=CENTER>“value”</P>
+		</TD>
+		<TD WIDTH=50%>
+			<P LANG="en-US" ALIGN=LEFT>The way of the result of the search
+			will be displayed.</P>
+		</TD>
+	</TR>
+</TABLE>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; page-break-before: always">
+<FONT SIZE=3><B>Example of config file:</B></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=4><FONT SIZE=3>&lt;</FONT><FONT SIZE=3><B>?xm</B></FONT><FONT SIZE=3>l
+version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=4><FONT SIZE=3>&lt;</FONT><FONT SIZE=3><B>!DOCTYPE config
+SYSTEM</B></FONT><FONT SIZE=3> &quot;./config.dtd&quot;&gt;</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#0000ff"><FONT SIZE=3>&lt;config&gt;</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+  <FONT SIZE=4><FONT COLOR="#0000ff"><FONT SIZE=3>&lt;protocol</FONT></FONT><FONT SIZE=3>
+</FONT><FONT COLOR="#008000"><FONT SIZE=3>name</FONT></FONT><FONT SIZE=3>=&quot;LDAP&quot;</FONT><FONT COLOR="#0000ff"><FONT SIZE=3>&gt;</FONT></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium"><A NAME="DDE_LINK11"></A>
+    <FONT SIZE=4><FONT COLOR="#0000ff"><FONT SIZE=3>&lt;attribute</FONT></FONT><FONT SIZE=3>
+</FONT><FONT COLOR="#008000"><FONT SIZE=3>name</FONT></FONT><FONT SIZE=3>=&quot;modifyRequests&quot;
+</FONT><FONT COLOR="#008000"><FONT SIZE=3>baseDN</FONT></FONT><FONT SIZE=3>=&quot;cn=LDAP
+Connection Handler 0.0.0.0 port ${port} Statistics,cn=monitor</FONT><FONT SIZE=3>&quot;</FONT><FONT SIZE=3>
+</FONT><FONT COLOR="#008000"><FONT SIZE=3>scope</FONT></FONT><FONT SIZE=3>=&quot;base&quot;
+</FONT><FONT COLOR="#0000ff"><FONT SIZE=3>/&gt;</FONT></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+    <FONT SIZE=4><FONT COLOR="#0000ff"><FONT SIZE=3>&lt;attribute</FONT></FONT><FONT SIZE=3>
+</FONT><FONT COLOR="#008000"><FONT SIZE=3>name</FONT></FONT><FONT SIZE=3>=&quot;searchRequests&quot;
+</FONT><FONT COLOR="#008000"><FONT SIZE=3>baseDN</FONT></FONT><FONT SIZE=3>=&quot;cn=LDAP
+Connection Handler 0.0.0.0 port ${port} Statistics,cn=monitor&quot;
+</FONT><FONT COLOR="#008000"><FONT SIZE=3>filter</FONT></FONT><FONT SIZE=3>=&quot;(objectclass=*)&quot;
+</FONT><FONT COLOR="#008000"><FONT SIZE=3>output</FONT></FONT><FONT SIZE=3>=&quot;diff&quot;</FONT><FONT COLOR="#0000ff"><FONT SIZE=3>/&gt;</FONT></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+  <FONT SIZE=4><FONT COLOR="#0000ff"><FONT SIZE=3>&lt;/protocol&gt;</FONT></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+  <FONT SIZE=4><FONT COLOR="#0000ff"><FONT SIZE=3>&lt;protocol</FONT></FONT><FONT SIZE=3>
+</FONT><FONT COLOR="#008000"><FONT SIZE=3>name</FONT></FONT><FONT SIZE=3>=&quot;JMX&quot;</FONT><FONT COLOR="#0000ff"><FONT SIZE=3>&gt;</FONT></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+    <FONT SIZE=4><FONT COLOR="#0000ff"><FONT SIZE=3>&lt;attribute</FONT></FONT><FONT SIZE=3>
+</FONT><FONT COLOR="#008000"><FONT SIZE=3>name</FONT></FONT><FONT SIZE=3>=&quot;modifyRequests&quot;
+</FONT><FONT COLOR="#008000"><FONT SIZE=3>MBeanName</FONT></FONT><FONT SIZE=3>=&quot;org.opends.server:Name=rootDSE,Rdn1=cn-monitor,Rdn2=cn-LDAP_Connection_Handler_0000_port_${port}_Statistics&quot;
+</FONT><FONT COLOR="#008000"><FONT SIZE=3>output</FONT></FONT><FONT SIZE=3>=&quot;value&quot;</FONT><FONT COLOR="#0000ff"><FONT SIZE=3>/&gt;</FONT></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+    <FONT SIZE=4><FONT COLOR="#0000ff"><FONT SIZE=3>&lt;attribute</FONT></FONT><FONT SIZE=3>
+</FONT><FONT COLOR="#008000"><FONT SIZE=3>name</FONT></FONT><FONT SIZE=3>=&quot;searchRequests&quot;
+</FONT><FONT COLOR="#008000"><FONT SIZE=3>MBeanName</FONT></FONT><FONT SIZE=3>=&quot;org.opends.server:Name=rootDSE,Rdn1=cn-monitor,Rdn2=cn-LDAP_Connection_Handler_0000_port_${port}_Statistics&quot;
+</FONT><FONT COLOR="#008000"><FONT SIZE=3>output</FONT></FONT><FONT SIZE=3>=&quot;average&quot;</FONT><FONT COLOR="#0000ff"><FONT SIZE=3>/&gt;</FONT></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+  <FONT SIZE=4><FONT COLOR="#0000ff"><FONT SIZE=3>&lt;/protocol&gt;</FONT></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000">  <FONT SIZE=4><FONT COLOR="#0000ff"><FONT SIZE=3>&lt;protocol
+</FONT></FONT><FONT COLOR="#008000"><FONT SIZE=3>name</FONT></FONT><FONT SIZE=3>=&quot;SNMP&quot;</FONT><FONT COLOR="#0000ff"><FONT SIZE=3>&gt;</FONT></FONT></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000">    <FONT SIZE=4><FONT COLOR="#0000ff"><FONT SIZE=3>&lt;attribute</FONT></FONT><FONT SIZE=3>
+</FONT><FONT COLOR="#008000"><FONT SIZE=3>oid</FONT></FONT><FONT SIZE=3>=&quot;dsApplIfModifyEntryOps&quot;</FONT><FONT COLOR="#0000ff"><FONT SIZE=3>
+/&gt;</FONT></FONT></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000">    <FONT SIZE=4><FONT COLOR="#0000ff"><FONT SIZE=3>&lt;attribute</FONT></FONT><FONT SIZE=3>
+</FONT><FONT COLOR="#008000"><FONT SIZE=3>oid</FONT></FONT><FONT SIZE=3>=&quot;dsApplIfSearchOps&quot;
+</FONT><FONT COLOR="#008000"><FONT SIZE=3>output</FONT></FONT><FONT SIZE=3>=&quot;average&quot;
+</FONT><FONT COLOR="#0000ff"><FONT SIZE=3>/&gt;</FONT></FONT></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000">  <FONT SIZE=4><FONT COLOR="#0000ff"><FONT SIZE=3>&lt;/protocol&gt;</FONT></FONT></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#0000ff"><FONT SIZE=3>&lt;/config&gt;</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>Here, we use the protocols LDAP
+JMX and SNMP to retrieve the number of modify request and the number
+of search request since the start of the server.</FONT></FONT></P>
+<P LANG="en-US" STYLE="margin-bottom: 0cm; page-break-before: always">
+<FONT SIZE=4><B>Specifications of the output files</B></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>The client save the values of the
+attributes monitored and the errors into two separate files.</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>The dates are saved in the same
+format as the logs of OpenDS: [dd/MMM/yyyy:HH:mm:ss Z]</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>In the datas file, the first line
+is a header which specified the title of the columns in the form :</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=4><B><FONT SIZE=3>#
+DATE </FONT><FONT SIZE=3><I>Protocol1</I></FONT><FONT SIZE=3><SPAN STYLE="font-style: normal">|</SPAN></FONT><FONT SIZE=3><I>Attribute1</I></FONT><FONT SIZE=3><SPAN STYLE="font-style: normal">|</SPAN></FONT><FONT SIZE=3><I>Output1</I></FONT><FONT SIZE=3>
+</FONT><FONT SIZE=3><I>Protocol2</I></FONT><FONT SIZE=3>|</FONT><FONT SIZE=3><I>Attribute2</I></FONT><FONT SIZE=3><SPAN STYLE="font-style: normal">|</SPAN></FONT><FONT SIZE=3><I>Output2
+</I></FONT><FONT SIZE=3>...</FONT></B></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>The rest of the file is in the
+form:</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=4><B><FONT SIZE=3>[</FONT><FONT SIZE=3><I>dd/MMM/yyyy:HH:mm:ss
+Z</I></FONT><FONT SIZE=3>] </FONT><FONT SIZE=3><I>val1 val2 </I></FONT><FONT SIZE=3>...</FONT></B></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>If an attribute haven't been
+retrieved for any reason, the value of the attribute is set to  “-1”.</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=3><B>Example
+of datas file:</B></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3># DATE LDAP|modifyRequests|average
+LDAP|missing-changes|values</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:17:43:09 +0200] 0 0</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:17:43:20 +0200] 554 0</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:17:43:30 +0200] 574 0</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:17:43:40 +0200] 577 5</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:17:43:50 +0200] 565 0</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:17:44:00 +0200] 394 7</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:17:44:10 +0200] 233 0</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:17:44:20 +0200] 561 0</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:17:44:30 +0200] 550 1</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:17:44:40 +0200] 559 0</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>In this example are monitored the
+number of modify request during one unit of time (here the second)
+and the number of missing changes who </FONT></FONT>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>In the errors file, the first line
+is also a header which specified the title of the columns. This
+header is always the same and is:</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><A NAME="DDE_LINK13"></A>
+<FONT COLOR="#000000"><FONT SIZE=3><B># DATE PROTOCOL|ATTRIBUTE
+MESSAGE</B></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>The rest of the file is in the
+form:</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=4><B><FONT SIZE=3>[</FONT><FONT SIZE=3><I>dd/MMM/yyyy:HH:mm:ss
+Z</I></FONT><FONT SIZE=3>] </FONT><FONT SIZE=3><I>protocol</I></FONT><FONT SIZE=3>|</FONT><FONT SIZE=3><I>attribute</I></FONT><FONT SIZE=3>
+</FONT><FONT SIZE=3><I>message</I></FONT></B></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal">
+<FONT COLOR="#000000"><FONT SIZE=3><B>Example of errors file:</B></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3># DATE PROTOCOL|ATTRIBUTE MESSAGE</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:18:32:20 +0200]
+LDAP|modifyRequests This attribute couldn't be retrieved</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:18:32:20 +0200]
+LDAP|missing-changes This attribute couldn't be retrieved</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:18:57:10 +0200]
+LDAP|missing-changes This attribute couldn't be retrieved because the
+timeout has expired</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:18:57:22 +0200]
+LDAP|missing-changes Timeout exceed: 12001 ms</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:18:57:20 +0200]
+LDAP|modifyRequests This attribute couldn't be retrieved</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:18:57:20 +0200]
+LDAP|missing-changes This attribute couldn't be retrieved because the
+timeout has expired</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:19:12:10 +0200]
+LDAP|modifyRequests This attribute couldn't be retrieved</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:19:12:10 +0200]
+LDAP|missing-changes This attribute couldn't be retrieved</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:19:37:00 +0200]
+LDAP|modifyRequests This attribute couldn't be retrieved because the
+timeout has expired</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:19:37:00 +0200]
+LDAP|missing-changes This attribute couldn't be retrieved because the
+timeout has expired</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>[06/Jun/2008:19:37:10 +0200]
+LDAP|modifyRequests Timeout exceed: 10128 ms</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>In this error file, most of the
+errors are due to the server which is stressed and who isn't
+responding fast enough. A solution will be to increase the interval
+of time to give him the time to respond before trigger the timeout.</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; page-break-before: always">
+<FONT COLOR="#000000"><FONT SIZE=4><B>Graph generation</B></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=JUSTIFY STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>To generate a graph from the
+output files, use the command line :</FONT></FONT></P>
+<P LANG="en-US" ALIGN=JUSTIFY STYLE="margin-bottom: 0cm; font-style: normal">
+<FONT COLOR="#000000"><FONT SIZE=3><B>java -jar ChartGenerator.jar
+[-a &lt;attribute&gt;] [-i] [-m] [-w &lt;width&gt;] [-h &lt;height]
+<BR>[-r &lt;repository&gt;]</B></FONT></FONT></P>
+<P LANG="en-US" ALIGN=JUSTIFY STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<BR>
+</P>
+<TABLE WIDTH=643 BORDER=1 BORDERCOLOR="#000000" CELLPADDING=4 CELLSPACING=0>
+	<COL WIDTH=36>
+	<COL WIDTH=112>
+	<COL WIDTH=54>
+	<COL WIDTH=34>
+	<COL WIDTH=73>
+	<COL WIDTH=284>
+	<TR VALIGN=TOP>
+		<TD WIDTH=36 HEIGHT=14>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>Short flag</FONT></P>
+		</TD>
+		<TD WIDTH=112>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>Long flag </FONT>
+			</P>
+		</TD>
+		<TD WIDTH=54>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>Type</FONT></P>
+		</TD>
+		<TD WIDTH=34>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>Required</FONT></P>
+		</TD>
+		<TD WIDTH=73>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>Default value</FONT></P>
+		</TD>
+		<TD WIDTH=284>
+			<P LANG="en-US" ALIGN=LEFT><FONT SIZE=3>Description</FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=36 HEIGHT=12>
+			<P LANG="en-US" ALIGN=CENTER><FONT COLOR="#000000"><FONT SIZE=3>-a</FONT></FONT></P>
+		</TD>
+		<TD WIDTH=112>
+			<P LANG="en-US" ALIGN=CENTER><FONT COLOR="#000000"><FONT SIZE=3>--attribute</FONT></FONT></P>
+		</TD>
+		<TD WIDTH=54>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>String</FONT></P>
+		</TD>
+		<TD WIDTH=34>
+			<P LANG="en-US" ALIGN=CENTER><A NAME="DDE_LINK51"></A><FONT SIZE=3>no</FONT></P>
+		</TD>
+		<TD WIDTH=73>
+			<P LANG="en-US" ALIGN=CENTER><A NAME="DDE_LINK411"></A><BR>
+			</P>
+		</TD>
+		<TD WIDTH=284>
+			<P LANG="en-US" ALIGN=LEFT><FONT SIZE=3>Attribute we need to
+			generate the chart</FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=36>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>-i</FONT></P>
+		</TD>
+		<TD WIDTH=112>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>--ignore</FONT></P>
+		</TD>
+		<TD WIDTH=54>
+			<P LANG="en-US" ALIGN=CENTER><A NAME="DDE_LINK22"></A><FONT SIZE=3>Boolean</FONT></P>
+		</TD>
+		<TD WIDTH=34>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>no</FONT></P>
+		</TD>
+		<TD WIDTH=73>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>false</FONT></P>
+		</TD>
+		<TD WIDTH=284>
+			<P LANG="en-US" ALIGN=LEFT><FONT SIZE=3>Ignore the errors to
+			generate the chart</FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=36>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>-m</FONT></P>
+		</TD>
+		<TD WIDTH=112>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>--movingAverage</FONT></P>
+		</TD>
+		<TD WIDTH=54>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>Boolean</FONT></P>
+		</TD>
+		<TD WIDTH=34>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>no</FONT></P>
+		</TD>
+		<TD WIDTH=73>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>false</FONT></P>
+		</TD>
+		<TD WIDTH=284>
+			<P LANG="en-US" ALIGN=LEFT><FONT SIZE=3>Generate moving average
+			from the datas file</FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=36>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>-w</FONT></P>
+		</TD>
+		<TD WIDTH=112>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>--width</FONT></P>
+		</TD>
+		<TD WIDTH=54>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>Int</FONT></P>
+		</TD>
+		<TD WIDTH=34>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>no</FONT></P>
+		</TD>
+		<TD WIDTH=73>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>1000</FONT></P>
+		</TD>
+		<TD WIDTH=284>
+			<P LANG="en-US" ALIGN=LEFT> <FONT SIZE=3>Image width (in pixels)</FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=36>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>-h</FONT></P>
+		</TD>
+		<TD WIDTH=112>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>--height</FONT></P>
+		</TD>
+		<TD WIDTH=54>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>Int</FONT></P>
+		</TD>
+		<TD WIDTH=34>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>no</FONT></P>
+		</TD>
+		<TD WIDTH=73>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>5000</FONT></P>
+		</TD>
+		<TD WIDTH=284>
+			<P LANG="en-US" ALIGN=LEFT><FONT SIZE=3>Image height (in pixels)</FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=36>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>-r</FONT></P>
+		</TD>
+		<TD WIDTH=112>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>--repository</FONT></P>
+		</TD>
+		<TD WIDTH=54>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>String</FONT></P>
+		</TD>
+		<TD WIDTH=34>
+			<P LANG="en-US" ALIGN=CENTER><FONT SIZE=3>no</FONT></P>
+		</TD>
+		<TD WIDTH=73>
+			<P LANG="en-US" ALIGN=CENTER>“<FONT SIZE=3>charts”</FONT></P>
+		</TD>
+		<TD WIDTH=284>
+			<P LANG="en-US" ALIGN=LEFT><FONT SIZE=3>Repository of the
+			generated charts</FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal">
+<FONT COLOR="#000000"><FONT SIZE=3><B>Example of generated chart:</B></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal">
+<IMG SRC="MonitoringClient0.5.0_html_m7be26253.png" NAME="Image2" ALIGN=LEFT WIDTH=642 HEIGHT=321 BORDER=0><BR CLEAR=LEFT><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>Here, we have monitored the number
+of request search since the start of the server.</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>For a short period of time, the
+server has been too long to respond, and the value “-1” have been
+saved in the datas output file.</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>By default, the graphs generator
+generate one graph by attribute, but it is possible to generate a
+graph only for the attribute specified with the option -a. The
+attribute specified must be in the form “<I>Protocol</I>|<I>Attribute</I>”.
+</FONT></FONT>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal">
+<FONT COLOR="#000000"><FONT SIZE=3><B>Example of command line to
+generate a graph only for one attribute:</B></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><FONT SIZE=3>java -jar ChartGenerator.jar -a
+“LDAP|missing-changes”</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium; page-break-before: always">
+<FONT COLOR="#000000"><FONT SIZE=3>If there is too many errors, it is
+possible too ignore them with the option -i.</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal">
+<FONT COLOR="#000000"><FONT SIZE=3><B>Example of generated chart with
+a lot of errors:</B></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal">
+<IMG SRC="MonitoringClient0.5.0_html_5562f3a7.png" NAME="Image3" ALIGN=LEFT WIDTH=642 HEIGHT=321 BORDER=0><BR CLEAR=LEFT><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal">
+<FONT COLOR="#000000"><FONT SIZE=3><B>Example of generated chart with
+errors ignored:</B></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal">
+<IMG SRC="MonitoringClient0.5.0_html_6b7c8952.png" NAME="Image4" ALIGN=LEFT WIDTH=642 HEIGHT=321 BORDER=0><BR CLEAR=LEFT><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium; page-break-before: always">
+<FONT COLOR="#000000"><FONT SIZE=3>It is also possible to make a time
+average to make the graph with the option -m:</FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal">
+<FONT COLOR="#000000"><FONT SIZE=3><B>Example of generated chart with
+time average:</B></FONT></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal">
+<IMG SRC="MonitoringClient0.5.0_html_7b0973b5.png" NAME="Image5" ALIGN=LEFT WIDTH=642 HEIGHT=321 BORDER=0><BR CLEAR=LEFT><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; page-break-before: always">
+<FONT SIZE=5><B>Interface</B></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>For the monitoring client, a producers/consumers model
+have been used. This way, it is very easy to extend the client and
+add new producers or new consumers.</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+ 
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>Each interval of time, the producers will retrieve from
+the server the attributes values to monitor and save the values
+retrieved and the errors witch occurred in two different buffers.</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>If a producer request is too long and it try to save an
+obsolete value, then this one is discarded, the value of the data in
+the buffer is set to -1 and an error is add in the errors buffer.</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium"><A NAME="DDE_LINK12"></A>
+<FONT SIZE=3>When all the datas have been retrieved or at the
+timeout, the datas consumers read the datas buffer,  process the
+datas and exploit it. For example, the DatasOutputFile consumer first
+retrieve the datas of the datas buffer, the format the datas and
+finally save them in the data file.</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>When an error occurred, the errors consumers read it,
+process it and exploit it. For example, the ErrorsOutputFile consumer
+first retrieve the errors of the errors buffer, the format the errors
+and finally save them in the error file.</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<IMG SRC="MonitoringClient0.5.0_html_m28ee5bcd.png" NAME="Image6" ALIGN=LEFT WIDTH=575 HEIGHT=490 BORDER=0><BR CLEAR=LEFT><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<IMG SRC="MonitoringClient0.5.0_html_1d22348e.png" NAME="Image1" ALIGN=LEFT WIDTH=548 HEIGHT=792 BORDER=0><BR CLEAR=LEFT><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; page-break-before: always">
+<FONT SIZE=5><B>Tests</B></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT SIZE=4><B>Test
+plan</B></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3><B>Name: </B>Test1<BR><B>Purpose:</B> Normal
+use<BR><B>Description:</B> Run the tool with in normal condition with
+default values</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium"><A NAME="DDE_LINK3"></A><A NAME="DDE_LINK"></A>
+<FONT SIZE=3><B>Command:</B> $ java -jar
+MonitoringClient.java<BR><B>Result:</B> PASS if the data file is in
+the form:</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3># DATE LDAP|modifyRequests LDAP|searchRequests
+JMX|modifyRequests JMX|searchRequests</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date1</I>] <I>val1</I> 0 <I>val1</I> 0</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date2</I>] <I>val2 val3 val2 val4</I></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date3</I>] <I>val5 val6 val5 val7</I></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3><B>Name: </B>Test2<BR><B>Purpose:</B> Unknown
+host<BR><B>Description:</B> Run the tool with an unknown host as
+parameter</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3><B>Command:</B> $ java -jar MonitoringClient.java -h
+toto<BR><B>Result:</B> PASS if the data and errors file is in the
+form:</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3># DATE LDAP|modifyRequests LDAP|searchRequests
+JMX|modifyRequests JMX|searchRequests</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium"><A NAME="DDE_LINK2"></A>
+<FONT SIZE=3>[<I>date1</I>] -1 -1 -1 -1</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date2</I>] -1 -1 -1 -1</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date3</I>] -1 -1 -1 -1</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3># DATE PROTOCOL|ATTRIBUTE MESSAGE</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date1</I>] LDAP|General Unknown host</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date1</I>] JMX|General Unknown host</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date2</I>] LDAP|General Unknown host</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date2</I>] JMX|General Unknown host</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date3</I>] LDAP|General Unknown host</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date3</I>] JMX|General Unknown host</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3><B>Name: </B>Test3<BR><B>Purpose:</B> Wrong LDAP port
+number<BR><B>Description:</B> Run the tool with a wrong LDAP port
+number as parameter</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3><B>Command:</B> $ java -jar MonitoringClient.java -h -p
+1388 -x 1689<BR><B>Result:</B> PASS if the data and errors file is in
+the form:</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3># DATE LDAP|modifyRequests LDAP|searchRequests
+JMX|modifyRequests JMX|searchRequests</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date1</I>] -1 -1 <I>val1</I> 0</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date2</I>] -1 -1 <I>val2 val3</I></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date3</I>] -1 -1 <I>val4 val5</I></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3># DATE PROTOCOL|ATTRIBUTE MESSAGE</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date1</I>] LDAP|General Wrong port number</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date2</I>] LDAP|General Wrong port number</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium"><A NAME="DDE_LINK6"></A>
+<FONT SIZE=3>[<I>date3</I>] LDAP|General Wrong port number</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3><B>Name: </B>Test4<BR><B>Purpose:</B> Wrong JMX port
+number<BR><B>Description:</B> Run the tool with a wrong JMX port
+number as parameter</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3><B>Command:</B> $ java -jar MonitoringClient.java -h -p
+1388 -x 1689<BR><B>Result:</B> PASS if the data and errors file is in
+the form:</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3># DATE LDAP|modifyRequests LDAP|searchRequests
+JMX|modifyRequests JMX|searchRequests</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date1</I>] <I>val1</I> 0 -1 -1</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date2</I>] <I>val2 val3 </I><SPAN STYLE="font-style: normal">-1
+-1</SPAN></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date3</I>] <I>val4 val5 </I><SPAN STYLE="font-style: normal">-1
+-1</SPAN></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3># DATE PROTOCOL|ATTRIBUTE MESSAGE</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date1</I>] JMX|General Wrong port number</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date2</I>] JMX|General Wrong port number</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date3</I>] JMX|General Wrong port number</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3><B>Name: </B>Test5<BR><B>Purpose:</B> Invalid
+credentials<BR><B>Description:</B> Run the tool with invalid
+credentials parameters</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3><B>Command:</B> $ java -jar MonitoringClient.java -h -D
+&quot;Directory Manager 2&quot; -w &quot;totototo&quot;<BR><B>Result:</B>
+PASS if the data and errors file is in the form:</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3># DATE LDAP|modifyRequests LDAP|searchRequests
+JMX|modifyRequests JMX|searchRequests</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date1</I>] -1 -1 -1 -1</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date2</I>] -1 -1<I> </I><SPAN STYLE="font-style: normal">-1
+-1</SPAN></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date3</I>] -1 -1<SPAN STYLE="font-style: normal"> -1
+-1</SPAN></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3># DATE PROTOCOL|ATTRIBUTE MESSAGE</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date1</I>] LDAP|General Invalid credentials</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date1</I>] JMX|General Invalid credentials</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date2</I>] LDAP|General Invalid credentials</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date2</I>] JMX|General Invalid credentials</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date3</I>] LDAP|General Invalid credentials</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date3</I>] JMX|General Invalid credentials</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3><B>Name: </B>Test6<BR><B>Purpose:</B> Multiples LDAP
+attributes<BR><B>Description:</B> Run the tool to retrieve a lot of
+attribute using the LDAP protocol</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3><B>Command:</B> $ java -jar MonitoringClient.java -h -f
+multiplesLDAPAttributes.xml<BR><B>Result:</B> PASS if the data and
+errors file is in the form:</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3># DATE LDAP|searchRequests LDAP|requestsSubmitted
+LDAP|missing-changes</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date1</I>] <I>val1</I> <I>val2</I> <I>val3</I></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date2</I>] <I>val4</I><SPAN STYLE="font-style: normal">
+</SPAN><I>val5</I><SPAN STYLE="font-style: normal"> </SPAN><I>val6</I></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date3</I>] <I>val7</I><SPAN STYLE="font-style: normal">
+</SPAN><I>val8</I><SPAN STYLE="font-style: normal"> </SPAN><I>val9</I></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3># DATE PROTOCOL|ATTRIBUTE MESSAGE</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3><B>Name: </B>Test7<BR><B>Purpose:</B> Multiples JMX
+attributes<BR><B>Description:</B> Run the tool to retrieve a lot of
+attribute using the JMX protocol</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3><B>Command:</B> $ java -jar MonitoringClient.java -h -f
+multiplesJMXAttributes.xml<BR><B>Result:</B> PASS if the data and
+errors file is in the form:</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3># DATE JMX|searchRequests JMX|requestsSubmitted</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date1</I>] <I>val1</I> <I>val2</I> </FONT>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date2</I>] <I>val3</I><SPAN STYLE="font-style: normal">
+</SPAN><I>val4</I></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date3</I>] <I>val5</I><SPAN STYLE="font-style: normal">
+</SPAN><I>val6</I></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3># DATE PROTOCOL|ATTRIBUTE MESSAGE</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3><B>Name: </B>Test8<BR><B>Purpose:</B>
+searchRequests<BR><B>Description:</B> Run the tool to retrieve the
+searchRequests attribute with LDAP and JMX</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3><B>Command:</B> $ java -jar MonitoringClient.java -h -f
+searchRequests.xml<BR><B>Result:</B> PASS if the data and errors file
+is in the form:</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3># DATE LDAP|searchRequests JMX|searchRequests</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date1</I>] <I>val1</I> <I>val1</I> </FONT>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date2</I>] <I>val2</I><SPAN STYLE="font-style: normal">
+</SPAN><I>val2</I></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date3</I>] <I>val3</I><SPAN STYLE="font-style: normal">
+</SPAN><I>val3</I></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3># DATE PROTOCOL|ATTRIBUTE MESSAGE</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3><B>Name: </B>Test9<BR><B>Purpose:</B>
+replication<BR><B>Description:</B> Run the tool to monitor the
+missing-changes of a replicated server with a time interval of 10 sec
+to avoid most of the errors due to the timeout</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3><B>Command:</B> $ java -jar MonitoringClient.java -h -f
+replication -i 10<BR><B>Result:</B> PASS if the data and errors file
+is in the form:</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3># DATE LDAP|modifyRequests LDAP|missing-changes</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date1</I>] <I>val1</I> <I>val1</I> </FONT>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date2</I>] <I>val2</I><SPAN STYLE="font-style: normal">
+</SPAN><I>val2</I></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3>[<I>date3</I>] <I>val3</I><SPAN STYLE="font-style: normal">
+</SPAN><I>val3</I></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<FONT SIZE=3># DATE PROTOCOL|ATTRIBUTE MESSAGE</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; page-break-before: always">
+<FONT SIZE=4><B>Test results</B></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3>Test1: PASS</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3>Test2: PASS</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3>Test3: FAILED</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3># DATE LDAP|modifyRequests LDAP|searchRequests
+JMX|modifyRequests JMX|searchRequests</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3>[09/Jun/2008:15:55:35 +0200] -1 -1 -1 -1</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3>[09/Jun/2008:15:55:38 +0200] -1 -1 -1 -1</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3>[09/Jun/2008:15:55:41 +0200] -1 -1 -1 -1</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3># DATE PROTOCOL|ATTRIBUTE MESSAGE</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3>[09/Jun/2008:15:55:35 +0200] LDAP|General Wrong port
+number</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3>[09/Jun/2008:15:55:35 +0200] JMX|General Unknown host</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3>[09/Jun/2008:15:55:38 +0200] LDAP|General Wrong port
+number</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3>[09/Jun/2008:15:55:38 +0200] JMX|General Unknown host</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3>[09/Jun/2008:15:55:41 +0200] LDAP|General Wrong port
+number</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3>[09/Jun/2008:15:55:41 +0200] JMX|General Unknown host</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3>Test4: PASS</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3>Test5: PASS</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3>Test6: PASS</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3>Test7: PASS</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3>Test8: PASS</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<FONT SIZE=3>Test9: PASS</FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal">
+<FONT SIZE=3><B>Success rate: 89%</B></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal">
+<BR>
+</P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; page-break-before: always">
+<FONT SIZE=4><B>Known bugs</B></FONT></P>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<BR>
+</P>
+<UL>
+	<LI><P LANG="en-US" STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+	<FONT SIZE=3>When we run the tool with a wrong LDAP port number and
+	a correct JMX port number as parameters, the JMX connection is
+	refused.</FONT></P>
+</UL>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<BR>
+</P>
+<UL>
+	<LI VALUE=1><P LANG="en-US" STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+	<FONT SIZE=3>When we monitor the server with the LDAP and the JMX
+	protocol, the JMXMonitor thread, before opening an authenticated
+	connexion to retrieve the attributes, open an anonymous bind and
+	unbind just after without doing anything, which modify the value of
+	the monitoring attributes of the server.</FONT></P>
+</UL>
+<P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+<BR>
+</P>
+<UL>
+	<LI VALUE=1><P LANG="en-US" ALIGN=LEFT STYLE="margin-bottom: 0cm; font-style: normal; font-weight: medium">
+	<FONT SIZE=3>Sometimes when a general error occurred (like an
+	Unknown host error), a line in the data file doesn't been written
+	when it should be, but with the  next line, so that two lines are
+	written at the same time.</FONT></P>
+</UL>
+</BODY>
+</HTML>

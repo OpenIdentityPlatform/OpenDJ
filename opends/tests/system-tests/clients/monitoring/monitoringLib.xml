@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="monitoringParser"/>
+  
+  
+  <!-- ************************************************************ -->
+  <!-- Client Parser -->
+  <!-- This function must NOT have scope=local has its variables may -->
+  <!-- be used by the caller -->
+  <function name="monitoringParser">
+    <function-map-args>
+      <function-arg-def name="client"     type="required"/>
+      <function-arg-def name="instances"  type="required"/>
+      <function-arg-def name="duration"   type="required"/>
+      <function-arg-def name="suffix"     type="required"/>
+    </function-map-args>
+    
+    <sequence>
+      <script>
+        
+        def getPropValue(propName):
+          propValue = NOT_DEFINED
+          for p in cParams:
+            if propName == p[0]:
+              propValue = p[1]
+              break
+          return propValue
+        
+        
+        compilDir = '%s/%s_%s' % \
+                    (client.getPath(),client.getHost(),client.getId())
+        
+        #
+        # Extract client parameters from client.getParams()
+        #
+        cParams = client.getParams()
+        
+        serverInstanceFromClient = getPropValue('serverInstance')
+        if serverInstanceFromClient == NOT_DEFINED:
+          msg = '%s\nERROR: serverInstanceFromClient undefined,mandatory' % msg
+        
+        
+        configFile = getPropValue('configFile')
+        if configFile == NOT_DEFINED or configFile == '':
+          configFile = '%s/MonitoringClient/config.xml' % client.getPath()
+        
+        interval = getPropValue('interval')
+        unit = getPropValue('unit')
+        
+        #
+        # setup parms to run the client
+        #
+        if serverInstanceFromClient != NOT_DEFINED:
+          sys.path.append("%s/phases/scheduler" % TESTS_DIR )
+          from scheduler import getInstance
+          serverInstance = getInstance(serverInstanceFromClient,instances)
+          if (serverInstance == 'ERROR'):
+            msg = '%s\nERROR: cant find client instance named' % msg
+            msg = '%s %s in server instance list' % \
+                  (msg,serverInstanceFromClient)
+            
+          else:
+            # remove sec, try to finish before timer kill -9 the client
+            parms=[]
+            parms.append('-h %s -p %s' % \
+                       (serverInstance.getHost(),serverInstance.getLDAPPort()))
+            if serverInstance.getJVMPort() != NOT_DEFINED:
+              parms.append('-m "%s""' %  serverInstance.getJVMPort())
+            parms.append('-D "%s" -w "%s"' % \
+                        (DIRECTORY_INSTANCE_DN,DIRECTORY_INSTANCE_PSWD))
+            parms.append('-f %s -r %s' % (configFile,client.getLogDir()))
+            if interval != NOT_DEFINED:
+              parms.append(' -i %s' % interval)
+            if unit != NOT_DEFINED:
+              parms.append('-u %s' % unit)
+              
+            parms = ' '.join(parms)
+            
+        #
+        # Shared variables
+        #
+        localClientDir = '%s/clients' % LOCAL_TESTS_DIR
+        
+        monitoring    = '%s/%s/MonitoringClient' % \
+               (localClientDir,client.getName())
+        monitoringLib   = '%s/lib' % monitoring
+        monitoringBuild = '%s/build' % monitoring
+        monitoringSrc   = '%s/src/org/opends/testqa/monitoringclient' % \
+                           monitoring
+        jdmkrt          = '%s/jdmkrt.jar' % monitoringLib
+        snmpMib         = '%s/snmp-mib.jar' % monitoringLib
+        
+        chartGen      = '%s/%s/ChartGenerator' % \
+                         (localClientDir,client.getName())
+        chartGenLib   = '%s/lib' % chartGen
+        chartGenBuild = '%s/build' % chartGen
+        jcommon       = '%s/jcommon.jar' % chartGenLib
+        jfreechart    = '%s/jfreechart.jar' % chartGenLib
+        
+        
+      </script>
+    </sequence>
+  </function>
+  
+</stax>

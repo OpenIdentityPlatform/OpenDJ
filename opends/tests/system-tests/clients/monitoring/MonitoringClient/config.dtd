@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<!ELEMENT config (protocol)*>
+
+<!ELEMENT protocol (attribute)+>
+<!ATTLIST protocol
+    delay CDATA #IMPLIED
+    charge CDATA #IMPLIED
+    name CDATA #REQUIRED
+  >
+
+<!ELEMENT attribute EMPTY>
+<!ATTLIST attribute
+    output (value | diff | average) #IMPLIED
+    MBeanName CDATA #IMPLIED
+    scope (base | onelevel | subtree) #IMPLIED
+    filter CDATA #IMPLIED
+    baseDN CDATA #IMPLIED
+    name CDATA #IMPLIED
+    oid CDATA #IMPLIED
+  >

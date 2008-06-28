@@ -29,7 +29,8 @@
 
 <!-- ========== GLOBAL PARAMETERS NODE ========================= -->
 <!ELEMENT globalParameters (scenario,opendsZip,directoryManagerDn?,
-                            directoryManagerPswd?,domain?)>
+                            directoryManagerPswd?,domain?,
+                            jdmkrt?,jfreechart?,jcommon?)>
   <!ELEMENT scenario (name,description)>
     <!ELEMENT name (#PCDATA)>
     <!ELEMENT description (#PCDATA)>
@@ -37,6 +38,9 @@
   <!ELEMENT directoryManagerDn (#PCDATA)>
   <!ELEMENT directoryManagerPswd (#PCDATA)>
   <!ELEMENT domain (#PCDATA)>
+  <!ELEMENT jdmkrt (#PCDATA)>
+  <!ELEMENT jfreechart (#PCDATA)>
+  <!ELEMENT jcommon (#PCDATA)>
 
 <!-- ========== INSTANCE NODE ========================= -->
 <!ELEMENT instance (host,installDir,ports?,security?,tuning?)>
@@ -47,11 +51,13 @@
   
   <!ELEMENT host (#PCDATA)>
   <!ELEMENT installDir (#PCDATA)>
-  <!ELEMENT ports (ldap?,ldaps?,jmx?,replicationServer?)>
+  <!ELEMENT ports (ldap?,ldaps?,jmx?,replicationServer?,jvm?,snmp?)>
     <!ELEMENT ldap (#PCDATA)>
     <!ELEMENT ldaps (#PCDATA)>
     <!ELEMENT jmx (#PCDATA)>
     <!ELEMENT replicationServer (#PCDATA)>
+    <!ELEMENT jvm (#PCDATA)>
+    <!ELEMENT snmp (#PCDATA)>
   <!ELEMENT security EMPTY>
   <!ATTLIST security
         sslEnabled ( true | false ) "false"
@@ -118,7 +124,7 @@
     <!ATTLIST client
       id NMTOKEN #IMPLIED
       name ( searchLoad | modifyLoad | restartDs | sampleSearchLoad |
-             verdictOpends | addDeleteLoad) "searchLoad"
+             verdictOpends | addDeleteLoad | monitoring ) "searchLoad"
       host NMTOKEN #IMPLIED
       start NMTOKEN #IMPLIED
       stop NMTOKEN #IMPLIED
@@ -133,5 +139,7 @@
   <!ELEMENT authentication (#PCDATA)>
   <!ELEMENT certAlias (#PCDATA)>
   <!ELEMENT protocol (#PCDATA)>
-
+  <!ELEMENT configFile (#PCDATA)>
+  <!ELEMENT interval (#PCDATA)>
+  <!ELEMENT unit (#PCDATA)>
 
