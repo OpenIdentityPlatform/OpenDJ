@@ -138,25 +138,58 @@
               tuning.setJavaArgs('%s %s %s %s %s %s %s %s' % \
                                 (c1,c2,c3,c4,c5,c6,c7,c8))
           </script>
+          <!-- Check jdmk dependcy if snmp is enabled -->
+          <if expr="instance.getSNMPPort() != NOT_DEFINED 
+                    and scenario.getJdmkrtPath() == NOT_DEFINED">
+            <sequence>
+              <message>
+                'ERROR, jdmkrt path not defined, needed for instance %s' % \
+                 instance.getName()
+               </message>
+               <script>ERR_NUM[0] += 1</script>
+             </sequence>
+           </if>
         </sequence>
       </paralleliterate>
       
       
-      <!--========  Set some attributes to add in client objects   ======-->
+      <!--========  Set/Check some attributes for client objects   ======-->
       <!--== Get the enabled clients list from all modules ==-->
       <call function="'getEnabledClients'">{'scheduler':scheduler}</call>
       <script>clients = STAXResult </script>
       <if expr="len(clients) > 0">
         <paralleliterate in="clients" var="client">
           <sequence>
+            <!-- Check staf is alive on client host -->
             <call function="'pingStaf'">
               { 'targetHost' : client.getHost(),
                 'fileFd'     : NO_FILE}
             </call>
+            <!-- Set logDir for each client object -->
             <script>
               client.setLogDir('%s/client_%s_id%s' % \
               (LOG_DIR,client.getName(),client.getId()))
             </script>
+            <!-- If monitoring client is enable, check dependencies -->
+            <script>
+              merr = ''
+              if client.getName() == 'monitoring':
+                if scenario.getJdmkrtPath() == NOT_DEFINED:
+                  merr = '%s\nERROR, jdmkrt path not defined,' % merr
+                  merr = '%s needed for monitoring client' % merr
+                  ERR_NUM[0] += 1
+                if scenario.getJcommonPath() == NOT_DEFINED:
+                  merr = '%s\nERROR, jcommon path not defined,' % merr
+                  merr = '%s needed for monitoring client' % merr
+                  ERR_NUM[0] += 1
+                if scenario.getJfreechartPath() == NOT_DEFINED:
+                  merr = '%s\nERROR, jfreechart path not defined,' % merr
+                  merr = '%s needed for monitoring client' % merr
+                  ERR_NUM[0] += 1
+            </script>
+            <if expr="merr != ''">
+              <message>merr</message>
+            </if>
           </sequence>
         </paralleliterate>
       <else>
