@@ -1001,7 +1001,7 @@
               
               <call function="'copyFile'">
               {
-                'srcFile'    : scenario.getJdmkrtPath(),
+                'srcFile'    : externalTools.getJdmkrtPath(),
                 'destFile'   : jdmkrt,
                 'location'   : STAXServiceMachine,
                 'remoteHost' : instance.getHost(),
