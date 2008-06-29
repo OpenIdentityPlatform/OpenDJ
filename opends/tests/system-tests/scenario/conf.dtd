@@ -29,8 +29,7 @@
 
 <!-- ========== GLOBAL PARAMETERS NODE ========================= -->
 <!ELEMENT globalParameters (scenario,opendsZip,directoryManagerDn?,
-                            directoryManagerPswd?,domain?,
-                            jdmkrt?,jfreechart?,jcommon?)>
+                            directoryManagerPswd?,domain?,externalTools?)>
   <!ELEMENT scenario (name,description)>
     <!ELEMENT name (#PCDATA)>
     <!ELEMENT description (#PCDATA)>
@@ -38,9 +37,10 @@
   <!ELEMENT directoryManagerDn (#PCDATA)>
   <!ELEMENT directoryManagerPswd (#PCDATA)>
   <!ELEMENT domain (#PCDATA)>
-  <!ELEMENT jdmkrt (#PCDATA)>
-  <!ELEMENT jfreechart (#PCDATA)>
-  <!ELEMENT jcommon (#PCDATA)>
+  <!ELEMENT externalTools (jdmkrt?,jfreechart?,jcommon?)>
+    <!ELEMENT jdmkrt (#PCDATA)>
+    <!ELEMENT jfreechart (#PCDATA)>
+    <!ELEMENT jcommon (#PCDATA)>
 
 <!-- ========== INSTANCE NODE ========================= -->
 <!ELEMENT instance (host,installDir,ports?,security?,tuning?)>

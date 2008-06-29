@@ -192,12 +192,13 @@
         file="'%s/phases/parser/parser.xml' % (TESTS_DIR)"/>
       <call function="'parser'">configurationFile</call>
       <script>
-        result    = STAXResult
-        msg       = result[0]
-        instances = result[1]
-        suffix    = result[2]
-        scheduler = result[3]
-        scenario  = result[4]
+        result        = STAXResult
+        msg           = result[0]
+        instances     = result[1]
+        suffix        = result[2]
+        scheduler     = result[3]
+        scenario      = result[4]
+        externalTools = result[5]
         PHASE_PARSER.setRun('true')
         PHASE_PARSER.setErrNum(ERR_NUM[0])
         ERR_NUM_TOTAL  = ERR_NUM_TOTAL + ERR_NUM[0]

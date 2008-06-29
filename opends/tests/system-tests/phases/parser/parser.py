@@ -100,6 +100,35 @@ class Phase:
     return self.percentage
 
 
+#
+# Class for external tools
+#
+
+###########################
+class ExtTools:
+  "Describes all the external tools needed"
+  def __init__(self):
+    self.jdmkrtPath     = NOT_DEFINED
+    self.jcommonPath    = NOT_DEFINED
+    self.jfreechartPath = NOT_DEFINED
+    
+  def getJdmkrtPath(self):
+    return self.jdmkrtPath
+    
+  def setJdmkrtPath(self,jdmkrtPath):
+    self.jdmkrtPath = jdmkrtPath
+    
+  def getJcommonPath(self):
+    return self.jcommonPath
+    
+  def setJcommonPath(self,jcommonPath):
+    self.jcommonPath = jcommonPath
+    
+  def getJfreechartPath(self):
+    return self.jfreechartPath
+    
+  def setJfreechartPath(self,jfreechartPath):
+    self.jfreechartPath = jfreechartPath
 
 #
 # Class for suffix
@@ -635,9 +664,10 @@ def main(document):
       
       result = parseGlobalParameters(thisChild)
       msg = '%s \n %s' % (msg,result[0])
-      scenario   = result[1]
-      opendsZip  = result[2]
-      domain     = result[3]
+      scenario      = result[1]
+      opendsZip     = result[2]
+      domain        = result[3]
+      externalTools = result[4]
     
     #
     # Parsing instance node
@@ -725,7 +755,8 @@ def main(document):
       if cInstance.getName() == cSuffixInstance.getName():
         cSuffixInstance.setInstanceRef(cInstance)
       
-  return [msg,instances,suffix,phases,scenario,domain]
+      
+  return [msg,instances,suffix,phases,scenario,externalTools,domain]
   # end of main function  
   
   
@@ -1290,9 +1321,7 @@ def parseGlobalParameters(thisChild):
   scenario        = NOT_DEFINED
   opendsZip       = NOT_DEFINED
   domain          = NOT_DEFINED
-  cJdmkrtPath     = NOT_DEFINED
-  cJcommonPath    = NOT_DEFINED
-  cJfreeChartPath = NOT_DEFINED
+  externalTools   = ExtTools()
   
   #
   # Parsing second level
@@ -1320,16 +1349,10 @@ def parseGlobalParameters(thisChild):
         msg = '%s\n%s' % (msg,cResult[0])
       
       elif (thisSubChild.getNodeType() == Node.ELEMENT_NODE and
-          thisSubChild.getNodeName() == 'jdmkrt'):
-        cJdmkrtPath = _getPropValue(thisSubChild)
-      
-      elif (thisSubChild.getNodeType() == Node.ELEMENT_NODE and
-          thisSubChild.getNodeName() == 'jfreechart'):
-        cJfreeChartPath = _getPropValue(thisSubChild)
-      
-      elif (thisSubChild.getNodeType() == Node.ELEMENT_NODE and
-          thisSubChild.getNodeName() == 'jcommon'):
-        cJcommonPath = _getPropValue(thisSubChild)
+          thisSubChild.getNodeName() == 'externalTools'):
+        cResult = parseExternalTools(thisSubChild)
+        externalTools = cResult[1]
+        msg = '%s\n%s' % (msg,cResult[0])
       
       # must be at the end of the if case
       elif (thisSubChild.getNodeType() == Node.TEXT_NODE or
@@ -1349,16 +1372,9 @@ def parseGlobalParameters(thisChild):
     
   if (opendsZip == NOT_DEFINED):
     msg = '%s\n ERROR: parseGlobalParameters() : opendsZip not defined' % (msg)
-    
-  if (cJdmkrtPath != NOT_DEFINED):
-    scenario.setJdmkrtPath(cJdmkrtPath)
-  if (cJfreeChartPath != NOT_DEFINED):
-    scenario.setJfreechartPath(cJfreeChartPath)
-  if (cJcommonPath != NOT_DEFINED):
-    scenario.setJcommonPath(cJcommonPath)
 
 
-  return [msg,scenario,opendsZip,domain]
+  return [msg,scenario,opendsZip,domain,externalTools]
 
 
 
@@ -1367,11 +1383,11 @@ def parseGlobalParameters(thisChild):
 # Parse global parameters node 
 #
 def parseScenario(thisChild):
-  preMsg      = 'ERROR: parseGlobalParameters():'
+  preMsg      = 'ERROR: parseScenario():'
   msg         = ''
-  result      = []
-  name        = NOT_DEFINED
-  description = NOT_DEFINED
+  cJdmkrtPath     = NOT_DEFINED
+  cJcommonPath    = NOT_DEFINED
+  cJfreeChartPath = NOT_DEFINED
   
   #
   # Parsing second level
@@ -1399,8 +1415,8 @@ def parseScenario(thisChild):
         # text node information,skip, no need
         continue
       else:
-        msg = '%s\n ERROR: parseGlobalParameters(): unknown node named %s' % \
-              (msg, thisSubChild.getNodeName())
+        msg = '%s\n %s: unknown node named %s' % \
+              (msg, preMsg, thisSubChild.getNodeName())
         
   #
   # no subchildren for globalParameters node
@@ -1416,5 +1432,64 @@ def parseScenario(thisChild):
 
   return [msg,Scenario(name,description)]
 
+
+#============================================================================
+#
+# Parse global parameters node 
+#
+def parseExternalTools(thisChild):
+  preMsg          = 'ERROR: parseExternalTools():'
+  msg             = ''
+  cJdmkrtPath     = NOT_DEFINED
+  cJcommonPath    = NOT_DEFINED
+  cJfreeChartPath = NOT_DEFINED
+  cExtTools       = ExtTools()
+  
+  #
+  # Parsing second level
+  #
+  if thisChild.hasChildNodes():
+    
+    subChildren = thisChild.getChildNodes()
+    
+    for j in range(subChildren.getLength()):
+    
+      thisSubChild = subChildren.item(j)
+      
+      if (thisSubChild.getNodeType() == Node.ELEMENT_NODE and
+          thisSubChild.getNodeName() == 'jdmkrt'):
+        cJdmkrtPath = _getPropValue(thisSubChild)
+      
+      elif (thisSubChild.getNodeType() == Node.ELEMENT_NODE and
+          thisSubChild.getNodeName() == 'jfreechart'):
+        cJfreeChartPath = _getPropValue(thisSubChild)
+      
+      elif (thisSubChild.getNodeType() == Node.ELEMENT_NODE and
+          thisSubChild.getNodeName() == 'jcommon'):
+        cJcommonPath = _getPropValue(thisSubChild)
+      
+      # must be at the end of the if case
+      elif (thisSubChild.getNodeType() == Node.TEXT_NODE or
+            thisSubChild.getNodeType() == Node.COMMENT_NODE):
+        # text node information,skip, no need
+        continue
+      else:
+        msg = '%s\n %s: unknown node named %s' % \
+              (msg, preMsg, thisSubChild.getNodeName())
+        
+  #
+  # no subchildren for globalParameters node
+  #
+  else:
+    msg = '%s\n %s no child for this node' % (preMsg,msg)
+    
+  if (cJdmkrtPath != NOT_DEFINED):
+    cExtTools.setJdmkrtPath(cJdmkrtPath)
+  if (cJfreeChartPath != NOT_DEFINED):
+    cExtTools.setJfreechartPath(cJfreeChartPath)
+  if (cJcommonPath != NOT_DEFINED):
+    cExtTools.setJcommonPath(cJcommonPath)
+    
+  return [msg,cExtTools]
 
 

@@ -56,16 +56,16 @@
         
         sys.path.append("%s/phases/parser" % TESTS_DIR )
         from parser import *
-        parserResult = main(STAXResult)
-        msg          = parserResult[0]
-        instances    = parserResult[1]
-        suffix       = parserResult[2]
-        scheduler    = parserResult[3]
-        scenario     = parserResult[4]
-        if (parserResult[5] != NOT_DEFINED):
-          DOMAIN[0]  = '.%s' % parserResult[5]
+        parserResult  = main(STAXResult)
+        msg           = parserResult[0]
+        instances     = parserResult[1]
+        suffix        = parserResult[2]
+        scheduler     = parserResult[3]
+        scenario      = parserResult[4]
+        externalTools = parserResult[5]
+        if (parserResult[6] != NOT_DEFINED):
+          DOMAIN[0]  = '.%s' % parserResult[6]
       </script>
-      
       
       <!--=================================================================-->
       <!--========  Set some attributes to add in instance objects   ======-->
@@ -140,7 +140,7 @@
           </script>
           <!-- Check jdmk dependcy if snmp is enabled -->
           <if expr="instance.getSNMPPort() != NOT_DEFINED 
-                    and scenario.getJdmkrtPath() == NOT_DEFINED">
+                    and externalTools.getJdmkrtPath() == NOT_DEFINED">
             <sequence>
               <message>
                 'ERROR, jdmkrt path not defined, needed for instance %s' % \
@@ -174,15 +174,15 @@
             <script>
               merr = ''
               if client.getName() == 'monitoring':
-                if scenario.getJdmkrtPath() == NOT_DEFINED:
+                if externalTools.getJdmkrtPath() == NOT_DEFINED:
                   merr = '%s\nERROR, jdmkrt path not defined,' % merr
                   merr = '%s needed for monitoring client' % merr
                   ERR_NUM[0] += 1
-                if scenario.getJcommonPath() == NOT_DEFINED:
+                if externalTools.getJcommonPath() == NOT_DEFINED:
                   merr = '%s\nERROR, jcommon path not defined,' % merr
                   merr = '%s needed for monitoring client' % merr
                   ERR_NUM[0] += 1
-                if scenario.getJfreechartPath() == NOT_DEFINED:
+                if externalTools.getJfreechartPath() == NOT_DEFINED:
                   merr = '%s\nERROR, jfreechart path not defined,' % merr
                   merr = '%s needed for monitoring client' % merr
                   ERR_NUM[0] += 1
@@ -202,7 +202,75 @@
       
       
       <!--=================================================================-->
-      <!--========  Basic configuration checks       ======-->
+      <!--========  Basic checks for extTools object                 ======-->
+      
+      <!-- check jdmk jar file exists -->
+      <if expr="externalTools.getJdmkrtPath() != NOT_DEFINED">
+        <sequence>
+          <call function="'isFile'">
+          {
+            'location' : STAXServiceMachine,
+            'fileName' : externalTools.getJdmkrtPath()
+          }
+          </call>
+          <script>
+            fileExist = STAXResult
+          </script>
+          <if expr="fileExist == FALSE">
+            <script>
+              msg = '%s\nERROR : canf find file %s' % \
+                    (msg,externalTools.getJdmkrtPath())
+            </script>
+          </if>
+        </sequence>
+      </if>
+      <!-- check jcommon jar file exists -->
+      <if expr="externalTools.getJcommonPath() != NOT_DEFINED">
+        <sequence>
+          <call function="'isFile'">
+          {
+            'location' : STAXServiceMachine,
+            'fileName' : externalTools.getJcommonPath()
+          }
+          </call>
+          <script>
+            fileExist = STAXResult
+          </script>
+          <if expr="fileExist == FALSE">
+            <script>
+              msg = '%s\nERROR : canf find file %s' % \
+                    (msg,externalTools.getJcommonPath())
+            </script>
+          </if>
+        </sequence>
+      </if>
+      <!-- check jfreechart jar file exists -->
+      <if expr="externalTools.getJfreechartPath() != NOT_DEFINED">
+        <sequence>
+          <call function="'isFile'">
+          {
+            'location' : STAXServiceMachine,
+            'fileName' : externalTools.getJfreechartPath()
+          }
+          </call>
+          <script>
+            fileExist = STAXResult
+          </script>
+          <if expr="fileExist == FALSE">
+            <script>
+              msg = '%s\nERROR : canf find file %s' % \
+                    (msg,externalTools.getJfreechartPath())
+            </script>
+          </if>
+        </sequence>
+      </if>
+      
+      
+      
+      
+      
+      <!--=================================================================-->
+      <!--========  Basic configuration checks                       ======-->
       
       <!-- replace localhost by real host name -->
       <script>
