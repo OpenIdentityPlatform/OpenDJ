@@ -721,6 +721,7 @@
         logFileDetailsRelativePath = logFileDetails.replace(LOG_DIR,'.')
         fileFdDetails = open(logFileDetails,'w')
         outFile = '%s/%s.txt' % (client.getLogDir(),logFileDetailsName)
+        outFileRelativePath = outFile.replace(LOG_DIR,'.')
       </script>
       <message>
         '   Start run for %s (id=%s) running on %s' % \
@@ -753,7 +754,7 @@
       <call function="'writeMessage'">
       { 
         'content' : 'Client outPuts',
-        'xlink'   : outFile,
+        'xlink'   : outFileRelativePath,
         'fileFd'  : fileFd
       }
       </call>
