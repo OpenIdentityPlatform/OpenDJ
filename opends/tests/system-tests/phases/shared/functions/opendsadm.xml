@@ -134,7 +134,7 @@
         
         # define environment variables
         env = []
-        env.append('PATH=/bin:/usr/bin:%s' % dsBinPath)
+        env.append('PATH=/bin:/usr/bin:%s' % dsPath)
         env.append('JAVA_HOME=%s' % JAVA_HOME)
         env.append('OPENDS_JAVA_HOME=%s' % JAVA_HOME)
         
@@ -192,6 +192,7 @@
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
           'path'      : dsPath,
+          'env'       : env,
           'fileFd'    : fileFd
         }
       </call>
