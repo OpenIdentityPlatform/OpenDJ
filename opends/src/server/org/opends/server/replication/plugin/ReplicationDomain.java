@@ -3096,6 +3096,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   public void initializeRemote(short target, short requestorID, Task initTask)
   throws DirectoryException
   {
+    boolean contextAcquired=false;
     try
     {
       Backend backend = retrievesBackend(this.baseDN);
@@ -3109,6 +3110,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
 
       acquireIEContext();
+      contextAcquired = true;
 
       // The number of entries to be exported is the number of entries under
       // the base DN entry and the base entry itself.
@@ -3143,7 +3145,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
                          de.getMessageObject());
       broker.publish(errorMsg);
 
-      releaseIEContext();
+      if (contextAcquired)
+        releaseIEContext();
 
       throw(de);
     }
