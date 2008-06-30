@@ -28,12 +28,13 @@
 <stax>
 
   <defaultcall function="tasks"/>
-
+  
+  
   <!-- ************************************************************ -->
-  <function name="tasks" scope="local">
-    
+  <!-- Client is automatically called by the scheduler and must     -->
+  <!-- always define all the parameters below                       -->
+  <function name="tasks">
     <function-map-args>
-      <function-arg-def name="workingDir" type="required"/>
       <function-arg-def name="client"     type="required"/>
       <function-arg-def name="instances"  type="required"/>
       <function-arg-def name="duration"   type="required"/>
@@ -42,7 +43,6 @@
       <function-arg-def name="fileFd"     type="required"/>
     </function-map-args>
     
-
     <sequence>
       <!-- ===================   Comments   =================== -->
       <!-- client is run under paralleliterate tag              -->
@@ -54,59 +54,21 @@
         msg = ''
       </script>
       
-      <!-- ==================    Preamble   =================== -->
+      <!-- ==================    Parser     =================== -->
       <!-- parse the client parameters :                        -->
       <!-- params is [[param1,val1],[param2,val2],...]          -->
       <!-- get the ldap instance parameters                     -->
+      <import machine="'%s' % (client.getHost())"
+              file="'%s/%sLib.xml' % (client.getPath(),client.getName())"/>
+      <call function="'%sParser' % client.getName()">
+      {
+        'client'     : client,
+        'instances'  : instances,
+        'duration'   : duration,
+        'suffix'     : suffix
+      }
+      </call>
       
-      <script>
-        compilDir = '%s/%s_%s' % (workingDir,client.getHost(),client.getId())
-        
-        outFile = '%s/client_tasks_id%s.txt' % \
-                  (client.getLogDir(),client.getId())
-        
-        #
-        # Extract client parameters from client.getParams()
-        #
-        cParams = client.getParams()
-        try:
-          serverInstanceFromClient = cParams[0][1]
-        except IndexError:
-          serverInstanceFromClient = NOT_DEFINED
-          msg = '%s\nERROR: serverInstanceFromClient undefined,mandatory' % msg
-       try:
-          nbTasks = cParams[1][1]
-        except IndexError:
-          nbTasks = NOT_DEFINED
-          msg = '%s\nERROR: nbTasks undefined,mandatory' % msg
-      try:
-          delaySec = cParams[2][1]
-        except IndexError:
-          delaySec = NOT_DEFINED
-          msg = '%s\nERROR: delaySec undefined,mandatory' % msg          
-          
-        #
-        # setup parms to run the client
-        #
-        if serverInstanceFromClient != NOT_DEFINED:
-          sys.path.append("%s/phases/scheduler" % TESTS_DIR )
-          from scheduler import getInstance
-          serverInstance = getInstance(serverInstanceFromClient,instances)
-          if (serverInstance == 'ERROR'):
-            msg = '%s\nERROR: cant find client instance named' % msg
-            msg = '%s %s in server instance list' % \
-                  (msg,serverInstanceFromClient)
-            
-          else:
-            # remove sec, try to finish before timer kill -9 the client
-            duration = duration - 60
-      </script>
-    
-       <call function="'writeMessage'">
-          {'content' : 'Executing backup in tasks mode every %s secondes' % delaySec,
-           'fileFd'  : fileFd}
-       </call>
-        
       <if expr="msg.find('ERROR') != -1">
         <sequence>
           <message>'%s' % msg</message>
@@ -125,11 +87,12 @@
         </sequence>
       <else>
         <sequence>
+          <!-- ========== Run the client ========== -->
           <call function="'writeStartTagOperation'">
-            { 'tagName' : 'Backup task',
+          { 'tagName' : 'run',
             'fileFd'  : fileFd }
           </call>
-          
+         
           <script>
             cpt=0
             intdelaySec= int(delaySec)
@@ -164,6 +127,7 @@
                 'backEnd'         : 'userRoot',
                 'fileFd'          : fileFd}
               </call>
+
                    
               <script>
                 BackupFolder = '%s/backup_schedule_asynchronous_%s' % (serverInstance.getInstallDir(),cpt)
@@ -210,15 +174,18 @@
           </call>
           
           <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+       
           
         </sequence>
       </else>
       </if>
+      
       <return> errNum </return>
       
     </sequence>
     
-  </function>   
+  </function>
+  
   
 </stax>
 
