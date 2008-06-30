@@ -140,8 +140,8 @@ public class Worker extends Thread {
               break;
             }
           } catch (Exception ex) {
-
-            println("INFO","THREAD " + myId + " CATCH " + ex);
+	      
+            println("INFO","THREAD " + myId + " ERROR " + ex);
 
           }
 
@@ -151,7 +151,7 @@ public class Worker extends Thread {
 
       }
     } catch (Exception e) {
-      println("INFO", "Failed: expected error code 3 ");
+      println("INFO","THREAD " + myId + " ERROR " + e);
 
       e.printStackTrace();
       System.exit(1);

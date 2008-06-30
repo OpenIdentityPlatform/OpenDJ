@@ -117,7 +117,7 @@ public class Client {
             ctx.close();
        	} catch (Exception e) {
         
-	    println ("INFO", "Failed: expected error code 3 ");
+	    println("INFO",  "ERROR : exception raised during first bind");
 	    e.printStackTrace();
 	    System.exit(1);
         }
@@ -129,6 +129,7 @@ public class Client {
             for (int i=0; i < nb_threads; i++ ) {
                 Worker w = new Worker(this, server);
             }
+     
             println ("INFO", nb_threads + " threads connected to server " + server );
         
 	    // Wait until all the threads have initialized their context 
@@ -144,7 +145,7 @@ public class Client {
 		}
             }
             catch ( Exception e1 ) {
-		System.out.println ("E1");
+		println("INFO",  "ERROR : exception raised when starting  threads");
 		e1.printStackTrace();
             }
 
@@ -177,7 +178,7 @@ public class Client {
                             total_nb_srchs=0;
                           }
                         } catch ( Exception e2 ) {
-                          System.out.println("E2");
+			  println("INFO",  "ERROR : exception raised by the client");
                           e2.printStackTrace();
                         }
                  }  
