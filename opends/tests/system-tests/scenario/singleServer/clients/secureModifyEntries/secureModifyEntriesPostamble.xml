@@ -27,13 +27,12 @@
  ! -->
 <stax>
 
-  <defaultcall function="secureModifyEntries"/>
-  
-  
+  <defaultcall function="secureModifyEntriesPostamble"/>
+
   <!-- ************************************************************ -->
-  <!-- Client is automatically called by the scheduler and must     -->
-  <!-- always define all the parameters below                       -->
-  <function name="secureModifyEntries">
+  <!-- Client postamble is automatically called by the scheduler    -->
+  <!-- and must always define all the parameters below              -->
+  <function name="secureModifyEntriesPostamble" scope="local">
     <function-map-args>
       <function-arg-def name="client"     type="required"/>
       <function-arg-def name="instances"  type="required"/>
@@ -53,12 +52,11 @@
         errNum = 0
         msg = ''
       </script>
-      
       <!-- ==================    Parser     =================== -->
       <!-- parse the client parameters :                        -->
       <!-- params is [[param1,val1],[param2,val2],...]          -->
       <!-- get the ldap instance parameters                     -->
-      <import machine="'%s' % (client.getHost())"
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
               file="'%s/%sLib.xml' % (client.getPath(),client.getName())"/>
       <call function="'%sParser' % client.getName()">
       {
@@ -68,7 +66,6 @@
         'suffix'     : suffix
       }
       </call>
-      
       <if expr="msg.find('ERROR') != -1">
         <sequence>
           <message>'%s' % msg</message>
@@ -87,65 +84,25 @@
         </sequence>
       <else>
         <sequence>
-          <!-- ========== Run the client ========== -->
-          <call function="'writeStartTagOperation'">
-          { 'tagName' : 'run',
-            'fileFd'  : fileFd }
-          </call>
-
-          <call function="'writeMessage'">
-          { 'fileFd'  : fileFd,
-            'content' : 'Do ldapmodify on %s:%s' % \
-                        (serverInstance.getHost(),serverInstance.getLDAPSPort())
-          }
-          </call>
-       
-          <script>
-            cParam = '-client -Xmx1G -Xms1G'
-            cParam = '%s -XX:NewRatio=1 -XX:SurvivorRatio=100' % cParam
-            cParam = '%s -cp %s/secureModifyEntries.jar' % (cParam,compilDir)
-            cParam = '%s -Djavax.net.ssl.keyStore=%s/keystore' % (cParam,keystorePath)
-            cParam = '%s -Djavax.net.ssl.trustStore=%s/keystore' % (cParam,keystorePath)
-            cParam = '%s -Djavax.security.sasl.level=FINEST' % cParam
-            cParam = '%s -Djavax.net.ssl.trustStorePassword=password' % cParam
-            cParam = '%s -Djavax.net.ssl.keyStorePassword=password' % cParam
-            cParam = '%s %s Client' % (cParam,parms)
-            
-            titleName = '%s: run %s on %s' % \
-                        (client.getHost(),client.getName(),
-                         serverInstance.getName())
-          </script>
-        
-          <process name="'%s' % titleName">
+          <process name="'%s:%s: Grep' % (client.getHost(),client.getName())">
             <location>client.getHost()</location>
-            <command>'%s/bin/java' % JAVA_HOME</command>
-            <parms>cParam </parms>
-            <workdir>client.getPath()</workdir>
-            <envs>['PATH=%s/bin:/bin:/usr/bin' % JAVA_HOME]</envs>
+            <command mode="'shell'">
+              "grep 'ERROR' %s " % outFile
+            </command>
+            <envs>['PATH=/bin:/usr/bin']</envs>
             <stderr mode="'stdout'"/>
-            <stdout>outFile</stdout>
+            <stdout/>
             <returnstdout/>
           </process>
-
-
-          <!-- TBD : result should be STAXResult[0][1] : problem when
-                     javaexception, with carac " and < >-->
-          <call function="'checkRC'">
-            { 'returncode' : RC ,
-              'result'     : '',
-              'fileFd'     : fileFd }
-          </call>
           <script>
-            errNum += STAXResult
+            if RC == 0: 
+              errNum +=1
+            summary = STAXResult[0][1]
           </script>
-          <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
-          
           <call function="'writeMessage'">
-          {'content' : 'Output file %s' % outFile,
-           'xlink'   : outFile,
+          {'content' : 'Summary %s' % (summary),
            'fileFd'  : fileFd}
           </call>
-          
         </sequence>
       </else>
       </if>
@@ -153,9 +110,6 @@
       <return> errNum </return>
       
     </sequence>
-    
   </function>
-  
-  
-</stax>
 
+</stax>
