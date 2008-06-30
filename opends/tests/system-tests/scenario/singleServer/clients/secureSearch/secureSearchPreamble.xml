@@ -27,13 +27,12 @@
  ! -->
 <stax>
 
-  <defaultcall function="secureSearch"/>
-  
-  
+  <defaultcall function="secureSearchPreamble"/>
+
   <!-- ************************************************************ -->
-  <!-- Client is automatically called by the scheduler and must     -->
-  <!-- always define all the parameters below                       -->
-  <function name="secureSearch">
+  <!-- Client preamble is automatically called by the scheduler     -->
+  <!-- and must always define all the parameters below              -->
+  <function name="secureSearchPreamble" scope="local">
     <function-map-args>
       <function-arg-def name="client"     type="required"/>
       <function-arg-def name="instances"  type="required"/>
@@ -53,12 +52,11 @@
         errNum = 0
         msg = ''
       </script>
-      
       <!-- ==================    Parser     =================== -->
       <!-- parse the client parameters :                        -->
       <!-- params is [[param1,val1],[param2,val2],...]          -->
       <!-- get the ldap instance parameters                     -->
-      <import machine="'%s' % (client.getHost())"
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
               file="'%s/%sLib.xml' % (client.getPath(),client.getName())"/>
       <call function="'%sParser' % client.getName()">
       {
@@ -68,7 +66,6 @@
         'suffix'     : suffix
       }
       </call>
-      
       <if expr="msg.find('ERROR') != -1">
         <sequence>
           <message>'%s' % msg</message>
@@ -87,57 +84,29 @@
         </sequence>
       <else>
         <sequence>
-          <!-- ========== Run the client ========== -->
+          <!-- ==== Add execute permission to build.ksh file ==== -->
           <call function="'writeStartTagOperation'">
-          { 'tagName' : 'run',
+          { 'tagName' : 'chmod',
             'fileFd'  : fileFd }
           </call>
           <call function="'writeMessage'">
-          { 'fileFd'  : fileFd,
-            'content' : 'Do secure or non secure ldapsearchs on %s:%s' % \
-                        (serverInstance.getHost(),serverInstance.getLDAPPort())
-          }
+          {'content' : 'Add execute permission to build.ksh file',
+           'fileFd'  : fileFd}
           </call>
           
-
-          <script>
-            cParam = '-client -Xmx1G -Xms1G'
-            cParam = '%s -XX:NewRatio=1 -XX:SurvivorRatio=100' % cParam
-            cParam = '%s -cp %s/secureSearch.jar' % (cParam,compilDir)
-            cParam = '%s -Djavax.net.ssl.keyStore=%s/keystore' % (cParam,keystorePath)
-            cParam = '%s -Djavax.net.ssl.trustStore=%s/keystore' % (cParam,keystorePath)
-            cParam = '%s -Djavax.security.sasl.level=FINEST' % cParam
-            cParam = '%s -Djavax.net.ssl.trustStorePassword=password' % cParam
-            cParam = '%s -Djavax.net.ssl.keyStorePassword=password' % cParam
-            cParam = '%s %s Client' % (cParam,parms)
-            
-            titleName = '%s: run %s on %s' % \
-                        (client.getHost(),client.getName(),
-                         serverInstance.getName())
-          </script>
-
-          <call function="'writeMessage'">
-          { 'fileFd'  : fileFd,
-            'content' : 'cmd : cd %s ; %s/bin/java %s' % \
-                        (client.getPath(),JAVA_HOME,cParam)
-          }
-          </call>
-	  <process name="'%s' % titleName">
+          <process name="'%s: chmod +x build.ksh' % client.getHost()">
             <location>client.getHost()</location>
-            <command>'%s/bin/java' % JAVA_HOME</command>
-            <parms>cParam </parms>
+            <command mode="'shell'">'chmod +x build.ksh'</command>
+            <parms/>
             <workdir>client.getPath()</workdir>
-            <envs>['PATH=%s/bin:/bin:/usr/bin' % JAVA_HOME]</envs>
+            <envs>['PATH=/bin:/usr/bin']</envs>
             <stderr mode="'stdout'"/>
-            <stdout>outFile</stdout>
+            <stdout/>
             <returnstdout/>
           </process>
-
-          <!-- TBD : result should be STAXResult[0][1] : problem when
-                     javaexception, with carac " and < >-->
           <call function="'checkRC'">
-            { 'returncode' : RC ,
-              'result'     : '',
+            { 'returncode' : RC,
+              'result'     : STAXResult[0][1],
               'fileFd'     : fileFd }
           </call>
           <script>
@@ -145,12 +114,44 @@
           </script>
           <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
           
+          
+          <!-- ==== Build client : run build.ksh file ==== -->
+          <call function="'writeStartTagOperation'">
+          { 'tagName' : 'build',
+            'fileFd'  : fileFd }
+          </call>
           <call function="'writeMessage'">
-          {'content' : 'Output file %s' % outFile,
-           'xlink'   : outFile,
+          {'content' : 'Build client',
            'fileFd'  : fileFd}
           </call>
           
+          <!-- Build Client in unique directory (compilDir), avoid          -->
+          <!-- conflict if same client is run several time at the same time -->
+          <process name="'%s: build %s' % (client.getHost(),client.getName())">
+            <location>client.getHost()</location>
+            <command mode="'shell'">'./build.ksh'</command>
+            <parms/>
+            <workdir>client.getPath()</workdir>
+            <envs>['PATH=%s/bin:/bin:/usr/bin' % JAVA_HOME,'COMPILDIR=%s' % compilDir ]</envs>
+            <stderr mode="'stdout'"/>
+            <stdout/>
+            <returnstdout/>
+          </process>
+          <call function="'checkRC'">
+            { 'returncode' : RC,
+              'result'     : STAXResult[0][1],
+              'fileFd'     : fileFd }
+          </call>
+          <if expr="RC != 0">
+            <message>
+              'FAILED to build client %s on %s' % \
+              (client.getName(),client.getHost())
+            </message>
+          </if>
+          <script>
+            errNum += STAXResult
+          </script>
+          <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
         </sequence>
       </else>
       </if>
@@ -158,9 +159,6 @@
       <return> errNum </return>
       
     </sequence>
-    
   </function>
-  
-  
-</stax>
 
+</stax>
