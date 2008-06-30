@@ -42,8 +42,10 @@
 
         <!--- Define default value for basedn -->
           <script>
-   basedn = 'ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com'
-   basepwp ='cn=Default Password Policy,cn=Password Policies,cn=config'
+          basedn1 = 'ou=people,ou=password tests,'
+          basedn = '%s o=Pwd Policy Tests,dc=example,dc=com' % basedn1
+          basepwp ='cn=Default Password Policy,cn=Password Policies,cn=config'
+          msg = 'Security: Grace Login:'
           </script>
 
 
@@ -110,8 +112,8 @@
           #@TestResult          Success if modifyAnAttribute returns 53
         -->
         
-<testcase name="getTestCaseName
-('Preamble, Admin Change min pwd age beyond limit')">
+      <testcase name="getTestCaseName 
+      ('Preamble, Admin Change min pwd age beyond limit')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -203,8 +205,8 @@
           #@TestResult       Success if modifyAnAttribute returns 53
         -->
         
-<testcase name="getTestCaseName
-('Preamble, Admin Change expire warning interval beyond limit')">
+      <testcase name="getTestCaseName
+      ('Preamble, Admin Change expire warning interval beyond limit')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
@@ -243,12 +245,18 @@
           #@TestPurpose         Search Bad Pwd 4x
           #@TestPreamble        none
           #@TestStep            Pause 2 seconds
+          #@TestStep            Verify grace login use times with manage-account
           #@TestStep            Search Bind 1 SearchObject returns 19
+          #@TestStep            Verify remaining grace login with manage-account
+          #@TestStep            Verify grace login use times with manage-account
           #@TestStep            Search Bind 2 SearchObject returns 19
+          #@TestStep            Verify remaining grace login with manage-account
           #@TestStep            Search Bind 3 SearchObject returns 49
+          #@TestStep            Verify remaining grace login with manage-account
           #@TestStep            Search Bind 4 SearchObject returns 49
+          #@TestStep            Verify remaining grace login with manage-account
           #@TestPostamble       none
-          #@TestResult          Success if the 4 steps are PASS
+          #@TestResult          Success if all the steps are PASS
         -->
         
         <testcase name="getTestCaseName('Search Bad Pwd 4x')">
@@ -261,6 +269,28 @@
 
             <call function="'Sleep'">
               { 'sleepForMilliSeconds' : '2000' }
+            </call>
+            
+            <message>
+             '%s Verify grace login use times with manage-account ' % msg
+            </message>
+
+            <call function="'manageAccountWithScript'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'       : 'get-grace-login-use-times' ,
+                  'targetDn'         : 'uid=btalbot,%s' % basedn }
+            </call>
+            
+            <script> 
+             returnString = STAXResult[0][1]
+            </script>
+            
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'Grace Login Use Times:' }
             </call>
             
             <message>
@@ -277,7 +307,55 @@
                   'extraParams'      : '-s base' ,
                   'expectedRC'       : 19 }
             </call>
-    
+            
+            <message>
+             '%s Verify remaining grace login count with manage-account ' % msg
+            </message>
+
+            <call function="'manageAccountWithScript'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'       : 'get-remaining-grace-login-count' ,
+                  'targetDn'         : 'uid=btalbot,%s' % basedn }
+            </call>
+            
+            <script> 
+             returnString = STAXResult[0][1]
+            </script>
+            
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'Remaining Grace Login Count:  2' }
+            </call>
+            
+            <script>
+              knownIssue(3430)
+            </script>
+            
+            <message>
+             '%s Verify grace login use times with manage-account ' % msg
+            </message>
+
+            <call function="'manageAccountWithScript'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'       : 'get-grace-login-use-times' ,
+                  'targetDn'         : 'uid=btalbot,%s' % basedn }
+            </call>
+            
+            <script> 
+             returnString = STAXResult[0][1]
+            </script>
+            
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'Grace Login Use Times:  20' }
+            </call>
+               
             <message>
                'Security: Grace Login:  Search Bind 2'
             </message>
@@ -292,7 +370,33 @@
                   'extraParams'      : '-s base',
                   'expectedRC'       : 19 }
             </call>
-    
+            
+            <message>
+             '%s Verify remaining grace login with manage-account ' % msg
+            </message>
+
+            <call function="'manageAccountWithScript'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'       : 'get-remaining-grace-login-count' ,
+                  'targetDn'         : 'uid=btalbot,%s' % basedn }
+            </call>
+            
+            <script> 
+             returnString = STAXResult[0][1]
+            </script>
+            
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'Remaining Grace Login Count:  1' }
+            </call>
+            
+            <script>
+              knownIssue(3430)
+            </script>
+               
             <message>
                'Security: Grace Login:  Search Bind 3'
             </message>
@@ -307,6 +411,29 @@
                   'extraParams'      : '-s base' ,
                   'expectedRC'       : 49 }
             </call>
+            
+            <message>
+             '%s Verify remaining grace login with manage-account ' % msg
+            </message>
+
+            <call function="'manageAccountWithScript'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'       : 'get-remaining-grace-login-count' ,
+                  'targetDn'         : 'uid=btalbot,%s' % basedn }
+            </call>
+            
+            <script> 
+             returnString = STAXResult[0][1]
+            </script>
+            
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'Remaining Grace Login Count:  0' }
+            </call>
+                       
             <message>
                'Security: Grace Login:  Search Bind 4'
             </message>
@@ -320,6 +447,28 @@
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base',
                   'expectedRC'       : 49 }
+            </call>
+            
+            <message>
+             '%s Verify remaining grace login with manage-account ' % msg
+            </message>
+
+            <call function="'manageAccountWithScript'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'       : 'get-remaining-grace-login-count' ,
+                  'targetDn'         : 'uid=btalbot,%s' % basedn }
+            </call>
+            
+            <script> 
+             returnString = STAXResult[0][1]
+            </script>
+            
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'Remaining Grace Login Count:  0' }
             </call>
             
             <call function="'testCase_Postamble'"/>
