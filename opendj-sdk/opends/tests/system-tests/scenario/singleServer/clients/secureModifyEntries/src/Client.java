@@ -115,7 +115,7 @@ public class Client {
             }
        	} catch (Exception e) {
 
-	    println ("INFO", "Failed to establish connection ");
+	    println ("INFO", "ERROR Failed to establish connection ");
 	    e.printStackTrace();
 	    System.exit(1);
         }
@@ -143,7 +143,7 @@ public class Client {
 		}
             }
             catch ( Exception e1 ) {
-		System.out.println ("E1");
+		println("INFO",  "ERROR during threads startup");
 		e1.printStackTrace();
             }
 
@@ -175,7 +175,7 @@ public class Client {
                             total_nb_mod=0;
                           }
                         } catch ( Exception e2 ) {
-                          System.out.println("E2");
+			    println("INFO",  "ERROR : E2");
                           e2.printStackTrace();
                         }
                  }
