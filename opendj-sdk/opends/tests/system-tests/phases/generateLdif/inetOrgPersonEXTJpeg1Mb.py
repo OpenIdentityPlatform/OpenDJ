@@ -78,5 +78,5 @@ roomNumber: <random:alphanumeric:4>\n\
 secretary: cn=secretary,<parentdn>\n\
 descriptionEXT: This is the ext description for {cn}.\n\
 mailEXT: <list:group1;2:group2;1:group3;1>\n\
-jpegPhoto: <random:base64:1000000>\n\
+jpegPhoto: <random:base64:3000>\n\
 \n')
