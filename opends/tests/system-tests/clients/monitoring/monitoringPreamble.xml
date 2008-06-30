@@ -107,7 +107,7 @@
           <!-- Copy jar in client host -->
           <call function="'copyFile'">
           {
-            'srcFile'    : scenario.getJdmkrtPath(),
+            'srcFile'    : externalTools.getJdmkrtPath(),
             'destFile'   : jdmkrt,
             'location'   : STAXServiceMachine,
             'remoteHost' : client.getHost(),
@@ -220,7 +220,7 @@
           <!-- Copy jar in client host -->
           <call function="'copyFile'">
           {
-            'srcFile'    : scenario.getJcommonPath(),
+            'srcFile'    : externalTools.getJcommonPath(),
             'destFile'   : jcommon,
             'location'   : STAXServiceMachine,
             'remoteHost' : client.getHost(),
@@ -232,7 +232,7 @@
           <!-- Copy jar in client host -->
           <call function="'copyFile'">
           {
-            'srcFile'    : scenario.getJfreechartPath(),
+            'srcFile'    : externalTools.getJfreechartPath(),
             'destFile'   : jfreechart,
             'location'   : STAXServiceMachine,
             'remoteHost' : client.getHost(),
