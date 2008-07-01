@@ -3429,7 +3429,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   {
     // Check that there is not already a domain with the same DN
     DN dn = configuration.getBaseDN();
-    if (MultimasterReplication.findDomain(dn,null) != null)
+    ReplicationDomain domain = MultimasterReplication.findDomain(dn, null);
+    if ((domain != null) && (domain.baseDN.equals(dn)))
     {
       Message message = ERR_SYNC_INVALID_DN.get();
       unacceptableReasons.add(message);
