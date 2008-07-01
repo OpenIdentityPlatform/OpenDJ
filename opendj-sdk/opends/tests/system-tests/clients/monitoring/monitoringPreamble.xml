@@ -84,6 +84,23 @@
         </sequence>
       <else>
         <sequence>
+          <if expr="needCopy == 1">
+            <sequence>
+              <call function="'copyFile'">
+              {
+                'srcFile'    : '%s/scenario/%s/%s' % \
+                               (TESTS_DIR,scenario.getName(),configFile),
+                'destFile'   : configFilePath,
+                'location'   : STAXServiceMachine,
+                'remoteHost' : client.getHost(),
+                'fileFd'     : fileFd
+              }
+              </call>
+              <script>errNum += STAXResult[0]</script>
+            </sequence>
+          </if>
+          
+          
           <!-- ========================================================== -->
           <!-- =============== Build Monitoring Client ================== -->
           <!-- ========== Run the client ========== -->
