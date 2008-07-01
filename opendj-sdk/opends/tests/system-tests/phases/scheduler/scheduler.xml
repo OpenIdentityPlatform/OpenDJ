@@ -504,7 +504,7 @@
           </call>
           
           <!--=============== run preamble =================================-->
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="'%s' % (client.getHost())"
            file="'%s/%sPreamble.xml' % (client.getPath(),client.getName())"/>
           <call function="'%sPreamble' % client.getName()">
           { 
@@ -632,7 +632,7 @@
           }
           </call>
           <!--=============== run postamble ================================-->
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+          <import machine="'%s' % (client.getHost())"
            file="'%s/%sPostamble.xml' % (client.getPath(),client.getName())"/>
           <call function="'%sPostamble' % client.getName()">
           { 
@@ -843,7 +843,7 @@
           </script>
           <if expr="pingRC == 0">
             <sequence>
-              <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+              <import machine="'%s' % (client.getHost())"
                file="'%s/%s.xml' % (client.getPath(),client.getName())"/>
               <call function="'%s' % client.getName()">
               { 
