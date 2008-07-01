@@ -66,10 +66,15 @@
         if serverInstanceFromClient == NOT_DEFINED:
           msg = '%s\nERROR: serverInstanceFromClient undefined,mandatory' % msg
         
-        
+        needCopy = 0
         configFile = getPropValue('configFile')
         if configFile == NOT_DEFINED or configFile == '':
-          configFile = '%s/MonitoringClient/config.xml' % client.getPath()
+          configFilePath = '%s/MonitoringClient/config.xml' % client.getPath()
+        elif configFile.find('/') == -1:
+          needCopy = 1
+          configFilePath = '%s/scenario/%s/%s' % \
+                           (LOCAL_TESTS_DIR,DIR_NAME,configFile)
+        
         
         interval = getPropValue('interval')
         unit = getPropValue('unit')
@@ -95,7 +100,7 @@
               parms.append('-m "%s""' %  serverInstance.getJVMPort())
             parms.append('-D "%s" -w "%s"' % \
                         (DIRECTORY_INSTANCE_DN,DIRECTORY_INSTANCE_PSWD))
-            parms.append('-f %s -r %s' % (configFile,client.getLogDir()))
+            parms.append('-f %s -r %s' % (configFilePath,client.getLogDir()))
             if interval != NOT_DEFINED:
               parms.append(' -i %s' % interval)
             if unit != NOT_DEFINED:
@@ -126,6 +131,7 @@
         
         
       </script>
+      
     </sequence>
   </function>
   
