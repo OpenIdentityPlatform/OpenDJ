@@ -292,7 +292,8 @@
           
           <call function="'writeMessage'">
           { 'fileFd'  : fileFd,
-            'content' : 'Verify tree %s taking %s as reference.' % (suffixDn, referenceServerPath)
+            'content' : 'Verify tree %s taking %s as reference.' % \
+                        (suffixDn, referenceServerPath)
           }
           </call>
           
@@ -315,7 +316,8 @@
               'dsFilter'       : 'objectclass=*',
               'dsAttributes'   : dsAttributes,
               'outputFile'     : referenceTree,
-              'expectedRC'     : 'noCheck',
+              'expectedRC'     : [0,4],
+              'logStderr'      : 'false',
               'fileFd'         : fileFd,
               'dsSortOrder'    : '+cn',
               'dsSizeLimit'    : dsSizeLimit
@@ -325,7 +327,7 @@
             ldapSearchRC = STAXResult[0]
           </script>
           
-          <if expr="ldapSearchRC != 0">
+          <if expr="ldapSearchRC != 0 and ldapSearchRC != 4">
             <!-- == If the reference tree could not be retrieved,  == -->
             <!-- == return an error                                == -->
             <sequence>
@@ -346,7 +348,8 @@
               'dsFilter'       : 'objectclass=*',
               'dsAttributes'   : dsAttributes,
               'outputFile'     : sampleTree,
-              'expectedRC'     : 'noCheck',
+              'expectedRC'     : [0,4],
+              'logStderr'      : 'false',
               'fileFd'         : fileFd,
               'dsSortOrder'    : '+cn',
               'dsSizeLimit'    : dsSizeLimit
@@ -356,7 +359,7 @@
             ldapSearchRC = STAXResult[0]
           </script>
           
-          <if expr="ldapSearchRC == 0">
+          <if expr="ldapSearchRC == 0 or ldapSearchRC == 4">
             <sequence>
               <!-- == Check if file is empty == -->
               <call function="'isEmptyFile'">
@@ -727,6 +730,18 @@
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
       </function-arg-def>
+      <function-arg-def name="logStderr" type="optional" default="'true'">
+        <function-arg-description>
+          If true, stderr for the command is redirect to stdout.
+        </function-arg-description>
+        <function-arg-property name="type" value="enum">
+          <function-arg-property-description>
+            This argument can only have boolean values
+          </function-arg-property-description>
+          <function-arg-property-data type="choice" value="'true'"/>
+          <function-arg-property-data type="choice" value="'false'"/>
+        </function-arg-property>
+      </function-arg-def>
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0.
@@ -905,6 +920,7 @@
           'path'      : dsBinPath,
           'outputFile': outputFile,
           'expectedRC': expectedRC,
+          'logStderr' : logStderr,
           'fileFd'    : fileFd
         }
       </call>

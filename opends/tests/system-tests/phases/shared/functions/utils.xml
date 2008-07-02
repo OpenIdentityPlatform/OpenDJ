@@ -860,12 +860,23 @@
       </else>
       </if>
       
+      <script>
+        isList = FALSE
+        try:
+          if len(expectedRC) >= 0:
+            isList = TRUE
+        except:
+          isList = FALSE
+        
+        if isList == FALSE:
+          expectedRC = [expectedRC]
+      </script>
       
       <if expr="expectedRC != 'noCheck'">
         <call function="'checkRC'">
           { 'returncode' : cmdRC,
             'result'     : cmdOutput,
-            'expected'   : [expectedRC],
+            'expected'   : expectedRC,
             'fileFd'     : fileFd
           }
         </call>
