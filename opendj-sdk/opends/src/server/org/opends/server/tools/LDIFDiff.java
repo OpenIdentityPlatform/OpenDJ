@@ -27,15 +27,18 @@
 package org.opends.server.tools;
 import org.opends.messages.Message;
 
-
-
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.TreeMap;
 
 import org.opends.server.core.DirectoryServer;
@@ -45,6 +48,7 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFImportConfig;
@@ -166,6 +170,8 @@ public class LDIFDiff
     StringArgument  outputLDIF;
     StringArgument  sourceLDIF;
     StringArgument  targetLDIF;
+    StringArgument  ignoreAttrsFile;
+    StringArgument  ignoreEntriesFile;
 
 
     Message toolDescription = INFO_LDIFDIFF_TOOL_DESCRIPTION.get();
@@ -190,6 +196,18 @@ public class LDIFDiff
               false, true, INFO_FILE_PLACEHOLDER.get(), null, null,
               INFO_LDIFDIFF_DESCRIPTION_OUTPUT_LDIF.get());
       argParser.addArgument(outputLDIF);
+
+      ignoreAttrsFile = new StringArgument(
+              "ignoreattrs", 'a', "ignoreAttrs", false,
+              false, true, INFO_FILE_PLACEHOLDER.get(), null, null,
+              INFO_LDIFDIFF_DESCRIPTION_IGNORE_ATTRS.get());
+      argParser.addArgument(ignoreAttrsFile);
+
+      ignoreEntriesFile = new StringArgument(
+              "ignoreentries", 'e', "ignoreEntries", false,
+              false, true, INFO_FILE_PLACEHOLDER.get(), null, null,
+              INFO_LDIFDIFF_DESCRIPTION_IGNORE_ENTRIES.get());
+      argParser.addArgument(ignoreEntriesFile);
 
       overwriteExisting =
            new BooleanArgument(
@@ -314,6 +332,82 @@ public class LDIFDiff
       }
     }
 
+    // Read in ignored entries and attributes if any
+    BufferedReader ignReader = null;
+    Collection<DN> ignoreEntries = new HashSet<DN>();
+    Collection<String> ignoreAttrs   = new HashSet<String>();
+
+    if (ignoreAttrsFile.getValue() != null)
+    {
+      try
+      {
+        ignReader = new BufferedReader(
+          new FileReader(ignoreAttrsFile.getValue()));
+        String line = null;
+        while ((line = ignReader.readLine()) != null)
+        {
+          ignoreAttrs.add(line.toLowerCase());
+        }
+        ignReader.close();
+      }
+      catch (Exception e)
+      {
+        Message message = ERR_LDIFDIFF_CANNOT_READ_FILE_IGNORE_ATTRIBS.get(
+                ignoreAttrsFile.getValue(),
+                String.valueOf(e));
+        err.println(message);
+        return 1;
+      }
+      finally
+      {
+        try
+        {
+          ignReader.close();
+        }
+        catch (Exception e) {}
+      }
+    }
+
+    if (ignoreEntriesFile.getValue() != null)
+    {
+      try
+      {
+        ignReader = new BufferedReader(
+          new FileReader(ignoreEntriesFile.getValue()));
+        String line = null;
+        while ((line = ignReader.readLine()) != null)
+        {
+          try
+          {
+            DN dn = DN.decode(line);
+            ignoreEntries.add(dn);
+          }
+          catch (DirectoryException e)
+          {
+            Message message = INFO_LDIFDIFF_CANNOT_PARSE_STRING_AS_DN.get(
+                    line, ignoreEntriesFile.getValue());
+            err.println(message);
+          }
+        }
+        ignReader.close();
+      }
+      catch (Exception e)
+      {
+        Message message = ERR_LDIFDIFF_CANNOT_READ_FILE_IGNORE_ENTRIES.get(
+                ignoreEntriesFile.getValue(),
+                String.valueOf(e));
+        err.println(message);
+        return 1;
+      }
+      finally
+      {
+        try
+        {
+          ignReader.close();
+        }
+        catch (Exception e) {}
+      }
+    }
 
     // Open the source LDIF file and read it into a tree map.
     LDIFReader reader;
@@ -342,7 +436,10 @@ public class LDIFDiff
           break;
         }
 
-        sourceMap.put(entry.getDN(), entry);
+        if (! ignoreEntries.contains(entry.getDN()))
+        {
+          sourceMap.put(entry.getDN(), entry);
+        }
       }
     }
     catch (Exception e)
@@ -388,7 +485,10 @@ public class LDIFDiff
           break;
         }
 
-        targetMap.put(entry.getDN(), entry);
+        if (! ignoreEntries.contains(entry.getDN()))
+        {
+          targetMap.put(entry.getDN(), entry);
+        }
       }
     }
     catch (Exception e)
@@ -550,7 +650,7 @@ public class LDIFDiff
           {
             // The DNs are the same, so check to see if the entries are the
             // same or have been modified.
-            if (writeModify(writer, sourceEntry, targetEntry,
+            if (writeModify(writer, sourceEntry, targetEntry, ignoreAttrs,
                             singleValueChanges.isPresent()))
             {
               differenceFound = true;
@@ -678,6 +778,8 @@ public class LDIFDiff
    *                             written.
    * @param  sourceEntry         The source form of the entry.
    * @param  targetEntry         The target form of the entry.
+   * @param  ignoreAttrs         Attributes that are ignored while calculating
+   *                             the differences.
    * @param  singleValueChanges  Indicates whether each attribute-level change
    *                             should be written in a separate modification
    *                             per attribute value.
@@ -689,7 +791,7 @@ public class LDIFDiff
    *                       change record.
    */
   private static boolean writeModify(LDIFWriter writer, Entry sourceEntry,
-                                     Entry targetEntry,
+                                     Entry targetEntry, Collection ignoreAttrs,
                                      boolean singleValueChanges)
           throws IOException
   {
@@ -854,6 +956,19 @@ public class LDIFDiff
       }
     }
 
+    // Remove ignored attributes
+    if (! ignoreAttrs.isEmpty())
+    {
+      ListIterator<Modification> modIter = modifications.listIterator();
+      while (modIter.hasNext())
+      {
+        String name = modIter.next().getAttribute().getName().toLowerCase();
+        if (ignoreAttrs.contains(name))
+        {
+            modIter.remove();
+        }
+      }
+    }
 
     // Write the modification change record.
     if (modifications.isEmpty())
@@ -902,4 +1017,3 @@ public class LDIFDiff
     }
   }
 }
-

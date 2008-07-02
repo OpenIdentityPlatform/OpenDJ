@@ -1,0 +1,41 @@
+dn: dc=example,dc=com
+changetype: modify
+add: o
+o: Example Corp.
+
+dn: ou=Applications,dc=example,dc=com
+changetype: add
+objectClass: top
+objectClass: organizationalUnit
+ou: Applications
+
+dn: ou=Groups,dc=example,dc=com
+changetype: delete
+# objectClass: top
+# objectClass: organizationalUnit
+# ou: Groups
+
+dn: cn=Test User,ou=People,dc=example,dc=com
+changetype: add
+objectClass: person
+objectClass: organizationalPerson
+objectClass: top
+objectClass: inetOrgPerson
+cn: Test User
+sn: User
+uid: test.user
+userPassword: password
+givenName: Test
+
+dn: uid=test.user,ou=People,dc=example,dc=com
+changetype: delete
+# objectClass: person
+# objectClass: organizationalPerson
+# objectClass: top
+# objectClass: inetOrgPerson
+# cn: Test User
+# sn: User
+# uid: test.user
+# userPassword: password
+# givenName: Test
+
