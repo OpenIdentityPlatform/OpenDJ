@@ -61,7 +61,7 @@
           <!--- Test Case information
             #@TestMarker          SNMP trap with default configuration
             #@TestName            trap_defaultconf: trap on stop-ds
-            #@TestIssue           none
+            #@TestIssue           3435
             #@TestPurpose         Check that a trap is sent on default trap
                                   community after stop-ds command.
             #@TestPreamble        none
@@ -152,6 +152,12 @@
                 'timerRC'       : timerRC
                 }
               </call>
+              
+              <if expr="is_windows_platform(STAF_REMOTE_HOSTNAME)">
+                <script>
+                  knownIssue(3435)
+                </script>
+              </if>
 
               <call function="'testCase_Postamble'"/>
 
@@ -263,7 +269,7 @@
           <!--- Test Case information
             #@TestMarker          SNMP trap with default configuration
             #@TestName            trap_defaultconf: trap on stop-ds -R
-            #@TestIssue           none
+            #@TestIssue           3435
             #@TestPurpose         Check that 2 traps are sent on default trap
                                   community after stop-ds -R command.
             #@TestPreamble        none
@@ -357,7 +363,13 @@
                 'timerRC'       : timerRC
                 }
               </call>
-
+              
+              <if expr="is_windows_platform(STAF_REMOTE_HOSTNAME)">
+                <script>
+                  knownIssue(3435)
+                </script>
+              </if>
+              
               <call function="'testCase_Postamble'"/>
 
             </sequence>
