@@ -77,6 +77,27 @@ public class LDIFDiffTestCase
   }
 
 
+  /**
+   * Calculates the checksum of a file
+   */
+  private long calcChecksum(String filename) throws Exception
+  {
+    return calcChecksum(new File(filename));
+  }
+
+  private long calcChecksum(File file) throws Exception
+  {
+    long checksum = 0L;
+    BufferedReader reader = new BufferedReader(new FileReader(file));
+    String line = null;
+    while ((line =reader.readLine()) != null)
+    {
+      checksum += line.hashCode();
+    }
+    reader.close();
+    return checksum;
+  }
+
 
   /**
    * Tests the LDIFDiff tool with an argument that will simply cause it to
@@ -234,8 +255,6 @@ public class LDIFDiffTestCase
   }
 
 
-
-
   /**
    * Tests the LDIFDiff tool with the provided information to ensure that the
    * normal mode of operation works as expected.  This is a bit tricky because
@@ -285,29 +304,7 @@ public class LDIFDiffTestCase
     }
 
     assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
-
-    long outputChecksum = 0L;
-    BufferedReader reader = new BufferedReader(new FileReader(outputFile));
-    String line = reader.readLine();
-    while (line != null)
-    {
-      outputChecksum += line.hashCode();
-      line = reader.readLine();
-    }
-    reader.close();
-
-    long expectedChecksum = 0L;
-    reader = new BufferedReader(new FileReader(normalDiffFile));
-    line = reader.readLine();
-    while (line != null)
-    {
-      expectedChecksum += line.hashCode();
-      line = reader.readLine();
-    }
-    reader.close();
-
-    assertEquals(outputChecksum, expectedChecksum);
-
+    assertEquals(calcChecksum(outputFile), calcChecksum(normalDiffFile));
     outputFile.delete();
   }
 
@@ -364,29 +361,7 @@ public class LDIFDiffTestCase
     }
 
     assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
-
-    long outputChecksum = 0L;
-    BufferedReader reader = new BufferedReader(new FileReader(outputFile));
-    String line = reader.readLine();
-    while (line != null)
-    {
-      outputChecksum += line.hashCode();
-      line = reader.readLine();
-    }
-    reader.close();
-
-    long expectedChecksum = 0L;
-    reader = new BufferedReader(new FileReader(singleValueDiffFile));
-    line = reader.readLine();
-    while (line != null)
-    {
-      expectedChecksum += line.hashCode();
-      line = reader.readLine();
-    }
-    reader.close();
-
-    assertEquals(outputChecksum, expectedChecksum);
-
+    assertEquals(calcChecksum(outputFile), calcChecksum(singleValueDiffFile));
     outputFile.delete();
   }
 
@@ -470,31 +445,7 @@ public class LDIFDiffTestCase
     };
 
     assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
-
-
-    // Read the contents of the new diff file and make sure it matches the
-    // contents of the "no changes" diff file.
-    long newDiffChecksum = 0L;
-    BufferedReader reader = new BufferedReader(new FileReader(newDiffFile));
-    String line = reader.readLine();
-    while (line != null)
-    {
-      newDiffChecksum += line.hashCode();
-      line = reader.readLine();
-    }
-    reader.close();
-
-    long expectedChecksum = 0L;
-    reader = new BufferedReader(new FileReader(noDiffsFile));
-    line = reader.readLine();
-    while (line != null)
-    {
-      expectedChecksum += line.hashCode();
-      line = reader.readLine();
-    }
-    reader.close();
-
-    assertEquals(newDiffChecksum, expectedChecksum);
+    assertEquals(calcChecksum(newDiffFile), calcChecksum(noDiffsFile));
 
     diffOutputFile.delete();
     newTargetFile.delete();
@@ -582,35 +533,185 @@ public class LDIFDiffTestCase
     };
 
     assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
-
-
-    // Read the contents of the new diff file and make sure it matches the
-    // contents of the "no changes" diff file.
-    long newDiffChecksum = 0L;
-    BufferedReader reader = new BufferedReader(new FileReader(newDiffFile));
-    String line = reader.readLine();
-    while (line != null)
-    {
-      newDiffChecksum += line.hashCode();
-      line = reader.readLine();
-    }
-    reader.close();
-
-    long expectedChecksum = 0L;
-    reader = new BufferedReader(new FileReader(noDiffsFile));
-    line = reader.readLine();
-    while (line != null)
-    {
-      expectedChecksum += line.hashCode();
-      line = reader.readLine();
-    }
-    reader.close();
-
-    assertEquals(newDiffChecksum, expectedChecksum);
+    assertEquals(calcChecksum(newDiffFile), calcChecksum(noDiffsFile));
 
     diffOutputFile.delete();
     newTargetFile.delete();
     newDiffFile.delete();
+  }
+
+
+  /**
+   * Retrieves the names of the files that should be used when testing the
+   * ldif-diff tool.  Each element of the outer array should be an array
+   * containing the following elements:
+   * <OL>
+   *   <LI>The path to the source LDIF file</LI>
+   *   <LI>The path to the target LDIF file</LI>
+   *   <LI>The path to the file with attributes to be ignored</LI>
+   *   <LI>The path to the diff file</LI>
+   * </OL>
+   */
+  @DataProvider(name = "ignoreattributesdata")
+  public Object[][] getIATestData()
+  {
+    String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
+    String ldifRoot  = buildRoot + File.separator + "tests" + File.separator +
+                       "unit-tests-testng" + File.separator + "resource" +
+                       File.separator + "ldif-diff" + File.separator;
+
+    return new Object[][]
+    {
+      // Make changes to multiple entries in the target->source direction.
+      new Object[] { ldifRoot + "source-multipleentries.ldif",
+                     ldifRoot + "target-multipleentries.ldif",
+                     ldifRoot + "ignore-attributes",
+                     ldifRoot + "diff-multipleentries-ignore-attributes.ldif" },
+
+      new Object[] { ldifRoot + "source-multipleentries.ldif",
+                     ldifRoot + "target-multipleentries.ldif",
+                     ldifRoot + "does-not-exist",
+                     ldifRoot + "diff-multipleentries-ignore-attributes.ldif" }
+    };
+
+  }
+
+
+
+  /**
+   * Tests the LDIFDiff tool with the provided information to ensure that the
+   * normal mode of operation works as expected.  This is a bit tricky because
+   * the attributes and values will be written in an indeterminite order, so we
+   * can't just use string equality.  We'll have to use a crude checksum
+   * mechanism to test whether they are equal.  Combined with other methods in
+   * this class, this should be good enough.
+   *
+   * @param  sourceFile           The path to the file containing the source
+   *                              data set.
+   * @param  targetFile           The path to the file containing the target
+   *                              data set.
+   * @param  normalDiffFile       The path to the file containing the expected
+   *                              diff in "normal" form (at most one record per
+   *                              entry), or {@code null} if the diff is
+   *                              supposed to fail.
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "ignoreattributesdata")
+  public void testVerifyIgnoreAttributes(String sourceFile, String targetFile,
+                               String ignoreAttributesFile,
+                               String normalDiffFile)
+         throws Exception
+  {
+    File outputFile = File.createTempFile("difftest", "ldif");
+    outputFile.deleteOnExit();
+
+    String[] args =
+    {
+      "-s", sourceFile,
+      "-t", targetFile,
+      "-a", ignoreAttributesFile,
+      "-o", outputFile.getAbsolutePath(),
+      "-O"
+    };
+
+    if (ignoreAttributesFile.endsWith("/does-not-exist"))
+    {
+      // We expect this to fail, so just make sure that it does.
+      assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 1);
+      return;
+    }
+
+    assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
+    assertEquals(calcChecksum(outputFile), calcChecksum(normalDiffFile));
+
+    outputFile.delete();
+  }
+
+
+  /**
+   * Retrieves the names of the files that should be used when testing the
+   * ldif-diff tool.  Each element of the outer array should be an array
+   * containing the following elements:
+   * <OL>
+   *   <LI>The path to the source LDIF file</LI>
+   *   <LI>The path to the target LDIF file</LI>
+   *   <LI>The path to the file with entries to be ignored</LI>
+   *   <LI>The path to the diff file</LI>
+   * </OL>
+   */
+  @DataProvider(name = "ignoreentriesdata")
+  public Object[][] getIETestData()
+  {
+    String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
+    String ldifRoot  = buildRoot + File.separator + "tests" + File.separator +
+                       "unit-tests-testng" + File.separator + "resource" +
+                       File.separator + "ldif-diff" + File.separator;
+
+    return new Object[][]
+    {
+      // Make changes to multiple entries in the target->source direction.
+      new Object[] { ldifRoot + "source-multipleentries.ldif",
+                     ldifRoot + "target-multipleentries.ldif",
+                     ldifRoot + "ignore-entries",
+                     ldifRoot + "diff-multipleentries-ignore-entries.ldif" },
+
+      new Object[] { ldifRoot + "source-multipleentries.ldif",
+                     ldifRoot + "target-multipleentries.ldif",
+                     ldifRoot + "does-not-exist",
+                     ldifRoot + "diff-multipleentries-ignore-entries.ldif" }
+    };
+
+  }
+
+
+
+  /**
+   * Tests the LDIFDiff tool with the provided information to ensure that the
+   * normal mode of operation works as expected.  This is a bit tricky because
+   * the attributes and values will be written in an indeterminite order, so we
+   * can't just use string equality.  We'll have to use a crude checksum
+   * mechanism to test whether they are equal.  Combined with other methods in
+   * this class, this should be good enough.
+   *
+   * @param  sourceFile           The path to the file containing the source
+   *                              data set.
+   * @param  targetFile           The path to the file containing the target
+   *                              data set.
+   * @param  normalDiffFile       The path to the file containing the expected
+   *                              diff in "normal" form (at most one record per
+   *                              entry), or {@code null} if the diff is
+   *                              supposed to fail.
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "ignoreentriesdata")
+  public void testVerifyIgnoreEntries(String sourceFile, String targetFile,
+                               String ignoreEntriesFile,
+                               String normalDiffFile)
+         throws Exception
+  {
+    File outputFile = File.createTempFile("difftest", "ldif");
+    outputFile.deleteOnExit();
+
+    String[] args =
+    {
+      "-s", sourceFile,
+      "-t", targetFile,
+      "-e", ignoreEntriesFile,
+      "-o", outputFile.getAbsolutePath(),
+      "-O"
+    };
+
+    if (ignoreEntriesFile.endsWith("/does-not-exist"))
+    {
+      // We expect this to fail, so just make sure that it does.
+      assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 1);
+      return;
+    }
+
+    assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
+    assertEquals(calcChecksum(outputFile), calcChecksum(normalDiffFile));
+
+    outputFile.delete();
   }
 }
 
