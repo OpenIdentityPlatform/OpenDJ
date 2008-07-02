@@ -127,7 +127,7 @@
           <!--- Test Case information
             #@TestMarker          SNMP v3 with custom configuration
             #@TestName            v3_customconf: TODO
-            #@TestIssue           3301
+            #@TestIssue           none
             #@TestPurpose         TODO.
             #@TestPreamble        none
             #@TestStep            TODO.
@@ -194,10 +194,6 @@
                 'snmpStatus'        : 'noError'
                 }
               </call>
-
-              <script>
-                knownIssue(3301)
-              </script>
 
               <call function="'testCase_Postamble'"/>
 
@@ -716,7 +712,7 @@
           <!--- Test Case information
             #@TestMarker          SNMP v3 with custom configuration
             #@TestName            v3_customconf: TODO
-            #@TestIssue           3301
+            #@TestIssue           none
             #@TestPurpose         TODO.
             #@TestPreamble        none
             #@TestStep            TODO.
@@ -845,10 +841,6 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
                 }
               </call>
-
-              <script>
-                knownIssue(3301)
-              </script>
 
               <call function="'testCase_Postamble'"/>
 

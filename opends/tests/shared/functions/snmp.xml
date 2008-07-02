@@ -477,9 +477,7 @@
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
-              <message>
-                'TOFTOF: %s' % outputFile
-              </message>
+
       <call function="'runCommand'" >
         {
         'name'       : 'SNMP Trap Listener' ,
