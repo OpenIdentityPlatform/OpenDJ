@@ -37,7 +37,6 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -327,21 +326,6 @@ public class ReplicationServerDomain
       sendReplServerInfo();
 
       return true;
-    }
-  }
-
-  /**
-   * Stop operations with a list of servers.
-   *
-   * @param replServers the replication servers for which
-   * we want to stop operations
-   */
-  public void stopServers(Collection<String> replServers)
-  {
-    for (ServerHandler handler : replicationServers.values())
-    {
-      if (replServers.contains(handler.getServerAddressURL()))
-        stopServer(handler);
     }
   }
 

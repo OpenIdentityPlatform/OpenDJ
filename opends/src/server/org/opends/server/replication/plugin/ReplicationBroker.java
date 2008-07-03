@@ -697,6 +697,7 @@ public class ReplicationBroker implements InternalSearchListener
         }
       } // For late servers
     }
+
     return bestServer;
   }
 
@@ -1000,7 +1001,7 @@ public class ReplicationBroker implements InternalSearchListener
     try
     {
       rcvWindow--;
-      if ((rcvWindow < halfRcvWindow) && (session != null))
+      if (rcvWindow < halfRcvWindow)
       {
         session.publish(new WindowMessage(halfRcvWindow));
         rcvWindow += halfRcvWindow;
@@ -1195,10 +1196,9 @@ public class ReplicationBroker implements InternalSearchListener
     this.maxReceiveQueue = maxReceiveQueue;
     this.maxSendDelay = maxSendDelay;
     this.maxSendQueue = maxSendQueue;
-
-    // For info, a new session with the replicationServer
-    // will be recreated in the replication domain
-    // to take into account the new configuration.
+  // TODO : Changing those parameters requires to either restart a new
+  // session with the replicationServer or renegociate the parameters that
+  // were sent in the ServerStart message
   }
 
   /**
