@@ -627,13 +627,9 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   {
     // Changing those properties don't need specific code.
     // They will be applied for next connections.
-
-    disconnectRemovedReplicationServers(configuration.getReplicationServer());
-
     replicationServers = configuration.getReplicationServer();
     if (replicationServers == null)
       replicationServers = new ArrayList<String>();
-
     queueSize = configuration.getQueueSize();
     long newPurgeDelay = configuration.getReplicationPurgeDelay();
     if (newPurgeDelay != purgeDelay)
@@ -1026,32 +1022,6 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
         ReplicationServerDomain rsd = rcachei.next();
         rsd.clearDbs();
       }
-    }
-  }
-
-  /**
-   * Compute the list of replication servers that are not any
-   * more connected to this Replication Server and stop the
-   * corresponding handlers.
-   * @param newReplServers the list of the new replication servers configured.
-   */
-  private void disconnectRemovedReplicationServers(
-      Collection<String> newReplServers)
-  {
-    Collection<String> serversToDisconnect = new ArrayList<String>();
-
-    for (String server: replicationServers)
-    {
-      if (!newReplServers.contains(server))
-        serversToDisconnect.add(server);
-    }
-
-    if (serversToDisconnect.isEmpty())
-      return;
-
-    for (ReplicationServerDomain replicationServerDomain: baseDNs.values())
-    {
-      replicationServerDomain.stopServers(serversToDisconnect);
     }
   }
 }
