@@ -2248,12 +2248,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     disabled = true;
 
     // Stop the listener thread
-    listenerThread.shutdown();
+    if (listenerThread != null)
+      listenerThread.shutdown();
 
     broker.stop(); // This will cut the session and wake up the listener
 
     // Wait for the listener thread to stop
-    listenerThread.waitForShutdown();
+    if (listenerThread != null)
+      listenerThread.waitForShutdown();
   }
 
   /**
@@ -3464,6 +3466,12 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     broker.changeConfig(replicationServers, maxReceiveQueue, maxReceiveDelay,
                         maxSendQueue, maxSendDelay, window, heartbeatInterval);
     isolationpolicy = configuration.getIsolationPolicy();
+
+    // To be able to stop and restart the broker properly just
+    // disable and enable the domain. That way a new session
+    // with the new configuration is available.
+    this.disable();
+    this.enable();
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
