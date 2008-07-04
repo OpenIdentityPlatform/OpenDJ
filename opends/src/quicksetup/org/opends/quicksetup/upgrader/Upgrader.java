@@ -1546,12 +1546,18 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
   private void initialize() throws ApplicationException {
     try {
+      BuildInformation fromVersion = getCurrentBuildInformation();
+      BuildInformation toVersion = getStagedBuildInformation();
+      if (fromVersion.equals(toVersion))
+      {
+        throw new ApplicationException(ReturnCode.APPLICATION_ERROR,
+            INFO_UPGRADE_ORACLE_SAME_VERSION.get(
+                fromVersion.toString()), null);
+      }
       if (getInstallation().getStatus().isServerRunning()) {
         new ServerController(getInstallation()).stopServer(true);
       }
 
-      BuildInformation fromVersion = getCurrentBuildInformation();
-      BuildInformation toVersion = getStagedBuildInformation();
       this.historicalOperationId =
               writeInitialHistoricalRecord(fromVersion, toVersion);
 
