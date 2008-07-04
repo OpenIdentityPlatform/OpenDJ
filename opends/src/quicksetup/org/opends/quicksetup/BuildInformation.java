@@ -99,7 +99,7 @@ public class BuildInformation implements Comparable {
             {
               try
               {
-                Thread.sleep(5000);
+                Thread.sleep(15000);
                 if (!done[0])
                 {
                   fOut.write(Constants.LINE_SEPARATOR.getBytes());
@@ -143,9 +143,23 @@ public class BuildInformation implements Comparable {
         }
         else
         {
-          throw new ApplicationException(
-              ReturnCode.START_ERROR,
-              INFO_ERROR_CREATING_BUILD_INFO_MSG.get(sb.toString()), null);
+          try
+          {
+            checkNotNull(bi.values,
+                NAME,
+                MAJOR_VERSION,
+                MINOR_VERSION,
+                POINT_VERSION,
+                REVISION_NUMBER);
+          }
+          catch (Throwable t)
+          {
+            // We did not get the required information.
+            throw new ApplicationException(
+                ReturnCode.START_ERROR,
+                INFO_ERROR_CREATING_BUILD_INFO_MSG.get(sb.toString()),
+                null);
+          }
         }
       }
     } catch (IOException e) {
