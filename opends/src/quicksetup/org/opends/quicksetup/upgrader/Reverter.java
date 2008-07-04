@@ -100,7 +100,8 @@ public class Reverter extends Application implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  public UserData createUserData(Launcher launcher) throws UserDataException {
+  public UserData createUserData(Launcher launcher)
+  throws UserDataException, ApplicationException {
     ReverterUserData ud = null;
 
     if (launcher instanceof UpgradeLauncher) {
@@ -280,16 +281,16 @@ public class Reverter extends Application implements CliApplication {
             }
             if (!found)
             {
-              throw new UserDataException(null,
-                  INFO_REVERT_ERROR_INVALID_HISTORY_DIR.get());
+              throw new ApplicationException(ReturnCode.APPLICATION_ERROR,
+                  INFO_REVERT_ERROR_INVALID_HISTORY_DIR.get(), null);
             }
           } else {
-            throw new UserDataException(null,
-                    INFO_REVERT_ERROR_EMPTY_HISTORY_DIR.get());
+            throw new ApplicationException(ReturnCode.APPLICATION_ERROR,
+                    INFO_REVERT_ERROR_EMPTY_HISTORY_DIR.get(), null);
           }
         } else {
-          throw new UserDataException(null,
-                  INFO_REVERT_ERROR_NO_HISTORY_DIR.get());
+          throw new ApplicationException(ReturnCode.APPLICATION_ERROR,
+                  INFO_REVERT_ERROR_NO_HISTORY_DIR.get(), null);
         }
       }
       ud.setQuiet(rl.isQuiet());
