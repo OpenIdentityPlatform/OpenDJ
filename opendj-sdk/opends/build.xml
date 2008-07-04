@@ -48,6 +48,7 @@
   <property name="docgen.dir"       location="${build.dir}/docgen"    />
   <property name="configguide.dir"  location="${docgen.dir}/configuration_guide"    />
   <property name="configguideldap.dir"  location="${docgen.dir}/configuration_guide_with_ldap_mapping"    />
+  <property name="wiki.home"        value="https://www.opends.org/wiki"/>
   <property name="resource.dir"     location="resource"                />
   <property name="scripts.dir"      location="${resource.dir}/bin"     />
   <property name="config.dir"       location="${resource.dir}/config"  />
@@ -822,6 +823,7 @@
         <dirset dir="${classes.dir}" />
       </classpath>
       <jvmarg value="-DGenerationDir=${configguide.dir}"/>
+      <jvmarg value="-DOpendsWiki=${wiki.home}"/>
     </java>
   </target>
 
@@ -841,6 +843,7 @@
         <dirset dir="${classes.dir}" />
       </classpath>
       <jvmarg value="-DGenerationDir=${configguideldap.dir}"/>
+      <jvmarg value="-DOpendsWiki=${wiki.home}"/>
       <jvmarg value="-DLdapMapping"/>
     </java>
   </target>
