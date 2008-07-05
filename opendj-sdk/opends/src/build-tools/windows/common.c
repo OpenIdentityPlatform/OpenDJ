@@ -52,6 +52,9 @@ PROCESS_INFORMATION* procInfo)
   BOOL createOk;
   STARTUPINFO startInfo; // info to pass to the new process
   DWORD processFlag; // background process flag
+  HANDLE hStdin;                  /* stdin */
+  HANDLE hStdout;                 /* stdout */
+  HANDLE hStderr;                 /* stderr */
 
   debug("Attempting to create child process '%s' background=%d.", command,
       background);
@@ -63,6 +66,13 @@ PROCESS_INFORMATION* procInfo)
   ZeroMemory(&startInfo, sizeof(STARTUPINFO));
   startInfo.cb = sizeof(STARTUPINFO);
   startInfo.dwFlags |= STARTF_USESTDHANDLES;  // use handles above
+  
+  hStdin= GetStdHandle(STD_INPUT_HANDLE);
+  SetHandleInformation (hStdin,  HANDLE_FLAG_INHERIT, FALSE);
+  hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+  SetHandleInformation (hStdout, HANDLE_FLAG_INHERIT, FALSE);
+  hStderr = GetStdHandle(STD_ERROR_HANDLE);
+  SetHandleInformation (hStderr, HANDLE_FLAG_INHERIT, FALSE);
 
   // Create the child process
   processFlag = background == TRUE ? DETACHED_PROCESS : 0;
