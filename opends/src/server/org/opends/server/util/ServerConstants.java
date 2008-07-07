@@ -2349,7 +2349,11 @@ public final class ServerConstants
    */
   public static final String SCHEMA_PROPERTY_FILENAME = "X-SCHEMA-FILE";
 
-
+  /**
+   * The name of the schema property that will be used to specify the origin
+   * of a schema element.
+   */
+  public static final String SCHEMA_PROPERTY_ORIGIN = "X-ORIGIN";
 
   /**
    * The abbreviated unit that should be used for a size specified in bytes.
