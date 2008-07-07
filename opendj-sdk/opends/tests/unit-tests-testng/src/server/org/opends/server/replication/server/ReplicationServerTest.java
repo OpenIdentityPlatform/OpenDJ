@@ -39,6 +39,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -132,6 +133,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     TestCaseUtils.dsconfig(
         "create-replication-server",
         "--provider-name", "Multimaster Synchronization",
+        "--set", "replication-db-directory:" + "replicationServerTestDb",
         "--set", "replication-port:" + replicationServerPort,
         "--set", "replication-server-id:1");
     
@@ -187,6 +189,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     backupRestore();
     stopChangelog();
     windowProbeTest();
+    replicationServerConnected();
   }
 
   /**
@@ -340,8 +343,8 @@ public class ReplicationServerTest extends ReplicationTestCase
       {
         DeleteMsg del = (DeleteMsg) msg2;
         assertTrue(del.getChangeNumber().equals(firstChangeNumberServer1),
-            "The first message received by a new client was the wrong one."
-            + del.getChangeNumber() + " " + firstChangeNumberServer1);
+            "The first message received by a new client was the wrong one : "
+            + del.getChangeNumber() + " instead of " + firstChangeNumberServer1);
       }
     }
     finally
@@ -725,7 +728,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         String baseUUID = "22222222-2222-2222-2222-222222222222";
 
         // - Add
-        String lentry = new String("dn: dc=example,dc=com\n"
+        String lentry = new String("dn: o=test,dc=example,dc=com\n"
             + "objectClass: top\n" + "objectClass: domain\n"
             + "entryUUID: 11111111-1111-1111-1111-111111111111\n");
         Entry entry = TestCaseUtils.entryFromLdifString(lentry);
@@ -1529,4 +1532,187 @@ public class ReplicationServerTest extends ReplicationTestCase
        assertEquals(retVal, 53, "Returned error: " + eStream);
      } catch(Exception e) {}
    }
+ 
+   /**
+    * Replication Server configuration test of the replication Server code with 2 replication servers involved
+    * 2 tests are done here (itest=0 or itest=1)
+    *
+    * Test 1
+    * - Create replication server 1
+    * - Create replication server 2 
+    * - Connect replication server 1 to replication server 2
+    * - Create and connect client 1 to replication server 1
+    * - Create and connect client 2 to replication server 2
+    * - Make client1 publish changes
+    * - Check that client 2 receives the changes published by client 1
+    * Then
+    * - Change the config of replication server 1 to no more be connected 
+    * to server 2
+    * - Make client 1 publish a change
+    * - Check that client 2 does not receive the change   
+    */
+   @Test
+   private void replicationServerConnected() throws Exception
+   {
+       ReplicationBroker broker1 = null;
+       ReplicationBroker broker2 = null;
+       boolean emptyOldChanges = true;
+
+       // - Create 2 connected replicationServer
+       ReplicationServer[] changelogs = new ReplicationServer[2];
+       int[] changelogPorts = new int[2];
+       int[] changelogIds = new int[2];
+       short[] brokerIds = new short[2];
+       ServerSocket socket = null;
+
+       // Find 2 free ports
+       for (int i = 0; i <= 1; i++)
+       {
+         // find  a free port
+         socket = TestCaseUtils.bindFreePort();
+         changelogPorts[i] = socket.getLocalPort();
+         changelogIds[i] = i + 10;
+         brokerIds[i] = (short) (100+i);
+         socket.close();
+       }
+
+       for (int i = 0; i <= 1; i++)
+       {
+         changelogs[i] = null;
+         // create the 2 replicationServer 
+         // and connect the first one to the other one
+         SortedSet<String> servers = new TreeSet<String>();
+         
+         // Connect only replicationServer[0] to ReplicationServer[1]
+         // and not the other way
+         if (i==0)
+           servers.add("localhost:" + changelogPorts[1]);
+         ReplServerFakeConfiguration conf =
+           new ReplServerFakeConfiguration(changelogPorts[i], "changelogDb"+i, 0,
+                                          changelogIds[i], 0, 100, servers);
+         changelogs[i] = new ReplicationServer(conf);
+       }
+
+       try
+       {  
+         // Create and connect client1 to changelog1
+         // and client2 to changelog2
+         broker1 = openReplicationSession(DN.decode("dc=example,dc=com"),
+              brokerIds[0], 100, changelogPorts[0], 1000, emptyOldChanges);
+  
+         broker2 = openReplicationSession(DN.decode("dc=example,dc=com"),
+              brokerIds[1], 100, changelogPorts[0], 1000, emptyOldChanges);
+
+         // - Test messages between clients by publishing now
+         long time = TimeThread.getTime();
+         int ts = 1;
+         ChangeNumber cn;
+         String user1entryUUID = "33333333-3333-3333-3333-333333333333";
+         String baseUUID  = "22222222-2222-2222-2222-222222222222";
+
+         // - Add
+         String lentry = new String("dn: o=test,dc=example,dc=com\n"
+             + "objectClass: top\n" + "objectClass: domain\n"
+             + "entryUUID: "+ user1entryUUID +"\n");
+         Entry entry = TestCaseUtils.entryFromLdifString(lentry);
+         cn = new ChangeNumber(time, ts++, brokerIds[0]);
+         AddMsg addMsg = new AddMsg(cn, "o=test,dc=example,dc=com",
+             user1entryUUID, baseUUID, entry.getObjectClassAttribute(), entry
+             .getAttributes(), new ArrayList<Attribute>());
+         broker1.publish(addMsg);
+
+         // - Modify
+         Attribute attr1 = new Attribute("description", "new value");
+         Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
+         List<Modification> mods = new ArrayList<Modification>();
+         mods.add(mod1);
+         cn = new ChangeNumber(time, ts++, brokerIds[0]);
+         ModifyMsg modMsg = new ModifyMsg(cn, DN
+             .decode("o=test,dc=example,dc=com"), mods, "fakeuniqueid");
+         broker1.publish(modMsg);
+         
+            // - Check msg received by broker, through changeLog2
+
+         while (ts > 1)
+         {
+           ReplicationMessage msg2;
+           try
+           {
+             msg2 = broker2.receive();
+             if (msg2 == null)
+               break;
+             broker2.updateWindowAfterReplay();
+           }
+           catch (Exception e)
+           {
+             fail("Broker receive failed: " + e.getMessage() + "#Msg: " + ts);
+             break;
+           }
+
+           if (msg2 instanceof AddMsg)
+           {
+             AddMsg addMsg2 = (AddMsg) msg2;
+             if (addMsg2.toString().equals(addMsg.toString()))
+               ts--;
+           }
+           else if (msg2 instanceof ModifyMsg)
+           {
+             ModifyMsg modMsg2 = (ModifyMsg) msg2;
+             if (modMsg.equals(modMsg2))
+               ts--;
+           }
+           else
+           {
+             fail("ReplicationServer transmission failed: no expected message" +
+               " class: " + msg2);
+             break;
+           }
+         }
+         // Check that everything expected has been received
+         assertTrue(ts == 1, "Broker2 did not receive the complete set of"
+             + " expected messages: #msg received " + ts);
+         
+         // Then change the config to remove replicationServer[1] from
+         // the configuration of replicationServer[0]
+           
+         SortedSet<String> servers = new TreeSet<String>();         
+         // Configure replicationServer[0] to be disconnected from ReplicationServer[1]
+         ReplServerFakeConfiguration conf =
+           new ReplServerFakeConfiguration(changelogPorts[0], "changelogDb0", 0,
+                                          changelogIds[0], 0, 100, servers);
+         changelogs[0].applyConfigurationChange(conf) ;
+                 
+         // We expect the receive to end because of a timeout : the link between RS1 & RS2
+         // should be distroyed by the new configuration
+
+         // Send 1 update and check that RS[1] does not receive the message after the timeout
+         try
+         {   
+           // - Del
+           cn = new ChangeNumber(time, ts++, brokerIds[0]);
+           DeleteMsg delMsg = new DeleteMsg("o=test,dc=example,dc=com", cn, user1entryUUID);
+           broker1.publish(delMsg);
+           broker2.receive();
+         }
+         catch (SocketTimeoutException soExc)
+         {
+         // the receive fail as expected
+           return;
+         }
+        
+         fail("Broker: receive successed when it should fail. "
+               + "This broker was disconnected by configuration");
+       }
+       finally
+       {
+         if (changelogs[0] != null)
+           changelogs[0].remove();
+         if (changelogs[1] != null)
+           changelogs[1].remove();
+         if (broker1 != null)
+           broker1.stop();
+         if (broker2 != null)
+           broker2.stop();
+       }
+     }   
 }

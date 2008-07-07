@@ -2248,12 +2248,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     disabled = true;
 
     // Stop the listener thread
-    listenerThread.shutdown();
+    if (listenerThread != null)
+      listenerThread.shutdown();
 
     broker.stop(); // This will cut the session and wake up the listener
 
     // Wait for the listener thread to stop
-    listenerThread.waitForShutdown();
+    if (listenerThread != null)
+      listenerThread.waitForShutdown();
   }
 
   /**
@@ -3456,14 +3458,34 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     // server id and base dn are readonly.
     // isolationPolicy can be set immediately and will apply
     // to the next updates.
-    // The other parameters needs to be renegociated with the ReplicationServer.
+    // The other parameters needs to be renegociated with the ReplicationServer
     // so that requires restarting the session with the ReplicationServer.
-    replicationServers = configuration.getReplicationServer();
+    Boolean needToRestartSession = false;
+    Collection<String> newReplServers = configuration.getReplicationServer();
+
+    // A new session is necessary only when information regarding
+    // the connection is modified
+    if ((!(replicationServers.size() == newReplServers.size()
+        && replicationServers.containsAll(newReplServers))) ||
+        window != configuration.getWindowSize() ||
+        heartbeatInterval != configuration.getHeartbeatInterval())
+      needToRestartSession = true;
+
+    replicationServers = newReplServers;
     window = configuration.getWindowSize();
     heartbeatInterval = configuration.getHeartbeatInterval();
     broker.changeConfig(replicationServers, maxReceiveQueue, maxReceiveDelay,
-                        maxSendQueue, maxSendDelay, window, heartbeatInterval);
+        maxSendQueue, maxSendDelay, window, heartbeatInterval);
     isolationpolicy = configuration.getIsolationPolicy();
+
+    // To be able to stop and restart the broker properly just
+    // disable and enable the domain. That way a new session
+    // with the new configuration is available.
+    if (needToRestartSession)
+    {
+      this.disable();
+      this.enable();
+    }
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
