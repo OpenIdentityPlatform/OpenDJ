@@ -17,9 +17,9 @@
       ( id <xsl:value-of select="@id" /> )
     </h1>
     <p>
+      <xsl:apply-templates select="message"/>
       <xsl:apply-templates select="instance"/>
       <xsl:apply-templates select="operation"/>
-      <xsl:apply-templates select="message"/>
       <xsl:apply-templates select="operationResult"/>
     </p>
     </body>
@@ -29,12 +29,12 @@
   <!-- ============= instance node =============== -->
   <xsl:template match="instance">
     <xsl:variable name="iName" select="normalize-space(@name)"/>
+    <xsl:apply-templates select="message"/>
     <ul><li>
       Instance <font color="blue"><b><xsl:value-of select="$iName"/></b></font>
       <xsl:apply-templates select="step"/>
       <xsl:apply-templates select="operation"/>
     </li></ul>
-    <xsl:apply-templates select="message"/>
   </xsl:template>
 
   <!-- ============= step node =============== -->
