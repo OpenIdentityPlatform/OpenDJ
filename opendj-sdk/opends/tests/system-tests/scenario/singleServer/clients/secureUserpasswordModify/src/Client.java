@@ -181,7 +181,7 @@ public class Client {
 		// status every delayCnx
                 if ( (new_t1 - t1) >= delayCnx) {
 
-                    println("INFO",  (nb_mod_done/delaySec) + "  mod/sec.");
+                 //   println("INFO",  (nb_mod_done/delaySec) + "  mod/sec.");
 
 		    // inform all the threads the max nb searchs has been reached
 		    synchronized (this) {
