@@ -27,9 +27,7 @@ import java.util.*;
 import java.io.*;
 import java.lang.Thread;
 import javax.naming.*;
-//import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
-//import javax.naming.directory.DirContext;
 import javax.naming.directory.SearchResult;
 import javax.naming.directory.Attributes;
 import javax.naming.ldap.*;
@@ -73,6 +71,12 @@ public class Client {
         DNList=new ArrayList<String>();
 	uidList=new ArrayList<String>();
         
+        /*
+         * Execute a search on baseDN to get the list of uid 
+         * and set the DNlist
+         * This connexion can be secure or not depending of the client's configuration
+         * the BindDN is directory manager
+         */
         try {
 
             Hashtable envLdap = set_properties_LDAP_simpleBind();
@@ -121,15 +125,15 @@ public class Client {
 	    e.printStackTrace();
 	    System.exit(1);
         }
-       
+
         
         try {
-           
+
 	    // execute the threads
             for (int i=0; i < nb_threads; i++ ) {
                 Worker w = new Worker(this, server);
             }
-     
+
             println ("INFO", nb_threads + " threads connected to server " + server );
         
 	    // Wait until all the threads have initialized their context 
@@ -158,6 +162,7 @@ public class Client {
 
                 long new_t1=System.currentTimeMillis();
                 long print_t2=System.currentTimeMillis(); 
+                
 		// end of the  system test. Exit
                 if ( ( timeTostopTest != 0 ) && ( new_t1 > timeTostopTest ) ) { 
                   
@@ -185,7 +190,7 @@ public class Client {
                 
 		// status every second
                 if ( (new_t1 - t1) >= delayCnx ) {
-                 
+
                  //   println("INFO",  (nb_srchs_done/delaySec) + "  srch/sec.");                 
               
 		    // inform all the threads the max nb searchs has been reached

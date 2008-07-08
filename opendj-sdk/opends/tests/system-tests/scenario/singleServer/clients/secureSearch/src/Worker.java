@@ -32,9 +32,7 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.Attribute;
-//import javax.naming.directory.DirContext;
 import javax.naming.Context;
-//import javax.naming.directory.InitialDirContext;
 import javax.naming.ldap.*;
 import javax.naming.ldap.StartTlsResponse;
 import javax.naming.ldap.StartTlsRequest;
@@ -63,8 +61,6 @@ public class Worker extends Thread {
   
   public void run() {
     
-    String value="";
-
     try {
       
      LdapContext ctx = null; 
@@ -83,7 +79,7 @@ public class Worker extends Thread {
         // no sasl authentication
         // use a random DN to bind
         if ( client.authentication.equals("simple")) {
-          
+
           String bindDN=(String) client.DNList.get(client.random.nextInt(client.DNList.size()));
           String bindPW="userpassword";
           
