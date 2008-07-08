@@ -57,7 +57,7 @@
       <!-- parse the client parameters :                        -->
       <!-- params is [[param1,val1],[param2,val2],...]          -->
       <!-- get the ldap instance parameters                     -->
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+      <import machine="'%s' % (client.getHost())"
               file="'%s/%sLib.xml' % (client.getPath(),client.getName())"/>
       <call function="'%sParser' % client.getName()">
       {
