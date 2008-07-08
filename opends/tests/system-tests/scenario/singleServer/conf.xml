@@ -68,11 +68,11 @@
     </tuning>
     <security certificate="generateSelfSigned" sslEnabled="true" startTlsEnabled="true" ></security> 
   </instance>
-    
-  
+
+
   <!-- ================= Suffix  ============================== -->
   <suffix dn="dc=com">
-    
+ 
     <topology>
       <element instanceName="I1" initRule="importLdif" />
     </topology>
@@ -82,7 +82,7 @@
         <subordinateTemplate type="inetOrgPersonEXT_Jpeg_1MB" percentage="100"/>
       </branch>
       <branch name="ou=Dev,dc=com">
-        <subordinateTemplate type="inetOrgPersonEXT_Jpeg_1MB" percentage="10"/>
+        <subordinateTemplate type="inetOrgPersonEXT_Jpeg_1MB" percentage="2"/>
       </branch>
     </tree>
     
@@ -97,33 +97,17 @@
   <!-- the certAlias must be unique -->
  
   <scheduler>
-    <duration unit="m">4500</duration>
-    
-    <module name="password" enabled="true">
-      
-      <client id="61" name="secureUserpasswordModify" host="edda" start="t0"
-              stop="t10">
-        <serverInstance>I1</serverInstance>
-        <baseDn>ou=QA Engineers,dc=com</baseDn>
-        <nbCnx>1</nbCnx>
-        <nbMaxOp>450000</nbMaxOp>
-        <attribute>userpassword</attribute>
-        <protocol>ssl</protocol>        
-        <certAlias>client-cert-61</certAlias>
-        <delaySec>10</delaySec>
-      </client>    
-    </module>
-    
-    
+    <duration unit="m">4000</duration>
+   
     <module name="modify_ssl_sasl" enabled="true">    
-        
-      <client id="2" name="secureModifyEntries" host="edda" start="t10"
-              stop="t20">
+
+      <client id="2" name="secureModifyEntries" host="hugi" start="t0"
+              stop="t15">
         <serverInstance>I1</serverInstance>
         <baseDn>ou=QA Engineers,dc=com</baseDn>
         <nbCnx>10</nbCnx>
         <nbMaxOp>100000</nbMaxOp>
-        <attribute>mailEXT</attribute>
+        <attributeName>mailEXT</attributeName>
         <protocol>ssl</protocol>
         <authentication>EXTERNAL</authentication>
         <certAlias>client-cert-2</certAlias>
@@ -133,13 +117,13 @@
     </module>
       
    <module name="modify_ssl_bind" enabled="true">
-      <client id="3" name="secureModifyEntries" host="edda" start="t20"
+      <client id="3" name="secureModifyEntries" host="hugi" start="t15"
               stop="t30">
         <serverInstance>I1</serverInstance>
         <baseDn>ou=QA Engineers,dc=com</baseDn>
         <nbCnx>10</nbCnx>
         <nbMaxOp>100000</nbMaxOp>
-        <attribute>mailEXT</attribute>
+        <attributeName>mailEXT</attributeName>
         <protocol>ssl</protocol>
         <authentication>simple</authentication>
         <certAlias>client-cert-3</certAlias>
@@ -151,13 +135,13 @@
     
      <module name="search_ssl_bind" enabled="true">    
       
-      <client id="44" name="secureSearch" host="edda" start="t30"
+      <client id="44" name="secureSearch" host="hugi" start="t30"
               stop="t40">
         <serverInstance>I1</serverInstance>
         <baseDn>ou=QA Engineers,dc=com</baseDn>
         <nbCnx>6</nbCnx>
         <nbMaxOp>450000</nbMaxOp>
-        <attribute>description</attribute>
+        <attributeName>description</attributeName>
         <protocol>ssl</protocol>        
         <authentication>simple</authentication>
         <certAlias>client-cert-44</certAlias>
@@ -168,13 +152,13 @@
 
     <module name="search_starttls_bind" enabled="true">
       
-      <client id="50" name="secureSearch" host="edda" start="t40"
+      <client id="50" name="secureSearch" host="hugi" start="t40"
               stop="t50">
         <serverInstance>I1</serverInstance>
         <baseDn>ou=QA Engineers,dc=com</baseDn>
         <nbCnx>6</nbCnx>
         <nbMaxOp>450000</nbMaxOp>
-        <attribute>description</attribute>
+        <attributeName>description</attributeName>
         <protocol>starttls</protocol>        
         <authentication>simple</authentication>
         <certAlias>client-cert-50</certAlias>
@@ -185,13 +169,13 @@
 
     <module name="search_simple" enabled="true">
       
-      <client id="51" name="secureSearch" host="edda" start="t50"
+      <client id="51" name="secureSearch" host="hugi" start="t50"
               stop="t60">
         <serverInstance>I1</serverInstance>
         <baseDn>ou=QA Engineers,dc=com</baseDn>
         <nbCnx>6</nbCnx>
         <nbMaxOp>450000</nbMaxOp>
-        <attribute>description</attribute>
+        <attributeName>description</attributeName>
         <protocol>simple</protocol>        
         <authentication>simple</authentication>
         <certAlias>client-cert-51</certAlias>
@@ -203,26 +187,24 @@
 
      <module name="task_mod" enabled="true">
 
-      <client id="1" name="tasks" host="nott" start="t60"
-              stop="t70">
+      <client id="1" name="tasks" host="nott" start="t85"
+              stop="t95">
         <serverInstance>I1</serverInstance>
         <nbTasks>50</nbTasks>
         <delaySec>3600</delaySec>
       </client>
     </module>
-    
-       
-    
+
     <!--== Module 2 ==-->
      <module name="charge_multipl" enabled="true">
 
       <client id="41" name="secureModifyEntries" host="nott" start="t60"
-              stop="t100">
+              stop="t95">
         <serverInstance>I1</serverInstance>
         <baseDn>ou=QA Engineers,dc=com</baseDn>
         <nbCnx>10</nbCnx>
         <nbMaxOp>100000</nbMaxOp>
-        <attribute>mailEXT</attribute>
+        <attributeName>mailEXT</attributeName>
         <protocol>ssl</protocol>
         <authentication>simple</authentication>
         <certAlias>client-cert-41</certAlias>
@@ -230,26 +212,26 @@
         <delaySec>2</delaySec>
       </client>
      
-       <client id="42" name="secureSearch" host="edda" start="t60"
-              stop="t100">
+       <client id="42" name="secureSearch" host="hugi" start="t60"
+              stop="t95">
         <serverInstance>I1</serverInstance>
         <baseDn>ou=QA Engineers,dc=com</baseDn>
         <nbCnx>6</nbCnx>
         <nbMaxOp>450000</nbMaxOp>
-        <attribute>description</attribute>
+        <attributeName>description</attributeName>
         <protocol>starttls</protocol>        
         <authentication>simple</authentication>
         <certAlias>client-cert-42</certAlias>
         <delaySec>2</delaySec>
        </client>
 
-       <client id="43" name="secureSearch" host="edda" start="t60"
-              stop="t100">
+       <client id="43" name="secureSearch" host="hugi" start="t60"
+              stop="t95">
         <serverInstance>I1</serverInstance>
         <baseDn>ou=QA Engineers,dc=com</baseDn>
         <nbCnx>6</nbCnx>
         <nbMaxOp>450000</nbMaxOp>
-        <attribute>mailEXT</attribute>
+        <attributeName>mailEXT</attributeName>
         <protocol>simple</protocol>        
         <authentication>simple</authentication>
         <certAlias>client-cert-43</certAlias>
@@ -258,8 +240,23 @@
 
 
     </module>
-    
 
+    <module name="password" enabled="true">
+      
+      <client id="61" name="secureUserpasswordModify" host="hugi" start="t95"
+              stop="t100">
+        <serverInstance>I1</serverInstance>
+        <baseDn>ou=QA Engineers,dc=com</baseDn>
+        <nbCnx>1</nbCnx>
+        <nbMaxOp>450000</nbMaxOp>
+        <attributeName>userpassword</attributeName>
+        <protocol>ssl</protocol>        
+        <certAlias>client-cert-61</certAlias>
+        <delaySec>10</delaySec>
+      </client>
+    </module>
+    
+    
     <module name="test" enabled="false">    
 
       <client id="99" name="secureSearch" host="nott" start="t0"
@@ -268,7 +265,7 @@
         <baseDn>ou=QA Engineers,dc=com</baseDn>
         <nbCnx>6</nbCnx>
         <nbMaxOp>450000</nbMaxOp>
-        <attribute>description</attribute>
+        <attributeName>description</attributeName>
         <protocol>starttls</protocol>        
         <authentication>EXTERNAL</authentication>
         <certAlias>client-cert-99</certAlias>
@@ -281,7 +278,7 @@
         <baseDn>ou=QA Engineers,dc=com</baseDn>
         <nbCnx>6</nbCnx>
         <nbMaxOp>450000</nbMaxOp>
-        <attribute>description</attribute>
+        <attributeName>description</attributeName>
         <protocol>ssl</protocol>        
         <authentication>EXTERNAL</authentication>
         <certAlias>client-cert-991</certAlias>
@@ -294,7 +291,7 @@
         <baseDn>ou=QA Engineers,dc=com</baseDn>
         <nbCnx>6</nbCnx>
         <nbMaxOp>450000</nbMaxOp>
-        <attribute>description</attribute>
+        <attributeName>description</attributeName>
         <protocol>ssl</protocol>        
         <authentication>simple</authentication>
         <certAlias>client-cert-992</certAlias>
@@ -302,21 +299,22 @@
       </client>            
 
       <client id="993" name="secureSearch" host="nott" start="t0"
-              stop="t100">
+              stop="t95">
         <serverInstance>I1</serverInstance>
         <baseDn>ou=QA Engineers,dc=com</baseDn>
         <nbCnx>6</nbCnx>
         <nbMaxOp>450000</nbMaxOp>
-        <attribute>description</attribute>
+        <attributeName>description</attributeName>
         <protocol>startls</protocol>        
         <authentication>simple</authentication>
         <certAlias>client-cert-993</certAlias>
         <delaySec>2</delaySec>
       </client>            
   
-
       </module>    
 
+
+      
   </scheduler>
   
 </systemTestConfiguration>
