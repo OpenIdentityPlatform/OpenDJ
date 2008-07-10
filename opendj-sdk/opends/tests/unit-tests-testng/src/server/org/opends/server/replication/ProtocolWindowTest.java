@@ -28,10 +28,8 @@
 package org.opends.server.replication;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
-import org.opends.server.loggers.debug.DebugTracer;
 
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
@@ -55,6 +53,8 @@ import org.opends.server.replication.plugin.ReplicationBroker;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplicationMessage;
+import org.opends.server.replication.server.ReplServerFakeConfiguration;
+import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
@@ -64,13 +64,16 @@ import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchScope;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.opends.server.types.Attribute;
 
+import static org.opends.server.TestCaseUtils.*;
+
 /**
- * Test the contructors, encoders and decoders of the Replication AckMsg,
- * ModifyMsg, ModifyDnMsg, AddMsg and Delete Msg
+ * Test the constructors, encoders and decoders of the Replication AckMsg,
+ * ModifyMsg, ModifyDnMsg, AddMsg and Delete MSG
  */
 public class ProtocolWindowTest extends ReplicationTestCase
 {
@@ -85,7 +88,12 @@ public class ProtocolWindowTest extends ReplicationTestCase
    */
   protected Entry personEntry;
   private int replServerPort;
-
+  
+  
+  // the base DN used for this test 
+  private DN baseDn;
+  private ReplicationServer replicationServer;
+  
   /**
    * Test the window mechanism by :
    *  - creating a ReplicationServer service client using the ReplicationBroker class.
@@ -101,8 +109,11 @@ public class ProtocolWindowTest extends ReplicationTestCase
     logError(Message.raw(
         Category.SYNC, Severity.INFORMATION,
         "Starting Replication ProtocolWindowTest : saturateAndRestart"));
-
-    final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
+    
+    // clear the Replication Server and the backend to isolate this test
+    // from the other tests,
+    TestCaseUtils.initializeTestBackend(true);
+    replicationServer.clearDb();
 
     ReplicationBroker broker = openReplicationSession(baseDn, (short) 13,
         WINDOW_SIZE, replServerPort, 1000, true);
@@ -126,11 +137,12 @@ public class ProtocolWindowTest extends ReplicationTestCase
           tmp.getObjectClasses(), tmp.getUserAttributes(),
           tmp.getOperationalAttributes());
       addOp.run();
+      assertEquals(addOp.getResultCode(), ResultCode.SUCCESS);
       entryList.addLast(personEntry.getDN());
       assertTrue(DirectoryServer.entryExists(personEntry.getDN()),
         "The Add Entry operation failed");
 
-      // Check if the client has received the msg
+      // Check if the client has received the MSG
       ReplicationMessage msg = broker.receive();
       assertTrue(msg instanceof AddMsg,
         "The received Replication message is not an ADD msg");
@@ -260,29 +272,11 @@ public class ProtocolWindowTest extends ReplicationTestCase
   {
     // This test suite depends on having the schema available.
     TestCaseUtils.startServer();
+    
+    baseDn = DN.decode(TEST_ROOT_DN_STRING);
 
     // Create an internal connection
     connection = InternalClientConnection.getRootConnection();
-
-    // Create backend top level entries
-    String[] topEntries = new String[2];
-    topEntries[0] = "dn: dc=example,dc=com\n" + "objectClass: top\n"
-        + "objectClass: domain\n";
-    topEntries[1] = "dn: ou=People,dc=example,dc=com\n" + "objectClass: top\n"
-        + "objectClass: organizationalUnit\n"
-        + "entryUUID: 11111111-1111-1111-1111-111111111111\n";
-    Entry entry;
-    for (int i = 0; i < topEntries.length; i++)
-    {
-      entry = TestCaseUtils.entryFromLdifString(topEntries[i]);
-      AddOperationBasis addOp = new AddOperationBasis(connection,
-          InternalClientConnection.nextOperationID(), InternalClientConnection
-              .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
-          entry.getUserAttributes(), entry.getOperationalAttributes());
-      addOp.setInternalOperation(true);
-      addOp.run();
-      entryList.addLast(entry.getDN());
-    }
 
     // top level synchro provider
     String synchroStringDN = "cn=Synchronization Providers,cn=config";
@@ -296,32 +290,25 @@ public class ProtocolWindowTest extends ReplicationTestCase
     replServerPort = socket.getLocalPort();
     socket.close();
 
-    // Change log
-    String replServerLdif =
-      "dn: " + "cn=Replication Server, " + synchroPluginStringDN + "\n"
-        + "objectClass: top\n"
-        + "objectClass: ds-cfg-replication-server\n"
-        + "cn: Replication Server\n"
-        + "ds-cfg-replication-port: " + replServerPort + "\n"
-        + "ds-cfg-replication-server-id: 1\n"
-        + "ds-cfg-window-size: " + WINDOW_SIZE + "\n"
-        + "ds-cfg-queue-size: " + REPLICATION_QUEUE_SIZE;
-    replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
-
+    // configure the replication Server.
+    replicationServer = new ReplicationServer(new ReplServerFakeConfiguration(
+        replServerPort, "changelogDbReplWindowTest", 0,
+        1, REPLICATION_QUEUE_SIZE, WINDOW_SIZE, null));
+    
     // suffix synchronized
     String synchroServerLdif =
       "dn: " + "cn=example, cn=domains, " + synchroPluginStringDN + "\n"
         + "objectClass: top\n"
         + "objectClass: ds-cfg-replication-domain\n"
         + "cn: example\n"
-        + "ds-cfg-base-dn: ou=People,dc=example,dc=com\n"
+        + "ds-cfg-base-dn: " + TEST_ROOT_DN_STRING + "\n"
         + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
         + "ds-cfg-server-id: 1\n"
         + "ds-cfg-receive-status: true\n"
         + "ds-cfg-window-size: " + WINDOW_SIZE;
     synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
 
-    String personLdif = "dn: uid=user.1,ou=People,dc=example,dc=com\n"
+    String personLdif = "dn: uid=user.windowTest," + TEST_ROOT_DN_STRING + "\n"
         + "objectClass: top\n" + "objectClass: person\n"
         + "objectClass: organizationalPerson\n"
         + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
@@ -338,6 +325,19 @@ public class ProtocolWindowTest extends ReplicationTestCase
     personEntry = TestCaseUtils.entryFromLdifString(personLdif);
 
     configureReplication();
+  }
+  
+  /**
+   * Clean up the environment. return null;
+   *
+   * @throws Exception
+   *           If the environment could not be set up.
+   */
+  @AfterClass
+  public void classCleanUp() throws Exception
+  {
+    super.classCleanUp();
+    replicationServer.shutdown();
   }
 
   private void processModify(int count)
@@ -361,8 +361,6 @@ public class ProtocolWindowTest extends ReplicationTestCase
     logError(Message.raw(
         Category.SYNC, Severity.INFORMATION,
         "Starting Replication ProtocolWindowTest : protocolVersion"));
-
-    final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
 
     // Test : Make a broker degrade its version when connecting to an old
     // replication server.
