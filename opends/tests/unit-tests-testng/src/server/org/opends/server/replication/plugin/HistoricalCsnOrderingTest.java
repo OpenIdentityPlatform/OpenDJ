@@ -278,8 +278,8 @@ extends ReplicationTestCase
       ReplicationBroker.searchForChangedEntries(baseDn, fromChangeNumber, null);
 
     // The expected result is one entry .. the one previously modified
-    assertTrue(op.getResultCode() == ResultCode.SUCCESS);
-    assertTrue(op.getSearchEntries().size()==1);
+    assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(op.getSearchEntries().size(), 1);
 
     // From the historical of this entry, rebuild operations
     // Since there have been 2 modifications, there should be 2
