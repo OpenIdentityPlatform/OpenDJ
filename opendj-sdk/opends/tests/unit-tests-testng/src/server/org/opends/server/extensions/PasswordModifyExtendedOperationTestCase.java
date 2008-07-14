@@ -651,6 +651,136 @@ public class PasswordModifyExtendedOperationTestCase
    * following configuration:
    * <BR>
    * <UL>
+   *   <LI>Authenticated as a normal user</LI>
+   *   <LI>userIdentity provided (LDAPDN form)</LI>
+   *   <LI>No current password provided</LI>
+   *   <LI>New password provided</LI>
+   * </UL>
+   *
+   * @throws  Exception  If an unexpected error occurs.
+   */
+  @Test()
+  public void testAsUserExplicitDNSelfNoOldPasswordWithNewPassword()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Entry userEntry = TestCaseUtils.makeEntry(
+         "dn: uid=test.user,o=test",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "ds-privilege-name: bypass-acl",
+         "userPassword: password");
+
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    AddOperation addOperation =
+         conn.processAdd(userEntry.getDN(), userEntry.getObjectClasses(),
+                         userEntry.getUserAttributes(),
+                         userEntry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+
+    String[] args =
+    {
+      "--noPropertiesFile",
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "uid=test.user,o=test",
+      "-w", "password",
+      "-a", "uid=test.user,o=test",
+      "-n", "newPassword"
+    };
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
+                 0);
+
+    // Perform an internal bind to verify the password was actually changed.
+    conn = new InternalClientConnection(new AuthenticationInfo());
+    BindOperation bindOperation =
+         conn.processSimpleBind(userEntry.getDN(),
+                                new ASN1OctetString("newPassword"));
+    assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+
+
+  /**
+   * Tests the password modify extended operation over LDAP.  It will use the
+   * following configuration:
+   * <BR>
+   * <UL>
+   *   <LI>Authenticated as a normal user</LI>
+   *   <LI>userIdentity provided (userID form)</LI>
+   *   <LI>No current password provided</LI>
+   *   <LI>New password provided</LI>
+   * </UL>
+   *
+   * @throws  Exception  If an unexpected error occurs.
+   */
+  @Test()
+  public void testAsUserExplicitUSelfNoOldPasswordWithNewPassword()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Entry userEntry = TestCaseUtils.makeEntry(
+         "dn: uid=test.user,o=test",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "ds-privilege-name: bypass-acl",
+         "userPassword: password");
+
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    AddOperation addOperation =
+         conn.processAdd(userEntry.getDN(), userEntry.getObjectClasses(),
+                         userEntry.getUserAttributes(),
+                         userEntry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+
+    String[] args =
+    {
+      "--noPropertiesFile",
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "uid=test.user,o=test",
+      "-w", "password",
+      "-a", "test.user",
+      "-n", "newPassword"
+    };
+    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
+                 0);
+
+    // Perform an internal bind to verify the password was actually changed.
+    conn = new InternalClientConnection(new AuthenticationInfo());
+    BindOperation bindOperation =
+         conn.processSimpleBind(userEntry.getDN(),
+                                new ASN1OctetString("newPassword"));
+    assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+
+
+  /**
+   * Tests the password modify extended operation over LDAP.  It will use the
+   * following configuration:
+   * <BR>
+   * <UL>
    *   <LI>Unauthenticated client connection</LI>
    *   <LI>Authorization ID provided ("dn:" form)</LI>
    *   <LI>Current password provided</LI>
