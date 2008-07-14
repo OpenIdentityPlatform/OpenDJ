@@ -319,7 +319,7 @@ public class PasswordModifyExtendedOperation
     // See if a user identity was provided.  If so, then try to resolve it to
     // an actual user.
     DN    userDN    = null;
-    Entry userEntry;
+    Entry userEntry = null;
     Lock  userLock  = null;
 
     try
@@ -372,9 +372,7 @@ public class PasswordModifyExtendedOperation
       }
       else
       {
-        // There was a userIdentity section in the request.  It should have
-        // started with either "dn:" to indicate that it contained a DN, or
-        // "u:" to indicate that it contained a user ID.
+        // There was a userIdentity field in the request.
         String authzIDStr      = userIdentity.stringValue();
         String lowerAuthzIDStr = toLowerCase(authzIDStr);
         if (lowerAuthzIDStr.startsWith("dn:"))
@@ -468,15 +466,51 @@ public class PasswordModifyExtendedOperation
             return;
           }
         }
+        // the userIdentity provided does not follow Authorization Identity
+        // form. RFC3062 declaration "may or may not be an LDAPDN" allows
+        // for pretty much anything in that field. we gonna try to parse it
+        // as DN first then if that fails as user ID.
         else
         {
-          // The authorization ID was in an illegal format.
-          operation.setResultCode(ResultCode.PROTOCOL_ERROR);
+          try
+          {
+            userDN = DN.decode(authzIDStr);
+          }
+          catch (DirectoryException de)
+          {
+            // IGNORE.
+          }
 
-          operation.appendErrorMessage(
-                  ERR_EXTOP_PASSMOD_INVALID_AUTHZID_STRING.get(authzIDStr));
+          if ((userDN != null) && (!userDN.isNullDN())) {
+            // If the provided DN is an alternate DN for a root user,
+            // then replace it with the actual root DN.
+            DN actualRootDN = DirectoryServer.getActualRootBindDN(userDN);
+            if (actualRootDN != null) {
+              userDN = actualRootDN;
+            }
+            userEntry = getEntryByDN(operation, userDN);
+          } else {
+            try
+            {
+              userEntry = identityMapper.getEntryForID(authzIDStr);
+            }
+            catch (DirectoryException de)
+            {
+              // IGNORE.
+            }
+          }
 
-          return;
+          if (userEntry == null) {
+            // The userIdentity was invalid.
+            operation.setResultCode(ResultCode.PROTOCOL_ERROR);
+            operation.appendErrorMessage(
+              ERR_EXTOP_PASSMOD_INVALID_AUTHZID_STRING.get(authzIDStr));
+            return;
+          }
+          else
+          {
+            userDN = userEntry.getDN();
+          }
         }
       }
 
