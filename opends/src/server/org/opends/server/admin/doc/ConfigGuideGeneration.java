@@ -582,6 +582,27 @@ public class ConfigGuideGeneration {
       }
     }
 
+    // Check if something to print in reverse aggregation relations
+    // (even if the list not empty, it may contain only relations from
+    // hidden component)
+    boolean isReverseAggregPropsEmpty = true;
+    if (!reverseAggregProps.isEmpty()) {
+      for (AggregationPropertyDefinition agg : reverseAggregProps) {
+        AbstractManagedObjectDefinition fromMo =
+          agg.getManagedObjectDefinition();
+        @SuppressWarnings("unchecked")
+        Collection<RelationDefinition> rels =
+          fromMo.getAllReverseRelationDefinitions();
+        for (RelationDefinition rel : rels) {
+          if (rel.hasOption(RelationOption.HIDDEN)) {
+            continue;
+          }
+          isReverseAggregPropsEmpty = false;
+        }
+      }
+    }
+
+
     //
     // Relations FROM this component
     //
@@ -629,7 +650,7 @@ public class ConfigGuideGeneration {
     // Relations TO this component
     //
 
-    if (!isReverseCompRelsEmpty || !reverseAggregProps.isEmpty()) {
+    if (!isReverseCompRelsEmpty || !isReverseAggregPropsEmpty) {
         heading3("Relations To this Component");
     }
 
@@ -647,7 +668,7 @@ public class ConfigGuideGeneration {
         }
       }
     }
-    if (!reverseAggregProps.isEmpty()) {
+    if (!isReverseAggregPropsEmpty) {
       paragraph(
         "The following components have a direct AGGREGATION relation TO " +
         mo.getUserFriendlyPluralName() + " :");
