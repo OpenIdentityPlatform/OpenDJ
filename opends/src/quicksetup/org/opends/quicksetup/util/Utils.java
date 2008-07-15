@@ -30,12 +30,14 @@ import org.opends.messages.Message;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
@@ -101,6 +103,85 @@ public class Utils
   public static boolean isPriviledgedPort(int port)
   {
     return SetupUtils.isPriviledgedPort(port);
+  }
+
+
+
+  /**
+   * Tells whether the provided java installation supports a given option or
+   * not.
+   * @param javaHome the java installation path.
+   * @param option the java option that we want to check.
+   * @param installPath the install path of the server.
+   * @return <CODE>true</CODE> if the provided java installation supports a
+   * given option and <CODE>false</CODE> otherwise.
+   */
+  public static boolean supportsOption(String option, String javaHome,
+      String installPath)
+  {
+    boolean supported = false;
+    try
+    {
+      List<String> args = new ArrayList<String>();
+      String script;
+      String libPath = Utils.getPath(installPath,
+          Installation.LIBRARIES_PATH_RELATIVE);
+      if (Utils.isWindows())
+      {
+        script = Utils.getScriptPath(Utils.getPath(libPath,
+            Installation.SCRIPT_UTIL_FILE_WINDOWS));
+      }
+      else
+      {
+        script = Utils.getScriptPath(Utils.getPath(libPath,
+            Installation.SCRIPT_UTIL_FILE_UNIX));
+      }
+      args.add(script);
+      ProcessBuilder pb = new ProcessBuilder(args);
+      Map<String, String> env = pb.environment();
+      env.put(SetupUtils.OPENDS_JAVA_HOME, javaHome);
+      env.put("OPENDS_JAVA_ARGS", option);
+      env.put("SCRIPT_UTIL_CMD", "set-full-environment-and-test-java");
+      env.remove("OPENDS_JAVA_BIN");
+      // In windows by default the scripts ask the user to click on enter when
+      // they fail.  Set this environment variable to avoid it.
+      if (Utils.isWindows())
+      {
+        env.put("DO_NOT_PAUSE", "true");
+      }
+      Process process = pb.start();
+      LOG.log(Level.INFO, "launching "+args);
+      InputStream is = process.getInputStream();
+      BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+      String line;
+      while (null != (line = reader.readLine())) {
+        LOG.log(Level.INFO, "The output: "+line);
+        if (line.indexOf("ERROR:  The detected Java version") != -1)
+        {
+          try
+          {
+            process.destroy();
+            return false;
+          }
+          catch (Throwable t)
+          {
+            return false;
+          }
+          finally
+          {
+          }
+        }
+      }
+      process.waitFor();
+      int returnCode = process.exitValue();
+      LOG.log(Level.INFO, "returnCode: "+returnCode);
+      supported = returnCode == 0;
+    }
+    catch (Throwable t)
+    {
+      LOG.log(Level.WARNING, "Error testing option "+option+" on "+javaHome, t);
+    }
+    return supported;
   }
 
   /**
