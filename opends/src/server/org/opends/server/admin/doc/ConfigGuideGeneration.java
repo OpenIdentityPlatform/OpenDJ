@@ -745,6 +745,12 @@ public class ConfigGuideGeneration {
       tableRow("Advanced Property", "No");
     }
 
+    if (prop.hasOption(PropertyOption.READ_ONLY)) {
+      tableRow("Read-only", "Yes");
+    } else {
+      tableRow("Read-only", "No");
+    }
+
     endTable();
 
   }
