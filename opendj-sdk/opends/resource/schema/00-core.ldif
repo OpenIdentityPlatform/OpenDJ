@@ -490,7 +490,7 @@ objectClasses: ( 2.5.6.10 NAME 'residentialPerson' SUP person STRUCTURAL MUST l
   destinationIndicator $ preferredDeliveryMethod $ telexNumber $
   teletexTerminalIdentifier $ telephoneNumber $ internationaliSDNNumber $
   facsimileTelephoneNumber $ street $ postOfficeBox $ postalCode $
-  postalAddress $ physicalDeliveryOfficeName $ st $ l ) X-ORIGIN 'RFC 4519' )
+  postalAddress $ physicalDeliveryOfficeName $ st ) X-ORIGIN 'RFC 4519' )
 objectClasses: ( 2.5.6.11 NAME 'applicationProcess' SUP top STRUCTURAL MUST cn
   MAY ( seeAlso $ ou $ l $ description ) X-ORIGIN 'RFC 4519' )
 objectClasses: ( 2.5.6.12 NAME 'applicationEntity' SUP top STRUCTURAL
