@@ -1,0 +1,189 @@
+dn:: b3U9UmVuYW1lIFRlc3RzLCBvPcOHw6lsaW7DqSDDhG5kcsOo
+objectclass: top
+objectclass: organizationalUnit
+ou: Rename Tests
+description: Root for LDAPRename Tests.
+
+dn:: b3U9RGV1dHNjaCwgb3U9UmVuYW1lIFRlc3RzLCBvPcOHw6lsaW7DqSDDhG5kcsOo
+objectclass: top
+objectclass: organizationalUnit
+ou: Deutsch
+ou;lang-de:: w4TDlsOcw6TDtsO8w58=
+description: German Alphabet
+
+dn:: b3U9RnJhbsOnYWlzLCBvdT1SZW5hbWUgVGVzdHMsIG89w4fDqWxpbsOpIMOEbmRyw6g=
+objectclass: top
+objectclass: organizationalUnit
+ou:: RnJhbsOnYWlz
+ou;lang-fr:: w6DDosOnw6vDqMOpw6rDr8Ouw7TDvMO5w7vDgMOCw4fDi8OIw4nDisOPw47DlMOcw5nDmw==
+description: French Alphabet
+
+dn:: b3U9RXNwYcOxb2wsIG91PVJlbmFtZSBUZXN0cywgbz3Dh8OpbGluw6kgw4RuZHLDqA==
+objectclass: top
+objectclass: organizationalUnit
+ou:: RXNwYcOxb2w=
+ou;lang-es:: w6EsIMOpLCDDrSwgw7MsIMO8LCDDsSwgw4EsIMOJLCDDjSwgw5MsIMOaLCDDnCwgw5E=
+description: Spanish Alphabet
+
+
+dn:: b3U9w6QsIG91PURldXRzY2gsIG91PVJlbmFtZSBUZXN0cywgbz3Dh8OpbGluw6kgw4RuZHLDqA==
+objectclass: top
+objectclass: organizationalUnit
+ou:: w6Q=
+ou;lang-de:: w6Qg
+description:: w6Q=
+
+dn:: b3U9w7YsIG91PURldXRzY2gsIG91PVJlbmFtZSBUZXN0cywgbz3Dh8OpbGluw6kgw4RuZHLDqA==
+objectclass: top
+objectclass: organizationalUnit
+ou:: w7Y=
+ou;lang-de:: w7Y=
+description:: w7Y=
+
+dn:: b3U9w7wsIG91PURldXRzY2gsIG91PVJlbmFtZSBUZXN0cywgbz3Dh8OpbGluw6kgw4RuZHLDqA==
+objectclass: top
+objectclass: organizationalUnit
+ou:: w7w=
+ou;lang-de:: w7w=
+description:: w7w=
+
+dn:: b3U9w58sIG91PURldXRzY2gsIG91PVJlbmFtZSBUZXN0cywgbz3Dh8OpbGluw6kgw4RuZHLDqA==
+objectclass: top
+objectclass: organizationalUnit
+ou:: w58=
+ou;lang-de:: w58=
+description:: w58=
+
+dn:: b3U9w6EsIG91PUVzcGHDsW9sLCBvdT1SZW5hbWUgVGVzdHMsIG89w4fDqWxpbsOpIMOEbmRyw6g=
+objectclass: top
+objectclass: organizationalUnit
+ou:: w6E=
+ou;lang-es:: w6E=
+description:: w6E=
+
+dn:: b3U9w6ksIG91PUVzcGHDsW9sLCBvdT1SZW5hbWUgVGVzdHMsIG89w4fDqWxpbsOpIMOEbmRyw6g=
+objectclass: top
+objectclass: organizationalUnit
+ou:: w6k=
+ou;lang-es:: w6k=
+description:: w6k=
+
+dn:: b3U9w60sIG91PUVzcGHDsW9sLCBvdT1SZW5hbWUgVGVzdHMsIG89w4fDqWxpbsOpIMOEbmRyw6g=
+objectclass: top
+objectclass: organizationalUnit
+ou:: w60=
+ou;lang-es:: w60=
+description:: w60=
+
+dn:: b3U9w7MsIG91PUVzcGHDsW9sLCBvdT1SZW5hbWUgVGVzdHMsIG89w4fDqWxpbsOpIMOEbmRyw6g=
+objectclass: top
+objectclass: organizationalUnit
+ou:: w7M=
+ou;lang-es:: w7M=
+description:: w7M=
+
+dn:: b3U9w7wsIG91PUVzcGHDsW9sLCBvdT1SZW5hbWUgVGVzdHMsIG89w4fDqWxpbsOpIMOEbmRyw6g=
+objectclass: top
+objectclass: organizationalUnit
+ou:: w7w=
+ou;lang-es:: w7w=
+description:: w7w=
+
+dn:: b3U9w7EsIG91PUVzcGHDsW9sLCBvdT1SZW5hbWUgVGVzdHMsIG89w4fDqWxpbsOpIMOEbmRyw6g=
+objectclass: top
+objectclass: organizationalUnit
+ou:: w7E=
+ou;lang-es:: w7E=
+description:: w7E=
+
+dn:: b3U9w6AsIG91PUZyYW7Dp2Fpcywgb3U9UmVuYW1lIFRlc3RzLCBvPcOHw6lsaW7DqSDDhG5kcsOo
+objectclass: top
+objectclass: organizationalUnit
+ou:: w6A=
+ou;lang-fr:: w6A=
+description:: w6A=
+
+dn:: b3U9w6IsIG91PUZyYW7Dp2Fpcywgb3U9UmVuYW1lIFRlc3RzLCBvPcOHw6lsaW7DqSDDhG5kcsOo
+objectclass: top
+objectclass: organizationalUnit
+ou:: w6I=
+ou;lang-fr:: w6I=
+description:: w6I=
+
+dn:: b3U9w6csIG91PUZyYW7Dp2Fpcywgb3U9UmVuYW1lIFRlc3RzLCBvPcOHw6lsaW7DqSDDhG5kcsOo
+objectclass: top
+objectclass: organizationalUnit
+ou:: w6c=
+ou;lang-fr:: w6c=
+description:: w6c=
+
+dn:: b3U9w6ssIG91PUZyYW7Dp2Fpcywgb3U9UmVuYW1lIFRlc3RzLCBvPcOHw6lsaW7DqSDDhG5kcsOo
+objectclass: top
+objectclass: organizationalUnit
+ou:: w6s=
+ou;lang-fr:: w6s=
+description:: w6s=
+
+dn:: b3U9w6gsIG91PUZyYW7Dp2Fpcywgb3U9UmVuYW1lIFRlc3RzLCBvPcOHw6lsaW7DqSDDhG5kcsOo
+objectclass: top
+objectclass: organizationalUnit
+ou:: w6g=
+ou;lang-fr:: w6g=
+description:: w6g=
+
+dn:: b3U9w6ksIG91PUZyYW7Dp2Fpcywgb3U9UmVuYW1lIFRlc3RzLCBvPcOHw6lsaW7DqSDDhG5kcsOo
+objectclass: top
+objectclass: organizationalUnit
+ou:: w6k=
+ou;lang-fr:: w6k=
+description:: w6k=
+
+dn:: b3U9w6osIG91PUZyYW7Dp2Fpcywgb3U9UmVuYW1lIFRlc3RzLCBvPcOHw6lsaW7DqSDDhG5kcsOo
+objectclass: top
+objectclass: organizationalUnit
+ou:: w6o=
+ou;lang-fr:: IMOq
+description:: w6o=
+
+dn:: b3U9w68sIG91PUZyYW7Dp2Fpcywgb3U9UmVuYW1lIFRlc3RzLCBvPcOHw6lsaW7DqSDDhG5kcsOo
+objectclass: top
+objectclass: organizationalUnit
+ou:: w68=
+ou;lang-fr:: w68=
+description:: w68=
+
+dn:: b3U9w64sIG91PUZyYW7Dp2Fpcywgb3U9UmVuYW1lIFRlc3RzLCBvPcOHw6lsaW7DqSDDhG5kcsOo
+objectclass: top
+objectclass: organizationalUnit
+ou:: w64=
+ou;lang-fr:: w64=
+description:: w64=
+
+dn:: b3U9w7QsIG91PUZyYW7Dp2Fpcywgb3U9UmVuYW1lIFRlc3RzLCBvPcOHw6lsaW7DqSDDhG5kcsOo
+objectclass: top
+objectclass: organizationalUnit
+ou:: w7Q=
+ou;lang-fr:: w7Q=
+description:: w7Q=
+
+dn:: b3U9w7wsIG91PUZyYW7Dp2Fpcywgb3U9UmVuYW1lIFRlc3RzLCBvPcOHw6lsaW7DqSDDhG5kcsOo
+objectclass: top
+objectclass: organizationalUnit
+ou:: w7w=
+ou;lang-fr:: w7w=
+description:: w7w=
+
+dn:: b3U9w7ksIG91PUZyYW7Dp2Fpcywgb3U9UmVuYW1lIFRlc3RzLCBvPcOHw6lsaW7DqSDDhG5kcsOo
+objectclass: top
+objectclass: organizationalUnit
+ou:: w7k=
+ou;lang-fr:: w7k=
+description:: w7k=
+
+dn:: b3U9w7ssIG91PUZyYW7Dp2Fpcywgb3U9UmVuYW1lIFRlc3RzLCBvPcOHw6lsaW7DqSDDhG5kcsOo
+objectclass: top
+objectclass: organizationalUnit
+ou:: w7s=
+ou;lang-fr:: w7s=
+description:: w7s=
+
