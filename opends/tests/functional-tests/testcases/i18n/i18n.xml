@@ -132,6 +132,11 @@
           <call function="'main_8bit_dataComparison'" />
           
           <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/i18n/i18n_8bit_LDAPcmds.xml'
+            % (TESTS_DIR)"/>
+          <call function="'main_8bit_LDAPcmds'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/i18n/i18n_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'i18n_cleanup'" />
           
