@@ -1,0 +1,115 @@
+dn: ou=ä, ou=Deutsch, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New Ä
+deleteoldrdn: 0
+
+dn: ou=ö, ou=Deutsch, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New Ö
+deleteoldrdn: 0
+
+dn: ou=ü, ou=Deutsch, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New Ü
+deleteoldrdn: 0
+
+dn: ou=ß, ou=Deutsch, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New ß
+deleteoldrdn: 0
+
+dn: ou=á, ou=Español, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New Á
+deleteoldrdn: 0
+
+dn: ou=é, ou=Español, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New É
+deleteoldrdn: 0
+
+dn: ou=í, ou=Español, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New Í
+deleteoldrdn: 0
+
+dn: ou=ó, ou=Español, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New Ó
+deleteoldrdn: 0
+
+dn: ou=ü, ou=Español, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New Ü
+deleteoldrdn: 0
+
+dn: ou=ñ, ou=Español, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New Ñ
+deleteoldrdn: 0
+
+dn: ou=à, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New À
+deleteoldrdn: 0
+
+dn: ou=â, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New Â
+deleteoldrdn: 0
+
+dn: ou=ç, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New Ç
+deleteoldrdn: 0
+
+dn: ou=ë, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New Ë
+deleteoldrdn: 0
+
+dn: ou=è, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New È
+deleteoldrdn: 0
+
+dn: ou=é, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New É
+deleteoldrdn: 0
+
+dn: ou=ê, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New Ê
+deleteoldrdn: 0
+
+dn: ou=ï, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New Ï
+deleteoldrdn: 0
+
+dn: ou=î, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New Î
+deleteoldrdn: 0
+
+dn: ou=ô, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New Ô
+deleteoldrdn: 0
+
+dn: ou=ü, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New Ü
+deleteoldrdn: 0
+
+dn: ou=ù, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New Ù
+deleteoldrdn: 0
+
+dn: ou=û, ou=Français, ou=Rename Tests, o=Çéliné Ändrè
+changetype: modrdn
+newrdn: ou=New Û
+deleteoldrdn: 0
+

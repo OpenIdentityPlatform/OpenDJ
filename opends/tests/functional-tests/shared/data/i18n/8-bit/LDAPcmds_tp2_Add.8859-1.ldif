@@ -1,0 +1,531 @@
+dn: ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Modify Tests
+description: Root for LDAPModify Tests.
+
+dn: ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Deutsch
+ou;lang-de: ÄÖÜäöüß
+description: German Alphabet
+
+dn: ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Français
+ou;lang-fr: àâçëèéêïîôüùûÀÂÇËÈÉÊÏÎÔÜÙÛ
+description: French Alphabet
+
+dn: ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Español
+ou;lang-es: á, é, í, ó, ü, ñ, Á, É, Í, Ó, Ú, Ü, Ñ
+description: Spanish Alphabet
+
+dn: ou=ä, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ä
+ou;lang-de: ä 
+description: ä
+
+dn: ou=ö, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ö
+ou;lang-de: ö
+description: ö
+
+dn: ou=ü, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ü
+ou;lang-de: ü
+description: ü
+
+dn: ou=ß, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ß
+ou;lang-de: ß
+description: ß
+
+dn: ou=Ä_2, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ä_2
+ou;lang-de: Ä_2
+description: Ä_2
+
+dn: ou=Ö_2, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ö_2
+ou;lang-de: Ö_2
+description: Ö_2
+
+dn: ou=Ü_2, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ü_2
+ou;lang-de: Ü_2
+description: Ü_2
+
+dn: ou=á, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: á
+ou;lang-es: á
+description: á
+
+dn: ou=é, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: é
+ou;lang-es: é
+description: é
+
+dn: ou=í, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: í
+ou;lang-es: í
+description: í
+
+dn: ou=ó, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ó
+ou;lang-es: ó
+description: ó
+
+dn: ou=ü, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ü
+ou;lang-es: ü
+description: ü
+
+dn: ou=ñ, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ñ
+ou;lang-es: ñ
+description: ñ
+
+dn: ou=Á_2, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Á_2
+ou;lang-es:  Á_2
+description: Á_2
+
+dn: ou=É_2, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: É_2
+ou;lang-es: É_2
+description: É_2
+
+dn: ou=Í_2, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Í_2
+ou;lang-es: Í_2
+description: Í_2
+
+dn: ou=Ó_2, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ó_2
+ou;lang-es: Ó_2
+description: Ó_2
+
+dn: ou=Ú_2, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ú_2
+ou;lang-es: Ú_2
+description: Ú_2
+
+dn: ou=Ü_2, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ü_2
+ou;lang-es: Ü_2
+description: Ü_2
+
+dn: ou=Ñ_2, ou=Español, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ñ_2
+ou;lang-es: Ñ_2
+description: Ñ_2
+
+dn: ou=à, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: à
+ou;lang-fr: à
+description: à
+
+dn: ou=â, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: â
+ou;lang-fr: â
+description: â
+
+dn: ou=ç, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ç
+ou;lang-fr: ç
+description: ç
+
+dn: ou=ë, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ë
+ou;lang-fr: ë
+description: ë
+
+dn: ou=è, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: è
+ou;lang-fr: è
+description: è
+
+dn: ou=é, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: é
+ou;lang-fr: é
+description: é
+
+dn: ou=ê, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ê
+ou;lang-fr:  ê
+description: ê
+
+dn: ou=ï, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ï
+ou;lang-fr: ï
+description: ï
+
+dn: ou=î, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: î
+ou;lang-fr: î
+description: î
+
+dn: ou=ô, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ô
+ou;lang-fr: ô
+description: ô
+
+dn: ou=ü, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ü
+ou;lang-fr: ü
+description: ü
+
+dn: ou=ù, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ù
+ou;lang-fr: ù
+description: ù
+
+dn: ou=û, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: û
+ou;lang-fr: û
+description: û
+
+dn: ou=À_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: À_2
+ou;lang-fr: À_2
+description: À_2
+
+dn: ou=Â_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Â_2
+ou;lang-fr: Â_2
+description: Â_2
+
+dn: ou=Ç_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ç_2
+ou;lang-fr: Ç_2
+description: Ç_2
+
+dn: ou=Ë_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ë_2
+ou;lang-fr: Ë_2
+description: Ë_2
+
+dn: ou=È_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: È_2
+ou;lang-fr: È_2
+description: È_2
+
+dn: ou=É_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: É_2
+ou;lang-fr: É_2
+description: É_2
+
+dn: ou=Ê_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ê_2
+ou;lang-fr:  Ê_2
+description: Ê_2
+
+dn: ou=Ï_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ï_2
+ou;lang-fr: Ï_2
+description: Ï_2
+
+dn: ou=Î_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Î_2
+ou;lang-fr: Î_2
+description: Î_2
+
+dn: ou=Ô_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ô_2
+ou;lang-fr: Ô_2
+description: Ô_2
+
+dn: ou=Ü_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ü_2
+ou;lang-fr: Ü_2
+description: Ü_2
+
+dn: ou=Ù_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ù_2
+ou;lang-fr: Ù_2
+description: Ù_2
+
+dn: ou=Û_2, ou=Français, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Û_2
+ou;lang-fr: Û_2
+description: Û_2
+
+dn: ou=A, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: A
+ou;lang-de: A
+description: A 
+
+dn: ou=B, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: B
+ou;lang-de: B
+description: B
+
+dn: ou=C, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: C
+ou;lang-de: C
+description: C
+
+dn: ou=D, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: D
+ou;lang-de: D
+description: D
+
+dn: ou=E, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: E
+ou;lang-de: E
+description: E
+
+dn: ou=F, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: F
+ou;lang-de: F
+description: F
+
+dn: ou=G, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: G
+ou;lang-de: G
+description: G
+
+dn: ou=H, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: H
+ou;lang-de: H
+description: H
+
+dn: ou=I, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: I
+ou;lang-de: I
+description: I
+
+dn: ou=J, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: J
+ou;lang-de: J
+description: J
+
+dn: ou=K, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: K
+ou;lang-de: K
+description: K 
+
+dn: ou=L, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: L
+ou;lang-de: L
+description: L
+
+dn: ou=M, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: M
+ou;lang-de: M
+description: M
+
+dn: ou=N, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: N
+ou;lang-de: N
+description: N
+
+dn: ou=O, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: O
+ou;lang-de: O
+description: O
+
+dn: ou=P, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: P
+ou;lang-de: P
+description: P
+
+dn: ou=Q, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Q
+ou;lang-de: Q
+description: Q
+
+dn: ou=R, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: R
+ou;lang-de: R
+description: R
+
+dn: ou=S, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: S
+ou;lang-de: S
+description: S
+
+dn: ou=T, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: T
+ou;lang-de: T
+description: T
+
+dn: ou=U, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: U
+ou;lang-de: U
+description: U
+
+dn: ou=V, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: V
+ou;lang-de: V
+description: V
+
+dn: ou=W, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: W
+ou;lang-de: W
+description: W
+
+dn: ou=X, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: X
+ou;lang-de: X
+description: X
+
+dn: ou=Y, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Y
+ou;lang-de: Y
+description: Y
+
+dn: ou=Z, ou=Deutsch, ou=Modify Tests, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Z
+ou;lang-de: Z
+description: Z
+
