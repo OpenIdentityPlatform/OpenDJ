@@ -103,10 +103,14 @@ public class TLSSocketSession implements ProtocolSession
     }
     if (plainSocket != null && !plainSocket.isClosed())
     {
+      plainInput.close();
+      plainOutput.close();
       plainSocket.close();
     }
     if (secureSocket != null && !secureSocket.isClosed())
     {
+      input.close();
+      output.close();
       secureSocket.close();
     }
   }
