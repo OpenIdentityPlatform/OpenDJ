@@ -1043,7 +1043,22 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     for (String server: replicationServers)
     {
       if (!newReplServers.contains(server))
-        serversToDisconnect.add(server);
+      {
+        try
+        {
+          // translate the server name into IP address
+          // and keep the port number
+          String[] host = server.split(":");
+          serversToDisconnect.add(
+              (InetAddress.getByName(host[0])).getHostAddress()
+              + ":" + host[1]);
+        }
+        catch (IOException e)
+        {
+          Message message = ERR_COULD_NOT_SOLVE_HOSTNAME.get(server);
+          logError(message);
+        }
+      }
     }
 
     if (serversToDisconnect.isEmpty())
