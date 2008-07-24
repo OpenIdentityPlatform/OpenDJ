@@ -112,6 +112,7 @@ extends ReplicationTestCase
       + "objectClass: ds-cfg-replication-server\n"
       + "cn: Replication Server\n"
       + "ds-cfg-replication-port: " + replServerPort + "\n"
+      + "ds-cfg-replication-db-directory: HistoricalCsnOrderingTestDb\n"
       + "ds-cfg-replication-server-id: 1\n";
     replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
