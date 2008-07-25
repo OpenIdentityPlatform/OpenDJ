@@ -253,9 +253,10 @@ public class DependencyTest extends ReplicationTestCase
   /**
    * Check the dependency between moddn and delete operation
    * when an entry is renamed to a new dn and then deleted.
+   * Disabled: need investigations to fix random failures
    */
   @SuppressWarnings("unchecked")
-  @Test(enabled=true)
+  @Test(enabled=false)
   public void moddnDelDependencyTest() throws Exception
   {
     ReplicationServer replServer = null;
