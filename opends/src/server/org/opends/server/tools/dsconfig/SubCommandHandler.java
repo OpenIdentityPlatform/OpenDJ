@@ -1240,7 +1240,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     String value;
     if (o instanceof CommonSchemaElements)
     {
-      value = ((CommonSchemaElements)o).getOID();
+      value = ((CommonSchemaElements)o).getNameOrOID();
     }
     else
     {
