@@ -381,7 +381,7 @@ public abstract class Backend
 
         MatchingRule matchingRule;
         String matchingRuleID = filter.getMatchingRuleID();
-        if (matchingRuleID == null)
+        if (matchingRuleID != null)
         {
           matchingRule = DirectoryServer.getMatchingRule(
                               matchingRuleID.toLowerCase());
