@@ -329,7 +329,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
         synchronized (this)
         {
           /* check if we are connected every second */
-          int randomizer = (int) Math.random()*100;
+          int randomizer = (int)(Math.random()*100);
           wait(1000 + randomizer);
         }
       } catch (InterruptedException e)
