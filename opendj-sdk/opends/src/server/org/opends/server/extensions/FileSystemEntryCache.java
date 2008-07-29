@@ -853,7 +853,7 @@ public class FileSystemEntryCache
         DN entryDN = DN.decode(iterator.next());
         if (entryDN.isDescendantOf(baseDN)) {
           iterator.remove();
-          entryCacheIndex.dnMap.remove(entryDN);
+          entryCacheIndex.dnMap.remove(entryDN.toNormalizedString());
           try {
             entryCacheDB.delete(null,
               new DatabaseEntry(
