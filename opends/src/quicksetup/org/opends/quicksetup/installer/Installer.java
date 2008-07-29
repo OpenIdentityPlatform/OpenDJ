@@ -3942,6 +3942,7 @@ public abstract class Installer extends GuiApplication {
     {
       suffixes.add(replica.getSuffix());
     }
+    // BUG: suf can be null here below
     getUserData().setSuffixesToReplicateOptions(
         new SuffixesToReplicateOptions(type, suffixes, suf.getSuffixes()));
   }
