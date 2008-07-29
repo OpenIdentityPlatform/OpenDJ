@@ -32,8 +32,31 @@
   <function name="setup_account_activation">
 
       <sequence>
-
-        <!--- Test Case : Add Entries for Acount Activation Tests -->
+        
+        
+        <!--- Test Suite information
+            #@TestSuiteName       setup Account Activation
+            #@TestSuitePurpose    Setup for the Account Activation test suite.
+            #@TestSuiteGroup      setup Account Activation
+            #@TestScript          security_setup_account_activation.xml
+        -->
+        
+        <script>
+          securityPath = '%s/security/account_activation' \
+          % logsRemoteDataDir
+        </script>
+        
+        <!--- Test Case information
+            #@TestMarker          setup Account Activation
+            #@TestName            setup: Add Initials Entries
+            #@TestIssue           none
+            #@TestPurpose         Add Entries for Acount Activation Tests
+            #@TestPreamble        none
+            #@TestStep            Add account_activation_startup.ldif
+            #@TestPostamble       none
+            #@TestResult          Success if addEntry returns 0.
+        -->
+        
         <testcase name="getTestCaseName('Add Initial Entries')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -46,7 +69,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/account_activation/account_activation_startup.ldif' % logsRemoteDataDir,
+                'entryToBeAdded'   : '%s/account_activation_startup.ldif' \
+                                     % securityPath,
                 'expectedRC'       : 0 }
             </call>
 
