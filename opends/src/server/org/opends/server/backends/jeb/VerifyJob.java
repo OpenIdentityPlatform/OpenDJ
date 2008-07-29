@@ -1798,7 +1798,7 @@ public class VerifyJob
     DatabaseEntry presenceKey = AttributeIndex.presenceKey;
 
     // Presence index.
-    if (!attrList.isEmpty() && presenceIndex != null)
+    if ((attrList != null) && !attrList.isEmpty() && presenceIndex != null)
     {
       try
       {

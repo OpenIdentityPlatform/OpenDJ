@@ -180,6 +180,7 @@ public class SortValuesSet
       updatedEntryIDs[pos] = entryID;
 
       byte[] newValuesBytes = attributeValuesToDatabase(values);
+      // BUG valuesBytesOffsets might be null ? If not why testing below ?
       int valuesPos = valuesBytesOffsets[pos];
       byte[] updatedValuesBytes = new byte[valuesBytes.length +
           newValuesBytes.length];

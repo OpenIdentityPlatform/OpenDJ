@@ -1885,6 +1885,7 @@ public class VLVIndex extends DatabaseContainer
             resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
           }
         }
+        // BUG: attrType may be NULL
         sortKeys[i] = new SortKey(attrType, ascending[i]);
         orderingRules[i] = attrType.getOrderingMatchingRule();
       }

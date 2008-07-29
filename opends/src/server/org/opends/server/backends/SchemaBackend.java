@@ -4235,7 +4235,8 @@ public class SchemaBackend
           AttributeType attrType = AttributeTypeSyntax.decodeAttributeType(
               v.getValue(), schema, false);
           String schemaFile = attrType.getSchemaFile();
-          if (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE))
+          if ((schemaFile != null) &&
+              (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE)))
           {
             // Don't import the file containing the definitions of the
             // Schema elements used for configuration because these
@@ -4287,7 +4288,8 @@ public class SchemaBackend
     for (AttributeType removeType : currentAttrTypes.values())
     {
       String schemaFile = removeType.getSchemaFile();
-      if (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE))
+      if ((schemaFile != null) &&
+           (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE)))
       {
         // Don't import the file containing the definitiong of the
         // Schema elements used for configuration because these
@@ -4297,10 +4299,9 @@ public class SchemaBackend
       if (!oidList.contains(removeType.getOID()))
       {
         newSchema.deregisterAttributeType(removeType);
-
         if (schemaFile != null)
         {
-          modifiedSchemaFiles.add(schemaFile);
+              modifiedSchemaFiles.add(schemaFile);
         }
       }
     }
@@ -4349,7 +4350,8 @@ public class SchemaBackend
           ObjectClass newObjectClass = ObjectClassSyntax.decodeObjectClass(
               v.getValue(), newSchema, true);
           String schemaFile = newObjectClass.getSchemaFile();
-          if (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE))
+          if ((schemaFile != null) &&
+              (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE)))
           {
             // Don't import the file containing the definitions of the
             // Schema elements used for configuration because these
@@ -4406,7 +4408,8 @@ public class SchemaBackend
     for (ObjectClass removeClass : currentObjectClasses.values())
     {
       String schemaFile = removeClass.getSchemaFile();
-      if (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE))
+      if ((schemaFile != null) &&
+          (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE)))
       {
         // Don't import the file containing the definitiong of the
         // Schema elements used for configuration because these
@@ -5276,8 +5279,7 @@ public class SchemaBackend
           logError(message);
         }
 
-        Message message = ERR_SCHEMA_RESTORE_SIGNED_HASH_INVALID.get(
-              schemaBackupDir.getPath());
+        Message message = ERR_SCHEMA_RESTORE_SIGNED_HASH_INVALID.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message);
       }
