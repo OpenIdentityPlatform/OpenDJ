@@ -42,8 +42,8 @@
         
         <!--- Define default value for basedn -->
         <script>
-        basedn1 = 'ou=activation tests,o=Account Activation Tests,'
-        basedn = '%s dc=example,dc=com' % basedn1
+        basedn1 = 'ou=people,ou=activation tests,o=Account Activation Tests'
+        basedn = '%s, dc=example,dc=com' % basedn1
         msg = 'Security: Account Activation:'
          </script>
      
@@ -73,7 +73,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'subcommand'       : 'get-account-is-disabled' ,
-                'targetDn'         : 'uid=scarter,ou=people,%s' % basedn  }
+                'targetDn'         : 'uid=scarter,%s' % basedn  }
             </call>
             
             <script> 
@@ -92,7 +92,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,%s' % basedn ,
+                'dsInstanceDn'     : 'uid=scarter,%s' % basedn ,
                 'dsInstancePswd'   : 'sprain' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -128,7 +128,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'subcommand'       : 'set-account-is-disabled' ,
                 'dsOperationValue' : 'true' ,
-                'targetDn'         : 'uid=scarter,ou=people,%s' % basedn  }
+                'targetDn'         : 'uid=scarter,%s' % basedn  }
             </call>
             
             <script> 
@@ -165,7 +165,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,%s' % basedn,
+                'dsInstanceDn'     : 'uid=scarter,%s' % basedn,
                 'dsInstancePswd'   : 'sprain' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -201,7 +201,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'subcommand'       : 'clear-account-is-disabled' ,
-                'targetDn'         : 'uid=scarter,ou=people,%s' % basedn  }
+                'targetDn'         : 'uid=scarter,%s' % basedn  }
             </call>
             
             <script> 
@@ -220,7 +220,7 @@
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,%s' % basedn ,
+                'dsInstanceDn'     : 'uid=scarter,%s' % basedn ,
                 'dsInstancePswd'   : 'sprain' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,

@@ -32,9 +32,29 @@
   <function name="teardown_account_activation">
 
       <sequence>
-
-        <!--- Test Case : Password Policy Teardown -->
-        <!--- Delete Branch -->
+        
+        <!--- Test Suite information
+         #@TestSuiteName       Teardown Account Activation
+         #@TestSuitePurpose    Test Teardown Account Activation
+         #@TestSuiteGroup      Teardown Account Activation
+         #@TestScript          security_teardown_account_activation.xml
+        -->
+        
+        <!--- Define default value for basedn -->
+        <script>
+        basedn = 'o=Account Activation Tests,dc=example,dc=com'
+        </script>
+        
+        <!--- Test Case information
+            #@TestMarker          Teardown Account Activation
+            #@TestName            Password Policy Teardown
+            #@TestIssue           none
+            #@TestPurpose         Delete Branch
+            #@TestPreamble        none
+            #@TestStep            DeleteEntry o=Account Activation Tests
+            #@TestPostamble       none
+            #@TestResult          Success if DeleteEntry returns 0.
+        -->
         <testcase name="getTestCaseName('Reset')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -47,7 +67,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'dsBaseDN'         : 'o=Account Activation Tests,dc=example,dc=com' ,
+                'dsBaseDN'         : '%s' % basedn ,
                 'extraParams'      : '-x',
                 'expectedRC'      : 0 }        
             </call>

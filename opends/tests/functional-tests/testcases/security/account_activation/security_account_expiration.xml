@@ -42,11 +42,13 @@
               
         <!--- Define default value for basedn -->
         <script>
-        basedn1 = 'ou=people,ou=activation tests,o=Account Activation Tests,'
-        basedn = '%s dc=example,dc=com' % basedn1
+        basedn1 = 'ou=people,ou=activation tests,o=Account Activation Tests'
+        basedn = '%s, dc=example,dc=com' % basedn1
         msg = 'Security: Account Expiration:'
         msg1 = '%s : Postamble' % msg
-         </script>
+        msg2 = 'get-seconds-until-password-expiration-warning'
+        msg3 = 'Password Expiration Warning'
+        </script>
       
         <!--- Test Case information
           #@TestMarker       Account Expiration
@@ -55,8 +57,9 @@
           #@TestPurpose      User Bind Before Deactivation
           #@TestPreamble     none
           #@TestStep         User binds RC 0
+          #@TestStep         Check manage-account get-password-policy-dn
           #@TestPostamble    none
-          #@TestResult       Success if the test is PASS
+          #@TestResult       Success if the 2 tests are PASS
         -->
         <testcase name="getTestCaseName('Preamble')">
         <sequence>
@@ -73,6 +76,28 @@
               'dsBaseDN'         : 'dc=example,dc=com' ,
               'dsFilter'         : 'objectclass=*'  ,
               'extraParams'      : '-s base'  }
+          </call>
+          
+          <message>
+               '%s Check manage-account get-password-policy-dn' % msg
+          </message>
+
+          <call function="'manageAccountWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'get-password-policy-dn' ,
+                'targetDn'         : 'uid=abergin,%s' % basedn  }
+          </call>
+          
+          <script> 
+             returnString = STAXResult[0][1]
+          </script>
+            
+          <call function="'checktestString'">
+              { 'returnString'       : returnString ,
+                'expectedString'     : 'Password Policy DN:' }
           </call>
 
           <call function="'testCase_Postamble'"/>
@@ -119,12 +144,17 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'subcommand'       : 'get-account-expiration-time' ,
-                'targetDn'         : 'uid=abergin,ou=people,%s' % basedn  }
+                'targetDn'         : 'uid=abergin,%s' % basedn  }
           </call>
           
-          <script>
-              knownIssue(3396)
+          <script> 
+             returnString = STAXResult[0][1]
           </script>
+            
+          <call function="'checktestString'">
+              { 'returnString'       : returnString ,
+                'expectedString'     : 'Account Expiration Time: ' }
+          </call>
             
           <call function="'testCase_Postamble'"/>
         </sequence>
@@ -170,12 +200,17 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'subcommand'       : 'get-authentication-failure-times' ,
-                'targetDn'         : 'uid=abergin,ou=people,%s' % basedn  }
+                'targetDn'         : 'uid=abergin,%s' % basedn  }
           </call>
           
-          <script>
-              knownIssue(3396)
+          <script> 
+             returnString = STAXResult[0][1]
           </script>
+            
+          <call function="'checktestString'">
+             { 'returnString'       : returnString ,
+               'expectedString'     : 'Authentication Failure Times:' }
+          </call>
 
           <call function="'testCase_Postamble'"/>
         </sequence>
@@ -221,12 +256,17 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'subcommand'       : 'get-account-expiration-time' ,
-                'targetDn'         : 'uid=abergin,ou=people,%s' % basedn  }
+                'targetDn'         : 'uid=abergin,%s' % basedn  }
           </call>
           
-          <script>
-              knownIssue(3396)
+          <script> 
+             returnString = STAXResult[0][1]
           </script>
+            
+          <call function="'checktestString'">
+             { 'returnString'       : returnString ,
+               'expectedString'     : 'Account Expiration Time:' }
+           </call>
             
           <call function="'testCase_Postamble'"/>
         </sequence>
@@ -274,8 +314,12 @@
           #@TestStep         Check User Bind After Removing Expiration RC 0
           #@TestStep         verify with manageAccountWithScript
                              get-account-expiration-time
+          #@TestStep         verify with manageAccountWithScript
+                             get-password-expiration-warned-time
+          #@TestStep         verify with manageAccountWithScript
+                             get-seconds-until-password-expiration
           #@TestPostamble    none
-          #@TestResult       Success if the 2 test are PASS
+          #@TestResult       Success if the 5 tests are PASS
         -->
       <testcase name="getTestCaseName('Postamble')">
         <sequence>
@@ -310,7 +354,7 @@
           </call>
           
           <message>
-             '%s Step 3. Verify with manage-account ' % msg
+             '%s Step 3. get-account-expiration-time with manage-account' % msg1
           </message>
 
           <call function="'manageAccountWithScript'">
@@ -319,12 +363,83 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'subcommand'       : 'get-account-expiration-time' ,
-                'targetDn'         : 'uid=abergin,ou=people,%s' % basedn  }
+                'targetDn'         : 'uid=abergin,%s' % basedn  }
           </call>
           
-          <script>
-              knownIssue(3396)
+          <script> 
+             returnString = STAXResult[0][1]
           </script>
+            
+          <call function="'checktestString'">
+             { 'returnString'       : returnString ,
+               'expectedString'     : 'Account Expiration Time:' }
+          </call>
+          
+          <message>
+             '%s Step 4. Check get-password-expiration-warned-time ' % msg1
+          </message>
+
+          <call function="'manageAccountWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'get-password-expiration-warned-time' ,
+                'targetDn'         : 'uid=abergin,%s' % basedn  }
+          </call>
+          
+          <script> 
+             returnString = STAXResult[0][1]
+          </script>
+            
+          <call function="'checktestString'">
+             { 'returnString'       : returnString ,
+               'expectedString'     : 'Password Expiration Warned Time:' }
+          </call>
+          
+          <message>
+             '%s Step 5. Check get-seconds-until-password-expiration' % msg1
+          </message>
+
+          <call function="'manageAccountWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'get-seconds-until-password-expiration' ,
+                'targetDn'         : 'uid=abergin,%s' % basedn  }
+          </call>
+          
+          <script> 
+             returnString = STAXResult[0][1]
+          </script>
+            
+          <call function="'checktestString'">
+             { 'returnString'       : returnString ,
+               'expectedString'     : 'Seconds Until Password Expiration:' }
+          </call>
+          
+          <message>
+             '%s Step 5. Check manage-account %s' % (msg1,msg2)
+          </message>
+
+          <call function="'manageAccountWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : msg2 ,
+                'targetDn'         : 'uid=abergin,%s' % basedn  }
+          </call>
+          
+          <script> 
+             returnString = STAXResult[0][1]
+          </script>
+            
+          <call function="'checktestString'">
+             { 'returnString'       : returnString ,
+               'expectedString'     : 'Seconds Until %s:' % msg3 }
+          </call>
           
           <call function="'testCase_Postamble'"/>
 
