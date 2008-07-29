@@ -584,7 +584,7 @@ public class ConfigFromFile
     }
     else if (entry.hasObjectClass(snmpConnectionHandlerOc))
     {
-      addressPort = addressPort = "0.0.0.0:"+port;
+      addressPort = "0.0.0.0:"+port;
       protocol = ListenerDescriptor.Protocol.SNMP;
       protocolDescription = INFO_SNMP_PROTOCOL_LABEL.get();
       boolean enabled = "true".equalsIgnoreCase(
