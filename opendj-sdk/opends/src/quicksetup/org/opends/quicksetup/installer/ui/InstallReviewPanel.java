@@ -376,7 +376,7 @@ public class InstallReviewPanel extends ReviewPanel {
       String serverToConnectDisplay;
       AuthenticationData authData =
         userInstallData.getReplicationOptions().getAuthenticationData();
-      if (userInstallData != null)
+      if (authData != null)
       {
         serverToConnectDisplay = authData.getHostName()+":"+authData.getPort();
       }

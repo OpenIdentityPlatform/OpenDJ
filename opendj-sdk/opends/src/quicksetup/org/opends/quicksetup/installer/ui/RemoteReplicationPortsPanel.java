@@ -223,7 +223,7 @@ implements Comparator<ServerDescriptor>
     AuthenticationData authData =
       data.getReplicationOptions().getAuthenticationData();
     String newServerDisplay;
-    if (data != null)
+    if (authData != null)
     {
       newServerDisplay = authData.getHostName()+":"+authData.getPort();
     }
