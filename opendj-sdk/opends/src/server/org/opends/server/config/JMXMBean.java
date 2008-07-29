@@ -532,6 +532,7 @@ public final class JMXMBean
              new ASN1OctetString(configEntryDN.toString()),
              SearchScope.BASE_OBJECT, filter);
     }
+    // BUG : op may be null
     ResultCode rc = op.getResultCode();
     if (rc != ResultCode.SUCCESS) {
        clientConnection = null ;
@@ -625,6 +626,7 @@ public final class JMXMBean
         new ASN1OctetString(configEntryDN.toString()),
         SearchScope.BASE_OBJECT, filter);
     }
+    // BUG: op may be null
     ResultCode rc = op.getResultCode();
     if (rc != ResultCode.SUCCESS)
     {
