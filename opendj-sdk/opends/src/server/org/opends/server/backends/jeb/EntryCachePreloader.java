@@ -353,6 +353,7 @@ class EntryCachePreloader
                 continue;
               }
             }
+            // BUG cursor might be null ? If not why testing below ?
             status = cursor.getNext(key, data, LockMode.DEFAULT);
             if (status != OperationStatus.SUCCESS) {
               // Reset cursor and continue.

@@ -636,6 +636,7 @@ public class LDIFBackend
         else
         {
           DN matchedDN = null;
+          // BUG: parentDN can be null when entering the loop
           while (true)
           {
             parentDN = parentDN.getParentDNInSuffix();
