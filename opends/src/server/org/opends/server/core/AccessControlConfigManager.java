@@ -486,7 +486,11 @@ public final class AccessControlConfigManager
           }
 
           Message message = ERR_CONFIG_AUTHZ_CONFIG_NOT_ACCEPTABLE.get(
-              String.valueOf(configuration.dn()), buffer.toString());
+            // Bug: where in a section where configuration is null
+            // WAS: String.valueOf( configuration.dn())
+            // Now:
+                  "null"
+                  , buffer.toString());
           throw new InitializationException(message);
         }
       }
