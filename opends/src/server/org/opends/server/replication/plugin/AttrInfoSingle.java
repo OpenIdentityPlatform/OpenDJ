@@ -91,7 +91,7 @@ public class AttrInfoSingle extends AttributeInfo
     if (modAttr != null)
       values = modAttr.getValues();
     AttributeValue newValue = null;
-    if (values.size() != 0)
+    if ((values != null) && (values.size() != 0))
       newValue = values.iterator().next();
 
     switch (mod.getModificationType())
@@ -139,7 +139,7 @@ public class AttrInfoSingle extends AttributeInfo
     if (modAttr != null)
       values = modAttr.getValues();
     AttributeValue newValue = null;
-    if (values.size() != 0)
+    if ((values != null) && (values.size() != 0))
       newValue = values.iterator().next();
 
     switch (mod.getModificationType())
