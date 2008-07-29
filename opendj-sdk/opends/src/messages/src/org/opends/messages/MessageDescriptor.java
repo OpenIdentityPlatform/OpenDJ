@@ -996,7 +996,7 @@ public abstract class MessageDescriptor {
                                 Severity severity) {
       super(null, null, category, severity, null, null);
       this.formatString = formatString != null ? formatString.toString() : "";
-      this.requiresFormatter = formatString.toString().matches(".*%.*");
+      this.requiresFormatter = this.formatString.matches(".*%.*");
     }
 
     /**
@@ -1009,6 +1009,7 @@ public abstract class MessageDescriptor {
     Raw(CharSequence formatString, int mask, Severity severity) {
       super(null, null, mask, severity, null, null);
       this.formatString = formatString != null ? formatString.toString() : "";
+      this.requiresFormatter = this.formatString.matches(".*%.*");
     }
 
     /**
