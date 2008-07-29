@@ -48,6 +48,9 @@
         msg1 = '%s : Postamble' % msg
         msg2 = 'get-seconds-until-password-expiration-warning'
         msg3 = 'Password Expiration Warning'
+        msg4 = 'get-seconds-until-authentication-failure-unlock'
+        msg5 = 'Seconds Until Account Expiration:'
+        msg6 = 'Seconds Until Authentication Failure Unlock:'
         </script>
       
         <!--- Test Case information
@@ -225,8 +228,12 @@
           #@TestStep         modifyAnAttribute ds-pwp-account-expiration-time
           #@TestStep         verify with manageAccountWithScript
                              get-account-expiration-time
+          #@TestStep         verify with manageAccountWithScript
+                             get-seconds-until-account-expiration
+          #@TestStep         verify with manageAccountWithScript
+                             get-seconds-until-authentication-failure-unlock
           #@TestPostamble    none
-          #@TestResult       Success if the 2 test are PASS
+          #@TestResult       Success if the 4 test are PASS
         -->
       <testcase name="getTestCaseName('Admin Expire User in Future')">
         <sequence>
@@ -247,7 +254,7 @@
           </call>
           
           <message>
-             'Security: Account Expiration: verify with manage-account '
+             'Security: Account Expiration: verify get-account-expiration-time'
           </message>
 
           <call function="'manageAccountWithScript'">
@@ -266,6 +273,50 @@
           <call function="'checktestString'">
              { 'returnString'       : returnString ,
                'expectedString'     : 'Account Expiration Time:' }
+           </call>
+           
+           <message>
+             'Security: Account Expiration: verify manage-account %s' % msg3
+          </message>
+
+          <call function="'manageAccountWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'get-seconds-until-account-expiration' ,
+                'targetDn'         : 'uid=abergin,%s' % basedn  }
+          </call>
+          
+          <script> 
+             returnString = STAXResult[0][1]
+          </script>
+            
+          <call function="'checktestString'">
+             { 'returnString'       : returnString ,
+               'expectedString'     : '%s  8926' % msg5 }
+           </call>
+           
+           <message>
+             'Security: Account Expiration: verify manage-account %s' % msg4
+          </message>
+
+          <call function="'manageAccountWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : msg4 ,
+                'targetDn'         : 'uid=abergin,%s' % basedn  }
+          </call>
+          
+          <script> 
+             returnString = STAXResult[0][1]
+          </script>
+            
+          <call function="'checktestString'">
+             { 'returnString'       : returnString ,
+               'expectedString'     : msg6 }
            </call>
             
           <call function="'testCase_Postamble'"/>
