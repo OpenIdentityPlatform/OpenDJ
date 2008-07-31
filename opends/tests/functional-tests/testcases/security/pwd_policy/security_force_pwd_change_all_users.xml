@@ -43,6 +43,8 @@
         <!--- Define default value for basedn -->
      <script>
      basedn = 'ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com'
+     msg1 = 'get-password-changed-by-required-time'
+     msg2 = 'get-seconds-until-required-change-time'
      </script>
      
      
@@ -231,8 +233,12 @@
           #@TestStep         Admin Resetting Pwd Time Exp
                              remove require-change-by-time 20061030183752.848Z
           #@TestStep         User Searching With Password SearchObject returns 0
+          #@TestStep         check manage-account 
+                             get-password-changed-by-required-time
+          #@TestStep         Check manage-account 
+                             get-seconds-until-required-change-time
           #@TestPostamble    none
-          #@TestResult       Success if the 2 steps are PASS
+          #@TestResult       Success if the 4 steps are PASS
         -->
         
         <testcase name="getTestCaseName('Postamble Reset')">
@@ -267,6 +273,50 @@
                 'extraParams'      : '-s base' }
             </call>
 
+            <message>
+               'Security: Pwd Change: Check manage-account %s' % msg1
+            </message>
+
+            <call function="'manageAccountWithScript'">
+               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                 'subcommand'       : 'get-password-changed-by-required-time' ,
+                 'targetDn'         : 'uid=scarter,%s' % basedn  }
+            </call>
+          
+            <script> 
+               returnString = STAXResult[0][1]
+            </script>
+            
+            <call function="'checktestString'">
+               { 'returnString'       : returnString ,
+                 'expectedString'     : 'Password Changed by Required Time:' }
+            </call>
+          
+            <message>
+               'Security: Pwd Change: Check manage-account %s' % msg2
+            </message>
+
+            <call function="'manageAccountWithScript'">
+               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                 'subcommand'       : 'get-seconds-until-required-change-time' ,
+                 'targetDn'         : 'uid=scarter,%s' % basedn  }
+            </call>
+          
+            <script> 
+               returnString = STAXResult[0][1]
+            </script>
+            
+            <call function="'checktestString'">
+               { 'returnString'       : returnString ,
+                 'expectedString'     : 'Seconds Until Required Change Time:' }
+            </call>
+          
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>

@@ -265,6 +265,7 @@
                               set last-login-time-attribute to 
                               ds-pwp-last-login-time
           #@TestStep          User Binding With Password returns 0
+          #@TestStep          Check manage-account get-last-login-time
           #@TestStep          Checking for Absence of Last Login Time
                               SearchObject ds-pwp-last-login-time returns 0
                               checktestString ds-pwp-last-login-time
@@ -302,7 +303,29 @@
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
+            
+            <message>
+            '%s Check manage-account get-last-login-time' % msg1
+            </message>
 
+            <call function="'manageAccountWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'get-last-login-time' ,
+                'targetDn'         : 'uid=jreuter,%s' % basedn  }
+            </call>
+            
+            <script> 
+             returnString = STAXResult[0][1]
+            </script>
+            
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'Last Login Time:  2' }
+            </call>
+            
             <message>
                'Security: Last Login: Checking for Absence of Last Login Time'
             </message>
@@ -508,13 +531,14 @@
                                   set idle-lockout-interval to 50 s
             #@TestStep            Step 3. User Binding Before Idle Lockout
                                   SearchObject returns 0
-            #@TestStep            Step 4. Sleep sleepForMilliSeconds 30000
-            #@TestStep            Step 5. User Changing Password
-            #@TestStep            Step 6. Sleep sleepForMilliSeconds to 30000
-            #@TestStep            Step 7. User Binding After Idle Lockout
+            #@TestStep            Step 4. Check get-seconds-until-idle-lockout
+            #@TestStep            Step 5. Sleep sleepForMilliSeconds 30000
+            #@TestStep            Step 6. User Changing Password
+            #@TestStep            Step 7. Sleep sleepForMilliSeconds to 30000
+            #@TestStep            Step 8. User Binding After Idle Lockout
                                   SearchObject returns 0
             #@TestPostamble       none
-            #@TestResult          Success if the 7 steps are PASS
+            #@TestResult          Success if the 8 steps are PASS
         -->
         
     <testcase name="getTestCaseName('Long Idle Lockout - Pwd Change Override')">
@@ -560,6 +584,28 @@
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
+            </call>
+            
+            <message>
+'%s, %s - %s Step 4. Check get-seconds-until-idle-lockout' % (msg1,msg2,msg4)
+            </message>
+
+            <call function="'manageAccountWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'get-seconds-until-idle-lockout' ,
+                'targetDn'         : 'uid=jreuter,%s' % basedn  }
+            </call>
+            
+            <script> 
+             returnString = STAXResult[0][1]
+            </script>
+            
+            <call function="'checktestString'">
+              { 'returnString'       : returnString ,
+                'expectedString'     : 'Seconds Until Idle Account Lockout: ' }
             </call>
 
 

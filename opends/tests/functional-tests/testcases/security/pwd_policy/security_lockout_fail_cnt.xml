@@ -45,6 +45,8 @@
    basedn = 'ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com'
    basepwp = 'cn=Default Password Policy,cn=Password Policies,cn=config'
    msg = 'Security: Lockout Fail Cnt:'
+   msg1 = 'get-remaining-authentication-failure-count'
+   msg2 = 'Remaining Authentication Failure Count:'
    </script>
 
         <!--- Test Case information
@@ -57,8 +59,10 @@
                                 ds-cfg-lockout-failure-count and value is 0
           #@TestStep            Step 2. Default Bind With Bad Pwd 3x RC 49
                                 then User search with good password returns 0
+          #@TestStep            Step 3. check manage-account
+                                get-remaining-authentication-failure-count
           #@TestPostamble       none
-          #@TestResult          Success if the 2 steps are PASS
+          #@TestResult          Success if the 3 steps are PASS
         -->
           
         <testcase name="getTestCaseName('Preamble')">
@@ -78,7 +82,7 @@
             </call>
 
             <message>
-'%s Preamble Step 2. Default Bind With Bad Pwd 3x' % msg
+               '%s Preamble Step 2. Default Bind With Bad Pwd 3x' % msg
             </message>
 
             <script>
@@ -107,6 +111,29 @@
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
+            
+            <message>
+               '%s Preamble Step 3. Check manage-account %s' % (msg,msg1)
+            </message>
+
+            <call function="'manageAccountWithScript'">
+               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                 'subcommand'       : msg1 ,
+                 'targetDn'         : 'uid=bhall,%s' % basedn  }
+            </call>
+          
+            <script> 
+               returnString = STAXResult[0][1]
+            </script>
+            
+            <call function="'checktestString'">
+               { 'returnString'       : returnString ,
+                 'expectedString'     : msg2 }
+            </call>
+            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -120,15 +147,17 @@
           #@TestPreamble        none
           #@TestStep            Admin Changing Lockout Count set
                                 lockout-failure-count to 3
+          #@TestStep            check manage-account
+                                get-remaining-authentication-failure-count
           #@TestPostamble       none
-          #@TestResult          Success if modifyPwdPolicy returns 0.
+          #@TestResult          Success if all tests are PASS
         -->
 
         <testcase name="getTestCaseName('Admin Change Lockout Cnt')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Lockout Cnt: Admin Changing Lockout Count'
+               'Security: Lockout Fail Cnt: Admin Changing Lockout Count'
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -139,6 +168,28 @@
                     'propertyName'           : 'Default Password Policy' ,
                     'attributeName'          : 'lockout-failure-count' ,
                     'attributeValue'         : '3' }
+            </call>
+            
+            <message>
+               '%s Check manage-account %s' % (msg,msg1)
+            </message>
+
+            <call function="'manageAccountWithScript'">
+               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                 'subcommand'       : msg1 ,
+                 'targetDn'         : 'uid=bhall,%s' % basedn  }
+            </call>
+          
+            <script> 
+               returnString = STAXResult[0][1]
+            </script>
+            
+            <call function="'checktestString'">
+               { 'returnString'       : returnString ,
+                 'expectedString'     : '%s  3' % msg2 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -153,8 +204,10 @@
           #@TestPurpose         Lockout With Bad Pwd 3x
           #@TestPreamble        none
           #@TestStep            Lockout With Bad Pwd 3x SearchObject RC 49 3x
+          #@TestStep            check manage-account
+                                get-remaining-authentication-failure-count
           #@TestPostamble       none
-          #@TestResult          Success if the test is PASS
+          #@TestResult          Success if all tests are PASS
         -->
         
         <testcase name="getTestCaseName('Lockout With Bad Pwd 3x')">
@@ -180,6 +233,28 @@
                   'expectedRC'       : 49 }
               </call>
             </iterate>
+            
+            <message>
+               '%s Check manage-account %s' % (msg,msg1)
+            </message>
+
+            <call function="'manageAccountWithScript'">
+               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                 'subcommand'       : msg1 ,
+                 'targetDn'         : 'uid=bhall,%s' % basedn  }
+            </call>
+          
+            <script> 
+               returnString = STAXResult[0][1]
+            </script>
+            
+            <call function="'checktestString'">
+               { 'returnString'       : returnString ,
+                 'expectedString'     : '%s  0' % msg2 }
+            </call>
 
             <call function="'testCase_Postamble'"/>
 
