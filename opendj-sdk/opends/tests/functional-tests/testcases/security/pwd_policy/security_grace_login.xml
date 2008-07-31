@@ -46,6 +46,9 @@
           basedn = '%s o=Pwd Policy Tests,dc=example,dc=com' % basedn1
           basepwp ='cn=Default Password Policy,cn=Password Policies,cn=config'
           msg = 'Security: Grace Login:'
+          msg1 = 'Password Policy DN:  %s' % basepwp
+          msg2 = 'Account Is Disabled:  false'
+          msg3 = 'Password History:'
           </script>
 
 
@@ -255,6 +258,7 @@
           #@TestStep            Verify remaining grace login with manage-account
           #@TestStep            Search Bind 4 SearchObject returns 49
           #@TestStep            Verify remaining grace login with manage-account
+          #@TestStep            Verify manage-account get-all
           #@TestPostamble       none
           #@TestResult          Success if all the steps are PASS
         -->
@@ -469,6 +473,30 @@
             <call function="'checktestString'">
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'Remaining Grace Login Count:  0' }
+            </call>
+            
+            <message>
+             '%s Verify manage-account get-all' % msg
+            </message>
+
+            <call function="'manageAccountWithScript'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'       : 'get-all' ,
+                  'targetDn'         : 'uid=btalbot,%s' % basedn }
+            </call>
+            
+            <script> 
+             returnString = STAXResult[0][1]
+            </script>
+            
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : msg1 ,
+                  'expectedString'     : msg2 ,
+                  'expectedString'     : msg3 }
             </call>
             
             <call function="'testCase_Postamble'"/>

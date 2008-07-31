@@ -42,7 +42,14 @@
  
 	<!--- Define default value for basedn -->
           <script>
-            basedn = 'ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com'
+            basedn1 = 'ou=people,ou=password tests,'
+            basedn = '%s o=Pwd Policy Tests,dc=example,dc=com' % basedn1
+            pwp = 'cn=Default Password Policy,cn=Password Policies,cn=config'
+            msg = 'Security: Lockout Duration:'
+            msg1 = 'Security: Lockout Duration: Preamble'
+            msg2 = 'Security: Lockout Duration: Short Lockout Duration'
+            msg3 = 'get-seconds-until-password-reset-lockout'
+            msg4 = 'Security: Lockout Duration: Long Lockout Duration'
           </script>
 
          
@@ -71,7 +78,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Lockout Duration: Preamble Step 1. Checking existence of ds-cfg-lockout-duration'
+               '%s Step 1. Checking existence of ds-cfg-lockout-duration' % msg1
             </message>
 
             <call function="'compareEntry'">
@@ -80,11 +87,11 @@
                 'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                 'attrToBeCompared'    : 'ds-cfg-lockout-duration:0 seconds',
-                'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
+                'entryToBeCompared'   : pwp }
             </call>
 
             <message>
-               'Security: Lockout Duration: Preamble Step 2. Admin Changing Lockout Count'
+               '%s Step 2. Admin Changing Lockout Count' % msg1
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -98,7 +105,7 @@
             </call>
             
             <message>
-               'Security: Lockout Duration: Preamble Step 3. User Lockout With Bad Pwd 3x'
+               '%s Step 3. User Lockout With Bad Pwd 3x' % msg1
             </message>
 
             <script>
@@ -119,7 +126,7 @@
             </iterate>
 
             <message>
-               'Security: Lockout Duration: Preamble Step 4. Admin Resetting User Pwd'
+               '%s Preamble Step 4. Admin Resetting User Pwd' % msg1
             </message>
 
             <call function="'ldapPasswordModifyWithScript'">
@@ -132,7 +139,7 @@
             </call>
             
             <message>
-               'Security: Lockout Duration: Preamble Step 5. User Bind With New Password'
+               '%s Step 5. User Bind With New Password' % msg1
             </message>
 
             <call function="'SearchObject'">
@@ -165,7 +172,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Lockout Duration: Admin Making Lockout Duration Short'
+               '%s Admin Making Lockout Duration Short' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -205,7 +212,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Lockout Duration: Short Lockout Duration Step 1. User Lockout With Bad Pwd 3x'
+               '%s Step 1. User Lockout With Bad Pwd 3x' % msg2
             </message>
 
             <script>
@@ -234,7 +241,7 @@
             </call>
             
             <message>
-               'Security: lockout Duration: Short Lockout Duration Step 2. User Changing Password'
+               '%s Step 2. User Changing Password' % msg2
             </message>
 
             <call function="'ldapPasswordModifyWithScript'">
@@ -247,7 +254,7 @@
             </call>
             
             <message>
-               'Security: Lockout Duration: Short Lockout Duration Step 3. User Bind With New Password'
+               '%s Step 3. User Bind With New Password' % msg2
             </message>
 
             <call function="'SearchObject'">
@@ -272,6 +279,8 @@
            #@TestPurpose        Admin making Lockout Duration Long
            #@TestPreamble       none
            #@TestStep           set lockout-duration to 5 days
+           #@TestStep           Check manage-account
+                                get-seconds-until-password-reset-lockout
            #@TestPostamble      none
            #@TestResult         Success if the step is PASS
         -->
@@ -280,7 +289,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Lockout Duration: Admin Making Lockout Duration Long'
+               '%s Admin Making Lockout Duration Long' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -293,6 +302,28 @@
                     'attributeValue'         : '5 d' }
             </call>
             
+            <message>
+               '%s Check manage-account %s' % (msg,msg3)
+            </message>
+
+            <call function="'manageAccountWithScript'">
+               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                 'subcommand'       : msg3 ,
+                 'targetDn'         : 'uid=scarter,%s' % basedn  }
+            </call>
+          
+            <script> 
+               returnString = STAXResult[0][1]
+            </script>
+            
+          <call function="'checktestString'">
+              { 'returnString'       : returnString ,
+                'expectedString'     : 'Seconds Until Password Reset Lockout:' }
+          </call>
+          
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -321,7 +352,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Lockout Duration: Long Lockout Duration Step 1. User Initial Bind'
+               '%s Long Lockout Duration Step 1. User Initial Bind' % msg
             </message>
 
             <call function="'SearchObject'">
@@ -335,7 +366,7 @@
             </call>
     
             <message>
-               'Security: Lockout Duration: Long Lockout Duration Step 2. User Lockout With Bad Pwd 3x'
+               '%s Step 2. User Lockout With Bad Pwd 3x' % msg4
             </message>
 
             <script>
@@ -364,7 +395,7 @@
             </call>
             
             <message>
-               'Security: lockout Duration: Long Lockout Duration Step 3. User Changing Password'
+               '%s Step 3. User Changing Password' % msg4
             </message>
 
             <call function="'ldapPasswordModifyWithScript'">
@@ -378,7 +409,7 @@
             </call>
             
             <message>
-               'Security: Lockout Duration: Long Lockout Duration Step 4. User Bind With New Password'
+               '%s Step 4. User Bind With New Password' % msg4
             </message>
 
             <call function="'SearchObject'">
@@ -420,7 +451,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Lockout Duration: Postamble Step 1. Admin Resetting Lockout Duration'
+               '%s Postamble Step 1. Admin Resetting Lockout Duration' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -434,7 +465,7 @@
             </call>
             
             <message>
-               'Security: Lockout Duration: Postamble Step 2. User Lockout With Bad Pwd 3x'
+               '%s Postamble Step 2. User Lockout With Bad Pwd 3x' % msg
             </message>
 
             <script>
@@ -455,7 +486,7 @@
             </iterate>
 
             <message>
-               'Security: Lockout Duration: Postamble Step 3. Admin Resetting User Pwd'
+               '%s Postamble Step 3. Admin Resetting User Pwd' % msg
             </message>
 
             <call function="'ldapPasswordModifyWithScript'">
@@ -468,7 +499,7 @@
             </call>
             
             <message>
-               'Security: Lockout Duration: Postamble Step 4. User Bind With New Password'
+               '%s Postamble Step 4. User Bind With New Password' % msg
             </message>
 
             <call function="'SearchObject'">
@@ -482,7 +513,7 @@
             </call>
 
             <message>
-               'Security: Lockout Duration: Postamble Step 5. Admin Resetting Lockout Count'
+               '%s Postamble Step 5. Admin Resetting Lockout Count' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
