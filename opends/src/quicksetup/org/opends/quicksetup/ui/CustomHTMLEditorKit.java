@@ -27,10 +27,12 @@
 
 package org.opends.quicksetup.ui;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashSet;
 
+import javax.swing.JButton;
 import javax.swing.text.Element;
 import javax.swing.text.View;
 import javax.swing.text.ViewFactory;
@@ -125,6 +127,19 @@ public class CustomHTMLEditorKit extends HTMLEditorKit
           l.actionPerformed(ev);
         }
       }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected Component createComponent()
+    {
+      Component comp = super.createComponent();
+      if (comp instanceof JButton)
+      {
+        ((JButton)comp).setOpaque(false);
+      }
+      return comp;
     }
   }
 
