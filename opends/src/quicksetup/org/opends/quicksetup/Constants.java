@@ -96,4 +96,10 @@ public class Constants {
 
   /** The maximum chars we show in a line of a dialog. */
   public static final int MAX_CHARS_PER_LINE_IN_DIALOG = 100;
+
+  /** Prefix for log files. */
+  public static final String LOG_FILE_PREFIX = "opends-setup-";
+
+  /** Suffix for log files. */
+  public static final String LOG_FILE_SUFFIX = ".log";
 }

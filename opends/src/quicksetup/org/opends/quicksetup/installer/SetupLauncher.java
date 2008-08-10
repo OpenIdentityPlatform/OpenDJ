@@ -33,6 +33,7 @@ import static org.opends.messages.ToolMessages.*;
 import java.io.File;
 import java.util.logging.Logger;
 
+import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.Installation;
@@ -56,12 +57,6 @@ import org.opends.server.util.args.ArgumentParser;
  */
 public class SetupLauncher extends Launcher {
 
-  /** Prefix for log files. */
-  static public final String LOG_FILE_PREFIX = "opends-setup-";
-
-  /** Suffix for log files. */
-  static public final String LOG_FILE_SUFFIX = ".log";
-
   static private final Logger LOG =
           Logger.getLogger(SetupLauncher.class.getName());
 
@@ -75,7 +70,8 @@ public class SetupLauncher extends Launcher {
   public static void main(String[] args) {
     try {
       QuickSetupLog.initLogFileHandler(
-              File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX),
+              File.createTempFile(Constants.LOG_FILE_PREFIX,
+                  Constants.LOG_FILE_SUFFIX),
               "org.opends.quicksetup.installer");
       QuickSetupLog.disableConsoleLogging();
 

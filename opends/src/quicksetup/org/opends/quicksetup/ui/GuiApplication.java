@@ -27,12 +27,19 @@
 
 package org.opends.quicksetup.ui;
 
-import org.opends.quicksetup.*;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.InProcessServerController;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
+import org.opends.quicksetup.Application;
+import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.ButtonName;
+import org.opends.quicksetup.ReturnCode;
+import org.opends.quicksetup.UserData;
+import org.opends.quicksetup.UserDataCertificateException;
+import org.opends.quicksetup.UserDataException;
 import org.opends.quicksetup.UserInteraction;
+import org.opends.quicksetup.WizardStep;
 import org.opends.quicksetup.webstart.WebStartDownloader;
 import org.opends.messages.Message;
 import static org.opends.messages.QuickSetupMessages.*;
@@ -600,7 +607,17 @@ public abstract class GuiApplication extends Application {
     UserInteraction ui = null;
     if (getUserData().isInteractive()) {
       if (Utils.isCli()) {
-        ui = new CliUserInteraction();
+        // Use reflection to avoid breaking the java web start in some
+        // platforms.
+        try
+        {
+          Class cl = Class.forName("org.opends.quicksetup.CliUserInteraction");
+          ui = (UserInteraction) cl.newInstance();
+        }
+        catch (Throwable t)
+        {
+          throw new IllegalStateException("Unexpected error: "+t, t);
+        }
       } else {
         ui = new GuiUserInteraction(qs.getFrame());
       }
