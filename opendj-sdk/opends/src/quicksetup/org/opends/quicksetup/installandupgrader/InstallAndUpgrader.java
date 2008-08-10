@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.opends.quicksetup.ButtonName;
+import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.QuickSetupLog;
@@ -49,8 +50,6 @@ import org.opends.quicksetup.UserDataException;
 import org.opends.quicksetup.WizardStep;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.installandupgrader.ui.WelcomePanel;
-import org.opends.quicksetup.installer.Installer;
-import org.opends.quicksetup.installer.SetupLauncher;
 import org.opends.quicksetup.installer.offline.OfflineInstaller;
 import org.opends.quicksetup.installer.webstart.WebStartInstaller;
 import org.opends.quicksetup.ui.FieldName;
@@ -70,8 +69,8 @@ public class InstallAndUpgrader extends GuiApplication
 {
   static private final Logger LOG =
     Logger.getLogger(InstallAndUpgrader.class.getName());
-  private Installer installer;
-  private Upgrader upgrader;
+  private GuiApplication installer;
+  private GuiApplication upgrader;
   private InstallAndUpgradeUserData userData;
 
   /**
@@ -84,7 +83,7 @@ public class InstallAndUpgrader extends GuiApplication
       if (!QuickSetupLog.isInitialized())
         QuickSetupLog.initLogFileHandler(
                 File.createTempFile(
-                        SetupLauncher.LOG_FILE_PREFIX,
+                        Constants.LOG_FILE_PREFIX,
                         QuickSetupLog.LOG_FILE_SUFFIX));
     } catch (IOException e) {
       System.err.println(INFO_ERROR_INITIALIZING_LOG.get());

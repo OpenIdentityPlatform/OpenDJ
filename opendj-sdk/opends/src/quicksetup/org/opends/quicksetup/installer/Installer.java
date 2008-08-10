@@ -63,13 +63,26 @@ import org.opends.admin.ads.TopologyCacheFilter;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.PreferredConnection;
+import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.ButtonName;
+import org.opends.quicksetup.Constants;
+import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.ProgressStep;
+import org.opends.quicksetup.QuickSetupLog;
+import org.opends.quicksetup.ReturnCode;
+import org.opends.quicksetup.SecurityOptions;
+import org.opends.quicksetup.Step;
+import org.opends.quicksetup.UserData;
+import org.opends.quicksetup.UserDataCertificateException;
+import org.opends.quicksetup.UserDataConfirmationException;
+import org.opends.quicksetup.UserDataException;
+import org.opends.quicksetup.WizardStep;
 import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.IncompatibleVersionException;
 import org.opends.quicksetup.util.Utils;
 
 import static org.opends.quicksetup.util.Utils.*;
 import static org.opends.quicksetup.Step.*;
-import org.opends.quicksetup.*;
 import org.opends.server.util.CertificateManager;
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
@@ -196,8 +209,8 @@ public abstract class Installer extends GuiApplication {
       if (!QuickSetupLog.isInitialized())
         QuickSetupLog.initLogFileHandler(
                 File.createTempFile(
-                    SetupLauncher.LOG_FILE_PREFIX,
-                    SetupLauncher.LOG_FILE_SUFFIX));
+                    Constants.LOG_FILE_PREFIX,
+                    Constants.LOG_FILE_SUFFIX));
     } catch (IOException e) {
       System.err.println("Failed to initialize log");
     }
@@ -3942,7 +3955,6 @@ public abstract class Installer extends GuiApplication {
     {
       suffixes.add(replica.getSuffix());
     }
-    // BUG: suf can be null here below
     getUserData().setSuffixesToReplicateOptions(
         new SuffixesToReplicateOptions(type, suffixes, suf.getSuffixes()));
   }
