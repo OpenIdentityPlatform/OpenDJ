@@ -95,7 +95,7 @@
           #@TestName            Group: i18n 8-bit: extend schema using 8-bit UTF-8 characters
           #@TestID              
           #@TestPurpose         check that schema extension with attributes or objectclasses
-          #@TestPurpose         containing 8-bit UTF-8 characters is refused
+                                containing 8-bit UTF-8 characters is refused
           #@TestPreamble        
           #@TestSteps           Do a ldapmodify with as argument a file containing 8-bit UTF-8 characters 
           #@TestPostamble
@@ -127,8 +127,8 @@
                                 characters
           #@TestID              
           #@TestPurpose         check that schema extension with attributes or
-                                objectclasses
-          #@TestPurpose         containing ascii characters is working ok
+                                objectclasses containing ascii characters is 
+                                working ok
           #@TestPreamble        
           #@TestSteps           Do a ldapmodify with as argument a file
                                 containing only ascii characters
