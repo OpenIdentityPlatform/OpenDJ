@@ -834,18 +834,22 @@ implements AciTargetMatchContext, AciEvalContext {
      * {@inheritDoc}
      */
     public boolean isMemberOf(Group group) {
-      boolean ret;
-      try {
-        Entry e = getClientEntry();
-        if(e != null) {
-          ret=group.isMember(e);
-        } else {
-          ret=group.isMember(getClientDN());
+        boolean ret;
+        try {
+            if(useAuthzid) {
+                ret = group.isMember(this.authzid);
+            } else {
+                Entry e = getClientEntry();
+                if(e != null) {
+                    ret=group.isMember(e);
+                } else {
+                    ret=group.isMember(getClientDN());
+                }
+            }
+        } catch (DirectoryException ex) {
+            ret=false;
         }
-      } catch (DirectoryException ex) {
-        ret=false;
-      }
-      return  ret;
+        return  ret;
     }
 
   /**
