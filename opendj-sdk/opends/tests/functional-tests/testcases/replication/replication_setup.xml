@@ -60,6 +60,23 @@
         </function-arg-description>
         <function-arg-property name="type" value="filename"/>
       </function-arg-def>
+      <function-arg-def name="isolateLdapServers" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Break the cross-reference between Ldap Servers and Replication Servers
+          (i.e. make LS1 point to RS1 exclusively, LS2 to RS2, etc.)
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>          
+      </function-arg-def>
+      <function-arg-def name="enableDebugLogs" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Enable de debug logs
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>          
+      </function-arg-def>
     </function-map-args>    
     
     <sequence>
@@ -82,12 +99,14 @@
                  
           <call function="'createTopology'">
             { 'topologyDescFile' : topologyFile,
-              'sharedDataFolder' : 'replication' }
+              'sharedDataFolder' : 'replication'
+            }
           </call>  
       
           <call function="'checkRC'">
             { 'returncode' : RC ,
-              'result'     : STAXResult }
+              'result'     : STAXResult
+            }
           </call>
 
           <!-- Setup variables -->
@@ -108,7 +127,9 @@
             synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()
             masterBackupDir = '%s/replication/master_backup' % masterDataDir
             
-            consumerList = _topologyServerList[1:]              
+            consumerList = _topologyServerList[1:]
+              
+            domainMap = {}
           </script>       
 
           <if expr="dataFile">
@@ -151,8 +172,8 @@
           <iterate var="server" in="consumerList">
             <sequence>
               <!-- Configure replication if required so by the server
-              !  (i.e. server is a changelog server and/or has synchronized 
-              !  suffixes) 
+               !  (i.e. server is a changelog server and/or has synchronized 
+               !  suffixes) 
               -->
               <if expr="server.requiresSynchronization()">
                 <sequence>          
@@ -200,6 +221,75 @@
             </sequence>              
           </iterate>           
 
+
+          <if expr="isolateLdapServers">
+            <!-- Make each Ldap Server point only to its own Replication
+             !   Server.
+             !   This is used by the Conflict testsuite, in order to be able
+             !   to simulate conflict scenarios -->
+            <paralleliterate var="server" in="_topologyServerList">
+              <sequence>
+                <script>
+                  ldapServer = '%s:%s' % (server.getHostname(), 
+                                          server.getPort())
+                </script>
+      
+                <!-- Retrieve replication-domain name -->
+                <call function="'dsconfig'">
+                  { 'location'       : server.getHostname(),
+                    'dsPath'         : '%s/%s' % (server.getDir(),OPENDSNAME),
+                    'dsInstanceHost' : server.getHostname(),
+                    'dsInstancePort' : server.getPort(),
+                    'dsInstanceDn'   : server.getRootDn(),
+                    'dsInstancePswd' : server.getRootPwd(),
+                    'subcommand'     : 'list-replication-domains',
+                    'objectType'     : 'provider-name',
+                    'objectName'     : 'Multimaster Synchronization',
+                    'optionsString'  : '--script-friendly'
+                  }
+                </call>
+                <if expr='RC == 0'>
+                  <script>
+                    replicationDomains = STAXResult[0][1]
+                    for line in replicationDomains.splitlines():
+                      if line.find(synchroSuffix) != -1:
+                        domain = line
+                        domainMap[ldapServer] = domain
+                        break
+                  </script>
+                </if>
+
+                <script>
+                  replicationServer = server.getChangelogServer()
+                  replServer = '%s:%s' % (server.getHostname(),
+                                          replicationServer.getPort())
+                  options = '--domain-name "%s" --set replication-server:%s' \
+                            % (domainMap[ldapServer], replServer)
+                </script>
+                <message>
+                  'Removing references to other replication servers \nfor \
+                  domain: %s \nfrom server: %s \nkeep replication server: %s' \
+                  % (domain, ldapServer, replServer)
+                </message>
+                <!-- Remove peer RS from replicated domain -->
+                <call function="'dsconfig'">
+                  { 'location'       : server.getHostname(),
+                    'dsPath'         : '%s/%s' % (server.getDir(),OPENDSNAME),
+                    'dsInstanceHost' : server.getHostname(),
+                    'dsInstancePort' : server.getPort(),
+                    'dsInstanceDn'   : server.getRootDn(),
+                    'dsInstancePswd' : server.getRootPwd(),
+                    'subcommand'     : 'set-replication-domain-prop',
+                    'objectType'     : 'provider-name',
+                    'objectName'     : 'Multimaster Synchronization',
+                    'optionsString'  : options
+                  }
+                </call>
+              </sequence>
+            </paralleliterate>
+          </if>
+
+
           <if expr="dataFile">
             <sequence>
               <message>
@@ -215,11 +305,108 @@
                   'sourceInstancePort' : master.getPort(),
                   'replicationDnList'  : [synchroSuffix]
                 }
-              </call>                   
+              </call>
+              <if expr="0">
+              <iterate var="server" in="consumerList">
+                <sequence>
+<!--                  <call function="'initializeReplication'">
+                    { 'location'           : clientHost,
+                      'dsPath'             : clientPath,
+                      'dsInstanceHost'     : server.getHostname(),
+                      'dsInstancePort'     : server.getPort(),
+                      'sourceInstanceHost' : masterHost,
+                      'sourceInstancePort' : master.getPort(),
+                      'replicationDnList'  : [synchroSuffix]
+                    }
+                  </call> -->
+
+                  <!-- Search initialisation task to check its status -->
+                  <call function="'ldapSearchWithScript'">
+                    {
+                      'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'dsBaseDN'       : 'cn=Tasks',
+                      'dsFilter'       : 'ds-task-initialize-domain-dn=%s' \
+                                         % synchroSuffix
+                    }                
+                  </call>                
+                  <script>
+                    searchRC = STAXResult[0][0]
+                    searchResult = STAXResult[0][1]
+                    resultLength = len(searchResult) > 0
+                  </script>
+                  <if expr="resultLength != 0">
+                    <sequence>
+                      <message>
+                        '++++++++ INITIALISATION TASK for %s:%s ++++++++\n%s' \
+                        % (server.getHostname(), server.getPort(), searchResult)
+                      </message>
+                    </sequence>
+                  </if>
+                </sequence>
+              </iterate>                        
+              </if>
               
             </sequence>              
-          </if>                                                       
-                                                                                                                                    
+          </if>
+            
+          <if expr="enableDebugLogs">
+            <paralleliterate var="server" in="_topologyServerList">
+              <sequence>
+                <!-- Set the debug logger to "enabled" -->
+                <call function="'dsconfigSet'">
+                  { 'location'         : server.getHostname(),
+                    'dsPath'           : '%s/%s' % (server.getDir(),OPENDSNAME),
+                    'dsInstanceHost'   : server.getHostname(),
+                    'dsInstancePort'   : server.getPort(),
+                    'dsInstanceDn'     : server.getRootDn(),
+                    'dsInstancePswd'   : server.getRootPwd(),
+                    'objectName'       : 'log-publisher',
+                    'propertyType'     : 'publisher',
+                    'propertyName'     : 'File-based Debug Logger',
+                    'attributeName'    : 'enabled',
+                    'attributeValue'   : 'true'
+                  }
+                </call>
+                <!-- Set the debug level to "info" -->
+                <call function="'dsconfigSet'">
+                  { 'location'         : server.getHostname(),
+                    'dsPath'           : '%s/%s' % (server.getDir(),OPENDSNAME),
+                    'dsInstanceHost'   : server.getHostname(),
+                    'dsInstancePort'   : server.getPort(),
+                    'dsInstanceDn'     : server.getRootDn(),
+                    'dsInstancePswd'   : server.getRootPwd(),
+                    'objectName'       : 'log-publisher',
+                    'propertyType'     : 'publisher',
+                    'propertyName'     : 'File-based Debug Logger',
+                    'attributeName'    : 'default-debug-level',
+                    'attributeValue'   : 'info'
+                  }
+                </call>
+                <!-- Set the debug logger log file to "logs/errors" -->              
+                <call function="'dsconfigSet'">
+                  { 'location'         : server.getHostname(),
+                    'dsPath'           : '%s/%s' % (server.getDir(),OPENDSNAME),
+                    'dsInstanceHost'   : server.getHostname(),
+                    'dsInstancePort'   : server.getPort(),
+                    'dsInstanceDn'     : server.getRootDn(),
+                    'dsInstancePswd'   : server.getRootPwd(),
+                    'objectName'       : 'log-publisher',
+                    'propertyType'     : 'publisher',
+                    'propertyName'     : 'File-based Debug Logger',
+                    'attributeName'    : 'log-file',
+                    'attributeValue'   : 'logs/errors'
+                  }
+                </call>
+              </sequence>
+            </paralleliterate>
+          </if>
+
         </sequence>
 
       </block>

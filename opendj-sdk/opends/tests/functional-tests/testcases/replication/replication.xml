@@ -40,7 +40,7 @@
           <iterate  var="_test" 
                     in="['totalupdate','binarycopy','ldifimport',
                          'resynchronization','basic','schema','failover',
-                         'encryption','changelog']">
+                         'encryption','changelog', 'conflict']">
             <sequence>
               <import machine="STAF_LOCAL_HOSTNAME"
                       file="'%s/testcases/replication/%s/%s.xml' % 

@@ -108,7 +108,12 @@ public class modifyAnAttribute {
         ind1= val1.indexOf(":");
 
         attributeName=val1.substring(0,ind1);
-        attributeValue=val1.substring(ind1+1);
+        if (ind1+1 < val1.length()) {
+          // assume empty strings == no specific value
+          attributeValue=val1.substring(ind1+1);
+        } else {
+          attributeValue = null;
+        }
 
         BasicAttribute attrToComplete = null;
 
@@ -124,20 +129,29 @@ public class modifyAnAttribute {
           attrToComplete = new BasicAttribute(attributeName);
           attributeSet.add(attrToComplete);
         }
-        attributeValue=attributeValue.replaceAll("QUOT","\\\"");
-        attrToComplete.add(attributeValue);
+        if (attributeValue != null) {
+          // as opposed to (attributeValue == null), for example in some
+          // attribute delete operations
+          attributeValue=attributeValue.replaceAll("QUOT","\\\"");
+          attrToComplete.add(attributeValue);
+        }
       }
       k++;
     }
 
-    if ( attributeToModify != null && newAttributeValue != null ) {
+    if ( attributeToModify != null && 
+         ( newAttributeValue != null || changetype.equals("delete") ) ) {
 
       BasicAttribute attrToComplete = null;
 
       attrToComplete = new BasicAttribute(attributeToModify);
       attributeSet.add(attrToComplete);
-      newAttributeValue=newAttributeValue.replaceAll("QUOT","\\\"");
-      attrToComplete.add(newAttributeValue);
+      if (newAttributeValue != null) {
+        // as opposed to (attributeValue == null), for example in some
+        // attribute delete operations    	  
+        newAttributeValue=newAttributeValue.replaceAll("QUOT","\\\"");
+        attrToComplete.add(newAttributeValue);
+      }
     }
 
     Iterator it2 = attributeSet.iterator();
