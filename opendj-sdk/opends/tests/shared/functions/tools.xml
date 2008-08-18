@@ -474,7 +474,8 @@
                       
   <function name="verifyTrees">
     <function-prolog>
-      This function verifies that the trees in a group of ldap servers are synchronized.
+      This function verifies that the trees in a group of ldap servers are
+      synchronized.
     </function-prolog>
     <function-list-args>
       <function-arg-def name="location"
@@ -520,13 +521,14 @@
         myRC = 0
         failedServers = []
         failingServerList = ''
-        referenceServerPath = '%s/%s' % (referenceServer.getDir(), OPENDSNAME)          
+        referenceServerPath = '%s/%s' % (referenceServer.getDir(), OPENDSNAME)
         referenceTree = 'referenceTree.ldif'
         sampleTree = 'sampleTree.ldif'
         treeDiffs = 'treeDiffs.ldif'
       </script>
        <message>
-        'Verify tree %s taking %s as reference.' % (treeSuffix, referenceServerPath)
+        'Verify tree %s taking %s as reference.' \
+        % (treeSuffix, referenceServerPath)
       </message>
       <!-- Retrieve the tree from the reference server -->
       <call function="'ldapSearchWithScript'">
@@ -557,7 +559,8 @@
               'dsInstancePswd' : server.getRootPwd(),
               'dsBaseDN'       : treeSuffix,
               'dsFilter'       : 'objectclass=*',
-              'outputFile'     : sampleTree
+              'outputFile'     : sampleTree,
+              'logStderr'      : False
             }
           </call>
           <if expr="RC == 0">
@@ -565,7 +568,7 @@
               <!-- Compare this tree to the reference one -->
               <call function="'LdifDiffWithScript'">
                 { 'location'   : location,
-                  'dsPath'     : dsPath, 
+                  'dsPath'     : dsPath,
                   'sourceLdif' : '%s/../%s' % (dsPath, sampleTree),
                   'targetLdif' : '%s/../%s' % (dsPath, referenceTree),
                   'outputLdif' : '%s/../%s' % (dsPath, treeDiffs)
@@ -573,24 +576,29 @@
               </call>
               <script>
                 if STAXResult != 0 :
-                  failedServers.append('%s:%s' % (server.getHostname(), server.getPort()))
+                  failedServers.append('%s:%s' % \
+                                       (server.getHostname(), server.getPort()))
               </script>
             </sequence>
             <else>
               <script>
-                failedServers.append('%s:%s' % (server.getHostname(), server.getPort()))
+                failedServers.append('%s:%s' % \
+                                     (server.getHostname(), server.getPort()))
               </script>
             </else>
           </if>
         </sequence>
       </iterate>
       <if expr="len(failedServers) > 0">
-        <!-- If at least one server failed to successfully compare to the reference tree,
-           !   return an error, along with the list of the servers that failed to do so -->  
+        <!-- If at least one server failed to successfully compare to the
+         !   reference tree, return an error, along with the list of the 
+         !   servers that failed to do so -->  
         <script>
           myRC = 1
           comma = ','  
-          failingServerList = 'List of non-synchronized servers (tree verify FAILED): %s ' % comma.join(failedServers)
+          failingServerList = \
+            'List of non-synchronized servers (tree verify FAILED): %s ' \
+            % comma.join(failedServers)
         </script>
         <else>
           <message>

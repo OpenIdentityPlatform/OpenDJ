@@ -194,7 +194,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'employeeNumber'
+                      'dsAttributes'   : 'employeeNumber',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -321,7 +322,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'description'
+                      'dsAttributes'   : 'description',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -358,7 +360,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'description'
+                      'dsAttributes'   : 'description',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -479,7 +482,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'employeeNumber'
+                      'dsAttributes'   : 'employeeNumber',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -516,7 +520,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'employeeNumber'
+                      'dsAttributes'   : 'employeeNumber',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -664,7 +669,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'description'
+                      'dsAttributes'   : 'description',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -701,7 +707,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'description'
+                      'dsAttributes'   : 'description',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -853,7 +860,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'description'
+                      'dsAttributes'   : 'description',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -890,7 +898,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'description'
+                      'dsAttributes'   : 'description',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -1017,7 +1026,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'description'
+                      'dsAttributes'   : 'description',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -1054,7 +1064,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'description'
+                      'dsAttributes'   : 'description',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -1185,7 +1196,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'employeeNumber'
+                      'dsAttributes'   : 'employeeNumber',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -1222,7 +1234,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'employeeNumber'
+                      'dsAttributes'   : 'employeeNumber',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -1356,7 +1369,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'description'
+                      'dsAttributes'   : 'description',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -1393,7 +1407,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'description'
+                      'dsAttributes'   : 'description',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -1526,7 +1541,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'employeeNumber'
+                      'dsAttributes'   : 'employeeNumber',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -1563,7 +1579,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'employeeNumber'
+                      'dsAttributes'   : 'employeeNumber',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -1721,7 +1738,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'description telephoneNumber'
+                      'dsAttributes'   : 'description telephoneNumber',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -1758,7 +1776,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'description telephoneNumber'
+                      'dsAttributes'   : 'description telephoneNumber',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -1891,7 +1910,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'description'
+                      'dsAttributes'   : 'description',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -1928,7 +1948,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'description'
+                      'dsAttributes'   : 'description',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -2061,7 +2082,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'description'
+                      'dsAttributes'   : 'description',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -2098,7 +2120,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'description'
+                      'dsAttributes'   : 'description',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -2235,7 +2258,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'description'
+                      'dsAttributes'   : 'description',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -2272,7 +2296,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'description'
+                      'dsAttributes'   : 'description',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -2408,7 +2433,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'description'
+                      'dsAttributes'   : 'description',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -2445,7 +2471,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : entry.getDn(),
                       'dsFilter'       : 'objectclass=*',
-                      'dsAttributes'   : 'description'
+                      'dsAttributes'   : 'description',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -2578,7 +2605,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : synchroSuffix,
                       'dsFilter'       : 'givenname=DUMMY ENTRY',
-                      'dsAttributes'   : 'ds-sync-conflict cn'
+                      'dsAttributes'   : 'ds-sync-conflict cn',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -2605,7 +2633,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : 'cn=monitor',
                       'dsFilter'       : monitorFilter,
-                      'dsAttributes'   : monitorCounters
+                      'dsAttributes'   : monitorCounters,
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -2644,7 +2673,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : synchroSuffix,
                       'dsFilter'       : 'givenname=DUMMY ENTRY',
-                      'dsAttributes'   : 'ds-sync-conflict cn'
+                      'dsAttributes'   : 'ds-sync-conflict cn',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -2684,7 +2714,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : 'cn=monitor',
                       'dsFilter'       : monitorFilter,
-                      'dsAttributes'   : monitorCounters
+                      'dsAttributes'   : monitorCounters,
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -2837,7 +2868,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : synchroSuffix,
                       'dsFilter'       : 'givenname=DUMMY ENTRY',
-                      'dsAttributes'   : 'ds-sync-conflict cn'
+                      'dsAttributes'   : 'ds-sync-conflict cn',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -2864,7 +2896,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : 'cn=monitor',
                       'dsFilter'       : monitorFilter,
-                      'dsAttributes'   : monitorCounters
+                      'dsAttributes'   : monitorCounters,
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -2903,7 +2936,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : synchroSuffix,
                       'dsFilter'       : 'givenname=DUMMY ENTRY',
-                      'dsAttributes'   : 'ds-sync-conflict cn'
+                      'dsAttributes'   : 'ds-sync-conflict cn',
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
@@ -2943,7 +2977,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'dsBaseDN'       : 'cn=monitor',
                       'dsFilter'       : monitorFilter,
-                      'dsAttributes'   : monitorCounters
+                      'dsAttributes'   : monitorCounters,
+                      'logStderr'      : False
                     }                
                   </call>                
                   <script>
