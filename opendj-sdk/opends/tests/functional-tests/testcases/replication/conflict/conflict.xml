@@ -112,7 +112,6 @@
           <!-- ============================================== -->
           <!-- ============================================== -->
 
-
           <!--- Test Case information
           #@TestMarker          Replication Conflict Tests
           #@TestName            Replication: Conflict: Basic check
@@ -295,16 +294,16 @@
                        indexvar="i">
                 <!-- Modify entry on one of the servers -->
                 <call function="'modifyAnAttribute'">
-                  { 'location'          : server.getHostname(),
-                    'dsPath'            : '%s/%s' \
-                                          % (server.getDir(), OPENDSNAME),
-                    'dsInstanceHost'    : server.getHostname(),
-                    'dsInstancePort'    : server.getPort(),
-                    'dsInstanceDn'      : server.getRootDn(),
-                    'dsInstancePswd'    : server.getRootPwd(),
-                    'DNToModify'        : entry.getDn(),
-                    'listAttributes'    : mods[i],
-                    'changetype'        : 'replace'
+                  { 'location'       : server.getHostname(),
+                    'dsPath'         : '%s/%s' \
+                                       % (server.getDir(), OPENDSNAME),
+                    'dsInstanceHost' : server.getHostname(),
+                    'dsInstancePort' : server.getPort(),
+                    'dsInstanceDn'   : server.getRootDn(),
+                    'dsInstancePswd' : server.getRootPwd(),
+                    'DNToModify'     : entry.getDn(),
+                    'listAttributes' : mods[i],
+                    'changetype'     : 'replace'
                   }
                 </call>
               </iterate>
@@ -628,29 +627,29 @@
                 <sequence>
                   <!-- Modify entry on one of the servers -->
                   <call function="'modifyAnAttribute'">
-                    { 'location'          : server.getHostname(),
-                      'dsPath'            : '%s/%s' \
-                                            % (server.getDir(), OPENDSNAME),
-                      'dsInstanceHost'    : server.getHostname(),
-                      'dsInstancePort'    : server.getPort(),
-                      'dsInstanceDn'      : server.getRootDn(),
-                      'dsInstancePswd'    : server.getRootPwd(),
-                      'DNToModify'        : entry.getDn(),
-                      'listAttributes'    : mods[i][0],
-                      'changetype'        : 'delete'
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'DNToModify'     : entry.getDn(),
+                      'listAttributes' : mods[i][0],
+                      'changetype'     : 'delete'
                     }
                   </call>
                   <call function="'modifyAnAttribute'">
-                    { 'location'          : server.getHostname(),
-                      'dsPath'            : '%s/%s' \
-                                            % (server.getDir(), OPENDSNAME),
-                      'dsInstanceHost'    : server.getHostname(),
-                      'dsInstancePort'    : server.getPort(),
-                      'dsInstanceDn'      : server.getRootDn(),
-                      'dsInstancePswd'    : server.getRootPwd(),
-                      'DNToModify'        : entry.getDn(),
-                      'listAttributes'    : mods[i][1],
-                      'changetype'        : 'add'
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'DNToModify'     : entry.getDn(),
+                      'listAttributes' : mods[i][1],
+                      'changetype'     : 'add'
                     }
                   </call>
                 </sequence>
@@ -819,29 +818,29 @@
                 <sequence>
                   <!-- Modify entry on one of the servers -->
                   <call function="'modifyAnAttribute'">
-                    { 'location'          : server.getHostname(),
-                      'dsPath'            : '%s/%s' \
-                                            % (server.getDir(), OPENDSNAME),
-                      'dsInstanceHost'    : server.getHostname(),
-                      'dsInstancePort'    : server.getPort(),
-                      'dsInstanceDn'      : server.getRootDn(),
-                      'dsInstancePswd'    : server.getRootPwd(),
-                      'DNToModify'        : entry.getDn(),
-                      'listAttributes'    : mods[i][0],
-                      'changetype'        : 'delete'
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'DNToModify'     : entry.getDn(),
+                      'listAttributes' : mods[i][0],
+                      'changetype'     : 'delete'
                     }
                   </call>
                   <call function="'modifyAnAttribute'">
-                    { 'location'          : server.getHostname(),
-                      'dsPath'            : '%s/%s' \
-                                            % (server.getDir(), OPENDSNAME),
-                      'dsInstanceHost'    : server.getHostname(),
-                      'dsInstancePort'    : server.getPort(),
-                      'dsInstanceDn'      : server.getRootDn(),
-                      'dsInstancePswd'    : server.getRootPwd(),
-                      'DNToModify'        : entry.getDn(),
-                      'listAttributes'    : mods[i][1],
-                      'changetype'        : 'add'
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'DNToModify'     : entry.getDn(),
+                      'listAttributes' : mods[i][1],
+                      'changetype'     : 'add'
                     }
                   </call>
                 </sequence>
@@ -998,16 +997,16 @@
                 <sequence>
                   <!-- Modify entry on one of the servers -->
                   <call function="'modifyAnAttribute'">
-                    { 'location'          : server.getHostname(),
-                      'dsPath'            : '%s/%s' \
-                                            % (server.getDir(), OPENDSNAME),
-                      'dsInstanceHost'    : server.getHostname(),
-                      'dsInstancePort'    : server.getPort(),
-                      'dsInstanceDn'      : server.getRootDn(),
-                      'dsInstancePswd'    : server.getRootPwd(),
-                      'DNToModify'        : entry.getDn(),
-                      'listAttributes'    : mods[i][0],
-                      'changetype'        : 'add'
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'DNToModify'     : entry.getDn(),
+                      'listAttributes' : mods[i][0],
+                      'changetype'     : 'add'
                     }
                   </call>
                 </sequence>
@@ -1168,16 +1167,16 @@
                 <sequence>
                   <!-- Modify entry on one of the servers -->
                   <call function="'modifyAnAttribute'">
-                    { 'location'          : server.getHostname(),
-                      'dsPath'            : '%s/%s' \
-                                            % (server.getDir(), OPENDSNAME),
-                      'dsInstanceHost'    : server.getHostname(),
-                      'dsInstancePort'    : server.getPort(),
-                      'dsInstanceDn'      : server.getRootDn(),
-                      'dsInstancePswd'    : server.getRootPwd(),
-                      'DNToModify'        : entry.getDn(),
-                      'listAttributes'    : mods[i][0],
-                      'changetype'        : 'add'
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'DNToModify'     : entry.getDn(),
+                      'listAttributes' : mods[i][0],
+                      'changetype'     : 'add'
                     }
                   </call>
                 </sequence>
@@ -1341,16 +1340,16 @@
                 <sequence>
                   <!-- Modify entry on one of the servers -->
                   <call function="'modifyAnAttribute'">
-                    { 'location'          : server.getHostname(),
-                      'dsPath'            : '%s/%s' \
-                                            % (server.getDir(), OPENDSNAME),
-                      'dsInstanceHost'    : server.getHostname(),
-                      'dsInstancePort'    : server.getPort(),
-                      'dsInstanceDn'      : server.getRootDn(),
-                      'dsInstancePswd'    : server.getRootPwd(),
-                      'DNToModify'        : entry.getDn(),
-                      'listAttributes'    : mods[i][0],
-                      'changetype'        : 'delete'
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'DNToModify'     : entry.getDn(),
+                      'listAttributes' : mods[i][0],
+                      'changetype'     : 'delete'
                     }
                   </call>
                 </sequence>
@@ -1513,16 +1512,16 @@
                 <sequence>
                   <!-- Modify entry on one of the servers -->
                   <call function="'modifyAnAttribute'">
-                    { 'location'          : server.getHostname(),
-                      'dsPath'            : '%s/%s' \
-                                            % (server.getDir(), OPENDSNAME),
-                      'dsInstanceHost'    : server.getHostname(),
-                      'dsInstancePort'    : server.getPort(),
-                      'dsInstanceDn'      : server.getRootDn(),
-                      'dsInstancePswd'    : server.getRootPwd(),
-                      'DNToModify'        : entry.getDn(),
-                      'listAttributes'    : mods[i][0],
-                      'changetype'        : 'delete'
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'DNToModify'     : entry.getDn(),
+                      'listAttributes' : mods[i][0],
+                      'changetype'     : 'delete'
                     }
                   </call>
                 </sequence>
@@ -1697,29 +1696,29 @@
                 <sequence>
                   <!-- Modify entry on one of the servers -->
                   <call function="'modifyAnAttribute'">
-                    { 'location'          : server.getHostname(),
-                      'dsPath'            : '%s/%s' \
-                                            % (server.getDir(), OPENDSNAME),
-                      'dsInstanceHost'    : server.getHostname(),
-                      'dsInstancePort'    : server.getPort(),
-                      'dsInstanceDn'      : server.getRootDn(),
-                      'dsInstancePswd'    : server.getRootPwd(),
-                      'DNToModify'        : entry.getDn(),
-                      'listAttributes'    : mods[i][0],
-                      'changetype'        : changetypes[i][0]
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'DNToModify'     : entry.getDn(),
+                      'listAttributes' : mods[i][0],
+                      'changetype'     : changetypes[i][0]
                     }
                   </call>
                   <call function="'modifyAnAttribute'">
-                    { 'location'          : server.getHostname(),
-                      'dsPath'            : '%s/%s' \
-                                            % (server.getDir(), OPENDSNAME),
-                      'dsInstanceHost'    : server.getHostname(),
-                      'dsInstancePort'    : server.getPort(),
-                      'dsInstanceDn'      : server.getRootDn(),
-                      'dsInstancePswd'    : server.getRootPwd(),
-                      'DNToModify'        : entry.getDn(),
-                      'listAttributes'    : mods[i][1],
-                      'changetype'        : changetypes[i][1]
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'DNToModify'     : entry.getDn(),
+                      'listAttributes' : mods[i][1],
+                      'changetype'     : changetypes[i][1]
                     }
                   </call>
                 </sequence>
@@ -1882,16 +1881,16 @@
                 <sequence>
                   <!-- Modify entry on one of the servers -->
                   <call function="'modifyAnAttribute'">
-                    { 'location'          : server.getHostname(),
-                      'dsPath'            : '%s/%s' \
-                                            % (server.getDir(), OPENDSNAME),
-                      'dsInstanceHost'    : server.getHostname(),
-                      'dsInstancePort'    : server.getPort(),
-                      'dsInstanceDn'      : server.getRootDn(),
-                      'dsInstancePswd'    : server.getRootPwd(),
-                      'DNToModify'        : entry.getDn(),
-                      'listAttributes'    : mods[i][0],
-                      'changetype'        : changetypes[i][0]
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'DNToModify'     : entry.getDn(),
+                      'listAttributes' : mods[i][0],
+                      'changetype'     : changetypes[i][0]
                     }
                   </call>
                 </sequence>
@@ -2054,16 +2053,16 @@
                 <sequence>
                   <!-- Modify entry on one of the servers -->
                   <call function="'modifyAnAttribute'">
-                    { 'location'          : server.getHostname(),
-                      'dsPath'            : '%s/%s' \
-                                            % (server.getDir(), OPENDSNAME),
-                      'dsInstanceHost'    : server.getHostname(),
-                      'dsInstancePort'    : server.getPort(),
-                      'dsInstanceDn'      : server.getRootDn(),
-                      'dsInstancePswd'    : server.getRootPwd(),
-                      'DNToModify'        : entry.getDn(),
-                      'listAttributes'    : mods[i][0],
-                      'changetype'        : changetypes[i][0]
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'DNToModify'     : entry.getDn(),
+                      'listAttributes' : mods[i][0],
+                      'changetype'     : changetypes[i][0]
                     }
                   </call>
                 </sequence>
@@ -2230,16 +2229,16 @@
                 <sequence>
                   <!-- Modify entry on one of the servers -->
                   <call function="'modifyAnAttribute'">
-                    { 'location'          : server.getHostname(),
-                      'dsPath'            : '%s/%s' \
-                                            % (server.getDir(), OPENDSNAME),
-                      'dsInstanceHost'    : server.getHostname(),
-                      'dsInstancePort'    : server.getPort(),
-                      'dsInstanceDn'      : server.getRootDn(),
-                      'dsInstancePswd'    : server.getRootPwd(),
-                      'DNToModify'        : entry.getDn(),
-                      'listAttributes'    : mods[i][0],
-                      'changetype'        : changetypes[i][0]
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'DNToModify'     : entry.getDn(),
+                      'listAttributes' : mods[i][0],
+                      'changetype'     : changetypes[i][0]
                     }
                   </call>
                 </sequence>
@@ -2405,16 +2404,16 @@
                 <sequence>
                   <!-- Modify entry on one of the servers -->
                   <call function="'modifyAnAttribute'">
-                    { 'location'          : server.getHostname(),
-                      'dsPath'            : '%s/%s' \
-                                            % (server.getDir(), OPENDSNAME),
-                      'dsInstanceHost'    : server.getHostname(),
-                      'dsInstancePort'    : server.getPort(),
-                      'dsInstanceDn'      : server.getRootDn(),
-                      'dsInstancePswd'    : server.getRootPwd(),
-                      'DNToModify'        : entry.getDn(),
-                      'listAttributes'    : mods[i][0],
-                      'changetype'        : changetypes[i][0]
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'DNToModify'     : entry.getDn(),
+                      'listAttributes' : mods[i][0],
+                      'changetype'     : changetypes[i][0]
                     }
                   </call>
                 </sequence>
@@ -2756,16 +2755,18 @@
                                in="[server1, server2]" 
                                indexvar="i">
                 <if expr="len(addedEntries[i]) != 0">
-                  <call function="'ldapDeleteWithScript'">
-                    { 'location'       : clientHost,
-                      'dsPath'         : clientPath,
-                      'dsInstanceHost' : server.getHostname(),
-                      'dsInstancePort' : server.getPort(),
-                      'dsInstanceDn'   : server.getRootDn(),
-                      'dsInstancePswd' : server.getRootPwd(),
-                      'dsDn'           : addedEntries[i]
-                    }
-                  </call>
+                  <paralleliterate var="entryToDelete" in="addedEntries[i]">
+                    <call function="'ldapDeleteWithScript'">
+                      { 'location'       : clientHost,
+                        'dsPath'         : clientPath,
+                        'dsInstanceHost' : server.getHostname(),
+                        'dsInstancePort' : server.getPort(),
+                        'dsInstanceDn'   : server.getRootDn(),
+                        'dsInstancePswd' : server.getRootPwd(),
+                        'dsDn'           : [entryToDelete]
+                      }
+                    </call>
+                  </paralleliterate>
                 </if>
               </paralleliterate>
 
@@ -3019,16 +3020,18 @@
                                in="[server1, server2]" 
                                indexvar="i">
                 <if expr="len(addedEntries[i]) != 0">
-                  <call function="'ldapDeleteWithScript'">
-                    { 'location'       : clientHost,
-                      'dsPath'         : clientPath,
-                      'dsInstanceHost' : server.getHostname(),
-                      'dsInstancePort' : server.getPort(),
-                      'dsInstanceDn'   : server.getRootDn(),
-                      'dsInstancePswd' : server.getRootPwd(),
-                      'dsDn'           : addedEntries[i]
-                    }
-                  </call>
+                  <paralleliterate var="entryToDelete" in="addedEntries[i]">
+                    <call function="'ldapDeleteWithScript'">
+                      { 'location'       : clientHost,
+                        'dsPath'         : clientPath,
+                        'dsInstanceHost' : server.getHostname(),
+                        'dsInstancePort' : server.getPort(),
+                        'dsInstanceDn'   : server.getRootDn(),
+                        'dsInstancePswd' : server.getRootPwd(),
+                        'dsDn'           : [entryToDelete]
+                      }
+                    </call>
+                  </paralleliterate>
                 </if>
               </paralleliterate>
 
@@ -3041,7 +3044,517 @@
 
               <call function="'testCase_Postamble'"/>
             </sequence>
-          </testcase>            
+          </testcase>
+
+
+          <!--- Test Case information
+          #@TestMarker         Replication Conflict Tests
+          #@TestName           Replication: Conflict: double_add
+          #@TestID             double_add
+          #@TestPurpose        Double add (same dn, different uid)
+          #@TestPreamble
+          #@TestSteps          Disconnect Replication Servers
+          #@TestSteps          server1: add entry cn=F with uid=1
+          #@TestSteps          server2: add entry cn=F with uid=2
+          #@TestSteps          Re-connect Replication Servers
+          #@TestSteps          Check servers are synchronised
+          #@TestPostamble
+          #@TestResult         Success if trees are synchronised
+          -->
+          <testcase name="getTestCaseName
+                          ('double_add')">
+            <sequence>            
+              <call function="'testCase_Preamble'"/>
+              <message>
+                'Replication: Conflict: double_add. \
+                Double add (same dn, different uid)'
+              </message>
+                                                                
+              <script>
+                entry1 = Entry('cn=F')
+                entry1.addAttr('uid', '1')
+                entry1.addAttr('givenname', 'DUMMY ENTRY')
+                entry2 = Entry('cn=F')
+                entry2.addAttr('uid', '2')
+                entry2.addAttr('givenname', 'DUMMY ENTRY')
+                
+                entriesToAdd = [entry1, entry2]
+              </script>
+
+              <!-- Disconnect Replication Servers -->
+              <call function="'disconnectReplicationServers'">
+                [ clientHost, clientPath, [server1, server2] ]
+              </call>
+
+              <iterate var="server"
+                       in="[server1, server2]"
+                       indexvar="i">
+                <sequence>
+                  <!-- Add entry on one of the servers -->
+                  <call function="'addAnEntry'">
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'DNToAdd'        : entriesToAdd[i].getDn(),
+                      'listAttributes' : entriesToAdd[i].getAttrList()
+                    }
+                  </call>
+                </sequence>
+              </iterate>
+
+              <!-- Check modifies have not been propagated -->
+              <paralleliterate var="server" in="[server1, server2]">
+                <sequence>
+                  <call function="'ldapSearchWithScript'">
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'dsBaseDN'       : synchroSuffix,
+                      'dsFilter'       : 'givenname=DUMMY ENTRY',
+                      'dsAttributes'   : 'ds-sync-conflict uid cn',
+                      'logStderr'      : False
+                    }                
+                  </call>                
+                  <script>
+                    searchRC = STAXResult[0][0]
+                    searchResult = STAXResult[0][1]
+                    resultLength = len(searchResult) > 0
+                  </script>
+                  <if expr="resultLength != 0">
+                    <sequence>
+                      <message>
+                        '+++++++++++ LDAPSEARCH RESULT for %s:%s ++++++++\n%s' \
+                        % (server.getHostname(), server.getPort(), searchResult)
+                      </message>
+                    </sequence>
+                  </if>
+
+                  <call function="'ldapSearchWithScript'">
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'dsBaseDN'       : 'cn=monitor',
+                      'dsFilter'       : monitorFilter,
+                      'dsAttributes'   : monitorCounters,
+                      'logStderr'      : False
+                    }                
+                  </call>                
+                  <script>
+                    searchRC = STAXResult[0][0]
+                    searchResult = STAXResult[0][1]
+                    resultLength = len(searchResult) > 0
+                  </script>
+                  <if expr="resultLength != 0">
+                    <sequence>
+                      <message>
+                        '+++++++++++ LDAPSEARCH RESULT for %s:%s ++++++++\n%s' \
+                        % (server.getHostname(), server.getPort(), searchResult)
+                      </message>
+                    </sequence>
+                  </if>
+                </sequence>                  
+              </paralleliterate>
+                
+              <!-- Reconnect Replication Servers -->
+              <call function="'reconnectReplicationServers'">
+                [ clientHost, clientPath, [server1, server2] ]
+              </call>
+
+              <!-- Check conflict is resolved -->
+              <paralleliterate var="server" 
+                               in="[server1, server2]"
+                               indexvar="i">
+                <sequence>
+                  <call function="'ldapSearchWithScript'">
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'dsBaseDN'       : synchroSuffix,
+                      'dsFilter'       : 'givenname=DUMMY ENTRY',
+                      'dsAttributes'   : 'ds-sync-conflict uid cn',
+                      'logStderr'      : False
+                    }                
+                  </call>                
+                  <script>
+                    searchRC = STAXResult[0][0]
+                    searchResult = STAXResult[0][1]
+                    resultLength = len(searchResult) > 0
+                  </script>
+                  <if expr="resultLength != 0">
+                    <sequence>
+                      <message>
+                        '+++++++++++ LDAPSEARCH RESULT for %s:%s ++++++++\n%s' \
+                        % (server.getHostname(), server.getPort(), searchResult)
+                      </message>
+                      <script>
+                        resultDnList = []
+                        for line in searchResult.splitlines():
+                          if line.find('dn: ') != -1:
+                            resultDn = line[len('dn: '):]
+                            resultDnList.append(resultDn)
+                        addedEntries[i] = resultDnList
+                      </script>
+                    </sequence>
+                    <else>
+                      <script>
+                        addedEntries[i] = []
+                      </script>
+                    </else>
+                  </if>
+
+                  <call function="'ldapSearchWithScript'">
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'dsBaseDN'       : 'cn=monitor',
+                      'dsFilter'       : monitorFilter,
+                      'dsAttributes'   : monitorCounters,
+                      'logStderr'      : False
+                    }                
+                  </call>                
+                  <script>
+                    searchRC = STAXResult[0][0]
+                    searchResult = STAXResult[0][1]
+                    resultLength = len(searchResult) > 0
+                  </script>
+                  <if expr="resultLength != 0">
+                    <sequence>
+                      <message>
+                        '+++++++++++ LDAPSEARCH RESULT for %s:%s ++++++++\n%s' \
+                        % (server.getHostname(), server.getPort(), searchResult)
+                      </message>
+                    </sequence>
+                  </if>
+                </sequence>                  
+              </paralleliterate>
+
+              <!-- Verify the synchronization of the trees among the servers in 
+                the topology -->
+              <call function="'verifyTrees'">
+                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+              </call> 
+
+              <!-- Delete added entries -->
+              <script>
+                list1 = addedEntries[0]
+                list2 = addedEntries[1]
+                toRemove = []
+                # remove potential redundancies, to avoid deleting them twice
+                for addedEntry in list2:
+                  if addedEntry in list1:
+                    toRemove.append(addedEntry)
+                for ent in toRemove:
+                  list2.remove(ent)
+              </script>
+              <paralleliterate var="server" 
+                               in="[server1, server2]" 
+                               indexvar="i">
+                <if expr="len(addedEntries[i]) != 0">
+                  <paralleliterate var="entryToDelete" in="addedEntries[i]">
+                    <call function="'ldapDeleteWithScript'">
+                      { 'location'       : clientHost,
+                        'dsPath'         : clientPath,
+                        'dsInstanceHost' : server.getHostname(),
+                        'dsInstancePort' : server.getPort(),
+                        'dsInstanceDn'   : server.getRootDn(),
+                        'dsInstancePswd' : server.getRootPwd(),
+                        'dsDn'           : [entryToDelete]
+                      }
+                    </call>
+                  </paralleliterate>
+                </if>
+              </paralleliterate>
+
+              <script>
+                knownIssue(3401)
+              </script>
+
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
+
+
+          <!--- Test Case information
+          #@TestMarker         Replication Conflict Tests
+          #@TestName           Replication: Conflict: double_add_single_del_1
+          #@TestID             double_add_single_del_1
+          #@TestPurpose        Add twice same dn, then delete it in one server
+          #@TestPreamble
+          #@TestSteps          Disconnect Replication Servers
+          #@TestSteps          server1: add entry cn=DN1 with uid=1
+          #@TestSteps          server2: add entry cn=DN1 with uid=2
+          #@TestSteps          Re-connect Replication Servers
+          #@TestSteps          server1: delete entry cn=DN1
+          #@TestSteps          Check servers are synchronised
+          #@TestPostamble
+          #@TestResult         Success if trees are synchronised
+          -->
+          <testcase name="getTestCaseName
+                          ('double_add')">
+            <sequence>            
+              <call function="'testCase_Preamble'"/>
+              <message>
+                'Replication: Conflict: double_add. \
+                Double add (same dn, different uid)'
+              </message>
+                                                                
+              <script>
+                entry1 = Entry('cn=DN1')
+                entry1.addAttr('uid', '1')
+                entry1.addAttr('givenname', 'DUMMY ENTRY')
+                entry2 = Entry('cn=DN1')
+                entry2.addAttr('uid', '2')
+                entry2.addAttr('givenname', 'DUMMY ENTRY')
+                
+                entriesToAdd = [entry1, entry2]
+              </script>
+
+              <!-- Disconnect Replication Servers -->
+              <call function="'disconnectReplicationServers'">
+                [ clientHost, clientPath, [server1, server2] ]
+              </call>
+
+              <iterate var="server"
+                       in="[server1, server2]"
+                       indexvar="i">
+                <sequence>
+                  <!-- Add entry on one of the servers -->
+                  <call function="'addAnEntry'">
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'DNToAdd'        : entriesToAdd[i].getDn(),
+                      'listAttributes' : entriesToAdd[i].getAttrList()
+                    }
+                  </call>
+                </sequence>
+              </iterate>
+
+              <!-- Check modifies have not been propagated -->
+              <paralleliterate var="server" in="[server1, server2]">
+                <sequence>
+                  <call function="'ldapSearchWithScript'">
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'dsBaseDN'       : synchroSuffix,
+                      'dsFilter'       : 'givenname=DUMMY ENTRY',
+                      'dsAttributes'   : 'ds-sync-conflict uid cn',
+                      'logStderr'      : False
+                    }                
+                  </call>                
+                  <script>
+                    searchRC = STAXResult[0][0]
+                    searchResult = STAXResult[0][1]
+                    resultLength = len(searchResult) > 0
+                  </script>
+                  <if expr="resultLength != 0">
+                    <sequence>
+                      <message>
+                        '+++++++++++ LDAPSEARCH RESULT for %s:%s ++++++++\n%s' \
+                        % (server.getHostname(), server.getPort(), searchResult)
+                      </message>
+                    </sequence>
+                  </if>
+
+                  <call function="'ldapSearchWithScript'">
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'dsBaseDN'       : 'cn=monitor',
+                      'dsFilter'       : monitorFilter,
+                      'dsAttributes'   : monitorCounters,
+                      'logStderr'      : False
+                    }                
+                  </call>                
+                  <script>
+                    searchRC = STAXResult[0][0]
+                    searchResult = STAXResult[0][1]
+                    resultLength = len(searchResult) > 0
+                  </script>
+                  <if expr="resultLength != 0">
+                    <sequence>
+                      <message>
+                        '+++++++++++ LDAPSEARCH RESULT for %s:%s ++++++++\n%s' \
+                        % (server.getHostname(), server.getPort(), searchResult)
+                      </message>
+                    </sequence>
+                  </if>
+                </sequence>                  
+              </paralleliterate>
+                
+              <!-- Reconnect Replication Servers -->
+              <call function="'reconnectReplicationServers'">
+                [ clientHost, clientPath, [server1, server2] ]
+              </call>
+
+              <!-- Delete entry on server1-->
+              <call function="'ldapDeleteWithScript'">
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : server1Host,
+                  'dsInstancePort' : server1.getPort(),
+                  'dsInstanceDn'   : server1.getRootDn(),
+                  'dsInstancePswd' : server1.getRootPwd(),
+                  'dsDn'           : [entry1.getDn()]
+                }
+              </call>
+
+              <!-- Check conflict is resolved -->
+              <paralleliterate var="server" 
+                               in="[server1, server2]"
+                               indexvar="i">
+                <sequence>
+                  <call function="'ldapSearchWithScript'">
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'dsBaseDN'       : synchroSuffix,
+                      'dsFilter'       : 'givenname=DUMMY ENTRY',
+                      'dsAttributes'   : 'ds-sync-conflict uid cn',
+                      'logStderr'      : False
+                    }                
+                  </call>                
+                  <script>
+                    searchRC = STAXResult[0][0]
+                    searchResult = STAXResult[0][1]
+                    resultLength = len(searchResult) > 0
+                  </script>
+                  <if expr="resultLength != 0">
+                    <sequence>
+                      <message>
+                        '+++++++++++ LDAPSEARCH RESULT for %s:%s ++++++++\n%s' \
+                        % (server.getHostname(), server.getPort(), searchResult)
+                      </message>
+                      <script>
+                        resultDnList = []
+                        for line in searchResult.splitlines():
+                          if line.find('dn: ') != -1:
+                            resultDn = line[len('dn: '):]
+                            resultDnList.append(resultDn)
+                        addedEntries[i] = resultDnList
+                      </script>
+                    </sequence>
+                    <else>
+                      <script>
+                        addedEntries[i] = []
+                      </script>
+                    </else>
+                  </if>
+
+                  <call function="'ldapSearchWithScript'">
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : '%s/%s' \
+                                         % (server.getDir(), OPENDSNAME),
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'dsBaseDN'       : 'cn=monitor',
+                      'dsFilter'       : monitorFilter,
+                      'dsAttributes'   : monitorCounters,
+                      'logStderr'      : False
+                    }                
+                  </call>                
+                  <script>
+                    searchRC = STAXResult[0][0]
+                    searchResult = STAXResult[0][1]
+                    resultLength = len(searchResult) > 0
+                  </script>
+                  <if expr="resultLength != 0">
+                    <sequence>
+                      <message>
+                        '+++++++++++ LDAPSEARCH RESULT for %s:%s ++++++++\n%s' \
+                        % (server.getHostname(), server.getPort(), searchResult)
+                      </message>
+                    </sequence>
+                  </if>
+                </sequence>                  
+              </paralleliterate>                
+
+              <!-- Verify the synchronization of the trees among the servers in 
+                the topology -->
+              <call function="'verifyTrees'">
+                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+              </call> 
+
+              <!-- Delete added entries -->
+              <script>
+                list1 = addedEntries[0]
+                list2 = addedEntries[1]
+                toRemove = []
+                # remove potential redundancies, to avoid deleting them twice
+                for addedEntry in list2:
+                  if addedEntry in list1:
+                    toRemove.append(addedEntry)
+                for ent in toRemove:
+                  list2.remove(ent)
+              </script>
+              <paralleliterate var="server" 
+                               in="[server1, server2]" 
+                               indexvar="i">
+                <if expr="len(addedEntries[i]) != 0">
+                  <paralleliterate var="entryToDelete" in="addedEntries[i]">
+                    <call function="'ldapDeleteWithScript'">
+                      { 'location'       : clientHost,
+                        'dsPath'         : clientPath,
+                        'dsInstanceHost' : server.getHostname(),
+                        'dsInstancePort' : server.getPort(),
+                        'dsInstanceDn'   : server.getRootDn(),
+                        'dsInstancePswd' : server.getRootPwd(),
+                        'dsDn'           : [entryToDelete]
+                      }
+                    </call>
+                  </paralleliterate>
+                </if>
+              </paralleliterate>
+
+              <script>
+                knownIssue(3401)
+              </script>
+
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
+
 
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/replication_cleanup.xml' 
