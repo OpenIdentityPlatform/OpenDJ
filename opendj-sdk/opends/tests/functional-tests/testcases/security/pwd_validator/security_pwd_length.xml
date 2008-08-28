@@ -32,14 +32,46 @@
   <function name="pwd_length">
 
       <sequence>
+        
+        <!--- Test Suite information
+         #@TestSuiteName       Pwd Length
+         #@TestSuitePurpose    Checking Passwords Length
+         #@TestSuiteGroup      Pwd Length
+         #@TestScript          security_pwd_length.xml
+        -->
+        
+        <!--- Define default value for basedn -->
+        <script>
+        basedn1 = 'ou=People, ou=password tests,'
+        basedn = '%s o=Pwd Validator Tests,dc=example,dc=com' % basedn1
+        val1 = 'cn=Length-Based Password Validator'
+        val = '%s,cn=Password Validators,cn=config' % val1
+        msg = 'Security: Pwd Validator: Pwd Length Min:'
+        msg1 = 'ds-cfg-min-password-length'
+        msg2 = 'Password Validator'
+        msg3 = 'Security: Pwd Validator: Pwd Length Max:'
+        msg4 = 'ds-cfg-max-password-length'
+        </script>
+     
+     
+        <!--- Test Case information
+          #@TestMarker       Pwd Length
+          #@TestName         Pwd Length Preamble
+          #@TestIssue        none
+          #@TestPurpose      Pwd Length Setup
+          #@TestPreamble     none
+          #@TestStep         Checking existence of ds-cfg-min-password-length
+          #@TestStep         Admin Enable Pwd Length Validator
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
 
-        <!--- Admin Check Existence of Min Pwd Length Attr -->
         <testcase name="getTestCaseName('Pwd Length Min: Preamble Setup')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Pwd Length Min: Preamble Step 1. Checking existence of ds-cfg-min-password-length'
+               '%s Preamble Step 1. Checking existence of %s' % (msg,msg1)
             </message>
 
             <call function="'compareEntry'">
@@ -48,12 +80,12 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'attrToBeCompared'   : 'ds-cfg-min-password-length:6',
-                'entryToBeCompared'   : 'cn=Length-Based Password Validator,cn=Password Validators,cn=config' }
+                'entryToBeCompared'   : val }
             </call>
 
             <!--- Admin Enable Pwd Length Validator -->
             <message>
-               'Security: Pwd Validator: Pwd Length Min: Preamble Step 2. Admin Enabling Pwd Length Validator'
+               '%s Preamble Step 2. Admin Enabling Pwd Length Validator' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -63,7 +95,7 @@
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
                     'attributeName'          : 'password-validator' ,
-                    'attributeValue'         : 'Length-Based Password Validator' }
+                    'attributeValue'         : 'Length-Based %s' % msg2 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -71,35 +103,44 @@
           </sequence>
         </testcase>
 
+        <!--- Test Case information
+          #@TestMarker       Pwd Length
+          #@TestName         Pwd Length : Pwd Too Short
+          #@TestIssue        none
+          #@TestPurpose      Pwd Length Setup
+          #@TestPreamble     none
+          #@TestStep         Step 1. User Changing with short Password RC 53
+          #@TestStep         Step 2. User Search With short Password RC 49
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
         <!--- Test Case : User Change Password - Too Short-->
         <testcase name="getTestCaseName('Pwd Length Min: Pwd Too Short 1')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Pwd Length Min: Pwd Too Short 1 Step 1. User Changing Password'
+               '%s Pwd Too Short 1 Step 1. User Changing Password' % msg
             </message>
             
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=bhall,%s' % basedn,
                     'dsInstancePswd'         : 'oranges' ,
-                    'DNToModify'             : 'uid=bhall, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'grape' ,
-                    'changetype'             : 'replace' , 
+                    'dsAuthzID'              : 'dn:uid=bhall, %s' % basedn,
+                    'dsNewPassword'          : 'grape' ,
                     'expectedRC'             : 53  }
             </call>
             
             <!--- User Search With Password -->
             <message>
-               'Security: Pwd Validator: Pwd Length Min: Pwd Too Short 1 Step 2. User Searching With Password'
+               '%s Pwd Too Short 1 Step 2. User Searching With Password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=bhall,%s' % basedn ,
                 'dsInstancePswd'   : 'grape' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -112,12 +153,23 @@
           </sequence>
         </testcase>
 
+        <!--- Test Case information
+          #@TestMarker       Pwd Length
+          #@TestName         Pwd Length Admin Change Minimum Pwd Length
+          #@TestIssue        none
+          #@TestPurpose      Pwd Length Admin Change Minimum Pwd Length
+          #@TestPreamble     none
+          #@TestStep         Admin Change Min Pwd Length to 4
+          #@TestPostamble    none
+          #@TestResult       Success if the test is PASS
+        -->
         <!--- Test Case : Admin Change Minimum Pwd Length -->
-        <testcase name="getTestCaseName('Pwd Length Min: Admin Change Min Pwd Length')">
+        <testcase name="getTestCaseName
+              ('Pwd Length Min: Admin Change Min Pwd Length')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Pwd Length Min: Admin Changing Minimum Pwd Length'
+               '%s Admin Changing Minimum Pwd Length' % msg
             </message>
 
             <call function="'dsconfigSet'">
@@ -127,7 +179,7 @@
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'objectName'             : 'password-validator' ,
                     'propertyType'           : 'validator' ,
-                    'propertyName'           : 'Length-Based Password Validator' ,
+                    'propertyName'           : 'Length-Based %s' % msg2 ,
                     'attributeName'          : 'min-password-length' ,
                     'attributeValue'         : '4' }
             </call>
@@ -136,21 +188,32 @@
             
           </sequence>
         </testcase>
-
+        
+        <!--- Test Case information
+          #@TestMarker       Pwd Length
+          #@TestName         Pwd Length User Password - Too Short 2
+          #@TestIssue        none
+          #@TestPurpose      Pwd Length User Password - Too Short 2
+          #@TestPreamble     none
+          #@TestStep         User Change Password - Too Short 2 RC 53
+          #@TestStep         User Searching With Password Too Short 2 RC 49
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
         <!--- Test Case : User Change Password - Too Short 2-->
         <testcase name="getTestCaseName('Pwd Length Min: Pwd Too Short 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Pwd Length Min: Pwd Too Short 2 Step 1. User Changing Password'
+               '%s Pwd Too Short 2 Step 1. User Changing Password' % msg
             </message>
 
             <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=bhall,%s' % basedn,
                     'dsInstancePswd'         : 'oranges' ,
-                    'DNToModify'             : 'uid=bhall, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'DNToModify'             : 'uid=bhall, %s' % basedn ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'goo' ,
                     'changetype'             : 'replace' , 
@@ -159,13 +222,13 @@
             
             <!--- User Search With Password -->
             <message>
-               'Security: Pwd Validator: Pwd Length Min: Pwd Too Short 2 Step 2. User Searching With Password'
+               '%s Pwd Too Short 2 Step 2. User Searching With Password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=bhall,%s' % basedn,
                 'dsInstancePswd'   : 'goo' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -178,34 +241,43 @@
           </sequence>
         </testcase>
 
+        <!--- Test Case information
+          #@TestMarker       Pwd Length
+          #@TestName         Pwd Length User Password 4 characters
+          #@TestIssue        none
+          #@TestPurpose      Pwd Length User Password 4 characters
+          #@TestPreamble     none
+          #@TestStep         User Change Password RC 0
+          #@TestStep         User Searching With Password RC 0
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
         <!--- Test Case : User Change Password-->
         <testcase name="getTestCaseName('Pwd Length Min: User Change Pwd')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Pwd Length Min: User Change Pwd Step 1. User Changing Password'
+               '%s User Change Pwd Step 1. User Changing Password' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=bhall,%s' % basedn,
                     'dsInstancePswd'         : 'oranges' ,
-                    'DNToModify'             : 'uid=bhall, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'grape' ,
-                    'changetype'             : 'replace' }
+                    'dsAuthzID'              : 'dn:uid=bhall, %s' % basedn,
+                    'dsNewPassword'          : 'grape'  }
             </call>
             
             <!--- User Search With Password -->
             <message>
-               'Security: Pwd Validator: Pwd Length Min: User Change Pwd Step 2. User Searching With Password'
+               '%s User Change Pwd Step 2. User Searching With Password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=bhall,%s' % basedn,
                 'dsInstancePswd'   : 'grape' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -217,12 +289,22 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Admin Reset Minimum Pwd Length -->
+        <!--- Test Case information
+          #@TestMarker       Pwd Length
+          #@TestName         Pwd Length Admin Reset Minimum Pwd Length
+          #@TestIssue        none
+          #@TestPurpose      Pwd Length Admin Reset Minimum Pwd Length
+          #@TestPreamble     none
+          #@TestStep         Admin Reset Minimum Pwd Length
+          #@TestPostamble    none
+          #@TestResult       Success if the test is PASS
+        -->
+
         <testcase name="getTestCaseName('Pwd Length Min: Postamble Reset')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Pwd Length Min: Postamble - Admin Resetting Minimum Pwd Length'
+               '%s Postamble - Admin Resetting Minimum Pwd Length' % msg
             </message>
 
             <call function="'dsconfigSet'">
@@ -232,7 +314,7 @@
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'objectName'             : 'password-validator' ,
                     'propertyType'           : 'validator' ,
-                    'propertyName'           : 'Length-Based Password Validator' ,
+                    'propertyName'           : 'Length-Based %s' % msg2 ,
                     'attributeName'          : 'min-password-length' ,
                     'attributeValue'         : '6' }
             </call>
@@ -242,11 +324,22 @@
           </sequence>
         </testcase>
 
+        <!--- Test Case information
+          #@TestMarker       Pwd Length
+          #@TestName         Pwd Length Max Preamble
+          #@TestIssue        none
+          #@TestPurpose      Pwd Length Max setup
+          #@TestPreamble     none
+          #@TestStep         Checking existence of ds-cfg-max-password-length
+          #@TestStep         Admin Changing Maximum Pwd Length to 10
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
         <testcase name="getTestCaseName('Pwd Length Max: Preamble Setup')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Pwd Length Max: Preamble Step 1. Checking existence of ds-cfg-max-password-length'
+               '%s Preamble Step 1. Checking existence of %s' % (msg3,msg4)
             </message>
 
             <call function="'compareEntry'">
@@ -255,12 +348,12 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'attrToBeCompared'   : 'ds-cfg-max-password-length:0',
-                'entryToBeCompared'   : 'cn=Length-Based Password Validator,cn=Password Validators,cn=config' }
+                'entryToBeCompared'   : '%s' % val }
             </call>
 
             <!--- Admin Change Maximum Pwd Length -->
             <message>
-               'Security: Pwd Validator: Pwd Length Max: Preamble Step 2. Admin Changing Maximum Pwd Length'
+               '%s Preamble Step 2. Admin Changing Maximum Pwd Length' % msg3
             </message>
 
             <call function="'dsconfigSet'">
@@ -270,7 +363,7 @@
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'objectName'             : 'password-validator' ,
                     'propertyType'           : 'validator' ,
-                    'propertyName'           : 'Length-Based Password Validator' ,
+                    'propertyName'           : 'Length-Based %s' % msg2,
                     'attributeName'          : 'max-password-length' ,
                     'attributeValue'         : '10' }
             </call>
@@ -280,35 +373,44 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : User Change Password - Too Long-->
+        <!--- Test Case information
+          #@TestMarker       Pwd Length
+          #@TestName         Pwd Length Max User Password - Too Long
+          #@TestIssue        none
+          #@TestPurpose      Pwd Length Max User Password - Too Long
+          #@TestPreamble     none
+          #@TestStep         User Changing Password over 10 RC 53
+          #@TestStep         User Searching Password over 10 RC 49
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
+        
         <testcase name="getTestCaseName('Pwd Length Max: Pwd Too Long 1')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Pwd Length Max: Pwd Too Long 1 Step 1. User Changing Password'
+               '%s Pwd Too Long 1 Step 1. User Changing Password' % msg3
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=bhall,%s' % basedn,
                     'dsInstancePswd'         : 'grape' ,
-                    'DNToModify'             : 'uid=bhall, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'pomegranates' ,
-                    'changetype'             : 'replace' , 
+                    'dsAuthzID'              : 'dn:uid=bhall, %s' % basedn,
+                    'dsNewPassword'          : 'pomegranates' ,
                     'expectedRC'             : 53  }
             </call>
             
             <!--- User Search With Password -->
             <message>
-               'Security: Pwd Validator: Pwd Length Max: Pwd Too Long 1 Step 2. User Searching With Password'
+               '%s Pwd Too Long 1 Step 2. User Searching With Password' % msg3
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=bhall,%s' % basedn,
                 'dsInstancePswd'   : 'pomegranates' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -321,34 +423,43 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : User Change Password-->
+        <!--- Test Case information
+          #@TestMarker       Pwd Length
+          #@TestName         Pwd Length Max Pwd under 10
+          #@TestIssue        none
+          #@TestPurpose      Pwd Length Max Pwd under 10
+          #@TestPreamble     none
+          #@TestStep         User Changing Password under 10 RC 0
+          #@TestStep         User Searching Password under 10 RC 0
+          #@TestPostamble    none
+          #@TestResult       Success if the 2 tests are PASS
+        -->
+        
         <testcase name="getTestCaseName('Pwd Length Max: User Change Pwd')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Pwd Length Max: User Change Password Step 1. User Changing Password'
+               '%s User Change Password Step 1. User Changing Password' % msg3
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=bhall,%s' % basedn,
                     'dsInstancePswd'         : 'grape' ,
-                    'DNToModify'             : 'uid=bhall, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'grapefruit' ,
-                    'changetype'             : 'replace' }
+                    'dsAuthzID'              : 'dn:uid=bhall, %s' % basedn,
+                    'dsNewPassword'          : 'grapefruit'  }
             </call>
             
             <!--- User Search With Password -->
             <message>
-               'Security: Pwd Validator: Pwd Length Max: User Change Password Step 2. User Searching With Password'
+               '%s User Change Password Step 2. User Searching With Pwd' % msg3
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=bhall,%s' % basedn,
                 'dsInstancePswd'   : 'grapefruit' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -359,13 +470,25 @@
             
           </sequence>
         </testcase>
-
-        <!--- Test Case : Admin Reset Maximum Pwd Length -->
+        
+        <!--- Test Case information
+          #@TestMarker       Pwd Length
+          #@TestName         Pwd Length Max Postamble
+          #@TestIssue        none
+          #@TestPurpose      Pwd Length Max Postamble
+          #@TestPreamble     none
+          #@TestStep         Admin Resetting Maximum Pwd Length
+          #@TestStep         User Changing Password over 10 RC 0
+          #@TestStep         User Searching Password over 10 RC 0
+          #@TestPostamble    none
+          #@TestResult       Success if the 3 tests are PASS
+        -->
+        
         <testcase name="getTestCaseName('Pwd Length Max: Postamble Reset')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Pwd Length Max: Postamble Step 1. Admin Resetting Maximum Pwd Length'
+               '%s Postamble Step 1. Admin Resetting Maximum Pwd Length' % msg3
             </message>
 
             <call function="'dsconfigSet'">
@@ -375,35 +498,35 @@
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'objectName'             : 'password-validator' ,
                     'propertyType'           : 'validator' ,
-                    'propertyName'           : 'Length-Based Password Validator' ,
+                    'propertyName'           : 'Length-Based %s' % msg2 ,
                     'attributeName'          : 'max-password-length' ,
                     'attributeValue'         : '0' }
             </call>
             
             <!--- User Change Password -->
             <message>
-               'Security: Pwd Validator: Pwd Length Max: Postamble Step 2. User Changing Password'
+               '%s Postamble Step 2. User Changing Password' % msg3
             </message>
 
             <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=bhall,%s' % basedn ,
                     'dsInstancePswd'         : 'grapefruit' ,
-                    'DNToModify'             : 'uid=bhall, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'DNToModify'             : 'uid=bhall,%s' % basedn ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'pomegranates' ,
                     'changetype'             : 'replace' }
             </call>
             
             <message>
-               'Security: Pwd Validator: Pwd Length Max: User Change Password Step 2. User Searching With Password'
+               '%s User Change Password Step 2. User Searching With Pwd' % msg3
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=bhall,%s' % basedn ,
                 'dsInstancePswd'   : 'pomegranates' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,

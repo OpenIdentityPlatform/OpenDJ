@@ -32,13 +32,38 @@
   <function name="repeat_chars">
 
       <sequence>
+        
+        <!--- Test Suite information
+            #@TestSuiteName       Repeat Characters
+            #@TestSuitePurpose    Test the Pwd Policy on Pwd with Repeat chars
+            #@TestSuiteGroup      Repeat Characters
+            #@TestScript          security_repeat_chars.xml
+          -->
+
+        <!--- Define default value for basedn -->
+          <script>
+            basedn1 = 'ou=People, ou=password tests,'
+            basedn = '%s o=Pwd Validator Tests,dc=example,dc=com' % basedn1
+            msg = 'Security: Pwd Validator: Repeat Chars:'
+          </script>
+
+          <!--- Test Case information
+            #@TestMarker          Repeat Characters
+            #@TestName            Test Preamble
+            #@TestIssue           none
+            #@TestPurpose         Repeat Chars: Admin Enabling Validator
+            #@TestPreamble        none
+            #@TestStep            set password-validator to Repeated Characters
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS.
+          -->
 
         <testcase name="getTestCaseName('Repeat Chars: Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Repeat Chars: Admin Enabling Validator'
+               '%s Admin Enabling Validator' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -56,20 +81,33 @@
           </sequence>
         </testcase>
 
-        <testcase name="getTestCaseName('Repeat Chars: password with 3 repeat chars')">
+        <!--- Test Case information
+            #@TestMarker          Repeat Characters
+            #@TestName            Test pwd with 3 repeat chars
+            #@TestIssue           none
+            #@TestPurpose         Repeat Chars: pwd with 3 repeat chars
+            #@TestPreamble        none
+            #@TestStep            user modifying password to abbbcdef RC 53
+            #@TestStep            user binding with new password RC 49
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS
+          -->
+          
+        <testcase name="getTestCaseName
+              ('Repeat Chars: pwd with 3 repeat chars')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Repeat Chars: user modifying password'
+               '%s user modifying password' % msg
             </message>
 
             <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=trigden,%s' % basedn ,
                     'dsInstancePswd'         : 'sensitive' ,
-                    'DNToModify'             : 'uid=trigden, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'DNToModify'             : 'uid=trigden, %s' % basedn ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'abbbcdef' ,
                     'changetype'             : 'replace' , 
@@ -77,13 +115,13 @@
             </call>
             
             <message>
-               'Security: Pwd Validator: Repeat Chars: user binding with new password'
+               '%s user binding with new password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=trigden,%s' % basedn ,
                 'dsInstancePswd'   : 'abbbcdef' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -96,33 +134,46 @@
           </sequence>
         </testcase>
         
-        <testcase name="getTestCaseName('Repeat Chars: password with 2 repeat chars')">
+        <!--- Test Case information
+            #@TestMarker          Repeat Characters
+            #@TestName            Test pwd with 2 repeat chars
+            #@TestIssue           none
+            #@TestPurpose         Repeat Chars: pwd with 2 repeat chars
+            #@TestPreamble        none
+            #@TestStep            user modifying password to abbcdef RC 0
+            #@TestStep            user binding with new password RC 0
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS
+          -->
+          
+        <testcase name="getTestCaseName
+            ('Repeat Chars: password with 2 repeat chars')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Repeat Chars: user modifying password'
+               '%s user modifying password' % msg
             </message>
 
             <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=trigden,%s' % basedn ,
                     'dsInstancePswd'         : 'sensitive' ,
-                    'DNToModify'             : 'uid=trigden, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'DNToModify'             : 'uid=trigden, %s' % basedn ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'abbcdef' ,
                     'changetype'             : 'replace'  }
             </call>
             
             <message>
-               'Security: Pwd Validator: Repeat Chars: user binding with new password'
+               '%s user binding with new password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=trigden,%s' % basedn ,
                 'dsInstancePswd'   : 'abbcdef' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -134,6 +185,17 @@
           </sequence>
         </testcase>
         
+        <!--- Test Case information
+            #@TestMarker          Repeat Characters
+            #@TestName            Repeat Chars: change maximum length
+            #@TestIssue           none
+            #@TestPurpose         Repeat Chars: change maximum length
+            #@TestPreamble        none
+            #@TestStep            set max-consecutive-length to 3
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS
+          -->
+          
         <testcase name="getTestCaseName('Repeat Chars: change maximum length')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -157,33 +219,46 @@
           </sequence>
         </testcase>
 
-        <testcase name="getTestCaseName('Repeat Chars: password with 3 repeat chars 2')">
+        <!--- Test Case information
+            #@TestMarker          Repeat Characters
+            #@TestName            Test pwd with 3 repeat chars 2
+            #@TestIssue           none
+            #@TestPurpose         Repeat Chars: pwd with 3 repeat chars 2
+            #@TestPreamble        none
+            #@TestStep            user modifying password to abbbcdef RC 0
+            #@TestStep            user binding with new password RC 0
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS
+          -->
+          
+        <testcase name="getTestCaseName
+            ('Repeat Chars: password with 3 repeat chars 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Repeat Chars: user modifying password'
+               '%s user modifying password' % msg
             </message>
 
             <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=trigden,%s' % basedn ,
                     'dsInstancePswd'         : 'abbcdef' ,
-                    'DNToModify'             : 'uid=trigden, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'DNToModify'             : 'uid=trigden, %s' % basedn ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'abbbcdef' ,
                     'changetype'             : 'replace'  }
             </call>
             
             <message>
-               'Security: Pwd Validator: Repeat Chars: user binding with new password'
+               '%s user binding with new password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=trigden,%s' % basedn ,
                 'dsInstancePswd'   : 'abbbcdef' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -195,11 +270,22 @@
           </sequence>
         </testcase>
         
+        <!--- Test Case information
+            #@TestMarker          Repeat Characters
+            #@TestName            Repeat Chars: reset maximum length
+            #@TestIssue           none
+            #@TestPurpose         Repeat Chars: reset maximum length
+            #@TestPreamble        none
+            #@TestStep            reset max-consecutive-length to 2
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS
+          -->
+          
         <testcase name="getTestCaseName('Repeat Chars: reset maximum length')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Repeat Chars: change unique chars'
+               '%s change repeat chars' % msg
             </message>
             
             <call function="'modifyPwdValidator'">
@@ -217,11 +303,23 @@
           </sequence>
         </testcase>
        
-        <testcase name="getTestCaseName('Repeat Chars: enable case sensitive chars')">
+        <!--- Test Case information
+            #@TestMarker          Repeat Characters
+            #@TestName            Repeat Chars: enable case sensitive chars
+            #@TestIssue           none
+            #@TestPurpose         Repeat Chars: enable case sensitive chars
+            #@TestPreamble        none
+            #@TestStep            set case-sensitive-validation to true
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS
+          -->
+          
+        <testcase name="getTestCaseName
+            ('Repeat Chars: enable case sensitive chars')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Repeat Chars: enable case sensitive chars'
+               '%s enable case sensitive chars' % msg
             </message>
             
             <call function="'modifyPwdValidator'">
@@ -240,20 +338,33 @@
           </sequence>
         </testcase>
        
-        <testcase name="getTestCaseName('Repeat Chars: password with 3 repeat chars 3')">
+        <!--- Test Case information
+            #@TestMarker          Repeat Characters
+            #@TestName            Test pwd with 3 repeat chars 3
+            #@TestIssue           none
+            #@TestPurpose         Repeat Chars: pwd with 3 repeat chars 3
+            #@TestPreamble        none
+            #@TestStep            user modifying password to abcccdef RC 53
+            #@TestStep            user binding with new password RC 49
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS
+          -->
+          
+        <testcase name="getTestCaseName
+            ('Repeat Chars: password with 3 repeat chars 3')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Repeat Chars: user modifying password'
+               '%s user modifying password' % msg
             </message>
 
             <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=trigden,%s' % basedn ,
                     'dsInstancePswd'         : 'abbbcdef' ,
-                    'DNToModify'             : 'uid=trigden, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'DNToModify'             : 'uid=trigden, %s' % basedn ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'abcccdef' ,
                     'changetype'             : 'replace' , 
@@ -261,13 +372,13 @@
             </call>
             
             <message>
-               'Security: Pwd Validator: Repeat Chars: user binding with new password'
+               '%s user binding with new password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=trigden,%s' % basedn ,
                 'dsInstancePswd'   : 'abcccdef' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -280,33 +391,46 @@
           </sequence>
         </testcase>
         
-        <testcase name="getTestCaseName('Repeat Chars: password with 3 case sensitive repeat chars')">
+        <!--- Test Case information
+            #@TestMarker          Repeat Characters
+            #@TestName            Test pwd with 3 sensitive repeat chars
+            #@TestIssue           none
+            #@TestPurpose         pwd with 3 sensitive repeat chars
+            #@TestPreamble        none
+            #@TestStep            user modifying password to abcCcdef RC 0
+            #@TestStep            user binding with new password RC 0
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS
+          -->
+          
+        <testcase name="getTestCaseName
+            ('Repeat Chars: password with 3 case sensitive repeat chars')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Repeat Chars: user modifying password'
+               '%s user modifying password' % msg
             </message>
 
             <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=trigden,%s' % basedn ,
                     'dsInstancePswd'         : 'abbbcdef' ,
-                    'DNToModify'             : 'uid=trigden, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'DNToModify'             : 'uid=trigden, %s' % basedn ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'abcCcdef' ,
                     'changetype'             : 'replace' }
             </call>
             
             <message>
-               'Security: Pwd Validator: Repeat Chars: user binding with new password'
+               '%s user binding with new password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=trigden,%s' % basedn ,
                 'dsInstancePswd'   : 'abcCcdef' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -318,11 +442,24 @@
           </sequence>
         </testcase>
         
+        <!--- Test Case information
+            #@TestMarker          Repeat Characters
+            #@TestName            Repeat Chars: Postamble
+            #@TestIssue           none
+            #@TestPurpose         Repeat Chars: Postamble
+            #@TestPreamble        none
+            #@TestStep            Admin Resetting Maximum Pwd Length
+            #@TestStep            User Changing Password to abbbcde RC 0
+            #@TestStep            User Searching With Password RC 0
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS
+          -->
+          
         <testcase name="getTestCaseName('Repeat Chars: Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Repeat Chars: Postamble Step 1. Admin Resetting Maximum Pwd Length'
+               '%s Postamble Step 1. Admin Resetting Maximum Pwd Length' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -338,28 +475,26 @@
             
             <!--- User Change Password -->
             <message>
-               'Security: Pwd Validator: Repeat Chars: Postamble Step 2. User Changing Password'
+               '%s Postamble Step 2. User Changing Password' % msg
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=trigden,%s' % basedn ,
                     'dsInstancePswd'         : 'abcCcdef' ,
-                    'DNToModify'             : 'uid=trigden, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'abbbcde' ,
-                    'changetype'             : 'replace' }
+                    'dsAuthzID'              : 'dn:uid=trigden, %s' % basedn ,
+                    'dsNewPassword'          : 'abbbcde'  }
             </call>
             
             <message>
-               'Security: Pwd Validator: Unique Chars: Postamble Step 3. User Searching With Password'
+               '%s Postamble Step 3. User Searching With Password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=trigden,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=trigden,%s' % basedn ,
                 'dsInstancePswd'   : 'abbbcde' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
