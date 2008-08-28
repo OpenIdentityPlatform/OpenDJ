@@ -32,13 +32,43 @@
   <function name="similarity_based">
 
       <sequence>
+        
+          <!--- Test Suite information
+            #@TestSuiteName       Similarity Based
+            #@TestSuitePurpose    Test the Password Policy On Pwd Similarity
+            #@TestSuiteGroup      Similarity Based
+            #@TestScript          security_similarity_based.xml
+          -->
+
+        <!--- Define default value for basedn -->
+          <script>
+            basedn1 = 'ou=People, ou=password tests,'
+            basedn = '%s o=Pwd Validator Tests,dc=example,dc=com' % basedn1
+            msg = 'Security: Pwd Validator: Similarity Based:'
+            msg1 = 'Password Validator'
+            msg2 ='requires-current-password'
+            msg3 = 'password-change-requires-current-password'
+
+          </script>
+
+          <!--- Test Case information
+            #@TestMarker          Similarity Based
+            #@TestName            Similarity Based Test Preamble
+            #@TestIssue           none
+            #@TestPurpose         Preamble
+            #@TestPreamble        none
+            #@TestStep            Admin enabling validator
+            #@TestStep            Admin modifying password history count to 0
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS.
+          -->
 
         <testcase name="getTestCaseName('Similarity Based: Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Similarity Based: Preamble - Admin enabling validator'
+               '%s Preamble - Admin enabling validator' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -48,11 +78,11 @@
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
                     'attributeName'          : 'password-validator' ,
-                    'attributeValue'         : 'Similarity-Based Password Validator' }
+                    'attributeValue'         : 'Similarity-Based %s' % msg1 }
             </call>
             
             <message>
-               'Security: Pwd Validator: Similarity Based: Preamble - Admin modifying password history count'
+               '%s Preamble - Admin modifying password history count' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -70,33 +100,46 @@
           </sequence>
         </testcase>
 
-        <testcase name="getTestCaseName('Similarity Based: new password with 1 letter change, valid')">
+        <!--- Test Case information
+            #@TestMarker          Similarity Based
+            #@TestName            New password with 1 letter change, valid
+            #@TestIssue           none
+            #@TestPurpose         New password with 1 letter change, valid
+            #@TestPreamble        none
+            #@TestStep            user modifying pwd with 1 letter change RC 0
+            #@TestStep            user binding with new password RC 0
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS.
+          -->
+          
+        <testcase name="getTestCaseName
+              ('Similarity Based: new password with 1 letter change, valid')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Similarity Based: user modifying password'
+               '%s user modifying password' % msg
             </message>
 
             <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=kvaughan,%s' % basedn ,
                     'dsInstancePswd'         : 'bribery' ,
-                    'DNToModify'             : 'uid=kvaughan, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'DNToModify'             : 'uid=kvaughan, %s' % basedn ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'brobery' ,
                     'changetype'             : 'replace'  }
             </call>
             
             <message>
-               'Security: Pwd Validator: Similarity Based: user binding with new password'
+               '%s user binding with new password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=kvaughan,%s' % basedn ,
                 'dsInstancePswd'   : 'brobery' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -108,12 +151,25 @@
           </sequence>
         </testcase>
         
-        <testcase name="getTestCaseName('Similarity Based: Enable requires-current-password')">
+        <!--- Test Case information
+            #@TestMarker          Similarity Based
+            #@TestName            Enable requires-current-password
+            #@TestIssue           none
+            #@TestPurpose         Enable requires-current-password
+            #@TestPreamble        none
+            #@TestStep            Admin enabling 
+                                  password-change-requires-current-password
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS.
+          -->
+          
+        <testcase name="getTestCaseName
+               ('Similarity Based: Enable requires-current-password')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Similarity Based: Admin enabling requires-current-password'
+               '%s Admin enabling %s' % (msg,msg3)
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -122,7 +178,7 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'password-change-requires-current-password' ,
+                    'attributeName'          : msg3 ,
                     'attributeValue'         : 'true' }
             </call>
             
@@ -131,20 +187,33 @@
           </sequence>
         </testcase>
 
-        <testcase name="getTestCaseName('Similarity Based: new password with 1 letter change, invalid')">
+        <!--- Test Case information
+            #@TestMarker          Similarity Based
+            #@TestName            New password with 1 letter change, invalid
+            #@TestIssue           none
+            #@TestPurpose         New password with 1 letter change, invalid
+            #@TestPreamble        none
+            #@TestStep            user modifying pwd with 1 letter change RC 53
+            #@TestStep            user binding with new password RC 49
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS.
+          -->
+          
+        <testcase name="getTestCaseName
+              ('Similarity Based: new password with 1 letter change, invalid')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Similarity Based: user modifying password'
+               '%s user modifying password' % msg
             </message>
 
             <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=kvaughan,%s' % basedn ,
                     'dsInstancePswd'         : 'brobery' ,
-                    'DNToModify'             : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'DNToModify'             : 'uid=kvaughan,%s' % basedn ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'probery' ,
                     'changetype'             : 'replace' , 
@@ -152,13 +221,13 @@
             </call>
             
             <message>
-               'Security: Pwd Validator: Similarity Based: user binding with invalid password'
+               '%s user binding with invalid password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=kvaughan,%s' % basedn ,
                 'dsInstancePswd'   : 'probery' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -171,33 +240,46 @@
           </sequence>
         </testcase>
       
-        <testcase name="getTestCaseName('Similarity Based: new password with 1 letter change, invalid 2')">
+        <!--- Test Case information
+            #@TestMarker          Similarity Based
+            #@TestName            New password with 1 letter change, invalid 2
+            #@TestIssue           none
+            #@TestPurpose         New password with 1 letter change, invalid 2
+            #@TestPreamble        none
+            #@TestStep            user modifying pwd with 1 letter change RC 49
+            #@TestStep            user binding with new password RC 49
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS.
+          -->
+          
+        <testcase name="getTestCaseName
+            ('Similarity Based: new password with 1 letter change, invalid 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Similarity Based: user modifying password'
+               '%s user modifying password' % msg
             </message>
 
             <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=kvaughan,%s' % basedn ,
                     'dsInstancePswd'         : 'brobery' ,
-                    'dsAuthzID'              : 'dn:uid=kvaughan, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'dsAuthzID'              : 'dn:uid=kvaughan, %s' % basedn ,
+                    'dsNewPassword'          : 'probery' ,
                     'dsCurrentPassword'      : 'brobery' ,
-                    'dsNewPassword'          : 'probery' , 
                     'expectedRC'             : 49 }
             </call>
             
             <message>
-               'Security: Pwd Validator: Similarity Based: user binding with invalid password'
+               '%s user binding with invalid password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=kvaughan,%s' % basedn ,
                 'dsInstancePswd'   : 'probery' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -210,33 +292,46 @@
           </sequence>
         </testcase>
       
-        <testcase name="getTestCaseName('Similarity Based: new password with 2 letter change, invalid')">
+        <!--- Test Case information
+            #@TestMarker          Similarity Based
+            #@TestName            New password with 2 letters change, invalid
+            #@TestIssue           none
+            #@TestPurpose         New password with 2 letters change, invalid
+            #@TestPreamble        none
+            #@TestStep            user modifying pwd with 2 letter change RC 49
+            #@TestStep            user binding with new password RC 49
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS.
+          -->
+          
+        <testcase name="getTestCaseName
+            ('Similarity Based: new password with 2 letter change, invalid')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Similarity Based: user modifying password'
+               '%s user modifying password' % msg
             </message>
 
             <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=kvaughan,%s' % basedn ,
                     'dsInstancePswd'         : 'brobery' ,
-                    'dsAuthzID'              : 'dn:uid=kvaughan, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'dsAuthzID'              : 'dn:uid=kvaughan, %s' % basedn ,
+                    'dsNewPassword'          : 'phobery' ,
                     'dsCurrentPassword'      : 'brobery' ,
-                    'dsNewPassword'          : 'phobery' , 
                     'expectedRC'             : 49 }
             </call>
             
             <message>
-               'Security: Pwd Validator: Similarity Based: user binding with invalid password'
+               '%s user binding with invalid password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=kvaughan,%s' % basedn ,
                 'dsInstancePswd'   : 'phobery' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -249,32 +344,45 @@
           </sequence>
         </testcase>
         
-        <testcase name="getTestCaseName('Similarity Based: new password with 3 letter change, valid')">
+        <!--- Test Case information
+            #@TestMarker          Similarity Based
+            #@TestName            New password with 3 letters change, valid
+            #@TestIssue           none
+            #@TestPurpose         New password with 3 letters change, valid
+            #@TestPreamble        none
+            #@TestStep            user modifying pwd with 3 letter change RC 0
+            #@TestStep            user binding with new password RC 0
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS.
+          -->
+          
+        <testcase name="getTestCaseName
+        ('Similarity Based: new password with 3 letter change, valid')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Similarity Based: user modifying password'
+               '%s user modifying password' % msg
             </message>
 
             <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=kvaughan,%s' % basedn ,
                     'dsInstancePswd'         : 'brobery' ,
-                    'dsAuthzID'              : 'dn:uid=kvaughan, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'dsCurrentPassword'      : 'brobery' ,
-                    'dsNewPassword'          : 'phibery'  }
+                    'dsAuthzID'              : 'dn:uid=kvaughan, %s' % basedn ,
+                    'dsNewPassword'          : 'phibery' ,
+                    'dsCurrentPassword'      : 'brobery' }
             </call>
             
             <message>
-               'Security: Pwd Validator: Similarity Based: user binding with new password'
+               '%s user binding with new password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=kvaughan,%s' % basedn ,
                 'dsInstancePswd'   : 'phibery' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -286,11 +394,26 @@
           </sequence>
         </testcase>
         
+        <!--- Test Case information
+            #@TestMarker          Similarity Based
+            #@TestName            Postamble
+            #@TestIssue           none
+            #@TestPurpose         Postamble
+            #@TestPreamble        none
+            #@TestStep            Admin disabling password validator
+            #@TestStep            User Changing Pwd with 1 letter change RC 0
+            #@TestStep            User Searching With Password RC 0
+            #@TestStep            Admin disabling 
+                                  password-change-requires-current-password
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS.
+          -->
+          
         <testcase name="getTestCaseName('Similarity Based: Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Similarity Based: Postamble Step 1. Admin disabling password validator'
+               '%s Postamble Step 1. Admin disabling password validator' % msg
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -300,33 +423,33 @@
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
                     'attributeName'          : 'password-validator' ,
-                    'attributeValue'         : 'Similarity-Based Password Validator' ,
+                    'attributeValue'         : 'Similarity-Based %s' % msg1 ,
                     'modifyType'             : 'remove' }
             </call>
             
             <!--- User Change Password -->
             <message>
-               'Security: Pwd Validator: Similarity Based: Postamble Step 2. User Changing Password'
+               '%s Postamble Step 2. User Changing Password' % msg
             </message>
 
             <call function="'ldapPasswordModifyWithScript'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'           : 'uid=kvaughan,%s' % basedn ,
                     'dsInstancePswd'         : 'phibery' ,
-                    'dsAuthzID'              : 'dn:uid=kvaughan, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
-                    'dsCurrentPassword'      : 'phibery' ,
-                    'dsNewPassword'          : 'phibary'  }
+                    'dsAuthzID'              : 'dn:uid=kvaughan, %s' % basedn ,
+                    'dsNewPassword'          : 'phibary' ,
+                    'dsCurrentPassword'      : 'phibery' }
             </call>
             
             <message>
-               'Security: Pwd Validator: Similarity Based: Postamble Step 3. User Searching With Password'
+               '%s Postamble Step 3. User Searching With Password' % msg
             </message>
 
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=kvaughan,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                'dsInstanceDn'     : 'uid=kvaughan,%s' % basedn ,
                 'dsInstancePswd'   : 'phibary' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
@@ -334,7 +457,7 @@
             </call>
 
             <message>
-               'Security: Pwd Validator: Similarity Based: Postamble Step 4. Admin enabling requires-current-password'
+               '%s Postamble Step 4. Admin disabling %s' % (msg,msg2)
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -343,7 +466,7 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'password-change-requires-current-password' ,
+                    'attributeName'          : msg3 ,
                     'attributeValue'         : 'false' }
             </call>
             

@@ -165,8 +165,9 @@
           #@TestStep         user modify password back to old passwords sprain 
                              and sprainone RC 53
           #@TestStep         user binding with password 2 spraintwo RC 0
+          #@TestStep         Check manage-account get-password-history
           #@TestPostamble    none
-          #@TestResult       Success if the 3 tests are PASS
+          #@TestResult       Success if the 4 tests are PASS
         -->
         
 <testcase name="getTestCaseName('History Based: user modifying password 2')">
@@ -231,6 +232,28 @@
             <script>
               knownIssue(3270)
             </script>
+            
+                        <message>
+            '%s Check manage-account get-password-history  ' % msg
+            </message>
+
+            <call function="'manageAccountWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'       : 'get-password-history' ,
+                'targetDn'         : 'uid=scarter,%s' % basedn  }
+            </call>
+            
+            <script> 
+             returnString = STAXResult[0][1]
+            </script>
+            
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'Password History:  2' }
+            </call>
 
             <call function="'testCase_Postamble'"/>
             

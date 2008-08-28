@@ -33,15 +33,49 @@
 
       <sequence>
 
-        <!--- Test Case : Setup -->
-        <testcase name="getTestCaseName('Root User Bypass Valid: Preamble Setup')">
+        <!--- Test Suite information
+            #@TestSuiteName       Skip Validation for Administrators
+            #@TestSuitePurpose    Test the Skip Validation for Administrators
+            #@TestSuiteGroup      Skip Validation for Administrators
+            #@TestScript          security_skip_val_for_admins_chars.xml
+          -->
+
+        <!--- Define default value for basedn -->
+          <script>
+            msg = 'Security: Pwd Validator: Root User Bypass Valid'
+            msg1 = 'Pwd Length Validator On Root Users'
+            msg2 = 'Bypass Enabled'
+            msg3 = 'Step 1. Admin Enabling'
+            msg4 = 'Step 1. Admin Changing'
+            msg5 = 'Root Changing Password'
+            msg6 = 'Bypass For Pwd Validator'
+            msg7 = 'skip-validation-for-administrators'
+            pwddn = 'cn=Sales Admin,cn=Root DNs,cn=config'
+            msg8 = 'Password Validator'
+            ldiffile = 'admin_disable_pwd_length_validator.ldif'
+            ldifpath = 'security/pwd_validator/%s' % ldiffile
+          </script>
+
+          <!--- Test Case information
+            #@TestMarker          Skip Validation for Administrators
+            #@TestName            Root User Bypass Valid: Preamble Setup
+            #@TestIssue           none
+            #@TestPurpose         Preamble Setup
+            #@TestPreamble        none
+            #@TestStep            Admin Enabling Length Validator On Root Users
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS.
+          -->
+          
+          <testcase name="getTestCaseName
+            ('Root User Bypass Valid: Preamble Setup')">
           <sequence>
           
             <call function="'testCase_Preamble'"/>
 
             <!--- Admin Enable Pwd Length Validator -->
             <message>
-               'Security: Pwd Validator: Root User Bypass Valid: Preamble - Step 1. Admin Enabling Pwd Length Validator On Root Users'
+               '%s: Preamble - Step 1. Admin Enabling %s' % (msg,msg1)
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -51,7 +85,7 @@
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
                     'attributeName'          : 'password-validator' ,
-                    'attributeValue'         : 'Length-Based Password Validator' }
+                    'attributeValue'         : 'Length-Based %s' % msg8 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -59,12 +93,24 @@
           </sequence>
         </testcase>
 
+        <!--- Test Case information
+            #@TestMarker          Skip Validation for Administrators
+            #@TestName            Root Change Password - Too Short
+            #@TestIssue           none
+            #@TestPurpose         Root Change Password - Too Short
+            #@TestPreamble        none
+            #@TestStep            Root Changing Pwd to grape- Too Short RC 53
+            #@TestStep            Root Searching With Password RC 49
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS.
+          -->
+          
         <!--- Root Change Password - Too Short-->
         <testcase name="getTestCaseName('Root User Bypass Valid: No Bypass')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Root User Bypass Valid: No Bypass - Step 1. Root Changing Password - Too Short'
+               '%s: No Bypass - Step 1. Root Changing Pwd - Too Short' % msg
             </message>
 
             <call function="'modifyAnAttribute'">
@@ -72,7 +118,7 @@
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Sales Admin,cn=Root DNs,cn=config' ,
+                    'DNToModify'             : pwddn ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'grape' ,
                     'changetype'             : 'replace' ,
@@ -81,7 +127,7 @@
             
             <!--- Root Search With Password -->
             <message>
-               'Security: Pwd Validator: Root User Bypass Valid: No Bypass - Step 2. Root Searching With Password'
+               '%s No Bypass - Step 2. Root Searching With Password' % msg
             </message>
 
             <call function="'SearchObject'">
@@ -100,12 +146,26 @@
           </sequence>
         </testcase>
 
-       <!--- Enable Bypass Validator-->
-        <testcase name="getTestCaseName('Root User Bypass Valid: Bypass Enabled 1')">
+        <!--- Test Case information
+            #@TestMarker          Skip Validation for Administrators
+            #@TestName            Root User Bypass Valid: Bypass Enabled 1
+            #@TestIssue           none
+            #@TestPurpose         Root User Bypass Valid: Bypass Enabled 1
+            #@TestPreamble        none
+            #@TestStep            Admin Enabling Bypass For Pwd Validator set
+                                  skip-validation-for-administrators to true
+            #@TestStep            Root Changing Password - Too Short RC 0
+            #@TestStep            Root Searching With Pwd RC 0
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS.
+          -->
+          
+        <testcase name="getTestCaseName
+            ('Root User Bypass Valid: Bypass Enabled 1')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Root User Bypass Valid: Bypass Enabled 1 - Step 1. Admin Enabling Bypass For Pwd Validator'
+               '%s %s 1 - %s Bypass For Pwd Validator' % (msg,msg2,msg3)
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -114,12 +174,12 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'skip-validation-for-administrators' ,
+                    'attributeName'          : msg7 ,
                     'attributeValue'         : 'true' }
             </call>
             
             <message>
-               'Security: Pwd Validator: Root User Bypass Valid: Bypass Enabled 1 - Step 2. Root Changing Password - Too Short'
+               '%s %s 1 - Step 2. %s - Too Short' % (msg,msg2,msg5)
             </message>
 
             <call function="'modifyAnAttribute'">
@@ -127,7 +187,7 @@
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Sales Admin,cn=Root DNs,cn=config' ,
+                    'DNToModify'             : pwddn ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'grape' ,
                     'changetype'             : 'replace' }
@@ -135,7 +195,7 @@
             
             <!--- Root Search With Password -->
            <message>
-               'Security: Pwd Validator: Root User Bypass Valid: Bypass Enabled 1 - Step 3. Root Searching With Password'
+               '%s Bypass Enabled 1 - Step 3. Root Searching With Pwd' % msg
             </message>
 
             <call function="'SearchObject'">
@@ -143,7 +203,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'cn=Sales Admin' ,
                 'dsInstancePswd'   : 'grape' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -153,12 +213,25 @@
           </sequence>
         </testcase>
 
-        <!--- Admin Change Minimum Pwd Length -->
-        <testcase name="getTestCaseName('Root User Bypass Valid: Bypass Enabled 2')">
+        <!--- Test Case information
+            #@TestMarker          Skip Validation for Administrators
+            #@TestName            Root User Bypass Valid: Bypass Enabled 2
+            #@TestIssue           none
+            #@TestPurpose         Root User Bypass Valid: Bypass Enabled 2
+            #@TestPreamble        none
+            #@TestStep            Admin Changing Minimum Pwd Length to 4
+            #@TestStep            Root Changing Password - Too Short RC 0
+            #@TestStep            Root Searching With Pwd RC 0
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS.
+          -->
+          
+        <testcase name="getTestCaseName
+            ('Root User Bypass Valid: Bypass Enabled 2')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Root User Bypass Valid: Bypass Enabled 2 - Step 1. Admin Changing Minimum Pwd Length'
+               '%s %s 2 - %s Minimum Pwd Length' % (msg,msg2,msg4)
             </message>
 
             <call function="'dsconfigSet'">
@@ -168,14 +241,14 @@
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'objectName'             : 'password-validator' ,
                     'propertyType'           : 'validator' ,
-                    'propertyName'           : 'Length-Based Password Validator' ,
+                    'propertyName'           : 'Length-Based %s' % msg8,
                     'attributeName'          : 'min-password-length' ,
                     'attributeValue'         : '4' }
             </call>
             
             <!--- User Change Password - Too Short-->
             <message>
-               'Security: Pwd Validator: Root User Bypass Valid: Bypass Enabled 2 - Step 2. Root Changing Password - Too Short'
+               '%s %s 2 - Step 2. %s - Too Short' % (msg,msg2,msg5)
             </message>
 
             <call function="'modifyAnAttribute'">
@@ -183,7 +256,7 @@
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Sales Admin,cn=Root DNs,cn=config' ,
+                    'DNToModify'             : pwddn ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'goo' ,
                     'changetype'             : 'replace' }
@@ -191,7 +264,7 @@
             
             <!--- Root Search With Password -->
             <message>
-               'Security: Pwd Validator: Root User Bypass Valid: Bypass Enabled 2 - Step 3. Root Searching With Password'
+               '%s %s 2 - Step 3. Root Searching With Pwd' % (msg,msg2)
             </message>
 
             <call function="'SearchObject'">
@@ -209,15 +282,27 @@
           </sequence>
         </testcase>
 
-        <!--- Check Self-Change Pwd -->
-        <testcase name="getTestCaseName('Root User Bypass Valid: Self-Change Pwd')">
+        <!--- Test Case information
+            #@TestMarker          Skip Validation for Administrators
+            #@TestName            Root User Bypass Valid: Self-Change Pwd
+            #@TestIssue           none
+            #@TestPurpose         Root User Bypass Valid: Self-Change Pwd
+            #@TestPreamble        none
+            #@TestStep            User Self-Change Pwd Too Short RC 53
+            #@TestStep            User Searching With Password RC 49
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS.
+          -->
+          
+        <testcase name="getTestCaseName
+            ('Root User Bypass Valid: Self-Change Pwd')">
           <sequence>
           
             <call function="'testCase_Preamble'"/>
   
           <!--- Sales Admin Self-Change Pwd-->
             <message>
-               'Security: Pwd Validator: Root User Bypass Valid: Self-Change Pwd - Step 1. Root Changing Password - Too Short'
+               '%s Self-Change Pwd - Step 1. %s - Too Short' % (msg,msg5)
             </message>
 
             <call function="'modifyAnAttribute'">
@@ -225,7 +310,7 @@
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : 'cn=Sales Admin' ,
                     'dsInstancePswd'         : 'goo' ,
-                    'DNToModify'             : 'cn=Sales Admin,cn=Root DNs,cn=config' ,
+                    'DNToModify'             : pwddn ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'gaa' ,
                     'changetype'             : 'replace' ,
@@ -234,7 +319,7 @@
             
             <!--- Root Search With Password -->
             <message>
-               'Security: Pwd Validator: Root User Bypass Valid: Self-Change Pwd - Step 2. Root Searching With Password'
+               '%s Self-Change Pwd - Step 2. Root Searching With Password' % msg
             </message>
 
             <call function="'SearchObject'">
@@ -253,15 +338,30 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Admin Reset Minimum Pwd Length -->
-        <testcase name="getTestCaseName('Root User Bypass Valid: Postamble Teardown')">
+        <!--- Test Case information
+            #@TestMarker          Skip Validation for Administrators
+            #@TestName            Postamble Admin Reset Minimum Pwd Length
+            #@TestIssue           none
+            #@TestPurpose         Postamble Admin Reset Minimum Pwd Length
+            #@TestPreamble        none
+            #@TestStep            Admin Disabling Bypass For Pwd Validator set
+                                  skip-validation-for-administrators to false
+            #@TestStep            Admin Resetting Minimum Pwd Length to 6
+            #@TestStep            Root Changing Password - Too Short RC 0
+            #@TestStep            Root Searching With Pwd RC 0
+            #@TestPostamble       none
+            #@TestResult          Success if all tests are PASS.
+          -->
+          
+        <testcase name="getTestCaseName
+            ('Root User Bypass Valid: Postamble Teardown')">
           <sequence>
           
             <call function="'testCase_Preamble'"/>
 
             <!--- Root Search With Original Password -->
             <message>
-               'Security: Pwd Validator: Root User Bypass Valid: Postamble - Step 1. Admin Disabling Bypass For Pwd Validator'
+               '%s Postamble - Step 1. Admin Disabling %s' % (msg,msg6)
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -270,12 +370,12 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'skip-validation-for-administrators' ,
+                    'attributeName'          : msg7 ,
                     'attributeValue'         : 'false' }
             </call>
             
             <message>
-               'Security: Pwd Validator: Root User Bypass Valid: Postamble - Step 2. Admin Resetting Minimum Pwd Length'
+               '%s Postamble - Step 2. Admin Resetting Minimum Pwd Length' % msg
             </message>
 
             <call function="'dsconfigSet'">
@@ -285,13 +385,13 @@
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'objectName'             : 'password-validator' ,
                     'propertyType'           : 'validator' ,
-                    'propertyName'           : 'Length-Based Password Validator' ,
+                    'propertyName'           : 'Length-Based %s' % msg8,
                     'attributeName'          : 'min-password-length' ,
                     'attributeValue'         : '6' }
             </call>
             <!--
             <message>
-               'Security: Pwd Validator: Root User Bypass Valid: Postamble - Step 3. Admin Disabling Pwd Length Validator On Root Users'
+               '%s Postamble - Step 3. Admin Disabling %s' % (msg,msg1)
             </message>
 
             <call function="'modifyEntry'">
@@ -299,7 +399,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/admin_disable_pwd_length_validator.ldif' % logsRemoteDataDir }
+                'entryToBeModified'   : '%s/%s' % (logsRemoteDataDir,ldifpath) }
             </call>
             -->
             <call function="'testCase_Postamble'"/>
