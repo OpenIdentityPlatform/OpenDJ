@@ -77,7 +77,7 @@
             server2Host = server2.getHostname()
             server1Path = '%s/%s' % (server1.getDir(), OPENDSNAME)
             server2Path = '%s/%s' % (server2.getDir(), OPENDSNAME)
-            server2DataDir = '%s/%s' % (server2.getDir(),relativeDataDir)
+            server2DataDir = '%s/%s' % (server2.getDir(),remote.reldatadir)
             server1name = '%s:%s' % (server1Host, server1.getPort())
             server2name = '%s:%s' % (server2Host, server2.getPort())
 

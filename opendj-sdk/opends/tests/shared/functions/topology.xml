@@ -157,9 +157,9 @@
     <sequence>
       <!-- ON LOCAL HOST: get data ready to copy to remote host -->
       <script>
-        testsGroupDir='%s/%s/%s' % (TESTS_DIR,relativeDataDir,groupDataDir)
-        localTestsGroupDir='%s/%s' % (logsLocalDataDir,groupDataDir)
-        remoteTestsGroupDir='%s/%s' % (logsRemoteDataDir,groupDataDir)
+        sourceTestsGroupDir='%s/%s'  % (source.data,groupDataDir)
+        localTestsGroupDir ='%s/%s'  % (local.data, groupDataDir)
+        remoteTestsGroupDir='%s/%s'  % (remote.data,groupDataDir)
       </script>
         
       <call function="'GetEntry'">
@@ -176,11 +176,12 @@
           <!-- Locally copy static data files to temporary staging area -->
           <!-- LDIF (.ldif) test data files -->
           <message>
-            'Copy ldif data files locally to %s.' % localTestsGroupDir
+            'Copy ldif data files locally from %s to %s.' % \
+              (sourceTestsGroupDir,localTestsGroupDir)
           </message>
           <call function="'CopyFolderByExtension'">
             { 'location'   : STAXServiceMachine,
-              'srcfolder'  : testsGroupDir,
+              'srcfolder'  : sourceTestsGroupDir,
               'destfolder' : localTestsGroupDir,
               'extension'  : 'ldif'
             }
@@ -191,11 +192,12 @@
               <sequence>
                 <!-- add file extension test data files -->
                 <message>
-                  'Copy %s data files locally to %s.' % (ft,localTestsGroupDir)
+                  'Copy %s data files locally from %s to %s.' % \
+                    (ft,sourceTestsGroupDir,localTestsGroupDir)
                 </message>
                 <call function="'CopyFolderByExtension'">
                   { 'location'   : STAXServiceMachine,
-                    'srcfolder'  : testsGroupDir,
+                    'srcfolder'  : sourceTestsGroupDir,
                     'destfolder' : localTestsGroupDir,
                     'extension'  : '%s' % ft
                   }
@@ -206,11 +208,12 @@
 
           <!-- LDIF (.ldif) files for quickinstall -->
           <script>
-            quickStartGroupDir='%s/%s/quickstart' % (TESTS_DIR,relativeDataDir)
-            quickStartLocalTestsGroupDir='%s/quickstart' % (logsLocalDataDir)
+            quickStartGroupDir='%s/quickstart' % (source.data)
+            quickStartLocalTestsGroupDir='%s/quickstart' % local.data
           </script>
           <message>
-            'Copy ldif data files locally to %s.' % quickStartLocalTestsGroupDir
+            'Copy quickstart ldif data files locally from %s to %s.' % \
+              (quickStartGroupDir,quickStartLocalTestsGroupDir)
           </message>
           <call function="'CopyFolderByExtension'">
             { 'location'   : STAXServiceMachine,
@@ -222,11 +225,12 @@
           
           <!-- PWD (.pwd) files -->
           <message>
-            'Copy pwd data files locally to %s.' % localTestsGroupDir
+            'Copy pwd data files locally from %s to %s.' % \
+              (sourceTestsGroupDir,localTestsGroupDir)
           </message>         
           <call function="'CopyFolderByExtension'">
             { 'location'   : STAXServiceMachine,
-              'srcfolder'  : testsGroupDir,
+              'srcfolder'  : sourceTestsGroupDir,
               'destfolder' : localTestsGroupDir,
               'extension'  : 'pwd' 
             }
@@ -234,11 +238,12 @@
           
           <!-- Archive (.gz) files -->
           <message>
-            'Copy gz data files locally to %s.' % localTestsGroupDir
+            'Copy gz data files locally from %s to %s.' % \
+              (sourceTestsGroupDir,localTestsGroupDir)
           </message>
           <call function="'CopyFolderByExtension'">
             { 'location'   : STAXServiceMachine,
-              'srcfolder'  : testsGroupDir,
+              'srcfolder'  : sourceTestsGroupDir,
               'destfolder' : localTestsGroupDir,
               'extension'  : 'gz' 
             }
@@ -246,11 +251,12 @@
 
           <!-- Archive (.ref) files -->
           <message>
-            'Copy ref data files locally to %s.' % localTestsGroupDir
+            'Copy ref data files locally from %s to %s.' % \
+              (sourceTestsGroupDir,localTestsGroupDir)
           </message>
           <call function="'CopyFolderByExtension'">
             { 'location'   : STAXServiceMachine,
-              'srcfolder'  : testsGroupDir,
+              'srcfolder'  : sourceTestsGroupDir,
               'destfolder' : localTestsGroupDir,
               'extension'  : 'ref' 
             }
@@ -258,11 +264,12 @@
           
           <!-- Archive (ldap/.java) files -->
           <script>
-            javaSharedDir='%s/ldap' % (TESTS_JAVA_DIR)
-            javaLocalDir='%s/shared/java/ldap' % (logsTestDataDir)
+            javaSharedDir='%s/ldap' % source.java
+            javaLocalDir ='%s/ldap' % local.java
           </script>
           <message>
-            'Copy java files locally to %s.' % javaLocalDir
+            'Copy java files locally from %s to %s.' % \
+              (javaSharedDir,javaLocalDir)
           </message>
           <call function="'CopyFolderByExtension'">
             { 
@@ -299,11 +306,12 @@
  
            <!-- Archive (.security) files -->
           <message>
-            'Copy security data files locally to %s.' % localTestsGroupDir
+            'Copy security data files locally from %s to %s.' % \
+              (sourceTestsGroupDir,localTestsGroupDir)
           </message>
           <call function="'CopyFolderByExtension'">
             { 'location'   : STAXServiceMachine,
-              'srcfolder'  : testsGroupDir,
+              'srcfolder'  : sourceTestsGroupDir,
               'destfolder' : localTestsGroupDir,
               'extension'  : 'security' 
             }
@@ -311,11 +319,12 @@
           
           <!-- Archive (snmp/.java) files -->
           <script>
-            javaSharedDir='%s/snmp' % (TESTS_JAVA_DIR)
-            javaLocalDir='%s/shared/java/snmp' % (logsTestDataDir)
+            javaSharedDir = '%s/snmp' % source.java
+            javaLocalDir  = '%s/snmp' % local.java
           </script>
           <message>
-            'Copy java files locally to %s.' % javaLocalDir
+            'Copy java files locally from %s to %s.' % \
+              (javaSharedDir,javaLocalDir)
           </message>
           <call function="'CopyFolderByExtension'">
             { 
@@ -349,7 +358,8 @@
                 <sequence>
                   <!--- Install DS Copy zip file -->
                   <message>
-                    'Copy DS zip archive locally to %s.' % TMPDIR
+                    'Copy DS zip archive locally from %s to %s.' % \
+                      (ZIPPATH,TMPDIR)
                   </message>
                   <call function="'copyFile'">
                     { 
@@ -432,7 +442,7 @@
                   <!-- Archive SNMP_OPENDMK_JARFILE file -->
                   <message>
                     'Copy OpenDMK jar file %s locally to %s.' \
-                    % (SNMP_OPENDMK_JARFILE,javaLocalDir)
+                      % (SNMP_OPENDMK_JARFILE,javaLocalDir)
                   </message>
                   <call function="'copyFile'">
                     { 
@@ -449,55 +459,32 @@
           
           <!--  Delete the any existing testdata archive -->
           <message>
-            'Delete %s/testdata.zip' % logsTempDir
+            'Delete %s/testdata.zip' % local.temp
           </message>
           <call function="'deleteFile'">
             { 'location' : STAXServiceMachine,
-              'filename' : '%s/testdata.zip' % logsTempDir 
-            }
-          </call>
-          
-          <!--  Zip up contents of tests directory -->
-          <message>
-            'Zip up local data directory to %s/testdata.zip' % logsTempDir
-          </message>
-          <call function="'zipUpFile'">
-            { 'location'   : STAXServiceMachine,
-              'zipfile'    : '%s/testdata.zip' % logsTempDir , 
-              'folder'     : '%s' % localTestsGroupDir ,
-              'relativeto' : logsTestDataDir
-            }
-          </call>
-          
-          <message>
-            'Zip up local quickstart directory to %s/testdata.zip' % logsTempDir
-          </message>
-          <call function="'zipUpFile'">
-            { 'location'   : STAXServiceMachine,
-              'zipfile'    : '%s/testdata.zip' % logsTempDir , 
-              'folder'     : '%s' % quickStartLocalTestsGroupDir ,
-              'relativeto' : logsTestDataDir 
+              'filename' : '%s/testdata.zip' % local.temp 
             }
           </call>
                       
           <message>
-            'Zip up local java files to %s/testdata.zip' % logsTempDir
+            'Zip up local testdata files to %s/testdata.zip' % local.temp
           </message>
           <script>
-            javaLocalDir='%s/shared/java' % (logsTestDataDir)
+            javaLocalDir='%s' % local.java
           </script>
           <call function="'zipUpFile'">
             { 'location'   : STAXServiceMachine,
-              'zipfile'    : '%s/testdata.zip' % logsTempDir , 
-              'folder'     : '%s' % javaLocalDir ,
-              'relativeto' : logsTestDataDir 
+              'zipfile'    : '%s/testdata.zip' % local.temp, 
+              'folder'     : local.testdata,
+              'relativeto' : local.directory 
             }                        
           </call>
           
         </sequence>
         <else>
           <message>
-            'Test data is already created.'
+            'Test data for %s group is already created.' % groupDataDir
           </message>
         </else>
       </if>
@@ -608,10 +595,10 @@
       
       <!---   Copy staging data to remote host -->
       <message>
-        'Copy %s/testdata.zip to %s on %s' % (logsTestDataDir,dsDir,dsHost)
+        'Copy %s/testdata.zip to %s on %s' % (local.testdata,dsDir,dsHost)
       </message>
       <call function="'copyFile'">
-        { 'srcfile'    : '%s/testdata.zip' % logsTempDir,
+        { 'srcfile'    : '%s/testdata.zip' % local.temp,
           'destfile'   : '%s/testdata.zip' % dsDir,
           'remotehost' : dsHost
         }
@@ -630,7 +617,7 @@
       
       <!--- Install DS Copy zip file -->
       <message>
-        'Copy DS zip archive %s/%s to %s' % (logsTempDir,ZIPNAME,dsHost)
+        'Copy DS zip archive %s/%s to %s' % (local.temp,ZIPNAME,dsHost)
       </message>
       <call function="'copyFile'">
         { 'srcfile'    : '%s/%s' % (ZIPPATH,ZIPNAME),
@@ -664,8 +651,8 @@
       
       <!-- configure the coverage dump file -->
       <script>
-        mylog="::coverage - checking for %s/lib/emma.jar\n" % dsPath
-        if os.path.exists('%s/lib/emma.jar' % dsPath):
+        mylog="::coverage - checking for %s/%s/lib/emma.jar\n" % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+        if os.path.exists('%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)):
           mylog+="  ::coverage on\n"
           if not os.path.exists('%s/coverage' % TMPDIR):
             os.mkdir('%s/coverage' % TMPDIR)
@@ -675,9 +662,9 @@
             os.mkdir('%s/coverage/%s' % (TMPDIR,CurrentTestPath['group']))
             mylog+="    ::mkdir %s/coverage/%s on\n" \
                    % (TMPDIR,CurrentTestPath['group'])
-          mylog+="  ::writing to %s/classes/emma.properties" \
-                 % dsPath
-          coveragefh = open( '%s/classes/emma.properties' % dsPath, 'w' )
+          mylog+="  ::writing to %s/%s/classes/emma.properties" \
+                 % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+          coveragefh = open( '%s/%s/classes/emma.properties' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME), 'w' )
           coveragefh.write( 'coverage.out.file=%s/coverage/%s/coverage.ec\n' \
                             % (TMPDIR,CurrentTestPath['group']) )
           coveragefh.close()
@@ -744,8 +731,8 @@
         syncserver = syncserverMap['instance']
         
         filename = 'replication_conf.ldif'
-        filePath = '%s/%s' % (logsTestDataDir,filename)
-        dataDir = '%s/%s' % (syncserver.getDir(),relativeDataDir)
+        filePath = '%s/%s' % (local.testdata,filename)
+        dataDir = '%s/%s' % (syncserver.getDir(),remote.reldatadir)
         
         write_replication_conf_ldif_file(filePath, syncserver)
       </script>
@@ -757,7 +744,7 @@
       
       <!-- Copy the replication_conf ldif to remote host -->
       <message>
-        'Copy %s file from %s to %s' % (filename,logsTestDataDir,dataDir)
+        'Copy %s file from %s to %s' % (filename,local.testdata,dataDir)
       </message>
       <call function="'copyFile'">
         { 'srcfile'    : filePath,
@@ -867,7 +854,7 @@
           'dsInstanceDn'   : syncserver.getRootDn(),
           'dsInstancePswd' : syncserver.getRootPwd(),
           'entryToBeAdded' : '%s/%s/replication/workaround-2201.ldif' \
-                             % (syncserver.getDir(), relativeDataDir)
+                             % (syncserver.getDir(),remote.reldatadir)
         }
       </call>        
       

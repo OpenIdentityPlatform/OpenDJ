@@ -106,7 +106,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeAdded'   : '%s/aci/aci_bindtypes/aci_startup_bindtypes.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_bindtypes/aci_startup_bindtypes.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -146,7 +146,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeAdded'   : '%s/aci/aci_bindtypes/add_static_groups.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_bindtypes/add_static_groups.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -162,7 +162,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeAdded'   : '%s/aci/aci_bindtypes/add_dynamic_groups.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_bindtypes/add_dynamic_groups.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -259,7 +259,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_groupdn_aci1.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -271,7 +271,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -389,7 +389,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -449,7 +449,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_groupdn_aci2.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -461,7 +461,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -585,7 +585,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -645,7 +645,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_groupdn_aci3.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -657,7 +657,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -781,7 +781,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -841,7 +841,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_groupdn_aci4.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -853,7 +853,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -971,7 +971,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -1031,7 +1031,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_groupdn_aci5.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -1043,7 +1043,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -1161,7 +1161,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -1221,7 +1221,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_groupdn_aci6.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -1233,7 +1233,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -1357,7 +1357,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -1417,7 +1417,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_groupdn_aci7.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -1429,7 +1429,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -1553,7 +1553,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -1613,7 +1613,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_groupdn_aci8.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -1625,7 +1625,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -1743,7 +1743,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -1803,7 +1803,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_groupdn_aci9.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -1815,7 +1815,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -1927,7 +1927,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -1987,7 +1987,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_groupdn_aci10.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -1999,7 +1999,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -2123,7 +2123,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -2184,7 +2184,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_groupdn_selfwrite.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -2196,7 +2196,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -2205,7 +2205,7 @@
     
                 <script>
                     curr_aci_ldif_file = 'add_static_selfwrite.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -2217,7 +2217,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'     : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'     : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -2233,7 +2233,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=zuser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_bindtypes/add_new_member_static1.ldif' % (logsRemoteDataDir) }
+                    'entryToBeModified'     : '%s/aci/aci_bindtypes/add_new_member_static1.ldif' % (remote.data) }
                 </call>
     
                 <if expr="RC != 0">
@@ -2303,7 +2303,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_static_selfwrite.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_static_selfwrite.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -2319,7 +2319,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -2379,7 +2379,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_groupdn_selfwrite.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -2391,7 +2391,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -2400,7 +2400,7 @@
     
                 <script>
                     curr_aci_ldif_file = 'add_static_selfwrite.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -2412,7 +2412,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -2428,7 +2428,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=zyuser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_bindtypes/del_old_member_static2.ldif' % (logsRemoteDataDir) }
+                    'entryToBeModified'     : '%s/aci/aci_bindtypes/del_old_member_static2.ldif' % (remote.data) }
                 </call>
     
                 <if expr="RC != 0">
@@ -2444,7 +2444,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_static_selfwrite.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_static_selfwrite.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -2490,7 +2490,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -2550,7 +2550,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_groupdn_selfwrite.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -2562,7 +2562,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -2571,7 +2571,7 @@
     
                 <script>
                     curr_aci_ldif_file = 'add_static_selfwrite.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -2583,7 +2583,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -2599,7 +2599,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=zuser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_bindtypes/replace_member_static3.ldif' % (logsRemoteDataDir) ,
+                    'entryToBeModified'     : '%s/aci/aci_bindtypes/replace_member_static3.ldif' % (remote.data) ,
                     'expectedRC'            : 50
                 }
                 </call>
@@ -2613,7 +2613,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_static_selfwrite.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_static_selfwrite.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -2659,7 +2659,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -2719,7 +2719,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_groupdn_selfwrite.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -2731,7 +2731,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -2740,7 +2740,7 @@
     
                 <script>
                     curr_aci_ldif_file = 'add_static_selfwrite2.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -2752,7 +2752,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -2768,7 +2768,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=zuser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_bindtypes/add_new_description_static4.ldif' % (logsRemoteDataDir) ,
+                    'entryToBeModified'     : '%s/aci/aci_bindtypes/add_new_description_static4.ldif' % (remote.data) ,
                     'expectedRC'            : 50
                 }
                 </call>
@@ -2782,7 +2782,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_static_selfwrite2.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_static_selfwrite2.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -2828,7 +2828,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -2891,7 +2891,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_userattr_aci1.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -2903,7 +2903,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -3068,7 +3068,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -3131,7 +3131,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_userattr_aci2.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -3143,7 +3143,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -3331,7 +3331,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -3390,7 +3390,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_userattr_aci3.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -3402,7 +3402,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -3502,7 +3502,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -3562,7 +3562,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_userattr_aci4.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -3574,7 +3574,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -3698,7 +3698,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -3912,7 +3912,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_userattr_aci6.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -3924,7 +3924,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -4045,7 +4045,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -4106,7 +4106,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_userattr_aci7.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -4118,7 +4118,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -4239,7 +4239,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -4299,7 +4299,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_userattr_aci8.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -4311,7 +4311,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -4432,7 +4432,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">
@@ -4639,7 +4639,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_syntax_aci1.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -4651,7 +4651,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) ,
                     'expectedRC'       : 21
                 }
                 </call>
@@ -4679,7 +4679,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_syntax_aci2.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -4691,7 +4691,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) ,
                     'expectedRC'       : 21
                 }
                 </call>
@@ -4719,7 +4719,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_syntax_aci3.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -4731,7 +4731,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) ,
                     'expectedRC'       : 21
                 }
                 </call>
@@ -4759,7 +4759,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_syntax_aci4.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -4771,7 +4771,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) ,
                     'expectedRC'       : 21
                 }
                 </call>
@@ -4799,7 +4799,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_syntax_aci5.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -4811,7 +4811,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) ,
                     'expectedRC'       : 21
                 }
                 </call>
@@ -4839,7 +4839,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_syntax_aci6.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -4851,7 +4851,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) ,
                     'expectedRC'       : 21
                 }
                 </call>
@@ -4885,7 +4885,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_userdn_aci1.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -4897,7 +4897,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -4973,7 +4973,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
                 <if expr="RC != 0">

@@ -27,15 +27,40 @@
  ! -->
 <stax>
   <defaultcall function="main_backends"/>
-  <function name="main_backends">
+  <function name="main_backends" scope="local">
+    <function-list-args>
+      <function-required-arg name="STAXParentID"/>
+    </function-list-args>
     <sequence>
       <block name="'backends'">
         <sequence>
+          
+          <!--- Load the job environment for the test group execution -->
+          <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
+          <call function="'loadJobEnvironment'">
+               { 'parent' : STAXParentID }
+          </call>
+
           <script>
             CurrentTestPath['group']='backends'
           </script>
           <call function="'testGroup_Preamble'"/>
-          <iterate var="_test" in="['import','import-tasks','backup-tasks','backup','restore-tasks','restore','export-tasks','export']" >
+
+          <!-- List of backends test suites to run -->
+          <script>
+            testList = []
+            testList.append('import')
+            testList.append('import-tasks')
+            testList.append('backup')
+            testList.append('backup-tasks')
+            testList.append('restore')
+            testList.append('restore-tasks')
+            testList.append('export')
+            testList.append('export-tasks')
+          </script>
+          
+          <iterate var="_test" in="testList" >
             <sequence>
               <import machine="STAF_LOCAL_HOSTNAME"
                       file="'%s/testcases/backends/%s.xml' % (TESTS_DIR,_test)"/>

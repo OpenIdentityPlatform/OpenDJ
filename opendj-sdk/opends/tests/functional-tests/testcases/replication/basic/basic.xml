@@ -495,7 +495,7 @@
 
               <script>
                 filename = 'replication_mod_delete.ldif'
-                filePath = '%s/%s' % (logsTestDataDir,filename)
+                filePath = '%s/%s' % (local.data,filename)
                 dn = 'uid=smason, ou=People,%s' % synchroSuffix
                 modif = 'delete'
                 attrType = 'roomNumber'
@@ -507,7 +507,7 @@
               <!-- Copy the replication_mod ldif to client host -->
               <message>
                 'Copy %s file from %s to %s' \
-                % (filename,logsTestDataDir,clientDataDir)
+                % (filename,local.data,clientDataDir)
               </message>
               <call function="'copyFile'">
                 { 'srcfile'    : filePath,
@@ -1375,8 +1375,8 @@
                
               <script>
                 filename = 'replication_mod_add_binary.ldif'
-                filePath = '%s/%s' % (logsTestDataDir,filename)
-                binaryFilePath = '%s/photo1.uu' % testsGroupDir
+                filePath = '%s/%s' % (local.data,filename)
+                binaryFilePath = '%s/replication/photo1.uu' % source.data
                 dn = 'uid=hmiller, ou=People,%s' % synchroSuffix
                 modif = 'add'
                 attrType = 'jpegPhoto'
@@ -1387,7 +1387,7 @@
               <!-- Copy the replication_mod ldif to client host -->
               <message>
                 'Copy %s file from %s to %s' \
-                % (filename,logsTestDataDir,clientDataDir)
+                % (filename,local.data,clientDataDir)
               </message>
               <call function="'copyFile'">
                 { 'srcfile'    : filePath,
@@ -1473,8 +1473,8 @@
                
               <script>
                 filename = 'replication_mod_replace_binary.ldif'
-                filePath = '%s/%s' % (logsTestDataDir,filename)
-                binaryFilePath = '%s/photo2.uu' % testsGroupDir
+                filePath = '%s/%s' % (local.data,filename)
+                binaryFilePath = '%s/replication/photo2.uu' % source.data
                 dn = 'uid=hmiller, ou=People,%s' % synchroSuffix
                 modif = 'replace'
                 attrType = 'jpegPhoto'
@@ -1485,7 +1485,7 @@
               <!-- Copy the replication_mod ldif to client host -->
               <message>
                 'Copy %s file from %s to %s' \
-                % (filename,logsTestDataDir,clientDataDir)
+                % (filename,local.data,clientDataDir)
               </message>
               <call function="'copyFile'">
                 { 'srcfile'    : filePath,
@@ -1572,7 +1572,7 @@
                     
               <script>
                 filename = 'replication_mod_delete_binary.ldif'
-                filePath = '%s/%s' % (logsTestDataDir,filename)
+                filePath = '%s/%s' % (local.data,filename)
                 dn = 'uid=hmiller, ou=People,%s' % synchroSuffix
                 modif = 'delete'
                 attrType = 'jpegPhoto'
@@ -1584,7 +1584,7 @@
               <!-- Copy the replication_mod ldif to client host -->
               <message>
                 'Copy %s file from %s to %s' \
-                % (filename,logsTestDataDir,clientDataDir)
+                % (filename,local.data,clientDataDir)
               </message>
               <call function="'copyFile'">
                 { 'srcfile'    : filePath,
@@ -1668,7 +1668,7 @@
                
               <script>
                 filename = 'replication_modrdn.ldif'
-                filePath = '%s/%s' % (logsTestDataDir,filename)
+                filePath = '%s/%s' % (local.data,filename)
                 dn = 'uid=kvaughan, ou=People,%s' % synchroSuffix
                 newrdn = 'uid=kvaughan2'
                 newsuperior = None
@@ -1680,7 +1680,7 @@
               <!-- Copy the replication_mod ldif to client host -->
               <message>
                 'Copy %s file from %s to %s' \
-                % (filename,logsTestDataDir,clientDataDir)
+                % (filename,local.data,clientDataDir)
               </message>
               <call function="'copyFile'">
                 { 'srcfile'    : filePath,
@@ -1775,7 +1775,7 @@
                
               <script>
                 filename = 'replication_modrdn_preserve.ldif'
-                filePath = '%s/%s' % (logsTestDataDir,filename)
+                filePath = '%s/%s' % (local.data,filename)
                 dn = 'uid=jwallace, ou=People,%s' % synchroSuffix
                 newrdn = 'uid=igueye'
                 newsuperior = None
@@ -1787,7 +1787,7 @@
               <!-- Copy the replication_mod ldif to client host -->
               <message>
                 'Copy %s file from %s to %s' \
-                % (filename,logsTestDataDir,clientDataDir)
+                % (filename,local.data,clientDataDir)
               </message>
               <call function="'copyFile'">
                 { 'srcfile'    : filePath,
@@ -1890,7 +1890,7 @@
         
               <script>
                 filename = 'replication_moddn.ldif'
-                filePath = '%s/%s' % (logsTestDataDir,filename)
+                filePath = '%s/%s' % (local.data,filename)
                 dn = 'ou=People,%s' % synchroSuffix
                 newrdn = 'ou=Special People'
                 newsuperior = 'ou=Special Users,%s' % synchroSuffix
@@ -1902,7 +1902,7 @@
               <!-- Copy the replication_mod ldif to client host -->
               <message>
                 'Copy %s file from %s to %s' \
-                % (filename,logsTestDataDir,clientDataDir)
+                % (filename,local.data,clientDataDir)
               </message>
               <call function="'copyFile'">
                 { 'srcfile'    : filePath,

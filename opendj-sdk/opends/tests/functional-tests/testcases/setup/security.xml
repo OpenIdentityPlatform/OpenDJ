@@ -137,7 +137,7 @@
           <script>
             DM_DN = 'cn=DM'
             DM_PW = 'secret12'
-            DM_PW_FILE = '%s/setup/pwd-security.ldif' % logsRemoteDataDir
+            DM_PW_FILE = '%s/setup/pwd-security.ldif' % remote.data
 
             KEYTOOL = '%s/bin/keytool%s' % (JAVA_HOME, fileExt)
             SEC_I1_BASE = '%s/sec_i1' % (OUT_GROUP)
@@ -145,7 +145,7 @@
             SEC_I2_BASE = '%s/sec_i2' % (OUT_GROUP)
             SEC_I2_ROOT = '%s/%s' % (SEC_I2_BASE, OPENDSNAME)
             MY_KEYSTORE = '%s/ks' % OUT_GROUP
-            SEC_O1_LDIF = '%s/setup/sec-o1.ldif' % logsRemoteDataDir
+            SEC_O1_LDIF = '%s/setup/sec-o1.ldif' % remote.data
           </script>
 
           <call function="'checkFileExists'">

@@ -54,7 +54,7 @@
           
           <!--- Define default value for sourceldif -->
           <script>
-            sourceldif = '%s/clu/clu_start.ldif' % logsRemoteDataDir
+            sourceldif = '%s/clu/clu_start.ldif' % remote.data
           </script>
           
           <!--- Test Case information
@@ -86,7 +86,7 @@
                 {
                 'sourceLdif'  : sourceldif ,
                 'changesLdif' : '%s/clu/ldifmodify_checkbehavior.ldif' \
-                                % logsRemoteDataDir ,
+                                % remote.data ,
                 'targetLdif'  : '%s/ldifmodify.out' % DIRECTORY_INSTANCE_DIR
                 }
               </call>              
@@ -94,7 +94,7 @@
               <call function="'LdifDiffWithScript'">
                 { 
                 'sourceLdif' : '%s/ldifmodify.out' % DIRECTORY_INSTANCE_DIR ,
-                'targetLdif' : '%s/clu/ldifmodify.ref' % logsRemoteDataDir ,
+                'targetLdif' : '%s/clu/ldifmodify.ref' % remote.data ,
                 'outputLdif' : '%s/ldifmodify.diff' % DIRECTORY_INSTANCE_DIR
                 }
               </call>
@@ -141,7 +141,7 @@
                 {
                 'sourceLdif'  : sourceldif ,
                 'changesLdif' : '%s/clu/ldifmodify_moddn.ldif' \
-                                % logsRemoteDataDir ,
+                                % remote.data ,
                 'targetLdif'  : '%s/ldifmodify_moddn.out' \
                                 % DIRECTORY_INSTANCE_DIR ,
                 'expectedRC'  : 1
@@ -197,7 +197,7 @@
                 {
                 'sourceLdif'  : sourceldif ,
                 'changesLdif' : '%s/clu/ldifmodify_concurrente.ldif' \
-                                % logsRemoteDataDir ,
+                                % remote.data ,
                 'targetLdif'  : '%s/ldifmodify_concurrente.out' \
                                 % DIRECTORY_INSTANCE_DIR ,
                 'expectedRC'  : 1

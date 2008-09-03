@@ -1148,8 +1148,8 @@
         m.update(location)
         m.update(dsPath)
         taskLdifFile='import-task-%s.ldif' % m.hexdigest()
-        taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
-        tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
+        taskLdif='%s/%s' % (remote.temp,taskLdifFile)
+        tmpTaskLdif='%s/%s' % (local.temp,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
       </script>
       
@@ -1712,8 +1712,8 @@
         m.update(location)
         m.update(dsPath)
         taskLdifFile='export-task-%s.ldif' % m.hexdigest()
-        taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
-        tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
+        taskLdif='%s/%s' % (remote.temp,taskLdifFile)
+        tmpTaskLdif='%s/%s' % (local.temp,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
       </script>
       
@@ -2063,8 +2063,8 @@
         m.update(location)
         m.update(dsPath)
         taskLdifFile='backup-task-%s.ldif' % m.hexdigest()
-        taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
-        tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
+        taskLdif='%s/%s' % (remote.temp,taskLdifFile)
+        tmpTaskLdif='%s/%s' % (local.temp,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
       </script>
       
@@ -2357,8 +2357,8 @@
         m.update(location)
         m.update(dsPath)
         taskLdifFile='restore-task-%s.ldif' % m.hexdigest()
-        taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
-        tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
+        taskLdif='%s/%s' % (remote.temp,taskLdifFile)
+        tmpTaskLdif='%s/%s' % (local.temp,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
       </script>    
 
@@ -2511,8 +2511,8 @@
         m.update(location)
         m.update(dsPath)
         taskLdifFile='shutdown-task-%s.ldif' % m.hexdigest()
-        taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
-        tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
+        taskLdif='%s/%s' % (remote.temp,taskLdifFile)
+        tmpTaskLdif='%s/%s' % (local.temp,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
       </script>    
 
@@ -2642,8 +2642,8 @@
         m.update(location)
         m.update(dsPath)
         taskLdifFile='restart-task-%s.ldif' % m.hexdigest()
-        taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
-        tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
+        taskLdif='%s/%s' % (remote.temp,taskLdifFile)
+        tmpTaskLdif='%s/%s' % (local.temp,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
       </script>    
 
@@ -2782,8 +2782,8 @@
           m.update(location)
           m.update(dsPath)
           taskLdifFile='schema-%s.ldif' % m.hexdigest()
-          taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
-          tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
+          taskLdif='%s/%s' % (remote.temp,taskLdifFile)
+          tmpTaskLdif='%s/%s' % (local.temp,taskLdifFile)
           taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
         </script>
         
@@ -2824,7 +2824,7 @@
         <message>'Copy schema update ldif file.'</message>
         <call function="'copyFile'">
           { 'location'   : myLocation,
-            'srcfile'    : '%s/schema/ldifs/%s' % (logsRemoteDataDir,ldifFile),
+            'srcfile'    : '%s/schema/ldifs/%s' % (remote.data,ldifFile),
             'destfile'   : '%s/%s/config/schema/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,ldifFile),
             'remotehost' : myLocation }
         </call>
@@ -2921,8 +2921,8 @@
           m.update(location)
           m.update(dsPath)
           taskLdifFile='leaveShutdownTask-%s.ldif' % m.hexdigest()
-          taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
-          tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
+          taskLdif='%s/%s' % (remote.temp,taskLdifFile)
+          tmpTaskLdif='%s/%s' % (local.temp,taskLdifFile)
           taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
         </script>
         
@@ -2961,7 +2961,7 @@
         <message>'Copy update ldif file.'</message>
         <call function="'copyFile'">
           { 'location'   : myLocation,
-            'srcfile'    : '%s/schema/ldifs/%s' % (logsRemoteDataDir,ldifFile),
+            'srcfile'    : '%s/schema/ldifs/%s' % (remote.data,ldifFile),
             'destfile'   : '%s/%s/config/schema/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,ldifFile),
             'remotehost' : myLocation }
         </call>
@@ -3070,8 +3070,8 @@
         m.update(location)
         m.update(dsPath)
         taskLdifFile='totalupdate-task-%s.ldif' % m.hexdigest()
-        taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
-        tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
+        taskLdif='%s/%s' % (remote.temp,taskLdifFile)
+        tmpTaskLdif='%s/%s' % (local.temp,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
       </script>
       
@@ -3795,8 +3795,8 @@
         m.update(location)
         m.update(dsPath)
         taskLdifFile='rebuildIndex-task-%s.ldif' % m.hexdigest()
-        taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
-        tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
+        taskLdif='%s/%s' % (remote.temp,taskLdifFile)
+        tmpTaskLdif='%s/%s' % (local.temp,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
       </script>    
 

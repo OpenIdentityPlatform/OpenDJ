@@ -28,8 +28,17 @@
 <stax>
   <defaultcall function="main_core" />
   <function name="main_core">
+    <function-list-args>
+      <function-required-arg name="STAXParentID"/>
+    </function-list-args>
     <block name="'core'">
       <sequence>
+          <!--- Load the job environment for the test group execution -->
+          <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
+          <call function="'loadJobEnvironment'">
+               { 'parent' : STAXParentID }
+          </call>
         <script>
           CurrentTestPath['group']='core'
         </script>

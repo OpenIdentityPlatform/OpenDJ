@@ -30,12 +30,22 @@
   <defaultcall function="main_i18n"/>
 
   <function name="main_i18n">
+    <function-list-args>
+      <function-required-arg name="STAXParentID"/>
+    </function-list-args>
 
     <sequence>
 
       <block name="'i18n'">
       
         <sequence>
+
+          <!--- Load the job environment for the test group execution -->
+          <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
+          <call function="'loadJobEnvironment'">
+               { 'parent' : STAXParentID }
+          </call>
             
           <!--
             #@TestGroupName             i18n
@@ -43,8 +53,6 @@
           -->
     
           <script>
-            CurrentTestPath={}
-            envAlreadyLoaded='true'
             CurrentTestPath['group']='i18n'
           </script>
       

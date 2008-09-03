@@ -110,7 +110,7 @@
            'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
            'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
            'entryToBeAdded'   : '%s/security/pwd_policy/add_sales_person.ldif' \
-                                % logsRemoteDataDir }
+                                % remote.data }
             </call>
 
              <call function="'SearchObject'">

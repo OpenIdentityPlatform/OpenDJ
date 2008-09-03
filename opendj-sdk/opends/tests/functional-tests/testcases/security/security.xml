@@ -30,13 +30,23 @@
   <defaultcall function="main_security"/>
   
   <function name="main_security">
+    <function-list-args>
+      <function-required-arg name="STAXParentID"/>
+    </function-list-args>
     
     <sequence>
       
       <block name="'security'">
         
         <sequence>
-          
+
+          <!--- Load the job environment for the test group execution -->
+          <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
+          <call function="'loadJobEnvironment'">
+               { 'parent' : STAXParentID }
+          </call>
+                    
           <!--- Test Group information
             #@TestGroupName          Security tests
             #@TestGroupPurpose       Test the security.

@@ -69,7 +69,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_max_pwd_age.ldif' % logsRemoteDataDir }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_max_pwd_age.ldif' % remote.data }
             </call>
 
             <call function="'testCase_Postamble'"/>

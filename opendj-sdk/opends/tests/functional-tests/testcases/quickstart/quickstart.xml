@@ -53,7 +53,7 @@
             'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
             'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
             'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-            'entryToBeAdded'   : '%s/quickstart/quickstart.ldif' % logsRemoteDataDir 
+            'entryToBeAdded'   : '%s/quickstart/quickstart.ldif' % remote.data
           }
         </call>
         <call function="'checkRC'">

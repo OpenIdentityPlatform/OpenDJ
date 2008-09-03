@@ -28,11 +28,21 @@
 <stax>
   <defaultcall function="sample" />
   <function name="sample">
+    <function-list-args>
+      <function-required-arg name="STAXParentID"/>
+    </function-list-args>
     <sequence>
       <script>
         CurrentTestPath['group']= 'sample'
         envAlreadyLoaded='true'
       </script>
+
+      <!--- Load the job environment for the test group execution -->
+      <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
+      <call function="'loadJobEnvironment'">
+           { 'parent' : STAXParentID }
+      </call>
       
       <!---
         #@TestSuiteName             Sample

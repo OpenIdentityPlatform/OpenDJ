@@ -54,7 +54,7 @@
           
           <!--- Define default value for template -->
           <script>
-            template = '%s/clu/make-ldif_template.ref' % logsRemoteDataDir
+            template = '%s/clu/make-ldif_template.ref' % remote.data
           </script>
           
           <!--- Test Case information

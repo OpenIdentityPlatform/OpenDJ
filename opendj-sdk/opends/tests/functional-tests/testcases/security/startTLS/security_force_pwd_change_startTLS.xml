@@ -60,7 +60,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/admin_change_force_pwd_add.ldif' % logsRemoteDataDir ,
+                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/admin_change_force_pwd_add.ldif' % remote.data ,
                 'extraParams'      : '-q -X' }
             </call>
 
@@ -82,7 +82,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/startTLS/force_pwd_change/add_entry1.ldif' % logsRemoteDataDir ,
+                'entryToBeAdded'   : '%s/security/startTLS/force_pwd_change/add_entry1.ldif' % remote.data ,
                 'extraParams'      : '-q -X' }
             </call>
 
@@ -119,7 +119,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mcat,ou=people,ou=startTLS tests,o=SSL Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'pizza' ,
-                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/user_change_force_pwd.ldif' % logsRemoteDataDir ,
+                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/user_change_force_pwd.ldif' % remote.data ,
                 'extraParams'      : '-q -X' }
             </call>
 
@@ -155,7 +155,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/admin_reset_force_pwd_add.ldif' % logsRemoteDataDir ,
+                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/admin_reset_force_pwd_add.ldif' % remote.data ,
                 'extraParams'      : '-q -X' }
             </call>
 
@@ -168,7 +168,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/startTLS/force_pwd_change/add_entry2.ldif' % logsRemoteDataDir ,
+                'entryToBeAdded'   : '%s/security/startTLS/force_pwd_change/add_entry2.ldif' % remote.data ,
                 'extraParams'      : '-q -X' }
             </call>
 
@@ -217,7 +217,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/admin_change_force_pwd_reset.ldif' % logsRemoteDataDir ,
+                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/admin_change_force_pwd_reset.ldif' % remote.data ,
                 'extraParams'      : '-q -X' }
             </call>
 
@@ -239,7 +239,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/admin_change_user_pwd.ldif' % logsRemoteDataDir ,
+                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/admin_change_user_pwd.ldif' % remote.data ,
                 'extraParams'      : '-q -X' }
             </call>
 
@@ -286,7 +286,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=startTLS tests,o=SSL Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'pizza' ,
-                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/user_add_attr.ldif' % logsRemoteDataDir ,
+                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/user_add_attr.ldif' % remote.data ,
                 'extraParams'      : '-q -X' ,
                 'expectedRC'       : 49 }
             </call>
@@ -323,7 +323,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=startTLS tests,o=SSL Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'pizza' ,
-                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/user_del_attr.ldif' % logsRemoteDataDir ,
+                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/user_del_attr.ldif' % remote.data ,
                 'extraParams'      : '-q -X' ,
                 'expectedRC'       : 49 }
             </call>
@@ -408,7 +408,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=startTLS tests,o=SSL Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'adminpizza' ,
-                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/user_change_pwd1.ldif' % logsRemoteDataDir ,
+                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/user_change_pwd1.ldif' % remote.data ,
                 'extraParams'      : '-q -X' }
             </call>
 
@@ -535,7 +535,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/admin_enable_max_reset_age_long.ldif' % logsRemoteDataDir ,
+                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/admin_enable_max_reset_age_long.ldif' % remote.data ,
                 'extraParams'      : '-q -X' }
             </call>
 
@@ -557,7 +557,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/admin_change_user_pwd2.ldif' % logsRemoteDataDir ,
+                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/admin_change_user_pwd2.ldif' % remote.data ,
                 'extraParams'      : '-q -X' }
             </call>
 
@@ -579,7 +579,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=startTLS tests,o=SSL Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'adminlongpizza' ,
-                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/user_change_pwd2.ldif' % logsRemoteDataDir ,
+                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/user_change_pwd2.ldif' % remote.data ,
                 'extraParams'      : '-q -X' }
             </call>
 
@@ -615,7 +615,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/admin_enable_max_reset_age_short.ldif' % logsRemoteDataDir ,
+                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/admin_enable_max_reset_age_short.ldif' % remote.data ,
                 'extraParams'      : '-q -X' }
             </call>
 
@@ -637,7 +637,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/admin_change_user_pwd3.ldif' % logsRemoteDataDir ,
+                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/admin_change_user_pwd3.ldif' % remote.data ,
                 'extraParams'      : '-q -X' }
             </call>
 
@@ -667,7 +667,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=startTLS tests,o=SSL Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'adminshortpizza' ,
-                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/user_change_pwd3.ldif' % logsRemoteDataDir ,
+                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/user_change_pwd3.ldif' % remote.data ,
                 'extraParams'      : '-q -X' ,
                 'expectedRC'       : 49 }
             </call>
@@ -705,7 +705,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/admin_disable_max_reset_age.ldif' % logsRemoteDataDir ,
+                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/admin_disable_max_reset_age.ldif' % remote.data ,
                 'extraParams'      : '-q -X' }
             </call>
 
@@ -718,7 +718,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/admin_reset_force_pwd_reset.ldif' % logsRemoteDataDir ,
+                'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/admin_reset_force_pwd_reset.ldif' % remote.data ,
                 'extraParams'      : '-q -X' }
             </call>
 

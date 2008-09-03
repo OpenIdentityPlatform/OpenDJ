@@ -111,7 +111,7 @@
 
               <call function="'importLdif'">
                 { 
-                'ldifFile'    : '%s/clu/clu_start.ldif' % logsRemoteDataDir 
+                'ldifFile'    : '%s/clu/clu_start.ldif' % remote.data 
                 }
               </call>
 

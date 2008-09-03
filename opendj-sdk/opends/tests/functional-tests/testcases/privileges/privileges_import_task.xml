@@ -96,7 +96,7 @@
                   'dsInstancePswd'   : 'ACIRules',
                   'taskID'           : STAXCurrentTestcase,
                   'ldifFile'         : '%s/privileges/privileges_import_task/import_task.ldif' \
-                                        % logsRemoteDataDir,
+                                        % remote.data,
                   'expectedRC'       : 50
                 }
                 </call>
@@ -127,7 +127,7 @@
                   'dsInstancePswd'   : 'ACIRules',
                   'taskID'           : STAXCurrentTestcase,
                   'ldifFile'         : '%s/privileges/privileges_import_task/import_task.ldif' \
-                                        % logsRemoteDataDir,
+                                        % remote.data,
                   'expectedRC'       : 50
                 }
                 </call>
@@ -161,7 +161,7 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules' ,
                   'taskID'           : STAXCurrentTestcase,
-                  'ldifFile'         : '%s/privileges/privileges_import_task/import_task.ldif' % logsRemoteDataDir
+                  'ldifFile'         : '%s/privileges/privileges_import_task/import_task.ldif' % remote.data
                 }
                 </call>
                 
@@ -260,7 +260,7 @@
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
                   'taskID'         : STAXCurrentTestcase,
                   'ldifFile'       : '%s/privileges/privileges_import_task/import_task.ldif' \
-                                     % logsRemoteDataDir,
+                                     % remote.data,
                   'expectedRC'     : 50
                 }
                 </call>
@@ -291,7 +291,7 @@
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
                   'taskID'         : STAXCurrentTestcase,
                   'ldifFile'       : '%s/privileges/privileges_import_task/import_task.ldif' \
-                                      % logsRemoteDataDir
+                                      % remote.data
                 }
                 </call>
                 
@@ -358,7 +358,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD  ,
-                    'entryToBeAdded'      : '%s/privileges/add_new_root_user.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'      : '%s/privileges/add_new_root_user.ldif' % remote.data }
                 </call>
     
                 <message>
@@ -387,7 +387,7 @@
                   'dsInstancePswd' : 'PrivsRule' ,
                   'taskID'         : STAXCurrentTestcase,
                   'ldifFile'       : '%s/privileges/privileges_import_task/import_task.ldif' \
-                                      % logsRemoteDataDir,
+                                      % remote.data,
                   'expectedRC'     : 50
                   }
                 </call>
@@ -418,7 +418,7 @@
                   'dsInstancePswd' : 'PrivsRule' ,
                   'taskID'         : STAXCurrentTestcase,
                   'ldifFile'       : '%s/privileges/privileges_import_task/import_task.ldif' \
-                                      % logsRemoteDataDir
+                                      % remote.data
                 }
                 </call>
                 

@@ -70,7 +70,7 @@
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'taskID'         : STAXCurrentTestcase,
-                  'ldifFile'       : '%s/backends/Example.ldif' % logsRemoteDataDir
+                  'ldifFile'       : '%s/backends/Example.ldif' % remote.data
                 }
               </call>
               <call function="'checktestRC'">
@@ -108,7 +108,7 @@
                   'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
                   'taskID'          : STAXCurrentTestcase,
-                  'ldifFile'        : '%s/backends/Include.ldif' % logsRemoteDataDir,
+                  'ldifFile'        : '%s/backends/Include.ldif' % remote.data,
                   'includeBranches' : ['dc=com'],
                 }
               </call>
@@ -147,7 +147,7 @@
                   'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
                   'taskID'          : STAXCurrentTestcase,
-                  'ldifFile'        : '%s/backends/Include.ldif' % logsRemoteDataDir,
+                  'ldifFile'        : '%s/backends/Include.ldif' % remote.data,
                   'includeBranches' : ['dc=com','dc=example,dc=com']
                 }
               </call>
@@ -186,7 +186,7 @@
                   'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
                   'taskID'          : STAXCurrentTestcase,
-                  'ldifFile'        : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
+                  'ldifFile'        : '%s/backends/Exclude.ldif' % remote.data,
                   'excludeBranches' : ['ou=Departed,ou=People,dc=example,dc=com'],
                 }
               </call>
@@ -227,7 +227,7 @@
                   'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
                   'taskID'          : STAXCurrentTestcase,
-                  'ldifFile'        : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
+                  'ldifFile'        : '%s/backends/Exclude.ldif' % remote.data,
                   'excludeBranches' : ['ou=Departed,ou=People,dc=example,dc=com',
                                        'cn=QA Managers,ou=groups,dc=example,dc=com']
                 }
@@ -270,7 +270,7 @@
                   'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
                   'taskID'          : STAXCurrentTestcase,
-                  'ldifFile'        : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
+                  'ldifFile'        : '%s/backends/Exclude.ldif' % remote.data,
                   'includeBranches' : ['dc=com'],
                   'excludeBranches' : ['ou=Departed,ou=People,dc=example,dc=com'],
                 }
@@ -314,7 +314,7 @@
                   'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
                   'taskID'            : STAXCurrentTestcase,
-                  'ldifFile'          : '%s/backends/Include.ldif' % logsRemoteDataDir,
+                  'ldifFile'          : '%s/backends/Include.ldif' % remote.data,
                   'includeAttributes' : ['dc'],
                 }
               </call>
@@ -352,7 +352,7 @@
                   'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
                   'taskID'          : STAXCurrentTestcase,
-                  'ldifFile'        : '%s/backends/Include.ldif' % logsRemoteDataDir,
+                  'ldifFile'        : '%s/backends/Include.ldif' % remote.data,
                   'includeAttributes' : ['dc','cn','ou','sn']
                 }
               </call>
@@ -391,7 +391,7 @@
                   'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
                   'taskID'            : STAXCurrentTestcase,
-                  'ldifFile'          : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
+                  'ldifFile'          : '%s/backends/Exclude.ldif' % remote.data,
                   'excludeAttributes' : ['userpassword']
                 }
               </call>
@@ -428,7 +428,7 @@
                   'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
                   'taskID'            : STAXCurrentTestcase,
-                  'ldifFile'          : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
+                  'ldifFile'          : '%s/backends/Exclude.ldif' % remote.data,
                   'excludeAttributes' : ['userpassword','mail','roomnumber']
                 }
               </call>
@@ -466,7 +466,7 @@
                   'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
                   'taskID'            : STAXCurrentTestcase,
-                  'ldifFile'          : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
+                  'ldifFile'          : '%s/backends/Exclude.ldif' % remote.data,
                   'includeBranches'   : ['dc=com','dc=example,dc=com','ou=People,dc=example,dc=com'],
                   'excludeBranches'   : ['ou=Departed,ou=People,dc=example,dc=com'],
                   'includeAttributes' : ['dc','cn','ou','sn'],
@@ -509,7 +509,7 @@
                   'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
                   'taskID'          : STAXCurrentTestcase,
-                  'ldifFile'        : '%s/backends/Include.ldif' % logsRemoteDataDir,
+                  'ldifFile'        : '%s/backends/Include.ldif' % remote.data,
                   'includeFilters'  : ['objectclass=*'],
                 }
               </call>
@@ -547,7 +547,7 @@
                   'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
                   'taskID'          : STAXCurrentTestcase,
-                  'ldifFile'        : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
+                  'ldifFile'        : '%s/backends/Exclude.ldif' % remote.data,
                   'excludeFilters'  : ['objectclass=person'],
                 }
               </call>
@@ -588,7 +588,7 @@
                   'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
                   'taskID'          : STAXCurrentTestcase,
-                  'ldifFile'        : '%s/backends/Include.ldif' % logsRemoteDataDir,
+                  'ldifFile'        : '%s/backends/Include.ldif' % remote.data,
                   'includeFilters'  : ['objectclass=domain*','objectclass=organizationalunit']
                 }
               </call>
@@ -629,7 +629,7 @@
                   'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
                   'taskID'          : STAXCurrentTestcase,
-                  'ldifFile'        : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
+                  'ldifFile'        : '%s/backends/Exclude.ldif' % remote.data,
                   'excludeFilters'  : ['objectclass=person','objectclass=organizationalunit'],
                 }
               </call>
@@ -667,7 +667,7 @@
                   'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
                   'taskID'          : STAXCurrentTestcase,
-                  'ldifFile'        : '%s/backends/Include.ldif' % logsRemoteDataDir,
+                  'ldifFile'        : '%s/backends/Include.ldif' % remote.data,
                   'includeFilters'  : ['|(objectclass=person)(objectclass=domain)(objectclass=organizationalunit)'],
                 }
               </call>
@@ -705,7 +705,7 @@
                   'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
                   'taskID'          : STAXCurrentTestcase,
-                  'ldifFile'        : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
+                  'ldifFile'        : '%s/backends/Exclude.ldif' % remote.data,
                   'excludeFilters'  : ['&amp;(objectclass=person)(ou=Departed)'],
                 }
               </call>
@@ -743,7 +743,7 @@
                   'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
                   'taskID'            : STAXCurrentTestcase,
-                  'ldifFile'          : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
+                  'ldifFile'          : '%s/backends/Exclude.ldif' % remote.data,
                   'excludeFilters'    : ['&amp;(objectclass=person)(ou=Departed)'],
                   'includeBranches'   : ['dc=com'],
                   'excludeAttributes' : ['userpassword']
@@ -783,7 +783,7 @@
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'taskID'         : STAXCurrentTestcase,
-                  'ldifFile'       : '%s/backends/Append.ldif' % logsRemoteDataDir,
+                  'ldifFile'       : '%s/backends/Append.ldif' % remote.data,
                   'append'         : 'TRUE'
                 }
               </call>
@@ -821,7 +821,7 @@
                   'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
                   'taskID'          : STAXCurrentTestcase,
-                  'ldifFile'        : '%s/backends/Append.ldif' % logsRemoteDataDir,
+                  'ldifFile'        : '%s/backends/Append.ldif' % remote.data,
                   'append'          : 'TRUE',
                   'replaceExisting' : 'TRUE'
                 }
@@ -860,7 +860,7 @@
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'taskID'         : STAXCurrentTestcase,
-                  'ldifFile'       : '%s/backends/Example.ldif.gz' % logsRemoteDataDir,
+                  'ldifFile'       : '%s/backends/Example.ldif.gz' % remote.data,
                   'isCompressed'   : 'TRUE'
                 }
               </call>
@@ -900,7 +900,7 @@
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'taskID'         : STAXCurrentTestcase,
-                  'ldifFile'       : '%s/backends/Example.ldif' % logsRemoteDataDir,
+                  'ldifFile'       : '%s/backends/Example.ldif' % remote.data,
                   'isEncrypted'    : 'TRUE'
                 }
               </call>
@@ -959,7 +959,7 @@
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'taskID'         : STAXCurrentTestcase,
-                  'ldifFile'       : '%s/backends/Example.ldif' % logsRemoteDataDir,
+                  'ldifFile'       : '%s/backends/Example.ldif' % remote.data,
                   'rejectsFile'    : './rejects'
                 }
               </call>
@@ -999,7 +999,7 @@
                   'dsInstanceDn'         : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD,
                   'taskID'               : STAXCurrentTestcase,
-                  'ldifFile'             : '%s/backends/Example.ldif' % logsRemoteDataDir,
+                  'ldifFile'             : '%s/backends/Example.ldif' % remote.data,
                   'rejectsFile'          : './rejects',
                   'overwriteRejectsFile' : 'TRUE'
                 }
@@ -1040,7 +1040,7 @@
                     'dsInstanceDn'         : DIRECTORY_INSTANCE_DN,
                     'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD,
                     'taskID'               : STAXCurrentTestcase,
-                    'ldifFile'             : '%s/backends/Schema.ldif' % logsRemoteDataDir,
+                    'ldifFile'             : '%s/backends/Schema.ldif' % remote.data,
                     'skipSchemaValidation' : 'TRUE'
                   }
                 </call>
@@ -1079,7 +1079,7 @@
                   'dsInstanceDn'         : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD,
                   'taskID'               : STAXCurrentTestcase,
-                  'ldifFile'             : '%s/backends/Schema.ldif' % logsRemoteDataDir,
+                  'ldifFile'             : '%s/backends/Schema.ldif' % remote.data,
                   'skipSchemaValidation' : 'FALSE'
                 }
               </call>

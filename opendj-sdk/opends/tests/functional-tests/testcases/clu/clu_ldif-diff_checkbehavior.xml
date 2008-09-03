@@ -54,9 +54,9 @@
           
           <!--- Define default value for sourceldif -->
           <script>
-            sourceldif = '%s/clu/clu_start.ldif' % logsRemoteDataDir
+            sourceldif = '%s/clu/clu_start.ldif' % remote.data
             targetldif = '%s/clu/ldif-diff_checkbehavior.ldif' \
-                         % logsRemoteDataDir
+                         % remote.data
           </script>
           
           <!--- Test Case information

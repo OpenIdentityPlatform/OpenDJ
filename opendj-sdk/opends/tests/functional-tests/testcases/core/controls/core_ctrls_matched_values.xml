@@ -213,7 +213,7 @@
               <call function="'testCase_Preamble'"/>
               <script>
                 ldifFile = '%s/core/ldifs/ctrls_matched_values_add_aci.ldif'\
-                            % logsRemoteDataDir
+                            % remote.data
               </script>
               <message>
                 '++ add aci for user.1 to be able to use assertion control'
@@ -397,7 +397,7 @@
               <call function="'testCase_Preamble'"/>
               <script>
                 ldifFile='%s/core/ldifs/ctrls_matched_values_delete_aci.ldif'\
-                          % logsRemoteDataDir
+                          % remote.data
               </script>
               <message>
                 '++ Delete aci which allow user to use matched values control'

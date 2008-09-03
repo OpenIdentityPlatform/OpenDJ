@@ -95,7 +95,7 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules' ,
                   'taskID'           : '3' ,
-                  'backupDir'        : '%s/privileges/' % logsRemoteDataDir ,
+                  'backupDir'        : '%s/privileges/' % remote.data ,
                   'expectedRC'       : 50
                 }
                 </call>
@@ -125,7 +125,7 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules' ,
                   'taskID'           : '3' ,
-                  'backupDir'        : '%s/privileges/' % logsRemoteDataDir ,
+                  'backupDir'        : '%s/privileges/' % remote.data ,
                   'expectedRC'       : 50
                 }
                 </call>
@@ -159,7 +159,7 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules' ,
                   'taskID'           : '3' ,
-                  'backupDir'        : '%s/privileges/' % logsRemoteDataDir
+                  'backupDir'        : '%s/privileges/' % remote.data
                 }
                 </call>
                 
@@ -203,7 +203,7 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules' ,
                   'taskID'           : '3.1' ,
-                  'backupDir'        : '%s/privileges/' % logsRemoteDataDir ,
+                  'backupDir'        : '%s/privileges/' % remote.data ,
                   'expectedRC'       : 50
                 }
                 </call>
@@ -247,7 +247,7 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'taskID'           : '3.2' ,
-                  'backupDir'        : '%s/privileges/' % logsRemoteDataDir
+                  'backupDir'        : '%s/privileges/' % remote.data
                 }
                 </call>
                 
@@ -276,7 +276,7 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD  ,
                   'taskID'           : '3.3' ,
-                  'backupDir'        : '%s/privileges/' % logsRemoteDataDir ,
+                  'backupDir'        : '%s/privileges/' % remote.data ,
                   'expectedRC'       : 50
                 }
                 </call>
@@ -306,7 +306,7 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'taskID'           : '3.4' ,
-                  'backupDir'        : '%s/privileges/' % logsRemoteDataDir
+                  'backupDir'        : '%s/privileges/' % remote.data
                 }
                 </call>
                      
@@ -348,7 +348,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : 'cn=Aroot' ,
                     'dsInstancePswd'      : 'PrivsRule' ,
-                    'entryToBeAdded'      : '%s/privileges/add_new_root_user.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'      : '%s/privileges/add_new_root_user.ldif' % remote.data }
                 </call>
     
                 <message>
@@ -361,7 +361,7 @@
                   'dsInstanceDn'     : 'cn=Zroot' ,
                   'dsInstancePswd'   : 'PrivsRule' ,
                   'taskID'           : '3.5' ,
-                  'backupDir'        : '%s/privileges/' % logsRemoteDataDir
+                  'backupDir'        : '%s/privileges/' % remote.data
                 }
                 </call>
                 
@@ -390,7 +390,7 @@
                   'dsInstanceDn'     : 'cn=Zroot' ,
                   'dsInstancePswd'   : 'PrivsRule' ,
                   'taskID'           : '3.6' ,
-                  'backupDir'        : '%s/privileges/' % logsRemoteDataDir ,
+                  'backupDir'        : '%s/privileges/' % remote.data ,
                   'expectedRC'       : 50
                 }
                 </call>
@@ -420,7 +420,7 @@
                   'dsInstanceDn'     : 'cn=Zroot' ,
                   'dsInstancePswd'   : 'PrivsRule'  ,
                   'taskID'           : '3.7' ,
-                  'backupDir'        : '%s/privileges/' % logsRemoteDataDir
+                  'backupDir'        : '%s/privileges/' % remote.data
                 }
                 </call>
                      

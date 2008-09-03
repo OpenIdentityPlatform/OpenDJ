@@ -98,7 +98,7 @@
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
                   'taskID'              : STAXCurrentTestcase,
-                  'ldifFile'            : '%s/privileges/privileges_restore_task/restore_task.ldif' % logsRemoteDataDir
+                  'ldifFile'            : '%s/privileges/privileges_restore_task/restore_task.ldif' % remote.data
                 }
                 </call>
                 
@@ -112,7 +112,7 @@
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                   'taskID'              : '6' ,
-                  'backupDir'           : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir
+                  'backupDir'           : '%s/privileges/privileges_restore_task/' % remote.data
                 }
                 </call>
                 
@@ -125,7 +125,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'     : '%s/privileges/privileges_restore_task/del_entry.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'     : '%s/privileges/privileges_restore_task/del_entry.ldif' % remote.data }
                 </call>
     
                 <message>
@@ -169,7 +169,7 @@
                     'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules',
                     'taskID'           : '6.1',
-                    'backupDir'        : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir,
+                    'backupDir'        : '%s/privileges/privileges_restore_task/' % remote.data,
                     'expectedRC'       : 50
                   }
                 </call>
@@ -203,7 +203,7 @@
                     'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules',
                     'taskID'           : '6.2',
-                    'backupDir'        : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir
+                    'backupDir'        : '%s/privileges/privileges_restore_task/' % remote.data
                   }
                 </call>
                 
@@ -288,7 +288,7 @@
                   'dsInstanceDn'        : 'cn=Aroot' ,
                   'dsInstancePswd'      : 'PrivsRule' ,
                   'taskID'              : STAXCurrentTestcase,
-                  'ldifFile'            : '%s/privileges/privileges_restore_task/restore_task.ldif' % logsRemoteDataDir
+                  'ldifFile'            : '%s/privileges/privileges_restore_task/restore_task.ldif' % remote.data
                 }
                 </call>
                 
@@ -302,7 +302,7 @@
                   'dsInstanceDn'        : 'cn=Aroot' ,
                   'dsInstancePswd'      : 'PrivsRule' ,
                   'taskID'              : '6.3' ,
-                  'backupDir'           : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir
+                  'backupDir'           : '%s/privileges/privileges_restore_task/' % remote.data
                 }
                 </call>
                 
@@ -315,7 +315,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'cn=Aroot' ,
                     'dsInstancePswd'        : 'PrivsRule' ,
-                    'entryToBeModified'     : '%s/privileges/privileges_restore_task/del_entry.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'     : '%s/privileges/privileges_restore_task/del_entry.ldif' % remote.data }
                 </call>
     
                 <message>
@@ -359,7 +359,7 @@
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
                     'taskID'           : '6.4',
-                    'backupDir'        : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir,
+                    'backupDir'        : '%s/privileges/privileges_restore_task/' % remote.data,
                     'expectedRC'       : 50
                   }
                 </call>
@@ -389,7 +389,7 @@
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
                     'taskID'           : '6.5',
-                    'backupDir'        : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir
+                    'backupDir'        : '%s/privileges/privileges_restore_task/' % remote.data
                   }
                 </call>
                 
@@ -459,7 +459,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : 'cn=Aroot' ,
                     'dsInstancePswd'      : 'PrivsRule' ,
-                    'entryToBeAdded'      : '%s/privileges/add_new_root_user.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'      : '%s/privileges/add_new_root_user.ldif' % remote.data }
                 </call>
     
                 <message>
@@ -472,7 +472,7 @@
                   'dsInstanceDn'        : 'cn=Aroot' ,
                   'dsInstancePswd'      : 'PrivsRule' ,
                   'taskID'              : STAXCurrentTestcase,
-                  'ldifFile'            : '%s/privileges/privileges_restore_task/restore_task.ldif' % logsRemoteDataDir
+                  'ldifFile'            : '%s/privileges/privileges_restore_task/restore_task.ldif' % remote.data
                 }
                 </call>
                 
@@ -486,7 +486,7 @@
                   'dsInstanceDn'        : 'cn=Zroot' ,
                   'dsInstancePswd'      : 'PrivsRule' ,
                   'taskID'              : '6.6' ,
-                  'backupDir'           : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir
+                  'backupDir'           : '%s/privileges/privileges_restore_task/' % remote.data
                 }
                 </call>
                 
@@ -499,7 +499,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'cn=Aroot' ,
                     'dsInstancePswd'        : 'PrivsRule' ,
-                    'entryToBeModified'     : '%s/privileges/privileges_restore_task/del_entry.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'     : '%s/privileges/privileges_restore_task/del_entry.ldif' % remote.data }
                 </call>
     
                 <message>
@@ -543,7 +543,7 @@
                     'dsInstanceDn'     : 'cn=Zroot' ,
                     'dsInstancePswd'   : 'PrivsRule' ,
                     'taskID'           : '6.7',
-                    'backupDir'        : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir,
+                    'backupDir'        : '%s/privileges/privileges_restore_task/' % remote.data,
                     'expectedRC'       : 50
                   }
                 </call>
@@ -573,7 +573,7 @@
                     'dsInstanceDn'     : 'cn=Zroot' ,
                     'dsInstancePswd'   : 'PrivsRule' ,
                     'taskID'           : '6.8',
-                    'backupDir'        : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir
+                    'backupDir'        : '%s/privileges/privileges_restore_task/' % remote.data
                   }
                 </call>
                 

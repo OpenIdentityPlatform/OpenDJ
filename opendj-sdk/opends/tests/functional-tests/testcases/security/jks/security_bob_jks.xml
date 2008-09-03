@@ -71,7 +71,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/jks/jks_startup.ldif' % logsRemoteDataDir,
+                'entryToBeAdded'   : '%s/security/jks/jks_startup.ldif' % remote.data,
                 'extraParams'      : '-Z -X' }
             </call>
 
@@ -106,7 +106,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/jks/modrdn/a1_modrdn.ldif' % logsRemoteDataDir ,
+                'entryToBeModified'   : '%s/security/jks/modrdn/a1_modrdn.ldif' % remote.data ,
                 'extraParams'      : '-Z -X' }
             </call>
 
@@ -141,7 +141,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/jks/add/bin_a1_in.ldif' % logsRemoteDataDir ,
+                'entryToBeModified'   : '%s/security/jks/add/bin_a1_in.ldif' % remote.data ,
                 'extraParams'      : '-Z -X' }
             </call>
 
@@ -176,7 +176,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/jks/mod/bin_a1_mod.ldif' % logsRemoteDataDir ,
+                'entryToBeModified'   : '%s/security/jks/mod/bin_a1_mod.ldif' % remote.data ,
                 'extraParams'      : '-Z -X' }
             </call>
 
@@ -211,7 +211,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/jks/del/bin_a1_out.ldif' % logsRemoteDataDir ,
+                'entryToBeModified'   : '%s/security/jks/del/bin_a1_out.ldif' % remote.data ,
                 'extraParams'      : '-Z -X' }
             </call>
 

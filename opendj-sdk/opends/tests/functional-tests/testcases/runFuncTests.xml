@@ -29,173 +29,98 @@
   <defaultcall function="main" />
   <function name="main">
     <sequence>
+
       <!--- Load the environment for the test suite execution -->
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
-      <call function="'loadEnvironment'" />
+      <call function="'loadGlobalEnvironment'" />
 
-      <!-- The Functional Tests -->
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/security/security.xml' % TESTS_DIR" />
-      <!--
-      add keyword 'main_security' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
-      -->
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/aci/aci.xml' % TESTS_DIR" />
-      <!--
-      add keyword 'main_aci' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
-      -->
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/privileges/privileges.xml' % TESTS_DIR" />
-      <!--
-      add keyword 'main_privileges' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
-      -->
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/dsconfig/dsconfig.xml' % TESTS_DIR" />
-      <!--
-      add keyword 'main_dsconfig' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
-      -->
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/backends/backends.xml' % TESTS_DIR" />
-      <!--
-      add keyword 'main_backends' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
-      -->
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/clu/clu.xml' % TESTS_DIR" />
-      <!--
-      add keyword 'main_clu' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
-      -->
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/core/core.xml' % TESTS_DIR" />
-      <!--
-      add keyword 'main_core' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
-      -->
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/schema/schema.xml' % TESTS_DIR" />
-      <!--
-      add keyword 'main_schema' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
-      -->
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/replication/replication.xml' % TESTS_DIR" />
-      <!--
-      add keyword 'main_replication' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
-      -->
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/indexes/indexes.xml' % TESTS_DIR" />
-      <!--
-      add keyword 'main_indexes' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
-      -->
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/groups/groups.xml' % TESTS_DIR" />
-      <!--
-      add keyword 'main_groups' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
-      -->
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/logging/logging.xml' % (TESTS_DIR)" />
-      <!--
-      add keyword 'main_logging' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
-      -->
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/plugins/plugins.xml' % (TESTS_DIR)" />
-      <!--
-      add keyword 'main_plugins' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
-      -->
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/tasks/tasks.xml' % (TESTS_DIR)" />
-      <!--
-      add keyword 'main_tasks' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
-      -->
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/virtualAttributes/virtualAttributes.xml' % (TESTS_DIR)" />
-      <!--
-      add keyword 'main_virtualAttributes' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
-      -->
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/monitoring/monitoring.xml' % (TESTS_DIR)" />
-      <!--
-      add keyword 'main_monitoring' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
-      -->
-      
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/dsml/dsml.xml' % (TESTS_DIR)" />
-      <!--
-      add keyword 'main_dsml' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
-      -->
-      
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/setup/setup.xml' % (TESTS_DIR)" />
-      <!--
-      add keyword 'main_setup' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
-      -->
-      
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/snmp/snmp.xml' % TESTS_DIR" />
-      <!--
-      add keyword 'main_snmp' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
-      -->
-      
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/i18n/i18n.xml' % TESTS_DIR" />
-      <!--
-      add keyword 'main_i18n' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
-      -->
-      
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/sample/sample.xml' % TESTS_DIR" />
+      <!-- Build list of test groups to run -->
       <script>
-        # this function return a well-formatted testcase name
-        def getTestCaseName(name):
-          return '%s: %s: %s' % (CurrentTestPath['group'],CurrentTestPath['suite'],name)
+        noOfChildren=0
 
-        # this functions adds a known issue to a testcase's known issues list
-        issuesList=[]
-        def knownIssue(issue):
-          issuesList.append(issue)
-
-        class functionToRun:
+        class groupToRun:
           def __init__(self, name):
             self.name = name
 
           def getName(self):
             return self.name
 
-        testlog=open('%s/tests-log.xml' % logsTestsDir,'w')
+        testlog=open('%s/tests-log.xml' % logs.tests,'w')
         testlog.write('&lt;qa&gt;\n')
         testlog.write('  &lt;functional-tests&gt;\n')
         testlog.write('    &lt;results&gt;\n')
         testlog.close()
 
-        suitesFileName='%s/testcases/run-custom-suites.dat' % TESTS_DIR
+        groupsFileName='%s/testcases/run-custom-suites.dat' % TESTS_DIR
 
-        if not os.path.exists(suitesFileName):
-          suitesFileName='%s/testcases/run-default-suites.dat' % TESTS_DIR
+        if not os.path.exists(groupsFileName):
+          groupsFileName='%s/testcases/run-default-suites.dat' % TESTS_DIR
 
-        f = open(suitesFileName, 'r')
-        functionsToRun = []
+        f = open(groupsFileName, 'r')
+        groupsToRun = []
         for line in f.readlines():
-          functionsToRun.append(functionToRun(line.rstrip()))
+
+          if line.startswith('#'):
+            continue
+          else:
+            groupsToRun.append(groupToRun(line.rstrip()))
         f.close()
       </script>
-      <iterate var="function" in="functionsToRun">
+
+      <!-- TODO: If no groupsToRun then iterate will throw exception -->
+      <iterate var="group" in="groupsToRun" >
+
         <sequence>
-          <message>'calling function [%s]' % function.getName()</message>
-          <call function="function.getName()" />
+        
+          <message>'calling job %s' % group.getName()</message>
+                
+          <!-- The job that executes the tests -->
+          <script>
+            STAXParentID=STAXJobID
+          </script>
+          <message>'STAXParentID= %s' % STAXParentID</message>
+
+          <job name="'%s: %s, %s, %s' % (STAXParentID,STAF_REMOTE_HOSTNAME,TEST_OS_STRING,group.getName())" monitor="1" clearlogs="'Enabled'" logtcstartstop="'Enabled'">
+            <job-file>
+              '%s/testcases/%s/%s.xml' % (TESTS_DIR,group.getName(),group.getName())
+            </job-file>
+            <job-function>
+              'main_%s' % group.getName()
+            </job-function>
+            <job-function-args eval='1'>
+              STAXParentID
+            </job-function-args>        
+            <job-scriptfiles machine="STAF_LOCAL_HOSTNAME">
+              STAXJobScriptFiles
+            </job-scriptfiles>
+            <job-action>
+              <log>
+                'Started sub-job %s on %s' % (STAXSubJobID,STAF_LOCAL_HOSTNAME)
+              </log>
+            </job-action>
+          </job>
+    
+          <if expr="RC == 0">
+            <sequence>
+              <message>
+                'Sub-job %s completed. Result: %s' % (STAXSubJobID, STAXResult)
+              </message>
+              <script>
+                noOfChildren=noOfChildren+1
+              </script>
+            </sequence>
+            <else>
+              <sequence>
+                <message log="1" level="'Error'">
+                  'Sub-job %s could not be started. RC: %s Result: %s' % (STAXSubJobID,RC,STAFResult)
+                </message>
+              </sequence>
+            </else>
+          </if>
+      
         </sequence>
+        
       </iterate>
 
       <!-- in this section we'll compute the coverage for all the tests
@@ -203,7 +128,10 @@
            so far I could only get through this on either machines with a lot
            of memory or small sets of tests
       -->
-      <if expr="os.path.exists('%s/lib/emma.jar' % dsPath)">
+      <script>
+        emmaJar='%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+      </script>
+      <if expr="os.path.exists(emmaJar)">
         <sequence>
           <script>
             coverageFiles=''
@@ -211,11 +139,11 @@
               coverageFiles+='%s/coverage/%s/coverage.ec' % (TMPDIR,group)
           </script>
           <call function="'runCommand'">
-            { 'name'      : 'Generate global coverage xml report',
-              'command'   : 'java',
-              'arguments' : ' -Xms64M -Xmx1024M -cp %s/lib/emma.jar emma report -r xml,html -in %s/coverage.em,%s -Dreport.xml.out.file=%s/coverage/coverage.xml -Dreport.html.out.file=%s/coverage/coverage.html -sp %s/../../../src' % (dsPath,dsPath,coverageFiles,TMPDIR,TMPDIR,TMPDIR),
-              'path'      : TMPDIR
-            }
+              { 'name'      : 'Generate global coverage xml report',
+                'command'   : 'java',
+                'arguments' : ' -Xms64M -Xmx1024M -cp %s emma report -r xml,html -in %s/coverage.em,%s -Dreport.xml.out.file=%s/coverage/coverage.xml -Dreport.html.out.file=%s/coverage/coverage.html -sp %s/../../../src' % (emmaJar,dsPath,coverageFiles,TMPDIR,TMPDIR,TMPDIR),
+                'path'      : TMPDIR
+              }
           </call>
           <script>
             from java.io import FileInputStream
@@ -238,7 +166,7 @@
                 if thisNodeAttributes.getNamedItem("type").getNodeValue() == 'block, %':
                   rawCoverage = thisNodeAttributes.getNamedItem("value").getNodeValue()
                   coverage = rawCoverage.split('%')[0]
-            testlog=open('%s/tests-log.xml' % logsTestsDir,'a')
+            testlog=open('%s/tests-log.xml' % logs.tests,'a')
             testlog.seek(0,2)
             testlog.write("      &lt;all&gt;\n")
             testlog.write("        &lt;coverage&gt;\n")
@@ -250,7 +178,7 @@
         </sequence>
         <else>
           <script>
-            testlog=open('%s/tests-log.xml' % logsTestsDir,'a')
+            testlog=open('%s/tests-log.xml' % logs.tests,'a')
             testlog.seek(0,2)
             testlog.write("      &lt;all&gt;\n")
             testlog.write("        &lt;coverage&gt;\n")
@@ -354,7 +282,7 @@
         except NameError,details:
             ServerJVMString=ServerJVMVersion
 
-        testlog=open('%s/tests-log.xml' % logsTestsDir,'a')
+        testlog=open('%s/tests-log.xml' % logs.tests,'a')
         testlog.seek(0,2)
         testlog.write('    &lt;/results&gt;\n')
         testlog.write('    &lt;identification&gt;\n')
@@ -383,13 +311,16 @@
         testlog.write('        %s\n' % ServerJVMVendor)
         testlog.write('      &lt;/jvm-vendor&gt;\n')
         testlog.write('      &lt;tests-dir&gt;\n')
-        testlog.write('        %s\n' % logsDir)
+        testlog.write('        %s\n' % logs.directory)
         testlog.write('      &lt;/tests-dir&gt;\n')
         testlog.write('    &lt;/identification&gt;\n')
         testlog.write('  &lt;/functional-tests&gt;\n')
         testlog.write('&lt;/qa&gt;\n')
         testlog.close()
       </script>
+      
+      <return>noOfChildren</return>
+
     </sequence>
   </function>
 </stax>

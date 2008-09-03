@@ -54,7 +54,7 @@
           
           <!--- Define default value for template -->
           <script>
-            task = '%s/clu/disconnect.ldif' % logsRemoteDataDir
+            task = '%s/clu/disconnect.ldif' % remote.data
           </script>
           
           <!--- Test Case information

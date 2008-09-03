@@ -166,7 +166,7 @@
           separator=':'
 
         opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE)
-        snmpPath='%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir)
+        snmpPath='%s/snmp' % remote.java
         jdmk_jarfile='%s/jdmkrt.jar' % snmpPath
 
         emma_jarfile='%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
@@ -190,7 +190,7 @@
         'command'    : '%s/bin/java' % JAVA_HOME ,
         'arguments'  : '%s %s' % (STAFCmd, STAFCmdParams) ,
         'location'   : location ,
-        'path'       : '%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir),
+        'path'       : '%s/snmp' % remote.java,
         'env'        : env ,
         'expectedRC' : expectedRC
         }
@@ -334,7 +334,7 @@
           separator=':'
 
         opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE)
-        snmpPath='%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir)
+        snmpPath='%s/snmp' % remote.java
         jdmk_jarfile='%s/jdmkrt.jar' % snmpPath
 
         emma_jarfile='%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
@@ -358,7 +358,7 @@
         'command'    : '%s/bin/java' % JAVA_HOME ,
         'arguments'  : '%s %s' % (STAFCmd, STAFCmdParams) ,
         'location'   : location ,
-        'path'       : '%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir),
+        'path'       : '%s/snmp' % remote.java,
         'env'        : env ,
         'expectedRC' : expectedRC
         }
@@ -466,7 +466,7 @@
           separator=':'
 
         opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE)
-        snmpPath='%s/%s/snmp' % (DIRECTORY_INSTANCE_DIR, relativeJavaDir)
+        snmpPath='%s/snmp' % remote.java
         jdmk_jarfile='%s/jdmkrt.jar' % snmpPath
         cp = 'CLASSPATH=%s%s%s%s%s%s.' \
         % (opends_jarfile,separator,jdmk_jarfile,separator,jstaf_jarfile,separator)

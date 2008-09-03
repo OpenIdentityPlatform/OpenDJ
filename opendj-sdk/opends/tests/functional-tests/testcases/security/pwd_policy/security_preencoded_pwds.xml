@@ -107,7 +107,7 @@
    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
    'entryToBeAdded'   : '%s/security/pwd_policy/add_entry_preencoded_pwd.ldif' \
-                        % logsRemoteDataDir ,
+                        % remote.data ,
    'expectedRC'       : 53 }
    </call>
 
@@ -185,7 +185,7 @@
    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
    'entryToBeAdded'   : '%s/security/pwd_policy/add_entry_preencoded_pwd.ldif' \
-                        % logsRemoteDataDir }
+                        % remote.data }
    </call>
 
              <call function="'SearchObject'">

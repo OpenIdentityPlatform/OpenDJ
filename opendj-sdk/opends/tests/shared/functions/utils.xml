@@ -641,11 +641,11 @@
         class Test:
           def __init__(self, group, suite, fullname, start, stop, failures, successes, issues, duration):
             self.message=[]
-            self.log='%s/test.log'      % logsTempDir
-            self.errors='%s/error.log'   % logsTempDir
-            self.access='%s/access.log' % logsTempDir
+            self.log='%s/test.log'      % local.temp
+            self.errors='%s/error.log'   % local.temp
+            self.access='%s/access.log' % local.temp
             for f in [self.log,self.errors,self.access]:
-              if os.path.exists(logsTempDir):
+              if os.path.exists(local.temp):
                 fh=open(f,'w')
                 fh.write('')
                 fh.close()
@@ -816,7 +816,7 @@
             thisTest.appendLog(logType, _log)
         
         # save to test log
-        testlog=open('%s/tests-log.xml' % logsTestsDir,'a')
+        testlog=open('%s/tests-log.xml' % logs.tests,'a')
         testlog.seek(0,2)
         testlog.write(thisTest.toXML())
         testlog.close()
@@ -903,7 +903,7 @@
         FormattedTestgroup=FormattedTestcase.group(ThisGroupName)         
         FormattedTestsuite=FormattedTestcase.suite(ThisSuiteName)
              
-        TestLogDir= '%s/%s' % (logsTestsDir,FormattedTestgroup)
+        TestLogDir= '%s/%s' % (logs.tests,FormattedTestgroup)
         TestLogFile='%s/%s' % (TestLogDir,FormattedTestsuite) 
       </script>
                   
@@ -938,8 +938,8 @@
         #       the reason for that is that the topology is created AFTER the
         #       first test group has started (as part of the first setup)
         #       the following groups are going to use the same topology
-        mylog="::coverage - checking for %s/lib/emma.jar\n" % dsPath
-        if os.path.exists('%s/lib/emma.jar' % dsPath):
+        mylog="::coverage - checking for %s/%s/lib/emma.jar\n" % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+        if os.path.exists('%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)):
           mylog+="  ::coverage on\n"
           if not os.path.exists('%s/coverage' % TMPDIR):
             os.mkdir('%s/coverage' % TMPDIR)
@@ -947,8 +947,8 @@
           if not os.path.exists('%s/coverage/%s' % (TMPDIR,CurrentTestPath['group'])):
             os.mkdir('%s/coverage/%s' % (TMPDIR,CurrentTestPath['group']))
             mylog+="    ::mkdir %s/coverage/%s on\n" % (TMPDIR,CurrentTestPath['group'])
-          mylog+="  ::writing to %s/classes/emma.properties" % dsPath
-          coveragefh = open( '%s/classes/emma.properties' % dsPath, 'w' )
+          mylog+="  ::writing to %s/%s/classes/emma.properties" % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+          coveragefh = open( '%s/%s/classes/emma.properties' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME), 'w' )
           coveragefh.write( 'coverage.out.file=%s/coverage/%s/coverage.ec\n' % (TMPDIR,CurrentTestPath['group']) )
           coveragefh.close()
       </script>
@@ -976,13 +976,21 @@
       </script>
       
       <message>'##### %s group postamble #####' % ThisGroupName</message>
-      
-      <if expr="os.path.exists('%s/lib/emma.jar' % dsPath)">
+
+      <script>
+        emmaJar='%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+        coverageEm='%s/%s/coverage.em' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+        coverageEc='%s/coverage/%s/coverage.ec' % (TMPDIR,CurrentTestPath['group'])
+        coverageXml='%s/coverage/%s/coverage.xml' % (TMPDIR,CurrentTestPath['group'])
+        coverageHtml='%s/coverage/%s/coverage.html' % (TMPDIR,CurrentTestPath['group'])
+      </script>
+            
+      <if expr="os.path.exists(emmaJar)">
         <sequence>
           <call function="'runCommand'">
             { 'name'      : 'Generate coverage xml report for test group %s' % CurrentTestPath['group'],
               'command'   : 'java',
-              'arguments' : ' -Xms64M -Xmx512M -cp %s/lib/emma.jar emma report -r xml,html -in %s/coverage.em,%s/coverage/%s/coverage.ec -Dreport.xml.out.file=%s/coverage/%s/coverage.xml -Dreport.html.out.file=%s/coverage/%s/coverage.html -sp %s/../../../src' % (dsPath,dsPath,TMPDIR,CurrentTestPath['group'],TMPDIR,CurrentTestPath['group'],TMPDIR,CurrentTestPath['group'],TMPDIR),
+              'arguments' : ' -Xms64M -Xmx512M -cp %s emma report -r xml,html -in %s,%s -Dreport.xml.out.file=%s -Dreport.html.out.file=%s -sp %s/../../../src' % (emmaJar,coverageEm,coverageEc,coverageXml,coverageHtml,TMPDIR),
               'path'      : TMPDIR
             }
           </call>
@@ -1007,7 +1015,7 @@
                 if thisNodeAttributes.getNamedItem("type").getNodeValue() == 'block, %':
                   rawCoverage = thisNodeAttributes.getNamedItem("value").getNodeValue()
                   coverage = rawCoverage.split('%')[0]
-            testlog=open('%s/tests-log.xml' % logsTestsDir,'a')
+            testlog=open('%s/tests-log.xml' % logs.tests,'a')
             testlog.seek(0,2)
             testlog.write("      &lt;group&gt;\n")
             testlog.write("        &lt;name&gt;\n")
@@ -1022,7 +1030,7 @@
         </sequence>
         <else>
           <script>
-            testlog=open('%s/tests-log.xml' % logsTestsDir,'a')
+            testlog=open('%s/tests-log.xml' % logs.tests,'a')
             testlog.seek(0,2)
             testlog.write("      &lt;group&gt;\n")
             testlog.write("        &lt;name&gt;\n")
@@ -1487,9 +1495,9 @@
         
         if not env:
           if is_windows_platform(location):
-            env=['PATH=C:\Windows;C:\Windows\system32;%s' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+            env=['PATH=C:\Windows;C:\Windows\system32;%s' % path, 'JAVA_HOME=%s' % JAVA_HOME]
           else:
-            env=['PATH=/bin:/usr/bin:%s' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+            env=['PATH=/bin:/usr/bin:%s' % path, 'JAVA_HOME=%s' % JAVA_HOME]
       </script>
       <message>
         '%s: Running command:\n %s %s\nlocation: %s\nenv: %s\nworkdir: %s' % (_id,command,arguments,location,env,path)
@@ -1859,7 +1867,7 @@
           refFile   = '%s.ref' % tmpName  
         
         if not refPath:
-          refPath = '%s/%s' % (logsLocalDataDir,FormattedTestgroup)
+          refPath = '%s/%s' % (local.data,FormattedTestgroup)
         
         if not diffFile:
           regexp    = re.compile('\..*$')
@@ -1867,7 +1875,7 @@
           diffFile   = '%s.diff' % tmpName  
         
         if not diffPath:
-          diffPath = '%s/%s/diffs' % (logsTestsDir,FormattedTestgroup)
+          diffPath = '%s/%s/diffs' % (logs.tests,FormattedTestgroup)
         else:
           diffPath = '%s/diffs' % (diffPath)
           
@@ -2014,14 +2022,6 @@
     </function-map-args>
     
     <sequence>
-      <call function="'ResolveVar'" >
-        { 
-        'location' : location ,
-        'type'     : 'STRING',
-        'name'     : 'STAF/Env/JAVA_HOME'
-        }
-      </call>
-      <script>local_java_home = '%s' % STAFResult</script>
 
       <!-- Build the command -->
       <script>
@@ -2036,7 +2036,7 @@
           cp = 'CLASSPATH=.'
         
         if location == STAXServiceMachine:
-          cmd = '%s/bin/javac' % local_java_home
+          cmd = '%s/bin/javac' % LOCAL_JAVA_HOME
           env = ['%s' % cp]        
         else:
           cmd = '%s/bin/javac' % JAVA_HOME

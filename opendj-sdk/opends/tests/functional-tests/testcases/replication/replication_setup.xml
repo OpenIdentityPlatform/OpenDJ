@@ -114,7 +114,7 @@
             client = _topologyServerList[0]
             clientHost = client.getHostname()
             clientPath = '%s/%s' % (client.getDir(),OPENDSNAME)
-            clientDataDir = '%s/%s' % (client.getDir(),relativeDataDir)
+            clientDataDir = '%s/%s' % (client.getDir(),remote.reldatadir)
              
             server1 = _topologyServerList[0]
             server2 = _topologyServerList[1]          
@@ -123,7 +123,7 @@
             masterHost = master.getHostname()
             masterReplicationServer = master.getChangelogServer()
             masterPath = '%s/%s' % (master.getDir(),OPENDSNAME)
-            masterDataDir = '%s/%s' % (master.getDir(),relativeDataDir)
+            masterDataDir = '%s/%s' % (master.getDir(),remote.reldatadir)
             synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()
             masterBackupDir = '%s/replication/master_backup' % masterDataDir
             

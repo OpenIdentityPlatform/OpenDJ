@@ -59,7 +59,7 @@
               'Create a backup of the data in OpenDS to be used in the restore testcase'
             </message>
             <call function="'backup'">
-              { 'backupDir' : '%s/backends/backup1' % logsRemoteDataDir
+              { 'backupDir' : '%s/backends/backup1' % remote.data
               }
             </call>
             <call function="'checktestRC'">
@@ -103,7 +103,7 @@
               </call>
               
               <call function="'restore'">
-                { 'backupDir' : '%s/backends/backup1' % logsRemoteDataDir
+                { 'backupDir' : '%s/backends/backup1' % remote.data
                 }
               </call>
               
@@ -173,7 +173,7 @@
               </call>
               
               <call function="'backup'">
-                { 'backupDir'       : '%s/restore.compressed' % logsRemoteDataDir
+                { 'backupDir'       : '%s/restore.compressed' % remote.data
                 }
               </call>
               <call function="'checktestRC'">

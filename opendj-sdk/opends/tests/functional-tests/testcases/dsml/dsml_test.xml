@@ -86,7 +86,10 @@
                 familyList=STAFResult
                 # The subversion folder could be present, if so remove it
                 if familyList.count != 0:
-                  familyList.remove('.svn')
+                  try:
+                    familyList.remove('.svn')
+                  except ValueError:
+                    print "List element .svn does not exist"
                 import re
                 import base64
                 runFileRE = re.compile( 'dat$')

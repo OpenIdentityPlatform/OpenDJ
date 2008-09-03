@@ -139,7 +139,7 @@
                       'srcfolder'  : '%s/replication/master_backup' \
                                      % masterDataDir,
                       'destfolder' : '%s/%s/replication/master_backup' \
-                                     % (consumer.getDir(),relativeDataDir),
+                                     % (consumer.getDir(),remote.reldatadir),
                       'extension'  : '*'
                     }
                   </call>
@@ -152,7 +152,7 @@
                     { 'location'  : consumer.getHostname(),
                       'dsPath'    : '%s/%s' % (consumer.getDir(), OPENDSNAME),
                       'backupDir' : '%s/%s/replication/master_backup' \
-                                    % (consumer.getDir(),relativeDataDir)
+                                    % (consumer.getDir(),remote.reldatadir)
                     }
                   </call>
                 </sequence>
@@ -320,7 +320,7 @@
                       'srcfolder'  : '%s/replication/master_backup_online' \
                                      % masterDataDir,
                       'destfolder' : '%s/%s/replication/master_backup_online' \
-                                     % (consumer.getDir(),relativeDataDir),
+                                     % (consumer.getDir(),remote.reldatadir),
                       'extension'  : '*'
                     }
                   </call>
@@ -338,7 +338,7 @@
                       'dsInstancePswd' : consumer.getRootPwd(),
                       'taskID'         : 'restore task',
                       'backupDir'   : '%s/%s/replication/master_backup_online' \
-                                      % (consumer.getDir(),relativeDataDir)
+                                      % (consumer.getDir(),remote.reldatadir)
                     }
                   </call>
                 </sequence>

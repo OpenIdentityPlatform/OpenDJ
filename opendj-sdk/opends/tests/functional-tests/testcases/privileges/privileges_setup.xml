@@ -105,7 +105,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/privileges/privileges_startup.ldif' % logsRemoteDataDir }
+                  'entryToBeAdded'   : '%s/privileges/privileges_startup.ldif' % remote.data }
               </call>
     
               <call function="'checkRC'">

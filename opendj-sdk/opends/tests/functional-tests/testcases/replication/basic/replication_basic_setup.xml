@@ -50,13 +50,13 @@
 
       <script>      
         filename = 'replication_add_root_suffix.ldif'
-        filePath = '%s/%s' % (logsTestDataDir,filename)
+        filePath = '%s/%s' % (local.data,filename)
         write_replication_add_root_suffix_ldif_file(filePath, synchroSuffix)
       </script>
 
       <!-- Copy the replication_add_root_suffix ldif to client host -->
       <message>
-        'Copy %s file from %s to %s' % (filename,logsTestDataDir,clientDataDir)
+        'Copy %s file from %s to %s' % (filename,local.data,clientDataDir)
       </message>
       <call function="'copyFile'">
         { 'srcfile'    : filePath,
@@ -66,13 +66,13 @@
 
       <script>
         filename = 'replication_add_single.ldif'
-        filePath = '%s/%s' % (logsTestDataDir,filename)
+        filePath = '%s/%s' % (local.data,filename)
         write_replication_add_single_ldif_file(filePath, synchroSuffix)               
       </script>
 
       <!-- Copy the replication_add_single ldif to client host -->
       <message>
-        'Copy %s file from %s to %s' % (filename,logsTestDataDir,clientDataDir)
+        'Copy %s file from %s to %s' % (filename,local.data,clientDataDir)
       </message>
       <call function="'copyFile'">
         { 'srcfile'    : filePath,
@@ -82,13 +82,13 @@
                   
       <script>
         filename = 'replication_add_multiple.ldif'
-        filePath = '%s/%s' % (logsTestDataDir,filename)
+        filePath = '%s/%s' % (local.data,filename)
         write_replication_add_multiple_ldif_file(filePath, synchroSuffix)               
       </script>
 
       <!-- Copy the replication_add_multiple ldif to client host -->
       <message>
-        'Copy %s file from %s to %s' % (filename,logsTestDataDir,clientDataDir)
+        'Copy %s file from %s to %s' % (filename,local.data,clientDataDir)
       </message>
       <call function="'copyFile'">
         { 'srcfile'    : filePath,
@@ -98,14 +98,14 @@
       
       <script>
         filename = 'replication_mod.ldif'
-        filePath = '%s/%s' % (logsTestDataDir,filename)
+        filePath = '%s/%s' % (local.data,filename)
         write_replication_mod_ldif_file(filePath, entryDn, mod_type, attr_type,
                                         attr_value)
       </script>
 
       <!-- Copy the replication_mod ldif to client host -->
       <message>
-        'Copy %s file from %s to %s' % (filename,logsTestDataDir,clientDataDir)
+        'Copy %s file from %s to %s' % (filename,local.data,clientDataDir)
       </message>
       <call function="'copyFile'">
         { 'srcfile'    : filePath,

@@ -56,7 +56,7 @@
           <script>
             basedn = 'ou=ldapmodify,o=clu tests,dc=example,dc=com'
             dsfilename = '%s/clu/ldapmodify_checkbehavior.ldif' \
-            % logsRemoteDataDir
+            % remote.data
           </script>
           
           <!--- Test Case information

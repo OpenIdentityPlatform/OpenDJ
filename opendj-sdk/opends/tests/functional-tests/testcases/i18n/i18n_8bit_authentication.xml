@@ -55,7 +55,7 @@
             'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
             'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
             'entryToBeAdded'   : '%s/i18n/8-bit/base64/I18n_Authentication_Test.base64.ldif' \
-                                   % logsRemoteDataDir ,
+                                   % remote.data ,
             'expectedRC'       : 0
             }
           </call>
@@ -150,7 +150,7 @@
                 'dsInstanceDn'     : 'cn=Bill, ou=Authentication Tests, o=Çándide Rùiz' ,
                 'dsInstancePswd'   : 'siröé' ,
                 'entryToBeAdded'   : '%s/i18n/8-bit/base64/Authentication.tp2.base64.ldif' \
-                                     % logsRemoteDataDir ,
+                                     % remote.data ,
                 'expectedRC'       : 0
                 }
                 </call>
@@ -192,7 +192,7 @@
                 'dsInstanceDn'     : 'cn=Çándide, ou=Authentication Tests, o=Çándide Rùiz' ,
                 'dsInstancePswd'   : 'siroe' ,
                 'entryToBeAdded'   : '%s/i18n/8-bit/base64/Authentication.tp3.add.base64.ldif' \
-                                     % logsRemoteDataDir ,
+                                     % remote.data ,
                 'expectedRC'       : 0
                 }
               </call>
@@ -208,7 +208,7 @@
                 'dsInstanceDn'     : 'cn=Çándide, ou=Authentication Tests, o=Çándide Rùiz' ,
                 'dsInstancePswd'   : 'siroe' ,
                 'entryToBeModified': '%s/i18n/8-bit/base64/Authentication.tp3.mod.base64.ldif' \
-                                      % logsRemoteDataDir ,
+                                      % remote.data ,
                 'expectedRC'       : 0
                 }
               </call>
@@ -224,7 +224,7 @@
                 'dsInstanceDn'     : 'cn=Çándide, ou=Authentication Tests, o=Çándide Rùiz' ,
                 'dsInstancePswd'   : 'siroe' ,
                 'entryToBeModified': '%s/i18n/8-bit/base64/Authentication.tp3.del.base64.ldif' \
-                                      % logsRemoteDataDir ,
+                                      % remote.data ,
                 'expectedRC'       : 50
                 }
               </call>
@@ -266,7 +266,7 @@
                     'dsInstanceDn'     : 'cn=Rôséñe, ou=Authentication Tests, o=Çándide Rùiz' ,
                     'dsInstancePswd'   : 'siröé' ,
                     'entryToBeModified': '%s/i18n/8-bit/base64/Authentication.tp4.base64.ldif' \
-                                          % logsRemoteDataDir ,
+                                          % remote.data ,
                     'expectedRC'       : 0
                     }
                   </call>
@@ -312,7 +312,7 @@
                     'dsInstanceDn'     : 'cn=Rôséñe, ou=Authentication Tests, o=Çándide Rùiz' ,
                     'dsInstancePswd'   : 'siröé' ,
                     'entryToBeModified': '%s/i18n/8-bit/base64/Authentication.tp5.base64.ldif' \
-                                          % logsRemoteDataDir ,
+                                          % remote.data ,
                     'expectedRC'       : 50
                     }
                   </call>

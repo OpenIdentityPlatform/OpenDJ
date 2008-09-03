@@ -70,14 +70,14 @@
               'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
               'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'ldifFile'  :  '%s/tasks/export_asynchronous' % logsRemoteDataDir,
+              'ldifFile'  :  '%s/tasks/export_asynchronous' % remote.data,
               'startTask'  : '0',
               'backEnd'   : 'userRoot'}
             </call>
             <message>'--- Check log files export_asynchronous ---'</message>
             <call function="'listFolder'">
               { 'location'   : '%s' % (STAF_REMOTE_HOSTNAME),
-              'foldername' : '%s/tasks' % logsRemoteDataDir,
+              'foldername' : '%s/tasks' % remote.data,
               'filename'   : 'export_asynchronous' 
               }
             </call>     
@@ -118,7 +118,7 @@
               'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
               'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'ldifFile'  :  '%s/tasks/export_synchronous' % logsRemoteDataDir,
+              'ldifFile'  :  '%s/tasks/export_synchronous' % remote.data,
               'backEnd'   : 'userRoot'}
             </call>
             
@@ -147,7 +147,7 @@
             <message>'--- Check log files ---'</message>
             <call function="'listFolder'">
               { 'location'   : '%s' % (STAF_REMOTE_HOSTNAME),
-              'foldername' : '%s/tasks' % logsRemoteDataDir,
+              'foldername' : '%s/tasks' % remote.data,
               'filename'   : 'export_synchronous'
               }
             </call>
@@ -186,7 +186,7 @@
               'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
               'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'ldifFile'  :  '%s/tasks/export_schedule_asynchronous' % logsRemoteDataDir,
+              'ldifFile'  :  '%s/tasks/export_schedule_asynchronous' % remote.data,
               'startTask'  : '20061212000000',
               'backEnd'   : 'userRoot'}
             </call>
@@ -194,7 +194,7 @@
             <message>'--- Check log files export_asynchronous ---'</message>
             <call function="'listFolder'">
               { 'location'   : '%s' % (STAF_REMOTE_HOSTNAME),
-              'foldername' : '%s/tasks' % logsRemoteDataDir,
+              'foldername' : '%s/tasks' % remote.data,
               'filename'   : 'export_schedule_asynchronous'
               }
             </call>     

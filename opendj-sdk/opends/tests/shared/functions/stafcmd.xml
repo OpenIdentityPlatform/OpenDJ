@@ -513,13 +513,13 @@
       </function-arg-def>
       <function-arg-def name="type" type="required">
         <function-arg-description>
-          Name of file to be deleted
+          Type of variable
         </function-arg-description>
         <function-arg-property name="type" value="variable"/>
       </function-arg-def>       
       <function-arg-def name="variable" type="required">
         <function-arg-description>
-          Name of file to be deleted
+          Name of variable
         </function-arg-description>
         <function-arg-property name="type" value="variable"/>
       </function-arg-def> 

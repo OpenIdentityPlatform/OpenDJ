@@ -78,7 +78,7 @@
                   '------ Load LDIF : groups.ldif'
                 </message>
                 <call function="'importLdif'">
-                  { 'ldifFile'    : '%s/groups/groups.ldif' % logsRemoteDataDir }
+                  { 'ldifFile'    : '%s/groups/groups.ldif' % remote.data }
                 </call>
                 <call function="'checkRC'">
                   { 'returncode' : RC ,

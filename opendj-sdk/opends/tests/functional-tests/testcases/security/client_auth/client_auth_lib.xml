@@ -42,7 +42,7 @@
     <script>
           SERVER_KEYPASS="servercert"
           SERVER_STOREPASS="servercert"
-          CERT_TMP="%s/CERT_%s" % (logsRemoteDataDir,DIRECTORY_INSTANCE_PORT)
+          CERT_TMP="%s/CERT_%s" % (remote.data,DIRECTORY_INSTANCE_PORT)
           CLIENT_KEYSTORE="%s/keystore" % (CERT_TMP)
           CLIENT_KEYPASS="password"
           CLIENT_STOREPASS="password"    
@@ -57,10 +57,10 @@
           SERVER_CERT_FILE="%s/server_cert.txt" % (CERT_TMP)
           user1LdifFileName='user1_cert.ldif'
           user2LdifFileName='user2_cert.ldif'
-          remoteUser1LdifFile='%s/%s/../%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,relativeDataDir,user1LdifFileName)
-          remoteUser2LdifFile='%s/%s/../%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,relativeDataDir,user2LdifFileName)
-          localUser1LdifFile='%s/%s' % (logsTempDir,user1LdifFileName)
-          localUser2LdifFile='%s/%s' % (logsTempDir,user2LdifFileName)          
+          remoteUser1LdifFile='%s/%s' % (remote.data,user1LdifFileName)
+          remoteUser2LdifFile='%s/%s' % (remote.data,user2LdifFileName)
+          localUser1LdifFile='%s/%s' % (local.temp,user1LdifFileName)
+          localUser2LdifFile='%s/%s' % (local.temp,user2LdifFileName)          
      </script>
     </sequence>
     </function>

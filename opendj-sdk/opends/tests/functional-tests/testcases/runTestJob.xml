@@ -89,12 +89,21 @@
       </job>
       
       <if expr="RC == 0">
-        <message>
-          'Sub-job %s completed. Result: %s' % (STAXSubJobID, STAXResult)
-        </message>
+        <sequence>
+          <message>
+            'Sub-job %s completed. Children: %s' % (STAXSubJobID, STAXResult)
+          </message>
+
+          <script>
+            noOfChildren=int(STAXResult)
+            firstChild=int(STAXSubJobID)+1
+          </script>
+        </sequence>
         <else>
           <sequence>
-            <message log="1" level="'Error'">'Sub-job %s could not be started. RC: %s Result: %s' % (STAXSubJobID,RC,STAFResult)</message>
+            <message log="1" level="'Error'">
+              'Sub-job %s could not be started. RC: %s Result: %s' % (STAXSubJobID,RC,STAFResult)
+            </message>
             <return>1</return>
           </sequence>
         </else>
@@ -201,36 +210,49 @@
 
       </script>
       
-      <message>'Server= %s' % ServerInfoDict </message>     
-                        
-      <stafcmd name="'STAF Command: Log Query All'">
-        <location>'%s' % STAF_LOCAL_HOSTNAME </location>
-        <service>'log'</service>
-        <request>
-          'QUERY ALL MACHINE %s LOGNAME STAX_Job_%s' % (STAXServiceMachine,STAXSubJobID)
-        </request>
-      </stafcmd>
-      
-      <if expr="RC == 0">
-        <sequence>
+      <message>'Server= %s' % ServerInfoDict </message>
+      <script>
+        thisChild=firstChild
+        resultQuery=[]
+      </script>
+      <loop from="1" to="noOfChildren">
+        <sequence>                              
+          <stafcmd name="'STAF Command: Log Query All'">
+            <location>'%s' % STAF_LOCAL_HOSTNAME </location>
+            <service>'log'</service>
+            <request>
+              'QUERY ALL MACHINE %s LOGNAME STAX_Job_%s' % (STAXServiceMachine,thisChild)
+            </request>
+          </stafcmd>
+          
+          <if expr="RC == 0">
+            <sequence>
+              <script>
+                resultQuery.extend(STAFResult)
+              </script>
+              <message>
+                'Log Query on STAX_Job_%s Completed. RC=%s' % (thisChild,RC)
+              </message>
+            </sequence>
+            <else>
+              <sequence>
+                <message log="1" level="'Error'">
+                  'Unable to perform log query on STAX_Job_%s. RC: %s Result: %s' % (thisChild,RC,STAFResult)
+                </message>
+                <return>1</return>
+              </sequence>
+            </else>
+          </if>
           <script>
-            resultQuery= STAFResult
+            thisChild=thisChild+1
           </script>
-          <message>
-            'Log Query on STAX_Job_%s Completed. RC=%s' % (STAXSubJobID,RC)
-          </message>
         </sequence>
-        <else>
-          <sequence>
-            <message log="1" level="'Error'">
-              'Unable to perform log query on STAX_Job_%s. RC: %s Result: %s' % (STAXSubJobID,RC,STAFResult)
-            </message>
-            <return>1</return>
-          </sequence>
-        </else>
-      </if>
-      
-      <!-- Get logsDir Variable -->
+      </loop>
+
+      <!-- TODO: Print this for now to see result of result query map -->
+      <message>'Result Query Map = %s' % resultQuery</message>
+
+      <!-- Get the location of where the test logs are -->
       <call function="'GetVar'">
         { 'location'  : STAF_REMOTE_HOSTNAME,
           'type'      : 'shared',

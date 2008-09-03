@@ -28,8 +28,17 @@
 <stax>
   <defaultcall function="main_indexes" />
   <function name="main_indexes">
+    <function-list-args>
+      <function-required-arg name="STAXParentID"/>
+    </function-list-args>
     <block name="'indexes'">
       <sequence>
+        <!--- Load the job environment for the test group execution -->
+        <import machine="STAF_LOCAL_HOSTNAME"
+                file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
+        <call function="'loadJobEnvironment'">
+             { 'parent' : STAXParentID }
+        </call>
         <script>
           CurrentTestPath={'group':'indexes','suite':'indexes'}
           envAlreadyLoaded='true'

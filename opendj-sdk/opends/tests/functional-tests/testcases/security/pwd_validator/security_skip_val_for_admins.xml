@@ -399,7 +399,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/%s' % (logsRemoteDataDir,ldifpath) }
+                'entryToBeModified' : '%s/%s' % (remote.data,ldifpath) }
             </call>
             -->
             <call function="'testCase_Postamble'"/>

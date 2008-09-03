@@ -75,7 +75,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_enable_sasl_anon.ldif' % logsRemoteDataDir }
+                'entryToBeModified'   : '%s/security/sasl/admin_enable_sasl_anon.ldif' % remote.data }
             </call>
             -->
             <call function="'testCase_Postamble'"/>
@@ -154,7 +154,7 @@
                 'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_disable_sasl_anon.ldif' % logsRemoteDataDir }
+                'entryToBeModified'   : '%s/security/sasl/admin_disable_sasl_anon.ldif' % remote.data }
             </call>
             -->
 

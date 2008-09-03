@@ -83,7 +83,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD  ,
-                    'entryToBeAdded'      : '%s/security/pwd_policy_root/add_new_root_user.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'      : '%s/security/pwd_policy_root/add_new_root_user.ldif' % remote.data }
                 </call>
             
                 <message>

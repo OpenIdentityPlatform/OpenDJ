@@ -2600,7 +2600,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                     'dsInstancePswd'      : 'ACIRules'  ,
-                    'entryToBeModified'   : '%s/privileges/addmozobj.ldif' % logsRemoteDataDir ,
+                    'entryToBeModified'   : '%s/privileges/addmozobj.ldif' % remote.data ,
                     'expectedRC'          : 50
                   }
                 </call>
@@ -2614,7 +2614,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeAdded'   : '%s/privileges/add_entry_with_new_objclass.ldif' % logsRemoteDataDir ,
+                    'entryToBeAdded'   : '%s/privileges/add_entry_with_new_objclass.ldif' % remote.data ,
                     'expectedRC'       : 65
                   }
                 </call>
@@ -2643,7 +2643,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                     'dsInstancePswd'      : 'ACIRules'  ,
-                    'entryToBeModified'   : '%s/privileges/addmozobj.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/privileges/addmozobj.ldif' % remote.data }
                 </call>
     
                 <message>
@@ -2678,7 +2678,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeAdded'   : '%s/privileges/add_entry_with_new_objclass.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/privileges/add_entry_with_new_objclass.ldif' % remote.data }
                 </call>
                 
                 <message>

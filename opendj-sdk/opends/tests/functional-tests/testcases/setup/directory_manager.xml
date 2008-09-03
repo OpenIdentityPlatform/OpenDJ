@@ -124,7 +124,7 @@
             DM_I1_ROOT = '%s/%s' % (DM_I1_BASE, OPENDSNAME)
             DM_I2_BASE = '%s/dm_i2' % (OUT_GROUP)
             DM_I2_ROOT = '%s/%s' % (DM_I2_BASE, OPENDSNAME)
-            DM_O1_LDIF = '%s/setup/dm-o1.ldif' % logsRemoteDataDir
+            DM_O1_LDIF = '%s/setup/dm-o1.ldif' % remote.data
           </script>
           
           
@@ -603,7 +603,7 @@
           <script>
             DM_I3_BASE = '%s/dm_i3' % (OUT_GROUP)
             DM_I3_ROOT = '%s/%s' % (DM_I3_BASE, OPENDSNAME)
-            DM_PASSWD_FILE = '%s/setup/pwd.ldif' % logsRemoteDataDir
+            DM_PASSWD_FILE = '%s/setup/pwd.ldif' % remote.data
           </script>
           
           <call function="'testCase_Preamble'"/>

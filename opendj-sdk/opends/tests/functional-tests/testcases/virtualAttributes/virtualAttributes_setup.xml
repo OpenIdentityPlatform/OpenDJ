@@ -79,7 +79,7 @@
                 </message>
                 <call function="'importLdif'">
                   {'ldifFile' : '%s/virtualAttributes/virtualAttributes.ldif'
-                                % logsRemoteDataDir }
+                                % remote.data }
                 </call>
                 <call function="'checkRC'">
                   { 'returncode' : RC ,

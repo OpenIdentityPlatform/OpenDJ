@@ -455,7 +455,7 @@
                 'dsInstanceDn'   : applicationDn,
                 'dsInstancePswd' : applicationPswd,
                 'dsFilename'     : '%s/virtualAttributes/ldif_mod.ldif' \
-                                   % logsRemoteDataDir,
+                                   % remote.data,
                 'expectedRC'     : 21
               }
               </call>

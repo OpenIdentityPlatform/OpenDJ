@@ -107,7 +107,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/aci/aci_startup.ldif' % logsRemoteDataDir }
+                  'entryToBeAdded'   : '%s/aci/aci_startup.ldif' % remote.data }
               </call>
     
               <call function="'checkRC'">

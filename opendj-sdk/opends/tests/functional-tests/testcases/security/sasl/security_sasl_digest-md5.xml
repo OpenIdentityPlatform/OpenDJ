@@ -1930,7 +1930,7 @@
                 'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_del_realm.ldif' % logsRemoteDataDir }
+                'entryToBeModified'   : '%s/security/sasl/admin_del_realm.ldif' % remote.data }
             </call>
 
             <message>
