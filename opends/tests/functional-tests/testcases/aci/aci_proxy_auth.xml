@@ -255,7 +255,7 @@
               
               <script>
                   curr_aci_ldif_file = 'add_proxy_aci.ldif'
-                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
               </script>
         
               <message>
@@ -267,7 +267,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
               <if expr="RC != 0">
@@ -308,7 +308,7 @@
                   'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % logsRemoteDataDir }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % remote.data }
               </call>
   
               <if expr="RC != 0">
@@ -371,7 +371,7 @@
 
               <script>
                   curr_aci_ldif_file = 'add_user_aci_all.ldif'
-                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
               </script>
         
               <message>
@@ -383,7 +383,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
               <if expr="RC != 0">
@@ -470,7 +470,7 @@
               
               <script>
                   curr_aci_ldif_file = 'add_proxy_aci.ldif'
-                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
               </script>
         
               <message>
@@ -482,7 +482,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
               <if expr="RC != 0">
@@ -554,7 +554,7 @@
                   'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % logsRemoteDataDir }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % remote.data }
               </call>
   
               <if expr="RC != 0">
@@ -616,7 +616,7 @@
 
               <script>
                   curr_aci_ldif_file = 'add_user_aci_add.ldif'
-                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
               </script>
         
               <message>
@@ -628,7 +628,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
               <if expr="RC != 0">
@@ -709,7 +709,7 @@
               
               <script>
                   curr_aci_ldif_file = 'add_proxy_aci.ldif'
-                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
               </script>
         
               <message>
@@ -721,7 +721,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
               <if expr="RC != 0">
@@ -787,7 +787,7 @@
                   'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % logsRemoteDataDir }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % remote.data }
               </call>
   
               <if expr="RC != 0">
@@ -850,7 +850,7 @@
 
               <script>
                   curr_aci_ldif_file = 'add_user_aci_search.ldif'
-                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
               </script>
         
               <message>
@@ -862,7 +862,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
               <if expr="RC != 0">
@@ -949,7 +949,7 @@
               
               <script>
                   curr_aci_ldif_file = 'add_proxy_aci.ldif'
-                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
               </script>
         
               <message>
@@ -961,7 +961,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
               <if expr="RC != 0">
@@ -1033,7 +1033,7 @@
                   'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % logsRemoteDataDir }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % remote.data }
               </call>
   
               <if expr="RC != 0">
@@ -1097,7 +1097,7 @@
 
               <script>
                   curr_aci_ldif_file = 'add_user_aci_search_sep.ldif'
-                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
               </script>
         
               <message>
@@ -1109,7 +1109,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
               <if expr="RC != 0">
@@ -1196,7 +1196,7 @@
               
               <script>
                   curr_aci_ldif_file = 'add_proxy_aci.ldif'
-                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
               </script>
         
               <message>
@@ -1208,7 +1208,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
               <if expr="RC != 0">
@@ -1280,7 +1280,7 @@
                   'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % logsRemoteDataDir }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % remote.data }
               </call>
   
               <if expr="RC != 0">
@@ -1296,7 +1296,7 @@
                   'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci2.ldif' % logsRemoteDataDir }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci2.ldif' % remote.data }
               </call>
   
               <if expr="RC != 0">
@@ -1360,7 +1360,7 @@
 
               <script>
                   curr_aci_ldif_file = 'add_user_aci_all_wildcard.ldif'
-                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
               </script>
         
               <message>
@@ -1372,7 +1372,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
               <if expr="RC != 0">
@@ -1465,7 +1465,7 @@
               
               <script>
                   curr_aci_ldif_file = 'add_proxy_aci.ldif'
-                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
               </script>
         
               <message>
@@ -1477,7 +1477,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
               <if expr="RC != 0">
@@ -1555,7 +1555,7 @@
                   'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % logsRemoteDataDir }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % remote.data }
               </call>
   
               <if expr="RC != 0">
@@ -1619,7 +1619,7 @@
 
               <script>
                   curr_aci_ldif_file = 'add_user_aci_all.ldif'
-                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
               </script>
         
               <message>
@@ -1631,7 +1631,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
               <if expr="RC != 0">
@@ -1718,7 +1718,7 @@
               
               <script>
                   curr_aci_ldif_file = 'add_proxy_aci_wildcard.ldif'
-                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
               </script>
         
               <message>
@@ -1730,7 +1730,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
               <if expr="RC != 0">
@@ -1802,7 +1802,7 @@
                   'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % logsRemoteDataDir }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % remote.data }
               </call>
   
               <if expr="RC != 0">
@@ -1866,7 +1866,7 @@
 
               <script>
                   curr_aci_ldif_file = 'add_user_aci_all.ldif'
-                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
               </script>
         
               <message>
@@ -1878,7 +1878,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
               <if expr="RC != 0">
@@ -1991,7 +1991,7 @@
               
               <script>
                   curr_aci_ldif_file = 'add_proxy_aci.ldif'
-                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
               </script>
         
               <message>
@@ -2003,7 +2003,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
               <if expr="RC != 0">
@@ -2071,7 +2071,7 @@
                   'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % logsRemoteDataDir }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % remote.data }
               </call>
   
               <if expr="RC != 0">
@@ -2136,7 +2136,7 @@
 
               <script>
                   curr_aci_ldif_file = 'add_user_aci_all.ldif'
-                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
               </script>
         
               <message>
@@ -2148,7 +2148,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
               <if expr="RC != 0">
@@ -2243,7 +2243,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/add_proxy_auth_dm.ldif' % (logsRemoteDataDir) }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/add_proxy_auth_dm.ldif' % (remote.data) }
               </call>
   
               <if expr="RC != 0">
@@ -2252,7 +2252,7 @@
 
               <script>
                   curr_aci_ldif_file = 'add_proxy_aci_dm.ldif'
-                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
               </script>
         
               <message>
@@ -2264,7 +2264,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
               <if expr="RC != 0">
@@ -2342,7 +2342,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_proxy_auth_dm.ldif' % (logsRemoteDataDir) }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_proxy_auth_dm.ldif' % (remote.data) }
               </call>
   
               <if expr="RC != 0">
@@ -2358,7 +2358,7 @@
                   'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % logsRemoteDataDir }
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % remote.data }
               </call>
   
               <if expr="RC != 0">

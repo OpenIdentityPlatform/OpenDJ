@@ -149,7 +149,7 @@
                       'srcfile'    : '%s/replication/master_export.ldif' \
                                      % masterDataDir,
                       'destfile'   : '%s/%s/replication/master_export.ldif' \
-                                     % (consumer.getDir(),relativeDataDir)
+                                     % (consumer.getDir(),remote.reldatadir)
                     }
                   </call>
 
@@ -162,7 +162,7 @@
                       'dsPath'     : '%s/%s' % (consumer.getDir(), OPENDSNAME),
                       'dsBackEnd'  : 'userRoot',  
                       'dsLdifFile' : '%s/%s/replication/master_export.ldif' \
-                                     % (consumer.getDir(),relativeDataDir)
+                                     % (consumer.getDir(),remote.reldatadir)
                     }
                   </call>                                 
                 </sequence>
@@ -340,8 +340,8 @@
                   <script>
                     filename = 'master_export_online_ldif'
                     destinationFile = '%s/%s/replication/%s'\
-                                      % (consumer.getDir(),relativeDataDir,
-                                         filename)
+                                      % (consumer.getDir(),remote.reldatadir,
+                                          filename)
                   </script>
 
                   <call function="'copyFile'">

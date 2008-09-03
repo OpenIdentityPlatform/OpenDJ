@@ -47,7 +47,7 @@
                 'dsInstanceDn'     : 'uid=bhall, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -j %s/security/bind_no_pwd/bhall.pwd' % logsRemoteDataDir }
+                'extraParams'      : '-s base -j %s/security/bind_no_pwd/bhall.pwd' % remote.data }
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -68,7 +68,7 @@
                 'dsInstanceDn'     : 'uid=bhall, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir,
+                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % remote.data,
                 'expectedRC'       : 53 }
             </call>
 
@@ -111,7 +111,7 @@
                 'dsInstanceDn'     : 'uid=bhall, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -j %s/security/bind_no_pwd/bhall.pwd' % logsRemoteDataDir }
+                'extraParams'      : '-s base -j %s/security/bind_no_pwd/bhall.pwd' % remote.data }
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -132,7 +132,7 @@
                 'dsInstanceDn'     : 'uid=bhall, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir }
+                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % remote.data }
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -153,7 +153,7 @@
                 'dsInstanceDn'     : 'uid=tmason, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir }
+                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % remote.data }
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -174,7 +174,7 @@
                 'dsInstanceDn'     : 'uid=Anybody, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir }
+                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % remote.data }
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -208,7 +208,7 @@
                 'dsInstanceDn'     : 'uid=bhall, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir,
+                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % remote.data,
                 'expectedRC'       : 53 }        
             </call>
 

@@ -55,9 +55,9 @@
           <!--- Define default value for basedn, dsfilename, filter files -->
           <script>
             basedn = 'ou=ldapsearch,o=clu tests,dc=example,dc=com'
-            dsfilename = '%s/clu/clu_start.ldif' % logsRemoteDataDir
-            filterfile  = '%s/clu/filters.ldif' % logsRemoteDataDir
-            mfilterfile = '%s/clu/multiple_filters.ldif' % logsRemoteDataDir  
+            dsfilename = '%s/clu/clu_start.ldif' % remote.data
+            filterfile  = '%s/clu/filters.ldif' % remote.data
+            mfilterfile = '%s/clu/multiple_filters.ldif' % remote.data  
           </script>
           
           <!--- Test Case information

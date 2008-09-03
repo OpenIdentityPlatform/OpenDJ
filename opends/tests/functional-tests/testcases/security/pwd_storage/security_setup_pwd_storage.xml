@@ -69,7 +69,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/pwd_storage/pwd_storage_startup.ldif' % logsRemoteDataDir }
+                'entryToBeAdded'   : '%s/security/pwd_storage/pwd_storage_startup.ldif' % remote.data }
             </call>
 
             

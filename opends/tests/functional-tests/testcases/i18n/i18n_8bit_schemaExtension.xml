@@ -81,7 +81,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeAdded'   : '%s/i18n/8-bit/Schema_extension.8859-1.ldif' \
-                                     % logsRemoteDataDir ,
+                                     % remote.data ,
                 'expectedRC'       : 21
                 }
                 </call>
@@ -112,7 +112,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeAdded'   : '%s/i18n/8-bit/UTF-8/Schema_extension.UTF-8.ldif' \
-                                     % logsRemoteDataDir ,
+                                     % remote.data ,
                 'expectedRC'       : 21
                 }
                 </call>
@@ -147,7 +147,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeAdded'   : '%s/i18n/8-bit/base64/Schema_extension.base64.ldif' \
-                                     % logsRemoteDataDir ,
+                                     % remote.data ,
                 'expectedRC'       : 0
                 }
                 </call>

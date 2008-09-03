@@ -36,12 +36,21 @@
 <stax>
   <defaultcall function="main_logging"/>
   <function name="main_logging">
+    <function-list-args>
+      <function-required-arg name="STAXParentID"/>
+    </function-list-args>
     <sequence>
       <block name="'logging'">
          <sequence>
-           <script>
-             CurrentTestPath['group']='logging'
-           </script>
+          <!--- Load the job environment for the test group execution -->
+          <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
+          <call function="'loadJobEnvironment'">
+               { 'parent' : STAXParentID }
+          </call>
+          <script>
+            CurrentTestPath['group']='logging'
+          </script>
           <call function="'testGroup_Preamble'" />        
           <!-- 'setup','rotation','retention','writer','properties','retention_properties','rotation_properties','cleanup'-->
           <iterate var="_test" in="['setup','rotation','retention','writer','properties','retention_properties','rotation_properties','cleanup']" >

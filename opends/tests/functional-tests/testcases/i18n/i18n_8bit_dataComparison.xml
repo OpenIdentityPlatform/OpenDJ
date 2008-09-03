@@ -54,7 +54,7 @@
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'extraParams'      : '-i 8859-1',
-                    'entryToBeAdded'   : '%s/i18n/8-bit/base64/Data_Comparison.tp1.base64.ldif' % logsRemoteDataDir ,
+                    'entryToBeAdded'   : '%s/i18n/8-bit/base64/Data_Comparison.tp1.base64.ldif' % remote.data ,
                     'expectedRC'       : 0 }
           </call>
           
@@ -104,7 +104,7 @@
                   </call>
                   
                   <script>
-                    RefFile = '%s/i18n/8-bit/base64/Data_Comparison.Ref.base64.ldif' % logsRemoteDataDir
+                    RefFile = '%s/i18n/8-bit/base64/Data_Comparison.Ref.base64.ldif' % remote.data
                   </script>
                   
                   <call function="'LdifDiffWithScript-new'">

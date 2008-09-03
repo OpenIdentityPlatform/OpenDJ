@@ -74,7 +74,7 @@
                     'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                     'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                     'taskID'         : '1',
-                    'ldifFile'       : '%s/backends/ExportTasks1.ldif' % logsRemoteDataDir
+                    'ldifFile'       : '%s/backends/ExportTasks1.ldif' % remote.data
                   }
                 </call>
                 <call function="'checktestRC'">

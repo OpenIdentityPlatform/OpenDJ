@@ -151,6 +151,15 @@
         True = 1
         False = 0     
 
+        # this function return a well-formatted testcase name
+        def getTestCaseName(name):
+          return '%s: %s: %s' % (CurrentTestPath['group'],CurrentTestPath['suite'],name)
+
+        # this functions adds a known issue to a testcase's known issues list
+        issuesList=[]
+        def knownIssue(issue):
+          issuesList.append(issue)
+                
         DSCONFIG = 'dsconfig'       
         DSREPLICATION = 'dsreplication'   
           
@@ -272,111 +281,201 @@
         
   </function>
 
-  <function name="SetLogsDir">
+  <function name="SetFolders">
     <function-prolog>
-      This function sets the directory to which logs are written  
+      This function sets the folders to which test data are written.  
     </function-prolog>
+    <function-map-args>
+      <function-arg-def name="sourceDir" type="required">
+        <function-arg-description>
+          A locally accessable directory to the tests source
+        </function-arg-description>
+        <function-arg-property name="type" value="structure"/>
+      </function-arg-def>
+      <function-arg-def name="localDir" type="required">
+        <function-arg-description>
+          A locally accessable directory to write test information 
+        </function-arg-description>
+        <function-arg-property name="type" value="structure"/>
+      </function-arg-def>
+      <function-arg-def name="remoteDir" type="required">
+        <function-arg-description>
+          A remotely accessable directory to write test information 
+        </function-arg-description>
+        <function-arg-property name="type" value="structure"/>
+      </function-arg-def>
+    </function-map-args>
 
     <sequence>
     
       <script>
-        logsDate=strftime("%Y%m%d-%H%M%S",localtime())
-        logsArch=DSInfo.getServerArch(DSInfo.ServerDict['system os'])
-        logsOSName=DSInfo.getServerOSName(DSInfo.ServerDict['system os'])
-        logsOS='%s-%s' % (logsOSName,logsArch)
-        logsJvm=DSInfo.getServerJavaMajorMinor(DSInfo.ServerDict['java version'])
-        logsDir='%s/%s/%s-jvm%s' % (LOGS_ROOT,logsDate,logsOS,logsJvm)
-        logsTestsDir='%s/testlogs' % logsDir
-        logsReportDir='%s/reports' % logsDir
-        logsSUTDir='%s/sutlogs' % logsDir
-        logsTestDataDir='%s/testdata' % logsDir
-        logsTempDir='%s/temp' % logsDir
-
-        relativeSharedDir='shared'
-        relativeJavaDir='%s/java' % relativeSharedDir
-        relativeDataDir='%s/data' % relativeSharedDir
-        logsLocalDataDir='%s/%s' % (logsTestDataDir,relativeDataDir)
-        logsRemoteDataDir='%s/%s' % (DIRECTORY_INSTANCE_DIR,relativeDataDir) 
+        logs   = test_env.logs(localDir)
+        source = test_env.source(sourceDir)
+        local  = test_env.data(localDir)
+        remote = test_env.data(remoteDir)                
       </script>
 
-      <message>
-        'Tests logs output set to %s' % logsDir
-      </message>
-      
-      <call function="'SetVar'">
-        { 'location'  : STAF_REMOTE_HOSTNAME,
-          'type'      : 'shared',
-          'variable'  : 'Job%s_LogsDir=%s' % (STAXJobID,logsDir) }
-      </call>
+      <message>'source.directory = %s' % source.directory</message>
+      <message>'local.directory  = %s' % local.directory</message>
+      <message>'remote.directory = %s' % remote.directory</message>
+      <message>'logs.directory   = %s' % logs.directory</message>
+                  
+      <return>
+        local.directory
+      </return>
 
+    </sequence>
+
+  </function>
+  
+  <function name="CreateFolders" scope="local">
+    <function-prolog>
+      This function sets the folders to which logs are written  
+    </function-prolog>
+
+    <sequence>
+        
       <!-- Create folders -->
-      <message>'Create folder %s' % logsReportDir</message>      
+      <message>'Create local folder %s' % logs.reports</message>      
       <call function="'createFolder'">
         { 'location' : STAF_LOCAL_HOSTNAME, 
-          'foldername' : '%s' % logsReportDir }
+          'foldername' : '%s' % logs.reports }
       </call> 
 
-      <message>'Create folder %s' % logsTempDir</message>            
+      <message>'Create local folder %s' % local.temp</message>            
       <call function="'createFolder'">
         { 'location' : STAF_LOCAL_HOSTNAME, 
-          'foldername' : '%s' % logsTempDir }
+          'foldername' : '%s' % local.temp }
       </call>   
 
-      <message>'Create folder %s' % logsSUTDir</message>
+      <message>'Create local folder %s' % logs.sut</message>
       <call function="'createFolder'">
         { 'location' : STAF_LOCAL_HOSTNAME, 
-          'foldername' : '%s' % logsSUTDir }
+          'foldername' : '%s' % logs.sut }
       </call>   
 
-      <message>'Create folder %s' % logsTestsDir</message>
+      <message>'Create local folder %s' % logs.tests</message>
       <call function="'createFolder'">
         { 'location' : STAF_LOCAL_HOSTNAME, 
-          'foldername' : '%s' % logsTestsDir }
+          'foldername' : '%s' % logs.tests }
       </call>   
       
-      <message>'Create folder %s' % logsTestDataDir</message>
+      <message>'Create local folder %s' % local.testdata</message>
       <call function="'createFolder'">
         { 'location' : STAF_LOCAL_HOSTNAME, 
-          'foldername' : '%s' % logsTestDataDir }
+          'foldername' : '%s' % local.testdata }
+      </call>
+
+      <message>'Create remote folder %s' % remote.temp</message>
+      <call function="'createFolder'">
+        { 'location' : STAF_REMOTE_HOSTNAME, 
+          'foldername' : '%s' % remote.temp }
       </call>
                                             
     </sequence>
         
   </function>  
   
-  <function name="loadEnvironment">
+  <function name="loadGlobalEnvironment">
     <function-prolog>
       This function loads the environment (libraries, functions, variables)
-    needed by the tests.
+      needed by the global test job farmer.
   </function-prolog>
     
     <sequence>
 
-    <message>
-      'Load environment for test suite execution.'  
-    </message>    
-
-    <call function="'importSharedLibraries'"/>
-    
-    <call function="'importPythonLibraries'"/>
-    
-    <call function="'initialiseGlobalVariables'"/>
-    
+      <message>
+        'Load environment for test suite execution.'  
+      </message>    
+  
+      <call function="'importSharedLibraries'"/>
+      
+      <call function="'importPythonLibraries'"/>
+      
+      <call function="'initialiseGlobalVariables'"/>
+      
       <call function="'GetDirectoryServerInformation'"/>
 
-      <call function="'SetLogsDir'"/>
-                        
-      <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult }
+      <!-- Set variables to build unique path to store data -->
+      <script>
+        # Private
+        logsDate=strftime("%Y%m%d-%H%M%S",localtime())
+        logsArch=\
+          DSInfo.getServerArch(DSInfo.ServerDict['system os'])
+        logsOSName=\
+          DSInfo.getServerOSName(DSInfo.ServerDict['system os'])
+        logsOS='%s-%s' % (logsOSName,logsArch)
+        logsJvm=\
+          DSInfo.getServerJavaMajorMinor(DSInfo.ServerDict['java version'])        
+      </script>  
+
+      <call function="'SetFolders'">
+        { 'sourceDir'  : '%s' % TESTS_ROOT,
+          'localDir'  : '%s/%s/%s-jvm%s' % (LOGS_ROOT,logsDate,logsOS,logsJvm),
+          'remoteDir' : DIRECTORY_INSTANCE_DIR }
       </call>
-        
-    
-  </sequence>  
+            
+      <call function="'SetVar'">
+        { 'location'  : STAF_REMOTE_HOSTNAME,
+          'type'      : 'shared',
+          'variable'  : 'Job%s_LogsDir=%s' % (STAXJobID,local.directory) }
+      </call>
+
+      <!-- Create the local folders to store data -->      
+      <call function="'CreateFolders'"/>
+          
+    </sequence>  
     
   </function>  
   
+  <function name="loadJobEnvironment">
+    <function-prolog>
+      This function loads the environment (libraries, functions, variables)
+      needed by the test jobs.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="parent" type="optional" default="''">
+        <function-arg-description>
+          Location of target host
+      </function-arg-description>
+      <function-arg-property name="type" value="integer"/>
+      </function-arg-def>   
+    </function-map-args>
+     
+    <sequence>
 
+      <message>
+        'Load environment for test suite execution.'  
+      </message>    
+  
+      <call function="'importSharedLibraries'"/>
+      
+      <call function="'importPythonLibraries'"/>
+      
+      <call function="'initialiseGlobalVariables'"/>
+
+      <call function="'GetVar'">
+        { 'location'  : STAF_REMOTE_HOSTNAME,
+          'type'      : 'shared',
+          'variable'  : 'Job%s_LogsDir' % parent }
+      </call>
+
+      <!-- TODO: defend against mangled STAFResult -->
+      <script>
+        parentsLogDir=STAFResult
+      </script>
+
+      <message>'%s' %  parentsLogDir</message>
+           
+      <call function="'SetFolders'">
+        { 'sourceDir'  : '%s' % TESTS_ROOT,
+          'localDir'  : '%s' % parentsLogDir,
+          'remoteDir' : DIRECTORY_INSTANCE_DIR }
+      </call>
+    
+    </sequence>  
+    
+  </function>
 
     
 </stax>

@@ -57,7 +57,7 @@
           <call function="'replication_setup'" />
           
           <script>
-            server1DataDir = '%s/%s' % (server1.getDir(),relativeDataDir)
+            server1DataDir = '%s/%s' % (server1.getDir(),remote.reldatadir)
           </script>
           
           <!--- Test Case : Total Update -->          

@@ -151,7 +151,7 @@
                   'dsInstanceDn'       : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD  ,
                   'taskID'             : STAXCurrentTestcase ,
-                  'ldifFile'           : '%s/aci/aci_import/import_task.ldif' % logsRemoteDataDir
+                  'ldifFile'           : '%s/aci/aci_import/import_task.ldif' % remote.data
                 }
                 </call>
     

@@ -83,7 +83,7 @@
               'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
               'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'ldifFile'  :  '%s/tasks/export_asynchronous' % logsRemoteDataDir,
+              'ldifFile'  :  '%s/tasks/export_asynchronous' % remote.data,
               'startTask'  : '0',
               'backEnd'   : 'userRoot',
               'expectedRC'  : 1}

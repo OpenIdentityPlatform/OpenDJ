@@ -58,7 +58,7 @@
             defSecurityFileProp = SNMP_PROPERTIES['security-agent-file']
             defSecurityLevelProp = SNMP_PROPERTIES['security-level']
             newContextProp = 'myContext'
-            newSecurityFileProp = '%s/snmp/agent.security' % logsRemoteDataDir
+            newSecurityFileProp = '%s/snmp/agent.security' % remote.data
             lowUser = 'myUser1'
             defUser = 'myUser2'
             highUser = 'myUser3'
@@ -66,7 +66,7 @@
             lowSecurityLevelProp = 'noauthnopriv'
             highSecurityLevelProp = 'authpriv'
             wrongSecurityLevelProp = 'mySecurityLevel'
-            mySecurityFile = '%s/snmp/manager.security' % logsRemoteDataDir
+            mySecurityFile = '%s/snmp/manager.security' % remote.data
             oid = 'dsServerType.1'
           </script>
 

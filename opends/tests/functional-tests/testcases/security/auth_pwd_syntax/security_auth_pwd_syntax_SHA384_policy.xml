@@ -65,7 +65,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA384_policy.ldif' % logsRemoteDataDir }
+                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA384_policy.ldif' % remote.data }
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -101,7 +101,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA384_users.ldif' % logsRemoteDataDir }
+                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA384_users.ldif' % remote.data }
             </call>
 
           
@@ -167,7 +167,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA384_user1.ldif' % logsRemoteDataDir,
+                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA384_user1.ldif' % remote.data,
                 'expectedRC'         : 65 }        
             </call>
 
@@ -219,7 +219,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA384_user2.ldif' % logsRemoteDataDir,
+                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA384_user2.ldif' % remote.data,
                'expectedRC'         : 21 }    
             </call>
 
@@ -284,7 +284,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_del_new_policy.ldif' % logsRemoteDataDir }
+                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_del_new_policy.ldif' % remote.data }
             </call>
 
             <call function="'testCase_Postamble'"/>

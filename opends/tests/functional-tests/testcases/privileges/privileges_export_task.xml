@@ -97,7 +97,7 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules' ,
                   'taskID'           : '1' ,
-                  'ldifFile'         : '%s/privileges/export_task_out.ldif' % logsRemoteDataDir ,
+                  'ldifFile'         : '%s/privileges/export_task_out.ldif' % remote.data ,
                   'expectedRC'       : 50
                 }
                 </call>
@@ -127,7 +127,7 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules' ,
                   'taskID'           : '1' ,
-                  'ldifFile'         : '%s/privileges/export_task_out.ldif' % logsRemoteDataDir ,
+                  'ldifFile'         : '%s/privileges/export_task_out.ldif' % remote.data ,
                   'expectedRC'       : 50
                 }
                 </call>
@@ -161,7 +161,7 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules' ,
                   'taskID'           : '1' ,
-                  'ldifFile'         : '%s/privileges/export_task_out.ldif' % logsRemoteDataDir
+                  'ldifFile'         : '%s/privileges/export_task_out.ldif' % remote.data
                 }
                 </call>
                 
@@ -205,7 +205,7 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules' ,
                   'taskID'           : '1.1' ,
-                  'ldifFile'         : '%s/privileges/export_task_out2.ldif' % logsRemoteDataDir ,
+                  'ldifFile'         : '%s/privileges/export_task_out2.ldif' % remote.data ,
                   'expectedRC'       : 50
                 }
                 </call>
@@ -249,7 +249,7 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'taskID'           : '1.1' ,
-                  'ldifFile'         : '%s/privileges/export_task_out3.ldif' % logsRemoteDataDir
+                  'ldifFile'         : '%s/privileges/export_task_out3.ldif' % remote.data
                 }
                 </call>
                 
@@ -278,7 +278,7 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'taskID'           : '1.2' ,
-                  'ldifFile'         : '%s/privileges/export_task_out4.ldif' % logsRemoteDataDir ,
+                  'ldifFile'         : '%s/privileges/export_task_out4.ldif' % remote.data ,
                   'expectedRC'       : 50
                 }
                 </call>
@@ -308,7 +308,7 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'taskID'           : '1.3' ,
-                  'ldifFile'         : '%s/privileges/export_task_out5.ldif' % logsRemoteDataDir
+                  'ldifFile'         : '%s/privileges/export_task_out5.ldif' % remote.data
                 }
                 </call>
                      
@@ -350,7 +350,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : 'cn=Aroot' ,
                     'dsInstancePswd'      : 'PrivsRule' ,
-                    'entryToBeAdded'      : '%s/privileges/add_new_root_user.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'      : '%s/privileges/add_new_root_user.ldif' % remote.data }
                 </call>
     
                 <message>
@@ -363,7 +363,7 @@
                   'dsInstanceDn'     : 'cn=Zroot' ,
                   'dsInstancePswd'   : 'PrivsRule' ,
                   'taskID'           : '1.4' ,
-                  'ldifFile'         : '%s/privileges/export_task_out6.ldif' % logsRemoteDataDir
+                  'ldifFile'         : '%s/privileges/export_task_out6.ldif' % remote.data
                 }
                 </call>
                 
@@ -392,7 +392,7 @@
                   'dsInstanceDn'     : 'cn=Zroot' ,
                   'dsInstancePswd'   : 'PrivsRule' ,
                   'taskID'           : '1.5' ,
-                  'ldifFile'         : '%s/privileges/export_task_out7.ldif' % logsRemoteDataDir ,
+                  'ldifFile'         : '%s/privileges/export_task_out7.ldif' % remote.data ,
                   'expectedRC'       : 50
                 }
                 </call>
@@ -422,7 +422,7 @@
                   'dsInstanceDn'     : 'cn=Zroot' ,
                   'dsInstancePswd'   : 'PrivsRule' ,
                   'taskID'           : '1.6' ,
-                  'ldifFile'         : '%s/privileges/export_task_out8.ldif' % logsRemoteDataDir
+                  'ldifFile'         : '%s/privileges/export_task_out8.ldif' % remote.data
                 }
                 </call>
                      

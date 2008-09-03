@@ -71,7 +71,7 @@
                 'Backend Backup1: Create a backup of the data in OpenDS'
               </message>
               <call function="'backup'">
-                { 'backupDir'       : '%s/backends/backup1' % logsRemoteDataDir
+                { 'backupDir'       : '%s/backends/backup1' % remote.data
                 }
               </call>
               
@@ -103,7 +103,7 @@
                 'Backend Backup2: Create an incremental backup of the data in OpenDS'
               </message>
               <call function="'backup'">
-                { 'backupDir'   : '%s/backends/backup1' % logsRemoteDataDir,
+                { 'backupDir'   : '%s/backends/backup1' % remote.data,
                   'extraParams' : '-i'
                 }
               </call>
@@ -135,7 +135,7 @@
                 'Backend Backup3: Create a backup of the data in OpenDS with a backup id'
               </message>
               <call function="'backup'">
-                { 'backupDir'   : '%s/backends/backup2' % logsRemoteDataDir,
+                { 'backupDir'   : '%s/backends/backup2' % remote.data,
                   'extraParams' : '-I 20070714142807Z'
                 }
               </call>
@@ -166,7 +166,7 @@
                 'Backend Backup4: Create an incremental backup of the data in OpenDS with a backup id'
               </message>
               <call function="'backup'">
-                { 'backupDir'   : '%s/backends/backup2' % logsRemoteDataDir,
+                { 'backupDir'   : '%s/backends/backup2' % remote.data,
                   'extraParams' : '-B 20070714142807Z -i'
                 }
               </call>
@@ -197,7 +197,7 @@
                 'Backend Backup5: Create a compressed backup of the data in OpenDS'
               </message>
               <call function="'backup'">
-                { 'backupDir'   : '%s/backends/backup1' % logsRemoteDataDir,
+                { 'backupDir'   : '%s/backends/backup1' % remote.data,
                   'extraParams' : '-c'
                 }
               </call>

@@ -197,7 +197,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/global_acis/mod_modifier_entry1.ldif' % (logsRemoteDataDir) }
+                    'entryToBeModified'   : '%s/aci/global_acis/mod_modifier_entry1.ldif' % (remote.data) }
                 </call>
     
                 <if expr="RC != 0">
@@ -773,7 +773,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/global_acis/mod_entry1.ldif' % logsRemoteDataDir ,
+                    'entryToBeModified'     : '%s/aci/global_acis/mod_entry1.ldif' % remote.data ,
                     'expectedRC'            : 50
                   }
                 </call>
@@ -808,7 +808,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/global_acis/del_entry1.ldif' % logsRemoteDataDir ,
+                    'entryToBeModified'     : '%s/aci/global_acis/del_entry1.ldif' % remote.data ,
                     'expectedRC'            : 50
                   }
                 </call>
@@ -843,7 +843,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/global_acis/modrdn_entry1.ldif' % logsRemoteDataDir ,
+                    'entryToBeModified'     : '%s/aci/global_acis/modrdn_entry1.ldif' % remote.data ,
                     'expectedRC'            : 50
                   }
                 </call>
@@ -878,7 +878,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/global_acis/mod_entry2.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'     : '%s/aci/global_acis/mod_entry2.ldif' % remote.data }
                 </call>
               
                 <call function="'testCase_Postamble'"/>

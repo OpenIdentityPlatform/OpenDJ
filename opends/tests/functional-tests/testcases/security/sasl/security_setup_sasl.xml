@@ -70,7 +70,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/sasl/sasl_startup.ldif' % logsRemoteDataDir }
+                'entryToBeAdded'   : '%s/security/sasl/sasl_startup.ldif' % remote.data }
             </call>
 
             <call function="'testCase_Postamble'"/>

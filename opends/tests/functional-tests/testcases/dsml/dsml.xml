@@ -28,8 +28,18 @@
 <stax>
   <defaultcall function="main_dsml" />  
   <function name="main_dsml">
+    <function-list-args>
+      <function-required-arg name="STAXParentID"/>
+    </function-list-args>
+
     <block name="'dsml'">
       <sequence>
+        <!--- Load the job environment for the test group execution -->
+        <import machine="STAF_LOCAL_HOSTNAME"
+                file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
+        <call function="'loadJobEnvironment'">
+             { 'parent' : STAXParentID }
+        </call>
         <script>
           CurrentTestPath['group']='dsml'
         </script>

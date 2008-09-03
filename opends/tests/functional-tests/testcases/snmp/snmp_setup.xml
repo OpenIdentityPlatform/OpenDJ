@@ -53,7 +53,7 @@
 
           <!--- Define default value for manager -->
           <script>
-            snmpPath    = '%s/../%s/snmp' % (dsPath,relativeJavaDir),
+            snmpPath    = '%s/snmp' % remote.java,
             opendmkPath = '%s/jdmkrt.jar' % snmpPath
           </script>
 
@@ -129,8 +129,7 @@
 
                   <call function="'importLdif'">
                     {
-                    'ldifFile'    : '%s/snmp/snmp_start.ldif'
-                                    % logsRemoteDataDir
+                    'ldifFile' : '%s/snmp/snmp_start.ldif' % remote.data
                     }
                   </call>
 

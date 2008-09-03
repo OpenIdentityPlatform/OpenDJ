@@ -47,7 +47,7 @@
 
           <!--- Define default value for ldifFile1, ldifFile2 and DNToMod -->
           <script>
-            logPath   = logsRemoteDataDir
+            logPath   = remote.data
             privPath  = '%s/privileges/privileges_unindexed_searches' % logPath
             ldifFile1 = '%s/50Entries.ldif' % privPath
             ldifFile2 = '%s/privileges/add_new_root_user.ldif' % logPath

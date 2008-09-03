@@ -212,7 +212,7 @@
                   'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'entryToBeAdded' : '%s/core/ldifs/mod_timelimit3.ldif' % logsRemoteDataDir
+                  'entryToBeAdded' : '%s/core/ldifs/mod_timelimit3.ldif' % remote.data
                 }
               </call>
               <call function="'checktestRC'">
@@ -280,7 +280,7 @@
                   'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'entryToBeAdded' : '%s/core/ldifs/mod_timelimit4.ldif' % logsRemoteDataDir
+                  'entryToBeAdded' : '%s/core/ldifs/mod_timelimit4.ldif' % remote.data
                 }
               </call>
               <call function="'checktestRC'">

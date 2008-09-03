@@ -28,19 +28,39 @@
 <stax>
   <defaultcall function="main_replication"/>
   <function name="main_replication">
+    <function-list-args>
+      <function-required-arg name="STAXParentID"/>
+    </function-list-args>
     <sequence>
       <block name="'replication'">
         <sequence>
+          <!--- Load the job environment for the test group execution -->
+          <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
+          <call function="'loadJobEnvironment'">
+               { 'parent' : STAXParentID }
+          </call>
           <script>
-            CurrentTestPath={}
-            envAlreadyLoaded='true'
             CurrentTestPath['group']='replication'
           </script>
           <call function="'testGroup_Preamble'"/>            
-          <iterate  var="_test" 
-                    in="['totalupdate','binarycopy','ldifimport',
-                         'resynchronization','basic','schema','failover',
-                         'encryption','changelog', 'conflict']">
+
+          <!-- List of replication test suites to run -->
+          <script>
+            testList = []
+#            testList.append('totalupdate')
+#            testList.append('binarycopy')
+#            testList.append('ldifimport')
+#            testList.append('resynchronization')
+#            testList.append('basic')
+#            testList.append('schema')
+#            testList.append('failover')
+            testList.append('encryption')
+#            testList.append('changelog')
+#            testList.append('conflict')
+          </script>
+          
+          <iterate var="_test" in="testList" >
             <sequence>
               <import machine="STAF_LOCAL_HOSTNAME"
                       file="'%s/testcases/replication/%s/%s.xml' % 

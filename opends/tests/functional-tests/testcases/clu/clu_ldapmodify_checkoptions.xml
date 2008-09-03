@@ -56,7 +56,7 @@
           <!--- Define default value for dsfilename -->
           <script>
             dsfilename = '%s/clu/ldapmodify_checkoptions.ldif' \
-            % logsRemoteDataDir
+            % remote.data
           </script>
           
           

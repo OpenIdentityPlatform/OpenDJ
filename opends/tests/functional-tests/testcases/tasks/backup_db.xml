@@ -72,7 +72,7 @@
               'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
               'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'backupDir'  :  '%s/tasks/backup_asynchronous' % logsRemoteDataDir,
+              'backupDir'  :  '%s/tasks/backup_asynchronous' % remote.data,
               'startTask'  : '0',
               'backEnd'   : 'userRoot'}
             </call>
@@ -102,7 +102,7 @@
             <message>'--- Check log files backup_asynchronous ---'</message>
             <call function="'listFolder'">
               { 'location'   : '%s' % (STAF_REMOTE_HOSTNAME),
-              'foldername' : '%s/tasks' % logsRemoteDataDir,
+              'foldername' : '%s/tasks' % remote.data,
               'filename'   : 'backup_asynchronous'
               }
             </call>     
@@ -142,14 +142,14 @@
               'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
               'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'backupDir'  :  '%s/tasks/backup_synchronous' % logsRemoteDataDir,
+              'backupDir'  :  '%s/tasks/backup_synchronous' % remote.data,
               'backEnd'   : 'userRoot'}
             </call>
             
             <message>'--- Check log files ---'</message>
             <call function="'listFolder'">
               { 'location'   : '%s' % (STAF_REMOTE_HOSTNAME),
-              'foldername' : '%s/tasks' % logsRemoteDataDir,
+              'foldername' : '%s/tasks' % remote.data,
               'filename'   : 'backup_synchronous'
               }
             </call>
@@ -189,7 +189,7 @@
               'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'startTask'  : '20061212000000',	                
-              'backupDir'  :  '%s/tasks/backup_schedule_asynchronous' % logsRemoteDataDir,
+              'backupDir'  :  '%s/tasks/backup_schedule_asynchronous' % remote.data,
               'backEnd'   : 'userRoot'}
             </call>
             
@@ -197,7 +197,7 @@
             <message>'--- Check log files backup_schedule_asynchronous ---'</message>
             <call function="'listFolder'">
               { 'location'   : '%s' % (STAF_REMOTE_HOSTNAME),
-              'foldername' : '%s/tasks' % logsRemoteDataDir,
+              'foldername' : '%s/tasks' % remote.data,
               'filename'   : 'backup_schedule_asynchronous'
               }
             </call>     

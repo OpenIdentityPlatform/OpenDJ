@@ -67,7 +67,7 @@
               'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
               'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'backupDir'  :  '%s/tasks/backup_asynchronous' % logsRemoteDataDir,
+              'backupDir'  :  '%s/tasks/backup_asynchronous' % remote.data,
               'startTask'  : '0'}
             </call>
             
@@ -101,7 +101,7 @@
               'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
               'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'backupDir'  :  '%s/tasks/backup_synchronous' % logsRemoteDataDir}
+              'backupDir'  :  '%s/tasks/backup_synchronous' % remote.data}
             </call>
 
             <!-- manage-tasks -->
@@ -157,7 +157,7 @@
               'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'startTask'  : '%s' % mydate,	                
-              'backupDir'  :  '%s/tasks/backup_schedule_asynchronous' % logsRemoteDataDir
+              'backupDir'  :  '%s/tasks/backup_schedule_asynchronous' % remote.data
               }
             </call>
             

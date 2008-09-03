@@ -280,7 +280,7 @@
                     
                   <script>
                     serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
-                    serverDataDir = '%s/%s' % (server.getDir(),relativeDataDir)
+                    serverDataDir = '%s/%s' % (server.getDir(),remote.reldatadir)
                     exportedChangelog = \
                       '%s/replication/changelog_export_online.ldif' \
                       % serverDataDir                     
@@ -403,7 +403,7 @@
                 <sequence>                    
                   <script>
                     serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
-                    serverDataDir = '%s/%s' % (server.getDir(),relativeDataDir)
+                    serverDataDir = '%s/%s' % (server.getDir(),remote.reldatadir)
                     changelogBackupDir = '%s/replication/changelog_backup' \
                                          % serverDataDir                     
                   </script>
@@ -473,7 +473,7 @@
                     
                   <script>
                     serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
-                    serverDataDir = '%s/%s' % (server.getDir(),relativeDataDir)
+                    serverDataDir = '%s/%s' % (server.getDir(),remote.reldatadir)
                     changelogBackupDir = '%s/replication/changelog_backup' \
                                          % serverDataDir                     
                   </script>
@@ -707,7 +707,7 @@
                 <sequence>                    
                   <script>
                     serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
-                    serverDataDir = '%s/%s' % (server.getDir(),relativeDataDir)
+                    serverDataDir = '%s/%s' % (server.getDir(),remote.reldatadir)
                     changelogBackupDir = \
                       '%s/replication/changelog_backup_online' % serverDataDir                     
                   </script>
@@ -771,7 +771,7 @@
                     
                   <script>
                     serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
-                    serverDataDir = '%s/%s' % (server.getDir(),relativeDataDir)
+                    serverDataDir = '%s/%s' % (server.getDir(),remote.reldatadir)
                     changelogBackupDir = \
                       '%s/replication/changelog_backup_online' % serverDataDir
                   </script>

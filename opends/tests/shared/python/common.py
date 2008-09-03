@@ -37,7 +37,9 @@ __all__ = [ "format_testcase",
             "is_windows_platform", 
             "create_property_table", 
             "compare_property_table", 
-            "exception_thrown" ]
+            "exception_thrown",
+            "directory_server",
+            "test_env" ]
 
 class format_testcase:
   'Format the Test name objects'
@@ -233,3 +235,108 @@ def compare_property_table(refTable, newTable):
           result = result + ' should be the same.\n'
 
     return result
+
+class directory_server:
+  'Container to hold DS instance objects'
+  def __init__(self):
+    self.location=''
+    self.host=''
+    self.port=''
+    self.dn=''
+    self.password=''
+
+  def location(self,location):
+    return location
+
+  def host(self,name):
+    return name
+
+  def port(self,port):
+    return port
+
+  def dn(self,dn):
+    return dn
+
+  def password(self,pswd):
+    return pswd
+
+  def suffix(self,sfx):
+    return sfx
+
+class test_env:
+  'Container to hold test environment instance objects'
+  def __init__(self):
+    self.environment=''
+
+  class source:
+    'Container to hold source data instance objects'
+    def __init__(self,dir):
+      self.directory=dir
+      self.data='%s/functional-tests/shared/data' % dir
+      self.common='%s/shared' % dir
+      self.java='%s/java' % self.common
+
+    def get_directory(self):
+      return self.directory
+
+    def get_data(self):
+      return self.data
+
+    def get_common(self):
+      return self.common
+
+    def get_java(self):
+      return self.java
+
+  class logs:
+    'Container to hold test log instance objects'
+    def __init__(self,dir):
+      self.directory=dir
+      self.tests='%s/testlogs' % dir
+      self.reports='%s/reports' % dir
+      self.sut='%s/sutlogs' % dir
+
+    def get_directory(self):
+      return self.directory
+
+    def get_tests(self):
+      return self.tests
+
+    def get_reports(self):
+      return self.reports
+
+    def get_sut(self):
+      return self.sut
+
+  class data:
+    'Container to hold local and remote test data instance objects'
+    def __init__(self,dir):
+      self.directory=dir
+      self.testdata='%s/testdata' % dir
+      self.java='%s/java' % self.testdata
+      self.data='%s/data' % self.testdata
+      self.temp='%s/temp'  % dir
+      self.reldatadir='testdata/data'
+      self.reljavadir='testdata/java'
+
+    def get_directory(self):
+      return self.directory
+
+    def get_testdata(self):
+      return self.testdata
+
+    def get_java(self):
+      return self.java
+
+    def get_data(self):
+      return self.data
+
+    def get_temp(self):
+      return self.temp
+ 
+    def get_reldatadir(self):
+      return self.directory
+
+    def get_reljavadir(self):
+      return self.directory
+

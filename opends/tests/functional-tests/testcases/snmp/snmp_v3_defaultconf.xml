@@ -54,7 +54,7 @@
           <!--- Define default value for securityFile, securityLevel,
                 context and oid -->
           <script>
-            securityFile = '%s/snmp/manager.security' % logsRemoteDataDir
+            securityFile = '%s/snmp/manager.security' % remote.data
             securityLevel = SNMP_PROPERTIES['security-level']    
             context = SNMP_PROPERTIES['community']
             oid = 'dsServerType.1' 

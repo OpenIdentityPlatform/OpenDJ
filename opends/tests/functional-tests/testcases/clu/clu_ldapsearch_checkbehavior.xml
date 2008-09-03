@@ -56,9 +56,9 @@
           <script>
             basedn      = 'ou=ldapsearch,o=clu tests,dc=example,dc=com'
             ldifFile    = '%s/clu/ldapsearch_checkbehavior.ldif' \
-            % logsRemoteDataDir
-            filterfile  = '%s/clu/filters.ldif' % logsRemoteDataDir
-            mfilterfile = '%s/clu/multiple_filters.ldif' % logsRemoteDataDir            
+            % remote.data
+            filterfile  = '%s/clu/filters.ldif' % remote.data
+            mfilterfile = '%s/clu/multiple_filters.ldif' % remote.data            
           </script>
           
           <!--- Test Case information
@@ -519,7 +519,7 @@
                 'sourceLdif' : '%s/ldapsearch_simplepagesize_30.out' \
                                % DIRECTORY_INSTANCE_DIR ,
                 'targetLdif' : '%s/clu/ldapsearch_simplepagesize_30.ref' \
-                               % logsRemoteDataDir ,
+                               % remote.data ,
                 'outputLdif' : '%s/ldapsearch_simplepagesize_30.diff' \
                                % DIRECTORY_INSTANCE_DIR
                 }
@@ -556,7 +556,7 @@
                 'sourceLdif' : '%s/ldapsearch_simplepagesize_1.out' \
                                % DIRECTORY_INSTANCE_DIR ,
                 'targetLdif' : '%s/clu/ldapsearch_simplepagesize_1.ref' \
-                               % logsRemoteDataDir ,
+                               % remote.data ,
                 'outputLdif' : '%s/ldapsearch_simplepagesize_1.diff' \
                                % DIRECTORY_INSTANCE_DIR
                 }
@@ -634,7 +634,7 @@
                 'sourceLdif' : '%s/ldapsearch_filterfile_and_attribute.out' \
                                % DIRECTORY_INSTANCE_DIR ,
                 'targetLdif' : '%s/clu/ldapsearch_filterfile_and_attribute.ref'\
-                               % logsRemoteDataDir ,
+                               % remote.data ,
                 'outputLdif' : '%s/ldapsearch_filterfile_and_attribute.diff' \
                                % DIRECTORY_INSTANCE_DIR
                 }

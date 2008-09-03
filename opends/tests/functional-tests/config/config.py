@@ -48,6 +48,7 @@ DIRECTORY_INSTANCE_SSL_PORT = '1636'
 DIRECTORY_INSTANCE_SFX      = 'dc=com'
 DIRECTORY_INSTANCE_BE       = 'userRoot'
 JAVA_HOME                   = '/path/to/jdk'
+LOCAL_JAVA_HOME             = JAVA_HOME
 LOGS_ROOT                   = '%s' % TMPDIR
 LOGS_URI                    = ''
 SEND_MAIL_AFTER_TEST_RUN    = 'false'

@@ -271,7 +271,7 @@
             IMP_I2_BASE = '%s/imp_i2' % (OUT_GROUP)
             IMP_I2_ROOT = '%s/%s' % (IMP_I2_BASE, OPENDSNAME)
 
-            IMP_LDIF_FILE = '%s/setup/imp-o1.ldif' % logsRemoteDataDir
+            IMP_LDIF_FILE = '%s/setup/imp-o1.ldif' % remote.data
             IMP_SKIP_FILE = '%s/imp-skip.ldif' % (OUT_GROUP)
             IMP_REJECT_FILE = '%s/imp-reject.ldif' % (OUT_GROUP)
           </script>

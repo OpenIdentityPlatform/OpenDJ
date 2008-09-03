@@ -119,7 +119,7 @@
             'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
             'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
             'entryToBeAdded'   : '%s/security/pwd_policy/add_entry1.ldif' \
-                                 % logsRemoteDataDir }
+                                 % remote.data }
             </call>
 
             <message>
@@ -227,7 +227,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeAdded'   : '%s/security/pwd_policy/add_entry2.ldif' \
-                                     % logsRemoteDataDir }
+                                     % remote.data }
             </call>
 
 

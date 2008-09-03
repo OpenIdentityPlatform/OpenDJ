@@ -41,7 +41,7 @@
         -->
           
         <script>
-        path = '%s/security/pwd_validator' % logsRemoteDataDir
+        path = '%s/security/pwd_validator' % remote.data
         </script>
      
         <!--- Test Case information

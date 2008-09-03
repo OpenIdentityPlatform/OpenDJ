@@ -189,7 +189,7 @@
                       'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                       'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                       'taskID' : 'import_%s' % dsmlBaseDNs.get(baseDN)[1],
-                      'ldifFile' : '%s/dsml/ldif-files/%s' % (logsRemoteDataDir,dsmlBaseDNs.get(baseDN)[0]),
+                      'ldifFile' : '%s/dsml/ldif-files/%s' % (remote.data,dsmlBaseDNs.get(baseDN)[0]),
                       'backEnd' : '%s' % dsmlBaseDNs.get(baseDN)[1]
                     }
                   </call>

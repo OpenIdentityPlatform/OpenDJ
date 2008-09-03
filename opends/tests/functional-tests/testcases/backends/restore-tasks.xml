@@ -74,7 +74,7 @@
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'taskID'         : '4',
-                  'backupDir'      : '%s/backends/' % logsRemoteDataDir
+                  'backupDir'      : '%s/backends/' % remote.data
                 }
               </call>
               <call function="'checktestRC'">
