@@ -497,9 +497,9 @@ public class TextAccessLogPublisher
     buffer.append(abandonOperation.getOperationID());
     buffer.append(" msgID=");
     buffer.append(abandonOperation.getMessageID());
-    buffer.append(" result=");
+    buffer.append(" result=\"");
     buffer.append(abandonOperation.getResultCode());
-
+    buffer.append("\"");
     MessageBuilder msg = abandonOperation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
