@@ -84,7 +84,7 @@
         <job-file>'%s/testcases/runFuncTests.xml' % TESTS_DIR</job-file>
         <job-scriptfiles machine="STAF_LOCAL_HOSTNAME"> STAXJobScriptFiles </job-scriptfiles>
         <job-action>
-          <log>'Started sub-job %s on %s' % (STAXSubJobID,STAF_REMOTE_HOSTNAME)</log>
+          <log>'Started sub-job %s on %s, %s' % (STAXSubJobID,STAF_REMOTE_HOSTNAME,ServerOsString )</log>
         </job-action>
       </job>
       
@@ -95,8 +95,7 @@
           </message>
 
           <script>
-            noOfChildren=int(STAXResult)
-            firstChild=int(STAXSubJobID)+1
+            listOfChildren=STAXResult
           </script>
         </sequence>
         <else>
@@ -209,48 +208,8 @@
           ServerJVMString=ServerJVMVersion
 
       </script>
-      
-      <message>'Server= %s' % ServerInfoDict </message>
-      <script>
-        thisChild=firstChild
-        resultQuery=[]
-      </script>
-      <loop from="1" to="noOfChildren">
-        <sequence>                              
-          <stafcmd name="'STAF Command: Log Query All'">
-            <location>'%s' % STAF_LOCAL_HOSTNAME </location>
-            <service>'log'</service>
-            <request>
-              'QUERY ALL MACHINE %s LOGNAME STAX_Job_%s' % (STAXServiceMachine,thisChild)
-            </request>
-          </stafcmd>
-          
-          <if expr="RC == 0">
-            <sequence>
-              <script>
-                resultQuery.extend(STAFResult)
-              </script>
-              <message>
-                'Log Query on STAX_Job_%s Completed. RC=%s' % (thisChild,RC)
-              </message>
-            </sequence>
-            <else>
-              <sequence>
-                <message log="1" level="'Error'">
-                  'Unable to perform log query on STAX_Job_%s. RC: %s Result: %s' % (thisChild,RC,STAFResult)
-                </message>
-                <return>1</return>
-              </sequence>
-            </else>
-          </if>
-          <script>
-            thisChild=thisChild+1
-          </script>
-        </sequence>
-      </loop>
 
-      <!-- TODO: Print this for now to see result of result query map -->
-      <message>'Result Query Map = %s' % resultQuery</message>
+      <message>'Server= %s' % ServerInfoDict </message>
 
       <!-- Get the location of where the test logs are -->
       <call function="'GetVar'">
@@ -285,29 +244,56 @@
         { 'location'   : STAF_LOCAL_HOSTNAME, 
           'foldername' : logsReportDir }
       </call>
-     
-      <!-- Write Text File for results -->
+            
       <script>
-          textfile= '%s/results.txt' % logsReportDir
-          txtfh=open(textfile,'w')
+        resultQuery=[]
+        textfile= '%s/results.txt' % logsReportDir
+        txtfh=open(textfile,'w')
       </script>
-      
-      <iterate var="line" in="resultQuery">
+
+      <iterate var="thisChild" in="listOfChildren">
+        <sequence>                              
+          <stafcmd name="'STAF Command: Log Query All'">
+            <location>'%s' % STAF_LOCAL_HOSTNAME </location>
+            <service>'log'</service>
+            <request>
+              'QUERY ALL MACHINE %s LOGNAME STAX_Job_%s' % (STAXServiceMachine,thisChild)
+            </request>
+          </stafcmd>
+
+          <if expr="RC == 0">
+            <sequence>
+              <script>
+                resultQuery=STAFResult
+              </script>
+              <message>
+                'Log Query on STAX_Job_%s Completed. RC=%s' % (thisChild,RC)
+              </message>
+              <iterate var="line" in="resultQuery">
         
-        <script>
-          txtfh.write('%s\n' % line)
-        </script>
+                <script>
+                 txtfh.write('%s\n' % line)
+                </script>
       
-      </iterate> 
-      
+              </iterate> 
+            </sequence>
+            <else>
+              <sequence>
+                <message log="1" level="'Error'">
+                  'Unable to perform log query on STAX_Job_%s. RC: %s Result: %s' % (thisChild,RC,STAFResult)
+                </message>
+                <return>1</return>
+              </sequence>
+            </else>
+          </if>
+
+        </sequence>
+      </iterate>
+
       <script> 
         txtfh.close() 
       </script>
-      
-      <message>
-        'TEXT Report Written to %s.' % textfile
-      </message>
-      
+
       <!-- Write XML File for results -->
       <script>
         import re
@@ -321,92 +307,99 @@
       <script>
         testDict={}
         testCaseList=[]
-      </script>
-      
-      <iterate var="element" in="resultQuery">
-        <script>
-          level=element['level']
-          message=element['message']
-          timestamp=element['timestamp']
-          
-          startValueDict={}
-          stopValueDict={}
-          statusValueDict={}
-          
-          if level == 'Start':
-            tcpattern=re.compile("(Testcase): (.*)")
-            tcmatch = tcpattern.search(message)
-            if tcmatch:
-              tctype=tcmatch.group(1)
-              tcname=tcmatch.group(2)
-              if testDict.has_key(tcname):
-                for key in testDict[tcname].keys():
-                  value=testDict[tcname][key]
-                  startValueDict[key]=value
+        try:
+          txtfh=open(textfile,'r')
+        
+          try:
+            for line in txtfh.readlines():
+              element=eval(line)
+
+              level=element['level']
+              message=element['message']
+              timestamp=element['timestamp']
               
-              startValueDict['start']=timestamp
-              testDict[tcname]=startValueDict
+              startValueDict={}
+              stopValueDict={}
+              statusValueDict={}
               
-              testCaseList.append(tcname.strip())
-            
-            else:
-              errorfh.write('Warning: No match Start element %s.\n' % element)
-          
-          elif level == 'Stop':
-            
-            tcpattern=re.compile("(Testcase): (.*), ElapsedTime: (.*)")
-            tcmatch = tcpattern.search(message)
-            
-            if tcmatch:
-              tctype=tcmatch.group(1)
-              tcname=tcmatch.group(2)
-              tctime=tcmatch.group(3)
-              if testDict.has_key(tcname):
-                for key in testDict[tcname].keys():
-                  value=testDict[tcname][key]
-                  stopValueDict[key]=value
-              
-              stopValueDict['stop']=timestamp
-              stopValueDict['duration']=tctime
-              testDict[tcname]=stopValueDict
-            
-            else:
-              errorfh.write('Warning: No match Stop element %s.\n' % element)
-          
-          elif level == 'Status':
-            
-            tcpattern=re.compile("(Testcase): (.*), Pass: (.*), Fail: (.*), ElapsedTime: (.*), NumStarts: (.*)")
-            tcmatch = tcpattern.search(message)
-            
-            if tcmatch:
-              tctype=tcmatch.group(1)
-              tcname=tcmatch.group(2)
-              tcpass=tcmatch.group(3)
-              tcfail=tcmatch.group(4)
-              tctime=tcmatch.group(5)
-              tcnums=tcmatch.group(6)
-              
-              if testDict.has_key(tcname):
+              if level == 'Start':
+                tcpattern=re.compile("(Testcase): (.*)")
+                tcmatch = tcpattern.search(message)
+                if tcmatch:
+                  tctype=tcmatch.group(1)
+                  tcname=tcmatch.group(2)
+                  if testDict.has_key(tcname):
+                    for key in testDict[tcname].keys():
+                      value=testDict[tcname][key]
+                      startValueDict[key]=value
+                  
+                  startValueDict['start']=timestamp
+                  testDict[tcname]=startValueDict
+                  
+                  testCaseList.append(tcname.strip())
                 
-                for key in testDict[tcname].keys():
-                  value=testDict[tcname][key]
-                  statusValueDict[key]=value
+                else:
+                  errorfh.write('Warning: No match Start element %s.\n' % element)
               
-              statusValueDict['pass']=tcpass
-              statusValueDict['fail']=tcfail
-              testDict[tcname]=statusValueDict
-            
-            else:
-              errorfh.write('Warning: No match Status element %s.\n' % element)
-          
-          elif level == 'Info':
-            errorfh.write('Warning: Info element %s.\n' % element)
-          
-          else:
-            errorfh.write('Error: Unknown element %s.\n' % element)
-          
-        </script>
-      </iterate>
+              elif level == 'Stop':
+                
+                tcpattern=re.compile("(Testcase): (.*), ElapsedTime: (.*)")
+                tcmatch = tcpattern.search(message)
+                
+                if tcmatch:
+                  tctype=tcmatch.group(1)
+                  tcname=tcmatch.group(2)
+                  tctime=tcmatch.group(3)
+                  if testDict.has_key(tcname):
+                    for key in testDict[tcname].keys():
+                      value=testDict[tcname][key]
+                      stopValueDict[key]=value
+                  
+                  stopValueDict['stop']=timestamp
+                  stopValueDict['duration']=tctime
+                  testDict[tcname]=stopValueDict
+                
+                else:
+                  errorfh.write('Warning: No match Stop element %s.\n' % element)
+              
+              elif level == 'Status':
+                
+                tcpattern=re.compile("(Testcase): (.*), Pass: (.*), Fail: (.*), ElapsedTime: (.*), NumStarts: (.*)")
+                tcmatch = tcpattern.search(message)
+                
+                if tcmatch:
+                  tctype=tcmatch.group(1)
+                  tcname=tcmatch.group(2)
+                  tcpass=tcmatch.group(3)
+                  tcfail=tcmatch.group(4)
+                  tctime=tcmatch.group(5)
+                  tcnums=tcmatch.group(6)
+                  
+                  if testDict.has_key(tcname):
+                    
+                    for key in testDict[tcname].keys():
+                      value=testDict[tcname][key]
+                      statusValueDict[key]=value
+                  
+                  statusValueDict['pass']=tcpass
+                  statusValueDict['fail']=tcfail
+                  testDict[tcname]=statusValueDict
+                
+                else:
+                  errorfh.write('Warning: No match Status element %s.\n' % element)
+              
+              elif level == 'Info':
+                errorfh.write('Warning: Info element %s.\n' % element)
+              
+              else:
+                errorfh.write('Error: Unknown element %s.\n' % element)
+        
+          finally:
+            txtfh.close()
+        
+        except IOError:
+          errorfh.write('Error: Unable to open %s. Reason IOError.' % textfile )
+      </script>
 
       <!-- XML Report Pre -->
       <script>

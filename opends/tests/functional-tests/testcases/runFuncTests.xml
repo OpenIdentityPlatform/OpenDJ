@@ -37,7 +37,7 @@
 
       <!-- Build list of test groups to run -->
       <script>
-        noOfChildren=0
+        listOfChildren=[]
 
         class groupToRun:
           def __init__(self, name):
@@ -73,13 +73,10 @@
 
         <sequence>
         
-          <message>'calling job %s' % group.getName()</message>
-                
           <!-- The job that executes the tests -->
           <script>
             STAXParentID=STAXJobID
           </script>
-          <message>'STAXParentID= %s' % STAXParentID</message>
 
           <job name="'%s: %s, %s, %s' % (STAXParentID,STAF_REMOTE_HOSTNAME,TEST_OS_STRING,group.getName())" monitor="1" clearlogs="'Enabled'" logtcstartstop="'Enabled'">
             <job-file>
@@ -96,7 +93,7 @@
             </job-scriptfiles>
             <job-action>
               <log>
-                'Started sub-job %s on %s' % (STAXSubJobID,STAF_LOCAL_HOSTNAME)
+                'Started test group %s, child ID %s, parent ID %s on %s' % (group.getName(),STAXSubJobID,STAXParentID,STAF_LOCAL_HOSTNAME)
               </log>
             </job-action>
           </job>
@@ -104,16 +101,16 @@
           <if expr="RC == 0">
             <sequence>
               <message>
-                'Sub-job %s completed. Result: %s' % (STAXSubJobID, STAXResult)
+                'Completed test group %s, child ID %s. Result: %s' % (group.getName(),STAXSubJobID, STAXResult)
               </message>
               <script>
-                noOfChildren=noOfChildren+1
+                listOfChildren.append(STAXSubJobID)
               </script>
             </sequence>
             <else>
               <sequence>
                 <message log="1" level="'Error'">
-                  'Sub-job %s could not be started. RC: %s Result: %s' % (STAXSubJobID,RC,STAFResult)
+                  'Test group %s, child ID %s could not be started. RC: %s Result: %s' % (group.getName(),STAXSubJobID,RC,STAFResult)
                 </message>
               </sequence>
             </else>
@@ -319,7 +316,7 @@
         testlog.close()
       </script>
       
-      <return>noOfChildren</return>
+      <return>listOfChildren</return>
 
     </sequence>
   </function>
