@@ -39,7 +39,8 @@ __all__ = [ "format_testcase",
             "compare_property_table", 
             "exception_thrown",
             "directory_server",
-            "test_env" ]
+            "test_env",
+            "staf_service" ]
 
 class format_testcase:
   'Format the Test name objects'
@@ -188,7 +189,7 @@ def is_windows_platform(host):
     from com.ibm.staf import STAFResult
     import re
 
-    handle = STAFHandle("varHandle")
+    handle = STAFHandle("varHandle") 
     res = handle.submit2(host, "VAR", "GET SYSTEM VAR STAF/Config/OS/Name")
 
     winPattern=re.compile('win', re.IGNORECASE)
@@ -263,10 +264,190 @@ class directory_server:
   def suffix(self,sfx):
     return sfx
 
+class staf_service:  
+
+  def __init__(self,host,name):
+    from com.ibm.staf import STAFHandle
+    from com.ibm.staf import STAFResult
+    from com.ibm.staf import STAFMarshallingContext
+
+    __handle = STAFHandle("varHandle")
+
+    __cmd = 'QUERY SERVICE %s' % name
+    __res = __handle.submit2(host, "SERVICE", __cmd)
+    __context = STAFMarshallingContext.unmarshall(__res.result)
+    __entryMap = __context.getRootObject()
+
+    self.name=__entryMap['name']
+    self.library=__entryMap['library']
+    self.executable=__entryMap['executable']
+    self.options=__entryMap['options']
+    self.parms=__entryMap['parameters']
+
+  def get_library(self):
+    return self.library
+
+  def get_name(self):
+    return self.name
+
+  def get_executable(self):
+    return self.executable
+
+  def get_options(self):
+    return self.options
+
+  def get_parms(self):
+    return self.parms
+
 class test_env:
   'Container to hold test environment instance objects'
   def __init__(self):
     self.environment=''
+  
+  class staf:
+    'Container to hold staf objects'
+    def __init__(self,host):
+      from com.ibm.staf import STAFHandle
+      from com.ibm.staf import STAFResult
+
+      __handle = STAFHandle("varHandle")
+      __cmd = 'Version'
+      __res = __handle.submit2(host, "MISC", __cmd)      
+      self.version=__res.result
+
+      self.name='STAF'
+
+      __cmd = 'GET SYSTEM VAR STAF/Config/STAFRoot'
+      __res = __handle.submit2(host, "VAR", __cmd)
+      self.root=__res.result
+
+    def get_version(self):
+      return self.version
+
+    def get_name(self):
+      return self.name
+
+    def get_root(self):
+      return self.version
+
+  class stax(staf_service):
+    'Container to hold stax service objects'
+    def __init__(self,host,name='STAX'):
+      from com.ibm.staf import STAFHandle
+      from com.ibm.staf import STAFResult
+
+      if hasattr(staf_service, '__init__'):
+        staf_service.__init__(self,host,name)
+
+      __handle = STAFHandle("varHandle")
+
+      __cmd = 'Version'
+      __res = __handle.submit2(host, "STAX", __cmd)      
+      self.version=__res.result
+
+    def get_version(self):
+      return self.version
+
+  class event(staf_service):
+    'Container to hold event service objects'
+    def __init__(self,host,name='EVENT'):
+      from com.ibm.staf import STAFHandle
+      from com.ibm.staf import STAFResult
+
+      if hasattr(staf_service, '__init__'):
+        staf_service.__init__(self,host,name)
+
+      __handle = STAFHandle("varHandle")
+      __cmd = 'Version'
+      __res = __handle.submit2(host, "EVENT", __cmd)      
+      self.version=__res.result
+
+    def get_version(self):
+      return self.version
+
+  class eventmanager(staf_service):
+    'Container to hold event manager service objects'
+    def __init__(self,host,name='EVENTMANAGER'):
+      from com.ibm.staf import STAFHandle
+      from com.ibm.staf import STAFResult
+
+      if hasattr(staf_service, '__init__'):
+        staf_service.__init__(self,host,name)
+
+      __handle = STAFHandle("varHandle")
+      __cmd = 'Version'
+      __res = __handle.submit2(host, "EVENTMANAGER", __cmd)      
+      self.version=__res.result
+
+    def get_version(self):
+      return self.version
+
+  class email(staf_service):
+    'Container to hold email service objects'
+    def __init__(self,host,name='EMAIL'):
+      from com.ibm.staf import STAFHandle
+      from com.ibm.staf import STAFResult
+      from com.ibm.staf import STAFMarshallingContext
+
+      if hasattr(staf_service, '__init__'):
+        staf_service.__init__(self,host,name)
+
+      __handle = STAFHandle("varHandle")
+      __cmd = 'Version'
+      __res = __handle.submit2(host, "EMAIL", __cmd)      
+      self.version=__res.result
+      self.recipients= 'TODO: get from config.py'
+
+      __res = __handle.submit2(host, "EMAIL", "LIST SETTINGS")
+      __context = STAFMarshallingContext.unmarshall(__res.result)
+      __entryMap = __context.getRootObject()
+
+      self.server=__entryMap['mailServer']
+      self.port=__entryMap['port']
+
+    def get_version(self):
+      return self.version
+
+    def get_recipients(self):
+      return self.recipients
+
+    def get_server(self):
+      return self.server
+
+    def get_port(self):
+      return self.port
+
+  class http(staf_service):
+    'Container to hold http service objects'
+    def __init__(self,host,name='HTTP'):
+      from com.ibm.staf import STAFHandle
+      from com.ibm.staf import STAFResult
+
+      if hasattr(staf_service, '__init__'):
+        staf_service.__init__(self,host,name)
+
+      __handle = STAFHandle("varHandle")
+      __res = __handle.submit2(host, "HTTP", "Version")
+      self.version=__res.result
+
+    def get_version(self):
+      return self.version
+
+  class dsml(staf_service):
+    'Container to hold dsml service objects'
+    def __init__(self,host,name='DSML'):
+      from com.ibm.staf import STAFHandle
+      from com.ibm.staf import STAFResult
+
+      if hasattr(staf_service, '__init__'):
+        staf_service.__init__(self,host,name)
+
+      __handle = STAFHandle("varHandle")
+
+      self.version='Unknown'
+
+    def get_version(self):
+      return self.version
 
   class source:
     'Container to hold source data instance objects'
