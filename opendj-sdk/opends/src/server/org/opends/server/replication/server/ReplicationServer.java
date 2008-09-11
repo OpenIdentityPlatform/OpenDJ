@@ -635,7 +635,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
       replicationServers = new ArrayList<String>();
 
     queueSize = configuration.getQueueSize();
-    long newPurgeDelay = configuration.getReplicationPurgeDelay();
+    long newPurgeDelay = configuration.getReplicationPurgeDelay()*1000;
     if (newPurgeDelay != purgeDelay)
     {
       purgeDelay = newPurgeDelay;
