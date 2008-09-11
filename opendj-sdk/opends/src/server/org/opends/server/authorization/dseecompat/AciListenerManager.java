@@ -240,6 +240,9 @@ public class AciListenerManager
       //picked up.
       ArrayList<Control> controls = new ArrayList<Control>(1);
       controls.add(new Control(OID_MANAGE_DSAIT_CONTROL, true));
+      //Add group membership control to let a backend look for it and
+      //decide if it would abort searches.
+      controls.add(new Control(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE ,false));
       for (DN baseDN : backend.getBaseDNs()) {
         try {
           if (! backend.entryExists(baseDN))  {
