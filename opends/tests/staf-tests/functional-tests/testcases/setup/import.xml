@@ -258,7 +258,7 @@
         #@TestStep            Unzip OpenDS distribution
                               Setup OpenDS with a LDIF file to import, and
                               files for rejected and skipped entries
-                              Check skipped & rejected entries
+                              Check skipped and rejected entries
                               Stop OpenDS
                               Uninstall OpenDS
         #@TestPostamble       
