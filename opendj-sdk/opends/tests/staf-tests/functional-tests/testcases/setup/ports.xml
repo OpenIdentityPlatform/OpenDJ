@@ -217,7 +217,7 @@
         #@TestPurpose         Setup OpenDS, disabling the LDAP port check
         #@TestPreamble        
         #@TestStep            Unzip OpenDS ZIP distribution
-                              Setup OpenDS with 'skipPortCheck' & 'doNotStart'
+                              Setup OpenDS with 'skipPortCheck' and 'doNotStart'
                               options
                               Uninstall OpenDS
         #@TestPostamble       

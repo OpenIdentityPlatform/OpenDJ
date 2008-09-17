@@ -109,8 +109,8 @@
         #@TestPreamble        
         #@TestStep            Setup OpenDS instance 1 using specific DM options
                               Setup OpenDS instance 2 using specific DM options
-                              Setup replication between 1&2 on suffix o=o1
-                              Backup instances 1&2
+                              Setup replication between 1 and 2 on suffix o=o1
+                              Backup instances 1 and 2
                               Uninstall instance 1 with specific options
                               Uninstall instance 2 with specific options
         #@TestPostamble       
@@ -248,7 +248,7 @@
           
           
           
-          <!-- 3. Configure replication between I1 & I2 on o=o1. Global Admin
+          <!-- 3. Configure replication between I1 and I2 on o=o1. Global Admin
                   is setup -->
           <message>'Configure replication between I1 - I2 on o=o1'</message>
           <script>
@@ -374,7 +374,7 @@
           </call>
           
           
-          <!-- 4. Backup I1 & I2 and copy LDIF files in I1 & I2 -->
+          <!-- 4. Backup I1 and I2 and copy LDIF files in I1 and I2 -->
           <message>'Backup I1 and I2 - copy LDIF files in I1 and I2'</message>
           <script>
             c = '%s/%s/backup%s' % (DM_I1_ROOT, fileFolder, fileExt)

@@ -69,8 +69,8 @@
         #@TestName            Setup-Uninstall: Misc: 
                               misc
         #@TestID              misc
-        #@TestPurpose         Launch buggy setup & uninstall commands and check 
-                              that they are rejected
+        #@TestPurpose         Launch buggy setup and uninstall commands and 
+                              check that they are rejected
         #@TestPreamble        
         #@TestStep            Unzip OpenDS ZIP delivery
                               Setup OpenDS with unexisting option

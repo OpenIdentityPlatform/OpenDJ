@@ -119,13 +119,13 @@
         #@TestPreamble        
         #@TestStep            Setup I1, with SSL
                               Setup I2, with StartTLS
-                              Create o=o1 on I1 & I2, and import data on I1
+                              Create o=o1 on I1 and I2, and import data on I1
                               Setup replication I1 - I2
                               Check SSL works OK on I1 and I2
                               Check StartTLS not-OK on I1
                               Check StartTLS OK on I2
-                              Export server certs I1 & I2
-                              Create new JKS keystore and import I1 & I2 certs
+                              Export server certs I1 and I2
+                              Create new JKS keystore and import I1 and I2 certs
                               Uninstall I1, using new keystore
                               Uninstall I2
         #@TestPostamble       
