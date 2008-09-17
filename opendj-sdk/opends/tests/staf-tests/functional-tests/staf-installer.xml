@@ -31,7 +31,7 @@
     This allows tests that need a running instance of staf to easily
     get one and hides all the complexity under the hood
   </description>
-  <dirname file="${basedir}/.." property="project.home"/>
+  <dirname file="${basedir}/../.." property="project.home"/>
   
   <!-- installer wide settings - top -->
     <property file="${project.home}/PRODUCT"/>
@@ -275,7 +275,7 @@
     <!-- adding dsml service extension -->
     <mkdir dir="${staf.install.dir}/services/dsml"/>
     <copy todir="${staf.install.dir}/services/dsml">
-      <fileset dir="${basedir}/../ext/staf" includes="dsmlService.jar"/>
+      <fileset dir="${basedir}/../../ext/staf" includes="dsmlService.jar"/>
     </copy>
 
   </target>

@@ -34,7 +34,7 @@ cd `dirname $0`
 # the path and try to figure it out.
 if test -z "${JAVA_HOME}"
 then
-  JAVA_HOME=`java -cp ../../resource FindJavaHome`
+  JAVA_HOME=`java -cp ../../../resource FindJavaHome`
   if test -z "${JAVA_HOME}"
   then
     echo "Please set JAVA_HOME to the root of a Java 5.0 installation."
@@ -44,8 +44,8 @@ then
   fi
 fi
 
-OPENDS_LIB=`cd ../../lib;pwd`
-ANT_HOME=`cd ../..;pwd`/ext/ant
+OPENDS_LIB=`cd ../../../lib;pwd`
+ANT_HOME=`cd ../../..;pwd`/ext/ant
 export ANT_HOME
 # Execute the ant script and pass it any additional command-line arguments.
 $ANT_HOME/bin/ant -lib $OPENDS_LIB/mail.jar:$OPENDS_LIB/activation.jar -f staf-installer.xml ${*}
