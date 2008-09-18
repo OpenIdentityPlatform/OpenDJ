@@ -122,7 +122,7 @@
         </style>
         <link rel="stylesheet" type="text/css" href="/branding/css/print.css" media="print" />
         <link rel="stylesheet" href="https://opends.dev.java.net/public/css/opends.css" type="text/css" />
-        <xsl:variable name="version"  select="/qa/functional-tests/identification/version"/>
+        <xsl:variable name="version"  select="/qa/functional-tests/identification/sut/version"/>
         <xsl:element name="title">
           <xsl:value-of select="concat('Functional tests report for OpenDS-',$version)"/>
         </xsl:element>
@@ -144,7 +144,7 @@
     <table class="tertmasttable" width="100%" cellspacing="0">
       <tbody>
         <tr>
-          <td><div class="collectionheader"><xsl:value-of select="concat('Test Report for OpenDS ',$identification/version)"/></div></td>
+          <td><div class="collectionheader"><xsl:value-of select="concat('Test Report for OpenDS ',$identification/sut/version)"/></div></td>
           <td width="10%"><a href="https://opends.dev.java.net/"><img src="https://opends.dev.java.net/public/images/opends_logo_sm.png" alt="OpenDS Logo" width="104" height="33" border="0" align="middle" /></a> </td>
         </tr>
       </tbody>
@@ -199,10 +199,10 @@
           <th align="center" width="5%">Coverage</th>
         </tr>
         <tr>
-          <th align="center"><xsl:value-of select="$identification/buildid"/></th>
-          <th align="center"><xsl:value-of select="$identification/revision"/></th>
-          <th align="center"><xsl:value-of select="$identification/os-label"/></th>
-          <th align="center"><xsl:value-of select="$identification/jvm-label"/></th>
+          <th align="center"><xsl:value-of select="$identification/sut/buildid"/></th>
+          <th align="center"><xsl:value-of select="$identification/sut/revision"/></th>
+          <th align="center"><xsl:value-of select="$identification/sut/os-label"/></th>
+          <th align="center"><xsl:value-of select="$identification/sut/jvm-label"/></th>
           <th align="center"><xsl:value-of select="$total"/></th>
           <th align="center"><xsl:value-of select="$pass"/></th>
           <th align="center"><xsl:value-of select="$fail"/></th>
