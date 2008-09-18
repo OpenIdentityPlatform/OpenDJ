@@ -656,4 +656,13 @@ public class WebStartInstaller extends Installer {
   {
     return getUserData().getServerLocation();
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getInstancePath()
+  {
+    // TODO
+    return null;
+  }
 }

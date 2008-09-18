@@ -72,8 +72,10 @@ import org.opends.quicksetup.upgrader.ui.WelcomePanel;
 import org.opends.server.tools.JavaPropertiesTool;
 
 import java.awt.event.WindowEvent;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -105,6 +107,13 @@ public class Upgrader extends GuiApplication implements CliApplication {
           "org.opends.quicksetup.upgrader.Root";
 
   /**
+   * Passed in from the shell script if the root is known at the time
+   * of invocation.
+   */
+  static private final String SYS_PROP_INSTANCE_ROOT =
+          "org.opends.quicksetup.upgrader.Instance";
+
+  /**
    * If set to true, an error is introduced during the
    * upgrade process for testing.
    */
@@ -134,7 +143,28 @@ public class Upgrader extends GuiApplication implements CliApplication {
           LOGS_PATH_RELATIVE, // logs
           LOCKS_PATH_RELATIVE, // locks
           HISTORY_PATH_RELATIVE, // history
-          TMP_PATH_RELATIVE // tmp
+          TMP_PATH_RELATIVE, // tmp
+          INSTANCE_LOCATION_PATH_RELATIVE //instance.loc
+  };
+
+  // Files that should be located into the install directory
+  static final String[] ROOT_FILE_FOR_INSTALL_DIR= {
+    "bin",
+    "lib",
+    "bat",
+    "setup",
+    "setup.bat",
+    "uninstall",
+    "uninstall.bat",
+    "install.html",
+    "install.txt",
+    "legal-notices",
+    "opends_logo.png",
+    "README",
+    "upgrade",
+    "upgrade.bat",
+    "QuickSetup.app",
+    "Uninstall.app"
   };
 
   // Files that will be ignored during backup
@@ -218,10 +248,21 @@ public class Upgrader extends GuiApplication implements CliApplication {
       initLoader();
     }
 
-    final String instanceRootFromSystem =
+    final String installRootFromSystem =
             System.getProperty(SYS_PROP_INSTALL_ROOT);
-    if (instanceRootFromSystem != null) {
-      setInstallation(new Installation(instanceRootFromSystem));
+    final String instanceRootFromSystem =
+      System.getProperty(SYS_PROP_INSTANCE_ROOT);
+    if (installRootFromSystem != null)
+    {
+      if (instanceRootFromSystem != null)
+      {
+        setInstallation(new Installation(installRootFromSystem,
+            instanceRootFromSystem));
+      } else
+      {
+        setInstallation(new Installation(installRootFromSystem,
+            installRootFromSystem));
+      }
     }
 
   }
@@ -311,25 +352,67 @@ public class Upgrader extends GuiApplication implements CliApplication {
    */
   public String getInstallationPath() {
     // The upgrader runs from the bits extracted by BuildExtractor
-    // in the staging directory.  So 'stagePath' below will point
-    // to the staging directory [installroot]/tmp/upgrade.  However
+    // in the staging directory.  However
     // we still want the Installation to point at the build being
     // upgraded so the install path reported in [installroot].
+    return System.getProperty("INSTALL_ROOT");
+  }
 
-    String installationPath = null;
-    String path = Utils.getInstallPathFromClasspath();
-    if (path != null) {
-      File f = new File(path);
-      if (f.getParentFile() != null &&
-              f.getParentFile().getParentFile() != null &&
-              new File(f.getParentFile().getParentFile(),
-                      Installation.LOCKS_PATH_RELATIVE).exists()) {
-        installationPath = Utils.getPath(f.getParentFile().getParentFile());
-      } else {
-        installationPath = path;
+  /**
+   * {@inheritDoc}
+   */
+  public String getInstancePath()
+  {
+    String installPath = getInstallationPath();
+    if (installPath == null)
+    {
+      return null;
+    }
+
+    String instancePathFileName = installPath + File.separator + "instance.loc";
+
+    // look for <installPath>/instance.loc
+    File f = new File(instancePathFileName);
+    if (!f.exists())
+    {
+      return installPath;
+    }
+
+    BufferedReader reader;
+    try
+    {
+      reader = new BufferedReader(new FileReader(instancePathFileName));
+    } catch (Exception e)
+    {
+      return installPath;
+    }
+
+    // Read the first line and close the file.
+    String line;
+    try
+    {
+      line = reader.readLine();
+      File instanceLoc = new File(line);
+      if (instanceLoc.isAbsolute())
+      {
+        return instanceLoc.getAbsolutePath();
+      } else
+      {
+        return new File(installPath + File.separator
+            + line).getAbsolutePath();
+      }
+    } catch (Exception e)
+    {
+      return installPath;
+    } finally
+    {
+      try
+      {
+        reader.close();
+      } catch (Exception e)
+      {
       }
     }
-    return installationPath;
   }
 
   /**
@@ -588,7 +671,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
                               "'null'" :
                               currentInstallation.getRootDirectory()) +
                       " to " + serverLocation);
-              Installation installation = new Installation(serverLocation);
+              Installation installation = new Installation(serverLocation,
+                  serverLocation);
               setInstallation(installation);
             }
 
@@ -1351,7 +1435,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       File root = getInstallation().getRootDirectory();
       File backupDirectory;
       try {
-        backupDirectory = getFilesBackupDirectory();
+        backupDirectory = getFilesInstallBackupDirectory();
         FileManager fm = new FileManager();
         boolean restoreError = false;
         for (String fileName : backupDirectory.list()) {
@@ -1370,6 +1454,30 @@ public class Upgrader extends GuiApplication implements CliApplication {
         }
         if (!restoreError) {
           fm.deleteRecursively(backupDirectory);
+        }
+
+        if (! instanceAndInstallInSameDir())
+        {
+          root = getInstallation().getInstanceDirectory();
+          backupDirectory = getFilesInstanceBackupDirectory();
+          fm = new FileManager();
+          for (String fileName : backupDirectory.list()) {
+            File f = new File(backupDirectory, fileName);
+
+            // Do our best to restore the filesystem like
+            // we found it.  Just report potential problems
+            // to the user.
+            try {
+              fm.move(f, root, null);
+            } catch (Throwable t) {
+              restoreError = true;
+              notifyListeners(INFO_ERROR_RESTORING_FILE.get(Utils.getPath(f),
+                      Utils.getPath(root)));
+            }
+          }
+          if (!restoreError) {
+            fm.deleteRecursively(backupDirectory);
+          }
         }
 
         // Restart the server after putting the files
@@ -1398,7 +1506,18 @@ public class Upgrader extends GuiApplication implements CliApplication {
       Stage stage = getStage();
       Installation installation = getInstallation();
       File root = installation.getRootDirectory();
-      stage.move(root, new UpgradeFileFilter(getStageDirectory()));
+
+      if (instanceAndInstallInSameDir())
+      {
+        stage.move(root, new UpgradeFileFilter(getStageDirectory()));
+      }
+      else
+      {
+        stage.move(root, new UpgradeFileFilter(getStageDirectory(),true));
+
+        root = installation.getInstanceDirectory();
+        stage.move(root, new UpgradeFileFilter(getStageDirectory(),false));
+      }
 
       // The bits should now be of the new version.  Have
       // the installation update the build information so
@@ -1418,7 +1537,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
     // The config directory may contain files that are needed
     // by the new installation (e.g. SSL config files and tasks)
     File oldConfigDir =
-            new File(getFilesBackupDirectory(),
+            new File(getFilesInstanceBackupDirectory(),
                      Installation.CONFIG_PATH_RELATIVE);
     File newConfigDir =
             getInstallation().getConfigurationDirectory();
@@ -1440,7 +1559,9 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
   private void backupFilesystem() throws ApplicationException {
     try {
-      File filesBackupDirectory = getFilesBackupDirectory();
+      // Backup first install (potentially everything if install and instance
+      //  are in the same dir
+      File filesBackupDirectory = getFilesInstallBackupDirectory();
       FileManager fm = new FileManager();
       File root = getInstallation().getRootDirectory();
       FileFilter filter = new UpgradeFileFilter(root);
@@ -1457,6 +1578,27 @@ public class Upgrader extends GuiApplication implements CliApplication {
         }
 
         fm.move(f, filesBackupDirectory, filter);
+      }
+      if (!instanceAndInstallInSameDir())
+      {
+        filesBackupDirectory = getFilesInstanceBackupDirectory();
+        root = getInstallation().getInstanceDirectory();
+        filter = new UpgradeFileFilter(root);
+        for (String fileName : root.list())
+        {
+          File f = new File(root, fileName);
+
+          // Replacing a Windows bat file while it is running with a different
+          // version leads to unpredictable behavior so we make a special case
+          // here and during the upgrade components step. This file will only
+          // be backed up at the end of the process if everything went fine.
+          if (Utils.isWindows()
+              && fileName.equals(Installation.WINDOWS_UPGRADE_FILE_NAME))
+          {
+            continue;
+          }
+          fm.move(f, filesBackupDirectory, filter);
+        }
       }
     } catch (ApplicationException ae) {
       throw ae;
@@ -1480,7 +1622,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
     {
       if (Utils.isWindows())
       {
-        File filesBackupDirectory = getFilesBackupDirectory();
+        File filesBackupDirectory = getFilesInstallBackupDirectory();
         FileManager fm = new FileManager();
         File root = getInstallation().getRootDirectory();
         File f = new File(root, Installation.WINDOWS_UPGRADE_FILE_NAME);
@@ -1620,7 +1762,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
       File stageDir = getStageDirectory();
       try {
         Installation.validateRootDirectory(stageDir);
-        stagedInstallation = new Installation(getStageDirectory());
+        stagedInstallation = new Installation(getStageDirectory(),
+            getStageDirectory());
       } catch (IllegalArgumentException e) {
         Message msg = INFO_ERROR_BAD_STAGE_DIRECTORY.get(
                 Utils.getPath(getStageDirectory()));
@@ -1746,12 +1889,66 @@ public class Upgrader extends GuiApplication implements CliApplication {
     return (UpgradeUserData) getUserData();
   }
 
+  private boolean instanceAndInstallInSameDir()
+  {
+    File installDir  = new File(getInstallationPath()) ;
+    File instanceDir = new File(getInstancePath()) ;
+    return installDir.getAbsolutePath().equals(instanceDir.getAbsolutePath());
+  }
+
+  private File getFilesInstanceBackupDirectory() throws IOException
+  {
+    if (instanceAndInstallInSameDir())
+    {
+      return getFilesBackupDirectory();
+    } else
+    {
+      return new File(getFilesBackupDirectory(),
+          Installation.HISTORY_BACKUP_FILES_DIR_INSTANCE);
+    }
+  }
+
+  private File getFilesInstallBackupDirectory() throws IOException
+  {
+    if (instanceAndInstallInSameDir())
+    {
+      return getFilesBackupDirectory();
+    } else
+    {
+      return new File(getFilesBackupDirectory(),
+          Installation.HISTORY_BACKUP_FILES_DIR_INSTALL);
+    }
+  }
+
   private File getFilesBackupDirectory() throws IOException {
     File files = new File(getUpgradeBackupDirectory(),
             Installation.HISTORY_BACKUP_FILES_DIR_NAME);
     if (!files.exists()) {
       if (!files.mkdirs()) {
         throw new IOException("error creating files backup directory");
+      }
+    }
+
+    // Check if instance and instance are in the same dir
+    if ( ! instanceAndInstallInSameDir())
+    {
+      File install = new File(files,
+          Installation.HISTORY_BACKUP_FILES_DIR_INSTALL);
+      if (!install.exists())
+      {
+        if (!install.mkdirs())
+        {
+          throw new IOException("error creating files backup directory");
+        }
+      }
+      File instance = new File(files,
+          Installation.HISTORY_BACKUP_FILES_DIR_INSTANCE);
+      if (!instance.exists())
+      {
+        if (!instance.mkdirs())
+        {
+          throw new IOException("error creating files backup directory");
+        }
       }
     }
     return files;

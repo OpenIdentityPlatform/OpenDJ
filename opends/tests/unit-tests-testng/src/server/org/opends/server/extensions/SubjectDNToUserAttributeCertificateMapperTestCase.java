@@ -191,9 +191,9 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
 
 
 
-      String keyStorePath = DirectoryServer.getServerRoot() + File.separator +
+      String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.keystore";
-      String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+      String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                               "config" + File.separator + "client.truststore";
 
       String[] args =
@@ -253,9 +253,9 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
 
 
 
-      String keyStorePath = DirectoryServer.getServerRoot() + File.separator +
+      String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.keystore";
-      String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+      String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                               "config" + File.separator + "client.truststore";
 
       String[] args =
@@ -316,9 +316,9 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
 
 
 
-      String keyStorePath = DirectoryServer.getServerRoot() + File.separator +
+      String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.keystore";
-      String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+      String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                               "config" + File.separator + "client.truststore";
 
       String[] args =
@@ -375,9 +375,9 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
 
 
 
-      String keyStorePath = DirectoryServer.getServerRoot() + File.separator +
+      String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.keystore";
-      String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+      String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                               "config" + File.separator + "client.truststore";
 
       String[] args =
@@ -447,9 +447,9 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
 
 
 
-      String keyStorePath = DirectoryServer.getServerRoot() + File.separator +
+      String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.keystore";
-      String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+      String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                               "config" + File.separator + "client.truststore";
 
       String[] args =
@@ -509,9 +509,9 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
 
 
 
-      String keyStorePath = DirectoryServer.getServerRoot() + File.separator +
+      String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.keystore";
-      String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+      String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                               "config" + File.separator + "client.truststore";
 
       String[] args =

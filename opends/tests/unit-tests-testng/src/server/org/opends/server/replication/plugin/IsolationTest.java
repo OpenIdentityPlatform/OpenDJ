@@ -147,7 +147,8 @@ public class IsolationTest extends ReplicationTestCase
       String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
       String path = buildRoot + File.separator + "build" +
                     File.separator + "unit-tests" + File.separator +
-                    "package"+ File.separator + "addModDelDependencyTest";
+                    "package-instance" + File.separator +
+                    "addModDelDependencyTest";
       OutputStream out = new FileOutputStream(new File(path));
       out.write(baseentryldif.getBytes());
 

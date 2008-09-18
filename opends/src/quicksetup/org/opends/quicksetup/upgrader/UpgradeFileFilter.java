@@ -28,17 +28,27 @@
 package org.opends.quicksetup.upgrader;
 
 import org.opends.quicksetup.util.Utils;
+import org.opends.quicksetup.util.Utils.Dir;
 
 import java.io.FileFilter;
 import java.io.File;
 import java.util.Set;
 import java.util.HashSet;
 
+
 /**
    * Filter defining files we want to manage in the upgrade
  * process.
  */
 class UpgradeFileFilter implements FileFilter {
+
+  /**
+   * Private variable that store the filter scope.
+   */
+  private Dir dir ;
+
+
+  private Set<File>  installDirFileList;
 
   Set<File> filesToIgnore;
 
@@ -57,6 +67,33 @@ class UpgradeFileFilter implements FileFilter {
       Upgrader.FILES_TO_IGNORE_DURING_BACKUP) {
       filesToIgnore.add(new File(root, rootFileNamesToIgnore));
     }
+
+    dir = Dir.ALL ;
+    installDirFileList = null ;
+  }
+
+  /**
+   * Creates a filter for ignoring in an OpenDS installation at
+   * <code>root</code>certain OpenDS files below root.
+   * @param root the root of the installation
+   * @param forInstallDir true if the filter is for the install directory.
+   */
+  public UpgradeFileFilter(File root, boolean forInstallDir) {
+    this(root);
+    if (forInstallDir)
+    {
+      dir = Dir.INSTALL;
+    }
+    else
+    {
+      dir = Dir.INSTANCE;
+    }
+
+    installDirFileList = new HashSet<File>();
+    for (String rootInstallDirFile :
+            Upgrader.ROOT_FILE_FOR_INSTALL_DIR) {
+      installDirFileList.add(new File(root, rootInstallDirFile));
+    }
   }
 
   /**
@@ -71,6 +108,41 @@ class UpgradeFileFilter implements FileFilter {
         break;
       }
     }
+
+    if ((!accept) || (dir.compareTo(Dir.ALL) == 0))
+    {
+      return accept ;
+    }
+
+    // If we are here, accept is still set to "true".
+    if(dir.compareTo(Dir.INSTALL) == 0)
+    {
+      accept = false ;
+      for (File installDirFile : installDirFileList) {
+        if (installDirFile.equals(file) ||
+                Utils.isParentOf(installDirFile, file)) {
+          accept = true ;
+          break;
+        }
+      }
+    }
+    else
+    if (dir.compareTo(Dir.INSTANCE) == 0)
+    {
+      for (File installDirFile : installDirFileList) {
+        if (installDirFile.equals(file) ||
+                Utils.isParentOf(installDirFile, file)) {
+          accept = false ;
+          break;
+        }
+      }
+    }
+    else
+    {
+      // Should never occurs
+      accept = false ;
+    }
+
     return accept;
   }
 }

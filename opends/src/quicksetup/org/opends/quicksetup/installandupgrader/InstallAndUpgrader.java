@@ -499,6 +499,15 @@ public class InstallAndUpgrader extends GuiApplication
     return getDelegateApplication().getInstallationPath();
   }
 
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getInstancePath()
+  {
+    return getDelegateApplication().getInstancePath();
+  }
+
   /**
    * {@inheritDoc}
    */

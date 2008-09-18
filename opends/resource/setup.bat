@@ -37,13 +37,22 @@ if NOT "%%2" == "" goto invalidPath)
 
 for %%i in (%~sf0) do set DIR_HOME=%%~dPsi.
 
-set INSTANCE_ROOT=%DIR_HOME%
+set INSTALL_ROOT=%DIR_HOME%
+set INSTANCE_DIR=
+for /f "delims=" %%a in (%INSTALL_ROOT%\instance.loc) do (
+  set INSTANCE_DIR=%%a
+)
+set CUR_DIR=%~dp0
+cd %INSTALL_ROOT%
+cd %INSTANCE_DIR%
+set INSTANCE_ROOT=%CD%
+cd %CUR_DIR%
 
 set SCRIPT_NAME=setup
 
 rem Set environment variables and test java
 set SCRIPT_UTIL_CMD=set-full-environment-and-test-java
-call "%INSTANCE_ROOT%\lib\_script-util.bat"
+call "%INSTALL_ROOT%\lib\_script-util.bat"
 if NOT %errorlevel% == 0 exit /B %errorlevel%
 
 if "%~1" == "" goto callLaunch
@@ -56,7 +65,7 @@ pause
 goto end
 
 :callLaunch
-"%DIR_HOME%\lib\winlauncher.exe" launch "%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.quicksetup.installer.SetupLauncher
+"%INSTALL_ROOT%\lib\winlauncher.exe" launch "%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.quicksetup.installer.SetupLauncher
 goto end
 
 :callJava

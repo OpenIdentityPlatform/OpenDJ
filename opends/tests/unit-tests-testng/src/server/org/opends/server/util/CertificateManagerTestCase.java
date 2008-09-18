@@ -63,7 +63,8 @@ public class CertificateManagerTestCase
    */
   public static final String JKS_KEY_STORE_PATH =
        System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT) + File.separator +
-       "build" + File.separator + "unit-tests" + File.separator + "package" +
+       "build" + File.separator + "unit-tests" + File.separator +
+       "package-instance" +
        File.separator + "config" + File.separator + "server.keystore";
 
 
@@ -73,7 +74,8 @@ public class CertificateManagerTestCase
    */
   public static final String PKCS12_KEY_STORE_PATH =
        System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT) + File.separator +
-       "build" + File.separator + "unit-tests" + File.separator + "package" +
+       "build" + File.separator + "unit-tests" + File.separator +
+       "package-instance" +
        File.separator + "config" + File.separator + "server-cert.p12";
 
 
@@ -83,7 +85,8 @@ public class CertificateManagerTestCase
    */
   public static final String TEST_DIR =
        System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT) + File.separator +
-       "build" + File.separator + "unit-tests" + File.separator + "package";
+       "build" + File.separator + "unit-tests" + File.separator +
+       "package-instance";
 
 
 

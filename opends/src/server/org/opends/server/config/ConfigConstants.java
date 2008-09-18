@@ -3111,7 +3111,7 @@ public final class ConfigConstants
    * The name of the environment variable that the Directory Server may check to
    * determine the installation root.
    */
-  public static final String ENV_VAR_INSTANCE_ROOT = "INSTANCE_ROOT";
+  public static final String ENV_VAR_INSTALL_ROOT = "INSTALL_ROOT";
 
 
 

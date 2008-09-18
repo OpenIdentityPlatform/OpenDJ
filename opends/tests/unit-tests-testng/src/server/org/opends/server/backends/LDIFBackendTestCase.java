@@ -106,7 +106,7 @@ public class LDIFBackendTestCase
 
     // Create a temporary test LDIF file.
     File ldifFile = File.createTempFile("import-test", ".ldif");
-    String resourcePath = DirectoryServer.getServerRoot() + File.separator +
+    String resourcePath = DirectoryServer.getInstanceRoot() + File.separator +
          "config" + File.separator + "MakeLDIF";
     LdifFileWriter.makeLdif(ldifFile.getPath(), resourcePath, templateFilePath);
 

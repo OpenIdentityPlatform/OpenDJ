@@ -143,6 +143,11 @@ public class Installation {
     CONFIG_PATH_RELATIVE+File.separator+"tools.properties";
 
   /**
+   * The relative path to the instance.loc file.
+   */
+  public static final String INSTANCE_LOCATION_PATH_RELATIVE =
+    "instance.loc";
+  /**
    * The UNIX setup script file name.
    */
   public static final String UNIX_SETUP_FILE_NAME = "setup";
@@ -238,6 +243,20 @@ public class Installation {
    */
   public static final String HISTORY_LOG_FILE_NAME = "log";
 
+  /**
+   * The name of the directory in an upgrade backup directory (child
+   * of the 'history' directory) that contains the install files from a
+   * previous version.
+   */
+  public static final String HISTORY_BACKUP_FILES_DIR_INSTALL = "install";
+
+  /**
+   * The name of the directory in an upgrade backup directory (child
+   * of the 'history' directory) that contains the instance files from a
+   * previous version.
+   */
+
+  public static final String HISTORY_BACKUP_FILES_DIR_INSTANCE = "instance";
   /**
    * The name of the directory in an upgrade backup directory (child
    * of the 'history' directory) that contains the files from a
@@ -353,11 +372,16 @@ public class Installation {
       // This allows testing of configuration components when the OpenDS.jar
       // in the classpath does not necessarily point to the server's
       String installRoot = System.getProperty("org.opends.quicksetup.Root");
+      String instanceRoot = System
+          .getProperty("org.opends.quicksetup.instance");
 
       if (installRoot == null) {
         installRoot = Utils.getInstallPathFromClasspath();
       }
-      local = new Installation(installRoot);
+      if (instanceRoot == null) {
+        instanceRoot = Utils.getInstancePathFromClasspath(installRoot);
+      }
+      local = new Installation(installRoot, instanceRoot);
     }
     return local;
   }
@@ -366,6 +390,8 @@ public class Installation {
           Logger.getLogger(Installation.class.getName());
 
   private File rootDirectory;
+
+  private File instanceDirectory;
 
   private Status status;
 
@@ -376,21 +402,49 @@ public class Installation {
   private BuildInformation buildInformation;
 
   /**
+   * Indicates if the install and instance are in the same directory.
+   * @return true if the install and instance are in the same directory.
+   */
+  public boolean instanceAndInstallInSameDir;
+
+  /**
    * Creates a new instance from a root directory specified as a string.
    *
    * @param rootDirectory of this installation
+   * @param instanceRootDirectory The instance root directory
    */
-  public Installation(String rootDirectory) {
-    this(new File(rootDirectory));
+  public Installation(String rootDirectory, String instanceRootDirectory) {
+    this(new File(rootDirectory),new File(instanceRootDirectory));
   }
 
   /**
    * Creates a new instance from a root directory specified as a File.
    *
    * @param rootDirectory of this installation
+   *
+   * @param instanceDirectory of the instance
    */
-  public Installation(File rootDirectory) {
+  public Installation(File rootDirectory, File instanceDirectory) {
     setRootDirectory(rootDirectory);
+    setInstancetDirectory(instanceDirectory);
+    if (rootDirectory.getAbsolutePath().
+        equals(instanceDirectory.getAbsolutePath()))
+    {
+      instanceAndInstallInSameDir = true ;
+    }
+    else
+    {
+      instanceAndInstallInSameDir = false;
+    }
+  }
+
+  /**
+   * Indicates if the install and instance are in the same directory.
+   * @return true if the install and instance are in the same directory.
+   */
+  public boolean instanceAndInstallInSameDir()
+  {
+    return instanceAndInstallInSameDir;
   }
 
   /**
@@ -404,6 +458,16 @@ public class Installation {
   }
 
   /**
+   * Gets the top level directory of an OpenDS instance.
+   *
+   * @return File object representing the top level directory of
+   *         and OpenDS installation
+   */
+  public File getInstanceDirectory() {
+    return this.instanceDirectory;
+  }
+
+  /**
    * Sets the root directory of this installation.
    *
    * @param rootDirectory File of this installation
@@ -412,12 +476,12 @@ public class Installation {
 
     // Hold off on doing validation of rootDirectory since
     // some applications (like the Installer) create an Installation
-    // before the actual bits have been laid down on the filesyste.
+    // before the actual bits have been laid down on the file system.
     this.rootDirectory = rootDirectory;
 
     // Obtaining build information is a fairly time consuming operation.
     // Try to get a head start if possible.
-    if (isValid()) {
+    if (isValid(rootDirectory)) {
       try {
         BuildInformation bi = getBuildInformation();
         LOG.log(Level.INFO, "build info for " + rootDirectory.getName() +
@@ -429,15 +493,41 @@ public class Installation {
   }
 
   /**
+   * Sets the root directory of this instance.
+   *
+   * @param instanceDirectory File of this instance
+   */
+  public void setInstancetDirectory(File instanceDirectory) {
+
+    // Hold off on doing validation of rootDirectory since
+    // some applications (like the Installer) create an Installation
+    // before the actual bits have been laid down on the filesyste.
+    this.instanceDirectory = instanceDirectory;
+
+    // Obtaining build information is a fairly time consuming operation.
+    // Try to get a head start if possible.
+    if (isValid(instanceDirectory)) {
+      try {
+        BuildInformation bi = getBuildInformation();
+        LOG.log(Level.INFO, "build info for " + instanceDirectory.getName() +
+                ": " + bi);
+      } catch (ApplicationException e) {
+        LOG.log(Level.INFO, "error determining build information", e);
+      }
+    }
+  }
+
+  /**
    * Indicates whether or not this installation appears to be an actual
    * OpenDS installation.
+   * @param file The root directory
    * @return boolean where true indicates that this does indeed appear to be
    * a valid OpenDS installation; false otherwise
    */
-  public boolean isValid() {
+  public boolean isValid(File file) {
     boolean valid = true;
     try {
-      validateRootDirectory(rootDirectory);
+      validateRootDirectory(file);
     } catch (IllegalArgumentException e) {
       valid = false;
     }
@@ -624,7 +714,7 @@ public class Installation {
    * @return the path to the database files under the install path.
    */
   public File getDatabasesDirectory() {
-    return new File(getRootDirectory(), DATABASES_PATH_RELATIVE);
+    return new File(getInstanceDirectory(), DATABASES_PATH_RELATIVE);
   }
 
   /**
@@ -633,7 +723,7 @@ public class Installation {
    * @return the path to the backup files under the install path.
    */
   public File getBackupDirectory() {
-    return new File(getRootDirectory(), BACKUPS_PATH_RELATIVE);
+    return new File(getInstanceDirectory(), BACKUPS_PATH_RELATIVE);
   }
 
   /**
@@ -642,7 +732,7 @@ public class Installation {
    * @return the path to the config files under the install path.
    */
   public File getConfigurationDirectory() {
-    return new File(getRootDirectory(), CONFIG_PATH_RELATIVE);
+    return new File(getInstanceDirectory(), CONFIG_PATH_RELATIVE);
   }
 
   /**
@@ -651,7 +741,7 @@ public class Installation {
    * @return the path to the log files under the install path.
    */
   public File getLogsDirectory() {
-    return new File(getRootDirectory(), LOGS_PATH_RELATIVE);
+    return new File(getInstanceDirectory(), LOGS_PATH_RELATIVE);
   }
 
   /**
@@ -660,7 +750,7 @@ public class Installation {
    * @return the path to the lock files.
    */
   public File getLocksDirectory() {
-    return new File(getRootDirectory(), LOCKS_PATH_RELATIVE);
+    return new File(getInstanceDirectory(), LOCKS_PATH_RELATIVE);
   }
 
   /**
@@ -668,7 +758,7 @@ public class Installation {
    * @return File temporary directory
    */
   public File getTemporaryDirectory() {
-    return new File(getRootDirectory(), TMP_PATH_RELATIVE);
+    return new File(getInstanceDirectory(), TMP_PATH_RELATIVE);
   }
 
   /**
@@ -677,7 +767,7 @@ public class Installation {
    * @return the path to the lock files.
    */
   public File getHistoryDirectory() {
-    return new File(getRootDirectory(), HISTORY_PATH_RELATIVE);
+    return new File(getInstanceDirectory(), HISTORY_PATH_RELATIVE);
   }
 
   /**

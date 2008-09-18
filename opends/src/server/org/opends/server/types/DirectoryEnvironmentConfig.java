@@ -28,7 +28,9 @@ package org.opends.server.types;
 
 
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -196,7 +198,7 @@ public final class DirectoryEnvironmentConfig
     String serverRootPath = getProperty(PROPERTY_SERVER_ROOT);
     if (serverRootPath == null)
     {
-      serverRootPath = System.getenv(ENV_VAR_INSTANCE_ROOT);
+      serverRootPath = System.getenv(ENV_VAR_INSTALL_ROOT);
     }
 
     if (serverRootPath == null)
@@ -206,6 +208,72 @@ public final class DirectoryEnvironmentConfig
     else
     {
       return new File(serverRootPath);
+    }
+  }
+
+  /**
+   * Retrieves the directory that should be considered the instance
+   * root.  The determination will first be based on the properties
+   * defined in this config object.  If no value is found there, then
+   * the JVM system properties will be checked, followed by an
+   * environment variable.
+   *
+   * @param serverRoot the server Root
+   *
+   * @return  The directory that should be considered the instance
+   *          root, or {@code null} if it is not defined.
+   */
+  public static File getInstanceRootFromServerRoot(File serverRoot)
+  {
+    String instancePathFileName = serverRoot.getAbsolutePath() +
+      File.separator + "instance.loc";
+
+    // look for <installPath>/instance.loc
+    File f = new File(instancePathFileName);
+
+    if (! f.exists())
+    {
+      return serverRoot;
+    }
+
+    BufferedReader reader;
+    try
+    {
+      reader = new BufferedReader(
+          new FileReader(instancePathFileName));
+    }
+    catch (Exception e)
+    {
+      return null;
+    }
+
+
+    // Read the first line and close the file.
+    String line;
+    try
+    {
+      line = reader.readLine();
+      File instanceLoc = new File(line);
+      if (instanceLoc.isAbsolute())
+      {
+        return instanceLoc;
+      }
+      else
+      {
+        return new File(serverRoot.getAbsolutePath()  + File.separator
+            + instanceLoc.getPath());
+      }
+    }
+    catch (Exception e)
+    {
+      return null;
+    }
+    finally
+    {
+      try
+      {
+        reader.close();
+      } catch (Exception e) {}
     }
   }
 
@@ -265,6 +333,60 @@ public final class DirectoryEnvironmentConfig
     }
   }
 
+  /**
+   * Specifies the directory that should be considered the instance
+   * root.  Any relative path used in the server should be considered
+   * relative to the instance root.
+   *
+   * @param  instanceRoot  The directory that should be considered the
+   *                     instanceRoot root.
+   *
+   * @return  The previous server root, or {@code null} if there was
+   *          none.
+   *
+   * @throws  InitializationException  If the Directory Server is
+   *                                   already running or there is a
+   *                                   problem with the provided
+   *                                   server root.
+   */
+  public File setInstanceRoot(File instanceRoot)
+         throws InitializationException
+  {
+    if (DirectoryServer.isRunning())
+    {
+      throw new InitializationException(
+              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
+    }
+
+    if ((! instanceRoot.exists()) || (! instanceRoot.isDirectory()))
+    {
+      throw new InitializationException(
+              ERR_DIRCFG_INVALID_SERVER_ROOT.get(
+                  instanceRoot.getAbsolutePath()));
+    }
+
+    String instanceRootPath;
+    try
+    {
+      instanceRootPath = instanceRoot.getCanonicalPath();
+    }
+    catch (Exception e)
+    {
+      instanceRootPath = instanceRoot.getAbsolutePath();
+    }
+
+    String oldInstancePath = setProperty(PROPERTY_INSTANCE_ROOT,
+        instanceRootPath);
+    if (oldInstancePath == null)
+    {
+      return null;
+    }
+    else
+    {
+      return new File(oldInstancePath);
+    }
+  }
+
 
   /**
    * Retrieves the configuration file that should be used to
@@ -284,7 +406,8 @@ public final class DirectoryEnvironmentConfig
       File serverRoot = getServerRoot();
       if (serverRoot != null)
       {
-        File configDir = new File(serverRoot, CONFIG_DIR_NAME);
+        File instanceRoot = getInstanceRootFromServerRoot(serverRoot);
+        File configDir = new File(instanceRoot, CONFIG_DIR_NAME);
         File configFile = new File(configDir, CONFIG_FILE_NAME);
         if (configFile.exists())
         {
@@ -695,7 +818,8 @@ public final class DirectoryEnvironmentConfig
       File serverRoot = getServerRoot();
       if (serverRoot != null)
       {
-        File schemaDir = new File(serverRoot.getAbsolutePath() +
+        File instanceRoot = getInstanceRootFromServerRoot(serverRoot);
+        File schemaDir = new File(instanceRoot.getAbsolutePath() +
                                   File.separator + PATH_SCHEMA_DIR);
         if (schemaDir.exists() && schemaDir.isDirectory())
         {
@@ -789,7 +913,8 @@ public final class DirectoryEnvironmentConfig
       }
       else
       {
-        return new File(serverRoot, LOCKS_DIRECTORY);
+        File instanceRoot = getInstanceRootFromServerRoot(serverRoot);
+        return new File(instanceRoot, LOCKS_DIRECTORY);
       }
     }
     else

@@ -57,7 +57,7 @@ public class MakeLDIFTestCase
     // it can provide "getServerRoot()".
     TestCaseUtils.startServer();
 
-    resourcePath = DirectoryServer.getServerRoot() + File.separator +
+    resourcePath = DirectoryServer.getInstanceRoot() + File.separator +
          "config" + File.separator + "MakeLDIF";
   }
 

@@ -180,8 +180,16 @@ public abstract class Application implements ProgressNotifier, Runnable {
   public Installation getInstallation() {
     if (installation == null) {
       String installPath = getInstallationPath();
+      String instancePath = getInstancePath();
       if (installPath != null) {
-        installation = new Installation(installPath);
+        if (instancePath == null)
+        {
+          installation = new Installation(installPath, installPath);
+        }
+        else
+        {
+          installation = new Installation(installPath, instancePath);
+        }
       }
     }
     return installation;
@@ -536,6 +544,13 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return the installation path.
    */
   public abstract String getInstallationPath();
+
+  /**
+   * Returns the instance path.
+   * @return the instance path.
+   */
+  public abstract String getInstancePath();
+
 
   /**
    * Gets the current step.

@@ -146,14 +146,21 @@ set_environment_vars() {
 # Configure the appropriate CLASSPATH.
 set_classpath() {
   CLASSPATH=${INSTANCE_ROOT}/classes
-  for JAR in "${INSTANCE_ROOT}"/lib/*.jar
+  for JAR in ${INSTALL_ROOT}/lib/*.jar
   do
     CLASSPATH=${CLASSPATH}:${JAR}
   done
+  if [ "${INSTANCE_ROOT}" != "${INSTANCE_ROOT}" ]
+  then
+    for JAR in ${INSTANCE_ROOT}/lib/*.jar
+    do
+      CLASSPATH=${CLASSPATH}:${JAR}
+    done
+  fi
   export CLASSPATH
 }
 
-if test "${INSTANCE_ROOT}" = ""
+if test "${INSTALL_ROOT}" = ""
 then
   # Capture the current working directory so that we can change to it later.
   # Then capture the location of this script and the Directory Server instance
@@ -162,7 +169,15 @@ then
 
   cd "`dirname "${0}"`"
   cd ..
-  INSTANCE_ROOT=`pwd`
+  INSTALL_ROOT=`pwd`
+  if cat ${INSTALL_ROOT}/instance.loc | grep '^/' > /dev/null
+  then
+    INSTANCE_ROOT=`cat ${INSTALL_ROOT}/instance.loc`
+    export INSTANCE_ROOT
+  else
+    INSTANCE_ROOT=${INSTALL_ROOT}/`cat ${INSTALL_ROOT}/instance.loc`
+    export INSTANCE_ROOT
+  fi
   cd "${WORKING_DIR}"
 fi
 

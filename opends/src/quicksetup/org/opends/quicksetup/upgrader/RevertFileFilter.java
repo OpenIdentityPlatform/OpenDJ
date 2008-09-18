@@ -49,5 +49,20 @@ class RevertFileFilter extends UpgradeFileFilter {
       filesToIgnore.add(new File(root, rootFileNamesToIgnore));
     }
   }
+
+  /**
+   * Creates a filter for ignoring in an OpenDS installation at
+   * <code>root</code>certain OpenDS files below root.
+   * @param root the root of the installation
+   * @param forInstallDir true if the filter is for the install directory.
+   */
+  public RevertFileFilter(File root,boolean forInstallDir ) {
+    super(root, forInstallDir);
+    this.filesToIgnore = new HashSet<File>();
+    for (String rootFileNamesToIgnore :
+            Upgrader.ROOT_FILES_TO_IGNORE_DURING_BACKUP) {
+      filesToIgnore.add(new File(root, rootFileNamesToIgnore));
+    }
+  }
 }
 

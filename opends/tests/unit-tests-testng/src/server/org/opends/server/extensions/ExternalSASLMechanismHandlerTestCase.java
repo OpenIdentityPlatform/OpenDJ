@@ -222,9 +222,9 @@ public class ExternalSASLMechanismHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    String keyStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                           "config" + File.separator + "client.keystore";
-    String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
     String[] args =
@@ -278,7 +278,7 @@ public class ExternalSASLMechanismHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    String keyStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                           "config" + File.separator + "client.keystore";
 
     String[] args =
@@ -345,7 +345,7 @@ public class ExternalSASLMechanismHandlerTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String keyStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                           "config" + File.separator + "client.keystore";
 
     String[] args =
@@ -410,7 +410,7 @@ public class ExternalSASLMechanismHandlerTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    String keyStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                           "config" + File.separator + "client.keystore";
 
     String[] args =
@@ -454,7 +454,7 @@ public class ExternalSASLMechanismHandlerTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String keyStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                           "config" + File.separator + "client.keystore";
 
     KeyStore ks = KeyStore.getInstance("JKS");
@@ -535,7 +535,7 @@ public class ExternalSASLMechanismHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    String keyStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                           "config" + File.separator + "client.keystore";
 
     String[] args =
@@ -572,7 +572,7 @@ public class ExternalSASLMechanismHandlerTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String keyStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                           "config" + File.separator + "client.keystore";
 
     KeyStore ks = KeyStore.getInstance("JKS");
@@ -680,7 +680,7 @@ public class ExternalSASLMechanismHandlerTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    String keyStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                           "config" + File.separator + "client.keystore";
 
     String[] args =

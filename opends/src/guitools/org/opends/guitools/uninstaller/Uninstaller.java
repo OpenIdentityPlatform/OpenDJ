@@ -50,6 +50,7 @@ import static org.opends.quicksetup.util.Utils.*;
 import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.UIKeyStore;
+import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.AttributeTypePropertyDefinition;
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.ClassPropertyDefinition;
@@ -586,6 +587,13 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  public String getInstancePath() {
+    return getInstancePathFromClasspath(getInstallPathFromClasspath());
+  }
+
+  /**
    * Returns the ApplicationException that might occur during installation or
    * <CODE>null</CODE> if no exception occurred.
    *
@@ -1104,10 +1112,39 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       notifyListeners(getFormattedWithPoints(
           INFO_PROGRESS_DELETING_INSTALLATION_FILES_NON_VERBOSE.get()));
     }
-    File f = new File(getInstallPathFromClasspath());
+    String installPath = getInstallPathFromClasspath();
+    File installFile = new File(installPath);
+
+    String instancePath =
+      Utils.getInstancePathFromClasspath(installFile.getAbsolutePath());
+    File instanceFile = new File(instancePath);
+
     InstallationFilesToDeleteFilter filter =
             new InstallationFilesToDeleteFilter();
-    File[] rootFiles = f.listFiles();
+
+    File[] installFiles  = installFile.listFiles();
+    File[] instanceFiles = new File(instancePath).listFiles();
+
+    File[] rootFiles = null;
+
+    if (installFiles == null)
+    {
+      rootFiles = new File(instancePath).listFiles();
+    }
+    else
+    if (instanceFiles == null)
+    {
+      rootFiles = installFiles;
+    }
+    else
+    {
+      // both installFiles and instanceFiles are not null
+      rootFiles = new File[installFiles.length + instanceFiles.length];
+      System.arraycopy(installFiles,  0, rootFiles, 0, installFiles.length);
+      System.arraycopy(instanceFiles, 0, rootFiles, installFiles.length,
+          instanceFiles.length);
+    }
+
     if (rootFiles != null) {
       /* The following is done to have a moving progress bar when we delete
        * the installation files.
@@ -1161,6 +1198,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
                 beforeRatio);
         deleteRecursively(rootFiles[i], filter);
       }
+      deleteRecursively(instanceFile);
       hmRatio.put(UninstallProgressStep.DELETING_INSTALLATION_FILES, maxRatio);
     }
     if (!isVerbose())

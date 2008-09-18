@@ -73,7 +73,7 @@ public class ListBackendsTestCase
   {
     TestCaseUtils.startServer();
 
-    configFilePath = DirectoryServer.getServerRoot() + File.separator +
+    configFilePath = DirectoryServer.getInstanceRoot() + File.separator +
                      "config" + File.separator + "config.ldif";
   }
 

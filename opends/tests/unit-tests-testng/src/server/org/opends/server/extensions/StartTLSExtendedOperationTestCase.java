@@ -73,7 +73,7 @@ public class StartTLSExtendedOperationTestCase
   @Test()
   public void testStartTLSNoAuthTrustStore()
   {
-    String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
     String[] args =
@@ -125,7 +125,7 @@ public class StartTLSExtendedOperationTestCase
   @Test()
   public void testStartTLSSimpleAuthTrustStore()
   {
-    String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
     String[] args =
@@ -204,9 +204,9 @@ public class StartTLSExtendedOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    String keyStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                           "config" + File.separator + "client.keystore";
-    String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
     String[] args =
@@ -260,7 +260,7 @@ public class StartTLSExtendedOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    String keyStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                           "config" + File.separator + "client.keystore";
 
     String[] args =

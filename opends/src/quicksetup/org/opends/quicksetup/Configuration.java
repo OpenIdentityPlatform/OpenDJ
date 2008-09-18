@@ -240,10 +240,10 @@ public class Configuration {
       if (pathFile.isAbsolute()) {
         fullDbPath = pathFile;
       } else {
-        fullDbPath = new File(install.getRootDirectory(), path);
+        fullDbPath = new File(install.getInstanceDirectory(), path);
       }
 
-      if (!Utils.isDescendant(fullDbPath, install.getRootDirectory())) {
+      if (!Utils.isDescendant(fullDbPath, install.getInstanceDirectory())) {
         outsidePaths.add(Utils.getPath(fullDbPath));
       }
     }

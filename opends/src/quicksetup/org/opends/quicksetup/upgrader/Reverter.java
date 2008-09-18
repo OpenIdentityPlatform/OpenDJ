@@ -163,8 +163,9 @@ public class Reverter extends Application implements CliApplication {
                 Message buildInfo = INFO_UPGRADE_BUILD_ID_UNKNOWN.get();
                 Message date = INFO_GENERAL_UNKNOWN.get();
                 try {
+                  File f = appendFilesDirIfNeccessary(raDir);
                   Installation i =
-                          new Installation(appendFilesDirIfNeccessary(raDir));
+                          new Installation(f,f);
                   BuildInformation bi = i.getBuildInformation();
                   buildInfo = Message.raw(bi.toString());
                 } catch (Exception e) {
@@ -369,7 +370,7 @@ public class Reverter extends Application implements CliApplication {
    */
   public String getInstallationPath() {
     String installationPath = null;
-    String path = Utils.getInstallPathFromClasspath();
+    String path =  System.getProperty("INSTALL_ROOT");
     if (path != null) {
       File f = new File(path);
       if (f.getParentFile() != null &&
@@ -382,6 +383,14 @@ public class Reverter extends Application implements CliApplication {
       }
     }
     return installationPath;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getInstancePath() {
+    String installPath = getInstallationPath() ;
+    return Utils.getInstancePathFromClasspath(installPath);
   }
 
   /**
@@ -481,8 +490,16 @@ public class Reverter extends Application implements CliApplication {
   public Installation getInstallation() {
     if (installation == null) {
       String installPath = getInstallationPath();
+      String instancePath = getInstancePath();
       if (installPath != null) {
-        installation = new Installation(installPath);
+        if (instancePath != null)
+        {
+          installation = new Installation(installPath, instancePath);
+        }
+        else
+        {
+          installation = new Installation(installPath, installPath);
+        }
       }
     }
     return installation;
@@ -690,8 +707,23 @@ public class Reverter extends Application implements CliApplication {
     try {
       Stage stage = getStage();
       Installation installation = getInstallation();
-      File root = installation.getRootDirectory();
-      stage.move(root, new RevertFileFilter(getReversionFilesDirectory()));
+      if (installation.instanceAndInstallInSameDir())
+      {
+        File root = installation.getRootDirectory();
+        stage.move(root, new RevertFileFilter(getReversionFilesDirectory()));
+      }
+      else
+      {
+        File root = installation.getRootDirectory();
+        File revFileRoot = new File(getReversionFilesDirectory(),
+            Installation.HISTORY_BACKUP_FILES_DIR_INSTALL);
+        stage.move(root, new RevertFileFilter(revFileRoot,true),true);
+
+        root = installation.getInstanceDirectory();
+        revFileRoot = new File(getReversionFilesDirectory(),
+            Installation.HISTORY_BACKUP_FILES_DIR_INSTANCE);
+        stage.move(root, new RevertFileFilter(revFileRoot,false),false);
+      }
 
       // The bits should now be of the new version.  Have
       // the installation update the build information so
@@ -734,8 +766,18 @@ public class Reverter extends Application implements CliApplication {
       Set<String> cs = new HashSet<String>(Arrays.asList(children));
 
       // TODO:  more testing of file dir
+      String installPath = System.getProperty("INSTALL_ROOT");
+      String instancePath = System.getProperty("INSTANCE_ROOT");
+      if (installPath.equals(instancePath))
+      {
       isFilesDir = cs.contains(CONFIG_PATH_RELATIVE) &&
               cs.contains(LIBRARIES_PATH_RELATIVE);
+      }
+      else
+      {
+        isFilesDir = cs.contains(Installation.HISTORY_BACKUP_FILES_DIR_INSTALL)
+        && cs.contains( Installation.HISTORY_BACKUP_FILES_DIR_INSTANCE);
+      }
     }
     return isFilesDir;
   }
@@ -1089,7 +1131,22 @@ public class Reverter extends Application implements CliApplication {
   {
     if (archiveInstallation == null) {
       File revFiles = getReversionFilesDirectory();
-      archiveInstallation = new Installation(revFiles);
+      String[] children = revFiles.list();
+      Set<String> cs = new HashSet<String>(Arrays.asList(children));
+      if ((cs.contains(Installation.HISTORY_BACKUP_FILES_DIR_INSTALL)) &&
+          (cs.contains(Installation.HISTORY_BACKUP_FILES_DIR_INSTANCE)))
+      {
+        File installRevFiles =
+          new File (revFiles,Installation.HISTORY_BACKUP_FILES_DIR_INSTALL);
+        File instanceRevFiles =
+          new File (revFiles,Installation.HISTORY_BACKUP_FILES_DIR_INSTANCE);
+        archiveInstallation =
+          new Installation(installRevFiles,instanceRevFiles);
+      }
+      else
+      {
+        archiveInstallation = new Installation(revFiles,revFiles);
+      }
     }
     return archiveInstallation;
   }

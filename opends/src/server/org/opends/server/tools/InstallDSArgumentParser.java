@@ -716,7 +716,8 @@ public class InstallDSArgumentParser extends ArgumentParser
   {
     // Use this instead of Installation.getLocal() because making that call
     // starts a new JVM and the command-line becomes less responsive.
-    String root = Utils.getInstallPathFromClasspath();
+    String a = Utils.getInstallPathFromClasspath();
+    String root = Utils.getInstancePathFromClasspath(a);
     String configDir = Utils.getPath(root, Installation.CONFIG_PATH_RELATIVE);
     return Utils.getPath(configDir, Installation.CURRENT_CONFIG_FILE_NAME);
   }

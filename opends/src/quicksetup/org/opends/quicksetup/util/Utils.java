@@ -34,6 +34,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -79,6 +80,27 @@ public class Utils
 
   private Utils()
   {
+  }
+
+  /**
+   * Enumeration that specify if the operation applies to the install directory
+   * only, to the instance directory only, or both.
+   */
+  public static enum  Dir {
+    /**
+     * all directories.
+     */
+    ALL,
+
+    /**
+     * The install directory.
+     */
+    INSTALL,
+
+    /***
+     * The instance directory.
+     */
+    INSTANCE;
   }
 
   /**
@@ -1093,6 +1115,7 @@ public class Utils
     return ConnectionUtils.getDefaultLDAPTimeout();
   }
 
+
   /**
    * Returns the path of the installation of the directory server.  Note that
    * this method assumes that this code is being run locally.
@@ -1100,7 +1123,11 @@ public class Utils
    */
   public static String getInstallPathFromClasspath()
   {
-    String installPath = null;
+    String installPath = System.getProperty("org.opends.quicksetup.Root");
+    if (installPath != null)
+    {
+      return installPath;
+    }
 
     /* Get the install path from the Class Path */
     String sep = System.getProperty("path.separator");
@@ -1137,6 +1164,63 @@ public class Utils
       }
     }
     return installPath;
+  }
+
+  /**
+   * Returns the path of the installation of the directory server.  Note that
+   * this method assumes that this code is being run locally.
+   * @param installPath The installation path
+   * @return the path of the installation of the directory server.
+   */
+  public static String getInstancePathFromClasspath(String installPath)
+  {
+    String instancePathFileName = installPath + File.separator + "instance.loc";
+
+    // look for <installPath>/instance.loc
+    File f = new File(instancePathFileName);
+    if (! f.exists())
+    {
+      return installPath;
+    }
+
+    BufferedReader reader;
+    try
+    {
+      reader = new BufferedReader(new FileReader(instancePathFileName));
+    }
+    catch (Exception e)
+    {
+      return installPath;
+    }
+
+
+    // Read the first line and close the file.
+    String line;
+    try
+    {
+      line = reader.readLine();
+      File instanceLoc =  new File (line);
+      if (instanceLoc.isAbsolute())
+      {
+        return instanceLoc.getAbsolutePath();
+      }
+      else
+      {
+        return new File(installPath + File.separator + instanceLoc.getPath())
+            .getAbsolutePath();
+      }
+    }
+    catch (Exception e)
+    {
+      return installPath;
+    }
+    finally
+    {
+      try
+      {
+        reader.close();
+      } catch (Exception e) {}
+    }
   }
 
   /**

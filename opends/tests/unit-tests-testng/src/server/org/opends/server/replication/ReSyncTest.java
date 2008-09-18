@@ -199,7 +199,7 @@ public class ReSyncTest extends ReplicationTestCase
     String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
     String path = buildRoot + File.separator + "build" +
                   File.separator + "unit-tests" + File.separator +
-                  "package"+ File.separator + "ReSynchTest";
+                  "package-instance"+ File.separator + "ReSynchTest";
 
     task("dn: ds-task-id=" + UUID.randomUUID()
         + ",cn=Scheduled Tasks,cn=Tasks\n"

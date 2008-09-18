@@ -397,9 +397,9 @@ public class DependencyTest extends ReplicationTestCase
       // Initialization :
       // Load the database with a single entry :
       String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-      String path = buildRoot + File.separator + "build" +
-                    File.separator + "unit-tests" + File.separator +
-                    "package"+ File.separator + "addModDelDependencyTest";
+      String path = buildRoot + File.separator + "build" + File.separator
+        + "unit-tests" + File.separator + "package-instance" + File.separator
+        + "addModDelDependencyTest";
       OutputStream out = new FileOutputStream(new File(path));
       out.write(baseentryldif.getBytes());
 

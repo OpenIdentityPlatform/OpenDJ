@@ -27,9 +27,17 @@ rem      Copyright 2006-2008 Sun Microsystems, Inc.
 
 setlocal
 for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
+set INSTALL_ROOT=%DIR_HOME%
 
-
-set INSTANCE_ROOT=%DIR_HOME%
+set INSTANCE_DIR=
+for /f "delims=" %%a in (%DIR_HOME%\instance.loc) do (
+  set INSTANCE_DIR=%%a
+)
+set CUR_DIR=%~dp0
+cd %INSTALL_ROOT%
+cd %INSTANCE_DIR%
+set INSTANCE_ROOT=%CD%
+cd %CUR_DIR%
 
 set LOG="%INSTANCE_ROOT%\logs\native-windows.out"
 set SCRIPT=start-ds.bat
@@ -40,7 +48,7 @@ set SCRIPT_NAME=start-ds
 
 rem Set environment variables
 set SCRIPT_UTIL_CMD=set-full-environment-and-test-java
-call "%INSTANCE_ROOT%\lib\_script-util.bat"
+call "%INSTALL_ROOT%\lib\_script-util.bat"
 
 set ERROR_CODE=%errorlevel%
 if NOT %ERROR_CODE% == 0 goto exitErrorCode
@@ -51,7 +59,7 @@ set PATH=%SystemRoot%
 
 echo %SCRIPT%: PATH=%PATH% >> %LOG%
 
-"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" --checkStartability %*
+"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" --checkStartability %*
 
 if %errorlevel% == 98 goto serverAlreadyStarted
 if %errorlevel% == 99 goto runDetach
@@ -70,64 +78,68 @@ goto exitErrorCode
 
 :runNoDetach
 echo %SCRIPT%: Run no detach  >> %LOG%
-if not exist "%DIR_HOME%\logs\server.out" echo. > "%DIR_HOME%\logs\server.out"
-if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.starting"
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
+if not exist "%INSTANCE_ROOT%\logs\server.out" echo. > "%INSTANCE_ROOT%\logs\server.out"
+if not exist "%INSTANCE_ROOT%\logs\server.starting" echo. > "%INSTANCE_ROOT%\logs\server.starting"
+if exist "%INSTANCE_ROOT%\lib\set-java-args.bat %SCRIPT%" DO call "%INSTANCE_ROOT%\lib\set-java-args.bat"
+"%OPENDS_JAVA_BIN%" %OPENDS_SERVER_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
 set ERROR_CODE=%errorlevel%
 goto exitErrorCode
 
 :runNoDetachQuiet
 echo %SCRIPT%: Run no detach  >> %LOG%
-if not exist "%DIR_HOME%\logs\server.out" echo. > "%DIR_HOME%\logs\server.out"
-if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.starting"
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %* >> %LOG%
+if not exist "%INSTANCE_ROOT%\logs\server.out" echo. > "%INSTANCE_ROOT%\logs\server.out"
+if not exist "%INSTANCE_ROOT%\logs\server.starting" echo. > "%INSTANCE_ROOT%\logs\server.starting"
+if exist "%INSTANCE_ROOT%\lib\set-java-args.bat %SCRIPT%" DO call "%INSTANCE_ROOT%\lib\set-java-args.bat"
+"%OPENDS_JAVA_BIN%" %OPENDS_SERVER_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" %* >> %LOG%
 set ERROR_CODE=%errorlevel%
 goto exitErrorCode
 
 :runDetach
 echo %SCRIPT%: Run detach  >> %LOG%
-if not exist "%DIR_HOME%\logs\server.out" echo. > "%DIR_HOME%\logs\server.out"
-if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.starting"
-"%DIR_HOME%\lib\winlauncher.exe" start "%DIR_HOME%" "%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS%  %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
-echo %SCRIPT%: Waiting for "%DIR_HOME%\logs\server.out" to be deleted >> %LOG%
-"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.starting" --logFile "%DIR_HOME%\logs\server.out"
+if not exist "%INSTANCE_ROOT%\logs\server.out" echo. > "%INSTANCE_ROOT%\logs\server.out"
+if not exist "%INSTANCE_ROOT%\logs\server.starting" echo. > "%INSTANCE_ROOT%\logs\server.starting"
+if exist "%INSTANCE_ROOT%\lib\set-java-args.bat" DO call "%INSTANCE_ROOT%\lib\set-java-args.bat"
+"%INSTALL_ROOT%\lib\winlauncher.exe" start "%INSTANCE_ROOT%" "%OPENDS_JAVA_BIN%" %OPENDS_SERVER_JAVA_ARGS%  %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
+echo %SCRIPT%: Waiting for "%INSTANCE_ROOT%\logs\server.out" to be deleted >> %LOG%
+"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%INSTANCE_ROOT%\logs\server.starting" --logFile "%INSTANCE_ROOT%\logs\server.out"
 goto checkStarted
 
 :runDetachQuiet
 echo %SCRIPT%: Run detach  >> %LOG%
-if not exist "%DIR_HOME%\logs\server.out" echo. > "%DIR_HOME%\logs\server.out"
-if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.starting"
-"%DIR_HOME%\lib\winlauncher.exe" start "%DIR_HOME%" "%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS%  %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
-echo %SCRIPT%: Waiting for "%DIR_HOME%\logs\server.out" to be deleted >> %LOG%
-"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.starting" --logFile "%DIR_HOME%\logs\server.out" >> %LOG%
+if not exist "%INSTANCE_ROOT%\logs\server.out" echo. > "%INSTANCE_ROOT%\logs\server.out"
+if not exist "%INSTANCE_ROOT%\logs\server.starting" echo. > "%INSTANCE_ROOT%\logs\server.starting"
+if exist "%INSTANCE_ROOT%\lib\set-java-args.bat" DO call "%INSTANCE_ROOT%\lib\set-java-args.bat"
+"%INSTALL_ROOT%\lib\winlauncher.exe" start "%INSTANCE_ROOT%" "%OPENDS_JAVA_BIN%" %OPENDS_SERVER_JAVA_ARGS%  %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
+echo %SCRIPT%: Waiting for "%INSTANCE_ROOT%\logs\server.out" to be deleted >> %LOG%
+"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%INSTANCE_ROOT%\logs\server.starting" --logFile "%INSTANCE_ROOT%\logs\server.out" >> %LOG%
 goto checkStarted
 
 :runDetachCalledByWinService
 rem We write the output of the start command to the winservice.out file.
 echo %SCRIPT%: Run detach called by windows service  >> %LOG%
-if not exist "%DIR_HOME%\logs\server.out" echo. > "%DIR_HOME%\logs\server.out"
-if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.starting"
-echo. > "%DIR_HOME%\logs\server.startingservice"
-echo. > "%DIR_HOME%\logs\winservice.out"
-if exist "%DIR_HOME%\lib\set-java-args.bat" DO call "%DIR_HOME%\lib\set-java-args.bat"
-"%DIR_HOME%\lib\winlauncher.exe" start "%DIR_HOME%" "%OPENDS_JAVA_BIN%" -Xrs %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
-echo %SCRIPT%: Waiting for "%DIR_HOME%\logs\server.out" to be deleted >> %LOG%
-"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.starting" --logFile "%DIR_HOME%\logs\server.out" --outputFile "%DIR_HOME%\logs\winservice.out"
-erase "%DIR_HOME%\logs\server.startingservice"
+if not exist "%INSTANCE_ROOT%\logs\server.out" echo. > "%INSTANCE_ROOT%\logs\server.out"
+if not exist "%INSTANCE_ROOT%\logs\server.starting" echo. > "%INSTANCE_ROOT%\logs\server.starting"
+echo. > "%INSTANCE_ROOT%\logs\server.startingservice"
+echo. > "%INSTANCE_ROOT%\logs\winservice.out"
+if exist "%INSTANCE_ROOT%\lib\set-java-args.bat" DO call "%INSTANCE_ROOT%\lib\set-java-args.bat"
+"%INSTALL_ROOT%\lib\winlauncher.exe" start "%INSTANCE_ROOT%" "%OPENDS_JAVA_BIN%" -Xrs %OPENDS_SERVER_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
+echo %SCRIPT%: Waiting for "%INSTANCE_ROOT%\logs\server.out" to be deleted >> %LOG%
+"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%INSTANCE_ROOT%\logs\server.starting" --logFile "%INSTANCE_ROOT%\logs\server.out" --outputFile "%INSTANCE_ROOT%\logs\winservice.out"
+erase "%INSTANCE_ROOT%\logs\server.startingservice"
 goto checkStarted
 
 :runAsService
 echo %SCRIPT%: Run as service >> %LOG%
 "%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.StartWindowsService
-echo %SCRIPT%: Waiting for "%DIR_HOME%\logs\server.startingservice" to be deleted >> %LOG%
-"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.startingservice"
+echo %SCRIPT%: Waiting for "%INSTANCE_ROOT%\logs\server.startingservice" to be deleted >> %LOG%
+"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%INSTANCE_ROOT%\logs\server.startingservice"
 rem Type the contents the winwervice.out file and delete it.
-if exist "%DIR_HOME%\logs\winservice.out" type "%DIR_HOME%\logs\winservice.out"
-if exist "%DIR_HOME%\logs\winservice.out" erase "%DIR_HOME%\logs\winservice.out"
+if exist "%INSTANCE_ROOT%\logs\winservice.out" type "%INSTANCE_ROOT%\logs\winservice.out"
+if exist "%INSTANCE_ROOT%\logs\winservice.out" erase "%INSTANCE_ROOT%\logs\winservice.out"
 goto end
 
 :checkStarted
-"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" --checkStartability > NUL 2>&1
+"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" --checkStartability > NUL 2>&1
 if %errorlevel% == 98 goto serverStarted
 goto serverNotStarted
 

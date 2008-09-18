@@ -735,7 +735,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
     addTestUser();
@@ -802,7 +802,7 @@ public class LDAPPasswordModifyTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
     addTestUser();

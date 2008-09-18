@@ -28,7 +28,16 @@ rem      Copyright 2006-2008 Sun Microsystems, Inc.
 setlocal
 for %%i in (%~sf0) do set DIR_HOME=%%~dPsi.
 
-set INSTANCE_ROOT=%DIR_HOME%
+set INSTALL_ROOT=%DIR_HOME%
+set INSTANCE_DIR=
+for /f "delims=" %%a in (%INSTALL_ROOT%\instance.loc) do (
+  set INSTANCE_DIR=%%a
+)
+set CUR_DIR=%~dp0
+cd %INSTALL_ROOT%
+cd %INSTANCE_DIR%
+set INSTANCE_ROOT=%CD%
+cd %CUR_DIR%
 
 :checkNewVersion
 if exist "upgrade.bat.NEW" goto newVersion
@@ -37,14 +46,14 @@ set SCRIPT_NAME=upgrade
 
 rem Set environment variables and test java
 set SCRIPT_UTIL_CMD=set-full-environment-and-test-java
-call "%INSTANCE_ROOT%\lib\_script-util.bat"
+call "%INSTALL_ROOT%\lib\_script-util.bat"
 if NOT %errorlevel% == 0 exit /B %errorlevel%
 
 :callExtractor
 if EXIST "%INSTANCE_ROOT%\tmp\upgrade" rd "%INSTANCE_ROOT%\tmp\upgrade" /s /q
 set CLASSPATH=""
-FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
-set CLASSPATH=%DIR_HOME%\classes;%CLASSPATH%
+FOR %%x in ("%INSTALL_ROOT%\lib\*.jar") DO call "%INSTALL_ROOT%\lib\setcp.bat" %%x
+set CLASSPATH=%INSTANCE_ROOT%\classes;%CLASSPATH%
 "%OPENDS_JAVA_BIN%" %SCRIPT_NAME_ARG% org.opends.quicksetup.upgrader.BuildExtractor %*
 if %errorlevel% == 99 goto upgrader
 if %errorlevel% == 98 goto reverter
@@ -60,16 +69,16 @@ goto end
 
 :upgrader
 set CLASSPATH=""
-FOR %%x in ("%INSTANCE_ROOT%\tmp\upgrade\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG%  org.opends.quicksetup.upgrader.UpgradeLauncher %*
+FOR %%x in ("%INSTANCE_ROOT%\tmp\upgrade\lib\*.jar") DO call "%INSTALL_ROOT%\lib\setcp.bat" %%x
+"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% -DINSTALL_ROOT=%INSTALL_ROOT% org.opends.quicksetup.upgrader.UpgradeLauncher %*
 goto end
 
 :reverter
 if EXIST "%INSTANCE_ROOT%\tmp\revert" rd "%INSTANCE_ROOT%\tmp\revert" /s /q
-xcopy "%INSTANCE_ROOT%\lib\*.*" "%INSTANCE_ROOT%\tmp\revert\lib\" /E /Q /Y
+xcopy "%INSTALL_ROOT%\lib\*.*" "%INSTANCE_ROOT%\tmp\revert\lib\" /E /Q /Y
 set CLASSPATH=""
-FOR %%x in ("%INSTANCE_ROOT%\tmp\revert\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG%  org.opends.quicksetup.upgrader.ReversionLauncher %*
+FOR %%x in ("%INSTANCE_ROOT%\tmp\revert\lib\*.jar") DO call "%INSTALL_ROOT%\lib\setcp.bat" %%x
+"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% -DINSTALL_ROOT=%INSTALL_ROOT% org.opends.quicksetup.upgrader.ReversionLauncher %*
 goto end
 
 :version

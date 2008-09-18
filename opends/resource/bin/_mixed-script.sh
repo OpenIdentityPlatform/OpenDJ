@@ -37,16 +37,26 @@ fi
 
 
 # Capture the current working directory so that we can change to it later.
-# Then capture the location of this script and the Directory Server instance
-# root so that we can use them to create appropriate paths.
+# Then capture the location of this script and the Directory Server install
+# and instance  root so that we can use them to create appropriate paths.
 WORKING_DIR=`pwd`
 
 cd "`dirname "${0}"`"
 SCRIPT_DIR=`pwd`
 
 cd ..
-INSTANCE_ROOT=`pwd`
-export INSTANCE_ROOT
+INSTALL_ROOT=`pwd`
+export INSTALL_ROOT
+
+if cat ${INSTALL_ROOT}/instance.loc | grep '^/' > /dev/null
+then
+  INSTANCE_ROOT=`cat ${INSTALL_ROOT}/instance.loc`
+  export INSTANCE_ROOT
+else
+  INSTANCE_ROOT=${INSTALL_ROOT}/`cat ${INSTALL_ROOT}/instance.loc`
+  export INSTANCE_ROOT
+fi
+
 
 cd "${WORKING_DIR}"
 
@@ -63,7 +73,7 @@ ORIGINAL_JAVA_BIN=${OPENDS_JAVA_BIN}
 # Set environment variables
 SCRIPT_UTIL_CMD=set-full-environment
 export SCRIPT_UTIL_CMD
-.  "${INSTANCE_ROOT}/lib/_script-util.sh"
+.  "${INSTALL_ROOT}/lib/_script-util.sh"
 RETURN_CODE=$?
 if test ${RETURN_CODE} -ne 0
 then
@@ -92,7 +102,7 @@ then
   # Set the environment to use the offline properties
   SCRIPT_NAME=${OLD_SCRIPT_NAME}.offline
   export SCRIPT_NAME
-  .  "${INSTANCE_ROOT}/lib/_script-util.sh"
+  .  "${INSTALL_ROOT}/lib/_script-util.sh"
   RETURN_CODE=$?
   if test ${RETURN_CODE} -ne 0
   then

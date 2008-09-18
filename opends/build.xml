@@ -913,6 +913,10 @@
     <copy todir="${pdir}/lib">
       <fileset file="${lib.dir}/*.exe" />
     </copy>
+    
+    <copy todir="${pdir}">
+      <fileset file="${resource.dir}/instance.loc" />
+    </copy>
 
     <antcall target="example-plugin" />
 

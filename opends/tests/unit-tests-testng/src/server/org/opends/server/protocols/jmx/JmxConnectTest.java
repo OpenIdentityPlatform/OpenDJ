@@ -606,7 +606,7 @@ public class JmxConnectTest extends JmxTestCase {
    * @return
    */
   private String getJmxKeystorePath() {
-    return DirectoryServer.getServerRoot() + File.separator + "config"
+    return DirectoryServer.getInstanceRoot() + File.separator + "config"
         + File.separator + "server.keystore";
   }
 

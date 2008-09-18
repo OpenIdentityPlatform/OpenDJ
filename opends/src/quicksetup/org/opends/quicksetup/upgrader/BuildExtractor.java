@@ -126,8 +126,9 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
           ZipExtractor extractor = new ZipExtractor(buildFile);
           extractor.extract(stageDirectory);
           LOG.log(Level.INFO, "Extraction finished");
-          Installation installation = new Installation(stageDirectory);
-          if (!installation.isValid()) {
+          Installation installation = new Installation(stageDirectory,
+              stageDirectory);
+          if (!installation.isValid(stageDirectory)) {
             LOG.log(Level.INFO, "Extraction produed an invalid OpenDS" +
                     "installation: " + installation.getInvalidityReason());
             Message invalidMsg = INFO_BUILD_EXTRACTOR_FILE_INVALID.get(
@@ -162,7 +163,8 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
 
   private File initStageDirectory() throws ApplicationException {
     File stageDir;
-    Installation installation = new Installation(getInstallationPath());
+    Installation installation = new Installation(getInstallationPath(),
+        getInstancePath());
     stageDir = installation.getTemporaryUpgradeDirectory();
     if (stageDir.exists()) {
       FileManager fm = new FileManager();
@@ -190,6 +192,14 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
   public String getInstallationPath() {
     return Utils.getInstallPathFromClasspath();
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getInstancePath() {
+    return Utils.getInstancePathFromClasspath(getInstallationPath());
+  }
+
 
   /**
    * {@inheritDoc}

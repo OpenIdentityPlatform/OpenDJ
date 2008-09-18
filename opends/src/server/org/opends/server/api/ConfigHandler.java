@@ -113,13 +113,21 @@ public abstract class ConfigHandler
 
 
   /**
+   * Retrieves the absolute path of the Directory Server install
+   * root.
+   *
+   * @return  The absolute path of the Directory Server install root.
+   */
+  public abstract String getServerRoot();
+
+
+  /**
    * Retrieves the absolute path of the Directory Server instance
    * root.
    *
    * @return  The absolute path of the Directory Server instance root.
    */
-  public abstract String getServerRoot();
-
+  public abstract String getInstanceRoot();
 
 
   /**

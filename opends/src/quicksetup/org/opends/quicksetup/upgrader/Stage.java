@@ -31,6 +31,7 @@ import static org.opends.quicksetup.Installation.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import org.opends.messages.Message;
 import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.FileManager;
 
@@ -79,7 +80,39 @@ public class Stage {
   throws ApplicationException {
     for (String fileName : root.list()) {
       File dest = new File(destination, fileName);
-      File src = getSourceForCopy(fileName, dest);
+      File srctmp = new File(root, fileName);
+      File src = getSourceForCopy(srctmp, fileName, dest);
+      //fm.copyRecursively(src, destination, fileFilter, /*overwrite=*/true);
+      fm.copyRecursively(src, destination, fileFilter, /*overwrite=*/true);
+    }
+  }
+
+  /**
+   * Moves the files in the staging area to a destination directory.
+   *
+   * @param destination for the staged files
+   * @param fileFilter the file filter to be used
+   * @param forInstallDir true if the filter is for the install directory.
+   * @throws ApplicationException if something goes wrong
+   */
+  public void move(File destination, FileFilter fileFilter,
+      boolean forInstallDir)
+  throws ApplicationException {
+    File actualRoot = root ;
+    if (forInstallDir)
+    {
+      actualRoot =
+        new File(root, Installation.HISTORY_BACKUP_FILES_DIR_INSTALL);
+    }
+    else
+    {
+      actualRoot =
+        new File(root, Installation.HISTORY_BACKUP_FILES_DIR_INSTANCE);
+    }
+    for (String fileName : actualRoot.list()) {
+      File dest = new File(destination, fileName);
+      File srctmp = new File(actualRoot, fileName);
+      File src = getSourceForCopy(srctmp, fileName, dest);
       //fm.copyRecursively(src, destination, fileFilter, /*overwrite=*/true);
       fm.copyRecursively(src, destination, fileFilter, /*overwrite=*/true);
     }
@@ -95,9 +128,7 @@ public class Stage {
     return Collections.unmodifiableList(messages);
   }
 
-  private File getSourceForCopy(String fileName, File dest) {
-
-    File src = new File(root, fileName);
+  private File getSourceForCopy(File src, String fileName, File dest) {
 
     // If this is the running script on Windows, see if it is actually
     // different than the new version.  If not don't do anything but if
