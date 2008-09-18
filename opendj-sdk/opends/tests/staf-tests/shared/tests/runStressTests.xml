@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE stax SYSTEM "../../shared/stax.dtd">
+<!DOCTYPE stax SYSTEM "../stax.dtd">
 <!--
  ! CDDL HEADER START
  !
@@ -29,106 +29,62 @@
   <defaultcall function="main" />
   <function name="main">
     <sequence>
-
       <!--- Load the environment for the test suite execution -->
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
-      <call function="'loadGlobalEnvironment'" />
+      <call function="'loadEnvironment'" />
 
-      <!-- Build list of test groups to run -->
+      <!-- The Functional Tests -->
+      <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/testcases/import_ldif/import_ldif.xml' % TESTS_DIR" />
+              
       <script>
-        listOfChildren=[]
-
-        class groupToRun:
+        # this function return a well-formatted testcase name
+        def getTestCaseName(name):
+          return '%s: %s: %s' % (CurrentTestPath['group'],CurrentTestPath['suite'],name)
+          
+        # this functions adds a known issue to a testcase's known issues list
+        issuesList=[]
+        def knownIssue(issue):
+          issuesList.append(issue)
+        
+        class functionToRun:
           def __init__(self, name):
             self.name = name
-
+          
           def getName(self):
             return self.name
-
-        testlog=open('%s/tests-log.xml' % logs.tests,'w')
+          
+        testlog=open('%s/tests-log.xml' % TMPDIR,'w')
         testlog.write('&lt;qa&gt;\n')
         testlog.write('  &lt;functional-tests&gt;\n')
         testlog.write('    &lt;results&gt;\n')
         testlog.close()
-
-        groupsFileName='%s/testcases/run-custom-suites.dat' % TESTS_DIR
-
-        if not os.path.exists(groupsFileName):
-          groupsFileName='%s/testcases/run-default-suites.dat' % TESTS_DIR
-
-        f = open(groupsFileName, 'r')
-        groupsToRun = []
+          
+        suitesFileName='%s/testcases/run-custom-suites.dat' % TESTS_DIR
+        
+        if not os.path.exists(suitesFileName):
+          suitesFileName='%s/testcases/run-default-suites.dat' % TESTS_DIR
+          
+        f = open(suitesFileName, 'r')
+        functionsToRun = []
         for line in f.readlines():
-
-          if line.startswith('#'):
-            continue
-          else:
-            groupsToRun.append(groupToRun(line.rstrip()))
+          functionsToRun.append(functionToRun(line.rstrip()))
         f.close()
       </script>
-
-      <!-- TODO: If no groupsToRun then iterate will throw exception -->
-      <iterate var="group" in="groupsToRun" >
-
+      <iterate var="function" in="functionsToRun">
         <sequence>
-        
-          <!-- The job that executes the tests -->
-          <script>
-            STAXParentID=STAXJobID
-          </script>
-
-          <job name="'%s: %s, %s, %s' % (STAXParentID,STAF_REMOTE_HOSTNAME,TEST_OS_STRING,group.getName())" monitor="1" clearlogs="'Enabled'" logtcstartstop="'Enabled'">
-            <job-file>
-              '%s/testcases/%s/%s.xml' % (TESTS_DIR,group.getName(),group.getName())
-            </job-file>
-            <job-function>
-              'main_%s' % group.getName()
-            </job-function>
-            <job-function-args eval='1'>
-              STAXParentID
-            </job-function-args>        
-            <job-scriptfiles machine="STAF_LOCAL_HOSTNAME">
-              STAXJobScriptFiles
-            </job-scriptfiles>
-            <job-action>
-              <log>
-                'Started test group %s, child ID %s, parent ID %s on %s' % (group.getName(),STAXSubJobID,STAXParentID,STAF_LOCAL_HOSTNAME)
-              </log>
-            </job-action>
-          </job>
-    
-          <if expr="RC == 0">
-            <sequence>
-              <message>
-                'Completed test group %s, child ID %s. Result: %s' % (group.getName(),STAXSubJobID, STAXResult)
-              </message>
-              <script>
-                listOfChildren.append(STAXSubJobID)
-              </script>
-            </sequence>
-            <else>
-              <sequence>
-                <message log="1" level="'Error'">
-                  'Test group %s, child ID %s could not be started. RC: %s Result: %s' % (group.getName(),STAXSubJobID,RC,STAFResult)
-                </message>
-              </sequence>
-            </else>
-          </if>
-      
+          <message>'calling function [%s]' % function.getName()</message>
+          <call function="function.getName()" />
         </sequence>
-        
       </iterate>
-
+      
       <!-- in this section we'll compute the coverage for all the tests
            if coverage is turned on
            so far I could only get through this on either machines with a lot
            of memory or small sets of tests
       -->
-      <script>
-        emmaJar='%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
-      </script>
-      <if expr="os.path.exists(emmaJar)">
+      <if expr="os.path.exists('%s/lib/emma.jar' % dsPath)">
         <sequence>
           <script>
             coverageFiles=''
@@ -138,7 +94,7 @@
           <call function="'runCommand'">
               { 'name'      : 'Generate global coverage xml report',
                 'command'   : 'java',
-                'arguments' : ' -Xms64M -Xmx1024M -cp %s emma report -r xml,html -in %s/coverage.em,%s -Dreport.xml.out.file=%s/coverage/coverage.xml -Dreport.html.out.file=%s/coverage/coverage.html -sp %s/../../../src' % (emmaJar,dsPath,coverageFiles,TMPDIR,TMPDIR,TMPDIR),
+                'arguments' : ' -Xms64M -Xmx1024M -cp %s/lib/emma.jar emma report -r xml,html -in %s/coverage.em,%s -Dreport.xml.out.file=%s/coverage/coverage.xml -Dreport.html.out.file=%s/coverage/coverage.html -sp %s/../../../src' % (dsPath,dsPath,coverageFiles,TMPDIR,TMPDIR,TMPDIR),
                 'path'      : TMPDIR
               }
           </call>
@@ -148,10 +104,10 @@
             from javax.xml.transform.stream import StreamResult
             from javax.xml.parsers import DocumentBuilderFactory
             from org.w3c.dom import *
-
-            factory = DocumentBuilderFactory.newInstance()
+            
+            factory = DocumentBuilderFactory.newInstance() 
             builder = factory.newDocumentBuilder()
-
+            
             input = FileInputStream("%s/coverage/coverage.xml" % TMPDIR)
             document = builder.parse(input)
             dom = document.getDocumentElement()
@@ -163,7 +119,7 @@
                 if thisNodeAttributes.getNamedItem("type").getNodeValue() == 'block, %':
                   rawCoverage = thisNodeAttributes.getNamedItem("value").getNodeValue()
                   coverage = rawCoverage.split('%')[0]
-            testlog=open('%s/tests-log.xml' % logs.tests,'a')
+            testlog=open('%s/tests-log.xml' % TMPDIR,'a')
             testlog.seek(0,2)
             testlog.write("      &lt;all&gt;\n")
             testlog.write("        &lt;coverage&gt;\n")
@@ -175,7 +131,7 @@
         </sequence>
         <else>
           <script>
-            testlog=open('%s/tests-log.xml' % logs.tests,'a')
+            testlog=open('%s/tests-log.xml' % TMPDIR,'a')
             testlog.seek(0,2)
             testlog.write("      &lt;all&gt;\n")
             testlog.write("        &lt;coverage&gt;\n")
@@ -200,9 +156,9 @@
           STAFResult='{}'
         </script>
       </if>
-
+            
       <!-- Build the Servers Information Dictionary -->
-      <script>
+      <script> 
         ServersInfoDict=eval(STAFResult)
 
         ServerVersion='unknown'
@@ -211,26 +167,25 @@
         ServerJavaVendor='unknown'
         ServerJVMVersion='unknown'
         ServerJVMVendor='unknown'
-        ServerJVMArchitecture='unknown'
         ServerSystemOS='unknown'
         ServerSystemName='unknown'
         ServerSvnRevision='unknown'
-
+        
         if ServersInfoDict.has_key('%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)):
           ServerInfoDict=ServersInfoDict['%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)]
-
+          
           ServerInfoKey='server version'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerVersion=ServerInfoDict[ServerInfoKey]
-
+          
           ServerInfoKey='server buildid'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerBuildId=ServerInfoDict[ServerInfoKey]
-
+          
           ServerInfoKey='java version'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerJavaVersion=ServerInfoDict[ServerInfoKey]
-
+          
           ServerInfoKey='java vendor'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerJavaVendor=ServerInfoDict[ServerInfoKey]
@@ -243,10 +198,6 @@
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerJVMVendor=ServerInfoDict[ServerInfoKey]
 
-          ServerInfoKey='jvm architecture'
-          if ServerInfoDict.has_key(ServerInfoKey):
-            ServerJVMArchitecture=ServerInfoDict[ServerInfoKey]
-
           ServerInfoKey='system os'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerSystemOS=ServerInfoDict[ServerInfoKey]
@@ -258,66 +209,37 @@
           ServerInfoKey='svn revision'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerSvnRevision=ServerInfoDict[ServerInfoKey]
-
+          
         else:
           ServerInfoDict='No key found (%s/%s)' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
-
-        # Platform and JVM can be overridden from config file
-        try:
-          if TEST_OS_STRING:
-            ServerOsString=TEST_OS_STRING
-          else:
-            ServerOsString=ServerSystemOS
-        except NameError,details:
-            ServerOsString=ServerSystemOS
-
-        try:
-          if TEST_JVM_STRING:
-            ServerJVMString=TEST_JVM_STRING
-          else:
-            ServerJVMString=ServerJVMVersion
-        except NameError,details:
-            ServerJVMString=ServerJVMVersion
-
-        testlog=open('%s/tests-log.xml' % logs.tests,'a')
+        
+        testlog=open('%s/tests-log.xml' % TMPDIR,'a')
         testlog.seek(0,2)
         testlog.write('    &lt;/results&gt;\n')
         testlog.write('    &lt;identification&gt;\n')
         testlog.write('      &lt;version&gt;\n')
         testlog.write('        %s\n' % ServerVersion)
-        testlog.write('      &lt;/version&gt;\n')
+        testlog.write('      &lt;/version&gt;\n')    
         testlog.write('      &lt;buildid&gt;\n')
         testlog.write('        %s\n' % ServerBuildId)
         testlog.write('      &lt;/buildid&gt;\n')
         testlog.write('      &lt;revision&gt;\n')
         testlog.write('        %s\n' % ServerSvnRevision)
-        testlog.write('      &lt;/revision&gt;\n')
+        testlog.write('      &lt;/revision&gt;\n')                 
         testlog.write('      &lt;platform&gt;\n')
         testlog.write('        %s\n' % ServerSystemOS)
         testlog.write('      &lt;/platform&gt;\n')
-        testlog.write('      &lt;os-label&gt;\n')
-        testlog.write('        %s\n' % ServerOsString)
-        testlog.write('      &lt;/os-label&gt;\n')
         testlog.write('      &lt;jvm-version&gt;\n')
         testlog.write('        %s\n' % ServerJVMVersion)
         testlog.write('      &lt;/jvm-version&gt;\n')
-        testlog.write('      &lt;jvm-label&gt;\n')
-        testlog.write('        %s\n' % ServerJVMString)
-        testlog.write('      &lt;/jvm-label&gt;\n')
         testlog.write('      &lt;jvm-vendor&gt;\n')
         testlog.write('        %s\n' % ServerJVMVendor)
-        testlog.write('      &lt;/jvm-vendor&gt;\n')
-        testlog.write('      &lt;tests-dir&gt;\n')
-        testlog.write('        %s\n' % logs.directory)
-        testlog.write('      &lt;/tests-dir&gt;\n')
+        testlog.write('      &lt;/jvm-vendor&gt;\n')        
         testlog.write('    &lt;/identification&gt;\n')
         testlog.write('  &lt;/functional-tests&gt;\n')
         testlog.write('&lt;/qa&gt;\n')
         testlog.close()
       </script>
-      
-      <return>listOfChildren</return>
-
     </sequence>
   </function>
 </stax>
