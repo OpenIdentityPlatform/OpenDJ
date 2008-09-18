@@ -122,4 +122,15 @@ public class DeleteMsg extends UpdateMessage
   {
     return ("DEL " + getDn() + " " + getChangeNumber());
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int size()
+  {
+    // The DeleteMsg size is mostly dependent on the DN and should never
+    // grow very large. It is therefore safe to assume an average of 40 bytes.
+    return 40;
+  }
 }

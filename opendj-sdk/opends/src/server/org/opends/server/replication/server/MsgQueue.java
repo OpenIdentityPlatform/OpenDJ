@@ -42,6 +42,9 @@ public class MsgQueue
   private SortedMap<ChangeNumber, UpdateMessage>  map =
     new TreeMap<ChangeNumber, UpdateMessage>();
 
+  // The total number of bytes for all the message in the queue.
+  private int bytesCount = 0;
+
   /**
    * Return the first UpdateMessage in the MsgQueue.
    *
@@ -67,9 +70,19 @@ public class MsgQueue
    *
    * @return The number of elements in this MsgQueue.
    */
-  public int size()
+  public int count()
   {
     return map.size();
+  }
+
+  /**
+   * Returns the number of bytes in this MsgQueue.
+   *
+   * @return The number of bytes in this MsgQueue.
+   */
+  public int bytesCount()
+  {
+    return bytesCount;
   }
 
   /**
@@ -91,6 +104,7 @@ public class MsgQueue
   public void add(UpdateMessage update)
   {
     map.put(update.getChangeNumber(), update);
+    bytesCount += update.size();
   }
 
   /**
@@ -102,6 +116,7 @@ public class MsgQueue
   {
     UpdateMessage msg = map.get(map.firstKey());
     map.remove(msg.getChangeNumber());
+    bytesCount -= msg.size();
     return msg;
   }
 
@@ -126,5 +141,6 @@ public class MsgQueue
   public void clear()
   {
     map.clear();
+    bytesCount = 0;
   }
 }

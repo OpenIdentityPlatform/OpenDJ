@@ -73,7 +73,8 @@ public class DbHandlerTest extends ReplicationTestCase
     ReplicationDbEnv dbEnv = new ReplicationDbEnv(path, replicationServer);
 
     DbHandler handler =
-      new DbHandler((short) 1, DN.decode("o=test"), replicationServer, dbEnv);
+      new DbHandler(
+          (short) 1, DN.decode("o=test"), replicationServer, dbEnv, 5000);
 
     ChangeNumberGenerator gen = new ChangeNumberGenerator((short)1, 0);
     ChangeNumber changeNumber1 = gen.newChangeNumber();
@@ -153,7 +154,8 @@ public class DbHandlerTest extends ReplicationTestCase
     ReplicationDbEnv dbEnv = new ReplicationDbEnv(path, replicationServer);
 
     DbHandler handler =
-      new DbHandler((short) 1, DN.decode("o=test"), replicationServer, dbEnv);
+      new DbHandler(
+          (short) 1, DN.decode("o=test"), replicationServer, dbEnv, 5000);
 
     // Creates changes added to the dbHandler
     ChangeNumberGenerator gen = new ChangeNumberGenerator((short)1, 0);

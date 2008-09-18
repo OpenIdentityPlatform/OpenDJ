@@ -134,7 +134,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   // ID of the backend
   private static final String backendId = "replicationChanges";
 
-  // At startup, the listen thread wait on this flag for the connet
+  // At startup, the listen thread wait on this flag for the connect
   // thread to look for other servers in the topology.
   private boolean connectedInTopology = false;
   private final Object connectedInTopologyLock = new Object();
@@ -554,7 +554,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   public DbHandler newDbHandler(short id, DN baseDn)
   throws DatabaseException
   {
-    return new DbHandler(id, baseDn, this, dbEnv);
+    return new DbHandler(id, baseDn, this, dbEnv, queueSize);
   }
 
   /**
@@ -824,6 +824,17 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   public short getServerId()
   {
     return serverId;
+  }
+
+  /**
+   * Get the queueSize for this replication server.
+   *
+   * @return The maximum size of the queues for this Replication Server
+   *
+   */
+  public int getQueueSize()
+  {
+    return queueSize;
   }
 
   /**

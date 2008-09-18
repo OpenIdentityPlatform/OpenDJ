@@ -362,4 +362,11 @@ public abstract class UpdateMessage extends ReplicationMessage
     }
 
   }
+
+  /**
+   * Return the number of bytes used by this message.
+   *
+   * @return The number of bytes used by this message.
+   */
+  public abstract int size();
 }

@@ -235,4 +235,16 @@ public class ModifyMsg extends UpdateMessage
   {
     return("MOD " + getDn() + " " + getChangeNumber());
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int size()
+  {
+    // The ModifyMsh can be very large when added or deleted attribute
+    // values are very large. We therefore need to count the
+    // whole encoded msg.
+    return encodedMsg.length;
+  }
 }
