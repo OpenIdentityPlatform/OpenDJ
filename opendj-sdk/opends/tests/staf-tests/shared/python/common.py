@@ -140,6 +140,7 @@ class report_generation:
         self.transformer.setParameter(self.key, self.value)
 
       self.transformer.transform(self.source, self.result)
+
     finally:
       self.xsl.close()
       self.xml.close()
@@ -282,7 +283,7 @@ class staf_service:
     self.library=__entryMap['library']
     self.executable=__entryMap['executable']
     self.options=__entryMap['options']
-    self.parms=__entryMap['parameters']
+    self.params=__entryMap['parameters']
 
   def get_library(self):
     return self.library
@@ -296,8 +297,8 @@ class staf_service:
   def get_options(self):
     return self.options
 
-  def get_parms(self):
-    return self.parms
+  def get_params(self):
+    return self.params
 
 class test_env:
   'Container to hold test environment instance objects'

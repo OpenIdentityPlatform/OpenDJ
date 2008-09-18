@@ -32,10 +32,13 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:template match="/">
 
   <!-- Test Report Header -->
-  <xsl:variable name="identification"     select="qa/functional-tests/identification"/>
+  <xsl:variable name="ft"               select="qa/functional-tests"/>
+  <xsl:variable name="id"               select="$ft/identification"/>
+  <xsl:variable name="sut"              select="$id/sut"/>
+  <xsl:value-of select="concat('tests-dir: ', normalize-space($id/tests-dir),'&#xa;')"/>
 
   <!-- Test Case Totals -->
-  <xsl:variable name="testcase"     select="qa/functional-tests/results/testgroup/testsuite/testcase"/>
+  <xsl:variable name="testcase"     select="$ft/results/testgroup/testsuite/testcase"/>
   <xsl:variable name="total"  select="count($testcase)"/>
   <xsl:variable name="pass"   select="count($testcase[@result='pass'])"/>
   <xsl:variable name="fail"   select="count($testcase[@result='fail'])"/>
@@ -58,17 +61,17 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:value-of select="concat('fail: ', normalize-space($fail),'&#xa;')"/>
   <xsl:value-of select="concat('inconc: ', normalize-space($inconc),'&#xa;')"/>
   <xsl:value-of select="concat('total: ', normalize-space($total),'&#xa;')"/>
-  <xsl:value-of select="concat('sut-version: ', normalize-space($identification/version),'&#xa;')"/>
-  <xsl:value-of select="concat('sut-buildid: ', normalize-space($identification/buildid),'&#xa;')"/>
-  <xsl:value-of select="concat('sut-revision: ', normalize-space($identification/revision),'&#xa;')"/>
-  <xsl:value-of select="concat('os-hostname: ', normalize-space($identification/hostname),'&#xa;')"/>
-  <xsl:value-of select="concat('os-platform: ', normalize-space($identification/platform),'&#xa;')"/>
-  <xsl:value-of select="concat('os-label: ', normalize-space($identification/os-label),'&#xa;')"/>
-  <xsl:value-of select="concat('jvm-version: ', normalize-space($identification/jvm-version),'&#xa;')"/>
-  <xsl:value-of select="concat('jvm-label: ', normalize-space($identification/jvm-label),'&#xa;')"/>
-  <xsl:value-of select="concat('jvm-vendor: ', normalize-space($identification/jvm-vendor),'&#xa;')"/>
-  <xsl:value-of select="concat('jvm-arch: ', normalize-space($identification/jvm-arch),'&#xa;')"/>
-  <xsl:value-of select="concat('tests-dir: ', normalize-space($identification/tests-dir),'&#xa;')"/>
+  <xsl:value-of select="concat('sut-version: ', normalize-space($sut/version),'&#xa;')"/>
+  <xsl:value-of select="concat('sut-buildid: ', normalize-space($sut/buildid),'&#xa;')"/>
+  <xsl:value-of select="concat('sut-revision: ', normalize-space($sut/revision),'&#xa;')"/>
+  <xsl:value-of select="concat('os-hostname: ', normalize-space($sut/hostname),'&#xa;')"/>
+  <xsl:value-of select="concat('os-platform: ', normalize-space($sut/platform),'&#xa;')"/>
+  <xsl:value-of select="concat('os-label: ', normalize-space($sut/os-label),'&#xa;')"/>
+  <xsl:value-of select="concat('jvm-version: ', normalize-space($sut/jvm-version),'&#xa;')"/>
+  <xsl:value-of select="concat('jvm-label: ', normalize-space($sut/jvm-label),'&#xa;')"/>
+  <xsl:value-of select="concat('jvm-vendor: ', normalize-space($sut/jvm-vendor),'&#xa;')"/>
+  <xsl:value-of select="concat('jvm-arch: ', normalize-space($sut/jvm-arch),'&#xa;')"/>
+
 </xsl:template>
 
 </xsl:stylesheet>

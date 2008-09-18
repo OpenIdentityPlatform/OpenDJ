@@ -142,7 +142,8 @@
       <script> 
         
         ServersInfoDict=eval(STAFResult)
-        
+
+        ServerName='unknown'        
         ServerVersion='unknown'
         ServerBuildId='unknown'
         ServerJavaVersion='unknown'
@@ -154,10 +155,14 @@
         ServerSystemOS='unknown'
         ServerSystemName='unknown'
         ServerSvnRevision='unknown'
+        ServerPackage='%s/%s' % (ZIPPATH,ZIPNAME)
+        ServerSNMPJarFile='%s/%s' % (SNMP_OPENDMK_LIBDIR,SNMP_OPENDMK_JARFILE)
         
         if ServersInfoDict.has_key('%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)):       
           ServerInfoDict=ServersInfoDict['%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)]
-          
+
+          ServerName=OPENDSNAME         
+
           ServerInfoKey='server version'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerVersion=ServerInfoDict[ServerInfoKey]
@@ -210,6 +215,13 @@
       </script>
 
       <message>'Server= %s' % ServerInfoDict </message>
+
+      <!-- Build the DSML Gateway Information Dictionary -->
+      <script>
+        DSMLName='%s' % DSML_WARNAME
+        DSMLPackage='%s' % DSML_WARPATH
+        DSMLContainer='%s %s' % (WC_TYPE,WC_VERSION)
+      </script>
 
       <!-- Get the location of where the test logs are -->
       <call function="'GetVar'">
@@ -403,45 +415,223 @@
 
       <!-- XML Report Pre -->
       <script>
+        localstaf =test_env.staf(STAF_LOCAL_HOSTNAME)
+        remotestaf=test_env.staf(STAF_REMOTE_HOSTNAME)
+        
+        stax = test_env.stax(STAF_LOCAL_HOSTNAME)
+        event = test_env.event(STAF_LOCAL_HOSTNAME)
+        eventman = test_env.eventmanager(STAF_LOCAL_HOSTNAME)
+        email = test_env.email(STAF_LOCAL_HOSTNAME)
+        http = test_env.http(STAF_LOCAL_HOSTNAME)
+        dsml = test_env.dsml(STAF_LOCAL_HOSTNAME)
+                        
         xmlfh.write('&lt;qa&gt;\n')
         xmlfh.write('  &lt;functional-tests&gt;\n')
         xmlfh.write('    &lt;identification&gt;\n')
-        xmlfh.write('      &lt;version&gt;\n')
-        xmlfh.write('        %s\n' % ServerVersion)
-        xmlfh.write('      &lt;/version&gt;\n')    
-        xmlfh.write('      &lt;buildid&gt;\n')
-        xmlfh.write('        %s\n' % ServerBuildId)
-        xmlfh.write('      &lt;/buildid&gt;\n')
-        xmlfh.write('      &lt;revision&gt;\n')
-        xmlfh.write('        %s\n' % ServerSvnRevision)
-        xmlfh.write('      &lt;/revision&gt;\n')                 
-        xmlfh.write('      &lt;hostname&gt;\n')
-        xmlfh.write('        %s\n' % STAF_REMOTE_HOSTNAME)
-        xmlfh.write('      &lt;/hostname&gt;\n')
-        xmlfh.write('      &lt;platform&gt;\n')
-        xmlfh.write('        %s\n' % ServerSystemOS)
-        xmlfh.write('      &lt;/platform&gt;\n')
-        xmlfh.write('      &lt;jvm-version&gt;\n')
-        xmlfh.write('        %s\n' % ServerJVMVersion)
-        xmlfh.write('      &lt;/jvm-version&gt;\n')
-        xmlfh.write('      &lt;jvm-label&gt;\n')
-        xmlfh.write('        %s\n' % ServerJVMString)
-        xmlfh.write('      &lt;/jvm-label&gt;\n')
-        xmlfh.write('      &lt;jvm-vendor&gt;\n')
-        xmlfh.write('        %s\n' % ServerJVMVendor)
-        xmlfh.write('      &lt;/jvm-vendor&gt;\n')
-        xmlfh.write('      &lt;jvm-arch&gt;\n')
-        xmlfh.write('        %s\n' % ServerJVMArchitecture)
-        xmlfh.write('      &lt;/jvm-arch&gt;\n')
-        xmlfh.write('      &lt;os-label&gt;\n')
-        xmlfh.write('        %s\n' % ServerOsString)
-        xmlfh.write('      &lt;/os-label&gt;\n')                        
+        xmlfh.write('      &lt;sut product="opends"&gt;\n')
+        xmlfh.write('        &lt;name&gt;\n')
+        xmlfh.write('          %s\n' % ServerName)
+        xmlfh.write('        &lt;/name&gt;\n')    
+        xmlfh.write('        &lt;version&gt;\n')
+        xmlfh.write('          %s\n' % ServerVersion)
+        xmlfh.write('        &lt;/version&gt;\n')    
+        xmlfh.write('        &lt;buildid&gt;\n')
+        xmlfh.write('          %s\n' % ServerBuildId)
+        xmlfh.write('        &lt;/buildid&gt;\n')
+        xmlfh.write('        &lt;revision&gt;\n')
+        xmlfh.write('          %s\n' % ServerSvnRevision)
+        xmlfh.write('        &lt;/revision&gt;\n')                 
+        xmlfh.write('        &lt;hostname&gt;\n')
+        xmlfh.write('          %s\n' % STAF_REMOTE_HOSTNAME)
+        xmlfh.write('        &lt;/hostname&gt;\n')
+        xmlfh.write('        &lt;platform&gt;\n')
+        xmlfh.write('          %s\n' % ServerSystemOS)
+        xmlfh.write('        &lt;/platform&gt;\n')
+        xmlfh.write('        &lt;jvm-version&gt;\n')
+        xmlfh.write('          %s\n' % ServerJVMVersion)
+        xmlfh.write('        &lt;/jvm-version&gt;\n')
+        xmlfh.write('        &lt;jvm-label&gt;\n')
+        xmlfh.write('          %s\n' % ServerJVMString)
+        xmlfh.write('        &lt;/jvm-label&gt;\n')
+        xmlfh.write('        &lt;jvm-vendor&gt;\n')
+        xmlfh.write('          %s\n' % ServerJVMVendor)
+        xmlfh.write('        &lt;/jvm-vendor&gt;\n')
+        xmlfh.write('        &lt;jvm-arch&gt;\n')
+        xmlfh.write('          %s\n' % ServerJVMArchitecture)
+        xmlfh.write('        &lt;/jvm-arch&gt;\n')
+        xmlfh.write('        &lt;jvm-args&gt;\n')
+        xmlfh.write('          TBD\n')
+        xmlfh.write('        &lt;/jvm-args&gt;\n')
+        xmlfh.write('        &lt;jvm-home&gt;\n')
+        xmlfh.write('          TBD\n')
+        xmlfh.write('        &lt;/jvm-home&gt;\n')
+        xmlfh.write('        &lt;jvm-bin&gt;\n')
+        xmlfh.write('          TBD\n')
+        xmlfh.write('        &lt;/jvm-bin&gt;\n')
+        xmlfh.write('        &lt;os-label&gt;\n')
+        xmlfh.write('          %s\n' % ServerOsString)
+        xmlfh.write('        &lt;/os-label&gt;\n')         
+        xmlfh.write('        &lt;server-package&gt;\n')
+        xmlfh.write('          %s\n' % ServerPackage)
+        xmlfh.write('        &lt;/server-package&gt;\n')
+        xmlfh.write('        &lt;snmp-jarfile&gt;\n')
+        xmlfh.write('          %s\n' % ServerSNMPJarFile)
+        xmlfh.write('        &lt;/snmp-jarfile&gt;\n')
+        xmlfh.write('        &lt;md5-sum&gt;\n')
+        xmlfh.write('          TDB\n')
+        xmlfh.write('        &lt;/md5-sum&gt;\n')
+        xmlfh.write('      &lt;/sut&gt;\n')
+        xmlfh.write('      &lt;sut product="dsml"&gt;\n')
+        xmlfh.write('        &lt;name&gt;\n')
+        xmlfh.write('          %s\n' % DSMLName)
+        xmlfh.write('        &lt;/name&gt;\n')
+        xmlfh.write('        &lt;dsml-container&gt;\n')
+        xmlfh.write('          %s\n' % DSMLContainer)
+        xmlfh.write('        &lt;/dsml-container&gt;\n')
+        xmlfh.write('        &lt;dsml-package&gt;\n')
+        xmlfh.write('          %s\n' % DSMLPackage)
+        xmlfh.write('        &lt;/dsml-package&gt;\n')
+        xmlfh.write('        &lt;md5-sum&gt;\n')
+        xmlfh.write('          TDB\n')
+        xmlfh.write('        &lt;/md5-sum&gt;\n')
+        xmlfh.write('      &lt;/sut&gt;\n')        
+        xmlfh.write('      &lt;testware&gt;\n') 
+        xmlfh.write('        &lt;staf&gt;\n')
+        xmlfh.write('          &lt;local&gt;\n')
+        xmlfh.write('            &lt;hostname&gt;\n')
+        xmlfh.write('              %s\n' % STAF_LOCAL_HOSTNAME)
+        xmlfh.write('            &lt;/hostname&gt;\n')
+        xmlfh.write('            &lt;version&gt;\n')
+        xmlfh.write('              %s\n' % localstaf.version)
+        xmlfh.write('            &lt;/version&gt;\n')
+        xmlfh.write('            &lt;rootdir&gt;\n')
+        xmlfh.write('              %s\n' % localstaf.root)
+        xmlfh.write('            &lt;/rootdir&gt;\n')
+        xmlfh.write('          &lt;/local&gt;\n')
+        xmlfh.write('          &lt;remote&gt;\n')
+        xmlfh.write('            &lt;hostname&gt;\n')
+        xmlfh.write('              %s\n' % STAF_REMOTE_HOSTNAME)
+        xmlfh.write('            &lt;/hostname&gt;\n')
+        xmlfh.write('            &lt;version&gt;\n')
+        xmlfh.write('              %s\n' % remotestaf.version)
+        xmlfh.write('            &lt;/version&gt;\n')
+        xmlfh.write('            &lt;rootdir&gt;\n')
+        xmlfh.write('              %s\n' % remotestaf.root)
+        xmlfh.write('            &lt;/rootdir&gt;\n')
+        xmlfh.write('          &lt;/remote&gt;\n')
+        xmlfh.write('        &lt;/staf&gt;\n')
+        xmlfh.write('        &lt;service name="%s"&gt;\n' % stax.name)
+        xmlfh.write('          &lt;version&gt;\n')
+        xmlfh.write('            %s\n' % stax.version)
+        xmlfh.write('          &lt;/version&gt;\n')
+        xmlfh.write('          &lt;library&gt;\n')
+        xmlfh.write('            %s\n' % stax.library)
+        xmlfh.write('          &lt;/library&gt;\n')
+        xmlfh.write('          &lt;executable&gt;\n')
+        xmlfh.write('            %s\n' % stax.executable)
+        xmlfh.write('          &lt;/executable&gt;\n')        
+        xmlfh.write('          &lt;options&gt;\n')
+        xmlfh.write('            %s\n' % stax.options)
+        xmlfh.write('          &lt;/options&gt;\n')
+        xmlfh.write('          &lt;params&gt;\n')
+        xmlfh.write('            %s\n' % stax.params)
+        xmlfh.write('          &lt;/params&gt;\n')
+        xmlfh.write('        &lt;/service&gt;\n')
+        xmlfh.write('        &lt;service name="%s"&gt;\n' % event.name)
+        xmlfh.write('          &lt;version&gt;\n')
+        xmlfh.write('            %s\n' % event.version)
+        xmlfh.write('          &lt;/version&gt;\n')
+        xmlfh.write('          &lt;library&gt;\n')
+        xmlfh.write('            %s\n' % event.library)
+        xmlfh.write('          &lt;/library&gt;\n')
+        xmlfh.write('          &lt;executable&gt;\n')
+        xmlfh.write('            %s\n' % event.executable)
+        xmlfh.write('          &lt;/executable&gt;\n')        
+        xmlfh.write('          &lt;options&gt;\n')
+        xmlfh.write('            %s\n' % event.options)
+        xmlfh.write('          &lt;/options&gt;\n')
+        xmlfh.write('          &lt;params&gt;\n')
+        xmlfh.write('            %s\n' % event.params)
+        xmlfh.write('          &lt;/params&gt;\n')
+        xmlfh.write('        &lt;/service&gt;\n')
+        xmlfh.write('        &lt;service name="%s"&gt;\n' % eventman.name)
+        xmlfh.write('          &lt;version&gt;\n')
+        xmlfh.write('            %s\n' % eventman.version)
+        xmlfh.write('          &lt;/version&gt;\n')
+        xmlfh.write('          &lt;library&gt;\n')
+        xmlfh.write('            %s\n' % eventman.library)
+        xmlfh.write('          &lt;/library&gt;\n')
+        xmlfh.write('          &lt;executable&gt;\n')
+        xmlfh.write('            %s\n' % eventman.executable)
+        xmlfh.write('          &lt;/executable&gt;\n')        
+        xmlfh.write('          &lt;options&gt;\n')
+        xmlfh.write('            %s\n' % eventman.options)
+        xmlfh.write('          &lt;/options&gt;\n')
+        xmlfh.write('          &lt;params&gt;\n')
+        xmlfh.write('            %s\n' % eventman.params)
+        xmlfh.write('          &lt;/params&gt;\n')
+        xmlfh.write('        &lt;/service&gt;\n')
+        xmlfh.write('        &lt;service name="%s"&gt;\n' % email.name)
+        xmlfh.write('          &lt;version&gt;\n')
+        xmlfh.write('            %s\n' % email.version)
+        xmlfh.write('          &lt;/version&gt;\n')
+        xmlfh.write('          &lt;library&gt;\n')
+        xmlfh.write('            %s\n' % email.library)
+        xmlfh.write('          &lt;/library&gt;\n')
+        xmlfh.write('          &lt;executable&gt;\n')
+        xmlfh.write('            %s\n' % email.executable)
+        xmlfh.write('          &lt;/executable&gt;\n')        
+        xmlfh.write('          &lt;options&gt;\n')
+        xmlfh.write('            %s\n' % email.options)
+        xmlfh.write('          &lt;/options&gt;\n')
+        xmlfh.write('          &lt;params&gt;\n')
+        xmlfh.write('            %s\n' % email.params)
+        xmlfh.write('          &lt;/params&gt;\n')
+        xmlfh.write('        &lt;/service&gt;\n')
+        xmlfh.write('        &lt;service name="%s"&gt;\n' % http.name)
+        xmlfh.write('          &lt;version&gt;\n')
+        xmlfh.write('            %s\n' % http.version)
+        xmlfh.write('          &lt;/version&gt;\n')
+        xmlfh.write('          &lt;library&gt;\n')
+        xmlfh.write('            %s\n' % http.library)
+        xmlfh.write('          &lt;/library&gt;\n')
+        xmlfh.write('          &lt;executable&gt;\n')
+        xmlfh.write('            %s\n' % http.executable)
+        xmlfh.write('          &lt;/executable&gt;\n')        
+        xmlfh.write('          &lt;options&gt;\n')
+        xmlfh.write('            %s\n' % http.options)
+        xmlfh.write('          &lt;/options&gt;\n')
+        xmlfh.write('          &lt;params&gt;\n')
+        xmlfh.write('            %s\n' % http.params)
+        xmlfh.write('          &lt;/params&gt;\n')
+        xmlfh.write('        &lt;/service&gt;\n')
+        xmlfh.write('        &lt;service name="%s"&gt;\n' % dsml.name)
+        xmlfh.write('          &lt;version&gt;\n')
+        xmlfh.write('            %s\n' % dsml.version)
+        xmlfh.write('          &lt;/version&gt;\n')
+        xmlfh.write('          &lt;library&gt;\n')
+        xmlfh.write('            %s\n' % dsml.library)
+        xmlfh.write('          &lt;/library&gt;\n')
+        xmlfh.write('          &lt;executable&gt;\n')
+        xmlfh.write('            %s\n' % dsml.executable)
+        xmlfh.write('          &lt;/executable&gt;\n')        
+        xmlfh.write('          &lt;options&gt;\n')
+        xmlfh.write('            %s\n' % dsml.options)
+        xmlfh.write('          &lt;/options&gt;\n')
+        xmlfh.write('          &lt;params&gt;\n')
+        xmlfh.write('            %s\n' % dsml.params)
+        xmlfh.write('          &lt;/params&gt;\n')
+        xmlfh.write('        &lt;/service&gt;\n')        
+        xmlfh.write('      &lt;/testware&gt;\n')
         xmlfh.write('      &lt;tests-dir&gt;\n')
         xmlfh.write('        %s\n' % logsDir)
         xmlfh.write('      &lt;/tests-dir&gt;\n')
         xmlfh.write('      &lt;tests-url&gt;\n')
         xmlfh.write('        %s\n' % logsURI)
         xmlfh.write('      &lt;/tests-url&gt;\n')
+        xmlfh.write('      &lt;mailto&gt;\n')
+        xmlfh.write('        %s\n' % SEND_MAIL_TO)
+        xmlfh.write('      &lt;/mailto&gt;\n')
         xmlfh.write('    &lt;/identification&gt;\n')
         xmlfh.write('    &lt;results&gt;\n')
       </script>
@@ -585,26 +775,25 @@
               _message='Unable to generate suites test report %s !!!' % groupDir
       </script>
       <message>_message</message>
-                                
-      <!-- Generate the drill down test report -->
-      <script>          
-        _message='Generated the drill down test report.'
-        myreportxsl='%s/xsl/my-report.xsl' % TESTS_SHARED_DIR
-        myreporthtml='%s/my-report.html' % logsReportDir
-        mytestslog='%s/tests-log.xml' % logsTestsDir
 
-        drillDownReport=report_generation()      
+      <!-- Generate the product identification report -->
+       <script>
+        _message='Generated product identification test report.'
+        xslfile= '%s/xsl/id.xsl' % TESTS_SHARED_DIR
+        htmlfile= '%s/id.html' % logsReportDir
+
+        idReport=report_generation()      
 
         stringParamsDict={}
 
         try:
-          drillDownReport.transformReport(myreportxsl,mytestslog,myreporthtml,stringParamsDict)
+          idReport.transformReport(xslfile,xmlfile,htmlfile,stringParamsDict)
         except IOError,details:
-          _message='Unable to generate drill down test report %s.' % details
+          _message='Unable to generate product identification test report %s.' % details
         except:
-          _message='Unable to generate drill down test report !!!'
+          _message='Unable to generate product identification test report !!!'
       </script>
-      <message>_message</message>
+      <message>_message</message>                                
 
       <!-- Generate the summary text file -->
       <script>          
@@ -623,30 +812,6 @@
           _message='Unable to generate summary text file %s.' % details
       </script>
       <message>_message</message>
-            
-      <!-- FixMe: Compatability with Hudson -->      
-      <if expr="os.path.exists(myreporthtml)">
-        <sequence>
-          <message>'Copy %s to %s' % (myreporthtml,TMPDIR)</message>
-          <call function="'copyFile'">
-            { 'srcfile'    : myreporthtml,
-              'destfile'   : '%s/my-report.html' % TMPDIR
-            }
-          </call>
-        </sequence>
-      </if>
-
-      <!-- FixMe: Compatability with Hudson -->
-      <if expr="os.path.exists(mytestslog)">
-        <sequence>
-          <message>'Copy %s to %s' % (mytestslog,TMPDIR)</message>
-          <call function="'copyFile'">
-            { 'srcfile'    : mytestslog,
-              'destfile'   : '%s/tests-log.xml' % TMPDIR
-            }
-          </call>
-        </sequence>
-      </if>
            
       <if expr="SEND_MAIL_AFTER_TEST_RUN == 'TRUE'">
         <sequence>

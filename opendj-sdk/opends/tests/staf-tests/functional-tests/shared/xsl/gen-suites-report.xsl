@@ -41,14 +41,17 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     
   <!--- Test Report Header Variables -->
   <xsl:variable name="ft"             select="qa/functional-tests"/>
-  <xsl:variable name="identification" select="$ft/identification"/>
-  <xsl:variable name="url"            select="normalize-space($identification/tests-url)"/>
-  <xsl:variable name="hostname"       select="normalize-space($identification/hostname)"/>
-  <xsl:variable name="version"        select="normalize-space($identification/version)"/>
-  <xsl:variable name="buildid"        select="normalize-space($identification/buildid)"/>
-  <xsl:variable name="revision"       select="normalize-space($identification/revision)"/>
-  <xsl:variable name="os"             select="normalize-space($identification/os-label)"/>
-  <xsl:variable name="jvm"            select="normalize-space($identification/jvm-label)"/>
+  <xsl:variable name="id"             select="$ft/identification"/>
+  <xsl:variable name="sut"            select="$id/sut"/>
+  <xsl:variable name="mailto"         select="normalize-space($id/mailto)"/>
+  <xsl:variable name="tests-dir"      select="normalize-space($id/tests-dir)"/>
+  <xsl:variable name="url"            select="normalize-space($sut/tests-url)"/>
+  <xsl:variable name="hostname"       select="normalize-space($sut/hostname)"/>
+  <xsl:variable name="version"        select="normalize-space($sut/version)"/>
+  <xsl:variable name="buildid"        select="normalize-space($sut/buildid)"/>
+  <xsl:variable name="revision"       select="normalize-space($sut/revision)"/>
+  <xsl:variable name="os"             select="normalize-space($sut/os-label)"/>
+  <xsl:variable name="jvm"            select="normalize-space($sut/jvm-label)"/>
   <xsl:variable name="testgroup"      select="$ft/results/testgroup[translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz') = $groupdir]"/>
   <xsl:variable name="testsuite"      select="$testgroup/testsuite"/>
   <xsl:variable name="testcase"       select="$testsuite/testcase"/>
@@ -57,7 +60,6 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:variable name="fail-tests"     select="count($testcase[@result='fail'])"/>
   <xsl:variable name="inconc-tests"   select="count($testcase[@result='unknown'])"/>
   <xsl:variable name="kfail-tests"    select="count($tests-log-doc/qa/functional-tests/results/test[result='known'])"/>
-  <xsl:variable name="tests-dir"      select="normalize-space($identification/tests-dir)"/>
   
   <xsl:element name="html">
   
@@ -539,14 +541,41 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         </xsl:element>
       </xsl:element>
       <xsl:element name="td">
-        <xsl:attribute name="align">
-          <xsl:value-of select="'center'"/>
-        </xsl:attribute>
         <xsl:element name="a">
           <xsl:attribute name="href">
             <xsl:value-of select="concat($url,$tests-dir)"/>
           </xsl:attribute>
-          <xsl:value-of select="$tests-dir"/>
+          <xsl:value-of select="concat($url,$tests-dir)"/>
+        </xsl:element>
+      </xsl:element>          
+    </xsl:element>
+    <xsl:element name="tr">
+      <xsl:element name="td">
+        <xsl:element name="b">
+          <xsl:value-of select="'Product Identification: '"/>
+        </xsl:element>
+      </xsl:element>
+      <xsl:element name="td">
+        <xsl:element name="a">
+          <xsl:attribute name="href">
+            <xsl:value-of select="concat($url,$tests-dir,'/reports/id.html')"/>
+          </xsl:attribute>
+          <xsl:value-of select="concat($url,$tests-dir,'/reports/id.html')"/>
+        </xsl:element>
+      </xsl:element>
+    </xsl:element>
+    <xsl:element name="tr">
+      <xsl:element name="td">
+        <xsl:element name="b">
+          <xsl:value-of select="'Mail Sent to: '"/>
+        </xsl:element>
+      </xsl:element>
+      <xsl:element name="td">
+        <xsl:element name="a">
+          <xsl:attribute name="href">
+            <xsl:value-of select="concat('mailto:',normalize-space($mailto))"/>
+          </xsl:attribute>
+          <xsl:value-of select="normalize-space($mailto)"/>
         </xsl:element>
       </xsl:element>          
     </xsl:element>

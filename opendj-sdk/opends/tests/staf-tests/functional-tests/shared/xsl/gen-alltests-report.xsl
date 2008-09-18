@@ -30,10 +30,11 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:template match="/">
 
   <!--- Test Report Header Variables -->
-  <xsl:variable name="identification"     select="qa/functional-tests/identification"/>
-  <xsl:variable name="version"  select="$identification/version"/>
-  <xsl:variable name="buildid"  select="$identification/buildid"/>
-  <xsl:variable name="revision"  select="$identification/revision"/>
+  <xsl:variable name="id"           select="qa/functional-tests/identification"/>
+  <xsl:variable name="sut"          select="$id/sut"/>
+  <xsl:variable name="version"      select="$sut/version"/>
+  <xsl:variable name="buildid"      select="$sut/buildid"/>
+  <xsl:variable name="revision"     select="$sut/revision"/>
   <xsl:variable name="testcase"     select="qa/functional-tests/results/testgroup/testsuite/testcase"/>
   <xsl:variable name="total-tests"  select="count($testcase)"/>
   <xsl:variable name="pass-tests"   select="count($testcase[@result='pass'])"/>
@@ -211,7 +212,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:value-of select="'center'"/>
         </xsl:attribute>
         <xsl:element name="b">
-          <xsl:value-of select="$identification/buildid"/>
+          <xsl:value-of select="$sut/buildid"/>
         </xsl:element>
       </xsl:element>
       <xsl:element name="td">
@@ -219,7 +220,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:value-of select="'center'"/>
         </xsl:attribute>
         <xsl:element name="b">
-          <xsl:value-of select="$identification/revision"/>
+          <xsl:value-of select="$sut/revision"/>
         </xsl:element>
       </xsl:element>          
       <xsl:element name="td">
@@ -227,7 +228,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:value-of select="'center'"/>
         </xsl:attribute>
         <xsl:element name="b">
-          <xsl:value-of select="$identification/os-label"/>
+          <xsl:value-of select="$sut/os-label"/>
         </xsl:element>
       </xsl:element>
       <xsl:element name="td">
@@ -235,7 +236,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:value-of select="'center'"/>
         </xsl:attribute>
         <xsl:element name="b">
-          <xsl:value-of select="$identification/jvm-label"/>
+          <xsl:value-of select="$sut/jvm-label"/>
         </xsl:element>
       </xsl:element>
       <xsl:element name="td">
@@ -417,7 +418,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:value-of select="'Additional Information'"/>
   </xsl:element>
 
-  <xsl:variable name="tests-dir" select="$identification/tests-dir"/>
+  <xsl:variable name="tests-dir" select="$id/tests-dir"/>
     
   <xsl:element name="table">
     <xsl:element name="tr">
