@@ -71,13 +71,13 @@ public class FileBasedKeyManagerProviderTestCase
   {
     TestCaseUtils.startServer();
 
-    FileWriter writer = new FileWriter(DirectoryServer.getServerRoot() +
+    FileWriter writer = new FileWriter(DirectoryServer.getInstanceRoot() +
                                        File.separator + "config" +
                                        File.separator + "server.pin");
     writer.write("password" + EOL);
     writer.close();
 
-    writer = new FileWriter(DirectoryServer.getServerRoot() + File.separator +
+    writer = new FileWriter(DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "empty");
     writer.close();
 

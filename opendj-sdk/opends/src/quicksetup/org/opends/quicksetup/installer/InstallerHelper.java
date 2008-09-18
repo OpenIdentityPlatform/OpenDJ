@@ -678,7 +678,8 @@ public class InstallerHelper {
       javaHome = System.getenv(SetupUtils.OPENDS_JAVA_HOME);
     }
 
-    String configDir = Utils.getPath(installPath,
+    String configDir = Utils.getPath(Utils
+        .getInstancePathFromClasspath(installPath),
         Installation.CONFIG_PATH_RELATIVE);
     String propertiesFile = Utils.getPath(
         configDir, Installation.DEFAULT_JAVA_PROPERTIES_FILE);

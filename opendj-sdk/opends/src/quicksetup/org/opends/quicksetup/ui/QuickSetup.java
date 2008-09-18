@@ -380,8 +380,9 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
         {
           Installation installation;
           if (isWebStart()) {
+            String installDir = application.getUserData().getServerLocation();
             installation =
-              new Installation(application.getUserData().getServerLocation());
+              new Installation(installDir, installDir);
           } else {
             installation = Installation.getLocal();
           }

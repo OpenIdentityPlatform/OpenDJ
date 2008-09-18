@@ -38,7 +38,17 @@ set ORIGINAL_JAVA_ARGS=%OPENDS_JAVA_ARGS%
 set ORIGINAL_JAVA_HOME=%OPENDS_JAVA_HOME%
 set ORIGINAL_JAVA_BIN=%OPENDS_JAVA_BIN%
 
-set INSTANCE_ROOT=%DIR_HOME%
+set INSTALL_ROOT=%DIR_HOME%
+
+set INSTANCE_DIR=
+for /f "delims=" %%a in (%INSTALL_ROOT%\instance.loc) do (
+  set INSTANCE_DIR=%%a
+)
+set CUR_DIR=%~dp0
+cd %INSTALL_ROOT%
+cd %INSTANCE_DIR%
+set INSTANCE_ROOT=%CD%
+cd %CUR_DIR%
 
 set LOG="%INSTANCE_ROOT%\logs\native-windows.out"
 set SCRIPT=stop-ds.bat
@@ -49,7 +59,7 @@ echo %SCRIPT%: invoked >> %LOG%
 
 rem Set environment variables
 set SCRIPT_UTIL_CMD=set-full-environment-and-test-java
-call "%INSTANCE_ROOT%\lib\_script-util.bat"
+call "%INSTALL_ROOT%\lib\_script-util.bat"
 if NOT %errorlevel% == 0 exit /B %errorlevel%
 
 echo %SCRIPT%: CLASSPATH=%CLASSPATH% >> %LOG%
@@ -68,7 +78,7 @@ goto end
 
 :serverAlreadyStopped
 echo %SCRIPT%: server already stopped >> %LOG%
-if exist "%DIR_HOME%\logs\server.pid" erase "%DIR_HOME%\logs\server.pid"
+if exist "%INSTANCE_ROOT%\logs\server.pid" erase "%INSTANCE_ROOT%\logs\server.pid"
 goto end
 
 :startUsingSystemCall
@@ -79,23 +89,23 @@ rem if the user specified not to overwrite the environment).
 set OPENDS_JAVA_ARGS=%ORIGINAL_JAVA_ARGS%
 set OPENDS_JAVA_HOME=%ORIGINAL_JAVA_HOME%
 set OPENDS_JAVA_BIN=%ORIGINAL_JAVA_BIN%
-"%DIR_HOME%\bat\start-ds.bat"
+"%INSTALL_ROOT%\bat\start-ds.bat"
 goto end
 
 :stopUsingSystemCall
 echo %SCRIPT%: stop using system call >> %LOG%
-"%DIR_HOME%\lib\winlauncher.exe" stop "%DIR_HOME%"
+"%INSTALL_ROOT%\lib\winlauncher.exe" stop "%INSTANCE_ROOT%"
 goto end
 
 :restartUsingSystemCall
 echo %SCRIPT%: restart using system call >> %LOG%
-"%DIR_HOME%\lib\winlauncher.exe" stop "%DIR_HOME%"
+"%INSTALL_ROOT%\lib\winlauncher.exe" stop "%INSTANCE_ROOT%"
 if not %errorlevel% == 0 goto end
 goto startUsingSystemCall
 
 :stopUsingProtocol
 echo %SCRIPT%: stop using protocol >> %LOG%
-call "%DIR_HOME%\lib\_client-script.bat" %*
+call "%INSTALL_ROOT%\lib\_client-script.bat" %*
 goto end
 
 :stopAsWindowsService
@@ -109,10 +119,10 @@ echo %SCRIPT%: restart as windows service, stopping >> %LOG%
 if not %errorlevel% == 0 goto end
 echo %SCRIPT%: restart as windows service, starting >> %LOG%
 "%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.StartWindowsService
-"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.startingservice"
+"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%INSTANCE_ROOT%\logs\server.startingservice"
 rem Type the contents the winwervice.out file and delete it.
-if exist "%DIR_HOME%\logs\winservice.out" type "%DIR_HOME%\logs\winservice.out"
-if exist "%DIR_HOME%\logs\winservice.out" erase "%DIR_HOME%\logs\winservice.out"
+if exist "%INSTANCE_ROOT%\logs\winservice.out" type "%INSTANCE_ROOT%\logs\winservice.out"
+if exist "%INSTANCE_ROOT%\logs\winservice.out" erase "%INSTANCE_ROOT%\logs\winservice.out"
 goto end
 
 :end

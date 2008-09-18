@@ -816,7 +816,8 @@ public abstract class Installer extends GuiApplication {
 
     if (Utils.isWebStart())
     {
-      setInstallation(new Installation(getUserData().getServerLocation()));
+      String installDir = getUserData().getServerLocation();
+      setInstallation(new Installation(installDir, installDir));
     }
 
     checkAbort();
@@ -1892,7 +1893,7 @@ public abstract class Installer extends GuiApplication {
             getFormattedSuccess(
                     INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY.get(
                             formatter.getFormattedText(
-                                    Message.raw(getInstallationPath())),
+                                    Message.raw(getInstancePath())),
                             INFO_GENERAL_SERVER_STOPPED.get(),
                             cmd)));
     hmSummary.put(InstallProgressStep.FINISHED_CANCELED,
@@ -1926,7 +1927,7 @@ public abstract class Installer extends GuiApplication {
             getFormattedSuccess(
                     INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY.get(
                             formatter.getFormattedText(
-                                    Message.raw(getInstallationPath())),
+                                    Message.raw(getInstancePath())),
                             status,
                             cmd)));
     hmSummary.put(InstallProgressStep.FINISHED_WITH_ERROR,
@@ -3967,7 +3968,7 @@ public abstract class Installer extends GuiApplication {
    */
   protected String getSelfSignedKeystorePath()
   {
-    String parentFile = getPath(getInstallationPath(),
+    String parentFile = getPath(getInstancePath(),
         Installation.CONFIG_PATH_RELATIVE);
     return (getPath(parentFile, "keystore"));
   }
@@ -3980,7 +3981,7 @@ public abstract class Installer extends GuiApplication {
    */
   private String getTrustManagerPath()
   {
-    String parentFile = getPath(getInstallationPath(),
+    String parentFile = getPath(getInstancePath(),
         Installation.CONFIG_PATH_RELATIVE);
     return (getPath(parentFile, "truststore"));
   }
@@ -3992,7 +3993,7 @@ public abstract class Installer extends GuiApplication {
    */
   private String getTemporaryCertificatePath()
   {
-    String parentFile = getPath(getInstallationPath(),
+    String parentFile = getPath(getInstancePath(),
         Installation.CONFIG_PATH_RELATIVE);
     return (getPath(parentFile, "server-cert.txt"));
   }
@@ -4003,7 +4004,7 @@ public abstract class Installer extends GuiApplication {
    */
   private String getKeystorePinPath()
   {
-    String parentFile = getPath(getInstallationPath(),
+    String parentFile = getPath(getInstancePath(),
         Installation.CONFIG_PATH_RELATIVE);
     return (getPath(parentFile, "keystore.pin"));
   }

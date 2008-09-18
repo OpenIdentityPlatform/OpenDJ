@@ -238,7 +238,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
   @Test()
   public void testListConnectionHandlersSSLTrustStore()
   {
-    String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
     String[] args =
@@ -289,7 +289,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
   @Test()
   public void testListConnectionHandlersStartTLSTrustStore()
   {
-    String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
     String[] args =

@@ -174,8 +174,11 @@ public class ConfigFileHandler
   // The path to the configuration file.
   private String configFile;
 
-  // The instance root directory for the Directory Server.
+  // The install root directory for the Directory Server.
   private String serverRoot;
+
+  // The instance root directory for the Directory Server.
+  private String instanceRoot;
 
 
 
@@ -694,7 +697,7 @@ public class ConfigFileHandler
         if (serverRoot == null)
         {
           Message message = ERR_CONFIG_CANNOT_DETERMINE_SERVER_ROOT.get(
-              ENV_VAR_INSTANCE_ROOT);
+              ENV_VAR_INSTALL_ROOT);
           throw new InitializationException(message);
         }
       }
@@ -715,7 +718,7 @@ public class ConfigFileHandler
         }
 
         Message message =
-            ERR_CONFIG_CANNOT_DETERMINE_SERVER_ROOT.get(ENV_VAR_INSTANCE_ROOT);
+            ERR_CONFIG_CANNOT_DETERMINE_SERVER_ROOT.get(ENV_VAR_INSTALL_ROOT);
         throw new InitializationException(message);
       }
     }
@@ -723,6 +726,23 @@ public class ConfigFileHandler
     {
       serverRoot = rootFile.getAbsolutePath();
     }
+
+    // Determine the appropriate server root.  If it's not defined in the
+    // environment config, then try to figure it out from the location of the
+    // configuration file.
+    File instanceFile = envConfig.getInstanceRootFromServerRoot(new File(
+        serverRoot));
+    if (instanceFile == null)
+    {
+      Message message =
+        ERR_CONFIG_CANNOT_DETERMINE_SERVER_ROOT.get(ENV_VAR_INSTALL_ROOT);
+        throw new InitializationException(message);
+    }
+    else
+    {
+      instanceRoot = instanceFile.getAbsolutePath();
+    }
+
 
 
     // Register with the Directory Server as an alert generator.
@@ -1081,6 +1101,15 @@ public class ConfigFileHandler
   public String getServerRoot()
   {
     return serverRoot;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public String getInstanceRoot()
+  {
+    return instanceRoot;
   }
 
 

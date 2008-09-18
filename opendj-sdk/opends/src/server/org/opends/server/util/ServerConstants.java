@@ -2740,6 +2740,12 @@ public final class ServerConstants
   public static final String PROPERTY_SERVER_ROOT =
        "org.opends.server.ServerRoot";
 
+  /**
+   * The name of the system property that can be used to specify the path to the
+   * instance root.
+   */
+  public static final String PROPERTY_INSTANCE_ROOT =
+       "org.opends.server.InstanceRoot";
 
 
   /**

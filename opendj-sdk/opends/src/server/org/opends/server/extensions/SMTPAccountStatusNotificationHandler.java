@@ -279,7 +279,7 @@ public class SMTPAccountStatusNotificationHandler
       File f = new File(path);
       if (! f.isAbsolute() )
       {
-        f = new File(DirectoryServer.getServerRoot() + File.separator +
+        f = new File(DirectoryServer.getInstanceRoot() + File.separator +
             path);
       }
       if (! f.exists())

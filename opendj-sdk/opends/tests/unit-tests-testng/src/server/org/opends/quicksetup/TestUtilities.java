@@ -33,9 +33,14 @@ import org.opends.quicksetup.util.FileManager;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.types.OperatingSystem;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.util.List;
 import java.util.ArrayList;
@@ -75,7 +80,7 @@ public class TestUtilities {
   }
 
   static public Installation getInstallation() {
-    return new Installation(getQuickSetupTestServerRootDir());
+    return new Installation(getQuickSetupTestServerRootDir(),getQuickSetupTestServerRootDir());
   }
 
   static private void setupServer() throws IOException, InterruptedException {
@@ -106,6 +111,7 @@ public class TestUtilities {
     args.add("-O");
 
     ProcessBuilder pb = new ProcessBuilder(args);
+    
     Process p = pb.start();
     if (p.waitFor() != 0) {
       throw new IllegalStateException("setup server failed");

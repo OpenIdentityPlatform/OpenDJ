@@ -68,6 +68,9 @@ import java.util.Set;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 
@@ -977,6 +980,53 @@ class UninstallCliHelper extends ConsoleApplication {
       public String getInstallationPath()
       {
         return Installation.getLocal().getRootDirectory().getAbsolutePath();
+      }
+      /**
+       * {@inheritDoc}
+       */
+      public String getInstancePath()
+      {
+        String installPath =  getInstallationPath();
+
+        // look for <installPath>/lib/resource.loc
+        String instancePathFileName = installPath + File.separator + "lib"
+        + File.separator + "resource.loc";
+        File f = new File(instancePathFileName);
+
+        if (! f.exists())
+        {
+          return installPath;
+        }
+
+        BufferedReader reader;
+        try
+        {
+          reader = new BufferedReader(new FileReader(instancePathFileName));
+        }
+        catch (Exception e)
+        {
+          return installPath;
+        }
+
+
+        // Read the first line and close the file.
+        String line;
+        try
+        {
+          line = reader.readLine();
+          return new File(line).getAbsolutePath();
+        }
+        catch (Exception e)
+        {
+          return installPath;
+        }
+        finally
+        {
+          try
+          {
+            reader.close();
+          } catch (Exception e) {}
+        }
       }
       /**
        * {@inheritDoc}

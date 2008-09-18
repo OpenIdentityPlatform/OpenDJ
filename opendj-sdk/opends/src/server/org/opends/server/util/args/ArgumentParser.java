@@ -1290,7 +1290,7 @@ public class ArgumentParser
       if (propertiesFilePath == null)
       {
         // check "Opends instance"/config directory
-        String instanceDir = DirectoryServer.getServerRoot();
+        String instanceDir = DirectoryServer.getInstanceRoot();
         propertiesFilePath = findPropertiesFile(instanceDir+ File.separator
             + "config");
       }

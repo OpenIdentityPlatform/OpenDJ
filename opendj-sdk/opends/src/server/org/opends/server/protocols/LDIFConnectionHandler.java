@@ -143,8 +143,8 @@ public final class LDIFConnectionHandler
 
     // If we have a relative path to the instance, get the absolute one.
     if ( ! ldifDirectory.isAbsolute() ) {
-      ldifDirectory = new File(DirectoryServer.getServerRoot() + File.separator
-          + ldifDirectoryPath);
+      ldifDirectory = new File(DirectoryServer.getInstanceRoot()
+          + File.separator + ldifDirectoryPath);
     }
 
     if (ldifDirectory.exists())

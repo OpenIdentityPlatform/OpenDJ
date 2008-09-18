@@ -113,6 +113,20 @@ public final class TestCaseUtils {
   public static final String PROPERTY_BUILD_ROOT =
        "org.opends.server.BuildRoot";
 
+   /**
+   * The name of the system property that specifies an existing OpenDS
+   * installation root (inside or outside of the source tree).
+   */
+  public static final String PROPERTY_INSTALLED_ROOT =
+      "org.opends.server.InstalledRoot";
+
+  /**
+   * The name of the system property that specifies an LDIF file
+   * with changes compare to the default config.ldif.
+   */
+  public static final String PROPERTY_CONFIG_CHANGE_FILE =
+      "org.opends.server.ConfigChangeFile";
+  
   /**
    * The name of the system property that specifies the ldap port.
    * Set this prtoperty when running the server if you want to use a given
@@ -225,27 +239,44 @@ public final class TestCaseUtils {
       String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
       File   buildDir  = new File(buildRoot, "build");
       File   unitRoot  = new File(buildDir, "unit-tests");
-      File   testRoot  = new File(unitRoot, "package");
+      File   testInstallRoot  =  new File(unitRoot, "package-install");
+      File   testInstanceRoot  = new File(unitRoot, "package-instance");
       File   testSrcRoot = new File(buildRoot + File.separator + "tests" +
                                     File.separator + "unit-tests-testng");
 
-      if (testRoot.exists())
+      if (testInstallRoot.exists())
       {
-        deleteDirectory(testRoot);
+        deleteDirectory(testInstallRoot);
       }
-      testRoot.mkdirs();
+      if (testInstanceRoot.exists())
+      {
+        deleteDirectory(testInstanceRoot);
+      }
+      testInstallRoot.mkdirs();
+      testInstanceRoot.mkdirs();
+
+      // Retrieves the location of a typical installation directory to use as a
+      // source to build our test instance.
+      String installedRoot = System.getProperty(PROPERTY_INSTALLED_ROOT);
+ 
+      
       //db_verify is second jeb backend used by the jeb verify test cases
       //db_rebuild is the third jeb backend used by the jeb rebuild test cases
       //db_unindexed is the forth backend used by the unindexed search privilege
       //test cases
-      String[] subDirectories = { "bak", "bin", "changelogDb", "classes",
-                                  "config", "db", "import-tmp", "db_verify",
-                                  "ldif", "lib", "locks", "logs", "db_rebuild",
-                                  "db_unindexed", "db_index_test",
-                                  "db_import_test"};
-      for (String s : subDirectories)
+      String[] installSubDirectories = { "bin", "lib", "bat"};
+      String[] instanceSubDirectories = { "bak", "changelogDb", "classes",
+          "config", "db", "import-tmp", "db_verify",
+          "ldif", "locks", "logs", "db_rebuild",
+          "db_unindexed", "db_index_test",
+          "db_import_test"};
+      for (String s : installSubDirectories)
       {
-        new File(testRoot, s).mkdir();
+        new File(testInstallRoot, s).mkdir();
+      }
+      for (String s : instanceSubDirectories)
+      {
+        new File(testInstanceRoot, s).mkdir();
       }
 
       // Copy the configuration, schema, and MakeLDIF resources into the
@@ -255,10 +286,10 @@ public final class TestCaseUtils {
       File libDir           = new File(buildRoot, "lib");
       File resourceDir      = new File(buildRoot, "resource");
       File testResourceDir  = new File(testSrcRoot, "resource");
-      File testConfigDir    = new File(testRoot, "config");
-      File testClassesDir   = new File(testRoot, "classes");
-      File testLibDir       = new File(testRoot, "lib");
-      File testBinDir       = new File(testRoot, "bin");
+      File testConfigDir    = new File(testInstanceRoot, "config");
+      File testClassesDir   = new File(testInstanceRoot, "classes");
+      File testLibDir       = new File(testInstallRoot, "lib");
+      File testBinDir       = new File(testInstallRoot, "bin");
       
       // Snmp resource
       String opendmkJarFileLocation = 
@@ -275,64 +306,83 @@ public final class TestCaseUtils {
       File testSnmpResourceDir = new File (testConfigDir + File.separator +
                                     "snmp");
       
-      if (Boolean.getBoolean(PROPERTY_COPY_CLASSES_TO_TEST_PKG)) {
+      if (Boolean.getBoolean(PROPERTY_COPY_CLASSES_TO_TEST_PKG))
+      {
         copyDirectory(serverClassesDir, testClassesDir);
         copyDirectory(unitClassesDir, testClassesDir);
       }
-
-      copyDirectory(libDir, testLibDir);
-      copyDirectory(new File(resourceDir, "bin"), testBinDir);
-      copyDirectory(new File(resourceDir, "config"), testConfigDir);
-      copyDirectory(new File(resourceDir, "schema"),
-                    new File(testConfigDir, "schema"));
-      copyDirectory(new File(resourceDir, "MakeLDIF"),
-                    new File(testConfigDir, "MakeLDIF"));
-      copyDirectory(new File(snmpResourceDir, "security"),
-                    new File(testSnmpResourceDir, "security"));
-      copyFile(new File(testResourceDir, "server.keystore"),
-               new File(testConfigDir, "server.keystore"));
-      copyFile(new File(testResourceDir, "server.truststore"),
-               new File(testConfigDir, "server.truststore"));
-      copyFile(new File(testResourceDir, "client.keystore"),
-               new File(testConfigDir, "client.keystore"));
-      copyFile(new File(testResourceDir, "client.truststore"),
-               new File(testConfigDir, "client.truststore"));
-      copyFile(new File(testResourceDir, "server-cert.p12"),
-               new File(testConfigDir, "server-cert.p12"));
-      copyFile(new File(testResourceDir, "client-cert.p12"),
-               new File(testConfigDir, "client-cert.p12"));
       
-      if (opendmkJar.exists()) {
+      if (installedRoot != null)
+      {
+        copyDirectory(new File(installedRoot), testInstallRoot);
+        
+        // Get the instance location
+        
+      }
+      else
+      {
+        copyDirectory(libDir, testLibDir);
+        copyDirectory(new File(resourceDir, "bin"), testBinDir);
+        copyDirectory(new File(resourceDir, "config"), testConfigDir);
+        copyDirectory(new File(resourceDir, "schema"),
+            new File(testConfigDir, "schema"));
+        copyDirectory(new File(resourceDir, "MakeLDIF"),
+            new File(testConfigDir, "MakeLDIF"));
+        copyDirectory(new File(snmpResourceDir, "security"),
+            new File(testSnmpResourceDir, "security"));
+        copyFile(new File(testResourceDir, "server.keystore"),
+            new File(testConfigDir, "server.keystore"));
+        copyFile(new File(testResourceDir, "server.truststore"),
+            new File(testConfigDir, "server.truststore"));
+        copyFile(new File(testResourceDir, "client.keystore"),
+            new File(testConfigDir, "client.keystore"));
+        copyFile(new File(testResourceDir, "client.truststore"),
+            new File(testConfigDir, "client.truststore"));
+        copyFile(new File(testResourceDir, "server-cert.p12"),
+            new File(testConfigDir, "server-cert.p12"));
+        copyFile(new File(testResourceDir, "client-cert.p12"),
+            new File(testConfigDir, "client-cert.p12"));
+
+        // Update the install.loc file
+        File installLoc = new File(testInstallRoot + File.separator
+            + "instance.loc");
+        installLoc.deleteOnExit();
+        FileWriter w = new FileWriter(installLoc);
+        w.write(testInstanceRoot.getAbsolutePath());
+        w.close();
+
+        if (opendmkJar.exists())
+        {
           appendFile(new File(snmpConfigDir, "config.snmp.ldif"),
-               new File(testConfigDir,"config.ldif"));
-      }
+              new File(testConfigDir, "config.ldif"));
+        }
 
-      for (File f : testBinDir.listFiles())
-      {
-        try
+        for (File f : testBinDir.listFiles())
         {
-          FilePermission.setPermissions(f, FilePermission.decodeUNIXMode("755"));
-        } catch (Exception e) {}
-      }
-
-      // Make the shell scripts in the bin directory executable, if possible.
-      OperatingSystem os = DirectoryServer.getOperatingSystem();
-      if ((os != null) && OperatingSystem.isUNIXBased(os) &&
-          FilePermission.canSetPermissions())
-      {
-        try
-        {
-          FilePermission perm = FilePermission.decodeUNIXMode("755");
-          for (File f : testBinDir.listFiles())
+          try
           {
-            if (f.getName().endsWith(".sh"))
-            {
-              FilePermission.setPermissions(f, perm);
-            }
-          }
-        } catch (Exception e) {}
-      }
+            FilePermission.setPermissions(f, FilePermission.decodeUNIXMode("755"));
+          } catch (Exception e) {}
+        }
 
+        // Make the shell scripts in the bin directory executable, if possible.
+        OperatingSystem os = DirectoryServer.getOperatingSystem();
+        if ((os != null) && OperatingSystem.isUNIXBased(os) &&
+            FilePermission.canSetPermissions())
+        {
+          try
+          {
+            FilePermission perm = FilePermission.decodeUNIXMode("755");
+            for (File f : testBinDir.listFiles())
+            {
+              if (f.getName().endsWith(".sh"))
+              {
+                FilePermission.setPermissions(f, perm);
+              }
+            }
+          } catch (Exception e) {}
+        }
+      }
       // Find some free ports for the listeners and write them to the
       // config-chamges.ldif file.
       ServerSocket serverLdapSocket  = null;
@@ -357,10 +407,12 @@ public final class TestCaseUtils {
       serverLdapsSocket = bindFreePort();
       serverLdapsPort = serverLdapsSocket.getLocalPort();
 
+      String defaultConfigChangeFile = testResourceDir + File.separator
+          + "config-changes.ldif";
+      String configChangeFile = System.getProperty(
+          PROPERTY_CONFIG_CHANGE_FILE, defaultConfigChangeFile);
       BufferedReader reader = new BufferedReader(new FileReader(
-                                                 new File(testResourceDir,
-                                                          "config-changes.ldif")
-                                                ));
+                                                 new File(configChangeFile)));
       FileOutputStream outFile = new FileOutputStream(
           new File(testConfigDir, "config-changes.ldif"));
       PrintStream writer = new PrintStream(outFile);
@@ -387,7 +439,9 @@ public final class TestCaseUtils {
 
       // Create a configuration for the server.
       DirectoryEnvironmentConfig config = new DirectoryEnvironmentConfig();
-      config.setServerRoot(testRoot);
+      config.setServerRoot(testInstallRoot);
+      config.setInstanceRoot(testInstanceRoot);
+      
       config.setForceDaemonThreads(true);
       config.setConfigClass(ConfigFileHandler.class);
       config.setConfigFile(new File(testConfigDir, "config.ldif"));
@@ -517,7 +571,7 @@ public final class TestCaseUtils {
     String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
     File   buildDir  = new File(buildRoot, "build");
     File   unitRoot  = new File(buildDir, "unit-tests");
-    File   testRoot  = new File(unitRoot, "package");
+    File   testRoot  = new File(unitRoot, "package-instance");
     return new File(testRoot, "config");
   }
 

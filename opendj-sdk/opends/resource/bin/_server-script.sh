@@ -44,15 +44,24 @@ cd "`dirname "${0}"`"
 SCRIPT_DIR=`pwd`
 
 cd ..
-INSTANCE_ROOT=`pwd`
-export INSTANCE_ROOT
+INSTALL_ROOT=`pwd`
+export INSTALL_ROOT
+
+if cat ${INSTALL_ROOT}/instance.loc | grep '^/' > /dev/null
+then
+  INSTANCE_ROOT=`cat ${INSTALL_ROOT}/instance.loc`
+  export INSTANCE_ROOT
+else
+ INSTANCE_ROOT=${INSTALL_ROOT}/`cat ${INSTALL_ROOT}/instance.loc`
+  export INSTANCE_ROOT
+fi
 
 cd "${WORKING_DIR}"
 
 # Set environment variables
 SCRIPT_UTIL_CMD=set-full-environment
 export SCRIPT_UTIL_CMD
-.  "${INSTANCE_ROOT}/lib/_script-util.sh"
+.  "${INSTALL_ROOT}/lib/_script-util.sh"
 RETURN_CODE=$?
 if test ${RETURN_CODE} -ne 0
 then

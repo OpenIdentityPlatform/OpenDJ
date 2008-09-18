@@ -1229,7 +1229,7 @@ public class ImportLDIF extends TaskTool {
         random = new Random();
       }
 
-      String resourcePath = DirectoryServer.getServerRoot() + File.separator +
+      String resourcePath = DirectoryServer.getInstanceRoot() + File.separator +
                             PATH_MAKELDIF_RESOURCE_DIR;
       TemplateFile tf = new TemplateFile(resourcePath, random);
 

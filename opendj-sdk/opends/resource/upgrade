@@ -33,8 +33,17 @@ WORKING_DIR=`pwd`
 cd "`dirname "${0}"`"
 SCRIPT_DIR=`pwd`
 
-INSTANCE_ROOT=${SCRIPT_DIR}
-export INSTANCE_ROOT
+INSTALL_ROOT=${SCRIPT_DIR}
+export INSTALL_ROOT
+
+if cat ${INSTALL_ROOT}/instance.loc | grep '^/' > /dev/null
+then
+  INSTANCE_ROOT=`cat ${INSTALL_ROOT}/instance.loc`
+  export INSTANCE_ROOT
+else
+  INSTANCE_ROOT=${INSTALL_ROOT}/`cat ${INSTALL_ROOT}/instance.loc`
+  export INSTANCE_ROOT
+fi
 
 SCRIPT_NAME=upgrade
 export SCRIPT_NAME
@@ -44,7 +53,7 @@ cd "${WORKING_DIR}"
 # Set java home
 SCRIPT_UTIL_CMD=set-java-home-and-args
 export SCRIPT_UTIL_CMD
-.  "${INSTANCE_ROOT}/lib/_script-util.sh"
+.  "${INSTALL_ROOT}/lib/_script-util.sh"
 RETURN_CODE=$?
 if test ${RETURN_CODE} -ne 0
 then
@@ -54,7 +63,7 @@ fi
 # Set environment variables
 SCRIPT_UTIL_CMD=set-environment-vars
 export SCRIPT_UTIL_CMD
-.  "${INSTANCE_ROOT}/lib/_script-util.sh"
+.  "${INSTALL_ROOT}/lib/_script-util.sh"
 RETURN_CODE=$?
 if test ${RETURN_CODE} -ne 0
 then
@@ -67,7 +76,7 @@ do
   CLASSPATH=${CLASSPATH}:${JAR}
 done
 CLASSPATH=${CLASSPATH}:${INSTANCE_ROOT}/classes
-for JAR in ${INSTANCE_ROOT}/lib/*.jar
+for JAR in ${INSTALL_ROOT}/lib/*.jar
 do
   CLASSPATH=${CLASSPATH}:${JAR}
 done
@@ -76,7 +85,7 @@ export CLASSPATH
 # Test the java installation
 SCRIPT_UTIL_CMD=test-java
 export SCRIPT_UTIL_CMD
-.  "${INSTANCE_ROOT}/lib/_script-util.sh"
+.  "${INSTALL_ROOT}/lib/_script-util.sh"
 RETURN_CODE=$?
 if test ${RETURN_CODE} -ne 0
 then
@@ -93,7 +102,7 @@ fi
 # BuildExtractor uses the existing install's
 # jars
 CLASSPATH=${INSTANCE_ROOT}/classes
-for JAR in ${INSTANCE_ROOT}/lib/*.jar
+for JAR in ${INSTALL_ROOT}/lib/*.jar
 do
   CLASSPATH=${CLASSPATH}:${JAR}
 done
@@ -118,13 +127,13 @@ then
     CLASSPATH=${JAR}:${CLASSPATH}
   done
   # Launch the upgrade process.
-  "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} org.opends.quicksetup.upgrader.UpgradeLauncher "${@}"
+  "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.quicksetup.upgrader.UpgradeLauncher "${@}"
 elif test ${RETURN_CODE} -eq 98
 then
   # Copy jars to a temporary place from which to run the reverter
   # in order to avoid potential file lock issues.
   mkdir -p ${INSTANCE_ROOT}/tmp/revert
-  cp -R ${INSTANCE_ROOT}/lib ${INSTANCE_ROOT}/tmp/revert
+  cp -R ${INSTALL_ROOT}/lib ${INSTANCE_ROOT}/tmp/revert
   if test ${?} -ne 0
   then
     echo "ERROR:  Failed to initialize reversion."
@@ -136,7 +145,7 @@ then
       CLASSPATH=${JAR}:${CLASSPATH}
     done
     # Launch the upgrade process.
-    "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} org.opends.quicksetup.upgrader.ReversionLauncher "${@}"
+    "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.quicksetup.upgrader.ReversionLauncher "${@}"
   fi
 elif test ${RETURN_CODE} -eq 50
 then

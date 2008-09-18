@@ -1149,7 +1149,7 @@ public class ReplicationServerTest extends ReplicationTestCase
      String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
      String path = buildRoot + File.separator + "build" +
                    File.separator + "unit-tests" + File.separator +
-                   "package"+ File.separator + "exportLDIF.ldif";
+                   "package-instance"+ File.separator + "exportLDIF.ldif";
      return TestCaseUtils.makeEntry(
      "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
      "objectclass: top",
@@ -1168,7 +1168,7 @@ public class ReplicationServerTest extends ReplicationTestCase
      String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
      String path = buildRoot + File.separator + "build" +
                    File.separator + "unit-tests" + File.separator +
-                   "package"+ File.separator + "exportLDIF" + root +".ldif";
+                   "package-instance"+ File.separator + "exportLDIF" + root +".ldif";
      return TestCaseUtils.makeEntry(
      "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
      "objectclass: top",

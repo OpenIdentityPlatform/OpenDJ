@@ -75,7 +75,7 @@ import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.backends.RootDSEBackend;
 import static org.opends.server.config.ConfigConstants.DN_MONITOR_ROOT;
-import static org.opends.server.config.ConfigConstants.ENV_VAR_INSTANCE_ROOT;
+import static org.opends.server.config.ConfigConstants.ENV_VAR_INSTALL_ROOT;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.JMXMBean;
@@ -1482,7 +1482,7 @@ public class DirectoryServer
 
       // If a server.starting file exists, then remove it.
       File serverStartingFile =
-                new File(configHandler.getServerRoot() + File.separator +
+                new File(configHandler.getInstanceRoot() + File.separator +
                          "logs" + File.separator + "server.starting");
       if (serverStartingFile.exists())
       {
@@ -3235,6 +3235,39 @@ public class DirectoryServer
     else
     {
       return directoryServer.configHandler.getServerRoot();
+    }
+  }
+
+  /**
+   * Retrieves the path to the instance directory for this instance of the
+   * Directory Server.
+   *
+   * @return The path to the instance directory for this instance of
+   * the Directory Server.
+   */
+  public static String getInstanceRoot()
+  {
+    if (directoryServer.configHandler == null)
+    {
+      File serverRoot = directoryServer.environmentConfig.getServerRoot();
+      if (serverRoot != null)
+      {
+        File instanceRoot =
+          directoryServer.environmentConfig.getInstanceRootFromServerRoot(
+              serverRoot);
+        if (instanceRoot != null)
+        {
+          return instanceRoot.getAbsolutePath();
+        }
+      }
+
+      // We don't know where the server root is, so we'll have to assume it's
+      // the current working directory.
+      return System.getProperty("user.dir");
+    }
+    else
+    {
+      return directoryServer.configHandler.getInstanceRoot();
     }
   }
 
@@ -9458,18 +9491,20 @@ public class DirectoryServer
     {
       String pidFilePath;
       String startingFilePath;
-      String serverRoot = System.getenv(ENV_VAR_INSTANCE_ROOT);
-      if (serverRoot == null)
+      String serverRoot = System.getenv(ENV_VAR_INSTALL_ROOT);
+      File instanceRoot = DirectoryEnvironmentConfig
+          .getInstanceRootFromServerRoot(new File(serverRoot));
+      if (instanceRoot == null)
       {
         pidFilePath      = "logs/server.pid";
         startingFilePath = "logs/server.starting";
       }
       else
       {
-        pidFilePath      = serverRoot + File.separator + "logs" +
-                           File.separator + "server.pid";
-        startingFilePath = serverRoot + File.separator + "logs" +
-                           File.separator + "server.starting";
+        pidFilePath = instanceRoot.getAbsolutePath() + File.separator + "logs"
+            + File.separator + "server.pid";
+        startingFilePath = instanceRoot.getAbsolutePath() + File.separator
+            + "logs" + File.separator + "server.starting";
       }
 
       File pidFile = new File(pidFilePath);
@@ -9498,7 +9533,7 @@ public class DirectoryServer
       // We need to figure out where to put the file.  See if the server root
       // is available as an environment variable and if so then use it.
       // Otherwise, try to figure it out from the location of the config file.
-      String serverRoot = System.getenv(ENV_VAR_INSTANCE_ROOT);
+      String serverRoot = System.getenv(ENV_VAR_INSTALL_ROOT);
       if (serverRoot == null)
       {
         serverRoot = new File(configFile.getValue()).getParentFile().
@@ -9513,7 +9548,10 @@ public class DirectoryServer
       }
       else
       {
-        File logDir = new File(serverRoot + File.separator + "logs");
+        File instanceRoot = DirectoryEnvironmentConfig
+            .getInstanceRootFromServerRoot(new File(serverRoot));
+        File logDir = new File(instanceRoot.getAbsolutePath() + File.separator
+            + "logs");
         if (logDir.exists())
         {
           FileOutputStream fos =

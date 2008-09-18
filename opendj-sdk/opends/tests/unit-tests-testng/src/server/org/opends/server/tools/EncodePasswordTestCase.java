@@ -72,7 +72,7 @@ public class EncodePasswordTestCase
   {
     TestCaseUtils.startServer();
 
-    configFilePath = DirectoryServer.getServerRoot() + File.separator +
+    configFilePath = DirectoryServer.getInstanceRoot() + File.separator +
                      "config" + File.separator + "config.ldif";
 
     passwordFilePath = TestCaseUtils.createTempFile("password");

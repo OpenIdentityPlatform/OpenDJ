@@ -135,7 +135,7 @@ public final class DefaultCompressedSchema
       // Determine the location of the compressed schema data file.  It should
       // be in the config directory with a name of "schematokens.dat".  If that
       // file doesn't exist, then don't do anything.
-      String path = DirectoryServer.getServerRoot() + File.separator +
+      String path = DirectoryServer.getInstanceRoot() + File.separator +
                     CONFIG_DIR_NAME + File.separator +
                     COMPRESSED_SCHEMA_FILE_NAME;
       if (! new File(path).exists())
@@ -274,7 +274,7 @@ public final class DefaultCompressedSchema
       // Determine the location of the "live" compressed schema data file, and
       // then append ".tmp" to get the name of the temporary file that we will
       // use.
-      String path = DirectoryServer.getServerRoot() + File.separator +
+      String path = DirectoryServer.getInstanceRoot() + File.separator +
                     CONFIG_DIR_NAME + File.separator +
                     COMPRESSED_SCHEMA_FILE_NAME;
       String tempPath = path + ".tmp";

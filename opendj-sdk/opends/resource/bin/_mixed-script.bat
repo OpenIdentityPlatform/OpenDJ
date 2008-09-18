@@ -30,7 +30,17 @@ rem be invoked directly by end users.
 
 setlocal
 for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
-set INSTANCE_ROOT=%DIR_HOME%
+set INSTALL_ROOT=%DIR_HOME%
+
+set INSTANCE_DIR=
+for /f "delims=" %%a in (%INSTALL_ROOT%\instance.loc) do (
+  set INSTANCE_DIR=%%a
+)
+set CUR_DIR=%~dp0
+cd %INSTALL_ROOT%
+cd %INSTANCE_DIR%
+set INSTANCE_ROOT=%CD%
+cd %CUR_DIR%
 
 if "%OPENDS_INVOKE_CLASS%" == "" goto noInvokeClass
 
@@ -43,13 +53,13 @@ set ORIGINAL_JAVA_HOME=%OPENDS_JAVA_HOME%
 set ORIGINAL_JAVA_BIN=%OPENDS_JAVA_BIN%
 
 set SCRIPT_UTIL_CMD=set-full-environment
-call "%INSTANCE_ROOT%\lib\_script-util.bat"
+call "%INSTALL_ROOT%\lib\_script-util.bat"
 if NOT %errorlevel% == 0 exit /B %errorlevel%
 
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=%OLD_SCRIPT_NAME%"
 
 rem Check whether is local or remote
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" --testIfOffline %*  
+"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" --testIfOffline %*  
 if %errorlevel% == 51 goto launchoffline
 if %errorlevel% == 52 goto launchonline
 exit /B %errorlevel%
@@ -61,7 +71,7 @@ goto end
 
 :launchonline
 
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
+"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
 
 goto end
 
@@ -76,11 +86,11 @@ set OPENDS_JAVA_HOME=%ORIGINAL_JAVA_HOME%
 set OPENDS_JAVA_BIN=%ORIGINAL_JAVA_BIN%
 
 set SCRIPT_UTIL_CMD=set-full-environment
-call "%INSTANCE_ROOT%\lib\_script-util.bat"
+call "%INSTALL_ROOT%\lib\_script-util.bat"
 if NOT %errorlevel% == 0 exit /B %errorlevel%
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=%OLD_SCRIPT_NAME%"
 
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
+"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
 
 goto end
 

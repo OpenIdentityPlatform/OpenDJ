@@ -30,6 +30,7 @@ package org.opends.quicksetup.installer.offline;
 import org.opends.messages.Message;
 import static org.opends.messages.QuickSetupMessages.*;
 
+
 import java.io.PrintStream;
 import java.io.File;
 import java.util.ArrayList;
@@ -537,6 +538,15 @@ public class OfflineInstaller extends Installer
   public String getInstallationPath()
   {
     return Utils.getInstallPathFromClasspath();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getInstancePath()
+  {
+    String installPath =  Utils.getInstallPathFromClasspath();
+    return Utils.getInstancePathFromClasspath(installPath);
   }
 
   /**

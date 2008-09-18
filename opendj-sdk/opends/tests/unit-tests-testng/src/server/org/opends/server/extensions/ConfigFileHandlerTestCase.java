@@ -64,7 +64,7 @@ public class ConfigFileHandlerTestCase
 
     String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
     String startOKFile = buildRoot + File.separator + "build" + File.separator +
-                         "unit-tests" + File.separator + "package" +
+                         "unit-tests" + File.separator + "package-instance" +
                          File.separator + "config" + File.separator +
                          "config.ldif.startok";
 

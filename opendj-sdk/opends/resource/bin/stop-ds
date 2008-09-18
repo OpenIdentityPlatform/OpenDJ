@@ -44,8 +44,17 @@ cd "`dirname "${0}"`"
 SCRIPT_DIR=`pwd`
 
 cd ..
-INSTANCE_ROOT=`pwd`
-export INSTANCE_ROOT
+INSTALL_ROOT=`pwd`
+export INSTALL_ROOT
+
+if cat ${INSTALL_ROOT}/instance.loc | grep '^/' > /dev/null
+then
+  INSTANCE_ROOT=`cat ${INSTALL_ROOT}/instance.loc`
+  export INSTANCE_ROOT
+else
+  INSTANCE_ROOT=${INSTALL_ROOT}/`cat ${INSTALL_ROOT}/instance.loc`
+  export INSTANCE_ROOT
+fi
 
 cd "${WORKING_DIR}"
 
@@ -62,7 +71,7 @@ export SCRIPT_NAME
 # Set environment variables
 SCRIPT_UTIL_CMD=set-full-environment-and-test-java
 export SCRIPT_UTIL_CMD
-.  "${INSTANCE_ROOT}/lib/_script-util.sh"
+.  "${INSTALL_ROOT}/lib/_script-util.sh"
 RETURN_CODE=$?
 if test ${RETURN_CODE} -ne 0
 then
@@ -175,11 +184,11 @@ then
     OPENDS_JAVA_BIN=${ORIGINAL_JAVA_BIN}
     if test ${QUIET_MODE} -eq 0
     then
-      "${INSTANCE_ROOT}/bin/start-ds" --quiet
+      "${INSTALL_ROOT}/bin/start-ds" --quiet
       EXIT_CODE=${?}
       exit ${EXIT_CODE}
     else
-      "${INSTANCE_ROOT}/bin/start-ds"
+      "${INSTALL_ROOT}/bin/start-ds"
       EXIT_CODE=${?}
       exit ${EXIT_CODE}
     fi

@@ -129,7 +129,7 @@ public class CreateRCScript
     if (serverRoot == null)
     {
       err.println(ERR_CREATERC_UNABLE_TO_DETERMINE_SERVER_ROOT.get(
-                       PROPERTY_SERVER_ROOT, ENV_VAR_INSTANCE_ROOT).toString());
+                       PROPERTY_SERVER_ROOT, ENV_VAR_INSTALL_ROOT).toString());
       return 1;
     }
 
@@ -246,8 +246,8 @@ public class CreateRCScript
       w.println();
 
       w.println("# Set the path to the OpenDS instance to manage");
-      w.println("INSTANCE_ROOT=\"" + serverRoot.getAbsolutePath() + "\"");
-      w.println("export INSTANCE_ROOT");
+      w.println("INSTALL_ROOT=\"" + serverRoot.getAbsolutePath() + "\"");
+      w.println("export INSTALL_ROOT");
       w.println();
 
       if (javaHomeDir != null)
@@ -269,15 +269,15 @@ public class CreateRCScript
       w.println("# Determine what action should be performed on the server");
       w.println("case \"${1}\" in");
       w.println("start)");
-      w.println("  " + suString + "\"${INSTANCE_ROOT}/bin/start-ds\" --quiet");
+      w.println("  " + suString + "\"${INSTALL_ROOT}/bin/start-ds\" --quiet");
       w.println("  exit ${?}");
       w.println("  ;;");
       w.println("stop)");
-      w.println("  " + suString + "\"${INSTANCE_ROOT}/bin/stop-ds\" --quiet");
+      w.println("  " + suString + "\"${INSTALL_ROOT}/bin/stop-ds\" --quiet");
       w.println("  exit ${?}");
       w.println("  ;;");
       w.println("restart)");
-      w.println("  " + suString + "\"${INSTANCE_ROOT}/bin/stop-ds\" " +
+      w.println("  " + suString + "\"${INSTALL_ROOT}/bin/stop-ds\" " +
                 "--restart --quiet");
       w.println("  exit ${?}");
       w.println("  ;;");

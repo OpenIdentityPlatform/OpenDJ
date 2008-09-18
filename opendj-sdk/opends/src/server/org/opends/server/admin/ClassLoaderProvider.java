@@ -207,7 +207,7 @@ public final class ClassLoaderProvider {
           "Class loader provider is disabled.");
     }
 
-    File libPath = new File(DirectoryServer.getServerRoot(), LIB_DIR);
+    File libPath = new File(DirectoryServer.getInstanceRoot(), LIB_DIR);
     File extensionsPath = new File(libPath, EXTENSIONS_DIR);
 
     ArrayList<File> files = new ArrayList<File>(extensions.length);
@@ -396,7 +396,7 @@ public final class ClassLoaderProvider {
    */
   private void initializeAllExtensions()
       throws InitializationException {
-    File libPath = new File(DirectoryServer.getServerRoot(), LIB_DIR);
+    File libPath = new File(DirectoryServer.getInstanceRoot(), LIB_DIR);
     File extensionsPath = new File(libPath, EXTENSIONS_DIR);
 
     try {

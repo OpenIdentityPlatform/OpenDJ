@@ -156,7 +156,7 @@ public class RestoreTask extends Task
     if (! backupDirectory.isAbsolute())
     {
       backupDirectory =
-           new File(DirectoryServer.getServerRoot(), backupDirectoryPath);
+           new File(DirectoryServer.getInstanceRoot(), backupDirectoryPath);
     }
 
     attrList = taskEntry.getAttribute(typebackupID);

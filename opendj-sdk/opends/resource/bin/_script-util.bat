@@ -1,4 +1,3 @@
-
 @echo off
 rem CDDL HEADER START
 rem
@@ -29,7 +28,7 @@ set SET_JAVA_HOME_AND_ARGS_DONE=false
 set SET_ENVIRONMENT_VARS_DONE=false
 set SET_CLASSPATH_DONE=false
 
-if "%INSTANCE_ROOT%" == "" goto setInstanceRoot
+if "%INSTALL_ROOT%" == "" goto setInstanceRoot
 
 :scriptBegin
 if "%SCRIPT_UTIL_CMD%" == "set-full-environment-and-test-java" goto setFullEnvironmentAndTestJava
@@ -43,14 +42,26 @@ goto end
 :setInstanceRoot
 setlocal
 for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
-set INSTANCE_ROOT=%DIR_HOME%
+set INSTALL_ROOT=%DIR_HOME%
+set INSTANCE_DIR=
+for /f "delims=" %%a in (%INSTALL_ROOT%\instance.loc) do (
+  set INSTANCE_DIR=%%a
+)
+set CUR_DIR=%~dp0
+cd %INSTALL_ROOT%
+cd %INSTANCE_DIR%
+set INSTANCE_ROOT=%CD%
+cd %CUR_DIR%
 goto scriptBegin
 
 
 :setClassPath
 if "%SET_CLASSPATH_DONE%" == "true" goto end
-FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\lib\setcp.bat" %%x
-set CLASSPATH=%DIR_HOME%\classes;%CLASSPATH%
+FOR %%x in ("%INSTALL_ROOT%\lib\*.jar") DO call "%INSTALL_ROOT%\lib\setcp.bat" %%x
+if "%INSTALL_ROOT%" == "%INSTANCE_ROOT%"goto setClassPathDone
+FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
+set CLASSPATH=%INSTANCE_ROOT%\classes;%CLASSPATH%
+:setClassPathDone
 set SET_CLASSPATH_DONE=true
 goto scriptBegin
 
@@ -69,8 +80,8 @@ goto testJava
 
 :setJavaHomeAndArgs
 if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "true" goto end
-if not exist "%DIR_HOME%\lib\set-java-home.bat" goto checkEnvJavaArgs
-call "%DIR_HOME%\lib\set-java-home.bat"
+if not exist "%INSTANCE_ROOT%\lib\set-java-home.bat" goto checkEnvJavaArgs
+call "%INSTANCE_ROOT%\lib\set-java-home.bat"
 if "%OPENDS_JAVA_BIN%" == "" goto checkEnvJavaArgs
 :endJavaHomeAndArgs
 set SET_JAVA_HOME_AND_ARGS_DONE=true
@@ -111,7 +122,7 @@ echo follow the steps 3 and 4.
 echo 3. Edit the properties file specifying the java binary and the java arguments
 echo for each command line.  The java properties file is located in:
 echo %INSTANCE_ROOT%\config\java.properties.
-echo 4. Run the command-line %INSTANCE_ROOT%\bin\dsjavaproperties
+echo 4. Run the command-line %INSTALL_ROOT%\bat\dsjavaproperties.bat
 pause
 exit /B 1
 
@@ -144,7 +155,7 @@ echo follow the steps 3 and 4.
 echo 3. Edit the properties file specifying the java binary and the java arguments
 echo for each command line.  The java properties file is located in:
 echo %INSTANCE_ROOT%\config\java.properties.
-echo 4. Run the command-line %INSTANCE_ROOT%\bin\dsjavaproperties
+echo 4. Run the command-line %INSTALL_ROOT%\bat\dsjavaproperties.bat
 pause
 exit /B 1
 
@@ -170,7 +181,7 @@ echo follow the steps 3 and 4.
 echo 3. Edit the properties file specifying the java binary and the java arguments
 echo for each command line.  The java properties file is located in:
 echo %INSTANCE_ROOT%\config\java.properties.
-echo 4. Run the command-line %INSTANCE_ROOT%\bin\dsjavaproperties
+echo 4. Run the command-line %INSTALL_ROOT%\bat\dsjavaproperties.bat
 pause
 exit /B 1
 

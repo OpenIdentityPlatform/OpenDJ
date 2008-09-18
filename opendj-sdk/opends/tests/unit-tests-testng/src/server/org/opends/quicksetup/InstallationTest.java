@@ -76,7 +76,8 @@ public class InstallationTest extends QuickSetupTestCase {
    */
   @Test(enabled = false)
   public void testIsValid() {
-    assertTrue(installation.isValid());
+    assertTrue(installation.isValid(installation.getRootDirectory()));
+    assertTrue(installation.isValid(installation.getInstanceDirectory()));
   }
 
   /**
@@ -85,13 +86,15 @@ public class InstallationTest extends QuickSetupTestCase {
    */
   @Test(enabled = false)
   public void testIsValid2() {
-    assertTrue(installation.isValid());
+    assertTrue(installation.isValid(installation.getRootDirectory()));
+    assertTrue(installation.isValid(installation.getInstanceDirectory()));
     File x = new File(installation.getRootDirectory(), "x");
     for (String reqDirName : Installation.REQUIRED_DIRECTORIES) {
       File reqDir = new File(installation.getRootDirectory(), reqDirName);
       try {
         assertTrue(reqDir.renameTo(x));
-        assertFalse(installation.isValid());
+        assertFalse(installation.isValid(installation.getRootDirectory()));
+        assertFalse(installation.isValid(installation.getInstanceDirectory()));
         assertNotNull(installation.getInvalidityReason());
       } finally {
         x.renameTo(reqDir);

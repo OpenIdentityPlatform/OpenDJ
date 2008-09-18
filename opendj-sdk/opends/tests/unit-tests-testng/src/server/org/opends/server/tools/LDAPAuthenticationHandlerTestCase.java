@@ -2463,9 +2463,9 @@ public class LDAPAuthenticationHandlerTestCase
     DirectoryServer.deregisterSASLMechanismHandler("EXTERNAL");
 
 
-    String keyStorePath   = DirectoryServer.getServerRoot() + File.separator +
+    String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.keystore";
-    String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
 
@@ -2534,9 +2534,9 @@ public class LDAPAuthenticationHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    String keyStorePath   = DirectoryServer.getServerRoot() + File.separator +
+    String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.keystore";
-    String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
 
@@ -2603,9 +2603,9 @@ public class LDAPAuthenticationHandlerTestCase
     DirectoryServer.deregisterSASLMechanismHandler("EXTERNAL");
 
 
-    String keyStorePath   = DirectoryServer.getServerRoot() + File.separator +
+    String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.keystore";
-    String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
 
@@ -2678,9 +2678,9 @@ public class LDAPAuthenticationHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    String keyStorePath   = DirectoryServer.getServerRoot() + File.separator +
+    String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.keystore";
-    String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
 
@@ -4201,9 +4201,9 @@ public class LDAPAuthenticationHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    String keyStorePath   = DirectoryServer.getServerRoot() + File.separator +
+    String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.keystore";
-    String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
 

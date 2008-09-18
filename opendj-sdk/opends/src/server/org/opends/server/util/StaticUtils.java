@@ -3578,7 +3578,8 @@ public final class StaticUtils
     }
     else
     {
-      return new File(DirectoryServer.getServerRoot() + File.separator + path);
+      return new File(DirectoryServer.getInstanceRoot() + File.separator +
+          path);
     }
   }
 

@@ -248,7 +248,7 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
   @Test()
   public void testListGroupsSSLTrustStore()
   {
-    String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
     String[] args =
@@ -295,7 +295,7 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
   @Test()
   public void testListGroupsStartTLSTrustStore()
   {
-    String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
+    String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
     String[] args =

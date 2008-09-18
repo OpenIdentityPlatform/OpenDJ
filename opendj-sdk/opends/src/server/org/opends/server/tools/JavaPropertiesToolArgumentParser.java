@@ -163,7 +163,8 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
     String value;
     // Use this instead of Installation.getLocal() because making that call
     // starts a new JVM and the command-line becomes less responsive.
-    String root = Utils.getInstallPathFromClasspath();
+    String installPath = Utils.getInstallPathFromClasspath();
+    String root = Utils.getInstancePathFromClasspath(installPath);
     if (root != null)
     {
       String libDir = Utils.getPath(root, Installation.LIBRARIES_PATH_RELATIVE);
@@ -206,7 +207,8 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
     String defaultPropertiesValue;
     // Use this instead of Installation.getLocal() because making that call
     // starts a new JVM and the command-line becomes less responsive.
-    String root = Utils.getInstallPathFromClasspath();
+    String installPath = Utils.getInstallPathFromClasspath();
+    String root = Utils.getInstancePathFromClasspath(installPath);
     if (root != null)
     {
       String configDir = Utils.getPath(root, Installation.CONFIG_PATH_RELATIVE);
