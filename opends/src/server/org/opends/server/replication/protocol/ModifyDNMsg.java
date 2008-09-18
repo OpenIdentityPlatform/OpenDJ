@@ -360,4 +360,15 @@ public class ModifyDNMsg extends UpdateMessage
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int size()
+  {
+    // The MODDN message size are mainly dependent on the
+    // size of the DN. let's assume that they average on 100 bytes
+    return 100;
+  }
+
 }

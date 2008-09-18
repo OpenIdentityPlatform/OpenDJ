@@ -257,7 +257,9 @@ public class ReplicationDbEnv
               + " serverId=" + serverId);
 
           DbHandler dbHandler =
-            new DbHandler(serverId, baseDn, replicationServer, this);
+            new DbHandler(
+                serverId, baseDn, replicationServer, this,
+                replicationServer.getQueueSize());
 
           replicationServer.getReplicationServerDomain(baseDn, true).
           setDbHandler(serverId, dbHandler);

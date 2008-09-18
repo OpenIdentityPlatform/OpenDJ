@@ -297,4 +297,13 @@ public class AddMsg extends UpdateMessage
   {
     return parentUniqueId;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int size()
+  {
+    return encodedAttributes.length + 40;
+  }
 }
