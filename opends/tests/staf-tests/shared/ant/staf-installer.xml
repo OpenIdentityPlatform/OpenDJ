@@ -25,13 +25,13 @@
  !      Copyright 2008 Sun Microsystems, Inc.
  ! -->
 
-<project name="opends-staf-installer" basedir="." default="usage">
+<project name="opends-staf-installer" basedir="../.." default="usage">
   <description>
     Installer ant file for the staf platform
     This allows tests that need a running instance of staf to easily
     get one and hides all the complexity under the hood
   </description>
-  <dirname file="${basedir}/../.." property="project.home"/>
+  <dirname file="${basedir}/.." property="project.home"/>
   
   <!-- installer wide settings - top -->
     <property file="${project.home}/PRODUCT"/>
@@ -40,7 +40,7 @@
     <!-- load user properties first if they have been set -->
     <property file="user.properties"/>
     <!-- this is the file where the default values are defined                -->
-    <property file="staf-installer/staf-installer.properties"                  />
+    <property file="shared/ant/staf-installer.properties"                  />
     
     <!-- Define the os name in case we're on windows
          why do this ?
@@ -53,17 +53,17 @@
     
     <!-- Check if the current platform is supported                           -->
     <condition property="platform.supported">
-      <available file="staf-installer/${os.myname}.properties"/>
+      <available file="shared/ant/${os.myname}.properties"/>
     </condition>
     
     <!-- Load architecture specific properties
         loading this one first allows to override common properties with platform
         specific properties
     -->
-    <property file="staf-installer/${os.myname}-${os.arch}-${sun.arch.data.model}.properties" />
-    <property file="staf-installer/${os.myname}-${os.arch}.properties"         />
+    <property file="shared/ant/${os.myname}-${os.arch}-${sun.arch.data.model}.properties" />
+    <property file="shared/ant/${os.myname}-${os.arch}.properties"         />
     <!-- Load properties common to the OS regardless of architecture          -->
-    <property file="staf-installer/${os.myname}.properties"                    />
+    <property file="shared/ant/${os.myname}.properties"                    />
 
     <!-- Daily build properties -->
     <tstamp>
@@ -275,7 +275,7 @@
     <!-- adding dsml service extension -->
     <mkdir dir="${staf.install.dir}/services/dsml"/>
     <copy todir="${staf.install.dir}/services/dsml">
-      <fileset dir="${basedir}/../../ext/staf" includes="dsmlService.jar"/>
+      <fileset dir="${basedir}/shared/dsml" includes="dsmlService.jar"/>
     </copy>
 
   </target>
@@ -788,22 +788,23 @@ email.server.pwd=${email.server.pwd.input}
   </target>
   
   <target name="run-my-tests-get-contrib-check">
-    <available file="ant-contrib.zip" property="ant-contrib.downloaded" />
+    <available file="${temp.dir}/ant-contrib.zip" property="ant-contrib.downloaded" />
   </target>
   <target name="run-my-tests-get-contrib" depends="run-my-tests-get-contrib-check,download-do-prepare-check-proxy,download-do-prepare-set-proxy" unless="ant-contrib.downloaded">
-    <get src="http://easynews.dl.sourceforge.net/sourceforge/ant-contrib/ant-contrib-1.0b3-bin.zip" dest="ant-contrib.zip"/>
+    <mkdir dir="${temp.dir}" />
+    <get src="http://easynews.dl.sourceforge.net/sourceforge/ant-contrib/ant-contrib-1.0b3-bin.zip" dest="${temp.dir}/ant-contrib.zip"/>
   </target>
   <target name="run-my-tests-expand-check">
-    <available file="ant-contrib" property="ant-contrib.expanded" />
+    <available file="${temp.dir}/ant-contrib" property="ant-contrib.expanded" />
   </target>
   <target name="run-my-tests-expand" depends="run-my-tests-get-contrib,run-my-tests-expand-check" unless="ant-contrib.expanded">
-    <unzip src="ant-contrib.zip" dest="." />
+    <unzip src="${temp.dir}/ant-contrib.zip" dest="${temp.dir}" />
   </target>
 
   <target name="run-my-tests-define" depends="run-my-tests-expand">
     <taskdef resource="net/sf/antcontrib/antlib.xml">
       <classpath>
-        <fileset dir="ant-contrib"> 
+        <fileset dir="${temp.dir}/ant-contrib"> 
           <include name="**/*.jar"/>
         </fileset>
       </classpath>
@@ -1203,7 +1204,7 @@ email.server.pwd=${email.server.pwd.input}
         </and>
       </condition>
       <available file="${daily.package}" property="daily.package.downloaded"/>
-      <available file="testcases/run-custom-suites.dat" property="custom-suites.on" />
+      <available file="${tests.dir}/testcases/run-custom-suites.dat" property="custom-suites.on" />
       <available file="${staf.install.dir}" 
                 type="dir" 
                 property="staf.installed" />

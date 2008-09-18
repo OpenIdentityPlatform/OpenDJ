@@ -81,7 +81,7 @@
       </script>
       
       <job name="'Job: %s %s' % (STAF_REMOTE_HOSTNAME,ServerOsString) " monitor="1" clearlogs="'Enabled'" logtcstartstop="'Enabled'">
-        <job-file>'%s/testcases/runFuncTests.xml' % TESTS_DIR</job-file>
+        <job-file>'%s/shared/tests/runFuncTests.xml' % TESTS_ROOT</job-file>
         <job-scriptfiles machine="STAF_LOCAL_HOSTNAME"> STAXJobScriptFiles </job-scriptfiles>
         <job-action>
           <log>'Started sub-job %s on %s, %s' % (STAXSubJobID,STAF_REMOTE_HOSTNAME,ServerOsString )</log>

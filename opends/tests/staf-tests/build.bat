@@ -47,6 +47,6 @@ echo   JAVA_HOME=%JAVA_HOME%
 if not "%*" == "" echo   your parameters=%*
 echo Now running ant ...
 set OPENDS_LIB=%FT_HOME%\..\..\lib
-"%ANT_HOME%\bin\ant" -lib "%OPENDS_LIB%\mail.jar;%OPENDS_LIB%\activation.jar" -f staf-installer.xml %*
+"%ANT_HOME%\bin\ant" -lib "%OPENDS_LIB%\mail.jar;%OPENDS_LIB%\activation.jar" -f shared\ant\staf-installer.xml %*
 
 :end
