@@ -48,16 +48,16 @@
           <!-- List of replication test suites to run -->
           <script>
             testList = []
-#            testList.append('totalupdate')
-#            testList.append('binarycopy')
-#            testList.append('ldifimport')
-#            testList.append('resynchronization')
-#            testList.append('basic')
-#            testList.append('schema')
-#            testList.append('failover')
+            testList.append('totalupdate')
+            testList.append('binarycopy')
+            testList.append('ldifimport')
+            testList.append('resynchronization')
+            testList.append('basic')
+            testList.append('schema')
+            testList.append('failover')
             testList.append('encryption')
-#            testList.append('changelog')
-#            testList.append('conflict')
+            testList.append('changelog')
+            testList.append('conflict')
           </script>
           
           <iterate var="_test" in="testList" >
