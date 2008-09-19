@@ -597,7 +597,7 @@ public class GenerationIdTest extends ReplicationTestCase
     {
       // Create a temporary test LDIF file.
       ldifFile = File.createTempFile("import-test", ".ldif");
-      String resourcePath = DirectoryServer.getServerRoot() + File.separator +
+      String resourcePath = DirectoryServer.getInstanceRoot() + File.separator +
       "config" + File.separator + "MakeLDIF";
       LdifFileWriter.makeLdif(ldifFile.getPath(), resourcePath, template);
       // Create a temporary rejects file.
