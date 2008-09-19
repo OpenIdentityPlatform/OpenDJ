@@ -156,7 +156,7 @@
         ServerSystemName='unknown'
         ServerSvnRevision='unknown'
         ServerPackage='%s/%s' % (ZIPPATH,ZIPNAME)
-        ServerSNMPJarFile='%s/%s' % (SNMP_OPENDMK_LIBDIR,SNMP_OPENDMK_JARFILE)
+        ServerSNMPJarFile='%s' % SNMP_OPENDMK_JARFILE
         
         if ServersInfoDict.has_key('%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)):       
           ServerInfoDict=ServersInfoDict['%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)]
