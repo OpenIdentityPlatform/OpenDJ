@@ -33,6 +33,26 @@ export OPENDS_INVOKE_CLASS
 SCRIPT_NAME="make-ldif"
 export SCRIPT_NAME
 
+WORKING_DIR=`pwd`
+
+cd "`dirname "${0}"`"
+SCRIPT_DIR=`pwd`
+
+cd ..
+INSTALL_ROOT=`pwd`
+export INSTALL_ROOT
+
+if cat ${INSTALL_ROOT}/instance.loc | grep '^/' > /dev/null
+then
+  INSTANCE_ROOT=`cat ${INSTALL_ROOT}/instance.loc`
+  export INSTANCE_ROOT
+else
+ INSTANCE_ROOT=${INSTALL_ROOT}/`cat ${INSTALL_ROOT}/instance.loc`
+  export INSTANCE_ROOT
+fi
+
+cd "${WORKING_DIR}"
+
 SCRIPT_DIR=`dirname "${0}"`
 "${SCRIPT_DIR}/../lib/_server-script.sh" \
-     --resourcePath "${SCRIPT_DIR}/../config/MakeLDIF" "${@}"
+     --resourcePath "${INSTANCE_ROOT}/config/MakeLDIF" "${@}"
