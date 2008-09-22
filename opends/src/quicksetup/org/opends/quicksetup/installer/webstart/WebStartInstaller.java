@@ -663,6 +663,7 @@ public class WebStartInstaller extends Installer {
   public String getInstancePath()
   {
     // TODO
-    return null;
+    return getUserData().getServerLocation();
+
   }
 }
