@@ -1,0 +1,184 @@
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<project name="user">
+
+  <description>
+    Configure user variables.
+  </description>
+
+  <target name="configure">
+    <echo>* Framework configuration</echo>
+    <input message="   Enter path to OpenDS archive:"
+           defaultvalue="${opends.dir}"
+           addproperty="opends.dir.input"/>
+    <input message="   Enter OpenDS archive name:"
+           defaultvalue="${opends.zip}"
+           addproperty="opends.zip.input"/>
+    <input message="   Enter path to logs directory:"
+           defaultvalue="${logs.dir}"
+           addproperty="logs.dir.input"/>
+    <input message="   Enter path to repository directory:"
+           defaultvalue="${repository.dir}"
+           addproperty="repository.dir.input"/>
+    <input message="   Use proxy?"
+           defaultvalue="${proxy.enabled}"
+           validargs="y,n"
+           addproperty="proxy.enabled.input"/>
+    <if>
+      <equals arg1="${proxy.enabled.input}" arg2="y"/>
+      <then>
+        <input message="   Enter proxy host:"
+               defaultvalue="${proxy.host}"
+               addproperty="proxy.host.input"/>
+        <input message="   Enter proxy port:"
+               defaultvalue="${proxy.port}"
+               addproperty="proxy.port.input"/>
+        <input message="   Enter proxy user:"
+               defaultvalue="${proxy.user}"
+               addproperty="proxy.user.input"/>
+        <input message="   Enter proxy password:"
+               defaultvalue="${proxy.pass}"
+               addproperty="proxy.pass.input"/>
+      </then>
+      <else>
+        <property name="proxy.host.input" value="${proxy.host}"/>
+        <property name="proxy.port.input" value="${proxy.port}"/>
+        <property name="proxy.user.input" value="${proxy.user}"/>
+        <property name="proxy.pass.input" value="${proxy.pass}"/>
+      </else>
+    </if>
+
+    <echo>* STAF configuration</echo>
+    <input message="   Enter STAF version:"
+           defaultvalue="${staf.version}"
+           addproperty="staf.version.input"/>
+    <input message="   Enter STAX version:"
+           defaultvalue="${stax.version}"
+           addproperty="stax.version.input"/>
+    <input message="   Enter Email service version:"
+           defaultvalue="${email.version}"
+           addproperty="email.version.input"/>
+    <input message="   Enter Event service version:"
+           defaultvalue="${event.version}"
+           addproperty="event.version.input"/>
+    <input message="   Enter EventManager service version:"
+           defaultvalue="${eventmanager.version}"
+           addproperty="eventmanager.version.input"/>
+    <input message="   Enter HTTP service version:"
+           defaultvalue="${http.version}"
+           addproperty="http.version.input"/>
+    <input message="   Enter Tomcat service version:"
+           defaultvalue="${tomcat.version}"
+           addproperty="tomcat.version.input"/>
+    <input message="   Enter hostname:"
+           defaultvalue="${host.name}"
+           addproperty="host.name.input"/>
+    <input message="   Enter STAF port:"
+           defaultvalue="${staf.port}"
+           addproperty="staf.port.input"/>
+
+    <echo>* Tests configuration</echo>
+    <input message="   Enter Java home path:"
+           defaultvalue="${java.path}"
+           addproperty="java.path.input"/>
+    <input message="   Enter OpenDS ldap port:"
+           defaultvalue="${opends.port.ldap}"
+           addproperty="opends.port.ldap.input"/>
+    <input message="   Enter OpenDS secure ldap port:"
+           defaultvalue="${opends.port.ldaps}"
+           addproperty="opends.port.ldaps.input"/>
+    <input message="   Enter OpenDS jmx port:"
+           defaultvalue="${opends.port.jmx}"
+           addproperty="opends.port.jmx.input"/>
+    <input message="   Enter OpenDS admin DN (also called root DN):"
+           defaultvalue="${opends.admin.dn}"
+           addproperty="opends.admin.dn.input"/>
+    <input message="   Enter OpenDS admin password:"
+           defaultvalue="${opends.admin.pwd}"
+           addproperty="opends.admin.pwd.input"/>
+    <input message="   Enter OpenDMK lib directory:"
+           defaultvalue="${snmp.opendmk.lib.dir}"
+           addproperty="snmp.opendmk.lib.dir.input"/>
+    <input message="   Send report email?"
+           defaultvalue="${email.enabled}"
+           validargs="y,n"
+           addproperty="email.enabled.input"/>
+    <if>
+      <equals arg1="${email.enabled.input}" arg2="y"/>
+      <then>
+        <input message="   Email will appear to be from:"
+               defaultvalue="${email.from}"
+               addproperty="email.from.input"/>
+        <input message="   Send email to:"
+               defaultvalue="${email.to}"
+               addproperty="email.to.input"/>
+        <input message="   Enter SMTP server host:"
+               defaultvalue="${email.server.host}"
+               addproperty="email.server.host.input"/>
+        <input message="   Enter SMTP server port:"
+               defaultvalue="${email.server.port}"
+               addproperty="email.server.port.input"/>
+        <input message="   Enter SMTP server user:"
+               defaultvalue="${email.server.user}"
+               addproperty="email.server.user.input"/>
+        <input message="   Enter SMTP server password:"
+               defaultvalue="${email.server.pwd}"
+               addproperty="email.server.pwd.input"/>
+      </then>
+      <else>
+        <property name="email.from.input" value="${email.from}"/>
+        <property name="email.to.input" value="${email.to}"/>
+        <property name="email.server.host.input" value="${email.server.host}"/>
+        <property name="email.server.port.input" value="${email.server.port}"/>
+        <property name="email.server.user.input" value="${email.server.user}"/>
+        <property name="email.server.pwd.input" value="${email.server.pwd}"/>
+      </else>
+    </if>
+
+    <propertyselector property="input.list"
+                      delimiter=","
+                      match="(.*)\.input"
+                      select="\1"
+                      casesensitive="false"/>
+
+    <echo>Saving ...</echo>
+    <echo file="${basedir}/user.properties"># User-defined values
+# This file is generated by "build user-configure" command
+    </echo>
+    <for list="${input.list}" param="item">
+      <sequential>
+        <var name="val" value="${@{item}.input}"/>
+        <echo file="${basedir}/user.properties" append="true">
+@{item}=${val}</echo>
+      </sequential>
+    </for>
+  </target>
+
+  <target name="unconfigure">
+    <delete file="${basedir}/user.properties"/>
+  </target>
+</project>

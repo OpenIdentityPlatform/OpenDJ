@@ -60,7 +60,7 @@
           else:
             ServerOsString='Unknown Operating System'
         except NameError,details:
-            ServerOsString='Unknown Operating System'    
+            ServerOsString='Unknown Operating System'
 
         try:
           if TEST_JVM_STRING:
@@ -77,17 +77,17 @@
             logsURI=''
         except NameError,details:
             logsURI=''
-            
+
       </script>
-      
+
       <job name="'Job: %s %s' % (STAF_REMOTE_HOSTNAME,ServerOsString) " monitor="1" clearlogs="'Enabled'" logtcstartstop="'Enabled'">
-        <job-file>'%s/shared/tests/runFuncTests.xml' % TESTS_ROOT</job-file>
+        <job-file>'%s/shared/tests/runTests.xml' % TESTS_ROOT</job-file>
         <job-scriptfiles machine="STAF_LOCAL_HOSTNAME"> STAXJobScriptFiles </job-scriptfiles>
         <job-action>
           <log>'Started sub-job %s on %s, %s' % (STAXSubJobID,STAF_REMOTE_HOSTNAME,ServerOsString )</log>
         </job-action>
       </job>
-      
+
       <if expr="RC == 0">
         <sequence>
           <message>
@@ -107,11 +107,11 @@
           </sequence>
         </else>
       </if>
-      
+
       <!--- Import required shared xml libraries -->
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/stafcmd.xml' % TESTS_FUNCTIONS_DIR" />
-      
+
       <!-- FixMe
         dirty workaround because utils.xml now depends on environment.xml
         to avoid loading environment.xml I'll just set the required vars here
@@ -123,7 +123,7 @@
       </script>
       <import machine="STAF_LOCAL_HOSTNAME"
         file="'%s/utils.xml' % (TESTS_FUNCTIONS_DIR)" />
-      
+
       <!-- Get Directory Server Variables -->
       <call function="'GetVar'">
         { 'location'  : STAF_REMOTE_HOSTNAME,
@@ -131,19 +131,19 @@
           'variable'  : 'Job%s_ServerInfo' % STAXSubJobID
         }
       </call>
-      
+
       <if expr="RC != 0">
         <script>
           STAFResult='{}'
         </script>
       </if>
-      
+
       <!-- Build the Servers Information Dictionary -->
-      <script> 
-        
+      <script>
+
         ServersInfoDict=eval(STAFResult)
 
-        ServerName='unknown'        
+        ServerName='unknown'
         ServerVersion='unknown'
         ServerBuildId='unknown'
         ServerJavaVersion='unknown'
@@ -157,32 +157,32 @@
         ServerSvnRevision='unknown'
         ServerPackage='%s/%s' % (ZIPPATH,ZIPNAME)
         ServerSNMPJarFile='%s' % SNMP_OPENDMK_JARFILE
-        
-        if ServersInfoDict.has_key('%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)):       
+
+        if ServersInfoDict.has_key('%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)):
           ServerInfoDict=ServersInfoDict['%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)]
 
-          ServerName=OPENDSNAME         
+          ServerName=OPENDSNAME
 
           ServerInfoKey='server version'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerVersion=ServerInfoDict[ServerInfoKey]
-          
+
           ServerInfoKey='server buildid'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerBuildId=ServerInfoDict[ServerInfoKey]
-          
+
           ServerInfoKey='java version'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerJavaVersion=ServerInfoDict[ServerInfoKey]
-          
+
           ServerInfoKey='java vendor'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerJavaVendor=ServerInfoDict[ServerInfoKey]
-          
+
           ServerInfoKey='jvm version'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerJVMVersion=ServerInfoDict[ServerInfoKey]
-          
+
           ServerInfoKey='jvm vendor'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerJVMVendor=ServerInfoDict[ServerInfoKey]
@@ -190,24 +190,24 @@
           ServerInfoKey='jvm architecture'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerJVMArchitecture=ServerInfoDict[ServerInfoKey]
-          
+
           ServerInfoKey='system os'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerSystemOS=ServerInfoDict[ServerInfoKey]
-          
+
           ServerInfoKey='system name'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerSystemName=ServerInfoDict[ServerInfoKey]
-          
+
           ServerInfoKey='svn revision'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerSvnRevision=ServerInfoDict[ServerInfoKey]
-                                                                                                
+
         else:
           ServerInfoDict='No key found (%s/%s)' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
 
         if ServerOsString == 'Unknown Operating System':
-          ServerOsString=ServerSystemOS        
+          ServerOsString=ServerSystemOS
 
         if ServerJVMString == 'Unknown JVM':
           ServerJVMString=ServerJVMVersion
@@ -227,10 +227,10 @@
       <call function="'GetVar'">
         { 'location'  : STAF_REMOTE_HOSTNAME,
           'type'      : 'shared',
-          'variable'  : 'Job%s_LogsDir' % STAXSubJobID 
+          'variable'  : 'Job%s_LogsDir' % STAXSubJobID
         }
       </call>
-      
+
       <if expr="RC == 0">
         <script>
           logsDir=STAFResult
@@ -239,24 +239,24 @@
         <sequence>
           <message>
             'Unable to retrieve LogsDir variable, RC=%s,Result=%s.' % (RC,STAFResult)
-          </message>          
+          </message>
           <script>
             logsDir='%s' % TMPDIR
           </script>
         </sequence>
       </else>
       </if>
-      
+
       <script>
         logsReportDir='%s/reports' % logsDir
         logsTestsDir='%s/testlogs' % logsDir
       </script>
-      
+
       <call function="'createFolder'">
-        { 'location'   : STAF_LOCAL_HOSTNAME, 
+        { 'location'   : STAF_LOCAL_HOSTNAME,
           'foldername' : logsReportDir }
       </call>
-            
+
       <script>
         resultQuery=[]
         textfile= '%s/results.txt' % logsReportDir
@@ -264,7 +264,7 @@
       </script>
 
       <iterate var="thisChild" in="listOfChildren">
-        <sequence>                              
+        <sequence>
           <stafcmd name="'STAF Command: Log Query All'">
             <location>'%s' % STAF_LOCAL_HOSTNAME </location>
             <service>'log'</service>
@@ -282,12 +282,12 @@
                 'Log Query on STAX_Job_%s Completed. RC=%s' % (thisChild,RC)
               </message>
               <iterate var="line" in="resultQuery">
-        
+
                 <script>
                  txtfh.write('%s\n' % line)
                 </script>
-      
-              </iterate> 
+
+              </iterate>
             </sequence>
             <else>
               <sequence>
@@ -302,26 +302,26 @@
         </sequence>
       </iterate>
 
-      <script> 
-        txtfh.close() 
+      <script>
+        txtfh.close()
       </script>
 
       <!-- Write XML File for results -->
       <script>
         import re
         xmlfile= '%s/results.xml' % logsReportDir
-        xmlfh=open(xmlfile,'w') 
+        xmlfh=open(xmlfile,'w')
         errorfile= '%s/results.errors' % logsReportDir
         errorfh=open(errorfile,'w')
       </script>
-      
+
       <!-- Build the test case dictionary object -->
       <script>
         testDict={}
         testCaseList=[]
         try:
           txtfh=open(textfile,'r')
-        
+
           try:
             for line in txtfh.readlines():
               element=eval(line)
@@ -329,11 +329,11 @@
               level=element['level']
               message=element['message']
               timestamp=element['timestamp']
-              
+
               startValueDict={}
               stopValueDict={}
               statusValueDict={}
-              
+
               if level == 'Start':
                 tcpattern=re.compile("(Testcase): (.*)")
                 tcmatch = tcpattern.search(message)
@@ -344,20 +344,20 @@
                     for key in testDict[tcname].keys():
                       value=testDict[tcname][key]
                       startValueDict[key]=value
-                  
+
                   startValueDict['start']=timestamp
                   testDict[tcname]=startValueDict
-                  
+
                   testCaseList.append(tcname.strip())
-                
+
                 else:
                   errorfh.write('Warning: No match Start element %s.\n' % element)
-              
+
               elif level == 'Stop':
-                
+
                 tcpattern=re.compile("(Testcase): (.*), ElapsedTime: (.*)")
                 tcmatch = tcpattern.search(message)
-                
+
                 if tcmatch:
                   tctype=tcmatch.group(1)
                   tcname=tcmatch.group(2)
@@ -366,19 +366,19 @@
                     for key in testDict[tcname].keys():
                       value=testDict[tcname][key]
                       stopValueDict[key]=value
-                  
+
                   stopValueDict['stop']=timestamp
                   stopValueDict['duration']=tctime
                   testDict[tcname]=stopValueDict
-                
+
                 else:
                   errorfh.write('Warning: No match Stop element %s.\n' % element)
-              
+
               elif level == 'Status':
-                
+
                 tcpattern=re.compile("(Testcase): (.*), Pass: (.*), Fail: (.*), ElapsedTime: (.*), NumStarts: (.*)")
                 tcmatch = tcpattern.search(message)
-                
+
                 if tcmatch:
                   tctype=tcmatch.group(1)
                   tcname=tcmatch.group(2)
@@ -386,29 +386,29 @@
                   tcfail=tcmatch.group(4)
                   tctime=tcmatch.group(5)
                   tcnums=tcmatch.group(6)
-                  
+
                   if testDict.has_key(tcname):
-                    
+
                     for key in testDict[tcname].keys():
                       value=testDict[tcname][key]
                       statusValueDict[key]=value
-                  
+
                   statusValueDict['pass']=tcpass
                   statusValueDict['fail']=tcfail
                   testDict[tcname]=statusValueDict
-                
+
                 else:
                   errorfh.write('Warning: No match Status element %s.\n' % element)
-              
+
               elif level == 'Info':
                 errorfh.write('Warning: Info element %s.\n' % element)
-              
+
               else:
                 errorfh.write('Error: Unknown element %s.\n' % element)
-        
+
           finally:
             txtfh.close()
-        
+
         except IOError:
           errorfh.write('Error: Unable to open %s. Reason IOError.' % textfile )
       </script>
@@ -417,30 +417,30 @@
       <script>
         localstaf =test_env.staf(STAF_LOCAL_HOSTNAME)
         remotestaf=test_env.staf(STAF_REMOTE_HOSTNAME)
-        
+
         stax = test_env.stax(STAF_LOCAL_HOSTNAME)
         event = test_env.event(STAF_LOCAL_HOSTNAME)
         eventman = test_env.eventmanager(STAF_LOCAL_HOSTNAME)
         email = test_env.email(STAF_LOCAL_HOSTNAME)
         http = test_env.http(STAF_LOCAL_HOSTNAME)
         dsml = test_env.dsml(STAF_LOCAL_HOSTNAME)
-                        
+
         xmlfh.write('&lt;qa&gt;\n')
         xmlfh.write('  &lt;functional-tests&gt;\n')
         xmlfh.write('    &lt;identification&gt;\n')
         xmlfh.write('      &lt;sut product="opends"&gt;\n')
         xmlfh.write('        &lt;name&gt;\n')
         xmlfh.write('          %s\n' % ServerName)
-        xmlfh.write('        &lt;/name&gt;\n')    
+        xmlfh.write('        &lt;/name&gt;\n')
         xmlfh.write('        &lt;version&gt;\n')
         xmlfh.write('          %s\n' % ServerVersion)
-        xmlfh.write('        &lt;/version&gt;\n')    
+        xmlfh.write('        &lt;/version&gt;\n')
         xmlfh.write('        &lt;buildid&gt;\n')
         xmlfh.write('          %s\n' % ServerBuildId)
         xmlfh.write('        &lt;/buildid&gt;\n')
         xmlfh.write('        &lt;revision&gt;\n')
         xmlfh.write('          %s\n' % ServerSvnRevision)
-        xmlfh.write('        &lt;/revision&gt;\n')                 
+        xmlfh.write('        &lt;/revision&gt;\n')
         xmlfh.write('        &lt;hostname&gt;\n')
         xmlfh.write('          %s\n' % STAF_REMOTE_HOSTNAME)
         xmlfh.write('        &lt;/hostname&gt;\n')
@@ -470,7 +470,7 @@
         xmlfh.write('        &lt;/jvm-bin&gt;\n')
         xmlfh.write('        &lt;os-label&gt;\n')
         xmlfh.write('          %s\n' % ServerOsString)
-        xmlfh.write('        &lt;/os-label&gt;\n')         
+        xmlfh.write('        &lt;/os-label&gt;\n')
         xmlfh.write('        &lt;server-package&gt;\n')
         xmlfh.write('          %s\n' % ServerPackage)
         xmlfh.write('        &lt;/server-package&gt;\n')
@@ -494,8 +494,8 @@
         xmlfh.write('        &lt;md5-sum&gt;\n')
         xmlfh.write('          TDB\n')
         xmlfh.write('        &lt;/md5-sum&gt;\n')
-        xmlfh.write('      &lt;/sut&gt;\n')        
-        xmlfh.write('      &lt;testware&gt;\n') 
+        xmlfh.write('      &lt;/sut&gt;\n')
+        xmlfh.write('      &lt;testware&gt;\n')
         xmlfh.write('        &lt;staf&gt;\n')
         xmlfh.write('          &lt;local&gt;\n')
         xmlfh.write('            &lt;hostname&gt;\n')
@@ -529,7 +529,7 @@
         xmlfh.write('          &lt;/library&gt;\n')
         xmlfh.write('          &lt;executable&gt;\n')
         xmlfh.write('            %s\n' % stax.executable)
-        xmlfh.write('          &lt;/executable&gt;\n')        
+        xmlfh.write('          &lt;/executable&gt;\n')
         xmlfh.write('          &lt;options&gt;\n')
         xmlfh.write('            %s\n' % stax.options)
         xmlfh.write('          &lt;/options&gt;\n')
@@ -546,7 +546,7 @@
         xmlfh.write('          &lt;/library&gt;\n')
         xmlfh.write('          &lt;executable&gt;\n')
         xmlfh.write('            %s\n' % event.executable)
-        xmlfh.write('          &lt;/executable&gt;\n')        
+        xmlfh.write('          &lt;/executable&gt;\n')
         xmlfh.write('          &lt;options&gt;\n')
         xmlfh.write('            %s\n' % event.options)
         xmlfh.write('          &lt;/options&gt;\n')
@@ -563,7 +563,7 @@
         xmlfh.write('          &lt;/library&gt;\n')
         xmlfh.write('          &lt;executable&gt;\n')
         xmlfh.write('            %s\n' % eventman.executable)
-        xmlfh.write('          &lt;/executable&gt;\n')        
+        xmlfh.write('          &lt;/executable&gt;\n')
         xmlfh.write('          &lt;options&gt;\n')
         xmlfh.write('            %s\n' % eventman.options)
         xmlfh.write('          &lt;/options&gt;\n')
@@ -580,7 +580,7 @@
         xmlfh.write('          &lt;/library&gt;\n')
         xmlfh.write('          &lt;executable&gt;\n')
         xmlfh.write('            %s\n' % email.executable)
-        xmlfh.write('          &lt;/executable&gt;\n')        
+        xmlfh.write('          &lt;/executable&gt;\n')
         xmlfh.write('          &lt;options&gt;\n')
         xmlfh.write('            %s\n' % email.options)
         xmlfh.write('          &lt;/options&gt;\n')
@@ -597,7 +597,7 @@
         xmlfh.write('          &lt;/library&gt;\n')
         xmlfh.write('          &lt;executable&gt;\n')
         xmlfh.write('            %s\n' % http.executable)
-        xmlfh.write('          &lt;/executable&gt;\n')        
+        xmlfh.write('          &lt;/executable&gt;\n')
         xmlfh.write('          &lt;options&gt;\n')
         xmlfh.write('            %s\n' % http.options)
         xmlfh.write('          &lt;/options&gt;\n')
@@ -614,14 +614,14 @@
         xmlfh.write('          &lt;/library&gt;\n')
         xmlfh.write('          &lt;executable&gt;\n')
         xmlfh.write('            %s\n' % dsml.executable)
-        xmlfh.write('          &lt;/executable&gt;\n')        
+        xmlfh.write('          &lt;/executable&gt;\n')
         xmlfh.write('          &lt;options&gt;\n')
         xmlfh.write('            %s\n' % dsml.options)
         xmlfh.write('          &lt;/options&gt;\n')
         xmlfh.write('          &lt;params&gt;\n')
         xmlfh.write('            %s\n' % dsml.params)
         xmlfh.write('          &lt;/params&gt;\n')
-        xmlfh.write('        &lt;/service&gt;\n')        
+        xmlfh.write('        &lt;/service&gt;\n')
         xmlfh.write('      &lt;/testware&gt;\n')
         xmlfh.write('      &lt;tests-dir&gt;\n')
         xmlfh.write('        %s\n' % logsDir)
@@ -635,11 +635,11 @@
         xmlfh.write('    &lt;/identification&gt;\n')
         xmlfh.write('    &lt;results&gt;\n')
       </script>
-      
+
       <!-- XML Report Results -->
       <script>
         for tcname in testCaseList:
-          
+
           if testDict.has_key(tcname):
             tcnamesplit=tcname.split(":")
             if tcnamesplit[0]:
@@ -651,74 +651,74 @@
             else:
               tcgroup=tcname
               tcsuite=tcname
-            
+
             if testDict[tcname].has_key('pass'):
               tcpass=testDict[tcname]['pass']
             else:
               tcpass='0'
-            
+
             if testDict[tcname].has_key('fail'):
               tcfail=testDict[tcname]['fail']
             else:
               tcfail='0'
-            
+
             if testDict[tcname].has_key('start'):
               tcstart=testDict[tcname]['start']
             else:
               tcstart='unknown'
-            
+
             if testDict[tcname].has_key('stop'):
               tcstop=testDict[tcname]['stop']
             else:
               tcstop='unknown'
-            
+
             if testDict[tcname].has_key('duration'):
               tcduration=testDict[tcname]['duration']
             else:
               duration='unknown'
-          
+
           else:
             errorfh.write('No key for testcase %s.\n' % tcname)
-          
+
           if int(tcfail) == 0 and int(tcpass) > 0:
             tcresult='pass'
-          elif int(tcfail) == 0 and int(tcpass) == 0: 
+          elif int(tcfail) == 0 and int(tcpass) == 0:
             tcresult='unknown'
           else:
             tcresult='fail'
 
           tcdurationsecs=test_time().timeToSeconds(tcduration)
-          
+
           xmlfh.write('      &lt;testgroup name="%s"&gt;\n' % tcgroup)
           xmlfh.write('        &lt;testsuite name="%s"&gt;\n' % tcsuite)
           xmlfh.write('          &lt;testcase group="%s" suite="%s" name="%s" result="%s" start="%s" stop="%s" duration="%s"/&gt;\n' % (tcgroup,tcsuite,tcname,tcresult,tcstart,tcstop,tcdurationsecs))
           xmlfh.write('        &lt;/testsuite&gt;\n')
           xmlfh.write('      &lt;/testgroup&gt;\n')
       </script>
-      
+
       <!-- XML Report Post -->
       <script>
         xmlfh.write('    &lt;/results&gt;\n')
         xmlfh.write('  &lt;/functional-tests&gt;\n')
         xmlfh.write('&lt;/qa&gt;\n')
       </script>
-      
+
       <script>
-        xmlfh.close() 
-        errorfh.close() 
+        xmlfh.close()
+        errorfh.close()
       </script>
-      
+
       <message>
         'XML Report Written to %s.' % xmlfile
       </message>
 
-      <!-- Generate the standard test report showing all testcases -->      
+      <!-- Generate the standard test report showing all testcases -->
       <script>
         _message='Generated standard test report.'
         xslfile= '%s/xsl/gen-alltests-report.xsl' % TESTS_SHARED_DIR
         htmlfile= '%s/results.html' % logsReportDir
 
-        standardReport=report_generation()      
+        standardReport=report_generation()
 
         stringParamsDict={}
 
@@ -731,42 +731,42 @@
       </script>
       <message>_message</message>
 
-      <!-- Generate the test report by test groups-->      
+      <!-- Generate the test report by test groups-->
       <script>
         _message='Generated groups test report.'
         xslfile= '%s/xsl/gen-groups-report.xsl' % TESTS_SHARED_DIR
         htmlfile= '%s/groups.html' % logsReportDir
         testslog= '%s/tests-log.xml' % logsTestsDir
-        groupsReport=report_generation()      
+        groupsReport=report_generation()
         stringParamsDict={ 'tests-log' : testslog }
-        
+
         try:
           groupsReport.transformReport(xslfile,xmlfile,htmlfile,stringParamsDict)
         except IOError,details:
-          _message='Unable to generate groups test report %s.' % details          
+          _message='Unable to generate groups test report %s.' % details
         except:
           _message='Unable to generate groups test report !!!'
       </script>
       <message>_message</message>
 
-      <!-- Generate the test report by test suites -->      
+      <!-- Generate the test report by test suites -->
       <script>
         _message='Generated suites test reports.'
 
         testGroupDirsList=os.listdir(logsTestsDir)
         for testGroupName in testGroupDirsList:
-        
+
           groupDir='%s/%s' % (logsTestsDir,testGroupName)
-        
+
           if os.path.isdir(groupDir):
-        
+
             xmlfile='%s/results.xml' % logsReportDir
             htmlfile='%s/%s.html' % (groupDir,testGroupName)
             xslfile= '%s/xsl/gen-suites-report.xsl' % TESTS_SHARED_DIR
-        
+
             suitesReport=report_generation()
             stringParamsDict={ 'group' : testGroupName, 'tests-log' : testslog }
-        
+
             try:
               suitesReport.transformReport(xslfile,xmlfile,htmlfile,stringParamsDict)
             except IOError,details:
@@ -782,7 +782,7 @@
         xslfile= '%s/xsl/id.xsl' % TESTS_SHARED_DIR
         htmlfile= '%s/id.html' % logsReportDir
 
-        idReport=report_generation()      
+        idReport=report_generation()
 
         stringParamsDict={}
 
@@ -793,16 +793,16 @@
         except:
           _message='Unable to generate product identification test report !!!'
       </script>
-      <message>_message</message>                                
+      <message>_message</message>
 
       <!-- Generate the summary text file -->
-      <script>          
+      <script>
         _message='Generated the summary text report'
         mysummaryxsl='%s/xsl/gen-text-summary.xsl' % TESTS_SHARED_DIR
         mysummarytext='%s/summary.txt' % logsReportDir
         mysummaryxml=xmlfile
 
-        summaryReport=report_generation()      
+        summaryReport=report_generation()
 
         stringParamsDict={}
 
@@ -812,13 +812,13 @@
           _message='Unable to generate summary text file %s.' % details
       </script>
       <message>_message</message>
-           
+
       <if expr="SEND_MAIL_AFTER_TEST_RUN == 'TRUE'">
         <sequence>
           <message>
             'Sending Email Test Report to %s.' % SEND_MAIL_TO
           </message>
-          
+
           <script>
             try:
               if SEND_MAIL_REPORT:
@@ -835,7 +835,7 @@
                 MailToList=[]
             except NameError,details:
                 MailToList=[]
-            
+
             try:
               if SEND_MAIL_SUBJECT:
                 MailSubject= SEND_MAIL_SUBJECT
@@ -843,16 +843,16 @@
                 MailSubject= 'OpenDS Test Report for %s' % STAF_REMOTE_HOSTNAME
             except NameError,details:
                 MailSubject= 'OpenDS Test Report for %s' % STAF_REMOTE_HOSTNAME
-                            
+
             MailSendTo= ' '
           </script>
-          
+
           <iterate var="Recipient" in="MailToList">
             <script>
              MailSendTo='to %s %s' % (Recipient,MailSendTo)
             </script>
           </iterate>
-          
+
           <stafcmd name="'STAF Command: Send test report %s' % MailSendTo">
             <location>'%s' % STAF_LOCAL_HOSTNAME </location>
             <service>'email'</service>
@@ -860,7 +860,7 @@
               'send %s contenttype "text/html" file %s subject "%s" noheader' % (MailSendTo,MailSendReport,MailSubject)
             </request>
           </stafcmd>
-          
+
           <if expr="RC != 0">
             <message log="1" level="'Error'">
               'Send test report failed. RC: %s STAFResult: %s' % (RC,STAFResult)
@@ -874,6 +874,6 @@
         </sequence>
       </if>
     </sequence>
-  
+
   </function>
 </stax>

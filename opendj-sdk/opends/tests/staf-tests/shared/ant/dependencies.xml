@@ -1,0 +1,149 @@
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<project name="dependencies">
+  <description>
+    Manage dependencies.
+  </description>
+
+  <!-- Download all the dependencies -->
+  <target name="download">
+    <mkdir dir="${archives.dir}"/>
+
+    <!-- STAF and other services -->
+    <var name="list" value="${staf.archive},${stax.archive},${email.archive}"/>
+    <var name="list" value="${list},${event.archive},${eventmanager.archive}"/>
+    <var name="list" value="${list},${http.archive},${tomcat.archive}"/>
+    <mkdir dir="${tmp.dir}"/>
+    <for list="${list}" param="archive">
+      <sequential>
+        <var name="rc" unset="true"/>
+        <var name="ext" unset="true"/>
+        <var name="url" unset="true"/>
+
+        <if>
+          <not>
+            <available file="${staf.install.dir}/bin/STAF.cfg"/>
+          </not>
+          <then>
+            <trycatch property="error" reference="referror">
+              <try>
+                <propertyregex property="ext"
+                               input="@{archive}"
+                               regexp=".*\.(.*)"
+                               select="\1"
+                               casesensitive="false"/>
+
+                <switch value="${ext}">
+                  <case value="gz">
+                    <!-- gz files -->
+                    <gunzip src="${archives.dir}/@{archive}"
+                            dest="${tmp.dir}"/>
+                  </case>
+                  <case value="zip">
+                    <!-- zip files -->
+                    <unzip src="${archives.dir}/@{archive}"
+                           dest="${tmp.dir}"/>
+                  </case>
+                  <default>
+                  </default>
+                </switch>
+
+                <var name="rc" value="0"/>
+              </try>
+
+              <catch>
+                <echo>ERROR: ${error}</echo>
+                <var name="rc" value="-1"/>
+              </catch>
+            </trycatch>
+          </then>
+        </if>
+
+        <var name="rc" value="0"/>
+        <if>
+          <or>
+            <not>
+              <equals arg1="${rc}" arg2="0"/>
+            </not>
+            <not>
+              <available file="${archives.dir}/@{archive}"/>
+            </not>
+          </or>
+          <then>
+            <if>
+              <equals arg1="@{archive}" arg2="${tomcat.archive}"/>
+              <then>
+                <!-- Tomcat url -->
+                <var name="url" value="${tomcat.url}"/>
+              </then>
+              <else>
+                <!-- Other url -->
+                <var name="url" value="${staf.url}"/>
+              </else>
+            </if>
+            <get src="${url}/@{archive}"
+                 dest="${archives.dir}/@{archive}"/>
+          </then>
+        </if>
+      </sequential>
+    </for>
+    <delete includeemptydirs="true">
+       <fileset dir="${tmp.dir}" includes="**/*"/>
+    </delete>
+  </target>
+
+  <!-- Remove current dependencies -->
+  <target name="remove">
+    <delete dir="${archives.dir}">
+      <include name="STAF${staf.version}*"/>
+      <include name="${stax.archive}"/>
+      <include name="${email.archive}"/>
+      <include name="${event.archive}"/>
+      <include name="${eventmanager.archive}"/>
+      <include name="${http.archive}"/>
+      <include name="${tomcat.archive}"/>
+    </delete>
+  </target>
+
+  <!-- Remove old dependencies -->
+  <target name="removeold">
+    <delete dir="${archives.dir}">
+      <exclude name="STAF${staf.version}*"/>
+      <exclude name="${stax.archive}"/>
+      <exclude name="${email.archive}"/>
+      <exclude name="${event.archive}"/>
+      <exclude name="${eventmanager.archive}"/>
+      <exclude name="${http.archive}"/>
+      <exclude name="${tomcat.archive}"/>
+    </delete>
+  </target>
+
+  <!-- Remove all the dependencies -->
+  <target name="removeall">
+    <delete dir="${archives.dir}"/>
+  </target>
+</project>

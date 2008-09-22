@@ -1,0 +1,377 @@
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<project name="opends-staf-tests" basedir="../.." default="usage">
+
+  <description>
+    Installer ant file for the staf platform
+    This allows tests that need a running instance of staf to easily
+    get one and hides all the complexity under the hood
+  </description>
+
+
+  <!-- ################## -->
+  <!-- # ANT PROPERTIES # -->
+  <!-- ################## -->
+
+  <!-- Display ant properties -->
+  <target name="properties">
+    <echoproperties/>
+  </target>
+
+
+  <!-- ######## -->
+  <!-- # INIT # -->
+  <!-- ######## -->
+
+  <!-- Initialise variables -->
+  <target name="global-init">
+    <!-- Define project.home variable -->
+    <dirname file="${basedir}/.." property="project.home"/>
+
+    <!-- Default value for product.name variable -->
+    <property file="${project.home}/PRODUCT"/>
+    <property name="product.name"
+      value="${SHORT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}"/>
+
+    <!-- Define antfile.dir variable -->
+    <property name="antfile.dir" value="${basedir}/shared/ant"/>
+
+    <!-- Define antfile.dir variable -->
+    <property name="tmp.dir" value="${java.io.tmpdir}/temp_files"/>
+
+    <!-- Load ant-contrib -->
+    <taskdef resource="net/sf/antcontrib/antlib.xml">
+      <classpath>
+        <fileset dir="${project.home}/ext/ant/lib">
+          <include name="**/*.jar"/>
+        </fileset>
+      </classpath>
+    </taskdef>
+
+    <!-- Check if the current platform is supported -->
+    <switch value="${os.name}">
+      <case value="SunOS">
+        <!-- Solaris system -->
+        <switch value="${os.arch}">
+          <case value="sparc">
+            <!-- Solaris sparc -->
+            <exec executable="isainfo" output="os.bits">
+              <arg value="-b"/>
+            </exec>
+            <switch value="${os.bits}">
+              <case value="32">
+                <!-- Solaris sparc 32 bit -->
+                <property name="os.myname" value="solaris-sparc"/>
+              </case>
+              <case value="64">
+                <!-- Solaris sparc 64 bit -->
+                <property name="os.myname" value="solaris-sparc64"/>
+              </case>
+            </switch>
+          </case>
+          <case value="x86">
+            <!-- Solaris x86 -->
+            <property name="os.myname" value="solaris-x86"/>
+          </case>
+          <case value="amd64">
+            <!-- Solaris amd64 -->
+            <property name="os.myname" value="solaris-x64-64"/>
+          </case>
+        </switch>
+
+        <exec executable="uname" outputproperty="host.name">
+            <arg line="-n"/>
+        </exec>
+        <property name="extension.binary" value=""/>
+        <property name="extension.shell" value=""/>
+        <property name="var.path" value="PATH"/>
+      </case>
+      <case value="Linux">
+        <!-- Linux system -->
+        <switch value="${os.arch}">
+          <case value="i386">
+            <!-- Linux i386 -->
+            <property name="os.myname" value="linux"/>
+          </case>
+          <case value="amd64">
+            <!-- Linux amd64 -->
+            <property name="os.myname" value="linux-amd64"/>
+          </case>
+        </switch>
+
+        <exec executable="uname" outputproperty="host.name">
+            <arg line="-n"/>
+        </exec>
+        <property name="extension.binary" value=""/>
+        <property name="extension.shell" value=""/>
+        <property name="var.path" value="PATH"/>
+      </case>
+      <default>
+        <if>
+          <equals arg1="${os.family}" arg2="windows"/>
+          <then>
+            <!-- Windows system -->
+            <property name="os.myname" value="win32"/>
+
+            <property name="host.name" value="${env.COMPUTERNAME}"/>
+            <property name="extension.binary" value=".exe"/>
+            <property name="extension.shell" value=".bat"/>
+            <property name="var.path" value="Path"/>
+          </then>
+          <else>
+            <fail>"Unsupported platform."</fail>
+          </else>
+        </if>
+      </default>
+    </switch>
+
+    <!-- Default value for staf.type -->
+    <if>
+      <not>
+        <isset property="staf.type"/>
+      </not>
+      <then>
+        <property name="staf.type" value="controler"/>
+      </then>
+    </if>
+
+    <!-- Default value for tests.type -->
+    <if>
+      <not>
+        <isset property="tests.type"/>
+      </not>
+      <then>
+        <property name="tests.type" value="functional-tests"/>
+      </then>
+    </if>
+
+    <!-- User-defined values -->
+    <property file="${basedir}/user.properties"/>
+
+    <!-- Default values for build environment -->
+    <property file="${antfile.dir}/build.properties"/>
+
+    <!-- Set value for staf.archive and staf.lib.dir variables -->
+    <if>
+      <equals arg1="${os.family}" arg2="windows"/>
+      <then>
+        <!-- Windows system -->
+        <property name="staf.archive"
+                  value="STAF${staf.version}-setup-${os.myname}.exe"/>
+        <property name="staf.lib.dir" value="${staf.install.dir}${file.separator}bin"/>
+      </then>
+      <else>
+        <!-- Other systems -->
+        <property name="staf.archive"
+                  value="STAF${staf.version}-${os.myname}.tar.gz"/>
+        <property name="staf.lib.dir" value="${staf.install.dir}${file.separator}lib"/>
+      </else>
+    </if>
+  </target>
+
+  <!-- ######### -->
+  <!-- # USAGE # -->
+  <!-- ######### -->
+
+  <!-- Display usage -->
+  <target name="usage"
+          depends="global-init">
+    <ant antfile="${antfile.dir}/usage.xml" target="usage"/>
+  </target>
+
+
+  <!-- ############# -->
+  <!-- # CONFIGURE # -->
+  <!-- ############# -->
+
+  <!-- Configure user variables -->
+  <target name="user-configure"
+          depends="global-init">
+    <ant antfile="${antfile.dir}/user.xml" target="configure"/>
+  </target>
+
+  <!-- Unconfigure user variables -->
+  <target name="user-unconfigure"
+          depends="global-init">
+    <ant antfile="${antfile.dir}/user.xml" target="unconfigure"/>
+  </target>
+
+
+  <!-- ######### -->
+  <!-- # PROXY # -->
+  <!-- ######### -->
+
+  <!-- Check proxy -->
+  <target name="proxy-check"
+          depends="global-init">
+    <ant antfile="${antfile.dir}/proxy.xml" target="check"/>
+  </target>
+
+  <!-- Set proxy -->
+  <target name="proxy-set"
+          depends="global-init,proxy-check">
+    <ant antfile="${antfile.dir}/proxy.xml" target="set"/>
+  </target>
+
+
+  <!-- ############ -->
+  <!-- # DOWNLOAD # -->
+  <!-- ############ -->
+
+  <!-- Download dependencies -->
+  <target name="dependencies-download"
+          depends="global-init,proxy-set">
+    <ant antfile="${antfile.dir}/dependencies.xml" target="download"/>
+  </target>
+
+  <!-- Remove current dependencies -->
+  <target name="dependencies-remove"
+          depends="global-init">
+    <ant antfile="${antfile.dir}/dependencies.xml" target="remove"/>
+  </target>
+
+  <!-- Remove old dependencies -->
+  <target name="dependencies-removeold"
+          depends="global-init">
+    <ant antfile="${antfile.dir}/dependencies.xml" target="removeold"/>
+  </target>
+
+  <!-- Remove all dependencies -->
+  <target name="dependencies-removeall"
+          depends="global-init">
+    <ant antfile="${antfile.dir}/dependencies.xml" target="removeall"/>
+  </target>
+
+
+  <!-- ######## -->
+  <!-- # STAF # -->
+  <!-- ######## -->
+
+  <!-- Install STAF and STAF services -->
+  <target name="staf-install"
+          depends="global-init,dependencies-download">
+    <ant antfile="${antfile.dir}/staf.xml" target="install"/>
+  </target>
+
+  <!-- Uninstall STAF and STAF services -->
+  <target name="staf-uninstall"
+          depends="global-init,staf-stop">
+    <ant antfile="${antfile.dir}/staf.xml" target="uninstall"/>
+  </target>
+
+  <!-- Start STAF -->
+  <target name="staf-start"
+          depends="global-init,staf-install">
+    <ant antfile="${antfile.dir}/staf.xml" target="start"/>
+  </target>
+
+  <target name="staf-start-slave">
+    <property name="staf.type" value="slave"/>
+    <antcall target="staf-start"/>
+  </target>
+
+  <target name="staf-start-controler">
+    <property name="tests.type" value="controler"/>
+    <antcall target="staf-start"/>
+  </target>
+
+  <!-- Stop STAF -->
+  <target name="staf-stop"
+          depends="global-init">
+    <ant antfile="${antfile.dir}/staf.xml" target="stop"/>
+  </target>
+
+  <!-- Status STAF -->
+  <target name="staf-status"
+          depends="global-init">
+    <ant antfile="${antfile.dir}/staf.xml" target="status"/>
+  </target>
+
+   <!-- Start STAF GUI -->
+  <target name="staf-gui"
+          depends="global-init,staf-start">
+    <ant antfile="${antfile.dir}/staf.xml" target="gui"/>
+  </target>
+
+  <!-- Display STAF JVM logs -->
+  <target name="staf-jvmlogs"
+          depends="global-init,staf-start">
+    <ant antfile="${antfile.dir}/staf.xml" target="jvmlogs"/>
+  </target>
+
+
+  <!-- ######### -->
+  <!-- # TESTS # -->
+  <!-- ######### -->
+
+  <!-- Configure tests to run -->
+  <target name="tests-configure"
+          depends="global-init">
+    <ant antfile="${antfile.dir}/tests.xml" target="configure"/>
+  </target>
+
+  <!-- Configure functional tests to run -->
+  <target name="tests-func-configure">
+    <property name="tests.type" value="functional-tests"/>
+    <antcall target="tests-configure"/>
+  </target>
+
+  <!-- Configure stress tests to run -->
+  <target name="tests-stress-configure">
+    <property name="tests.type" value="stress-tests"/>
+    <antcall target="tests-configure"/>
+  </target>
+
+  <!-- Run tests -->
+  <target name="tests-run"
+          depends="global-init,opends-build,staf-start">
+    <ant antfile="${antfile.dir}/tests.xml" target="run"/>
+  </target>
+
+  <!-- Run functional tests -->
+  <target name="tests-func-run">
+    <property name="tests.type" value="functional-tests"/>
+    <antcall target="tests-run"/>
+  </target>
+
+  <!-- Run stress tests -->
+  <target name="tests-stress-run">
+    <property name="tests.type" value="stress-tests"/>
+    <antcall target="tests-run"/>
+  </target>
+
+
+  <!-- ########## -->
+  <!-- # OPENDS # -->
+  <!-- ########## -->
+
+  <!-- Build OpenDS zip -->
+  <target name="opends-build"
+          depends="global-init">
+    <ant antfile="${antfile.dir}/opends.xml" target="build"/>
+  </target>
+</project>
