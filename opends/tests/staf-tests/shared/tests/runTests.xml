@@ -72,7 +72,7 @@
       <iterate var="group" in="groupsToRun" >
 
         <sequence>
-        
+
           <!-- The job that executes the tests -->
           <script>
             STAXParentID=STAXJobID
@@ -87,7 +87,7 @@
             </job-function>
             <job-function-args eval='1'>
               STAXParentID
-            </job-function-args>        
+            </job-function-args>
             <job-scriptfiles machine="STAF_LOCAL_HOSTNAME">
               STAXJobScriptFiles
             </job-scriptfiles>
@@ -97,7 +97,7 @@
               </log>
             </job-action>
           </job>
-    
+
           <if expr="RC == 0">
             <sequence>
               <message>
@@ -115,9 +115,9 @@
               </sequence>
             </else>
           </if>
-      
+
         </sequence>
-        
+
       </iterate>
 
       <!-- in this section we'll compute the coverage for all the tests
@@ -315,7 +315,7 @@
         testlog.write('&lt;/qa&gt;\n')
         testlog.close()
       </script>
-      
+
       <return>listOfChildren</return>
 
     </sequence>

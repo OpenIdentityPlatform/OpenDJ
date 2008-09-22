@@ -1,0 +1,66 @@
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+
+<project name="usage">
+
+  <description>
+    Display usage.
+  </description>
+
+  <!-- Display usage -->
+  <target name="usage"
+          description="Gives a message that helps using this file">
+    <echo>
+      --general--
+      usage                   : print this message
+      properties              : print ant properties
+
+      --dependencies--
+      dependencies-download   : download the archives necessary to install staf
+      dependencies-remove     : remove the archives previously downloaded
+
+      --staf--
+      staf-install            : install the staf
+      staf-start              : start staf without services
+      staf-controler-start    : start staf without services
+      staf-remote-start       : start staf with all the services
+      staf-stop               : stop staf
+      staf-uninstall          : uninstall
+      staf-status             : report if staf is installed and running
+      staf-gui                : start the STAX gui
+      staf-jvmlogs            : start the STAF jvm log viewer
+
+      --tests--
+      tests-configure         : configure the functional tests
+      tests-func-configure    : configure the functional tests
+      tests-stress-configure  : configure the stress tests
+      tests-run               : run the functional tests
+      tests-func-run          : run the functional tests
+      tests-stress-run        : run the stress tests
+    </echo>
+  </target>
+</project>

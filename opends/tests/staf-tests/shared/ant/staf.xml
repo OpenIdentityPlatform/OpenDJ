@@ -1,0 +1,250 @@
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<project name="staf">
+
+  <description>
+    Manage STAF (install/uninstall, start/stop).
+  </description>
+
+  <!-- Install STAF and services -->
+  <target name="install">
+    <if>
+      <not>
+        <available file="${staf.install.dir}/bin/STAF.cfg"/>
+      </not>
+      <then>
+        <mkdir dir="${tmp.dir}"/>
+
+        <!-- Install STAF -->
+        <echo>Installing staf, please wait...</echo>
+        <mkdir dir="${staf.install.dir}"/>
+        <gunzip src="${archives.dir}/${staf.archive}" dest="${tmp.dir}"/>
+        <untar dest="${tmp.dir}">
+          <fileset dir="${tmp.dir}">
+            <include name="*.tar"/>
+          </fileset>
+        </untar>
+        <chmod file="${tmp.dir}/staf/STAFInst" perm="755"/>
+        <exec executable="${tmp.dir}/staf/STAFInst">
+          <arg value="-source"/>
+          <arg value="${tmp.dir}/staf"/>
+          <arg value="-target"/>
+          <arg value="${staf.install.dir}"/>
+          <arg value="-acceptlicense"/>
+        </exec>
+        <delete dir="${repository.dir}/staf"/>
+
+        <!-- Install services -->
+        <echo>Installing services, please wait...</echo>
+        <mkdir dir="${staf.install.dir}/services"/>
+        <unzip src="${archives.dir}/${email.archive}"
+           dest="${staf.install.dir}/services"/>
+        <unzip src="${archives.dir}/${event.archive}"
+           dest="${staf.install.dir}/services"/>
+        <unzip src="${archives.dir}/${eventmanager.archive}"
+           dest="${staf.install.dir}/services"/>
+        <unzip src="${archives.dir}/${stax.archive}"
+           dest="${staf.install.dir}/services"/>
+        <unzip src="${archives.dir}/${http.archive}"
+           dest="${staf.install.dir}/services"/>
+
+        <!-- Add DSML service extension -->
+        <mkdir dir="${staf.install.dir}/services/dsml"/>
+        <copy todir="${staf.install.dir}/services/dsml">
+          <fileset dir="${basedir}/../staf-tests/shared/dsml"
+               includes="dsmlService.jar"/>
+        </copy>
+
+        <delete includeemptydirs="true">
+          <fileset dir="${tmp.dir}" includes="**/*"/>
+        </delete>
+      </then>
+      <else>
+        <echo>Staf is already installed in [${staf.install.dir}]</echo>
+      </else>
+    </if>
+
+    <!-- Copy functional-tests.cfg -->
+    <mkdir dir="${staf.config.dir}"/>
+    <copy file="${staf.config.stubs}" tofile="${staf.config.file}">
+      <filterchain>
+        <expandproperties/>
+      </filterchain>
+    </copy>
+  </target>
+
+  <!-- Uninstall STAF and services -->
+  <target name="uninstall">
+    <if>
+      <available file="${staf.install.dir}/bin/STAF.cfg"/>
+      <then>
+        <echo>Uninstalling staf, please wait...</echo>
+        <exec executable="${staf.install.dir}/STAFUninst"/>
+        <delete dir="${staf.install.dir}"/>
+      </then>
+      <else>
+        <echo>Staf is not installed</echo>
+      </else>
+    </if>
+  </target>
+
+  <!-- Start STAF -->
+  <target name="start">
+    <if>
+      <not>
+        <socket port="${staf.port}" server="${host.name}"/>
+      </not>
+      <then>
+        <echo>Starting staf, please wait...</echo>
+        <exec dir="${staf.bin.dir}"
+              executable="${staf.daemon}"
+              spawn="true">
+          <arg value="${staf.config.file}"/>
+          <env key="${var.path}" path="${java.path}${file.separator}bin${path.separator}${staf.install.dir}${file.separator}bin"/>
+          <env key="LD_LIBRARY_PATH" path="${staf.install.dir}/lib"/>
+          <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}:${project.home}/ext/svnkit/svnkit.jar:."/>
+          <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
+          <env key="STAFCODEPAGE" value="LATIN_1"/>
+          <env key="STAF_INSTANCE_NAME" value="STAF"/>
+        </exec>
+
+        <echo>Waiting for service to become available...</echo>
+        <waitfor maxwait="3"
+             maxwaitunit="minute"
+             checkevery="10"
+             checkeveryunit="second"
+             timeoutproperty="timeout">
+          <socket server="${host.name}" port="${staf.port}"/>
+        </waitfor>
+
+        <echo>STAF is now ready to serve requests</echo>
+      </then>
+      <else>
+        <echo>Staf is already listening on port [${staf.port}]</echo>
+      </else>
+    </if>
+  </target>
+
+  <!-- Stop STAF -->
+  <target name="stop">
+    <if>
+      <socket port="${staf.port}" server="${host.name}"/>
+      <then>
+        <echo>Stopping staf, please wait...</echo>
+        <exec executable="${staf.executable}">
+          <arg line="local shutdown shutdown"/>
+          <env key="${var.path}" path="${java.path}${file.separator}bin${path.separator}${staf.install.dir}${file.separator}bin"/>
+          <env key="LD_LIBRARY_PATH" path="${staf.lib.dir}"/>
+          <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}:."/>
+          <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
+          <env key="STAFCODEPAGE" value="LATIN_1"/>
+        </exec>
+
+        <echo>Waiting for service to shutdown gracefully...</echo>
+        <waitfor maxwait="3"
+             maxwaitunit="minute"
+             checkevery="10"
+             checkeveryunit="second"
+             timeoutproperty="timeoutSocketListening">
+          <not>
+            <socket server="${host.name}" port="${staf.port}"/>
+          </not>
+        </waitfor>
+
+        <echo>STAF stopped</echo>
+      </then>
+      <else>
+        <echo>Staf is not running</echo>
+      </else>
+    </if>
+  </target>
+
+  <!-- Display STAF status -->
+  <target name="status">
+    <echo>Operating System Family  - ${os.myname}</echo>
+    <echo>Operating System Name    - ${os.name}</echo>
+    <echo>Operating System Version - ${os.version}</echo>
+    <echo>Machine Architecture     - ${os.arch}</echo>
+    <echo>Java Home                - ${java.path}</echo>
+    <echo>Java Version             - ${java.version}</echo>
+
+    <echo></echo>
+    <if>
+      <available file="${staf.install.dir}/bin/STAF.cfg"/>
+      <then>
+
+        <echo>Staf is installed in [${staf.install.dir}]</echo>
+      </then>
+      <else>
+        <echo>Staf is not installed</echo>
+      </else>
+    </if>
+
+    <echo></echo>
+    <if>
+      <socket port="${staf.port}" server="${host.name}"/>
+      <then>
+        <echo>Staf is listening on port [${staf.port}]</echo>
+      </then>
+      <else>
+        <echo>Staf is not running</echo>
+      </else>
+    </if>
+  </target>
+
+  <!-- Display STAF gui -->
+  <target name="gui">
+    <exec dir="${staf.install.dir}"
+          executable="${java.path}/bin/java"
+          spawn="true">
+      <env key="${var.path}" path="${java.path}${file.separator}bin${path.separator}${staf.install.dir}${file.separator}bin"/>
+      <env key="LD_LIBRARY_PATH" path="${staf.lib.dir}"/>
+      <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}:."/>
+      <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
+      <env key="STAFCODEPAGE" value="LATIN_1"/>
+      <arg value="-classpath"/>
+      <arg value="${staf.install.dir}/services/stax/STAXMon.jar${path.separator}${staf.lib.dir}/JSTAF.jar"/>
+      <arg value="com.ibm.staf.service.stax.STAXMonitor"/>
+    </exec>
+  </target>
+
+  <!-- Display jvmlogs -->
+  <target name="jvmlogs">
+    <exec dir="${staf.install.dir}"
+          executable="${java.path}/bin/java"
+          spawn="true">
+      <env key="${var.path}" path="${java.path}${file.separator}bin${path.separator}${staf.install.dir}${file.separator}bin"/>
+      <env key="LD_LIBRARY_PATH" path="${staf.lib.dir}"/>
+      <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}:."/>
+      <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
+      <env key="STAFCODEPAGE" value="LATIN_1"/>
+      <arg value="-classpath"/>
+      <arg value="${staf.lib.dir}${path.separator}${staf.lib.dir}/JSTAF.jar"/>
+      <arg value="com.ibm.staf.STAFJVMLogViewer"/>
+    </exec>
+  </target>
+</project>

@@ -1,0 +1,301 @@
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<project name="tests">
+  <description>
+    Execute the tests.
+  </description>
+
+  <target name="run">
+    <tstamp>
+      <format property="tests.run.time" pattern="yyyy.MM.dd-HH.mm.ss"/>
+    </tstamp>
+
+      <!-- clean up some -->
+    <delete dir="${tests.tmp.dir}"/>
+
+      <!-- make all the necessary directories for this test run -->
+    <mkdir dir="${tests.tmp.dir}"/>
+    <mkdir dir="${tests.run.dir}/${tests.run.time}"/>
+    <mkdir dir="${tests.run.dir}/${tests.run.time}/config"/>
+    <mkdir dir="${tests.run.dir}/${tests.run.time}/report"/>
+      <!-- these will serve for after-the-fact archiving the logs -->
+    <mkdir dir="${tests.run.dir}/${tests.run.time}/staf-logs"/>
+    <mkdir dir="${tests.run.dir}/${tests.run.time}/server-logs"/>
+    <mkdir dir="${tests.run.dir}/${tests.run.time}/coverage"/>
+
+    <delete file="${test.plan.default}"/>
+    <for list="${test.plan.list}" param="item">
+      <sequential>
+      <echo file="${test.plan.default}" append="true">@{item}
+</echo>
+      </sequential>
+    </for>
+
+    <!-- generate the timestamped config file that will be used for this run -->
+    <copy file="${tests.config.stubs}"
+          tofile="${tests.run.dir}/${tests.run.time}/config/${tests.config.file}">
+      <filterchain>
+        <expandproperties/>
+      </filterchain>
+    </copy>
+
+    <!-- this is a windows-specific measure to replace the windows file
+         separator by a forward slash. Staf otherwise fails to find the files. -->
+    <replace file="${tests.run.dir}/${tests.run.time}/config/${tests.config.file}" token="\" value="/"/>
+
+    <property name="tests.request" value="EXECUTE FILE ${tests.xml} JOBNAME OpenDS_Functional_Tests SCRIPTFILE ${tests.run.dir}/${tests.run.time}/config/${tests.config.file} WAIT CLEARLOGS"/>
+
+    <echo>While the tests are running you may tail the job logs at</echo>
+    <echo>${staf.install.dir}/logs/MACHINE/${host.name}</echo>
+    <echo>Running tests. This will take more than a while.</echo>
+    <property name="CLASSPATH" value="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
+    <exec
+      dir="${staf.bin.dir}"
+      executable="${staf.executable}"
+      >
+      <arg line="LOCAL STAX ${tests.request}"/>
+      <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
+      <env key="LD_LIBRARY_PATH" value="${staf.lib.dir}"/>
+      <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
+      <env key="STAFCODEPAGE" value="LATIN_1"/>
+    </exec>
+
+    <symlink link="${tests.run.dir}/latest" resource="${tests.run.time}" overwrite="true"/>
+    <if>
+      <available file="${tests.tmp.dir}/${product.name}/logs"/>
+      <then>
+        <echo>Saving server logs</echo>
+        <copy todir="${tests.run.dir}/${tests.run.time}/server-logs">
+          <fileset dir="${tests.tmp.dir}/${product.name}/logs"/>
+        </copy>
+      </then>
+    </if>
+    <echo>Saving Staf/Stax logs</echo>
+    <copy todir="${tests.run.dir}/${tests.run.time}/staf-logs">
+      <fileset dir="${staf.install.dir}/logs"/>
+    </copy>
+    <delete dir="${staf.install.dir}/logs"/>
+    <echo>Saving report</echo>
+    <copy todir="${tests.run.dir}/${tests.run.time}/report">
+      <fileset dir="${tests.tmp.dir}">
+        <include name="r*"/>
+      </fileset>
+    </copy>
+    <delete file="${tests.tmp.dir}/percentage.properties"/>
+  </target>
+
+  <target name="configure">
+    <condition property="already.customized" value="true" else="false">
+      <available file="${test.plan.custom}" />
+    </condition>
+    <if>
+      <equals arg1="${already.customized}" arg2="true" />
+      <then>
+        <input message="A previously customized test plan was detected. Do you want to change the list of suites to run?" validargs="y,n" defaultvalue="n" addproperty="prompt.do" />
+      </then>
+      <else>
+        <echo>No previous customized test plan found.</echo>
+        <property name="prompt.do" value="y" />
+      </else>
+    </if>
+    <if>
+      <equals arg1="${prompt.do}" arg2="y" />
+      <then>
+        <delete file="${test.plan.custom}" />
+
+        <for param="item">
+          <dirset dir="${tests.dir}/testcases"
+                  includes="*">
+            <type type="dir"/>
+          </dirset>
+          <sequential>
+            <var name="test" unset="true"/>
+            <var name="answer" unset="true"/>
+
+            <basename property="test" file="@{item}"/>
+            <input message="Do you want to execute ${test}?" validargs="y,n" defaultvalue="y" addproperty="answer"/>
+            <if>
+              <equals arg1="${answer}" arg2="y" />
+              <then>
+                <echo file="${test.plan.custom}" append="true">${test}
+</echo>
+              </then>
+            </if>
+          </sequential>
+        </for>
+      </then>
+    </if>
+  </target>
+
+  <target name="send-mail-prepare">
+    <condition property="test.successful">
+      <available file="${tests.tmp.dir}/my-report.html"/>
+    </condition>
+    <condition property="email.send">
+      <equals arg1="${email.enabled}" arg2="y"
+              casesensitive="false" trim="true"/>
+    </condition>
+  </target>
+  <target name="send-mail-get-percentage" depends="send-mail-prepare" if="test.successful">
+    <echo>test report found.Proceeding...</echo>
+    <delete file="${tests.tmp.dir}/percentage.properties"/>
+    <copy file="${tests.tmp.dir}/my-report.html" tofile="${tests.tmp.dir}/percentage.properties">
+      <filterchain>
+        <linecontains>
+          <contains value='font size="+2'/>
+        </linecontains>
+        <tokenfilter>
+          <replaceregex pattern=".*font size=.+2..(.*\d+)%./font.*" replace="test.percentage=\1"/>
+        </tokenfilter>
+      </filterchain>
+    </copy>
+    <property file="${tests.tmp.dir}/percentage.properties"/>
+    <echo>Test Success Rate: ${test.percentage}%</echo>
+  </target>
+  <target name="send-mail" if="email.send" depends="send-mail-get-percentage">
+    <condition property="email.send.noauth">
+      <or>
+        <not>
+          <isset property="email.server.user"/>
+        </not>
+        <not>
+          <length string="${email.server.user}" when="greater"
+                  trim="true" length="0"/>
+        </not>
+      </or>
+    </condition>
+    <condition property="email.file"
+               value="${tests.tmp.dir}/my-report.html"
+               else="staf-installer/failure.html">
+      <available file="${tests.tmp.dir}/my-report.html"/>
+    </condition>
+    <condition property="email.subject"
+               value="FT - Run - ${daily.date} - ${os.name} - ${os.arch} - ${test.percentage}%"
+               else="FT - Failed -${daily.date} - ${os.name} - ${os.arch}">
+      <available file="${tests.tmp.dir}/my-report.html"/>
+    </condition>
+    <antcall target="send-mail-noauth"/>
+    <antcall target="send-mail-withauth"/>
+  </target>
+  <target name="send-mail-noauth" if="email.send.noauth">
+    <mail from="${email.from}"
+          tolist="${email.to}"
+          subject="${email.subject}"
+          mailhost="${email.server.host}"
+          mailport="${email.server.port}"
+          messagefile="${email.file}"
+          messagemimetype="text/html" />
+  </target>
+  <target name="send-mail-withauth" unless="email.send.noauth">
+    <mail from="${email.from}"
+          tolist="${email.to}"
+          subject="${email.subject}"
+          mailhost="${email.server.host}"
+          mailport="${email.server.port}"
+          user="${email.server.user}"
+          password="${email.server.pwd}"
+          messagefile="${email.file}"
+          messagemimetype="text/html" />
+  </target>
+  <target name="coverage-init">
+    <path id="emma.lib">
+      <pathelement location="${project.home}/ext/emma/lib/emma.jar"     />
+      <pathelement location="${project.home}/ext/emma/lib/emma_ant.jar" />
+    </path>
+    <taskdef resource="emma_ant.properties" classpathref="emma.lib" />
+  </target>
+  <target name="coverage-on" depends="coverage-init">
+    <property name="coverage.on" value="true"/>
+  </target>
+  <target name="coverage-instrument" if="coverage.on">
+    <delete dir="${tests.tmp.dir}/coverage-instr" />
+    <mkdir dir="${tests.tmp.dir}/coverage-instr" />
+    <!-- unzip the original package in a temporary location to make the
+         changes necessary so that the coverage tool is called
+     -->
+    <unzip src="${product.package}"
+           dest="${tests.tmp.dir}/coverage-instr"/>
+
+    <!-- Add emma in the package along with the other librairies
+         this has the advantage of being automatically picked up by the scripts
+    -->
+    <copy file="${project.home}/ext/emma/lib/emma.jar"
+          tofile="${tests.tmp.dir}/coverage-instr/${product.name}/lib/emma.jar"/>
+
+    <!-- move the original product package to make room for the coverage
+         enabled package
+     -->
+    <move file="${product.package}" tofile="${product.package}.nocov"/>
+
+    <!-- intrument the OpenDS java archive to gather coverage -->
+    <java classpath="${tests.tmp.dir}${file.separator}coverage-instr${file.separator}${product.name}${file.separator}lib${file.separator}emma.jar"
+          classname="emma" fork="true">
+      <jvmarg value="-Demma.metadata.out.file=${tests.tmp.dir}${file.separator}coverage-instr${file.separator}${product.name}${file.separator}coverage.em" />
+      <arg value="instr" />
+      <arg value="-m" />
+      <arg value="overwrite" />
+      <arg value="-ip" />
+      <arg value="${tests.tmp.dir}${file.separator}coverage-instr${file.separator}${product.name}${file.separator}lib${file.separator}OpenDS.jar:${tests.tmp.dir}${file.separator}coverage-instr${file.separator}${product.name}${file.separator}lib${file.separator}extensions${file.separator}snmp-mib2605.jar" />
+    </java>
+    <echo>Writing properties file</echo>
+    <echo file="${tests.tmp.dir}/coverage-instr/${product.name}/classes/emma.properties">coverage.out.file=${tests.tmp.dir}/emma.coverage
+    </echo>
+    <!-- Repackage the product with coverage enabled scripts -->
+    <zip basedir="${tests.tmp.dir}/coverage-instr" destfile="${product.package}">
+      <zipfileset dir="${tests.tmp.dir}/coverage-instr"
+                  includes="${product.name}/setup,${product.name}/uninstall,${product.name}/upgrade,${product.name}/bin/*,${product.name}/lib/*.sh"
+           filemode="755" dirmode="755" />
+    </zip>
+    <!-- <delete dir="${tests.tmp.dir}/coverage-instr"/> -->
+  </target>
+  <target name="coverage-report" if="coverage.on">
+    <delete dir="${tests.tmp.dir}/coverage/all" />
+    <mkdir dir="${tests.tmp.dir}/coverage/all" />
+    <emma enabled="${coverage.on}" >
+      <report >
+        <infileset dir="${tests.tmp.dir}" includes="**/*.em,**/*.ec" />
+        <sourcepath>
+          <dirset dir="${project.home}" >
+            <include name="src" />
+          </dirset>
+        </sourcepath>
+        <html outfile="${tests.tmp.dir}/coverage/all/index.html"
+              columns="name, method, line"
+              sort="+line, +name"
+              metrics="line:80"
+        />
+      </report>
+    </emma>
+  </target>
+  <target name="restore-pkg" if="coverage.on">
+    <delete file="${product.package}"/>
+    <move file="${product.package}.nocov" tofile="${product.package}"/>
+  </target>
+  <target name="testwithcoverage" depends="coverage-on,coverage-instrument,restore-pkg,coverage-report"/>
+<!-- Run tests section - bottom -->
+
+</project>
