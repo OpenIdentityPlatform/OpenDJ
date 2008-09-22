@@ -266,24 +266,36 @@ class directory_server:
     return sfx
 
 class staf_service:  
-
+  'Container to hold staf service instance objects'
   def __init__(self,host,name):
     from com.ibm.staf import STAFHandle
     from com.ibm.staf import STAFResult
     from com.ibm.staf import STAFMarshallingContext
 
-    __handle = STAFHandle("varHandle")
+    self.name=name
+    self.library='Unknown'
+    self.executable='Unknown'
+    self.options='Unknown'
+    self.params='Unknown'
+
+    try:
+      __handle = STAFHandle("varHandle")
+    except STAFException, e:
+      pass
 
     __cmd = 'QUERY SERVICE %s' % name
     __res = __handle.submit2(host, "SERVICE", __cmd)
-    __context = STAFMarshallingContext.unmarshall(__res.result)
-    __entryMap = __context.getRootObject()
 
-    self.name=__entryMap['name']
-    self.library=__entryMap['library']
-    self.executable=__entryMap['executable']
-    self.options=__entryMap['options']
-    self.params=__entryMap['parameters']
+    if (__res.rc == 0):
+   
+      __context = STAFMarshallingContext.unmarshall(__res.result)
+      __entryMap = __context.getRootObject()
+
+      self.name=__entryMap['name']
+      self.library=__entryMap['library']
+      self.executable=__entryMap['executable']
+      self.options=__entryMap['options']
+      self.params=__entryMap['parameters']
 
   def get_library(self):
     return self.library
