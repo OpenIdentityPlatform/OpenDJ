@@ -223,9 +223,9 @@ public class AciEffectiveRights {
               nonRightsAttrs.addAll(e.getOperationalAttributes().keySet());
           else {
               AttributeType attrType;
-              if((attrType = 
+              if((attrType =
                   DirectoryServer.getAttributeType(a.toLowerCase())) == null)
-                  attrType = 
+                  attrType =
                       DirectoryServer.getDefaultAttributeType(a.toLowerCase());
               nonRightsAttrs.add(attrType);
           }
