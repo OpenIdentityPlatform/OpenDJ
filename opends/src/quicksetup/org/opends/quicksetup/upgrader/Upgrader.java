@@ -73,9 +73,11 @@ import org.opends.server.tools.JavaPropertiesTool;
 
 import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -1519,6 +1521,18 @@ public class Upgrader extends GuiApplication implements CliApplication {
         stage.move(root, new UpgradeFileFilter(getStageDirectory(),false));
       }
 
+      // Check if instance.loc exits
+      File instanceFile = new File
+         (installation.getRootDirectory(), "instance.loc");
+      if (! instanceFile.exists())
+      {
+        BufferedWriter instanceLoc =
+          new BufferedWriter(new FileWriter(instanceFile));
+        instanceLoc.append(
+            installation.getInstanceDirectory().getAbsolutePath());
+        instanceLoc.close();
+      }
+
       // The bits should now be of the new version.  Have
       // the installation update the build information so
       // that it is correct.
@@ -1891,8 +1905,9 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
   private boolean instanceAndInstallInSameDir()
   {
-    File installDir  = new File(getInstallationPath()) ;
-    File instanceDir = new File(getInstancePath()) ;
+    Installation installation = getInstallation() ;
+    File installDir  = installation.getRootDirectory();
+    File instanceDir = installation.getInstanceDirectory();
     return installDir.getAbsolutePath().equals(instanceDir.getAbsolutePath());
   }
 
