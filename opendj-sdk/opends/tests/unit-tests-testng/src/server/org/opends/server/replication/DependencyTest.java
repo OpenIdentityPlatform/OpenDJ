@@ -58,7 +58,6 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.util.TimeThread;
 import org.testng.annotations.*;
 
 /**

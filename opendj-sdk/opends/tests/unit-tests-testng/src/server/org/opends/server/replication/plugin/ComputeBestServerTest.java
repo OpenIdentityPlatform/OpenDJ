@@ -31,7 +31,6 @@ import static org.opends.server.replication.plugin.ReplicationBroker.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.testng.Assert.*;
 
 import org.opends.messages.Category;
@@ -63,11 +62,6 @@ public class ComputeBestServerTest extends ReplicationTestCase
     {
       TRACER.debugInfo("** TEST **" + s);
     }
-  }
-
-  private void debugInfo(String message, Exception e)
-  {
-    debugInfo(message + stackTraceToSingleLineString(e));
   }
 
   /**

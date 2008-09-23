@@ -51,7 +51,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 /**
- * Test if the replication domain is able to switch of replication rerver
+ * Test if the replication domain is able to switch of replication server
  * if there is some replication server failure.
  */
 @Test(sequential = true)
@@ -80,11 +80,6 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
     {
       TRACER.debugInfo("** TEST **" + s);
     }
-  }
-
-  private void debugInfo(String message, Exception e)
-  {
-    debugInfo(message + stackTraceToSingleLineString(e));
   }
 
   private void initTest()

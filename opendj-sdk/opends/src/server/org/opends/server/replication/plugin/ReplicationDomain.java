@@ -290,11 +290,8 @@ public class ReplicationDomain extends DirectoryThread
     // The count for the entry not yet processed
     long entryLeftCount = 0;
 
-    boolean checksumOutput = false;
-
     // The exception raised when any
     DirectoryException exception = null;
-    long checksumOutputValue = (long)0;
 
     /**
      * Initializes the import/export counters with the provider value.
@@ -2320,20 +2317,11 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   public long computeGenerationId() throws DirectoryException
   {
-    Backend backend = retrievesBackend(baseDN);
-    long bec = backend.numSubordinates(baseDN, true) + 1;
-    this.acquireIEContext();
-    ieContext.checksumOutput = true;
-    ieContext.entryCount = (bec<1000?bec:1000);
-    ieContext.entryLeftCount = ieContext.entryCount;
-    exportBackend();
-    long genId = ieContext.checksumOutputValue;
+    long genId = exportBackend(true);
 
     if (debugEnabled())
-      TRACER.debugInfo("Computed generationId: #entries=" + bec +
-               " generationId=" + ieContext.checksumOutputValue);
-    ieContext.checksumOutput = false;
-    this.releaseIEContext();
+      TRACER.debugInfo("Computed generationId: generationId=" + genId);
+
     return genId;
   }
 
@@ -2729,15 +2717,22 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   }
 
   /**
-   * Export the entries from the backend.
+   * Export the entries from the backend and/or compute the generation ID.
    * The ieContext must have been set before calling.
+   * @param checksumOutput true is the exportBackend is called to compute
+   *                       the generationID
+   *
+   * @return The computed  generationID.
    *
    * @throws DirectoryException when an error occurred
    */
-  protected void exportBackend()
+  protected long exportBackend(boolean checksumOutput)
   throws DirectoryException
   {
+    long genID = 0;
     Backend backend = retrievesBackend(this.baseDN);
+    long bec = backend.numSubordinates(baseDN, true) + 1;
+    long entryCount = (bec<1000?bec:1000);
 
     //  Acquire a shared lock for the backend.
     try
@@ -2766,9 +2761,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     OutputStream os;
     ReplLDIFOutputStream ros;
 
-    if (ieContext.checksumOutput)
+    if (checksumOutput)
     {
-      ros = new ReplLDIFOutputStream(this, ieContext.entryCount);
+      ros = new ReplLDIFOutputStream(this, entryCount);
       os = new CheckedOutputStream(ros, new Adler32());
       try
       {
@@ -2793,7 +2788,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     exportConfig.setIncludeBranches(includeBranches);
 
     // For the checksum computing mode, only consider the 'stable' attributes
-    if (ieContext.checksumOutput)
+    if (checksumOutput)
     {
       String includeAttributeStrings[] =
         {"objectclass", "sn", "cn", "entryuuid"};
@@ -2818,8 +2813,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
     catch (DirectoryException de)
     {
-      if ((ieContext != null) && (ieContext.checksumOutput) &&
-          (ros.getNumExportedEntries() >= ieContext.entryCount))
+      if ((checksumOutput) &&
+          (ros.getNumExportedEntries() >= entryCount))
       {
         // This is the normal end when computing the generationId
         // We can interrupt the export only by an IOException
@@ -2844,9 +2839,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     finally
     {
 
-      if ((ieContext != null) && (ieContext.checksumOutput))
+      if (checksumOutput)
       {
-        ieContext.checksumOutputValue =
+        genID =
          ((CheckedOutputStream)os).getChecksum().getValue();
       }
       else
@@ -2880,6 +2875,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
             ResultCode.OTHER, message, null);
       }
     }
+    return genID;
   }
 
   /**
@@ -2922,12 +2918,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       throw ioe;
     }
 
-    if (ieContext.checksumOutput == false)
-    {
-      EntryMessage entryMessage = new EntryMessage(
+    EntryMessage entryMessage = new EntryMessage(
         serverId, ieContext.exportTarget, lDIFEntry.getBytes());
-      broker.publish(entryMessage);
-    }
+    broker.publish(entryMessage);
+
     try
     {
       ieContext.updateCounters();
@@ -3130,7 +3124,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
       broker.publish(initializeMessage);
 
-      exportBackend();
+      exportBackend(false);
 
       // Notify the peer of the success
       DoneMessage doneMsg = new DoneMessage(serverId,
@@ -3263,6 +3257,30 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         backend = retrievesBackend(baseDN);
       }
 
+      try
+      {
+        loadDataState();
+
+        if (debugEnabled())
+          TRACER.debugInfo(
+              "After import, the replication plugin restarts connections" +
+              " to all RSs to provide new generation ID=" + generationId);
+        broker.setGenerationId(generationId);
+      }
+      catch (DirectoryException fe)
+      {
+        // If we already catch an Exception it's quite possible
+        // that the loadDataState() and setGenerationId() fail
+        // so we don't bother about the new Exception.
+        // However if there was no Exception before we want
+        // to return this Exception to the task creator.
+        if (de == null)
+          de = fe;
+      }
+
+      // Re-exchange generationID and state with RS
+      broker.reStart();
+
       // Update the task that initiated the import
       if ((ieContext != null ) && (ieContext.initializeTask != null))
       {
@@ -3275,19 +3293,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     if (de != null)
     {
       throw de;
-    }
-    else
-    {
-      loadDataState();
-
-      if (debugEnabled())
-        TRACER.debugInfo(
-            "After import, the replication plugin restarts connections" +
-            " to all RSs to provide new generation ID=" + generationId);
-      broker.setGenerationId(generationId);
-
-      // Re-exchange generationID and state with RS
-      broker.reStart();
     }
   }
 
