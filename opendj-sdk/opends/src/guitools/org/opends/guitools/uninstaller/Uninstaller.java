@@ -1112,18 +1112,39 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       notifyListeners(getFormattedWithPoints(
           INFO_PROGRESS_DELETING_INSTALLATION_FILES_NON_VERBOSE.get()));
     }
+
     String installPath = getInstallPathFromClasspath();
     File installFile = new File(installPath);
+    try
+    {
+      installPath = installFile.getCanonicalPath();
+    }
+    catch(Exception e)
+    {
+      installPath = getInstallPathFromClasspath();
+    }
 
     String instancePath =
       Utils.getInstancePathFromClasspath(installFile.getAbsolutePath());
     File instanceFile = new File(instancePath);
+    try
+    {
+      instancePath = instanceFile.getCanonicalPath();
+    } catch (Exception e)
+    {
+      instancePath =
+        Utils.getInstancePathFromClasspath(installFile.getAbsolutePath());
+    }
 
     InstallationFilesToDeleteFilter filter =
             new InstallationFilesToDeleteFilter();
 
     File[] installFiles  = installFile.listFiles();
-    File[] instanceFiles = new File(instancePath).listFiles();
+    File[] instanceFiles  = null ;
+    if (! installPath.equals(instancePath))
+    {
+      instanceFiles = new File(instancePath).listFiles();
+    }
 
     File[] rootFiles = null;
 
