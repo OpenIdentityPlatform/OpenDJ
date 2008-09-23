@@ -103,7 +103,8 @@ public class ReplLDIFOutputStream
           // of entries to export.
           throw(new IOException());
         }
-        domain.exportLDIFEntry(entryBuffer);
+        if (numEntries<0)
+          domain.exportLDIFEntry(entryBuffer);
         numExportedEntries++;
         entryBuffer = "";
 

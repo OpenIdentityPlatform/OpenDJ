@@ -81,7 +81,6 @@ import org.opends.server.types.OperationType;
 import org.opends.server.types.RDN;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
-import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -100,7 +99,6 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
   private Entry  user3Entry;
   private String user3dn;
-  private String user3lLDIFEntry;
   private String user3UUID;
 
   private String baseUUID;

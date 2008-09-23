@@ -68,7 +68,6 @@ import org.opends.server.replication.protocol.SocketSession;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationBackend;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.tasks.LdifFileWriter;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;

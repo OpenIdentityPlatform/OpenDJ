@@ -552,12 +552,6 @@ public class MonitorTest extends ReplicationTestCase
     catch (Exception e) {}
   }
   
-  @Test(enabled=true)
-  public void MonitorTest() throws Exception
-  {
-    testMultiRS();
-  }
-  
   private static final ByteArrayOutputStream oStream =
     new ByteArrayOutputStream();
   private static final ByteArrayOutputStream eStream =
