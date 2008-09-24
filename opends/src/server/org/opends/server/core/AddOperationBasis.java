@@ -110,7 +110,8 @@ public class AddOperationBasis
   // The change number that has been assigned to this operation.
   private long changeNumber;
 
-
+  // The flag indicates if  an LDAP error was reported.
+  private boolean ldapError;
   /**
    * Creates a new add operation with the provided information.
    *
@@ -358,8 +359,8 @@ public class AddOperationBasis
    */
   private final void computeObjectClassesAndAttributes()
   {
-    if ((objectClasses == null) || (userAttributes == null) ||
-        (operationalAttributes == null))
+    if (((objectClasses == null) || (userAttributes == null) ||
+        (operationalAttributes == null))  && !ldapError)
     {
       objectClasses         = new HashMap<ObjectClass,String>();
       userAttributes        = new HashMap<AttributeType,List<Attribute>>();
@@ -387,6 +388,7 @@ public class AddOperationBasis
               objectClasses = null;
               userAttributes = null;
               operationalAttributes = null;
+              ldapError = true;
               return;
             }
           }
@@ -460,6 +462,7 @@ public class AddOperationBasis
           objectClasses = null;
           userAttributes = null;
           operationalAttributes = null;
+          ldapError = true;
         }
       }
     }
