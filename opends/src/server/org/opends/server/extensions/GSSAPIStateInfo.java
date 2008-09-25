@@ -271,7 +271,7 @@ public class GSSAPIStateInfo
 
         saslProperties.put(Sasl.REUSE, "false");
 
-        saslServer = Sasl.createSaslServer(SASL_MECHANISM_GSSAPI, protocol,
+        saslServer = Sasl.createSaslServer(SASL_MECHANISM_GSSAPI, "ldap",
                                            serverFQDN, saslProperties, this);
       }
       catch (Exception e)
