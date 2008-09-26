@@ -43,10 +43,10 @@ for /f "delims=" %%a in (%INSTALL_ROOT%\instance.loc) do (
   set INSTANCE_DIR=%%a
 )
 set CUR_DIR=%~dp0
-cd %INSTALL_ROOT%
-cd %INSTANCE_DIR%
+cd /d %INSTALL_ROOT%
+cd /d %INSTANCE_DIR%
 set INSTANCE_ROOT=%CD%
-cd %CUR_DIR%
+cd /d %CUR_DIR%
 
 set SCRIPT_NAME=setup
 

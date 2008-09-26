@@ -34,10 +34,10 @@ for /f "delims=" %%a in (%DIR_HOME%\instance.loc) do (
   set INSTANCE_DIR=%%a
 )
 set CUR_DIR=%~dp0
-cd %INSTALL_ROOT%
-cd %INSTANCE_DIR%
+cd /d %INSTALL_ROOT%
+cd /d %INSTANCE_DIR%
 set INSTANCE_ROOT=%CD%
-cd %CUR_DIR%
+cd /d %CUR_DIR%
 
 set LOG="%INSTANCE_ROOT%\logs\native-windows.out"
 set SCRIPT=start-ds.bat
