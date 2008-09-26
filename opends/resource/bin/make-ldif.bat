@@ -36,19 +36,19 @@ if NOT "%%2" == "" goto invalidPath)
 for %%i in (%~sf0) do set DIR_HOME=%%~dPsi.
 
 set CUR_DIR=%~dp0
-cd %DIR_HOME%\..
+cd /d %DIR_HOME%\..
 set INSTALL_ROOT=%CD%
-cd %CUR_DIR%
+cd /d %CUR_DIR%
 
 set INSTANCE_DIR=
 for /f "delims=" %%a in (%INSTALL_ROOT%\instance.loc) do (
   set INSTANCE_DIR=%%a
 )
 set CUR_DIR=%~dp0
-cd %INSTALL_ROOT%
-cd %INSTANCE_DIR%
+cd /d %INSTALL_ROOT%
+cd /d %INSTANCE_DIR%
 set INSTANCE_ROOT=%CD%
-cd %CUR_DIR%
+cd /d %CUR_DIR%
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.makeldif.MakeLDIF"
 set SCRIPT_NAME=make-ldif
