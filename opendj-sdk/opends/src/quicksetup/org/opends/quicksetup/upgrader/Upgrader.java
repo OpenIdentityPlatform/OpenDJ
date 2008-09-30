@@ -357,7 +357,26 @@ public class Upgrader extends GuiApplication implements CliApplication {
     // in the staging directory.  However
     // we still want the Installation to point at the build being
     // upgraded so the install path reported in [installroot].
-    return System.getProperty("INSTALL_ROOT");
+    String installationPath =  System.getProperty("INSTALL_ROOT");
+    if (installationPath == null)
+    {
+      String path = Utils.getInstallPathFromClasspath();
+      if (path != null)
+      {
+        File f = new File(path);
+        if (f.getParentFile() != null
+            && f.getParentFile().getParentFile() != null
+            && new File(f.getParentFile().getParentFile(),
+                Installation.LOCKS_PATH_RELATIVE).exists())
+        {
+          installationPath = Utils.getPath(f.getParentFile().getParentFile());
+        } else
+        {
+          installationPath = path;
+        }
+      }
+    }
+    return installationPath;
   }
 
   /**
