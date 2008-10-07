@@ -52,6 +52,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.soap.*;
+import javax.xml.validation.Schema;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
@@ -97,11 +98,11 @@ public class DSMLServlet extends HttpServlet {
   private static final String ON_ERROR_RESUME = "resume";
   private static final String ON_ERROR_EXIT = "exit";
 
-  private Unmarshaller unmarshaller;
-  private Marshaller marshaller;
+  private static JAXBContext jaxbContext;
   private ObjectFactory objFactory;
   private MessageFactory messageFactory;
   private DocumentBuilder db;
+  private static Schema schema;
 
   // this extends the default handler of SAX parser. It helps to retrieve the
   // requestID value when the xml request is malformed and thus unparsable
@@ -126,16 +127,17 @@ public class DSMLServlet extends HttpServlet {
 
       port = new Integer(config.getServletContext().getInitParameter(PORT));
 
-      JAXBContext jaxbContext = JAXBContext.newInstance(PKG_NAME);
-      unmarshaller = jaxbContext.createUnmarshaller();
+      if(jaxbContext==null)
+        jaxbContext = JAXBContext.newInstance(PKG_NAME);
       // assign the DSMLv2 schema for validation
-      URL schema = getClass().getResource("/resources/DSMLv2.xsd");
-      if ( schema != null ) {
-        SchemaFactory sf = SchemaFactory.newInstance(W3C_XML_SCHEMA_NS_URI);
-        unmarshaller.setSchema(sf.newSchema(schema));
+      if(schema==null)
+      {
+        URL url = getClass().getResource("/resources/DSMLv2.xsd");
+        if ( url != null ) {
+          SchemaFactory sf = SchemaFactory.newInstance(W3C_XML_SCHEMA_NS_URI);
+          schema = sf.newSchema(url);
+        }
       }
-
-      marshaller = jaxbContext.createMarshaller();
 
       objFactory = new ObjectFactory();
       messageFactory = MessageFactory.newInstance();
@@ -258,6 +260,8 @@ public class DSMLServlet extends HttpServlet {
         SOAPElement se = (SOAPElement) obj;
         JAXBElement<BatchRequest> batchRequestElement = null;
         try {
+          Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+          unmarshaller.setSchema(schema);
           batchRequestElement = unmarshaller.unmarshal(se, BatchRequest.class);
         } catch (JAXBException e) {
           // schema validation failed
@@ -317,6 +321,7 @@ public class DSMLServlet extends HttpServlet {
       }
     }
     try {
+      Marshaller marshaller = jaxbContext.createMarshaller();
       marshaller.marshal(objFactory.createBatchResponse(batchResponse), doc);
       sendResponse(doc, res);
     } catch (Exception e) {
@@ -539,7 +544,7 @@ public class DSMLServlet extends HttpServlet {
     return nextID;
   }
 
-  /**
+    /**
    * This class is used when a xml request is malformed to retrieve the
    * requestID value using an event xml parser.
    */
