@@ -978,7 +978,8 @@ public class LDAPConnectionConsoleInteraction {
         truststore.load(null, null);
       }
 
-      if (secureArgsList.trustStorePasswordFileArg.isPresent())
+      if (secureArgsList.trustStorePasswordFileArg.isPresent() &&
+          (truststorePath != null))
       {
         copySecureArgsList.trustStorePasswordFileArg.clearValues();
         copySecureArgsList.trustStorePasswordFileArg.getNameToValueMap().putAll(
@@ -986,8 +987,10 @@ public class LDAPConnectionConsoleInteraction {
         commandBuilder.addArgument(
             copySecureArgsList.trustStorePasswordFileArg);
       }
-      else
+      else if ((truststorePassword != null) && (truststorePath != null))
       {
+        // Only add the trust store password if there is one AND if the user
+        // specified a trust store path.
         copySecureArgsList.trustStorePasswordArg.clearValues();
         copySecureArgsList.trustStorePasswordArg.addValue(truststorePassword);
         commandBuilder.addObfuscatedArgument(
@@ -1213,7 +1216,7 @@ public class LDAPConnectionConsoleInteraction {
       commandBuilder.addArgument(
           copySecureArgsList.keyStorePasswordFileArg);
     }
-    else
+    else if (keystorePassword != null)
     {
       copySecureArgsList.keyStorePasswordArg.clearValues();
       copySecureArgsList.keyStorePasswordArg.addValue(keystorePassword);

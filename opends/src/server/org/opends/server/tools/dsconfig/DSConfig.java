@@ -1004,11 +1004,6 @@ public final class DSConfig extends ConsoleApplication {
     CommandBuilder commandBuilder =
       new CommandBuilder(commandName, handler.getSubCommand().getName());
 
-    if (advancedModeArgument.isPresent())
-    {
-      commandBuilder.addArgument(advancedModeArgument);
-    }
-
     commandBuilder.append(handler.getCommandBuilder());
 
     if ((factory != null) && (factory.getContextCommandBuilder() != null))
