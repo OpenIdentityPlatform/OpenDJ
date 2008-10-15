@@ -52,7 +52,7 @@
       <block name="'setup'">
         <sequence>
           
-          <block name="'Block Create DS Topology'">
+          <block name="'Create DS Topology'">
           <!-- Create the topology necessary to the tests -->
             <sequence>
               <message>
@@ -67,31 +67,10 @@
               </call>
               
             </sequence>
-          <!--- End Block Create DS Topology -->
           </block>
-          
-          <if expr="loadBackend == True">
-            <block name="'Block DS Load Data'">
-            <!-- Load the data needed by the test suite -->
-              <sequence>
-                <message>
-                  '------ Load LDIF : virtualAttributes.ldif'
-                </message>
-                <call function="'importLdif'">
-                  {'ldifFile' : '%s/virtualAttributes/virtualAttributes.ldif'
-                                % remote.data }
-                </call>
-                <call function="'checkRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-                </call>
-              </sequence>
-            <!--- End Block DS Load Data -->
-            </block>
-          </if>
-          
+                    
           <if expr="startDS == True">
-            <block name="'Block DS Process Active'">
+            <block name="'Start DS'">
              <!--- Start DS -->
               <sequence>
                 <message>
@@ -111,7 +90,29 @@
                       'noOfMilliSeconds' : 2000 }
                 </call>
               </sequence>
-            <!--- End Block DS Process Active -->
+            </block>
+          </if>
+          <if expr="loadBackend == True">
+            <block name="'Load Backend Data'">
+            <!-- Load the data needed by the test suite -->
+              <sequence>
+                <message>
+                  '------ Load LDIF : virtualAttributes.ldif'
+                </message>
+                <call function="'ldapModifyWithScript'">
+                  { 'dsAdd'             : 'True',
+                    'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
+                    'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
+                    'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
+                    'dsFilename'        : '%s/virtualAttributes/virtualAttributes.ldif' \
+                                          % remote.data,
+                    'dsContinueOnError' : 'true',
+                    'expectedRC'        : 0
+                  }
+                </call>
+
+              </sequence>
             </block>
           </if>
         </sequence>

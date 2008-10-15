@@ -87,7 +87,7 @@
               <call function="'checktestString'">
                 { 
                 'returnString'   : returnString ,
-                'expectedString' : 'userRoot    db'
+                'expectedString' : '%s    db' % DIRECTORY_INSTANCE_BE
                 }
               </call>
               
@@ -131,7 +131,7 @@
               <call function="'dbtestWithScript'">
                 {
                 'subcommand'    : 'list-entry-containers' ,
-                'dsBackendID'   : 'userRoot'
+                'dsBackendID'   : DIRECTORY_INSTANCE_BE
                 }
               </call>
 
@@ -195,7 +195,7 @@
                 {
                 'subcommand'    : 'list-index-status' ,
                 'dsBaseDN'      : 'dc=com' ,
-                'dsBackendID'   : 'userRoot'
+                'dsBackendID'   : DIRECTORY_INSTANCE_BE
                 }
               </call>
               
@@ -268,7 +268,7 @@
                 {
                 'subcommand'    : 'list-database-containers' ,
                 'dsBaseDN'      : 'dc=com' ,
-                'dsBackendID'   : 'userRoot'
+                'dsBackendID'   : DIRECTORY_INSTANCE_BE
                 }
               </call>
               
@@ -354,7 +354,7 @@
                 {
                 'subcommand'     : 'dump-database-container' ,
                 'dsBaseDN'       : 'dc=com' ,
-                'dsBackendID'    : 'userRoot' ,
+                'dsBackendID'    : DIRECTORY_INSTANCE_BE ,
                 'dsDatabaseName' : 'dn2id'
                 }
               </call>
@@ -379,7 +379,7 @@
                 {
                 'subcommand'     : 'dump-database-container' ,
                 'dsBaseDN'       : 'dc=com' ,
-                'dsBackendID'    : 'userRoot' ,
+                'dsBackendID'    : DIRECTORY_INSTANCE_BE ,
                 'dsDatabaseName' : 'st.equality' ,
                 'dsMinDataSize'  : 176 ,
                 'dsMaxDataSize'  : 184
@@ -406,7 +406,7 @@
                 {
                 'subcommand'     : 'dump-database-container' ,
                 'dsBaseDN'       : 'dc=com' ,
-                'dsBackendID'    : 'userRoot' ,
+                'dsBackendID'    : DIRECTORY_INSTANCE_BE ,
                 'dsDatabaseName' : 'st.equality' ,
                 'dsMinKeyValue'  : 'wv' ,
                 'dsMaxKeyValue'  : 'wy'

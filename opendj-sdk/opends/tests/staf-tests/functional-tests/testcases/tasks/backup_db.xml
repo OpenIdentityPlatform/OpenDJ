@@ -74,7 +74,7 @@
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'backupDir'  :  '%s/tasks/backup_asynchronous' % remote.data,
               'startTask'  : '0',
-              'backEnd'   : 'userRoot'}
+              'backEnd'   : DIRECTORY_INSTANCE_BE}
             </call>
 
             <!-- manage-tasks -->
@@ -143,7 +143,7 @@
               'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'backupDir'  :  '%s/tasks/backup_synchronous' % remote.data,
-              'backEnd'   : 'userRoot'}
+              'backEnd'   : DIRECTORY_INSTANCE_BE}
             </call>
             
             <message>'--- Check log files ---'</message>
@@ -190,7 +190,7 @@
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'startTask'  : '20061212000000',	                
               'backupDir'  :  '%s/tasks/backup_schedule_asynchronous' % remote.data,
-              'backEnd'   : 'userRoot'}
+              'backEnd'   : DIRECTORY_INSTANCE_BE}
             </call>
             
             

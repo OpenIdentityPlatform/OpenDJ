@@ -159,7 +159,7 @@
                 { 
                 'dsLdifFile'  : '%s/make-ldif_seed0_2.ldif' \
                                 %  DIRECTORY_INSTANCE_DIR ,
-                'dsBackEnd'   : 'userRoot' ,
+                'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
                 'dsAppend'    : 'True'
                 }
               </call>

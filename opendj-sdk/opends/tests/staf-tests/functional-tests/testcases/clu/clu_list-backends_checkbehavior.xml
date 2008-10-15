@@ -92,7 +92,7 @@
               <call function="'checktestString'">
                 { 
                 'returnString'   : returnString ,
-                'expectedString' : 'userRoot       : dc=com'
+                'expectedString' : '%s       : dc=com' % DIRECTORY_INSTANCE_BE
                 }
               </call>      
               
@@ -178,7 +178,7 @@
               <script>
                 returnString = STAXResult[0][1]
                 msg1 = 'The provided DN \'dc=com\' is a base DN'
-                msg2 = 'for backend \'userRoot\''
+                msg2 = 'for backend \'%s\'' % DIRECTORY_INSTANCE_BE
               </script>
                              
               <call function="'checktestString'">
@@ -220,7 +220,7 @@
               
               <call function="'listBackendsWithScript'">
                 {
-                'dsBackendID' : 'userRoot' ,
+                'dsBackendID' : DIRECTORY_INSTANCE_BE ,
                 'dsBaseDN'    : 'dc=com' ,
                 'expectedRC'  : 1
                 }
