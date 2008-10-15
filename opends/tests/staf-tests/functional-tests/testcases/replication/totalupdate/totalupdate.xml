@@ -106,7 +106,7 @@
               <call function="'ImportLdifWithScript'">
                 { 'location'     : masterHost,
                   'dsPath'       : masterPath,
-                  'dsBackEnd'    : 'userRoot',          
+                  'dsBackEnd'    : DIRECTORY_INSTANCE_BE,          
                   'dsLdifFile'   : '%s/replication/Example.ldif' % masterDataDir
                 }
               </call>
@@ -408,7 +408,7 @@
               <call function="'ImportLdifWithScript'">
                 { 'location'   : masterHost,
                   'dsPath'     : masterPath,
-                  'dsBackEnd'  : 'userRoot',          
+                  'dsBackEnd'  : DIRECTORY_INSTANCE_BE,          
                   'dsLdifFile' : '%s/replication/Short_Example.ldif' \
                                  % masterDataDir
                 }

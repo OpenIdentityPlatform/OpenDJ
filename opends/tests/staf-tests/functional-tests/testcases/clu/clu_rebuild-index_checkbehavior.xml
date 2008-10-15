@@ -118,7 +118,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'subcommand'       : 'create-local-db-index' ,
                 'objectType'       : 'backend-name' ,
-                'objectName'       : 'userRoot' ,
+                'objectName'       : DIRECTORY_INSTANCE_BE ,
                 'optionsString'    : '--index-name st --set index-type:equality'
                 }
               </call>

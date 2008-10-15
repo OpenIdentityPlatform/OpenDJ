@@ -147,7 +147,7 @@
               <call function="'ImportLdifWithScript'">
                 { 'location'     : masterHost,
                   'dsPath'       : masterPath,
-                  'dsBackEnd'    : 'userRoot',          
+                  'dsBackEnd'    : DIRECTORY_INSTANCE_BE,          
                   'dsLdifFile'   : importDataFile
                 }
               </call>

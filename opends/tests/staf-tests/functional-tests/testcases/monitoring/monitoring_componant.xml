@@ -210,25 +210,25 @@
         <!---
 #@TestMarker            monitoring componants
 #@TestName              monitoring componants
-#@TestIssue             Check the monitoring of the componant userRoot Backend
+#@TestIssue             Check the monitoring of the componant Database Backend
 #@TestPreamble          none
 #@TestStep               Check the entry on cn=userRoot Backend,cn=monitor,cn=monitor is available
 #@TestPostamble         none
 
 -->  
     
-        <testcase name="getTestCaseName('userRoot Backend monitoring')">
+        <testcase name="getTestCaseName('Database Backend monitoring')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             
             <!-- Check the entry on cn=userRoot Backend,cn=monitor is available -->  
-            <message>'######  Monitor the userRoot Backend ###### '</message>     
+            <message>'######  Monitor the dbName Backend ###### '</message>     
             <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
               'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'       : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
-              'dsBaseDN'           : 'cn=userRoot Backend,cn=monitor',
+              'dsBaseDN'           : 'cn=%s Backend,cn=monitor' % DIRECTORY_INSTANCE_BE,
               'dsFilter'           : 'objectclass=*',
               'expectedRC'	   :  0 }
             </call>  	    
@@ -247,7 +247,7 @@
 
 -->  
     
-        <testcase name="getTestCaseName('tasks Backend monitoring')">
+        <testcase name="getTestCaseName('Tasks Backend monitoring')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             

@@ -72,7 +72,7 @@
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'ldifFile'  :  '%s/tasks/export_asynchronous' % remote.data,
               'startTask'  : '0',
-              'backEnd'   : 'userRoot'}
+              'backEnd'   : DIRECTORY_INSTANCE_BE}
             </call>
             <message>'--- Check log files export_asynchronous ---'</message>
             <call function="'listFolder'">
@@ -119,7 +119,7 @@
               'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'ldifFile'  :  '%s/tasks/export_synchronous' % remote.data,
-              'backEnd'   : 'userRoot'}
+              'backEnd'   : DIRECTORY_INSTANCE_BE}
             </call>
             
             <!-- manage-tasks -->
@@ -188,7 +188,7 @@
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'ldifFile'  :  '%s/tasks/export_schedule_asynchronous' % remote.data,
               'startTask'  : '20061212000000',
-              'backEnd'   : 'userRoot'}
+              'backEnd'   : DIRECTORY_INSTANCE_BE}
             </call>
             
             <message>'--- Check log files export_asynchronous ---'</message>

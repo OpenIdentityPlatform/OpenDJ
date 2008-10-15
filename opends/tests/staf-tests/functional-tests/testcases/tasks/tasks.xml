@@ -52,11 +52,21 @@
           </script>
           
           <call function="'testGroup_Preamble'" />
-          <iterate var="_test" in="['setup','restart_db','export-ldif','import-ldif','backup_db','restore_db','allowed-tasks','cleanup']" >
+          <script>
+            testList = []
+            testList.append('setup')
+            testList.append('restart_db')
+            testList.append('export-ldif')
+            testList.append('import-ldif')
+            testList.append('backup_db')
+            testList.append('allowed-tasks')            
+            testList.append('cleanup')
+          </script>
+          <iterate var="__test" in="testList" >
             <sequence>
               <import machine="STAF_LOCAL_HOSTNAME"
-                      file="'%s/testcases/tasks/%s.xml' % (TESTS_DIR,_test)"/>
-              <call function="'%s' % _test" />
+                      file="'%s/testcases/tasks/%s.xml' % (TESTS_DIR,__test)"/>
+              <call function="'%s' % __test" />
             </sequence>
           </iterate>
           <call function="'testGroup_Postamble'" />

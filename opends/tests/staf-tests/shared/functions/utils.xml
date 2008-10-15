@@ -333,7 +333,7 @@
           <else>
               <sequence>
               <tcstatus result="'fail'"/>
-              <message log="1">
+              <message log="1" level="'Error'">
                 'ERROR :  Did Not Find substring, %s, in the return string' % (testString)
               </message>
               </sequence>
@@ -353,7 +353,7 @@
           <else>
               <sequence>
               <tcstatus result="'fail'"/>
-              <message log="1">
+              <message log="1" level="'Error'">
                 'ERROR :  Found substring, %s, in the return string' % (testString)
               </message>
               </sequence>
@@ -1461,6 +1461,12 @@
           The duration that the process is allowed to run
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="inputFile" type="optional" default="'None'">
+        <function-arg-description>
+          input file containing the command input
+        </function-arg-description>
+        <function-arg-property name="type" value="file"/>
+      </function-arg-def>
       <function-arg-def name="outputFile" type="optional" default="'None'">
         <function-arg-description>
           Output file containing the command output
@@ -1516,18 +1522,30 @@
           <stderr mode="'stdout'"/>
           <returnstdout/>
         </process>
-        <else>
-          <process name="name">
-            <location>location</location>
-            <command>command</command>
-            <parms>arguments</parms>
-            <workdir>path</workdir>
-            <envs>env</envs>
-            <console use="'same'"/>
-            <stdout if="outputFile != 'None'" mode="'replace'">'%s' % outputFile</stdout>
-            <returnstdout/>
-          </process>
-        </else>
+      <elseif expr="inputFile != 'None'">
+        <process name="name">
+          <location>location</location>
+          <command>command</command>
+          <parms>arguments</parms>
+          <workdir>path</workdir>
+          <envs>env</envs>
+          <console use="'same'"/>
+          <stdin>'%s' % inputFile</stdin>
+          <returnstdout/>
+        </process>
+      </elseif>
+      <else>
+        <process name="name">
+          <location>location</location>
+          <command>command</command>
+          <parms>arguments</parms>
+          <workdir>path</workdir>
+          <envs>env</envs>
+          <console use="'same'"/>
+          <stdout if="outputFile != 'None'" mode="'replace'">'%s' % outputFile</stdout>
+          <returnstdout/>
+        </process>
+      </else>
       </if>
       
       <!-- The problem here is that STAXResult can either be a

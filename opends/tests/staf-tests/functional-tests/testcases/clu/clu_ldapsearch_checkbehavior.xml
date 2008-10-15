@@ -167,7 +167,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'objectName'       : 'backend' ,
                 'propertyType'     : 'backend' ,
-                'propertyName'     : 'userRoot' ,
+                'propertyName'     : DIRECTORY_INSTANCE_BE ,
                 'attributeName'    : 'base-dn' ,
                 'attributeValue'   : 'dc=mycom' ,
                 'modifyType'       : 'add'
@@ -187,7 +187,7 @@
                 'location'    : STAF_REMOTE_HOSTNAME ,
                 'dsAppend'    : 'True' ,
                 'dsLdifFile'  : ldifFile ,
-                'dsBackEnd'   : 'userRoot'
+                'dsBackEnd'   : DIRECTORY_INSTANCE_BE
                 }
               </call>
          

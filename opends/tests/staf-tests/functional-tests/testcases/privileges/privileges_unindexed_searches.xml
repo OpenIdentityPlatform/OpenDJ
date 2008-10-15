@@ -102,7 +102,7 @@
                 'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                 'objectName'             : 'backend' ,
                 'propertyType'           : 'backend' ,
-                'propertyName'           : 'userRoot' ,
+                'propertyName'           : DIRECTORY_INSTANCE_BE ,
                 'attributeName'          : 'index-entry-limit' ,
                 'attributeValue'         : '4' 
                 }
@@ -670,7 +670,7 @@
                 'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                 'objectName'             : 'backend' ,
                 'propertyType'           : 'backend' ,
-                'propertyName'           : 'userRoot' ,
+                'propertyName'           : DIRECTORY_INSTANCE_BE ,
                 'attributeName'          : 'index-entry-limit' ,
                 'attributeValue'         : '4000' 
                 }

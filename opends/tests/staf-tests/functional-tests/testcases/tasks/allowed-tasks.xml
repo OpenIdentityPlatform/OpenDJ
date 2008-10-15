@@ -85,7 +85,7 @@
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'ldifFile'  :  '%s/tasks/export_asynchronous' % remote.data,
               'startTask'  : '0',
-              'backEnd'   : 'userRoot',
+              'backEnd'   : DIRECTORY_INSTANCE_BE,
               'expectedRC'  : 1}
             </call>
 

@@ -158,7 +158,7 @@
       </function-arg-def>
       <function-arg-def name="dsAdd" type="optional">
         <function-arg-description>
-          Continue processing even if there are errors
+          Add the entries
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
       </function-arg-def>
