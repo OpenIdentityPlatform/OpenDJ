@@ -707,6 +707,7 @@ public final class Base64
         else
         {
           System.out.write(decodedData);
+          System.out.println();
           System.out.flush();
         }
       }
