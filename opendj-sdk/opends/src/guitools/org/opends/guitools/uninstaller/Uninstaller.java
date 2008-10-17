@@ -1173,7 +1173,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       int totalRatio = 0;
       ArrayList<Integer> cumulatedRatio = new ArrayList<Integer>();
       for (int i = 0; i < rootFiles.length; i++) {
-        if (filter.accept(rootFiles[i])) {
+        File f = rootFiles[i];
+        if (filter.accept(f)) {
           Installation installation = getInstallation();
           int relativeRatio;
           if (equalsOrDescendant(rootFiles[i],
@@ -1219,7 +1220,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
                 beforeRatio);
         deleteRecursively(rootFiles[i], filter);
       }
-      deleteRecursively(instanceFile);
+      deleteRecursively(instanceFile,filter);
       hmRatio.put(UninstallProgressStep.DELETING_INSTALLATION_FILES, maxRatio);
     }
     if (!isVerbose())
@@ -1248,34 +1249,43 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    */
   private void deleteRecursively(File file, FileFilter filter)
           throws ApplicationException {
-    if (file.exists()) {
-      if (file.isFile()) {
+    File cfile ;
+    try
+    {
+      cfile = file.getCanonicalFile();
+    }
+    catch (Exception e)
+    {
+      cfile = file ;
+    }
+    if (cfile.exists()) {
+      if (cfile.isFile()) {
         if (filter != null) {
-          if (filter.accept(file)) {
-            delete(file);
+          if (filter.accept(cfile)) {
+            delete(cfile);
           }
         } else {
-          delete(file);
+          delete(cfile);
         }
       } else {
-        File[] children = file.listFiles();
+        File[] children = cfile.listFiles();
         if (children != null) {
           for (int i = 0; i < children.length; i++) {
             deleteRecursively(children[i], filter);
           }
         }
         if (filter != null) {
-          if (filter.accept(file)) {
-            delete(file);
+          if (filter.accept(cfile)) {
+            delete(cfile);
           }
         } else {
-          delete(file);
+          delete(cfile);
         }
       }
     } else {
       // Just tell that the file/directory does not exist.
       notifyListeners(getFormattedWarning(
-              INFO_PROGRESS_DELETING_FILE_DOES_NOT_EXIST.get(file.toString())));
+          INFO_PROGRESS_DELETING_FILE_DOES_NOT_EXIST.get(cfile.toString())));
     }
   }
 
@@ -1370,15 +1380,23 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       };
 
       Installation installation = getInstallation();
-      File[] parentFiles = {
-              installation.getLibrariesDirectory(),
-              installation.getBinariesDirectory(),
-              installation.getDatabasesDirectory(),
-              installation.getLogsDirectory(),
-              installation.getConfigurationDirectory(),
-              installation.getBackupDirectory(),
-              installation.getLdifDirectory()
+      File[] parentFiles  ;
+      try {
+        File[] tmp  = {
+              installation.getLibrariesDirectory().getCanonicalFile(),
+              installation.getBinariesDirectory().getCanonicalFile(),
+              installation.getDatabasesDirectory().getCanonicalFile(),
+              installation.getLogsDirectory().getCanonicalFile(),
+              installation.getConfigurationDirectory().getCanonicalFile(),
+              installation.getBackupDirectory().getCanonicalFile(),
+              installation.getLdifDirectory().getCanonicalFile()
       };
+        parentFiles = tmp ;
+      }
+      catch (Exception e)
+      {
+        return true;
+      }
 
       boolean accept =
               !installationPath.equals(file)
@@ -1391,8 +1409,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       }
 
       for (int i = 0; i < uData.length && accept; i++) {
+        File parent = parentFiles[i];
         accept &= uData[i] ||
-                !equalsOrDescendant(file, parentFiles[i]);
+                !equalsOrDescendant(file, parent);
       }
 
       LOG.log(Level.INFO, "accept for :"+file+" is: "+accept);
