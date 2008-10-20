@@ -863,6 +863,16 @@ public abstract class Installer extends GuiApplication {
       argList.add("-a");
       argList.add(sec.getAliasToUse());
       break;
+    case JCEKS:
+      argList.add("-k");
+      argList.add("cn=JCEKS,cn=Key Manager Providers,cn=config");
+      argList.add("-t");
+      argList.add("cn=JCEKS,cn=Trust Manager Providers,cn=config");
+      argList.add("-m");
+      argList.add(sec.getKeystorePath());
+      argList.add("-a");
+      argList.add(sec.getAliasToUse());
+      break;
     case PKCS12:
       argList.add("-k");
       argList.add("cn=PKCS12,cn=Key Manager Providers,cn=config");
@@ -947,7 +957,7 @@ public abstract class Installer extends GuiApplication {
       {
         cmd.append(s);
       }
-      nextPassword = s.equals("-w");
+      nextPassword = "-w".equals(s);
     }
     LOG.log(Level.INFO, "configure DS cmd: "+cmd);
     final InstallerHelper helper = new InstallerHelper();
@@ -966,6 +976,9 @@ public abstract class Installer extends GuiApplication {
                 ReturnCode.CONFIGURATION_ERROR,
                 INFO_ERROR_CONFIGURING.get(), null);
           }
+        } catch (ApplicationException aex)
+        {
+          ae = aex;
         } catch (Throwable t)
         {
           ae = new ApplicationException(
@@ -1044,6 +1057,24 @@ public abstract class Installer extends GuiApplication {
         f = new File(getTemporaryCertificatePath());
         f.delete();
         break;
+      case JCEKS:
+        certManager = new CertificateManager(
+            sec.getKeystorePath(),
+            CertificateManager.KEY_STORE_TYPE_JCEKS,
+            sec.getKeystorePassword());
+        exportCertificate(certManager, sec.getAliasToUse(),
+            getTemporaryCertificatePath());
+
+        trustManager = new CertificateManager(
+            getTrustManagerPath(),
+            CertificateManager.KEY_STORE_TYPE_JCEKS,
+            sec.getKeystorePassword());
+        trustManager.addCertificate(sec.getAliasToUse(),
+            new File(getTemporaryCertificatePath()));
+        createFile(getKeystorePinPath(), sec.getKeystorePassword());
+        f = new File(getTemporaryCertificatePath());
+        f.delete();
+        break;
       case PKCS12:
         certManager = new CertificateManager(
             sec.getKeystorePath(),
@@ -1088,6 +1119,7 @@ public abstract class Installer extends GuiApplication {
     }
     catch (Throwable t)
     {
+      LOG.log(Level.SEVERE, "Error configuring certificate: "+t, t);
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR,
           getThrowableMsg(INFO_ERROR_CONFIGURING_CERTIFICATE.get(),
@@ -4709,6 +4741,10 @@ public abstract class Installer extends GuiApplication {
           }
         }
       }
+      if (thread.getException() != null)
+      {
+        throw thread.getException();
+      }
       if (canceled)
       {
         checkAbort();
@@ -4716,6 +4752,7 @@ public abstract class Installer extends GuiApplication {
     }
     catch (ApplicationException e)
     {
+      LOG.log(Level.SEVERE, "Error: "+e, e);
       throw e;
     }
     catch (Throwable t)

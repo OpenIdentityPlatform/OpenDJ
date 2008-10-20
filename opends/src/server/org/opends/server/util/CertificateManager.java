@@ -46,8 +46,8 @@ import org.opends.server.types.OperatingSystem;
 /**
  * This class provides an interface for generating self-signed certificates and
  * certificate signing requests, and for importing, exporting, and deleting
- * certificates from a key store.  It supports JKS, PKCS11, and PKCS12 key store
- * types.
+ * certificates from a key store.  It supports JKS, JCEKS PKCS11, and PKCS12 key
+ * store types.
  * <BR><BR>
  * Note that for some operations, particularly those that require updating the
  * contents of a key store (including generating certificates and/or certificate
@@ -83,7 +83,10 @@ public final class CertificateManager
    */
   public static final String KEY_STORE_TYPE_JKS = "JKS";
 
-
+  /**
+   * The key store type value that should be used for the "JCEKS" key store.
+   */
+  public static final String KEY_STORE_TYPE_JCEKS = "JCEKS";
 
   /**
    * The key store type value that should be used for the "PKCS11" key store.
@@ -186,6 +189,7 @@ public final class CertificateManager
    *                       performed.
    * @param  keyStoreType  The key store type to use.  It should be one of
    *                       {@code KEY_STORE_TYPE_JKS},
+   *                       {@code KEY_STORE_TYPE_JCEKS},
    *                       {@code KEY_STORE_TYPE_PKCS11}, or
    *                       {@code KEY_STORE_TYPE_PKCS12}.
    * @param  keyStorePIN   The PIN required to access the key store.  It must
@@ -231,6 +235,7 @@ public final class CertificateManager
       }
     }
     else if (keyStoreType.equals(KEY_STORE_TYPE_JKS) ||
+        keyStoreType.equals(KEY_STORE_TYPE_JCEKS) ||
              keyStoreType.equals(KEY_STORE_TYPE_PKCS12))
     {
       File keyStoreFile = new File(keyStorePath);
@@ -261,6 +266,7 @@ public final class CertificateManager
       // FIXME -- Make this an internationalizeable string.
       throw new IllegalArgumentException("Invalid key store type -- it must " +
                   "be one of " + KEY_STORE_TYPE_JKS + ", " +
+                  "be one of " + KEY_STORE_TYPE_JCEKS + ", " +
                   KEY_STORE_TYPE_PKCS11 + ", or " + KEY_STORE_TYPE_PKCS12);
     }
 
@@ -888,11 +894,13 @@ public final class CertificateManager
       return keyStore;
     }
 
-    // For JKS and PKCS12 key stores, we should make sure the file exists, and
-    // we'll need an input stream that we can use to read it.  For PKCS11 key
-    // stores there won't be a file and the input stream should be null.
+    // For JKS, JCEKS and PKCS12 key stores, we should make sure the file
+    // exists, and we'll need an input stream that we can use to read it.
+    // For PKCS11 key stores there won't be a file and the input stream should
+    // be null.
     FileInputStream keyStoreInputStream = null;
     if (keyStoreType.equals(KEY_STORE_TYPE_JKS) ||
+        keyStoreType.equals(KEY_STORE_TYPE_JCEKS) ||
         keyStoreType.equals(KEY_STORE_TYPE_PKCS12))
     {
       File keyStoreFile = new File(keyStorePath);

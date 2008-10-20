@@ -55,6 +55,10 @@ public class SecurityOptions
      */
     JKS,
     /**
+     * Use an existing JCEKS keystore.
+     */
+    JCEKS,
+    /**
      * Use an existing PKCS#11 keystore.
      */
     PKCS11,
@@ -128,6 +132,31 @@ public class SecurityOptions
         aliasToUse);
     return ops;
   }
+
+  /**
+   * Creates a new instance of a SecurityOptions using a JCE Key Store.
+   * @param keystorePath the path of the key store.
+   * @param keystorePwd the password of the key store.
+   * @param enableSSL whether SSL is enabled or not.
+   * @param enableStartTLS whether Start TLS is enabled or not.
+   * @param sslPort the value of the LDAPS port.
+   * @param aliasToUse the alias of the certificate in the keystore to be used.
+   * @return a new instance of a SecurityOptions using a JCE Key Store.
+   */
+  public static SecurityOptions createJCEKSCertificateOptions(
+      String keystorePath,
+      String keystorePwd, boolean enableSSL, boolean enableStartTLS,
+      int sslPort, String aliasToUse)
+  {
+    SecurityOptions ops = new SecurityOptions();
+    ops.setCertificateType(CertificateType.JCEKS);
+    ops.setKeyStorePath(keystorePath);
+    ops.setKeyStorePassword(keystorePwd);
+    updateCertificateOptions(ops, enableSSL, enableStartTLS, sslPort,
+        aliasToUse);
+    return ops;
+  }
+
 
   /**
    * Creates a new instance of a SecurityOptions using a PKCS#11 Key Store.

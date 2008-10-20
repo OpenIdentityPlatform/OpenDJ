@@ -90,6 +90,7 @@ public class InstallDSArgumentParser extends ArgumentParser
   StringArgument    directoryManagerDNArg;
   StringArgument    directoryManagerPwdStringArg;
   StringArgument    useJavaKeyStoreArg;
+  StringArgument    useJCEKSArg;
   StringArgument    usePkcs12Arg;
   StringArgument    keyStorePasswordArg;
   StringArgument    certNicknameArg;
@@ -346,6 +347,12 @@ public class InstallDSArgumentParser extends ArgumentParser
         true, INFO_KEYSTOREPATH_PLACEHOLDER.get(), null, "useJavaKeystore",
         INFO_INSTALLDS_DESCRIPTION_USE_JAVAKEYSTORE.get());
     addArgument(useJavaKeyStoreArg);
+
+    useJCEKSArg = new StringArgument("useJCEKS".toLowerCase(),
+        null, "useJCEKS", false, false,
+        true, INFO_KEYSTOREPATH_PLACEHOLDER.get(), null, "useJCEKS",
+        INFO_INSTALLDS_DESCRIPTION_USE_JCEKS.get());
+    addArgument(useJCEKSArg);
 
     usePkcs12Arg = new StringArgument("usePkcs12keyStore".toLowerCase(),
         null, "usePkcs12keyStore", false, false,
@@ -649,6 +656,10 @@ public class InstallDSArgumentParser extends ArgumentParser
       certificateType++;
     }
     if (useJavaKeyStoreArg.isPresent())
+    {
+      certificateType++;
+    }
+    if (useJCEKSArg.isPresent())
     {
       certificateType++;
     }
