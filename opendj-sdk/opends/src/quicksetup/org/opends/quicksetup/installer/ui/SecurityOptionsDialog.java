@@ -82,6 +82,7 @@ public class SecurityOptionsDialog extends JDialog
   private JLabel lKeystoreType;
   private JRadioButton rbPKCS11;
   private JRadioButton rbJKS;
+  private JRadioButton rbJCEKS;
   private JRadioButton rbPKCS12;
   private JLabel lKeystorePath;
   private JTextField tfKeystorePath;
@@ -206,6 +207,13 @@ public class SecurityOptionsDialog extends JDialog
       else if (rbJKS.isSelected())
       {
         ops = SecurityOptions.createJKSCertificateOptions(
+            tfKeystorePath.getText(),
+            String.valueOf(tfKeystorePwd.getPassword()), enableSSL,
+            enableStartTLS, sslPort, selectedAlias);
+      }
+      else if (rbJCEKS.isSelected())
+      {
+        ops = SecurityOptions.createJCEKSCertificateOptions(
             tfKeystorePath.getText(),
             String.valueOf(tfKeystorePwd.getPassword()), enableSSL,
             enableStartTLS, sslPort, selectedAlias);
@@ -381,6 +389,11 @@ public class SecurityOptionsDialog extends JDialog
         INFO_JKS_CERTIFICATE_TOOLTIP.get(),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     rbJKS.addActionListener(l);
+    rbJCEKS = UIFactory.makeJRadioButton(
+        INFO_JCEKS_CERTIFICATE_LABEL.get(),
+        INFO_JCEKS_CERTIFICATE_TOOLTIP.get(),
+        UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+    rbJCEKS.addActionListener(l);
     rbPKCS11 = UIFactory.makeJRadioButton(
         INFO_PKCS11_CERTIFICATE_LABEL.get(),
         INFO_PKCS11_CERTIFICATE_TOOLTIP.get(),
@@ -393,6 +406,7 @@ public class SecurityOptionsDialog extends JDialog
     rbPKCS12.addActionListener(l);
     ButtonGroup group2 = new ButtonGroup();
     group2.add(rbJKS);
+    group2.add(rbJCEKS);
     group2.add(rbPKCS11);
     group2.add(rbPKCS12);
     lKeystoreType.setLabelFor(rbJKS);
@@ -535,6 +549,10 @@ public class SecurityOptionsDialog extends JDialog
     aux2Panel.add(rbJKS, gbc);
 
     gbc.insets.top = UIFactory.TOP_INSET_RADIOBUTTON;
+    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    aux2Panel.add(Box.createHorizontalGlue(), gbc);
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    aux2Panel.add(rbJCEKS, gbc);
     gbc.gridwidth = GridBagConstraints.RELATIVE;
     aux2Panel.add(Box.createHorizontalGlue(), gbc);
     gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -776,6 +794,13 @@ public class SecurityOptionsDialog extends JDialog
       tfKeystorePwd.setText(securityOptions.getKeystorePassword());
       break;
 
+    case JCEKS:
+      rbUseExistingCertificate.setSelected(true);
+      rbJCEKS.setSelected(true);
+      tfKeystorePath.setText(securityOptions.getKeystorePath());
+      tfKeystorePwd.setText(securityOptions.getKeystorePassword());
+      break;
+
     case PKCS11:
       rbUseExistingCertificate.setSelected(true);
       rbPKCS11.setSelected(true);
@@ -814,7 +839,8 @@ public class SecurityOptionsDialog extends JDialog
     }
 
     if (useSSL && rbUseExistingCertificate.isSelected() &&
-        !rbJKS.isSelected() && !rbPKCS11.isSelected() && !rbPKCS12.isSelected())
+        !rbJKS.isSelected() && !rbJCEKS.isSelected() &&
+        !rbPKCS11.isSelected() && !rbPKCS12.isSelected())
     {
       rbJKS.setSelected(true);
     }
@@ -826,6 +852,7 @@ public class SecurityOptionsDialog extends JDialog
     lKeystoreType.setEnabled(
         rbUseExistingCertificate.isSelected() && useSSL);
     rbJKS.setEnabled(rbUseExistingCertificate.isSelected() && useSSL);
+    rbJCEKS.setEnabled(rbUseExistingCertificate.isSelected() && useSSL);
     rbPKCS11.setEnabled(rbUseExistingCertificate.isSelected() && useSSL);
     rbPKCS12.setEnabled(rbUseExistingCertificate.isSelected() && useSSL);
 
@@ -927,7 +954,7 @@ public class SecurityOptionsDialog extends JDialog
         (cbEnableSSL.isSelected() || cbEnableStartTLS.isSelected()))
     {
       String path = tfKeystorePath.getText();
-      if (rbJKS.isSelected() || rbPKCS12.isSelected())
+      if (rbJKS.isSelected() || rbJCEKS.isSelected() || rbPKCS12.isSelected())
       {
         /* Check the path */
         if ((path == null) || (path.length() == 0))
@@ -970,6 +997,13 @@ public class SecurityOptionsDialog extends JDialog
                 CertificateManager.KEY_STORE_TYPE_JKS,
                 pwd);
           }
+          else if (rbJCEKS.isSelected())
+          {
+            certManager = new CertificateManager(
+                path,
+                CertificateManager.KEY_STORE_TYPE_JCEKS,
+                pwd);
+          }
           else if (rbPKCS12.isSelected())
           {
             certManager = new CertificateManager(
@@ -1002,6 +1036,10 @@ public class SecurityOptionsDialog extends JDialog
               {
                 errorMsgs.add(INFO_JKS_KEYSTORE_DOES_NOT_EXIST.get());
               }
+              else if (rbJCEKS.isSelected())
+              {
+                errorMsgs.add(INFO_JCEKS_KEYSTORE_DOES_NOT_EXIST.get());
+              }
               else
               {
                 errorMsgs.add(INFO_PKCS12_KEYSTORE_DOES_NOT_EXIST.get());
@@ -1028,6 +1066,10 @@ public class SecurityOptionsDialog extends JDialog
             if (rbJKS.isSelected())
             {
               errorMsgs.add(INFO_ERROR_ACCESSING_JKS_KEYSTORE.get());
+            }
+            else if (rbJCEKS.isSelected())
+            {
+              errorMsgs.add(INFO_ERROR_ACCESSING_JCEKS_KEYSTORE.get());
             }
             else
             {

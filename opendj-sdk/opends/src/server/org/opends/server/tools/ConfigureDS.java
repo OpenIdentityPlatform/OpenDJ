@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 import java.io.File;
+import java.io.StringReader;
 
 import javax.crypto.Cipher;
 
@@ -56,7 +57,10 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryEnvironmentConfig;
+import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.util.LDIFReader;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
@@ -549,9 +553,12 @@ public class ConfigureDS
       if (keyManagerProviderDN.isPresent())
       {
         DN dn = null;
+        DN JCEKSProviderDN = null;
         try
         {
           dn = DN.decode(keyManagerProviderDN.getValue());
+          JCEKSProviderDN =
+            DN.decode("cn=JCEKS,cn=Key Manager Providers,cn=config");
         }
         catch (DirectoryException de)
         {
@@ -563,16 +570,54 @@ public class ConfigureDS
           return 1;
         }
 
-        try
+        if (dn.equals(JCEKSProviderDN))
         {
-          configHandler.getConfigEntry(dn);
+          // Create the JCEKSProvider entry
+          try
+          {
+            String ldif = "dn: cn=JCEKS,cn=Key Manager Providers,cn=config\n"+
+            "objectClass: top\n"+
+            "objectClass: ds-cfg-key-manager-provider\n"+
+            "objectClass: ds-cfg-file-based-key-manager-provider\n"+
+            "cn: JCEKS\n"+
+            "ds-cfg-java-class: org.opends.server.extensions."+
+                 "FileBasedKeyManagerProvider\n"+
+            "ds-cfg-enabled: true\n"+
+            "ds-cfg-key-store-type: JCEKS\n"+
+            "ds-cfg-key-store-file: config/keystore.jceks\n"+
+            "ds-cfg-key-store-pin-file: config/keystore.pin";
+
+            LDIFImportConfig ldifImportConfig =
+              new LDIFImportConfig(new StringReader(ldif));
+            LDIFReader reader = new LDIFReader(ldifImportConfig);
+            Entry providerConfigEntry;
+            while ((providerConfigEntry = reader.readEntry()) != null)
+            {
+              configHandler.addEntry(providerConfigEntry, null);
+            }
+          }
+          catch (Exception e)
+          {
+            Message message =
+              ERR_CONFIG_KEYMANAGER_CANNOT_CREATE_JCEKS_PROVIDER.get(
+                String.valueOf(e));
+            System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            return 1;
+          }
         }
-        catch (Exception e)
+        else
         {
-          Message message = ERR_CONFIG_KEYMANAGER_CANNOT_GET_BASE.get(
-              String.valueOf(e));
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
+          try
+          {
+            configHandler.getConfigEntry(dn);
+          }
+          catch (Exception e)
+          {
+            Message message = ERR_CONFIG_KEYMANAGER_CANNOT_GET_BASE.get(
+                String.valueOf(e));
+            System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            return 1;
+          }
         }
       }
 
@@ -580,9 +625,12 @@ public class ConfigureDS
       if (trustManagerProviderDN.isPresent())
       {
         DN dn = null;
+        DN JCEKSTrustManagerDN = null;
         try
         {
           dn = DN.decode(trustManagerProviderDN.getValue());
+          JCEKSTrustManagerDN =
+            DN.decode("cn=JCEKS,cn=Trust Manager Providers,cn=config");
         }
         catch (DirectoryException de)
         {
@@ -592,16 +640,51 @@ public class ConfigureDS
           return 1;
         }
 
-        try
+        if (dn.equals(JCEKSTrustManagerDN))
         {
-          configHandler.getConfigEntry(dn);
-        }
-        catch (Exception e)
-        {
-          Message message = ERR_CONFIG_TRUSTMANAGER_CANNOT_GET_BASE.get(
+          try
+          {
+            String ldif = "dn: cn=JCEKS,cn=Trust Manager Providers,cn=config\n"+
+            "objectClass: top\n"+
+            "objectClass: ds-cfg-trust-manager-provider\n"+
+            "objectClass: ds-cfg-file-based-trust-manager-provider\n"+
+            "cn: JKS\n"+
+            "ds-cfg-java-class: org.opends.server.extensions."+
+            "FileBasedTrustManagerProvider\n"+
+            "ds-cfg-enabled: false\n"+
+            "ds-cfg-trust-store-type: JCEKS\n"+
+            "ds-cfg-trust-store-file: config/truststore\n";
+
+            LDIFImportConfig ldifImportConfig =
+              new LDIFImportConfig(new StringReader(ldif));
+            LDIFReader reader = new LDIFReader(ldifImportConfig);
+            Entry trustManagerConfigEntry;
+            while ((trustManagerConfigEntry = reader.readEntry()) != null)
+            {
+              configHandler.addEntry(trustManagerConfigEntry, null);
+            }
+          }
+          catch (Exception e)
+          {
+            Message message = ERR_CONFIG_KEYMANAGER_CANNOT_GET_BASE.get(
                 String.valueOf(e));
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
-          return 1;
+            System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            return 1;
+          }
+        }
+        else
+        {
+          try
+          {
+            configHandler.getConfigEntry(dn);
+          }
+          catch (Exception e)
+          {
+            Message message = ERR_CONFIG_TRUSTMANAGER_CANNOT_GET_BASE.get(
+                String.valueOf(e));
+            System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            return 1;
+          }
         }
       }
 

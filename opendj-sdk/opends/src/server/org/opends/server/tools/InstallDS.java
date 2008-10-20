@@ -874,7 +874,23 @@ public class InstallDS extends ConsoleApplication
       String path = argParser.useJavaKeyStoreArg.getValue();
       checkCertificateInKeystore(SecurityOptions.CertificateType.JKS, path, pwd,
           certNickname, errorMessages, keystoreAliases);
+      if ((certNickname == null) && !keystoreAliases.isEmpty())
+      {
+        certNickname = keystoreAliases.getFirst();
+      }
       securityOptions = SecurityOptions.createJKSCertificateOptions(
+          path, pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
+    }
+    else if (argParser.useJCEKSArg.isPresent())
+    {
+      String path = argParser.useJCEKSArg.getValue();
+      checkCertificateInKeystore(SecurityOptions.CertificateType.JCEKS, path,
+          pwd, certNickname, errorMessages, keystoreAliases);
+      if ((certNickname == null) && !keystoreAliases.isEmpty())
+      {
+        certNickname = keystoreAliases.getFirst();
+      }
+      securityOptions = SecurityOptions.createJCEKSCertificateOptions(
           path, pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
     }
     else if (argParser.usePkcs12Arg.isPresent())
@@ -882,6 +898,10 @@ public class InstallDS extends ConsoleApplication
       String path = argParser.usePkcs12Arg.getValue();
       checkCertificateInKeystore(SecurityOptions.CertificateType.PKCS12, path,
           pwd, certNickname, errorMessages, keystoreAliases);
+      if ((certNickname == null) && !keystoreAliases.isEmpty())
+      {
+        certNickname = keystoreAliases.getFirst();
+      }
       securityOptions = SecurityOptions.createPKCS12CertificateOptions(
           path, pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
     }
@@ -889,6 +909,10 @@ public class InstallDS extends ConsoleApplication
     {
       checkCertificateInKeystore(SecurityOptions.CertificateType.PKCS11, null,
           pwd, certNickname, errorMessages, keystoreAliases);
+      if ((certNickname == null) && !keystoreAliases.isEmpty())
+      {
+        certNickname = keystoreAliases.getFirst();
+      }
       securityOptions = SecurityOptions.createPKCS11CertificateOptions(
           pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
     }
@@ -1599,6 +1623,12 @@ public class InstallDS extends ConsoleApplication
         createSecurityOptionsPrompting(SecurityOptions.CertificateType.JKS,
             enableSSL, enableStartTLS, ldapsPort);
     }
+    else if (argParser.useJCEKSArg.isPresent())
+    {
+      securityOptions =
+        createSecurityOptionsPrompting(SecurityOptions.CertificateType.JCEKS,
+            enableSSL, enableStartTLS, ldapsPort);
+    }
     else if (argParser.usePkcs12Arg.isPresent())
     {
       securityOptions =
@@ -1623,12 +1653,14 @@ public class InstallDS extends ConsoleApplication
       {
         final int SELF_SIGNED = 1;
         final int JKS = 2;
-        final int PKCS12 = 3;
-        final int PKCS11 = 4;
-        int[] indexes = {SELF_SIGNED, JKS, PKCS12, PKCS11};
+        final int JCEKS = 3;
+        final int PKCS12 = 4;
+        final int PKCS11 = 5;
+        int[] indexes = {SELF_SIGNED, JKS, JCEKS, PKCS12, PKCS11};
         Message[] msgs = {
             INFO_INSTALLDS_CERT_OPTION_SELF_SIGNED.get(),
             INFO_INSTALLDS_CERT_OPTION_JKS.get(),
+            INFO_INSTALLDS_CERT_OPTION_JCEKS.get(),
             INFO_INSTALLDS_CERT_OPTION_PKCS12.get(),
             INFO_INSTALLDS_CERT_OPTION_PKCS11.get()
         };
@@ -1654,6 +1686,10 @@ public class InstallDS extends ConsoleApplication
           case JKS:
             builder.setDefault(Message.raw(String.valueOf(JKS)),
                 MenuResult.success(JKS));
+            break;
+          case JCEKS:
+            builder.setDefault(Message.raw(String.valueOf(JCEKS)),
+                MenuResult.success(JCEKS));
             break;
           case PKCS11:
             builder.setDefault(Message.raw(String.valueOf(PKCS11)),
@@ -1698,6 +1734,13 @@ public class InstallDS extends ConsoleApplication
         {
           securityOptions =
             createSecurityOptionsPrompting(SecurityOptions.CertificateType.JKS,
+                enableSSL, enableStartTLS, ldapsPort);
+        }
+        else if (certType == JCEKS)
+        {
+          securityOptions =
+            createSecurityOptionsPrompting(
+                SecurityOptions.CertificateType.JCEKS,
                 enableSSL, enableStartTLS, ldapsPort);
         }
         else if (certType == PKCS12)
@@ -1847,6 +1890,13 @@ public class InstallDS extends ConsoleApplication
               pwd);
           break;
 
+          case JCEKS:
+            certManager = new CertificateManager(
+                path,
+                CertificateManager.KEY_STORE_TYPE_JCEKS,
+                pwd);
+            break;
+
           case PKCS12:
           certManager = new CertificateManager(
               path,
@@ -1871,14 +1921,16 @@ public class InstallDS extends ConsoleApplication
           switch (type)
           {
           case JKS:
-            errorMessages.add(INFO_PKCS11_KEYSTORE_DOES_NOT_EXIST.get());
-            break;
-
-          case PKCS12:
             errorMessages.add(INFO_JKS_KEYSTORE_DOES_NOT_EXIST.get());
             break;
-          case PKCS11:
+          case JCEKS:
+            errorMessages.add(INFO_JCEKS_KEYSTORE_DOES_NOT_EXIST.get());
+            break;
+          case PKCS12:
             errorMessages.add(INFO_PKCS12_KEYSTORE_DOES_NOT_EXIST.get());
+            break;
+          case PKCS11:
+            errorMessages.add(INFO_PKCS11_KEYSTORE_DOES_NOT_EXIST.get());
             break;
           default:
             throw new IllegalArgumentException("Invalid type: "+type);
@@ -1922,7 +1974,9 @@ public class InstallDS extends ConsoleApplication
         case JKS:
           errorMessages.add(INFO_ERROR_ACCESSING_JKS_KEYSTORE.get());
           break;
-
+        case JCEKS:
+          errorMessages.add(INFO_ERROR_ACCESSING_JCEKS_KEYSTORE.get());
+          break;
         case PKCS12:
           errorMessages.add(INFO_ERROR_ACCESSING_PKCS12_KEYSTORE.get());
           break;
@@ -1973,6 +2027,15 @@ public class InstallDS extends ConsoleApplication
       path = argParser.useJavaKeyStoreArg.getValue();
       pathPrompt = INFO_INSTALLDS_PROMPT_JKS_PATH.get();
       defaultPathValue = argParser.useJavaKeyStoreArg.getValue();
+      if (defaultPathValue == null)
+      {
+        defaultPathValue = lastResetKeyStorePath;
+      }
+      break;
+    case JCEKS:
+      path = argParser.useJCEKSArg.getValue();
+      pathPrompt = INFO_INSTALLDS_PROMPT_JCEKS_PATH.get();
+      defaultPathValue = argParser.useJCEKSArg.getValue();
       if (defaultPathValue == null)
       {
         defaultPathValue = lastResetKeyStorePath;
@@ -2086,6 +2149,10 @@ public class InstallDS extends ConsoleApplication
         securityOptions = SecurityOptions.createJKSCertificateOptions(
         path, pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
         break;
+      case JCEKS:
+        securityOptions = SecurityOptions.createJCEKSCertificateOptions(
+        path, pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
+        break;
       case PKCS12:
         securityOptions = SecurityOptions.createPKCS12CertificateOptions(
             path, pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
@@ -2116,9 +2183,11 @@ public class InstallDS extends ConsoleApplication
       if (msg.getDescriptor().equals(INFO_KEYSTORE_PATH_DOES_NOT_EXIST) ||
           msg.getDescriptor().equals(INFO_KEYSTORE_PATH_NOT_A_FILE) ||
           msg.getDescriptor().equals(INFO_JKS_KEYSTORE_DOES_NOT_EXIST) ||
+          msg.getDescriptor().equals(INFO_JCEKS_KEYSTORE_DOES_NOT_EXIST) ||
           msg.getDescriptor().equals(INFO_PKCS12_KEYSTORE_DOES_NOT_EXIST) ||
           msg.getDescriptor().equals(INFO_PKCS11_KEYSTORE_DOES_NOT_EXIST) ||
           msg.getDescriptor().equals(INFO_ERROR_ACCESSING_JKS_KEYSTORE) ||
+          msg.getDescriptor().equals(INFO_ERROR_ACCESSING_JCEKS_KEYSTORE) ||
           msg.getDescriptor().equals(INFO_ERROR_ACCESSING_PKCS12_KEYSTORE) ||
           msg.getDescriptor().equals(INFO_ERROR_ACCESSING_PKCS11_KEYSTORE))
       {
@@ -2142,9 +2211,11 @@ public class InstallDS extends ConsoleApplication
     for (Message msg : msgs)
     {
       if (msg.getDescriptor().equals(INFO_JKS_KEYSTORE_DOES_NOT_EXIST) ||
+          msg.getDescriptor().equals(INFO_JCEKS_KEYSTORE_DOES_NOT_EXIST) ||
           msg.getDescriptor().equals(INFO_PKCS12_KEYSTORE_DOES_NOT_EXIST) ||
           msg.getDescriptor().equals(INFO_PKCS11_KEYSTORE_DOES_NOT_EXIST) ||
           msg.getDescriptor().equals(INFO_ERROR_ACCESSING_JKS_KEYSTORE) ||
+          msg.getDescriptor().equals(INFO_ERROR_ACCESSING_JCEKS_KEYSTORE) ||
           msg.getDescriptor().equals(INFO_ERROR_ACCESSING_PKCS12_KEYSTORE) ||
           msg.getDescriptor().equals(INFO_ERROR_ACCESSING_PKCS11_KEYSTORE) ||
           msg.getDescriptor().equals(INFO_ERROR_NO_KEYSTORE_PASSWORD) ||
@@ -2480,7 +2551,8 @@ public class InstallDS extends ConsoleApplication
       lastResetEnableStartTLS = sec.getEnableStartTLS();
       lastResetCertType = sec.getCertificateType();
       if (lastResetCertType == SecurityOptions.CertificateType.JKS ||
-          lastResetCertType == SecurityOptions.CertificateType.PKCS11)
+          lastResetCertType == SecurityOptions.CertificateType.JCEKS ||
+          lastResetCertType == SecurityOptions.CertificateType.PKCS12)
       {
         lastResetKeyStorePath = sec.getKeystorePath();
       }

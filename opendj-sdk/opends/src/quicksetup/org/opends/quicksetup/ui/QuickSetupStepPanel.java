@@ -500,6 +500,10 @@ implements HyperlinkListener
         certMsg = INFO_JKS_CERTIFICATE.get();
         break;
 
+      case JCEKS:
+        certMsg = INFO_JCEKS_CERTIFICATE.get();
+        break;
+
       case PKCS11:
         certMsg = INFO_PKCS11_CERTIFICATE.get();
         break;
