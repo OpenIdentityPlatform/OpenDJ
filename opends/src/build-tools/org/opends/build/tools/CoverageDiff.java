@@ -37,13 +37,17 @@ import java.util.*;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.BuildException;
 
+import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory;
+import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNDiffClient;
 import org.tmatesoft.svn.core.wc.SVNRevision;
 
 public class CoverageDiff extends Task {
 
+  private static SVNClientManager ourClientManager =
+          SVNClientManager.newInstance();
   private static final String EOL = System.getProperty("line.separator");
 
   private boolean verbose = false;
@@ -297,17 +301,15 @@ public class CoverageDiff extends Task {
           throws IOException, SVNException {
     File workspaceRoot = getProject().getBaseDir();
 
-    SVNDiffClient svnClient = new SVNDiffClient(null, null);
-
     File diffFile = new File(outputPath, "svn.diff");
 
     // Most often this will be 'BASE' but it could also be 'PREVIOUS'
     SVNRevision baseRevision = SVNRevision.parse(fromRevision);
     System.out.println("Doing coverage diff from revision: " + baseRevision.toString());
 
-    svnClient.doDiff(workspaceRoot, baseRevision, workspaceRoot,
-                     SVNRevision.WORKING, true, false,
-                     new FileOutputStream(diffFile));
+    ourClientManager.getDiffClient().doDiff(workspaceRoot, baseRevision, 
+            workspaceRoot, SVNRevision.WORKING, SVNDepth.INFINITY, false,
+            new FileOutputStream(diffFile), null);
 
     return new BufferedReader(new InputStreamReader(new FileInputStream(
                                                              diffFile)));

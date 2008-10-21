@@ -41,14 +41,13 @@ import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 
-import org.tmatesoft.svn.core.SVNErrorMessage;
+import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.wc.SVNPropertyData;
 import org.tmatesoft.svn.core.wc.SVNRevision;
 import org.tmatesoft.svn.core.wc.ISVNStatusHandler;
+import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNStatus;
-import org.tmatesoft.svn.core.wc.SVNStatusClient;
-import org.tmatesoft.svn.core.wc.SVNStatusType;
 import org.tmatesoft.svn.core.wc.SVNWCClient;
 
 
@@ -125,6 +124,9 @@ public class CheckPrecommit
   // The string representation of the current year.
   private String yearString;
 
+  // The overall SVN Client Manager. required with svnkit 1.2.x
+  private static SVNClientManager ourClientManager =
+          SVNClientManager.newInstance();
   // The property client used to look at file properties.
   private SVNWCClient propertyClient;
 
@@ -170,12 +172,12 @@ public class CheckPrecommit
 
 
     // Process the base directory and all of its subdirectories.
-    SVNStatusClient svnClient = new SVNStatusClient(null, null);
-    propertyClient = new SVNWCClient(null, null);
+    propertyClient = ourClientManager.getWCClient();
 
     try
     {
-      svnClient.doStatus(workspacePath, true, false, false, false, false, this);
+      long status = ourClientManager.getStatusClient().doStatus(workspacePath, SVNRevision.WORKING, 
+              SVNDepth.INFINITY, false, false, false, false, this, null);
     }
     catch (Exception e)
     {
@@ -296,9 +298,9 @@ public class CheckPrecommit
       SVNPropertyData propertyData =
            propertyClient.doGetProperty(file, "svn:eol-style",
                                         SVNRevision.BASE,
-                                        SVNRevision.WORKING, false);
+                                        SVNRevision.WORKING);
       if ((propertyData == null) ||
-          (! propertyData.getValue().equals("native")))
+          (! propertyData.getValue().getString().equals("native")))
       {
         eolStyleProblemFiles.add(filePath);
       }

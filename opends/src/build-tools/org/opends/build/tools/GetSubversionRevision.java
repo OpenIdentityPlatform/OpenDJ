@@ -34,9 +34,9 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 
 import org.tmatesoft.svn.core.SVNException;
+import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNInfo;
 import org.tmatesoft.svn.core.wc.SVNRevision;
-import org.tmatesoft.svn.core.wc.SVNWCClient;
 
 
 
@@ -55,7 +55,9 @@ public class GetSubversionRevision
   // revision number.
   private String workspace = null;
 
-
+  // The svn client manager. Required by svnkit 1.2.x
+  private static SVNClientManager ourClientManager =
+          SVNClientManager.newInstance();
 
   /**
    * Specifies the name of the Ant property into which the Subversion revision
@@ -110,11 +112,9 @@ public class GetSubversionRevision
     }
 
 
-    SVNWCClient svnClient = new SVNWCClient(null, null);
-
     try
     {
-      SVNInfo svnInfo = svnClient.doInfo(workspacePath, SVNRevision.WORKING);
+      SVNInfo svnInfo = ourClientManager.getWCClient().doInfo(workspacePath, SVNRevision.WORKING);
       SVNRevision revision = svnInfo.getRevision();
       if (revision == null)
       {
