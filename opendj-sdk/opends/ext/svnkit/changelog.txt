@@ -1,3 +1,118 @@
+== version 1.2.0
+
++ Possible NPE on WC to URL copy operation fixed.
++ Log operation didn't work properly with 'limit' options set to value 
+  larger than Integer.MAX_VALUE, fixed. 
++ OSGI manifest fixes.
+
+== version 1.2.0-rc4
+
++ JNA library updated to version 3.0.5.
++ jsvnlook 'cat' and 'lock' commands added.
++ Update operation didn't work properly on sparse directories with 1.4.x Subversion servers, fixed.
++ SASL: minor bugfixes.
++ Other bugfixes.
+
+== version 1.2.0-rc3
+
++ SVNKit Eclipse plugin divided into two features: core svnkit library and optional JNA library.
++ SVNKit Eclipse plugin made compatible with base OSGI framework.
++ SVN+SSH protocol performance improvements.
++ File uid and guid wasn't properly fetched on OSX and BSD.
++ Other bugfixes and minor improvements.
+
+== version 1.2.0-rc2
+
++ SASL: incorrect output buffer size might result in failed commits, fixed.
++ Possible NPE on copy operation fixed.
+
+== version 1.2.0-rc1
+
++ Javadoc updated
++ SASL authentication support bugfixes
++ Bug in keyword expansion code fixed
++ Other bugfixes
+
+== version 1.2.0-beta5
+
++ SASL authentication support improved
++ Java SSH Trilead library updated to build 213
++ JNA library updated to version 3.0.4
++ Fixed: SSH connectivity problems with non-OpenSSH servers
++ Javadoc updated
++ Other bugfixes
+
+== version 1.2.0-beta4
+
++ Bugfixes
+
+== version 1.2.0-beta3
+
++ SASL authentication support improved.
++ Other bugfixes.
+
+== version 1.2.0-beta2
+
++ JavaHL compatiblity bugfixes
++ DAV protocol performance improvements
+
+== version 1.2.0-beta
+
++ Subversion 1.5.0 features support
+
+== version 1.1.7
+
++ SVNKit didn't work properly with Subversion 1.5.0 servers over svn protocol
++ JNA library updated to version 3.0.2
++ Trilead-SSH library updated to build 212
++ Other bugfixes
+
+== version 1.1.6
+
++ Bugfixes:
++  Copy WC to URL sometimes didn't work properly with switched directories.
++  Several NPEs in HTTP connection code fixed.
++  Authentication cancellation didn't work with SSH connection in some cases.
+
+== version 1.1.5
+
++ Connections pool has been improved.
++ New version of SSH library (Trilead build 211) is used.
++ When possible, JNA library is used for most of native calls instead of Runtime.exec(...)
++ HTTP Digest authentications works better.
++ Bug in keywords expansion code fixed.
++ Other bugfixes.
+
+= version 1.1.4
+
++ Connections pool closes inactive connections on timeout.
++ Bugfixes.
+
+= version 1.1.3
+
++ Encrypted credentials supported on Windows.
++ OpenVMS support improved.
++ Bugfixes.
++ Daily builds now available at http://teamcity.svnkit.com/
+
+= version 1.1.2
+
++ SVNKit command line client: interactive credentials prompt added.
++ SVNKit command line client: jsvnversion added.
++ JavaHL: SVNAdmin implemented using SVNKit API.
++ System-wide configuration files support (e.g. /etc/subversion on Linux)
++ bugfixes.
+
+= version 1.1.1
+
++ added support for svnlook features.
++ added support for svnadmin dump/verify/load/rmtxns/lstxns features.
++ svn, svnadmin, svnlook and svnsync scripts are 
+  renamed to jsvn, jsvnadmin, jsvnlook and jsvnsync to distinguish them 
+  from the native programs.
++ command line scripts supports OpenVMS.
++ bugfixes.
+
 = version 1.1.0
 
 + command line application and API to perform svnsync.

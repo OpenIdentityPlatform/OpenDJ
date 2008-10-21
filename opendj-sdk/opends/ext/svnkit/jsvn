@@ -1,0 +1,20 @@
+#!/bin/sh
+
+cygwin=false;
+case "`uname`" in
+  CYGWIN*) cygwin=true ;;
+esac
+
+SVNKIT_HOME=`dirname $0`
+SVNKIT_HOME=`cd "$SVNKIT_HOME" ; pwd`
+
+SVNKIT_CP="$SVNKIT_HOME/svnkit.jar":"$SVNKIT_HOME/svnkit-cli.jar":"$SVNKIT_HOME/trilead.jar":"$SVNKIT_HOME/jna.jar"
+
+if $cygwin ; then
+  SVNKIT_CP=`cygpath --windows --path "$SVNKIT_CP"`
+fi
+
+SVNKIT_VM_OPTIONS="-Dsun.io.useCanonCaches=false -Djava.util.logging.config.file=$SVNKIT_HOME/logging.properties"
+
+SVNKIT_MAINCLASS=org.tmatesoft.svn.cli.svn.SVN
+"$JAVA_HOME/bin/java" $SVNKIT_VM_OPTIONS -cp $SVNKIT_CP $SVNKIT_MAINCLASS "$@"
