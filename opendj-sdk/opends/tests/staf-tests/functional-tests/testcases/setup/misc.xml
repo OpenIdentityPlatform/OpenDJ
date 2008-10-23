@@ -174,7 +174,7 @@
           <script>
             c = '%s/uninstall%s' % (MISC_I1_ROOT, fileExt)
             p = []
-            p.append('--cli --no-prompt')
+            p.append('--cli --no-prompt --trustAll')
             p.append('--removeAll')
             p = ' '.join(p)
           </script>

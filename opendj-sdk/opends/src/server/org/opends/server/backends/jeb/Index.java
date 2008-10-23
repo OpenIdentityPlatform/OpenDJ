@@ -133,6 +133,7 @@ public class Index extends DatabaseContainer
    * @param entryContainer The database entryContainer holding this index.
    * @throws DatabaseException If an error occurs in the JE database.
    */
+  @SuppressWarnings("unchecked")
   public Index(String name, Indexer indexer, State state,
         int indexEntryLimit, int cursorEntryLimit, boolean maintainCount,
         Environment env, EntryContainer entryContainer)
@@ -167,7 +168,8 @@ public class Index extends DatabaseContainer
 
     this.dbConfig = dbNodupsConfig;
     this.dbConfig.setOverrideBtreeComparator(true);
-    this.dbConfig.setBtreeComparator(comparator.getClass());
+    this.dbConfig.setBtreeComparator((Class<? extends Comparator<byte[]>>)
+                                     comparator.getClass());
 
     this.state = state;
 

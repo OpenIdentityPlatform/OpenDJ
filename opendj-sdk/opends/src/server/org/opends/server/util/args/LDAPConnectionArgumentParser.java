@@ -44,6 +44,7 @@ import java.util.LinkedList;
 import java.util.LinkedHashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.io.PrintStream;
+import javax.net.ssl.SSLException;
 
 /**
  * Creates an argument parser pre-populated with arguments for specifying
@@ -69,13 +70,16 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
    *                                     added to the parser.  May be null to
    *                                     indicate that arguments should be
    *                                     added to the default group
-   */
+   * @param alwaysSSL If true, always use the SSL connection type. In this case,
+   * the arguments useSSL and startTLS are not present.
+    */
   public LDAPConnectionArgumentParser(String mainClassName,
                                       Message toolDescription,
                                       boolean longArgumentsCaseSensitive,
-                                      ArgumentGroup argumentGroup) {
+                                      ArgumentGroup argumentGroup,
+                                      boolean alwaysSSL) {
     super(mainClassName, toolDescription, longArgumentsCaseSensitive);
-    addLdapConnectionArguments(argumentGroup);
+    addLdapConnectionArguments(argumentGroup, alwaysSSL);
   }
 
   /**
@@ -112,7 +116,9 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
    *                                     added to the parser.  May be null to
    *                                     indicate that arguments should be
    *                                     added to the default group
-   */
+   * @param alwaysSSL If true, always use the SSL connection type. In this case,
+   * the arguments useSSL and startTLS are not present.
+    */
   public LDAPConnectionArgumentParser(String mainClassName,
                                       Message toolDescription,
                                       boolean longArgumentsCaseSensitive,
@@ -120,11 +126,12 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
                                       int minTrailingArguments,
                                       int maxTrailingArguments,
                                       String trailingArgsDisplayName,
-                                      ArgumentGroup argumentGroup) {
+                                      ArgumentGroup argumentGroup,
+                                      boolean alwaysSSL) {
     super(mainClassName, toolDescription, longArgumentsCaseSensitive,
             allowsTrailingArguments, minTrailingArguments, maxTrailingArguments,
             trailingArgsDisplayName);
-    addLdapConnectionArguments(argumentGroup);
+    addLdapConnectionArguments(argumentGroup, alwaysSSL);
   }
 
   /**
@@ -359,7 +366,13 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
               ui.getBindPassword(),
               ui.populateLDAPOptions(options), out, err);
     } catch (OpenDsException e) {
-      err.println(e.getMessageObject());
+      if ((e.getCause() != null) && (e.getCause().getCause() != null) &&
+        e.getCause().getCause() instanceof SSLException) {
+        err.println(ERR_TASKINFO_LDAP_EXCEPTION_SSL.get(ui.getHostName(),
+          String.valueOf(ui.getPortNumber())));
+      } else {
+        err.println(e.getMessageObject());
+      }
     }
     return connection;
   }
@@ -426,8 +439,9 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
     return pwd;
   }
 
-  private void addLdapConnectionArguments(ArgumentGroup argGroup) {
-    args = new SecureConnectionCliArgs();
+  private void addLdapConnectionArguments(ArgumentGroup argGroup,
+    boolean alwaysSSL) {
+    args = new SecureConnectionCliArgs(alwaysSSL);
     try {
       LinkedHashSet<Argument> argSet = args.createGlobalArguments();
       for (Argument arg : argSet) {

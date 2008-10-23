@@ -62,7 +62,7 @@ public class TargetControlTestCase extends AciTestCase {
   @BeforeClass
   public void setupClass() throws Exception {
     TestCaseUtils.startServer();
-    deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
+    deleteAttrFromAdminEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
     addEntries("o=test");                    
   }
 
@@ -71,7 +71,7 @@ public class TargetControlTestCase extends AciTestCase {
        String aciLdif=makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN,
                G_READ_ACI, G_SELF_MOD, G_SCHEMA, G_DSE, G_USER_OPS, G_CONTROL,
                E_EXTEND_OP);
-       LDIFModify(aciLdif, DIR_MGR_DN, PWD);
+       LDIFAdminModify(aciLdif, DIR_MGR_DN, PWD);
    }
 
 
@@ -79,7 +79,7 @@ public class TargetControlTestCase extends AciTestCase {
   public void clearBackend() throws Exception {
     deleteAttrFromEntry(peopleBase, "aci");
     deleteAttrFromEntry(base, "aci");
-    deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
+    deleteAttrFromAdminEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
   }
 
   private static final String[] newEntry = new String[] {
@@ -308,7 +308,7 @@ public class TargetControlTestCase extends AciTestCase {
     String globalControlAcis=
             makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN,
                     controlAdmin, controlPeople);
-    LDIFModify(globalControlAcis, DIR_MGR_DN, PWD);
+    LDIFAdminModify(globalControlAcis, DIR_MGR_DN, PWD);
     //Fails because geteffectiverights control not allowed on
     //ou=people, o=test
     LDAPSearchParams(level3User, PWD, null,
@@ -333,7 +333,7 @@ public class TargetControlTestCase extends AciTestCase {
     String addEntryLDIF1=makeAddEntryLDIF(newAdminDN, newEntry);
     LDIFAdd(addEntryLDIF1, superUser, PWD, controlStr,
             LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-    deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
+    deleteAttrFromAdminEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
   }
 
   /**

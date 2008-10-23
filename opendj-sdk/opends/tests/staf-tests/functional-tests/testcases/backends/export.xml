@@ -62,18 +62,18 @@
           
           <script>
             DsInstancePort = int(DIRECTORY_INSTANCE_PORT)+1
-            DsInstanceSSLPort = int(DIRECTORY_INSTANCE_SSL_PORT)+1
+            DsInstanceAdminPort = int(DIRECTORY_INSTANCE_ADMIN_PORT)+1
             DsInstanceDir = '%s/server2' % DIRECTORY_INSTANCE_DIR
           </script>
           
           <call function="'createInstance'">
-            { 'dsHost'    : '%s' % DIRECTORY_INSTANCE_HOST,
-              'dsDir'     : DsInstanceDir,
-              'dsPort'    : DsInstancePort,
-              'dsSslPort' : DsInstanceSSLPort,
-              'dsBindDN'  : '%s' % DIRECTORY_INSTANCE_DN,
-              'dsBindPwd' : '%s' % DIRECTORY_INSTANCE_PSWD,
-              'dsBaseDN'  : '%s' % DIRECTORY_INSTANCE_SFX
+            { 'dsHost'      : '%s' % DIRECTORY_INSTANCE_HOST,
+              'dsDir'       : DsInstanceDir,
+              'dsPort'      : DsInstancePort,
+              'dsAdminPort' : DsInstanceAdminPort,
+              'dsBindDN'    : '%s' % DIRECTORY_INSTANCE_DN,
+              'dsBindPwd'   : '%s' % DIRECTORY_INSTANCE_PSWD,
+              'dsBaseDN'    : '%s' % DIRECTORY_INSTANCE_SFX
             }
           </call>
           
@@ -145,19 +145,20 @@
                 { 'expectedEntries' : ['uid=tmorris,ou=People,dc=example,dc=com',
                                        'uid=kvaughan,ou=People,dc=example,dc=com',
                                        'uid=kwinters,ou=People,dc=example,dc=com'],
-                  'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'   : DsInstancePort,
-                  'startDS'  : 'no'
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsPort'      : DsInstancePort,
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'startDS'     : 'no'
                 }
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               <call function="'testCase_Postamble'"/>
@@ -274,19 +275,20 @@
                 { 'expectedEntries' : ['uid=tmorris,ou=People,dc=example,dc=com',
                                        'uid=kvaughan,ou=People,dc=example,dc=com',
                                        'uid=kwinters,ou=People,dc=example,dc=com'],
-                  'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'   : DsInstancePort,
-                  'startDS'  : 'no'
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsPort'      : DsInstancePort,
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'startDS'     : 'no'
                 }
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               <call function="'testCase_Postamble'"/>
@@ -356,17 +358,18 @@
                                        'uid=kwinters,ou=People,dc=example,dc=com'],
                   'dsPath'          : '%s/%s' % (DsInstanceDir, OPENDSNAME),
                   'dsPort'          : DsInstancePort,
+                  'dsAdminPort'     : DsInstanceAdminPort,
                   'startDS'         : 'no'
                 }
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               <call function="'testCase_Postamble'"/>
@@ -438,17 +441,18 @@
                   'expectedEntries' : ['dc=com'],
                   'dsPath'          : '%s/%s' % (DsInstanceDir, OPENDSNAME),
                   'dsPort'          : DsInstancePort,
+                  'dsAdminPort'     : DsInstanceAdminPort,
                   'startDS'         : 'no'
                 }
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               <call function="'testCase_Postamble'"/>
@@ -520,17 +524,18 @@
                   'expectedEntries' : ['dc=com'],
                   'dsPath'          : '%s/%s' % (DsInstanceDir, OPENDSNAME),
                   'dsPort'          : DsInstancePort,
+                  'dsAdminPort'     : DsInstanceAdminPort,
                   'startDS'         : 'no'
                 }
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               <call function="'testCase_Postamble'"/>
@@ -599,16 +604,17 @@
                   'expectedEntries' : ['dc=com','dc=example,dc=com'],
                   'dsPath'          : '%s/%s' % (DsInstanceDir, OPENDSNAME),
                   'dsPort'          : DsInstancePort,
+                  'dsAdminPort'     : DsInstanceAdminPort,
                   'startDS'         : 'no'}
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               <call function="'testCase_Postamble'"/>
@@ -679,17 +685,18 @@
                   'missingEntries'  : ['ou=People,dc=example,dc=com'],
                   'dsPath'          : '%s/%s' % (DsInstanceDir, OPENDSNAME),
                   'dsPort'          : DsInstancePort,
+                  'dsAdminPort'     : DsInstanceAdminPort,
                   'startDS'         : 'no'
                 }
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               <call function="'testCase_Postamble'"/>
@@ -761,17 +768,18 @@
                   'missingAttributes' : ['userpassword'],
                   'dsPath'            : '%s/%s' % (DsInstanceDir, OPENDSNAME),
                   'dsPort'            : DsInstancePort,
+                  'dsAdminPort'       : DsInstanceAdminPort,
                   'startDS'           : 'no'
                 }
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               <call function="'testCase_Postamble'"/>
@@ -840,19 +848,20 @@
               <call function="'checkImport'">
                 { 'expectedEntries'   : ['uid=tmorris,ou=People,dc=example,dc=com'],
                   'missingAttributes' : ['userpassword'],
-                  'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'   : DsInstancePort,
-                  'startDS'  : 'no'
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsPort'      : DsInstancePort,
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'startDS'     : 'no'
                 }
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               <call function="'testCase_Postamble'"/>
@@ -925,17 +934,18 @@
                   'missingAttributes' : ['userpassword','mail','roomnumber'],
                   'dsPath'            : '%s/%s' % (DsInstanceDir, OPENDSNAME),
                   'dsPort'            : DsInstancePort,
+                  'dsAdminPort'       : DsInstanceAdminPort,
                   'startDS'           : 'no'
                 }
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               <call function="'testCase_Postamble'"/>
@@ -1008,17 +1018,18 @@
                   'missingAttributes' : ['userpassword'],                     
                   'dsPath'            : '%s/%s' % (DsInstanceDir, OPENDSNAME),
                   'dsPort'            : DsInstancePort,
+                  'dsAdminPort'       : DsInstanceAdminPort,
                   'startDS'           : 'no'
                 }
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               <call function="'testCase_Postamble'"/>
@@ -1090,17 +1101,18 @@
                                        'uid=kwinters,ou=People,dc=example,dc=com'],
                   'dsPath'          : '%s/%s' % (DsInstanceDir, OPENDSNAME),
                   'dsPort'          : DsInstancePort,
+                  'dsAdminPort'     : DsInstanceAdminPort,
                   'startDS'         : 'no'
                 }
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               <call function="'testCase_Postamble'"/>
@@ -1173,16 +1185,17 @@
                                        'uid=rhunt,ou=People,dc=example,dc=com'],
                   'dsPath'          : '%s/%s' % (DsInstanceDir, OPENDSNAME),
                   'dsPort'          : DsInstancePort,
+                  'dsAdminPort'     : DsInstanceAdminPort,
                   'startDS'         : 'no'}
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               <call function="'testCase_Postamble'"/>
@@ -1254,19 +1267,20 @@
                   'missingEntries'  : ['uid=scarter,ou=People,dc=example,dc=com',
                                        'uid=dmiller,ou=People,dc=example,dc=com',
                                        'uid=rhunt,ou=People,dc=example,dc=com'],
-                  'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'   : DsInstancePort,
-                  'startDS'  : 'no'
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsPort'      : DsInstancePort,
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'startDS'     : 'no'
                 }
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               <call function="'testCase_Postamble'"/>
@@ -1339,17 +1353,18 @@
                                        'uid=rhunt,ou=People,dc=example,dc=com'],
                   'dsPath'          : '%s/%s' % (DsInstanceDir, OPENDSNAME),
                   'dsPort'          : DsInstancePort,
+                  'dsAdminPort'     : DsInstanceAdminPort,
                   'startDS'         : 'no'
                 }
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               <call function="'testCase_Postamble'"/>
@@ -1417,18 +1432,19 @@
                   'missingEntries'  : ['uid=scarter,ou=People,dc=example,dc=com',
                                        'uid=dmiller,ou=People,dc=example,dc=com',
                                        'uid=rhunt,ou=People,dc=example,dc=com'],
-                  'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'   : DsInstancePort,
-                  'startDS'  : 'no'}
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsPort'      : DsInstancePort,
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'startDS'     : 'no'}
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd}
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd}
               </call>
               <call function="'testCase_Postamble'"/>
             </sequence>
@@ -1497,17 +1513,18 @@
                                        'uid=kwinters,ou=People,dc=example,dc=com'],
                   'dsPath'          : '%s/%s' % (DsInstanceDir, OPENDSNAME),
                   'dsPort'          : DsInstancePort,
+                  'dsAdminPort'     : DsInstanceAdminPort,
                   'startDS'         : 'no'
                 }
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd}
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd}
               </call>
               <call function="'testCase_Postamble'"/>
             </sequence>
@@ -1578,17 +1595,18 @@
                                        'uid=kwinters,ou=People,dc=example,dc=com'],
                   'dsPath'          : '%s/%s' % (DsInstanceDir, OPENDSNAME),
                   'dsPort'          : DsInstancePort,
+                  'dsAdminPort'     : DsInstanceAdminPort,
                   'startDS'         : 'no'
                 }
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               <call function="'testCase_Postamble'"/>
@@ -1660,17 +1678,18 @@
                                        'uid=kwinters,ou=People,dc=example,dc=com'],
                   'dsPath'          : '%s/%s' % (DsInstanceDir, OPENDSNAME),
                   'dsPort'          : DsInstancePort,
+                  'dsAdminPort'     : DsInstanceAdminPort,
                   'startDS'         : 'no'
                 }
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               <call function="'testCase_Postamble'"/>
@@ -1742,17 +1761,18 @@
                                        'uid=kwinters,ou=People,dc=example,dc=com'],
                   'dsPath'          : '%s/%s' % (DsInstanceDir, OPENDSNAME),
                   'dsPort'          : DsInstancePort,
+                  'dsAdminPort'     : DsInstanceAdminPort,
                   'startDS'         : 'no'
                 }
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               
@@ -1824,17 +1844,18 @@
                                        'uid=kwinters,ou=People,dc=example,dc=com'],
                   'dsPath'          : '%s/%s' % (DsInstanceDir, OPENDSNAME),
                   'dsPort'          : DsInstancePort,
+                  'dsAdminPort'     : DsInstanceAdminPort,
                   'startDS'         : 'no'
                 }
               </call>
               
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               <call function="'testCase_Postamble'"/>
@@ -1901,16 +1922,17 @@
                                        'uid=kwinters,ou=People,dc=example,dc=com'],
                   'dsPath'          : '%s/%s' % (DsInstanceDir, OPENDSNAME),
                   'dsPort'          : DsInstancePort,
+                  'dsAdminPort'     : DsInstanceAdminPort,
                   'startDS'         : 'no'
                 }
               </call>
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               <call function="'testCase_Postamble'"/>
@@ -1987,16 +2009,17 @@
                                        'uid=kwinters,ou=People,dc=example,dc=com'],
                   'dsPath'          : '%s/%s' % (DsInstanceDir, OPENDSNAME),
                   'dsPort'          : DsInstancePort,
+                  'dsAdminPort'     : DsInstanceAdminPort,
                   'startDS'         : 'no'
                 }
               </call>
               <!-- StopDS -->
               <call function="'StopDsWithScript'">
-                { 'location'  : mylocation,
-                  'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-                  'dsPort'    : DsInstancePort,
-                  'dsBindDN'  : mydn,
-                  'dsBindPwd' : mypswd
+                { 'location'    : mylocation,
+                  'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
+                  'dsAdminPort' : DsInstanceAdminPort,
+                  'dsBindDN'    : mydn,
+                  'dsBindPwd'   : mypswd
                 }
               </call>
               <call function="'testCase_Postamble'"/>

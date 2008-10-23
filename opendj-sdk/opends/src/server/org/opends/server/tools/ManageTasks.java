@@ -70,6 +70,9 @@ public class ManageTasks extends ConsoleApplication {
 
   private static ErrorLogPublisher errorLogPublisher = null;
 
+  // This CLI is always using the administration connector with SSL
+  private final boolean alwaysSSL = true;
+
   /**
    * The main method for TaskInfo tool.
    *
@@ -173,7 +176,7 @@ public class ManageTasks extends ConsoleApplication {
     LDAPConnectionArgumentParser argParser = new LDAPConnectionArgumentParser(
             "org.opends.server.tools.TaskInfo",
             INFO_TASKINFO_TOOL_DESCRIPTION.get(),
-            false, null);
+            false, null, alwaysSSL);
 
     // Initialize all the command-line argument types and register them with the
     // parser.

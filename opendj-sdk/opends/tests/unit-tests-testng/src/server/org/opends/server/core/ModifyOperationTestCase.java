@@ -31,7 +31,6 @@ package org.opends.server.core;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import org.testng.annotations.DataProvider;
@@ -204,7 +203,7 @@ public class ModifyOperationTestCase
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.ADD,
-                              new Attribute("description", "foo")));
+        Attributes.create("description", "foo")));
 
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), null, DN.nullDN(), mods));
@@ -220,7 +219,7 @@ public class ModifyOperationTestCase
 
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.DELETE,
-                              new Attribute("description", "foo")));
+        Attributes.create("description", "foo")));
 
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), null, DN.nullDN(), mods));
@@ -236,7 +235,7 @@ public class ModifyOperationTestCase
 
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("description", "foo")));
+        Attributes.create("description", "foo")));
 
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), null, DN.nullDN(), mods));
@@ -252,9 +251,9 @@ public class ModifyOperationTestCase
 
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.DELETE,
-                              new Attribute("description", "foo")));
+        Attributes.create("description", "foo")));
     mods.add(new Modification(ModificationType.ADD,
-                              new Attribute("description", "bar")));
+        Attributes.create("description", "bar")));
 
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), null, DN.nullDN(), mods));
@@ -270,9 +269,9 @@ public class ModifyOperationTestCase
 
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("description", "foo")));
+        Attributes.create("description", "foo")));
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("cn", "bar")));
+        Attributes.create("cn", "bar")));
 
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), null, DN.nullDN(), mods));
@@ -396,7 +395,7 @@ public class ModifyOperationTestCase
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("description", "foo")));
+        Attributes.create("description", "foo")));
     ModifyOperation modifyOperation =
          new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                              null, DN.nullDN(), mods);
@@ -421,7 +420,7 @@ public class ModifyOperationTestCase
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("description", "foo")));
+        Attributes.create("description", "foo")));
     ModifyOperation modifyOperation =
          new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                              null, DN.nullDN(), mods);
@@ -540,7 +539,7 @@ public class ModifyOperationTestCase
     UpdatePreOpPlugin.reset();
     UpdatePreOpPlugin.addModification(
          new Modification(ModificationType.REPLACE,
-                          new Attribute("description", "foo")));
+             Attributes.create("description", "foo")));
 
 
     InternalClientConnection conn =
@@ -548,7 +547,7 @@ public class ModifyOperationTestCase
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("l", "Austin")));
+        Attributes.create("l", "Austin")));
 
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode("o=test"), mods);
@@ -757,7 +756,7 @@ public class ModifyOperationTestCase
          e.getAttribute(DirectoryServer.getAttributeType("o", true));
     for (Attribute a : attrList)
     {
-      numValues += a.getValues().size();
+      numValues += a.size();
     }
     assertEquals(numValues, 1);
 
@@ -781,7 +780,7 @@ public class ModifyOperationTestCase
     attrList = e.getAttribute(DirectoryServer.getAttributeType("o", true));
     for (Attribute a : attrList)
     {
-      numValues += a.getValues().size();
+      numValues += a.size();
     }
     assertEquals(numValues, 2);
   }
@@ -807,7 +806,7 @@ public class ModifyOperationTestCase
          e.getAttribute(DirectoryServer.getAttributeType("dc", true));
     for (Attribute a : attrList)
     {
-      numValues += a.getValues().size();
+      numValues += a.size();
     }
     assertEquals(numValues, 1);
 
@@ -831,7 +830,7 @@ public class ModifyOperationTestCase
     attrList = e.getAttribute(DirectoryServer.getAttributeType("dc", true));
     for (Attribute a : attrList)
     {
-      numValues += a.getValues().size();
+      numValues += a.size();
     }
     assertEquals(numValues, 2);
   }
@@ -2846,7 +2845,7 @@ public class ModifyOperationTestCase
     boolean found = false;
     for (Attribute a : attrList)
     {
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
       {
         assertEquals(Integer.parseInt(v.getStringValue()), 2);
         found = true;
@@ -2915,7 +2914,7 @@ public class ModifyOperationTestCase
     boolean found = false;
     for (Attribute a : attrList)
     {
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
       {
         assertEquals(Integer.parseInt(v.getStringValue()), 11);
         found = true;
@@ -2984,7 +2983,7 @@ public class ModifyOperationTestCase
     boolean found = false;
     for (Attribute a : attrList)
     {
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
       {
         assertEquals(Integer.parseInt(v.getStringValue()), 0);
         found = true;

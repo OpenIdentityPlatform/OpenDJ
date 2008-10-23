@@ -118,10 +118,19 @@ public class TLSSocketSession implements ProtocolSession
   /**
    * {@inheritDoc}
    */
-  public synchronized void publish(ReplicationMessage msg)
+  public synchronized void publish(ReplicationMsg msg)
          throws IOException
   {
-    byte[] buffer = msg.getBytes();
+    publish(msg, ProtocolVersion.getCurrentVersion());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public synchronized void publish(ReplicationMsg msg, short reqProtocolVersion)
+         throws IOException
+  {
+    byte[] buffer = msg.getBytes(reqProtocolVersion);
     String str = String.format("%08x", buffer.length);
     byte[] sendLengthBuf = str.getBytes();
 
@@ -135,8 +144,9 @@ public class TLSSocketSession implements ProtocolSession
   /**
    * {@inheritDoc}
    */
-  public ReplicationMessage receive() throws IOException,
-      ClassNotFoundException, DataFormatException
+  public ReplicationMsg receive() throws IOException,
+      ClassNotFoundException, DataFormatException,
+      NotSupportedOldVersionPDUException
   {
     /* Read the first 8 bytes containing the packet length */
     int length = 0;
@@ -172,7 +182,7 @@ public class TLSSocketSession implements ProtocolSession
       /* We do not want the heartbeat to close the session when */
       /* we are processing a message even a time consuming one. */
       lastReceiveTime=0;
-      return ReplicationMessage.generateMsg(buffer);
+      return ReplicationMsg.generateMsg(buffer);
     }
     catch (OutOfMemoryError e)
     {

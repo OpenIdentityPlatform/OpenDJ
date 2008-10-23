@@ -157,6 +157,11 @@ public enum Category {
   RUNTIME_INFORMATION(0x01300000),
 
   /**
+   * The category used for messages associated with the Servicetag registration.
+   */
+  SERVICETAG(0x01400000),
+
+  /**
    * The category that will be used for messages associated with
    * third-party (including user-defined) modules.
    */

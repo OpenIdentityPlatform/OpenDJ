@@ -27,7 +27,7 @@
 
 
 # This script may be used to perform some replication specific operations.
-OPENDS_INVOKE_CLASS="org.opends.guitools.replicationcli.ReplicationCliMain"
+OPENDS_INVOKE_CLASS="org.opends.server.tools.dsreplication.ReplicationCliMain"
 export OPENDS_INVOKE_CLASS
 
 SCRIPT_NAME="dsreplication"

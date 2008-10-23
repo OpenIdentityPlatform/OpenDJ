@@ -44,6 +44,7 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
+import javax.naming.ldap.Control;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.StartTlsRequest;
 import javax.naming.ldap.StartTlsResponse;
@@ -217,6 +218,60 @@ public class ConnectionUtils
           TrustedSocketFactory.setCurrentThreadTrustManager(fTrustManager,
               fKeyManager);
           pair[0] = new InitialLdapContext(fEnv, null);
+
+        } catch (NamingException ne) {
+          pair[1] = ne;
+
+        } catch (RuntimeException re) {
+          pair[1] = re;
+        }
+      }
+    });
+    return getInitialLdapContext(t, pair, timeout);
+  }
+
+  /**
+   * Clones the provided InitialLdapContext and returns a connection using
+   * the same parameters.
+   * @param ctx hte connection to be cloned.
+   * @param timeout the timeout to establish the connection.
+   * @param trustManager the trust manager to be used to connect.
+   * @param keyManager the key manager to be used to connect.
+   * @return the new InitialLdapContext connected to the server.
+   * @throws NamingException if there was an error creating the new connection.
+   */
+  public static InitialLdapContext cloneInitialLdapContext(
+      final InitialLdapContext ctx, int timeout, TrustManager trustManager,
+      KeyManager keyManager) throws NamingException
+  {
+    Hashtable<?, ?> env = ctx.getEnvironment();
+    Hashtable<?, ?> newEnv = new Hashtable<Object, Object>(env);
+    Control[] ctls = ctx.getConnectControls();
+    Control[] newCtls = null;
+    if (ctls != null)
+    {
+      newCtls = new Control[ctls.length];
+      for (int i=0; i<ctls.length; i++)
+      {
+        newCtls[i] = ctls[i];
+      }
+    }
+    /* Contains the DirContext and the Exception if any */
+    final Object[] pair = new Object[] {null, null};
+    final Hashtable fEnv = env;
+    final TrustManager fTrustManager = trustManager;
+    final KeyManager   fKeyManager   = keyManager;
+    final Control[] fNewCtls = newCtls;
+
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        try {
+          if (isSSL(ctx) || isStartTLS(ctx))
+          {
+            TrustedSocketFactory.setCurrentThreadTrustManager(fTrustManager,
+                fKeyManager);
+          }
+          pair[0] = new InitialLdapContext(fEnv, fNewCtls);
 
         } catch (NamingException ne) {
           pair[1] = ne;

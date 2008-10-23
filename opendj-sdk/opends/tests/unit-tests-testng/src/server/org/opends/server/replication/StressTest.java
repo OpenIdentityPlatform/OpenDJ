@@ -49,8 +49,9 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.plugin.ReplicationBroker;
 import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.ReplicationMessage;
+import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -60,6 +61,7 @@ import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import static org.opends.server.TestCaseUtils.*;
 
 /**
  * Stress test for the synchronization code using the ReplicationBroker API.
@@ -88,7 +90,7 @@ public class StressTest extends ReplicationTestCase
     logError(Message.raw(Category.SYNC, Severity.NOTICE,
         "Starting replication StressTest : fromServertoBroker"));
 
-    final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
+    final DN baseDn = DN.decode("ou=People," + TEST_ROOT_DN_STRING);
     final int TOTAL_MESSAGES = 1000;
 
     ReplicationBroker broker =
@@ -110,13 +112,12 @@ public class StressTest extends ReplicationTestCase
           tmp.getObjectClasses(), tmp.getUserAttributes(),
           tmp.getOperationalAttributes());
       addOp.run();
-      entryList.add(personEntry.getDN());
       assertTrue(DirectoryServer.entryExists(personEntry.getDN()),
         "The Add Entry operation failed");
       if (ResultCode.SUCCESS == addOp.getResultCode())
       {
         // Check if the client has received the msg
-        ReplicationMessage msg = broker.receive();
+        ReplicationMsg msg = broker.receive();
 
         assertTrue(msg instanceof AddMsg,
         "The received replication message is not an ADD msg");
@@ -176,38 +177,19 @@ public class StressTest extends ReplicationTestCase
   @BeforeClass
   public void setUp() throws Exception
   {
+    super.setUp();
+
     // This test suite depends on having the schema available.
-    TestCaseUtils.restartServer();
 
     // Create an internal connection
     connection = InternalClientConnection.getRootConnection();
 
-    // Create backend top level entries
-    String[] topEntries = new String[2];
-    topEntries[0] = "dn: dc=example,dc=com\n" + "objectClass: top\n"
-        + "objectClass: domain\n";
-    topEntries[1] = "dn: ou=People,dc=example,dc=com\n" + "objectClass: top\n"
+    // Create necessary backend top level entry
+    String topEntry = "dn: ou=People," + TEST_ROOT_DN_STRING + "\n"
+        + "objectClass: top\n"
         + "objectClass: organizationalUnit\n"
         + "entryUUID: 11111111-1111-1111-1111-111111111111\n";
-    Entry entry;
-    for (int i = 0; i < topEntries.length; i++)
-    {
-      entry = TestCaseUtils.entryFromLdifString(topEntries[i]);
-      AddOperationBasis addOp = new AddOperationBasis(connection,
-          InternalClientConnection.nextOperationID(), InternalClientConnection
-              .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
-          entry.getUserAttributes(), entry.getOperationalAttributes());
-      addOp.setInternalOperation(true);
-      addOp.run();
-      entryList.add(entry.getDN());
-    }
-
-    // top level synchro provider
-    String synchroStringDN = "cn=Synchronization Providers,cn=config";
-
-    // Multimaster Synchro plugin
-    synchroPluginStringDN = "cn=Multimaster Synchronization, "
-        + synchroStringDN;
+    TestCaseUtils.addEntry(topEntry);
 
     // find  a free port for the replicationServer
     ServerSocket socket = TestCaseUtils.bindFreePort();
@@ -216,26 +198,28 @@ public class StressTest extends ReplicationTestCase
 
     // Change log
     String replServerLdif =
-      "dn: cn=Replication Server, " + synchroPluginStringDN + "\n"
+      "dn: cn=Replication Server, " + SYNCHRO_PLUGIN_DN + "\n"
         + "objectClass: top\n"
         + "objectClass: ds-cfg-replication-server\n"
         + "cn: Replication Server\n"
         + "ds-cfg-replication-port: " + replServerPort + "\n"
-        + "ds-cfg-replication-server-id: 1\n";
+        + "ds-cfg-replication-db-directory: StressTest\n"    
+        + "ds-cfg-replication-server-id: 106\n";
     replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
     // suffix synchronized
+    String testName = "stressTest";
     String synchroServerLdif =
-      "dn: " + "cn=example, cn=domains, " + synchroPluginStringDN + "\n"
+      "dn: cn=" + testName + ", cn=domains, " + SYNCHRO_PLUGIN_DN + "\n"
         + "objectClass: top\n"
         + "objectClass: ds-cfg-replication-domain\n"
-        + "cn: example\n"
-        + "ds-cfg-base-dn: ou=People,dc=example,dc=com\n"
+        + "cn: " + testName + "\n"
+        + "ds-cfg-base-dn: ou=People," + TEST_ROOT_DN_STRING + "\n"
         + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
         + "ds-cfg-server-id: 1\n" + "ds-cfg-receive-status: true\n";
     synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
 
-    String personLdif = "dn: uid=user.1,ou=People,dc=example,dc=com\n"
+    String personLdif = "dn: uid=user.1,ou=People," + TEST_ROOT_DN_STRING + "\n"
         + "objectClass: top\n" + "objectClass: person\n"
         + "objectClass: organizationalPerson\n"
         + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
@@ -318,7 +302,7 @@ public class StressTest extends ReplicationTestCase
       {
         while (true)
         {
-          ReplicationMessage msg = broker.receive();
+          ReplicationMsg msg = broker.receive();
           if (msg == null)
             break;
           count ++;
@@ -376,13 +360,13 @@ public class StressTest extends ReplicationTestCase
     {
       Attribute attr;
       if (reader == null)
-        attr = new Attribute("received-messages", "not yet started");
+        attr = Attributes.create("received-messages", "not yet started");
       else
-        attr = new Attribute("received-messages",
-                             String.valueOf(reader.getCurrentCount()));
-      List<Attribute>  list = new LinkedList<Attribute>();
+        attr = Attributes.create("received-messages", String
+            .valueOf(reader.getCurrentCount()));
+      List<Attribute> list = new LinkedList<Attribute>();
       list.add(attr);
-      attr = new Attribute("base-dn", "ou=People,dc=example,dc=com");
+      attr = Attributes.create("base-dn", "ou=People," + TEST_ROOT_DN_STRING);
       list.add(attr);
       return list;
     }

@@ -70,12 +70,12 @@
           <!-- Load entries into "master" server -->                                
           <!-- Stop "master" Directory Server -->
           <call function="'StopDsWithScript'">
-            { 'location'  : masterHost,
-              'dsPath'    : masterPath,
-              'dsHost'    : masterHost,
-              'dsPort'    : master.getPort(),
-              'dsBindDN'  : master.getRootDn(),
-              'dsBindPwd' : master.getRootPwd()
+            { 'location'    : masterHost,
+              'dsPath'      : masterPath,
+              'dsHost'      : masterHost,
+              'dsAdminPort' : master.getAdminPort(),
+              'dsBindDN'    : master.getRootDn(),
+              'dsBindPwd'   : master.getRootPwd()
             }
           </call>
               
@@ -113,22 +113,22 @@
           <call function="'initializeReplication'">
             { 'location'  :  clientHost,
               'dsPath'  :  clientPath,
-              'sourceInstanceHost'  :  masterHost,
-              'sourceInstancePort'  :  master.getPort(),
-              'replicationDnList'  :  ['o=example']
+              'sourceInstanceHost'      :  masterHost,
+              'sourceInstanceAdminPort' :  master.getAdminPort(),
+              'replicationDnList'       :  ['o=example']
             }
           </call>            
 -->    
           <iterate var="server" in="consumerList">                                    
             <!-- Perform the total update -->
             <call function="'initializeReplication'">
-              { 'location'  :  clientHost,
-                'dsPath'  :  clientPath,
-                'dsInstanceHost'  :  server.getHostname(),
-                'dsInstancePort'  :  server.getPort(),
-                'sourceInstanceHost'  :  masterHost,
-                'sourceInstancePort'  :  master.getPort(),
-                'replicationDnList'  :  ['o=example']
+              { 'location'                :  clientHost,
+                'dsPath'                  :  clientPath,
+                'dsInstanceHost'          :  server.getHostname(),
+                'dsInstanceAdminPort'     :  server.getAdminPort(),
+                'sourceInstanceHost'      :  masterHost,
+                'sourceInstanceAdminPort' :  master.getAdminPort(),
+                'replicationDnList'       :  ['o=example']
               }
             </call>
           </iterate>            
@@ -164,12 +164,12 @@
                     
                   <!-- Stop server (simulate failover?) -->
                   <call function="'StopDsWithScript'">
-                    { 'location'  :  server.getHostname(),
-                      'dsPath'    :  serverPath,
-                      'dsHost'    :  server.getHostname(),
-                      'dsPort'    :  server.getPort(),
-                      'dsBindDN'  :  server.getRootDn(),
-                      'dsBindPwd' :  server.getRootPwd()
+                    { 'location'    :  server.getHostname(),
+                      'dsPath'      :  serverPath,
+                      'dsHost'      :  server.getHostname(),
+                      'dsAdminPort' :  server.getAdminPort(),
+                      'dsBindDN'    :  server.getRootDn(),
+                      'dsBindPwd'   :  server.getRootPwd()
                     }
                   </call>
                     

@@ -226,5 +226,15 @@ public class FaxSyntax
     // All values will be acceptable for the fax syntax.
     return true;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

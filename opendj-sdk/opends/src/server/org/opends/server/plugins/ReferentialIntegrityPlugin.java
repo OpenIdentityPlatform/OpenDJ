@@ -58,9 +58,9 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DereferencePolicy;
@@ -711,25 +711,15 @@ public class ReferentialIntegrityPlugin
     {
       if(e.hasAttribute(type))
       {
-        AttributeValue deleteValue=
-             new AttributeValue(type, oldEntryDN.toString());
-        LinkedHashSet<AttributeValue> deleteValues=
-             new LinkedHashSet<AttributeValue>();
+        mods.add(new Modification(ModificationType.DELETE, Attributes
+            .create(type, oldEntryDN.toString())));
 
-        deleteValues.add(deleteValue);
-        mods.add(new Modification(ModificationType.DELETE,
-                new Attribute(type, type.getNameOrOID(), deleteValues)));
-
-        //If the new entry DN exists, create an ADD modification for it.
+        // If the new entry DN exists, create an ADD modification for
+        // it.
         if(newEntryDN != null)
         {
-          LinkedHashSet<AttributeValue> addValues=
-               new LinkedHashSet<AttributeValue>();
-          AttributeValue addValue=
-               new AttributeValue(type, newEntryDN.toString());
-          addValues.add(addValue);
-          mods.add(new Modification(ModificationType.ADD,
-                  new Attribute(type, type.getNameOrOID(), addValues)));
+          mods.add(new Modification(ModificationType.ADD, Attributes
+              .create(type, newEntryDN.toString())));
         }
       }
     }

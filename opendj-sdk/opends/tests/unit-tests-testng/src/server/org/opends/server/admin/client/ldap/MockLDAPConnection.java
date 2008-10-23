@@ -316,7 +316,7 @@ public class MockLDAPConnection extends LDAPConnection {
     Attributes attributes = new BasicAttributes();
     for (org.opends.server.types.Attribute attribute : entry.getAttributes()) {
       BasicAttribute ba = new BasicAttribute(attribute.getName());
-      for (AttributeValue value : attribute.getValues()) {
+      for (AttributeValue value : attribute) {
         ba.add(value.getStringValue());
       }
       attributes.put(ba);

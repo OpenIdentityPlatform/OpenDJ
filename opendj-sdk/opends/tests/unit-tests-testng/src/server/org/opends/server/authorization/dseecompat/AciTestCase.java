@@ -244,23 +244,29 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
 
   protected void LDIFAdd(String ldif, String bindDn, String bindPassword,
                             String controlStr, int rc) throws Exception {
-    _LDIFModify(ldif, bindDn, bindPassword, controlStr, true, rc);
+    _LDIFModify(ldif, bindDn, bindPassword, controlStr, true, rc, false);
   }
 
   protected void LDIFModify(String ldif, String bindDn, String bindPassword,
                             String controlStr, int rc) throws Exception {
-    _LDIFModify(ldif, bindDn, bindPassword, controlStr, false, rc);
+    _LDIFModify(ldif, bindDn, bindPassword, controlStr, false, rc, false);
   }
 
   protected void LDIFModify(String ldif, String bindDn, String bindPassword)
   throws Exception {
-    _LDIFModify(ldif, bindDn, bindPassword, null, false, -1);
+    _LDIFModify(ldif, bindDn, bindPassword, null, false, -1, false);
+  }
+
+  protected void LDIFAdminModify (String ldif, String bindDn,
+                                  String bindPassword)
+  throws Exception {
+    _LDIFModify(ldif, bindDn, bindPassword, null, false, -1, true);
   }
 
   protected void LDIFModify(String ldif, String bindDn, String bindPassword,
                             String ctrlString)
   throws Exception {
-    _LDIFModify(ldif, bindDn, bindPassword, ctrlString, false, -1);
+    _LDIFModify(ldif, bindDn, bindPassword, ctrlString, false, -1, false);
   }
 
   protected void LDIFDelete(String dn, String bindDn, String bindPassword,
@@ -296,7 +302,8 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
 
 
   private void _LDIFModify(String ldif, String bindDn, String bindPassword,
-                           String controlStr, boolean add,  int rc)
+                           String controlStr, boolean add,  int rc,
+                           boolean useAdminPort)
           throws Exception {
     File tempFile = getTemporaryLdifFile();
     TestCaseUtils.writeFile(tempFile, ldif);
@@ -304,7 +311,13 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     argList.add("-h");
     argList.add("127.0.0.1");
     argList.add("-p");
-    argList.add(String.valueOf(TestCaseUtils.getServerLdapPort()));
+    if (useAdminPort) {
+      argList.add(String.valueOf(TestCaseUtils.getServerAdminPort()));
+      argList.add("-Z");
+      argList.add("-X");
+    } else {
+      argList.add(String.valueOf(TestCaseUtils.getServerLdapPort()));
+    }
     argList.add("-D");
     argList.add(bindDn);
     argList.add("-w");
@@ -336,6 +349,16 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
             "changetype: modify",
             "delete: " + attr));
     LDIFModify(ldif.toString(), DIR_MGR_DN, PWD);
+  }
+
+  protected void deleteAttrFromAdminEntry(String dn, String attr)
+  throws Exception {
+    StringBuilder ldif = new StringBuilder();
+    ldif.append(TestCaseUtils.makeLdif(
+            "dn: "  + dn,
+            "changetype: modify",
+            "delete: " + attr));
+    LDIFAdminModify(ldif.toString(), DIR_MGR_DN, PWD);
   }
 
   protected static String makeModDNLDIF(String dn, String newRDN,

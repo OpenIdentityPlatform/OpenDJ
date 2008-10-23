@@ -296,7 +296,7 @@ public boolean writeEntries(Collection <Entry> entries)
       AddChangeRecordEntry addRecord = (AddChangeRecordEntry) changeRecord;
       for (Attribute a : addRecord.getAttributes())
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           StringBuilder line = new StringBuilder();
           line.append(a.getNameWithOptions());
@@ -466,7 +466,7 @@ public boolean writeEntries(Collection <Entry> entries)
           attrName.append(o);
         }
 
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           StringBuilder attrLine = new StringBuilder();
           attrLine.append(attrName);
@@ -545,7 +545,7 @@ public boolean writeEntries(Collection <Entry> entries)
             attrName.append(o);
           }
 
-          for (AttributeValue v : a.getValues())
+          for (AttributeValue v : a)
           {
             StringBuilder attrLine = new StringBuilder();
             attrLine.append(attrName);
@@ -642,7 +642,7 @@ public boolean writeEntries(Collection <Entry> entries)
       }
       writeLDIFLine(modTypeLine, writer, wrapLines, wrapColumn);
 
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
       {
         StringBuilder valueLine = new StringBuilder();
         valueLine.append(name);

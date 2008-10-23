@@ -2260,7 +2260,7 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    CopyOnWriteArrayList<PasswordStorageScheme> defaultSchemes =
+    CopyOnWriteArrayList<PasswordStorageScheme<?>> defaultSchemes =
          p.getDefaultStorageSchemes();
     assertNotNull(defaultSchemes);
     assertFalse(defaultSchemes.isEmpty());
@@ -2297,7 +2297,7 @@ public class PasswordPolicyTestCase
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    CopyOnWriteArrayList<PasswordStorageScheme> defaultSchemes =
+    CopyOnWriteArrayList<PasswordStorageScheme<?>> defaultSchemes =
          p.getDefaultStorageSchemes();
     assertNotNull(defaultSchemes);
     assertFalse(defaultSchemes.isEmpty());
@@ -4304,7 +4304,7 @@ public class PasswordPolicyTestCase
 
     try
     {
-      TestCaseUtils.applyModifications(
+      TestCaseUtils.applyModifications(false,
         "dn: uid=test.user,o=test",
         "changetype: modify",
         "replace: userPassword",

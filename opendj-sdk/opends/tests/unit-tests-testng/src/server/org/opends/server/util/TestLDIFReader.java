@@ -32,16 +32,16 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -468,7 +468,6 @@ public final class TestLDIFReader extends UtilTestCase {
       Iterator<RawModification> i;
       Modification mod;
       Attribute attr;
-      LinkedHashSet<AttributeValue> values;
 
       // Change record #1.
       change = reader.readChangeRecord(false);
@@ -479,17 +478,16 @@ public final class TestLDIFReader extends UtilTestCase {
       Assert.assertEquals(add.getDN(), dn);
 
       List<Attribute> attrs = new ArrayList<Attribute>();
+      AttributeBuilder builder = new AttributeBuilder(AT_OC, "objectclass");
+      builder.add(new AttributeValue(AT_OC, "top"));
+      builder.add(new AttributeValue(AT_OC, "person"));
+      builder.add(new AttributeValue(AT_OC, "organizationalPerson"));
 
-      values = new LinkedHashSet<AttributeValue>();
-      values.add(new AttributeValue(AT_OC, "top"));
-      values.add(new AttributeValue(AT_OC, "person"));
-      values.add(new AttributeValue(AT_OC, "organizationalPerson"));
-
-      attrs.add(new Attribute(AT_OC, "objectclass", values));
-      attrs.add(new Attribute("cn", "Fiona Jensen"));
-      attrs.add(new Attribute("sn", "Jensen"));
-      attrs.add(new Attribute("uid", "fiona"));
-      attrs.add(new Attribute("telephonenumber", "+1 408 555 1212"));
+      attrs.add(builder.toAttribute());
+      attrs.add(Attributes.create("cn", "Fiona Jensen"));
+      attrs.add(Attributes.create("sn", "Jensen"));
+      attrs.add(Attributes.create("uid", "fiona"));
+      attrs.add(Attributes.create("telephonenumber", "+1 408 555 1212"));
       Assert.assertTrue(add.getAttributes().containsAll(attrs));
 
       // Change record #2.
@@ -543,7 +541,7 @@ public final class TestLDIFReader extends UtilTestCase {
       Assert.assertTrue(i.hasNext());
       mod = i.next().toModification();
       Assert.assertEquals(mod.getModificationType(), ModificationType.ADD);
-      attr = new Attribute("postaladdress",
+      attr = Attributes.create("postaladdress",
           "123 Anystreet $ Sunnyvale, CA $ 94086");
       Assert.assertEquals(mod.getAttribute(), attr);
 
@@ -551,24 +549,23 @@ public final class TestLDIFReader extends UtilTestCase {
       mod = i.next().toModification();
       Assert.assertEquals(mod.getModificationType(),
           ModificationType.DELETE);
-      attr = new Attribute(AT_DESCR);
+      attr = Attributes.empty(AT_DESCR);
       Assert.assertEquals(mod.getAttribute(), attr);
 
       Assert.assertTrue(i.hasNext());
       mod = i.next().toModification();
       Assert.assertEquals(mod.getModificationType(),
           ModificationType.REPLACE);
-      values = new LinkedHashSet<AttributeValue>();
-      values.add(new AttributeValue(AT_TELN, "+1 408 555 1234"));
-      values.add(new AttributeValue(AT_TELN, "+1 408 555 5678"));
-      attr = new Attribute(AT_TELN, "telephonenumber", values);
-      Assert.assertEquals(mod.getAttribute(), attr);
+      builder = new AttributeBuilder(AT_TELN, "telephonenumber");
+      builder.add(new AttributeValue(AT_TELN, "+1 408 555 1234"));
+      builder.add(new AttributeValue(AT_TELN, "+1 408 555 5678"));
+      Assert.assertEquals(mod.getAttribute(), builder.toAttribute());
 
       Assert.assertTrue(i.hasNext());
       mod = i.next().toModification();
       Assert.assertEquals(mod.getModificationType(),
           ModificationType.DELETE);
-      attr = new Attribute("facsimiletelephonenumber", "+1 408 555 9876");
+      attr = Attributes.create("facsimiletelephonenumber", "+1 408 555 9876");
       Assert.assertEquals(mod.getAttribute(), attr);
 
       Assert.assertFalse(i.hasNext());
@@ -588,7 +585,7 @@ public final class TestLDIFReader extends UtilTestCase {
       mod = i.next().toModification();
       Assert.assertEquals(mod.getModificationType(),
           ModificationType.REPLACE);
-      attr = new Attribute(DirectoryServer
+      attr = Attributes.empty(DirectoryServer
           .getAttributeType("postaladdress"));
       Assert.assertEquals(mod.getAttribute(), attr);
 
@@ -605,7 +602,7 @@ public final class TestLDIFReader extends UtilTestCase {
       mod = i.next().toModification();
       Assert.assertEquals(mod.getModificationType(),
           ModificationType.DELETE);
-      attr = new Attribute(AT_DESCR);
+      attr = Attributes.empty(AT_DESCR);
       Assert.assertEquals(mod.getAttribute(), attr);
 
       // Change record #8.
@@ -622,7 +619,7 @@ public final class TestLDIFReader extends UtilTestCase {
       mod = i.next().toModification();
       Assert.assertEquals(mod.getModificationType(),
           ModificationType.DELETE);
-      attr = new Attribute(AT_DESCR);
+      attr = Attributes.empty(AT_DESCR);
       Assert.assertEquals(mod.getAttribute(), attr);
 
       Assert.assertFalse(i.hasNext());
@@ -694,7 +691,7 @@ public final class TestLDIFReader extends UtilTestCase {
       DN dn = DN.decode("cn=john smith, dc=com");
       Assert.assertEquals(add.getDN(), dn);
 
-      Attribute attr = new Attribute("description", TEMP_FILE_STRING);
+      Attribute attr = Attributes.create("description", TEMP_FILE_STRING);
       Assert.assertTrue(add.getAttributes().contains(attr));
 
       // Check final state.

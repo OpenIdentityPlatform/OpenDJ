@@ -78,7 +78,7 @@ public class UserAttributeNotificationMessageTemplateElement
     {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           buffer.append(v.getStringValue());
           return;

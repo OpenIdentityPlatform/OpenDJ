@@ -55,6 +55,8 @@ public class UserData
 
   private int serverPort;
 
+  private int adminConnectorPort;
+
   private String directoryManagerDn;
 
   private String directoryManagerPwd;
@@ -115,6 +117,13 @@ public class UserData
     if (defaultPort != -1)
     {
       setServerPort(defaultPort);
+    }
+
+//  See what we can propose as port
+    defaultPort = getDefaultAdminConnectorPort();
+    if (defaultPort != -1)
+    {
+      setAdminConnectorPort(defaultPort);
     }
 
     setHostName(getDefaultHostName());
@@ -192,6 +201,24 @@ public class UserData
   public int getServerPort()
   {
     return serverPort;
+  }
+
+  /**
+   * Sets the admin connector port.
+   * @param adminConnectorPort the new admin connector port.
+   */
+  public void setAdminConnectorPort(int adminConnectorPort)
+  {
+    this.adminConnectorPort = adminConnectorPort;
+  }
+
+  /**
+   * Returns the admin connector port.
+   * @return the admin connector port.
+   */
+  public int getAdminConnectorPort()
+  {
+    return adminConnectorPort;
   }
 
   /**
@@ -551,6 +578,29 @@ public class UserData
     for (int i=0;i<10000 && (defaultPort == -1);i+=1000)
     {
       int port = i + 389;
+      if (Utils.canUseAsPort(port))
+      {
+        defaultPort = port;
+      }
+    }
+    return defaultPort;
+  }
+
+  /**
+   * Provides the administration port that will be proposed to the user in the
+   * second page of the installation wizard. It will check whether we can use
+   * ports of type X444 and if not it will return -1.
+   *
+   * @return the free port of type x444 if it is available and we can use and -1
+   * if not.
+   */
+  static public int getDefaultAdminConnectorPort()
+  {
+    int defaultPort = -1;
+
+    for (int i=0;i<10000 && (defaultPort == -1);i+=1000)
+    {
+      int port = i + 4444;
       if (Utils.canUseAsPort(port))
       {
         defaultPort = port;

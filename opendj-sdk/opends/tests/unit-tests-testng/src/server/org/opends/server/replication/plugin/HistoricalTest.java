@@ -29,10 +29,14 @@ package org.opends.server.replication.plugin;
 
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
+import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPModify;
+import org.opends.server.types.AbstractOperation;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Attribute;
@@ -42,7 +46,10 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.core.DirectoryServer;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
+
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+import static org.opends.server.TestCaseUtils.*;
 
 import java.net.ServerSocket;
 import java.util.List;
@@ -65,7 +72,7 @@ public class HistoricalTest
   public void setUp()
        throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    super.setUp();
 
     // Create an internal connection.
     connection = InternalClientConnection.getRootConnection();
@@ -76,22 +83,25 @@ public class HistoricalTest
     socket.close();
 
     // The replication server.
-    String replServerStringDN = "cn=Replication Server, " + synchroPluginStringDN;
+    String replServerStringDN = "cn=Replication Server, " + SYNCHRO_PLUGIN_DN;
     String replServerLdif = "dn: " + replServerStringDN + "\n"
          + "objectClass: top\n"
          + "objectClass: ds-cfg-replication-server\n"
          + "cn: replication Server\n"
          + "ds-cfg-replication-port: " + replServerPort + "\n"
-         + "ds-cfg-replication-server-id: 1\n";
+         + "ds-cfg-replication-db-directory: HistoricalTest\n"
+         + "ds-cfg-replication-server-id: 102\n";
     replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
     // The suffix to be synchronized.
-    String synchroServerStringDN = "o=test, cn=domains, " + synchroPluginStringDN;
+    String testName = "historicalTest";
+    String synchroServerStringDN = "cn=" + testName + ", cn=domains, " +
+      SYNCHRO_PLUGIN_DN;
     String synchroServerLdif = "dn: " + synchroServerStringDN + "\n"
          + "objectClass: top\n"
          + "objectClass: ds-cfg-replication-domain\n"
-         + "cn: example\n"
-         + "ds-cfg-base-dn: o=test\n"
+         + "cn: " + testName + "\n"
+         + "ds-cfg-base-dn: " + TEST_ROOT_DN_STRING + "\n"
          + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
          + "ds-cfg-server-id: 1\n"
          + "ds-cfg-receive-status: true\n";
@@ -111,7 +121,7 @@ public class HistoricalTest
   {
     //  Add a test entry.
     TestCaseUtils.addEntry(
-         "dn: uid=user.1,o=test",
+         "dn: uid=user.1," + TEST_ROOT_DN_STRING,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -129,7 +139,7 @@ public class HistoricalTest
     // Test both single and multi-valued attributes.
 
     String path = TestCaseUtils.createTempFile(
-         "dn: uid=user.1,o=test",
+         "dn: uid=user.1," + TEST_ROOT_DN_STRING,
          "changetype: modify",
          "add: cn;lang-en",
          "cn;lang-en: Aaccf Amar",
@@ -158,7 +168,7 @@ public class HistoricalTest
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
 
     args[9] = TestCaseUtils.createTempFile(
-         "dn: uid=user.1,o=test",
+         "dn: uid=user.1," + TEST_ROOT_DN_STRING,
          "changetype: modify",
          "replace: displayName",
          "displayName: 2",
@@ -168,7 +178,7 @@ public class HistoricalTest
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
 
     // Read the entry back to get its history operational attribute.
-    DN dn = DN.decode("uid=user.1,o=test");
+    DN dn = DN.decode("uid=user.1," + TEST_ROOT_DN_STRING);
     Entry entry = DirectoryServer.getEntry(dn);
 
     List<Attribute> attrs = Historical.getHistoricalAttr(entry);
@@ -197,9 +207,9 @@ public class HistoricalTest
   public void conflictSingleValue()
        throws Exception
   {
-    final DN dn1 = DN.decode("cn=test1,o=test");
-    final DN dn2 = DN.decode("cn=test2,o=test");
-    final DN baseDn = DN.decode("o=test");
+    final DN dn1 = DN.decode("cn=test1," + TEST_ROOT_DN_STRING);
+    final DN dn2 = DN.decode("cn=test2," + TEST_ROOT_DN_STRING);
+    final DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
     final AttributeType attrType =
          DirectoryServer.getAttributeType("displayname");
     final AttributeType entryuuidType =
@@ -213,12 +223,12 @@ public class HistoricalTest
       openReplicationSession(baseDn, (short)2, 100, replServerPort, 1000, true);
 
 
-    // Clear the backend.
+    // Clear the backend and create top entrye
     TestCaseUtils.initializeTestBackend(true);
 
     // Add the first test entry.
     TestCaseUtils.addEntry(
-         "dn: cn=test1,o=test",
+         "dn: cn=test1," + TEST_ROOT_DN_STRING,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -231,11 +241,11 @@ public class HistoricalTest
     Entry entry = DirectoryServer.getEntry(dn1);
     List<Attribute> attrs = entry.getAttribute(entryuuidType);
     String entryuuid =
-         attrs.get(0).getValues().iterator().next().getStringValue();
+         attrs.get(0).iterator().next().getStringValue();
 
     // Add the second test entry.
     TestCaseUtils.addEntry(
-         "dn: cn=test2,o=test",
+         "dn: cn=test2," + TEST_ROOT_DN_STRING,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -249,7 +259,7 @@ public class HistoricalTest
     entry = DirectoryServer.getEntry(dn2);
     attrs = entry.getAttribute(entryuuidType);
     String entryuuid2 =
-         attrs.get(0).getValues().iterator().next().getStringValue();
+         attrs.get(0).iterator().next().getStringValue();
 
     // A change on a first server.
     ChangeNumber t1 = new ChangeNumber(1, (short) 0, (short) 3);
@@ -261,7 +271,7 @@ public class HistoricalTest
     // happen on one server.
 
     // Replay an add of a value A at time t1 on a first server.
-    Attribute attr = new Attribute(attrType.getNormalizedPrimaryName(), "A");
+    Attribute attr = Attributes.create(attrType.getNormalizedPrimaryName(), "A");
     Modification mod = new Modification(ModificationType.ADD, attr);
     publishModify(broker, t1, dn1, entryuuid, mod);
 
@@ -273,7 +283,7 @@ public class HistoricalTest
     Thread.sleep(2000);
 
     // Replay an add of a value B at time t2 on a second server.
-    attr = new Attribute(attrType.getNormalizedPrimaryName(), "B");
+    attr = Attributes.create(attrType.getNormalizedPrimaryName(), "B");
     mod = new Modification(ModificationType.ADD, attr);
     publishModify(broker, t2, dn1, entryuuid, mod);
 
@@ -286,14 +296,14 @@ public class HistoricalTest
     t2 = new ChangeNumber(4, (short) 0, (short) 4);
 
     // Replay an add of a value B at time t2 on a second server.
-    attr = new Attribute(attrType.getNormalizedPrimaryName(), "B");
+    attr = Attributes.create(attrType.getNormalizedPrimaryName(), "B");
     mod = new Modification(ModificationType.ADD, attr);
     publishModify(broker, t2, dn2, entryuuid2, mod);
 
     Thread.sleep(2000);
 
     // Replay an add of a value A at time t1 on a first server.
-    attr = new Attribute(attrType.getNormalizedPrimaryName(), "A");
+    attr = Attributes.create(attrType.getNormalizedPrimaryName(), "A");
     mod = new Modification(ModificationType.ADD, attr);
     publishModify(broker, t1, dn2, entryuuid2, mod);
 
@@ -303,13 +313,13 @@ public class HistoricalTest
     entry = DirectoryServer.getEntry(dn1);
     attrs = entry.getAttribute(attrType);
     String attrValue1 =
-         attrs.get(0).getValues().iterator().next().getStringValue();
+         attrs.get(0).iterator().next().getStringValue();
 
     // Read the second entry to see how the conflict was resolved.
     entry = DirectoryServer.getEntry(dn2);
     attrs = entry.getAttribute(attrType);
     String attrValue2 =
-         attrs.get(0).getValues().iterator().next().getStringValue();
+         attrs.get(0).iterator().next().getStringValue();
 
     // The two values should be the first value added.
     assertEquals(attrValue1, "A");
@@ -325,4 +335,134 @@ public class HistoricalTest
     ModifyMsg modMsg = new ModifyMsg(changeNum, dn, mods, entryuuid);
     broker.publish(modMsg);
   }
+  
+  /**
+   * Test that historical information is correctly added when performaing ADD,
+   * MOD and MODDN operations.
+   */
+  @Test()
+  public void historicalAdd() throws Exception
+  {
+    final DN dn1 = DN.decode("cn=testHistoricalAdd,o=test");
+
+    // Clear the backend.
+    TestCaseUtils.initializeTestBackend(true);
+
+    // Add the first test entry.
+    TestCaseUtils.addEntry(
+        "dn: " + dn1,
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "cn: test1",
+        "sn: test"
+    );
+
+    // Read the entry that was just added.
+    Entry entry = DirectoryServer.getEntry(dn1);
+
+    // Check that we can build an Add operation from this entry.
+    // This will ensure both that the Add historical information is
+    // correctly added and also that the code that rebuild operation
+    // from this historical information is working.
+    Iterable<FakeOperation> ops = Historical.generateFakeOperations(entry);
+
+    // Perform a few check on the Operation to see that it
+    // was correctly generated.
+    assertFakeOperations(dn1, entry, ops, 1);
+
+    // Now apply a modifications to the entry and check that the
+    // ADD historical information has been preserved.
+    TestCaseUtils.applyModifications(false,
+        "dn: " + dn1,
+        "changetype: modify",
+        "add: description",
+    "description: foo");
+
+    // Read the modified entry.
+    entry = DirectoryServer.getEntry(dn1);
+
+    // use historical information to generate new list of operations
+    // equivalent to the operations that have been applied to this entry.
+    ops = Historical.generateFakeOperations(entry);
+
+    // Perform a few check on the operation list to see that it
+    // was correctly generated.
+    assertFakeOperations(dn1, entry, ops, 2);
+
+    // rename the entry.
+    TestCaseUtils.applyModifications(false,
+        "dn: " + dn1,
+        "changetype: moddn",
+        "newrdn: cn=test2",
+    "deleteoldrdn: 1");
+
+    // Read the modified entry.
+    final DN dn2 = DN.decode("cn=test2,o=test");
+    entry = DirectoryServer.getEntry(dn2);
+
+    // use historical information to generate new list of operations
+    // equivalent to the operations that have been applied to this entry.
+    ops = Historical.generateFakeOperations(entry);
+
+    // Perform a few check on the operation list to see that it
+    // was correctly generated.
+    assertFakeOperations(dn2, entry, ops, 3);
+
+    // Now clear the backend and try to run the generated operations
+    // to check that applying them do lead to an equivalent result.
+    TestCaseUtils.initializeTestBackend(true);
+
+    for (FakeOperation fake : ops)
+    {
+      UpdateMsg msg = (UpdateMsg) fake.generateMessage();
+      AbstractOperation op =
+        msg.createOperation(InternalClientConnection.getRootConnection());
+      op.setInternalOperation(true);
+      op.setSynchronizationOperation(true);
+      op.run();
+    }
+
+    Entry newEntry = DirectoryServer.getEntry(dn2);
+    assertEquals(entry.getDN(), newEntry.getDN());
+  }
+
+  /**
+   *
+   */
+  private void assertFakeOperations(final DN dn1, Entry entry,
+      Iterable<FakeOperation> ops, int assertCount) throws Exception
+      {
+    int count = 0;
+    for (FakeOperation op : ops)
+    {
+      count++;
+      if (op instanceof FakeAddOperation)
+      {
+        // perform a few check on the Operation to see that it
+        // was correctly generated :
+        // - the dn should be dn1,
+        // - the entry id and the parent id should match the ids from the entry
+        FakeAddOperation addOp = (FakeAddOperation) op;
+        assertTrue(addOp.getChangeNumber() != null);
+        AddMsg addmsg = addOp.generateMessage();
+        assertTrue(dn1.equals(DN.decode(addmsg.getDn())));
+        assertTrue(addmsg.getUniqueId().equals(Historical.getEntryUuid(entry)));
+        String parentId = ReplicationDomain.findEntryId(dn1.getParent());
+        assertTrue(addmsg.getParentUid().equals(parentId));
+        addmsg.createOperation(InternalClientConnection.getRootConnection());
+      } else
+      {
+        if (count == 1)
+        {
+          // The first operation should be an ADD operation.
+          assertTrue(false, "FakeAddOperation was not correctly generated"
+              + " from historical information");
+        }
+      }
+    }
+  
+      assertEquals(count, assertCount);
+    }
 }

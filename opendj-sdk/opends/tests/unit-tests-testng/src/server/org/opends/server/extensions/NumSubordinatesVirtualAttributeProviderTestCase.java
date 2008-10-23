@@ -221,12 +221,12 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
     assertFalse(attrList.isEmpty());
     for (Attribute a : attrList)
     {
-      assertTrue(a.hasValue());
-      assertEquals(a.getValues().size(), 1);
-      assertTrue(a.getValues().contains(new AttributeValue(
+      assertTrue(!a.isEmpty());
+      assertEquals(a.size(), 1);
+      assertTrue(a.contains(new AttributeValue(
           ByteStringFactory.create(String.valueOf(count)),
           ByteStringFactory.create(String.valueOf(count)))));
-      assertTrue(a.hasValue(new AttributeValue(numSubordinatesType,
+      assertTrue(a.contains(new AttributeValue(numSubordinatesType,
                                                String.valueOf(count))));
     }
   }

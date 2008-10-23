@@ -70,7 +70,6 @@
 
             <call function="'dsconfig'">
             { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'           : 'create-password-policy' ,
@@ -160,7 +159,6 @@
 
             <call function="'modifyPwdPolicy'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Sales Password Policy' ,
@@ -289,7 +287,6 @@
 
             <call function="'dsconfig'">
             { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'           : 'delete-password-policy' ,    

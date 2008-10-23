@@ -303,5 +303,15 @@ public class EnhancedGuideSyntax
 
     return GuideSyntax.criteriaIsValid(criteria, valueStr, invalidReason);
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

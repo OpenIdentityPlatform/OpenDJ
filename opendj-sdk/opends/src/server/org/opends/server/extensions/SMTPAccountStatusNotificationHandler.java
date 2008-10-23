@@ -567,7 +567,7 @@ public class SMTPAccountStatusNotificationHandler
         {
           for (Attribute a : attrList)
           {
-            for (AttributeValue v : a.getValues())
+            for (AttributeValue v : a)
             {
               if (debugEnabled())
               {

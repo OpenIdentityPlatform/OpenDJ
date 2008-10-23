@@ -1097,11 +1097,11 @@ public class Importer implements Thread.UncaughtExceptionHandler {
         long evictPasses = envStats.getNEvictPasses();
         long evictNodes = envStats.getNNodesExplicitlyEvicted();
         long evictBinsStrip = envStats.getNBINsStripped();
-        int cleanerRuns = envStats.getNCleanerRuns();
-        int cleanerDeletions = envStats.getNCleanerDeletions();
-        int cleanerEntriesRead = envStats.getNCleanerEntriesRead();
-        int cleanerINCleaned = envStats.getNINsCleaned();
-        int checkPoints = envStats.getNCheckpoints();
+        long cleanerRuns = envStats.getNCleanerRuns();
+        long cleanerDeletions = envStats.getNCleanerDeletions();
+        long cleanerEntriesRead = envStats.getNCleanerEntriesRead();
+        long cleanerINCleaned = envStats.getNINsCleaned();
+        long checkPoints = envStats.getNCheckpoints();
         if(evictPasses != 0) {
           if(!evicting) {
             evicting=true;

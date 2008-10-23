@@ -50,8 +50,10 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.CancelRequest;
@@ -195,16 +197,18 @@ public final class InternalClientConnection
                 ATTR_ROOTDN_ALTERNATE_BIND_DN, true);
 
       LinkedList<Attribute> attrList = new LinkedList<Attribute>();
-      attrList.add(new Attribute(ATTR_COMMON_NAME, commonName));
+      attrList.add(Attributes.create(ATTR_COMMON_NAME,
+          commonName));
       userAttrs.put(cnAT, attrList);
 
       attrList = new LinkedList<Attribute>();
-      attrList.add(new Attribute(ATTR_SN, commonName));
+      attrList.add(Attributes.create(ATTR_SN, commonName));
       userAttrs.put(snAT, attrList);
 
       attrList = new LinkedList<Attribute>();
-      attrList.add(new Attribute(ATTR_ROOTDN_ALTERNATE_BIND_DN,
-                                 shortDNString));
+      attrList.add(Attributes.create(
+          ATTR_ROOTDN_ALTERNATE_BIND_DN,
+          shortDNString));
       userAttrs.put(altDNAT, attrList);
 
 
@@ -215,16 +219,13 @@ public final class InternalClientConnection
            DirectoryServer.getAttributeType(OP_ATTR_PRIVILEGE_NAME,
                                             true);
 
-      LinkedHashSet<AttributeValue> values =
-           new LinkedHashSet<AttributeValue>();
+      AttributeBuilder builder = new AttributeBuilder(privType);
       for (Privilege p : Privilege.getDefaultRootPrivileges())
       {
-        values.add(new AttributeValue(privType, p.getName()));
+        builder.add(new AttributeValue(privType, p.getName()));
       }
-      Attribute privAttr =
-           new Attribute(privType, OP_ATTR_PRIVILEGE_NAME, values);
       attrList = new LinkedList<Attribute>();
-      attrList.add(privAttr);
+      attrList.add(builder.toAttribute());
 
       operationalAttrs.put(privType, attrList);
 
@@ -480,7 +481,7 @@ public final class InternalClientConnection
        mayExtend=false,
        mayInvoke=false)
   @Override()
-  public ConnectionHandler getConnectionHandler()
+  public ConnectionHandler<?> getConnectionHandler()
   {
     return InternalConnectionHandler.getInstance();
   }
@@ -516,6 +517,19 @@ public final class InternalClientConnection
 
 
   /**
+   * Retrieves the port number for this connection on the client
+   * system.
+   *
+   * @return The port number for this connection on the client system.
+   */
+  public int getClientPort()
+  {
+    return -1;
+  }
+
+
+
+  /**
    * Retrieves a string representation of the address on the server to
    * which the client connected.
    *
@@ -526,6 +540,21 @@ public final class InternalClientConnection
   public String getServerAddress()
   {
     return "internal";
+  }
+
+
+
+  /**
+   * Retrieves the port number for this connection on the server
+   * system if available.
+   *
+   * @return The port number for this connection on the server system
+   *         or -1 if there is no server port associated with this
+   *         connection (e.g. internal client).
+   */
+  public int getServerPort()
+  {
+    return -1;
   }
 
 
@@ -1045,7 +1074,7 @@ public final class InternalClientConnection
     {
       if (a.getAttributeType().isObjectClassType())
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           String ocName = v.getStringValue();
           String lowerName = toLowerCase(ocName);
@@ -3071,6 +3100,17 @@ public final class InternalClientConnection
   static void clearRootClientConnectionAtShutdown()
   {
     rootConnection = null;
+  }
+
+  /**
+   * To be implemented.
+   *
+   * @return number of operations performed on this connection
+   */
+  @Override
+  public long getNumberOfOperations() {
+    // Internal operations will not be limited.
+    return 0;
   }
 }
 

@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -356,52 +355,6 @@ public class Entry
 
 
   /**
-   * Adds the objectClass with the given name to this entry.
-   *
-   * @param  objectClassName  The value containing the name or OID of
-   *                          the objectClass to add to this entry.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting
-   *                              to add the objectclass to this
-   *                              entry.
-   */
-  public void addObjectClass(AttributeValue objectClassName)
-         throws DirectoryException
-  {
-    attachment = null;
-
-    String name = objectClassName.getStringValue();
-
-    String lowerName;
-    try
-    {
-      lowerName = objectClassName.getNormalizedStringValue();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      lowerName = toLowerCase(name);
-    }
-
-    ObjectClass oc = DirectoryServer.getObjectClass(lowerName, true);
-    if (objectClasses.containsKey(oc))
-    {
-      Message message =
-          ERR_ENTRY_ADD_DUPLICATE_OC.get(name, String.valueOf(dn));
-      throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
-                                   message);
-    }
-
-    objectClasses.put(oc, name);
-  }
-
-
-
-  /**
    * Adds the provided objectClass to this entry.
    *
    * @param  oc The objectClass to add to this entry.
@@ -424,90 +377,6 @@ public class Entry
     }
 
     objectClasses.put(oc, oc.getNameOrOID());
-  }
-
-
-
-  /**
-   * Adds the objectclasses corresponding to the provided set of names
-   * to this entry.
-   *
-   * @param  objectClassNames  The values containing the names or OIDs
-   *                           of the objectClasses to add to this
-   *                           entry.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting
-   *                              to add the set of objectclasses to
-   *                              this entry.
-   */
-  public void addObjectClasses(
-                   Collection<AttributeValue> objectClassNames)
-         throws DirectoryException
-  {
-    attachment = null;
-
-
-    // Iterate through all the provided objectclass names and make
-    // sure that they are names of valid objectclasses not already
-    // assigned to the entry.
-    LinkedHashMap<ObjectClass,String> tmpOCMap =
-         new LinkedHashMap<ObjectClass,String>();
-    for (AttributeValue v : objectClassNames)
-    {
-      String name = v.getStringValue();
-
-      String lowerName;
-      try
-      {
-        lowerName = v.getNormalizedStringValue();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        lowerName = toLowerCase(v.getStringValue());
-      }
-
-      ObjectClass oc = DirectoryServer.getObjectClass(lowerName);
-      if (oc == null)
-      {
-        Message message =
-            ERR_ENTRY_ADD_UNKNOWN_OC.get(name, String.valueOf(dn));
-        throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
-                                     message);
-      }
-
-      if (objectClasses.containsKey(oc))
-      {
-        Message message =
-            ERR_ENTRY_ADD_DUPLICATE_OC.get(name, String.valueOf(dn));
-        throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
-                                     message);
-      }
-
-      if (oc.isObsolete())
-      {
-        Message message =
-            ERR_ENTRY_ADD_OBSOLETE_OC.get(name, String.valueOf(dn));
-        throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
-                                     message);
-      }
-
-      tmpOCMap.put(oc, name);
-    }
-
-
-    // If we've gotten here, then everything is OK, so add the new
-    // classes.
-    for (ObjectClass oc : tmpOCMap.keySet())
-    {
-      String name = tmpOCMap.get(oc);
-
-      objectClasses.put(oc, name);
-    }
   }
 
 
@@ -594,35 +463,33 @@ public class Entry
     }
 
     AttributeType ocType =
-         DirectoryServer.getObjectClassAttributeType();
+      DirectoryServer.getObjectClassAttributeType();
+    AttributeBuilder builder =
+      new AttributeBuilder(ocType, ATTR_OBJECTCLASS);
 
-    LinkedHashSet<AttributeValue> ocValues =
-         new LinkedHashSet<AttributeValue>(objectClasses.size());
     for (String s : objectClasses.values())
     {
-      ocValues.add(new AttributeValue(ocType,
-                                      new ASN1OctetString(s)));
+      builder.add(new AttributeValue(ocType, new ASN1OctetString(s)));
     }
 
-    return new Attribute(ocType, ATTR_OBJECTCLASS, ocValues);
+    return builder.toAttribute();
   }
+
 
 
   /**
    * Indicates whether this entry contains the specified attribute.
-   * Any subordinate attribute of the specified attribute will also
-   * be used in the determination.
+   * Any subordinate attribute of the specified attribute will also be
+   * used in the determination.
    *
-   *
-   * @param  attributeType       The attribute type for which to
-   *                             make the determination.
-   *
-   * @return  <CODE>true</CODE> if this entry contains the specified
-   *          attribute, or <CODE>false</CODE> if not.
+   * @param attributeType
+   *          The attribute type for which to make the determination.
+   * @return <CODE>true</CODE> if this entry contains the specified
+   *         attribute, or <CODE>false</CODE> if not.
    */
   public boolean hasAttribute(AttributeType attributeType)
   {
-    return hasAttribute(attributeType, true);
+    return hasAttribute(attributeType, null, true);
   }
 
 
@@ -641,150 +508,146 @@ public class Entry
   public boolean hasAttribute(AttributeType attributeType,
                               boolean includeSubordinates)
   {
-    if (userAttributes.containsKey(attributeType) ||
-        operationalAttributes.containsKey(attributeType))
-    {
-      return true;
-    }
-
-    if (includeSubordinates &&
-        attributeType.mayHaveSubordinateTypes())
-    {
-      for (AttributeType at : schema.getSubTypes(attributeType))
-      {
-        if (userAttributes.containsKey(at) ||
-            operationalAttributes.containsKey(at))
-        {
-          return true;
-        }
-      }
-    }
-
-    return (attributeType.isObjectClassType() &&
-            (! objectClasses.isEmpty()));
+    return hasAttribute(attributeType, null, includeSubordinates);
   }
+
 
 
   /**
    * Indicates whether this entry contains the specified attribute
    * with all of the options in the provided set. Any subordinate
-   * attribute of the specified attribute will also be used in
-   * the determination.
+   * attribute of the specified attribute will also be used in the
+   * determination.
    *
-   * @param  attributeType       The attribute type for which to
-   *                             make the determination.
-   * @param  attributeOptions    The set of options to use in the
-   *                             determination.
-   *
-   * @return  <CODE>true</CODE> if this entry contains the specified
-   *          attribute, or <CODE>false</CODE> if not.
+   * @param attributeType
+   *          The attribute type for which to make the determination.
+   * @param options
+   *          The set of options to use in the determination.
+   * @return <CODE>true</CODE> if this entry contains the specified
+   *         attribute, or <CODE>false</CODE> if not.
    */
-  public boolean hasAttribute(AttributeType attributeType,
-                              Set<String> attributeOptions)
+  public boolean hasAttribute(
+      AttributeType attributeType,
+      Set<String> options)
   {
-    return hasAttribute(attributeType, true, attributeOptions);
+    return hasAttribute(attributeType, options, true);
   }
+
 
 
   /**
    * Indicates whether this entry contains the specified attribute
    * with all of the options in the provided set.
    *
-   * @param  attributeType       The attribute type for which to
-   *                             make the determination.
-   * @param  includeSubordinates Whether to include any subordinate
-   *                             attributes of the attribute type
-   *                             being retrieved.
-   * @param  attributeOptions    The set of options to use in the
-   *                             determination.
-   *
-   * @return  <CODE>true</CODE> if this entry contains the specified
-   *          attribute, or <CODE>false</CODE> if not.
+   * @param attributeType
+   *          The attribute type for which to make the determination.
+   * @param options
+   *          The set of options to use in the determination.
+   * @param includeSubordinates
+   *          Whether to include any subordinate attributes of the
+   *          attribute type being retrieved.
+   * @return <CODE>true</CODE> if this entry contains the specified
+   *         attribute, or <CODE>false</CODE> if not.
    */
-  public boolean hasAttribute(AttributeType attributeType,
-                              boolean includeSubordinates,
-                              Set<String> attributeOptions)
+  public boolean hasAttribute(
+      AttributeType attributeType,
+      Set<String> options,
+      boolean includeSubordinates)
   {
-    List<Attribute> attributes;
-    if (includeSubordinates &&
-        attributeType.mayHaveSubordinateTypes())
+    // Handle object class.
+    if (attributeType.isObjectClassType())
     {
-      attributes = new LinkedList<Attribute>();
-      List<Attribute> attrs = userAttributes.get(attributeType);
-      if (attrs != null)
+      if (!objectClasses.isEmpty())
       {
-        attributes.addAll(attrs);
+        return (options == null || options.isEmpty());
       }
 
-      attrs = operationalAttributes.get(attributeType);
-      if (attrs != null)
-      {
-        attributes.addAll(attrs);
-      }
+      return false;
+    }
 
-      for (AttributeType at : schema.getSubTypes(attributeType))
-      {
-        attrs = userAttributes.get(at);
-        if (attrs != null)
-        {
-          attributes.addAll(attrs);
-        }
+    if (!includeSubordinates)
+    {
+      // It's possible that there could be an attribute without any
+      // values, which we should treat as not having the requested
+      // attribute.
+      Attribute attribute = getExactAttribute(attributeType, options);
+      return attribute != null && !attribute.isEmpty();
+    }
 
-        attrs = operationalAttributes.get(at);
-        if (attrs != null)
-        {
-          attributes.addAll(attrs);
-        }
-      }
+    // Check all matching attributes.
+    List<Attribute> attributes;
+
+    if (attributeType.isOperational())
+    {
+      attributes = operationalAttributes.get(attributeType);
     }
     else
     {
       attributes = userAttributes.get(attributeType);
-      if (attributes == null)
+    }
+
+    if (attributes != null)
+    {
+      for (Attribute attribute : attributes)
       {
-        attributes = operationalAttributes.get(attributeType);
-        if (attributes == null)
+        // It's possible that there could be an attribute without any
+        // values, which we should treat as not having the requested
+        // attribute.
+        if (!attribute.isEmpty() && attribute.hasAllOptions(options))
         {
-          if (attributeType.isObjectClassType() &&
-              (! objectClasses.isEmpty()))
-          {
-            return ((attributeOptions == null) ||
-                    attributeOptions.isEmpty());
-          }
-          else
-          {
-            return false;
-          }
+          return true;
         }
       }
     }
 
-    // It's possible that there could be an attribute without any
-    // values, which we should treat as not having the requested
-    // attribute.
-    for (Attribute a : attributes)
+    // Check sub-types.
+    if (attributeType.mayHaveSubordinateTypes())
     {
-      if (a.hasValue() && a.hasOptions(attributeOptions))
+      for (AttributeType subType : schema.getSubTypes(attributeType))
       {
-        return true;
+        if (subType.isOperational())
+        {
+          attributes = operationalAttributes.get(subType);
+        }
+        else
+        {
+          attributes = userAttributes.get(subType);
+        }
+
+        if (attributes != null)
+        {
+          for (Attribute attribute : attributes)
+          {
+            // It's possible that there could be an attribute without
+            // any values, which we should treat as not having the
+            // requested attribute.
+            if (!attribute.isEmpty()
+                && attribute.hasAllOptions(options))
+            {
+              return true;
+            }
+          }
+        }
       }
     }
 
     return false;
   }
 
+
+
   /**
    * Retrieves the requested attribute element(s) for the specified
-   * attribute type.  The list returned may include multiple elements
+   * attribute type. The list returned may include multiple elements
    * if the same attribute exists in the entry multiple times with
    * different sets of options. It may also include any subordinate
    * attributes of the attribute being retrieved.
    *
-   * @param  attributeType  The attribute type to retrieve.
-   *
-   * @return  The requested attribute element(s) for the specified
-   *          attribute type, or <CODE>null</CODE> if the specified
-   *          attribute type is not present in this entry.
+   * @param attributeType
+   *          The attribute type to retrieve.
+   * @return The requested attribute element(s) for the specified
+   *         attribute type, or <CODE>null</CODE> if the specified
+   *         attribute type is not present in this entry.
    */
   public List<Attribute> getAttribute(AttributeType attributeType)
   {
@@ -1047,7 +910,7 @@ public class Entry
     while (iterator.hasNext())
     {
       Attribute a = iterator.next();
-      if (! a.hasOptions(options))
+      if (! a.hasAllOptions(options))
       {
         iterator.remove();
       }
@@ -1332,60 +1195,9 @@ public class Entry
     while (iterator.hasNext())
     {
       Attribute a = iterator.next();
-      if (! a.hasOptions(options))
+      if (! a.hasAllOptions(options))
       {
         iterator.remove();
-      }
-    }
-
-    if (attributes.isEmpty())
-    {
-      return null;
-    }
-    else
-    {
-      return attributes;
-    }
-  }
-
-
-
-  /**
-   * Retrieves a duplicate of the user attribute list for the
-   * specified type.
-   *
-   * @param  attributeType  The attribute type for which to retrieve a
-   *                        duplicate attribute list.
-   *
-   * @return  A duplicate of the requested attribute list, or
-   *          <CODE>null</CODE> if there is no such user attribute.
-   */
-  public List<Attribute> duplicateUserAttribute(
-                             AttributeType attributeType)
-  {
-    LinkedList<Attribute> attributes = new LinkedList<Attribute>();
-
-    List<Attribute> attrs = userAttributes.get(attributeType);
-    if (attrs != null)
-    {
-      for (Attribute a : attrs)
-      {
-        attributes.add(a.duplicate());
-      }
-    }
-
-    if (attributeType.mayHaveSubordinateTypes())
-    {
-      for (AttributeType at : schema.getSubTypes(attributeType))
-      {
-        attrs = userAttributes.get(at);
-        if (attrs != null)
-        {
-          for (Attribute a : attrs)
-          {
-            attributes.add(a.duplicate());
-          }
-        }
       }
     }
 
@@ -1428,9 +1240,16 @@ public class Entry
          new ArrayList<Attribute>(attrList.size());
     for (Attribute a : attrList)
     {
-      if (a.hasOptions(options))
+      if (a.hasAllOptions(options))
       {
-        duplicateList.add(a.duplicate(omitValues));
+        if (omitValues)
+        {
+          duplicateList.add(Attributes.empty(a));
+        }
+        else
+        {
+          duplicateList.add(a);
+        }
       }
     }
 
@@ -1628,7 +1447,7 @@ public class Entry
     while (iterator.hasNext())
     {
       Attribute a = iterator.next();
-      if (! a.hasOptions(options))
+      if (! a.hasAllOptions(options))
       {
         iterator.remove();
       }
@@ -1644,57 +1463,6 @@ public class Entry
     }
   }
 
-
-
-  /**
-   * Retrieves a duplicate of the operational attribute list for the
-   * specified type.
-   *
-   * @param  attributeType  The attribute type for which to retrieve a
-   *                        duplicate attribute list.
-   *
-   * @return  A duplicate of the requested attribute list, or
-   *          <CODE>null</CODE> if there is no such operational
-   *          attribute.
-   */
-  public List<Attribute> duplicateOperationalAttribute(
-                              AttributeType attributeType)
-  {
-    LinkedList<Attribute> attributes = new LinkedList<Attribute>();
-
-    List<Attribute> attrs = operationalAttributes.get(attributeType);
-    if (attrs != null)
-    {
-      for (Attribute a : attrs)
-      {
-        attributes.add(a.duplicate());
-      }
-    }
-
-    if (attributeType.mayHaveSubordinateTypes())
-    {
-      for (AttributeType at : schema.getSubTypes(attributeType))
-      {
-        attrs = operationalAttributes.get(at);
-        if (attrs != null)
-        {
-          for (Attribute a : attrs)
-          {
-            attributes.add(a.duplicate());
-          }
-        }
-      }
-    }
-
-    if (attributes.isEmpty())
-    {
-      return null;
-    }
-    else
-    {
-      return attributes;
-    }
-  }
 
 
   /**
@@ -1746,89 +1514,159 @@ public class Entry
 
 
   /**
-   * Adds the provided attribute to this entry.  If an attribute with
-   * the provided type already exists, then the values will be merged.
+   * Ensures that this entry contains the provided attribute and its
+   * values. If an attribute with the provided type already exists,
+   * then its attribute values will be merged.
+   * <p>
+   * This method handles object class additions but will not perform
+   * any object class validation. In particular, it will create
+   * default object classes when an object class is unknown.
+   * <p>
+   * This method implements LDAP modification add semantics, with the
+   * exception that it allows empty attributes to be added.
    *
-   * @param  attribute        The attribute to add or merge with this
-   *                          entry.
-   * @param  duplicateValues  A list to which any duplicate values
-   *                          will be added.
+   * @param attribute
+   *          The attribute to add or merge with this entry.
+   * @param duplicateValues
+   *          A list to which any duplicate values will be added.
    */
   public void addAttribute(Attribute attribute,
-                           List<AttributeValue> duplicateValues)
+      List<AttributeValue> duplicateValues)
   {
-    attachment = null;
+    setAttribute(attribute, duplicateValues, false /* merge */);
+  }
 
-    List<Attribute> attrList =
-         getAttribute(attribute.getAttributeType(), false);
-    if (attrList == null)
+
+
+  /**
+   * Puts the provided attribute into this entry. If an attribute with
+   * the provided type and options already exists, then it will be
+   * replaced. If the provided attribute is empty then any existing
+   * attribute will be completely removed.
+   * <p>
+   * This method handles object class replacements but will not
+   * perform any object class validation. In particular, it will
+   * create default object classes when an object class is unknown.
+   * <p>
+   * This method implements LDAP modification replace semantics.
+   *
+   * @param attribute
+   *          The attribute to replace in this entry.
+   */
+  public void replaceAttribute(Attribute attribute)
+  {
+    // There can never be duplicate values for a replace.
+    setAttribute(attribute, null, true /* replace */);
+  }
+
+
+
+  /**
+   * Increments an attribute in this entry by the amount specified in
+   * the provided attribute.
+   *
+   * @param attribute
+   *          The attribute identifying the attribute to be increment
+   *          and the amount it is to be incremented by. The attribute
+   *          must contain a single value.
+   * @throws DirectoryException
+   *           If a problem occurs while attempting to increment the
+   *           provided attribute. This may occur if the provided
+   *           attribute was not single valued or if it could not be
+   *           parsed as an integer of if the existing attribute
+   *           values could not be parsed as integers.
+   */
+  public void incrementAttribute(
+      Attribute attribute) throws DirectoryException
+  {
+    // Get the attribute that is to be incremented.
+    AttributeType attributeType = attribute.getAttributeType();
+    Attribute a =
+      getExactAttribute(attributeType, attribute.getOptions());
+
+    if (a == null)
     {
-      // There are no instances of the specified attribute in this
-      // entry, so simply add it.
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(attribute);
-
-      AttributeType attrType = attribute.getAttributeType();
-      if (attrType.isOperational())
-      {
-        operationalAttributes.put(attrType, attrList);
-      }
-      else
-      {
-        userAttributes.put(attrType, attrList);
-      }
-
-      return;
+      Message message = ERR_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE.get(
+            attribute.getName());
+      throw new DirectoryException(
+          ResultCode.NO_SUCH_ATTRIBUTE, message);
     }
-    else
+
+    // Decode the increment.
+    Iterator<AttributeValue> i = attribute.iterator();
+    if (!i.hasNext())
     {
-      // There are some instances of this attribute, but they may not
-      // have exactly the same set of options.  See if we can find an
-      // attribute with the same set of options to merge in the
-      // values.  If not, then add the new attribute to the list.
-      HashSet<String> options = attribute.getOptions();
-      for (Attribute a : attrList)
-      {
-        if (a.optionsEqual(options))
-        {
-          // There is an attribute with the same set of options.
-          // Merge the value lists together.
-          LinkedHashSet<AttributeValue> existingValues =
-               a.getValues();
-          LinkedHashSet<AttributeValue> newValues =
-               attribute.getValues();
-          for (AttributeValue v : newValues)
-          {
-            if (! existingValues.add(v))
-            {
-              duplicateValues.add(v);
-            }
-          }
+      Message message = ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT.get(
+          attribute.getName());
+      throw new DirectoryException(
+          ResultCode.CONSTRAINT_VIOLATION, message);
+    }
 
-          return;
-        }
+    String incrementValue = i.next().getStringValue();
+    long increment;
+    try
+    {
+      increment = Long.parseLong(incrementValue);
+    }
+    catch (NumberFormatException e)
+    {
+      Message message = ERR_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT.get(
+          attribute.getName());
+      throw new DirectoryException(
+          ResultCode.CONSTRAINT_VIOLATION, message);
+    }
+
+    if (i.hasNext())
+    {
+      Message message = ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT.get(
+          attribute.getName());
+      throw new DirectoryException(
+          ResultCode.CONSTRAINT_VIOLATION, message);
+    }
+
+    // Increment each attribute value by the specified amount.
+    AttributeBuilder builder = new AttributeBuilder(a, true);
+
+    for (AttributeValue v : a)
+    {
+      String s = v.getStringValue();
+      long currentValue;
+      try
+      {
+        currentValue = Long.parseLong(s);
+      }
+      catch (NumberFormatException e)
+      {
+        Message message = ERR_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT.get(
+            attribute.getName());
+        throw new DirectoryException(
+            ResultCode.CONSTRAINT_VIOLATION, message);
       }
 
-      attrList.add(attribute);
+      long newValue = currentValue + increment;
+      builder.add(new AttributeValue(attributeType, String
+          .valueOf(newValue)));
     }
+
+    replaceAttribute(builder.toAttribute());
   }
 
 
 
   /**
    * Removes all instances of the specified attribute type from this
-   * entry, including any instances with options.  If the provided
+   * entry, including any instances with options. If the provided
    * attribute type is the objectclass type, then all objectclass
-   * values will be removed (but must be replaced for the entry to
-   * be valid).  If the specified attribute type is not present in
-   * this entry, then this method will have no effect.
+   * values will be removed (but must be replaced for the entry to be
+   * valid). If the specified attribute type is not present in this
+   * entry, then this method will have no effect.
    *
-   * @param  attributeType  The attribute type for the attribute to
-   *                        remove from this entry.
-   *
-   * @return  <CODE>true</CODE> if the attribute was found and
-   *          removed, or <CODE>false</CODE> if it was not present in
-   *          the entry.
+   * @param attributeType
+   *          The attribute type for the attribute to remove from this
+   *          entry.
+   * @return <CODE>true</CODE> if the attribute was found and
+   *         removed, or <CODE>false</CODE> if it was not present in
+   *         the entry.
    */
   public boolean removeAttribute(AttributeType attributeType)
   {
@@ -1849,93 +1687,37 @@ public class Entry
 
 
   /**
-   * Removes the attribute with the provided type and set of options
-   * from this entry.  Only the instance with the exact set of
-   * options provided will be removed.  This has no effect if the
-   * specified attribute is not present in this entry with the given
-   * set of options.
+   * Ensures that this entry does not contain the provided attribute
+   * values. If the provided attribute is empty, then all values of
+   * the associated attribute type will be removed. Otherwise, only
+   * the specified values will be removed.
+   * <p>
+   * This method handles object class deletions.
+   * <p>
+   * This method implements LDAP modification delete semantics.
    *
-   * @param  attributeType  The attribute type for the attribute to
-   *                        remove from this entry.
-   * @param  options        The set of attribute options to use when
-   *                        determining which attribute to remove.
-   *
-   * @return  <CODE>true</CODE> if the attribute was found and
-   *          removed, or <CODE>false</CODE> if it was not present in
-   *          the entry.
-   */
-  public boolean removeAttribute(AttributeType attributeType,
-                                 Set<String> options)
-  {
-    attachment = null;
-
-    List<Attribute> attrList = userAttributes.get(attributeType);
-    if (attrList == null)
-    {
-      attrList = operationalAttributes.get(attributeType);
-      if (attrList == null)
-      {
-        return false;
-      }
-    }
-
-    boolean removed = false;
-
-    Iterator<Attribute> iterator = attrList.iterator();
-    while (iterator.hasNext())
-    {
-      Attribute a = iterator.next();
-      if (a.optionsEqual(options))
-      {
-        iterator.remove();
-        removed = true;
-        break;
-      }
-    }
-
-    if (attrList.isEmpty())
-    {
-      userAttributes.remove(attributeType);
-      operationalAttributes.remove(attributeType);
-    }
-
-    return removed;
-  }
-
-
-
-  /**
-   * Removes the provided attribute from this entry.  If the given
-   * attribute does not have any values, then all values of the
-   * associated attribute type (taking into account the options in the
-   * provided type) will be removed.  Otherwise, only the specified
-   * values will be removed.
-   *
-   * @param  attribute      The attribute containing the information
-   *                        to use to perform the removal.
-   * @param  missingValues  A list to which any values contained in
-   *                        the provided attribute but not present in
-   *                        the entry will be added.
-   *
-   * @return  <CODE>true</CODE> if the attribute type was present and
-   *          the specified values that were present were removed, or
-   *          <CODE>false</CODE> if the attribute type was not present
-   *          in the entry.  If the attribute type was present but
-   *          only contained some of the values in the provided
-   *          attribute, then this method will return
-   *          <CODE>true</CODE> but will add those values to the
-   *          provided list.
+   * @param attribute
+   *          The attribute containing the information to use to
+   *          perform the removal.
+   * @param missingValues
+   *          A list to which any values contained in the provided
+   *          attribute but not present in the entry will be added.
+   * @return <CODE>true</CODE> if the attribute type was present and
+   *         the specified values that were present were removed, or
+   *         <CODE>false</CODE> if the attribute type was not
+   *         present in the entry. If the attribute type was present
+   *         but only contained some of the values in the provided
+   *         attribute, then this method will return <CODE>true</CODE>
+   *         but will add those values to the provided list.
    */
   public boolean removeAttribute(Attribute attribute,
-                                 List<AttributeValue> missingValues)
+      List<AttributeValue> missingValues)
   {
     attachment = null;
-
 
     if (attribute.getAttributeType().isObjectClassType())
     {
-      LinkedHashSet<AttributeValue> valueSet = attribute.getValues();
-      if ((valueSet == null) || valueSet.isEmpty())
+      if (attribute.isEmpty())
       {
         objectClasses.clear();
         return true;
@@ -1943,7 +1725,7 @@ public class Entry
 
       boolean allSuccessful = true;
 
-      for (AttributeValue v : attribute.getValues())
+      for (AttributeValue v : attribute)
       {
         String ocName;
         try
@@ -1972,7 +1754,7 @@ public class Entry
           }
         }
 
-        if (! matchFound)
+        if (!matchFound)
         {
           allSuccessful = false;
           missingValues.add(v);
@@ -1982,144 +1764,81 @@ public class Entry
       return allSuccessful;
     }
 
+    AttributeType attributeType = attribute.getAttributeType();
+    List<Attribute> attributes;
 
-    if (attribute.hasOptions())
+    if (attributeType.isOperational())
     {
-      HashSet<String> options = attribute.getOptions();
-
-      LinkedHashSet<AttributeValue> valueSet = attribute.getValues();
-      if ((valueSet == null) || valueSet.isEmpty())
-      {
-        return removeAttribute(attribute.getAttributeType(), options);
-      }
-
-      List<Attribute> attrList =
-           getAttribute(attribute.getAttributeType(), false);
-      if (attrList == null)
-      {
-        return false;
-      }
-
-      for (Attribute a : attrList)
-      {
-        if (a.optionsEqual(options))
-        {
-          LinkedHashSet<AttributeValue> existingValueSet =
-               a.getValues();
-
-          for (AttributeValue v : valueSet)
-          {
-            if (! existingValueSet.remove(v))
-            {
-              missingValues.add(v);
-            }
-          }
-
-          if (existingValueSet.isEmpty())
-          {
-            return removeAttribute(attribute.getAttributeType(),
-                                   options);
-          }
-
-          return true;
-        }
-      }
-
-      return false;
+      attributes = operationalAttributes.get(attributeType);
     }
     else
     {
-      LinkedHashSet<AttributeValue> valueSet = attribute.getValues();
-      if ((valueSet == null) || valueSet.isEmpty())
-      {
-        return removeAttribute(attribute.getAttributeType(), null);
-      }
+      attributes = userAttributes.get(attributeType);
+    }
 
-      List<Attribute> attrList =
-           getAttribute(attribute.getAttributeType(), false);
-      if (attrList == null)
+    if (attributes == null)
+    {
+      // There are no attributes with the same attribute type.
+      for (AttributeValue v : attribute)
       {
-        return false;
+        missingValues.add(v);
       }
+      return false;
+    }
 
-      for (Attribute a : attrList)
+    // There are already attributes with the same attribute type.
+    Set<String> options = attribute.getOptions();
+    for (int i = 0; i < attributes.size(); i++)
+    {
+      Attribute a = attributes.get(i);
+      if (a.optionsEqual(options))
       {
-        if (! a.hasOptions())
+        if (attribute.isEmpty())
         {
-          LinkedHashSet<AttributeValue> existingValueSet =
-               a.getValues();
-
-          for (AttributeValue v : valueSet)
+          // Remove the entire attribute.
+          attributes.remove(i);
+        }
+        else
+        {
+          // Remove Specified values.
+          AttributeBuilder builder = new AttributeBuilder(a);
+          for (AttributeValue v : attribute)
           {
-            if (! existingValueSet.remove(v))
+            if (!builder.remove(v))
             {
               missingValues.add(v);
             }
           }
 
-          if (existingValueSet.isEmpty())
+          // Remove / replace the attribute as necessary.
+          if (!builder.isEmpty())
           {
-            return removeAttribute(attribute.getAttributeType(),
-                null);
+            attributes.set(i, builder.toAttribute());
           }
-
-          return true;
+          else
+          {
+            attributes.remove(i);
+          }
         }
-      }
 
-      return false;
-    }
-  }
+        // If the attribute list is now empty remove it.
+        if (attributes.isEmpty())
+        {
+          if (attributeType.isOperational())
+          {
+            operationalAttributes.remove(attributeType);
+          }
+          else
+          {
+            userAttributes.remove(attributeType);
+          }
+        }
 
-
-
-  /**
-   * Indicates whether the specified attribute type is allowed by any
-   * of the objectclasses associated with this entry.
-   *
-   * @param  attributeType  The attribute type for which to make the
-   *                        determination.
-   *
-   * @return  <CODE>true</CODE> if the specified attribute is allowed
-   *          by any of the objectclasses associated with this entry,
-   *          or <CODE>false</CODE> if it is not.
-   */
-  public boolean allowsAttribute(AttributeType attributeType)
-  {
-    for (ObjectClass o : objectClasses.keySet())
-    {
-      if (o.isRequiredOrOptional(attributeType))
-      {
         return true;
       }
     }
 
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether the specified attribute type is required by any
-   * of the objectclasses associated with this entry.
-   *
-   * @param  attributeType  The attribute type for which to make the
-   *                        determination.
-   *
-   * @return  <CODE>true</CODE> if the specified attribute is required
-   *          by any of the objectclasses associated with this entry,
-   *          o r<CODE>false</CODE> if it is not.
-   */
-  public boolean requiresAttribute(AttributeType attributeType)
-  {
-    for (ObjectClass o : objectClasses.keySet())
-    {
-      if (o.isRequired(attributeType))
-      {
-        return true;
-      }
-    }
-
+    // No matching attribute found.
     return false;
   }
 
@@ -2149,7 +1868,7 @@ public class Entry
     {
       if (a.optionsEqual(options))
       {
-        return a.hasValue(value);
+        return a.contains(value);
       }
     }
 
@@ -2182,7 +1901,7 @@ public class Entry
     {
       LinkedHashMap<ObjectClass,String> ocs = new
              LinkedHashMap<ObjectClass,String>();
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
       {
         String ocName    = v.getStringValue();
         String lowerName = toLowerCase(ocName);
@@ -2273,81 +1992,11 @@ public class Entry
         break;
 
       case REPLACE:
-        removeAttribute(t, a.getOptions());
-
-        if (a.hasValue())
-        {
-          // We know that we won't have any duplicate values, so  we
-          // don't kneed to worry about checking for them.
-          duplicateValues = new LinkedList<AttributeValue>();
-          addAttribute(a, duplicateValues);
-        }
+        replaceAttribute(a);
         break;
 
       case INCREMENT:
-        List<Attribute> attrList = getAttribute(t, false);
-        if ((attrList == null) || attrList.isEmpty())
-        {
-          Message message =
-              ERR_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE.get(a.getName());
-          throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
-                                       message);
-        }
-        else if (attrList.size() != 1)
-        {
-          Message message =
-              ERR_ENTRY_INCREMENT_MULTIPLE_VALUES.get(a.getName());
-          throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message);
-        }
-
-        LinkedHashSet<AttributeValue> values =
-             attrList.get(0).getValues();
-        if (values.isEmpty())
-        {
-          Message message =
-              ERR_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE.get(a.getName());
-          throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
-                                       message);
-        }
-        else if (values.size() > 1)
-        {
-          Message message =
-              ERR_ENTRY_INCREMENT_MULTIPLE_VALUES.get(a.getName());
-          throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message);
-        }
-
-        LinkedHashSet<AttributeValue> newValues = a.getValues();
-        if (newValues.size() != 1)
-        {
-          Message message = ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT.
-              get(a.getName());
-          throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message);
-        }
-
-        long newValue;
-        try
-        {
-          String s = values.iterator().next().getStringValue();
-          long currentValue = Long.parseLong(s);
-
-          s = a.getValues().iterator().next().getStringValue();
-          long increment = Long.parseLong(s);
-
-          newValue = currentValue+increment;
-        }
-        catch (NumberFormatException nfe)
-        {
-          Message message = ERR_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT.
-              get(a.getName());
-          throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message);
-        }
-
-        values.clear();
-        values.add(new AttributeValue(t, String.valueOf(newValue)));
+        incrementAttribute(a);
         break;
 
       default:
@@ -2681,8 +2330,7 @@ public class Entry
       {
         for (Attribute a : attrList)
         {
-          LinkedHashSet<AttributeValue> values = a.getValues();
-          if (values.isEmpty())
+          if (a.isEmpty())
           {
             Message message = ERR_ENTRY_SCHEMA_ATTR_NO_VALUES.get(
                     String.valueOf(dn),
@@ -2691,7 +2339,7 @@ public class Entry
             invalidReason.append(message);
             return false;
           }
-          else if (t.isSingleValue() && (values.size() != 1))
+          else if (t.isSingleValue() && (a.size() != 1))
           {
             Message message = ERR_ENTRY_SCHEMA_ATTR_SINGLE_VALUED.get(
                     String.valueOf(dn),
@@ -2716,7 +2364,7 @@ public class Entry
         {
           for (Attribute a : attrList)
           {
-            if (a.getValues().size() > 1)
+            if (a.size() > 1)
             {
               Message message =
                       ERR_ENTRY_SCHEMA_ATTR_SINGLE_VALUED.get(
@@ -3388,7 +3036,7 @@ public class Entry
       AttributeType ocType =
            DirectoryServer.getObjectClassAttributeType();
       ArrayList<Attribute> ocList = new ArrayList<Attribute>(1);
-      ocList.add(new Attribute(ocType));
+      ocList.add(Attributes.empty(ocType));
       userAttrsCopy.put(ocType, ocList);
     }
 
@@ -3449,7 +3097,14 @@ public class Entry
           continue;
         }
 
-        targetList.add(a.duplicate(omitValues));
+        if (omitValues)
+        {
+          targetList.add(Attributes.empty(a));
+        }
+        else
+        {
+          targetList.add(a);
+        }
       }
 
       if (! targetList.isEmpty())
@@ -3588,7 +3243,7 @@ public class Entry
     LinkedHashSet<String> referralURLs = new LinkedHashSet<String>();
     for (Attribute a : refAttrs)
     {
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
       {
         referralURLs.add(v.getStringValue());
       }
@@ -3706,20 +3361,18 @@ public class Entry
     {
       // There should only be a single alias attribute in an entry,
       // and we'll skip the check for others for performance reasons.
-      // We would just end up taking the first one anyway.  The same
+      // We would just end up taking the first one anyway. The same
       // is true with the set of values, since it should be a
       // single-valued attribute.
       Attribute aliasAttr = aliasAttrs.get(0);
-      LinkedHashSet<AttributeValue> attrValues =
-           aliasAttr.getValues();
-      if (attrValues.isEmpty())
+      if (aliasAttr.isEmpty())
       {
         return null;
       }
       else
       {
-        return
-             DN.decode(attrValues.iterator().next().getStringValue());
+        return DN.decode(
+            aliasAttr.iterator().next().getStringValue());
       }
     }
   }
@@ -4118,7 +3771,7 @@ public class Entry
     {
       for (Attribute a : attrList)
       {
-        if (a.isVirtual() || (! a.hasValue()))
+        if (a.isVirtual() || a.isEmpty())
         {
           continue;
         }
@@ -4130,7 +3783,7 @@ public class Entry
         int numValues = 0;
         int totalValueBytes = 0;
         LinkedList<byte[]> valueBytes = new LinkedList<byte[]>();
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           numValues++;
           byte[] vBytes = v.getValueBytes();
@@ -4177,7 +3830,7 @@ public class Entry
     {
       for (Attribute a : attrList)
       {
-        if (a.isVirtual() || (! a.hasValue()))
+        if (a.isVirtual() || a.isEmpty())
         {
           continue;
         }
@@ -4189,7 +3842,7 @@ public class Entry
         int numValues = 0;
         int totalValueBytes = 0;
         LinkedList<byte[]> valueBytes = new LinkedList<byte[]>();
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           numValues++;
           byte[] vBytes = v.getValueBytes();
@@ -4356,7 +4009,7 @@ public class Entry
       {
         for (Attribute a : attrList)
         {
-          if (a.isVirtual() || (! a.hasValue()))
+          if (a.isVirtual() || a.isEmpty())
           {
             continue;
           }
@@ -4387,7 +4040,7 @@ public class Entry
       {
         for (Attribute a : attrList)
         {
-          if (a.isVirtual() || (! a.hasValue()))
+          if (a.isVirtual() || a.isEmpty())
           {
             continue;
           }
@@ -4399,7 +4052,7 @@ public class Entry
           int numValues = 0;
           int totalValueBytes = 0;
           LinkedList<byte[]> valueBytes = new LinkedList<byte[]>();
-          for (AttributeValue v : a.getValues())
+          for (AttributeValue v : a)
           {
             numValues++;
             byte[] vBytes = v.getValueBytes();
@@ -4447,7 +4100,7 @@ public class Entry
       {
         for (Attribute a : attrList)
         {
-          if (a.isVirtual() || (! a.hasValue()))
+          if (a.isVirtual() || a.isEmpty())
           {
             continue;
           }
@@ -4473,7 +4126,7 @@ public class Entry
       {
         for (Attribute a : attrList)
         {
-          if (a.isVirtual() || (! a.hasValue()))
+          if (a.isVirtual() || a.isEmpty())
           {
             continue;
           }
@@ -4485,7 +4138,7 @@ public class Entry
           int numValues = 0;
           int totalValueBytes = 0;
           LinkedList<byte[]> valueBytes = new LinkedList<byte[]>();
-          for (AttributeValue v : a.getValues())
+          for (AttributeValue v : a)
           {
             numValues++;
             byte[] vBytes = v.getValueBytes();
@@ -4769,8 +4422,11 @@ public class Entry
       // each one.
       LinkedHashMap<AttributeType,List<Attribute>> userAttributes =
            new LinkedHashMap<AttributeType,List<Attribute>>();
+      AttributeBuilder builder = new AttributeBuilder();
       for (int i=0; i < numUserAttrs; i++)
       {
+        AttributeType attributeType;
+
         // First, we have the zero-terminated attribute name.
         startPos = pos;
         while (entryBytes[pos] != 0x00)
@@ -4779,13 +4435,11 @@ public class Entry
         }
         name = new String(entryBytes, startPos, pos-startPos,
                           "UTF-8");
-        LinkedHashSet<String> options;
         int semicolonPos = name.indexOf(';');
         if (semicolonPos > 0)
         {
-          String baseName = name.substring(0, semicolonPos);
-          lowerName = toLowerCase(baseName);
-          options   = new LinkedHashSet<String>();
+          builder.setAttributeType(name.substring(0, semicolonPos));
+          attributeType = builder.getAttributeType();
 
           int nextPos = name.indexOf(';', semicolonPos+1);
           while (nextPos > 0)
@@ -4793,7 +4447,7 @@ public class Entry
             String option = name.substring(semicolonPos+1, nextPos);
             if (option.length() > 0)
             {
-              options.add(option);
+              builder.setOption(option);
             }
 
             semicolonPos = nextPos;
@@ -4803,19 +4457,14 @@ public class Entry
           String option = name.substring(semicolonPos+1);
           if (option.length() > 0)
           {
-            options.add(option);
+            builder.setOption(option);
           }
-
-          name = baseName;
         }
         else
         {
-          lowerName = toLowerCase(name);
-          options   = new LinkedHashSet<String>(0);
+          builder.setAttributeType(name);
+          attributeType = builder.getAttributeType();
         }
-        AttributeType attributeType =
-             DirectoryServer.getAttributeType(lowerName, true);
-
 
 
         // Next, we have the number of values.
@@ -4831,8 +4480,7 @@ public class Entry
         }
 
         // Next, we have the sequence of length-value pairs.
-        LinkedHashSet<AttributeValue> values =
-             new LinkedHashSet<AttributeValue>(numValues);
+        builder.setInitialCapacity(numValues);
         for (int j=0; j < numValues; j++)
         {
           int valueLength = entryBytes[pos] & 0x7F;
@@ -4850,16 +4498,15 @@ public class Entry
           byte[] valueBytes = new byte[valueLength];
           System.arraycopy(entryBytes, pos, valueBytes, 0,
                            valueLength);
-          values.add(new AttributeValue(attributeType,
-                              new ASN1OctetString(valueBytes)));
+          builder.add(new AttributeValue(attributeType,
+              new ASN1OctetString(valueBytes)));
           pos += valueLength;
         }
 
 
         // Create the attribute and add it to the set of user
         // attributes.
-        Attribute a = new Attribute(attributeType, name, options,
-                                    values);
+        Attribute a = builder.toAttribute();
         List<Attribute> attrList = userAttributes.get(attributeType);
         if (attrList == null)
         {
@@ -4896,6 +4543,8 @@ public class Entry
               new LinkedHashMap<AttributeType,List<Attribute>>();
       for (int i=0; i < numOperationalAttrs; i++)
       {
+        AttributeType attributeType;
+
         // First, we have the zero-terminated attribute name.
         startPos = pos;
         while (entryBytes[pos] != 0x00)
@@ -4904,13 +4553,11 @@ public class Entry
         }
         name = new String(entryBytes, startPos, pos-startPos,
                           "UTF-8");
-        LinkedHashSet<String> options;
         int semicolonPos = name.indexOf(';');
         if (semicolonPos > 0)
         {
-          String baseName = name.substring(0, semicolonPos);
-          lowerName = toLowerCase(baseName);
-          options   = new LinkedHashSet<String>();
+          builder.setAttributeType(name.substring(0, semicolonPos));
+          attributeType = builder.getAttributeType();
 
           int nextPos = name.indexOf(';', semicolonPos+1);
           while (nextPos > 0)
@@ -4918,7 +4565,7 @@ public class Entry
             String option = name.substring(semicolonPos+1, nextPos);
             if (option.length() > 0)
             {
-              options.add(option);
+              builder.setOption(option);
             }
 
             semicolonPos = nextPos;
@@ -4928,18 +4575,14 @@ public class Entry
           String option = name.substring(semicolonPos+1);
           if (option.length() > 0)
           {
-            options.add(option);
+            builder.setOption(option);
           }
-
-          name = baseName;
         }
         else
         {
-          lowerName = toLowerCase(name);
-          options   = new LinkedHashSet<String>(0);
+          builder.setAttributeType(name);
+          attributeType = builder.getAttributeType();
         }
-        AttributeType attributeType =
-             DirectoryServer.getAttributeType(lowerName, true);
 
 
         // Next, we have the number of values.
@@ -4955,8 +4598,7 @@ public class Entry
         }
 
         // Next, we have the sequence of length-value pairs.
-        LinkedHashSet<AttributeValue> values =
-             new LinkedHashSet<AttributeValue>(numValues);
+        builder.setInitialCapacity(numValues);
         for (int j=0; j < numValues; j++)
         {
           int valueLength = entryBytes[pos] & 0x7F;
@@ -4972,20 +4614,19 @@ public class Entry
           }
 
           byte[] valueBytes = new byte[valueLength];
-          System.arraycopy(entryBytes, pos, valueBytes, 0,
-                           valueLength);
-          values.add(new AttributeValue(attributeType,
-                              new ASN1OctetString(valueBytes)));
+          System.arraycopy(
+              entryBytes, pos, valueBytes, 0, valueLength);
+          builder.add(new AttributeValue(attributeType,
+              new ASN1OctetString(valueBytes)));
           pos += valueLength;
         }
 
 
         // Create the attribute and add it to the set of operational
         // attributes.
-        Attribute a = new Attribute(attributeType, name, options,
-                                    values);
+        Attribute a = builder.toAttribute();
         List<Attribute> attrList =
-             operationalAttributes.get(attributeType);
+          operationalAttributes.get(attributeType);
         if (attrList == null)
         {
           attrList = new ArrayList<Attribute>(1);
@@ -5218,8 +4859,11 @@ public class Entry
       }
       else
       {
+        AttributeBuilder builder = new AttributeBuilder();
         for (int i=0; i < numUserAttrs; i++)
         {
+          AttributeType attributeType;
+
           // First, we have the zero-terminated attribute name.
           int startPos = pos;
           while (entryBytes[pos] != 0x00)
@@ -5227,16 +4871,13 @@ public class Entry
             pos++;
           }
 
-          String lowerName;
           String name = new String(entryBytes, startPos, pos-startPos,
                                    "UTF-8");
-          LinkedHashSet<String> options;
           int semicolonPos = name.indexOf(';');
           if (semicolonPos > 0)
           {
-            String baseName = name.substring(0, semicolonPos);
-            lowerName = toLowerCase(baseName);
-            options   = new LinkedHashSet<String>();
+            builder.setAttributeType(name.substring(0, semicolonPos));
+            attributeType = builder.getAttributeType();
 
             int nextPos = name.indexOf(';', semicolonPos+1);
             while (nextPos > 0)
@@ -5244,7 +4885,7 @@ public class Entry
               String option = name.substring(semicolonPos+1, nextPos);
               if (option.length() > 0)
               {
-                options.add(option);
+                builder.setOption(option);
               }
 
               semicolonPos = nextPos;
@@ -5254,19 +4895,14 @@ public class Entry
             String option = name.substring(semicolonPos+1);
             if (option.length() > 0)
             {
-              options.add(option);
+              builder.setOption(option);
             }
-
-            name = baseName;
           }
           else
           {
-            lowerName = toLowerCase(name);
-            options   = new LinkedHashSet<String>(0);
+            builder.setAttributeType(name);
+            attributeType = builder.getAttributeType();
           }
-          AttributeType attributeType =
-               DirectoryServer.getAttributeType(lowerName, true);
-
 
 
           // Next, we have the number of values.
@@ -5282,8 +4918,7 @@ public class Entry
           }
 
           // Next, we have the sequence of length-value pairs.
-          LinkedHashSet<AttributeValue> values =
-               new LinkedHashSet<AttributeValue>(numValues);
+          builder.setInitialCapacity(numValues);
           for (int j=0; j < numValues; j++)
           {
             int valueLength = entryBytes[pos] & 0x7F;
@@ -5301,18 +4936,17 @@ public class Entry
             byte[] valueBytes = new byte[valueLength];
             System.arraycopy(entryBytes, pos, valueBytes, 0,
                              valueLength);
-            values.add(new AttributeValue(attributeType,
-                                new ASN1OctetString(valueBytes)));
+            builder.add(new AttributeValue(attributeType,
+                new ASN1OctetString(valueBytes)));
             pos += valueLength;
           }
 
 
           // Create the attribute and add it to the set of user
           // attributes.
-          Attribute a = new Attribute(attributeType, name, options,
-                                      values);
+          Attribute a = builder.toAttribute();
           List<Attribute> attrList =
-               userAttributes.get(attributeType);
+            userAttributes.get(attributeType);
           if (attrList == null)
           {
             attrList = new ArrayList<Attribute>(1);
@@ -5381,24 +5015,24 @@ public class Entry
       }
       else
       {
+        AttributeBuilder builder = new AttributeBuilder();
         for (int i=0; i < numOperationalAttrs; i++)
         {
+          AttributeType attributeType;
+
           // First, we have the zero-terminated attribute name.
           int startPos = pos;
           while (entryBytes[pos] != 0x00)
           {
             pos++;
           }
-          String lowerName;
           String name = new String(entryBytes, startPos, pos-startPos,
                                    "UTF-8");
-          LinkedHashSet<String> options;
           int semicolonPos = name.indexOf(';');
           if (semicolonPos > 0)
           {
-            String baseName = name.substring(0, semicolonPos);
-            lowerName = toLowerCase(baseName);
-            options   = new LinkedHashSet<String>();
+            builder.setAttributeType(name.substring(0, semicolonPos));
+            attributeType = builder.getAttributeType();
 
             int nextPos = name.indexOf(';', semicolonPos+1);
             while (nextPos > 0)
@@ -5406,7 +5040,7 @@ public class Entry
               String option = name.substring(semicolonPos+1, nextPos);
               if (option.length() > 0)
               {
-                options.add(option);
+                builder.setOption(option);
               }
 
               semicolonPos = nextPos;
@@ -5416,18 +5050,14 @@ public class Entry
             String option = name.substring(semicolonPos+1);
             if (option.length() > 0)
             {
-              options.add(option);
+              builder.setOption(option);
             }
-
-            name = baseName;
           }
           else
           {
-            lowerName = toLowerCase(name);
-            options   = new LinkedHashSet<String>(0);
+            builder.setAttributeType(name);
+            attributeType = builder.getAttributeType();
           }
-          AttributeType attributeType =
-               DirectoryServer.getAttributeType(lowerName, true);
 
 
           // Next, we have the number of values.
@@ -5443,8 +5073,7 @@ public class Entry
           }
 
           // Next, we have the sequence of length-value pairs.
-          LinkedHashSet<AttributeValue> values =
-               new LinkedHashSet<AttributeValue>(numValues);
+          builder.setInitialCapacity(numValues);
           for (int j=0; j < numValues; j++)
           {
             int valueLength = entryBytes[pos] & 0x7F;
@@ -5460,20 +5089,19 @@ public class Entry
             }
 
             byte[] valueBytes = new byte[valueLength];
-            System.arraycopy(entryBytes, pos, valueBytes, 0,
-                             valueLength);
-            values.add(new AttributeValue(attributeType,
-                                new ASN1OctetString(valueBytes)));
+            System.arraycopy(
+                entryBytes, pos, valueBytes, 0, valueLength);
+            builder.add(new AttributeValue(attributeType,
+                new ASN1OctetString(valueBytes)));
             pos += valueLength;
           }
 
 
           // Create the attribute and add it to the set of operational
           // attributes.
-          Attribute a = new Attribute(attributeType, name, options,
-                                      values);
+          Attribute a = builder.toAttribute();
           List<Attribute> attrList =
-               operationalAttributes.get(attributeType);
+            operationalAttributes.get(attributeType);
           if (attrList == null)
           {
             attrList = new ArrayList<Attribute>(1);
@@ -5491,7 +5119,7 @@ public class Entry
       // We've got everything that we need, so create and return the
       // entry.
       return new Entry(dn, objectClasses, userAttributes,
-                       operationalAttributes);
+          operationalAttributes);
     }
     catch (DirectoryException de)
     {
@@ -5555,7 +5183,7 @@ public class Entry
           attrName.append(o);
         }
 
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           StringBuilder attrLine = new StringBuilder();
           attrLine.append(attrName);
@@ -5578,7 +5206,7 @@ public class Entry
           attrName.append(o);
         }
 
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           StringBuilder attrLine = new StringBuilder();
           attrLine.append(attrName);
@@ -5735,7 +5363,7 @@ public class Entry
               attrName.append(o);
             }
 
-            for (AttributeValue v : a.getValues())
+            for (AttributeValue v : a)
             {
               StringBuilder attrLine = new StringBuilder();
               attrLine.append(attrName);
@@ -5797,7 +5425,7 @@ public class Entry
                 attrName.append(o);
               }
 
-              for (AttributeValue v : a.getValues())
+              for (AttributeValue v : a)
               {
                 StringBuilder attrLine = new StringBuilder();
                 attrLine.append(attrName);
@@ -5865,7 +5493,7 @@ public class Entry
                 attrName.append(o);
               }
 
-              for (AttributeValue v : a.getValues())
+              for (AttributeValue v : a)
               {
                 StringBuilder attrLine = new StringBuilder();
                 attrLine.append(attrName);
@@ -6205,8 +5833,7 @@ public class Entry
         }
 
         buffer.append("={");
-        Iterator<AttributeValue> valueIterator =
-             a.getValues().iterator();
+        Iterator<AttributeValue> valueIterator = a.iterator();
         if (valueIterator.hasNext())
         {
           buffer.append(valueIterator.next().getStringValue());
@@ -6248,8 +5875,7 @@ public class Entry
         }
 
         buffer.append("={");
-        Iterator<AttributeValue> valueIterator =
-             a.getValues().iterator();
+        Iterator<AttributeValue> valueIterator = a.iterator();
         if (valueIterator.hasNext())
         {
           buffer.append(valueIterator.next().getStringValue());
@@ -6266,6 +5892,217 @@ public class Entry
     }
 
     buffer.append("})");
+  }
+
+
+
+  /**
+   * Retrieves the requested attribute element for the specified
+   * attribute type and options or <code>null</code> if this entry
+   * does not contain an attribute with the specified attribute type
+   * and options.
+   *
+   * @param attributeType
+   *          The attribute type to retrieve.
+   * @param options
+   *          The set of attribute options.
+   * @return The requested attribute element for the specified
+   *         attribute type and options, or <code>null</code> if the
+   *         specified attribute type is not present in this entry
+   *         with the provided set of options.
+   */
+  public Attribute getExactAttribute(AttributeType attributeType,
+      Set<String> options)
+  {
+    List<Attribute> attributes;
+
+    if (attributeType.isOperational())
+    {
+      attributes = operationalAttributes.get(attributeType);
+    }
+    else
+    {
+      attributes = userAttributes.get(attributeType);
+    }
+
+    if (attributes != null)
+    {
+      for (Attribute attribute : attributes)
+      {
+        if (attribute.optionsEqual(options))
+        {
+          return attribute;
+        }
+      }
+    }
+
+    return null;
+  }
+
+
+
+  /**
+   * Adds the provided attribute to this entry. If an attribute with
+   * the provided type and options already exists, then it will be
+   * either merged or replaced depending on the value of
+   * <code>replace</code>.
+   *
+   * @param attribute
+   *          The attribute to add/replace in this entry.
+   * @param duplicateValues
+   *          A list to which any duplicate values will be added.
+   * @param replace
+   *          <code>true</code> if the attribute should replace any
+   *          existing attribute.
+   */
+  private void setAttribute(Attribute attribute,
+      List<AttributeValue> duplicateValues, boolean replace)
+  {
+    attachment = null;
+
+    AttributeType attributeType = attribute.getAttributeType();
+
+    if (attribute.getAttributeType().isObjectClassType())
+    {
+      // We will not do any validation of the object classes - this is
+      // left to the caller.
+      if (replace)
+      {
+        objectClasses.clear();
+      }
+
+      for (AttributeValue v : attribute)
+      {
+        String name = v.getStringValue();
+
+        String lowerName;
+        try
+        {
+          lowerName = v.getNormalizedStringValue();
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+
+          lowerName = toLowerCase(v.getStringValue());
+        }
+
+        // Create a default object class if necessary.
+        ObjectClass oc =
+          DirectoryServer.getObjectClass(lowerName, true);
+
+        if (replace)
+        {
+          objectClasses.put(oc, name);
+        }
+        else
+        {
+          if (objectClasses.containsKey(oc))
+          {
+            duplicateValues.add(v);
+          }
+          else
+          {
+            objectClasses.put(oc, name);
+          }
+        }
+      }
+
+      return;
+    }
+
+    List<Attribute> attributes;
+
+    if (attributeType.isOperational())
+    {
+      attributes = operationalAttributes.get(attributeType);
+    }
+    else
+    {
+      attributes = userAttributes.get(attributeType);
+    }
+
+    if (attributes == null)
+    {
+      // Do nothing if we are deleting a non-existing attribute.
+      if (replace && attribute.isEmpty())
+      {
+        return;
+      }
+
+      // We are adding the first attribute with this attribute type.
+      attributes = new ArrayList<Attribute>(1);
+      attributes.add(attribute);
+
+      if (attributeType.isOperational())
+      {
+        operationalAttributes.put(attributeType, attributes);
+      }
+      else
+      {
+        userAttributes.put(attributeType, attributes);
+      }
+
+      return;
+    }
+
+    // There are already attributes with the same attribute type.
+    Set<String> options = attribute.getOptions();
+    for (int i = 0; i < attributes.size(); i++)
+    {
+      Attribute a = attributes.get(i);
+      if (a.optionsEqual(options))
+      {
+        if (replace)
+        {
+          if (!attribute.isEmpty())
+          {
+            attributes.set(i, attribute);
+          }
+          else
+          {
+            attributes.remove(i);
+
+            if (attributes.isEmpty())
+            {
+              if (attributeType.isOperational())
+              {
+                operationalAttributes.remove(attributeType);
+              }
+              else
+              {
+                userAttributes.remove(attributeType);
+              }
+            }
+          }
+        }
+        else
+        {
+          AttributeBuilder builder = new AttributeBuilder(a);
+          for (AttributeValue v : attribute)
+          {
+            if (!builder.add(v))
+            {
+              duplicateValues.add(v);
+            }
+          }
+          attributes.set(i, builder.toAttribute());
+        }
+        return;
+      }
+    }
+
+    // There were no attributes with the same options.
+    if (replace && attribute.isEmpty())
+    {
+      // Do nothing.
+      return;
+    }
+
+    attributes.add(attribute);
   }
 }
 

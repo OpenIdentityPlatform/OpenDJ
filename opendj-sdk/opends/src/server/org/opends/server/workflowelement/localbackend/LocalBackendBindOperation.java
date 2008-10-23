@@ -29,7 +29,6 @@ package org.opends.server.workflowelement.localbackend;
 
 
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
@@ -127,10 +126,6 @@ public class LocalBackendBindOperation
   // The bind DN provided by the client.
   private DN bindDN;
 
-  // The entry of the user that successfully authenticated during processing for
-  // this bind operation.
-  private Entry authenticatedUserEntry;
-
   // The lookthrough limit that should be enforced for the user.
   private int lookthroughLimit;
 
@@ -208,7 +203,6 @@ public class LocalBackendBindOperation
     mustChangePassword       = false;
     pwPolicyWarningType      = null;
     pwPolicyWarningValue     = -1 ;
-    authenticatedUserEntry   = null;
     pluginConfigManager      = DirectoryServer.getPluginConfigManager();
 
 
@@ -358,7 +352,6 @@ bindProcessing:
     AuthenticationInfo authInfo = getAuthenticationInfo();
     if ((getResultCode() == ResultCode.SUCCESS) && (authInfo != null))
     {
-      authenticatedUserEntry = authInfo.getAuthenticationEntry();
       clientConnection.setAuthenticationInfo(authInfo);
       clientConnection.setSizeLimit(sizeLimit);
       clientConnection.setTimeLimit(timeLimit);
@@ -738,7 +731,7 @@ bindProcessing:
   {
     // Get the appropriate authentication handler for this request based
     // on the SASL mechanism.  If there is none, then fail.
-    SASLMechanismHandler saslHandler =
+    SASLMechanismHandler<?> saslHandler =
          DirectoryServer.getSASLMechanismHandler(saslMechanism);
     if (saslHandler == null)
     {
@@ -910,7 +903,7 @@ bindProcessing:
    *                              to fail.
    */
   private void checkPasswordPolicyState(Entry userEntry,
-                                        SASLMechanismHandler saslHandler)
+                                        SASLMechanismHandler<?> saslHandler)
           throws DirectoryException
   {
     boolean isSASLBind = (saslHandler != null);
@@ -1130,8 +1123,7 @@ bindProcessing:
     if ((attrList != null) && (attrList.size() == 1))
     {
       Attribute a = attrList.get(0);
-      LinkedHashSet<AttributeValue>  values = a.getValues();
-      Iterator<AttributeValue> iterator = values.iterator();
+      Iterator<AttributeValue> iterator = a.iterator();
       if (iterator.hasNext())
       {
         AttributeValue v = iterator.next();
@@ -1168,8 +1160,7 @@ bindProcessing:
     if ((attrList != null) && (attrList.size() == 1))
     {
       Attribute a = attrList.get(0);
-      LinkedHashSet<AttributeValue>  values = a.getValues();
-      Iterator<AttributeValue> iterator = values.iterator();
+      Iterator<AttributeValue> iterator = a.iterator();
       if (iterator.hasNext())
       {
         AttributeValue v = iterator.next();
@@ -1207,8 +1198,7 @@ bindProcessing:
     if ((attrList != null) && (attrList.size() == 1))
     {
       Attribute a = attrList.get(0);
-      LinkedHashSet<AttributeValue>  values = a.getValues();
-      Iterator<AttributeValue> iterator = values.iterator();
+      Iterator<AttributeValue> iterator = a.iterator();
       if (iterator.hasNext())
       {
         AttributeValue v = iterator.next();
@@ -1246,8 +1236,7 @@ bindProcessing:
     if ((attrList != null) && (attrList.size() == 1))
     {
       Attribute a = attrList.get(0);
-      LinkedHashSet<AttributeValue>  values = a.getValues();
-      Iterator<AttributeValue> iterator = values.iterator();
+      Iterator<AttributeValue> iterator = a.iterator();
       if (iterator.hasNext())
       {
         AttributeValue v = iterator.next();

@@ -27,6 +27,8 @@
 package org.opends.server.protocols.ldap ;
 
 import static org.opends.server.config.ConfigConstants.ATTR_LISTEN_PORT;
+
+import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.admin.server.AdminTestCaseUtils;
@@ -165,7 +167,7 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
 	  serverLdapSocket.bind(new InetSocketAddress(localHost, 0));
 	  long serverLdapPort = serverLdapSocket.getLocalPort();
     serverLdapSocket.close();
-	  Attribute a=new Attribute(ATTR_LISTEN_PORT, String.valueOf(serverLdapPort));
+	  Attribute a=Attributes.create(ATTR_LISTEN_PORT, String.valueOf(serverLdapPort));
 	  handlerEntry.addAttribute(a,null);
     LDAPConnectionHandlerCfg config =
       getConfiguration(handlerEntry);

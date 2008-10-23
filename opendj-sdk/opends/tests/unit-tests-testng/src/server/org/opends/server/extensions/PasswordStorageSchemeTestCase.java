@@ -28,33 +28,31 @@ package org.opends.server.extensions;
 
 
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import static org.testng.Assert.*;
+
+import java.util.ArrayList;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.PasswordPolicy;
 import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.PasswordPolicy;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
-import org.opends.server.types.Attribute;
-
-import static org.testng.Assert.*;
-import static org.testng.Assert.assertEquals;
-
-import java.util.ArrayList;
+import org.opends.server.types.ResultCode;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 
 /**
@@ -99,7 +97,7 @@ public abstract class PasswordStorageSchemeTestCase
          throws Exception
   {
     TestCaseUtils.startServer();
-
+    
     if (configDNString != null)
     {
       configEntry = DirectoryServer.getConfigEntry(DN.decode(configDNString));
@@ -319,7 +317,7 @@ public abstract class PasswordStorageSchemeTestCase
 
       ArrayList<Modification> mods = new ArrayList<Modification>();
       mods.add(new Modification(ModificationType.REPLACE,
-                                new Attribute(attr, ""+allowPreencoded)));
+          Attributes.create(attr, String.valueOf(allowPreencoded))));
 
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();

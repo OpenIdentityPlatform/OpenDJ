@@ -139,14 +139,14 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     assertTrue(e.hasAttribute(isMemberOfType));
     for (Attribute a : e.getAttribute(isMemberOfType))
     {
-      assertEquals(a.getValues().size(), 1);
+      assertEquals(a.size(), 1);
 
-      assertTrue(a.hasValue());
-      assertTrue(a.hasValue(new AttributeValue(isMemberOfType,
+      assertTrue(!a.isEmpty());
+      assertTrue(a.contains(new AttributeValue(isMemberOfType,
                                      "cn=test static group,ou=groups,o=test")));
-      assertFalse(a.hasValue(new AttributeValue(isMemberOfType,
+      assertFalse(a.contains(new AttributeValue(isMemberOfType,
                                       "cn=not a group,ou=groups,o=test")));
-      assertFalse(a.hasValue(new AttributeValue(isMemberOfType, "invalid")));
+      assertFalse(a.contains(new AttributeValue(isMemberOfType, "invalid")));
     }
 
     InternalClientConnection conn =
@@ -205,14 +205,14 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     assertTrue(e.hasAttribute(isMemberOfType));
     for (Attribute a : e.getAttribute(isMemberOfType))
     {
-      assertEquals(a.getValues().size(), 1);
+      assertEquals(a.size(), 1);
 
-      assertTrue(a.hasValue());
-      assertTrue(a.hasValue(new AttributeValue(isMemberOfType,
+      assertTrue(!a.isEmpty());
+      assertTrue(a.contains(new AttributeValue(isMemberOfType,
                                      "cn=test static group,ou=groups,o=test")));
-      assertFalse(a.hasValue(new AttributeValue(isMemberOfType,
+      assertFalse(a.contains(new AttributeValue(isMemberOfType,
                                       "cn=not a group,ou=groups,o=test")));
-      assertFalse(a.hasValue(new AttributeValue(isMemberOfType, "invalid")));
+      assertFalse(a.contains(new AttributeValue(isMemberOfType, "invalid")));
     }
 
     InternalClientConnection conn =
@@ -270,14 +270,14 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     assertTrue(e.hasAttribute(isMemberOfType));
     for (Attribute a : e.getAttribute(isMemberOfType))
     {
-      assertEquals(a.getValues().size(), 1);
+      assertEquals(a.size(), 1);
 
-      assertTrue(a.hasValue());
-      assertTrue(a.hasValue(new AttributeValue(isMemberOfType,
+      assertTrue(!a.isEmpty());
+      assertTrue(a.contains(new AttributeValue(isMemberOfType,
                       "cn=test dynamic group,ou=groups,o=test")));
-      assertFalse(a.hasValue(new AttributeValue(isMemberOfType,
+      assertFalse(a.contains(new AttributeValue(isMemberOfType,
                                       "cn=not a group,ou=groups,o=test")));
-      assertFalse(a.hasValue(new AttributeValue(isMemberOfType, "invalid")));
+      assertFalse(a.contains(new AttributeValue(isMemberOfType, "invalid")));
     }
 
     InternalClientConnection conn =
@@ -360,18 +360,18 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     assertTrue(e.hasAttribute(isMemberOfType));
     for (Attribute a : e.getAttribute(isMemberOfType))
     {
-      assertEquals(a.getValues().size(), 2);
+      assertEquals(a.size(), 2);
 
-      assertTrue(a.hasValue());
-      assertTrue(a.hasValue(new AttributeValue(isMemberOfType,
+      assertTrue(!a.isEmpty());
+      assertTrue(a.contains(new AttributeValue(isMemberOfType,
                                      "cn=test group 1,ou=groups,o=test")));
-      assertFalse(a.hasValue(new AttributeValue(isMemberOfType,
+      assertFalse(a.contains(new AttributeValue(isMemberOfType,
                                       "cn=test group 2,ou=groups,o=test")));
-      assertTrue(a.hasValue(new AttributeValue(isMemberOfType,
+      assertTrue(a.contains(new AttributeValue(isMemberOfType,
                                      "cn=test group 3,ou=groups,o=test")));
-      assertFalse(a.hasValue(new AttributeValue(isMemberOfType,
+      assertFalse(a.contains(new AttributeValue(isMemberOfType,
                                       "cn=not a group,ou=groups,o=test")));
-      assertFalse(a.hasValue(new AttributeValue(isMemberOfType, "invalid")));
+      assertFalse(a.contains(new AttributeValue(isMemberOfType, "invalid")));
     }
 
     InternalClientConnection conn =
@@ -479,24 +479,24 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     assertTrue(e.hasAttribute(isMemberOfType));
     for (Attribute a : e.getAttribute(isMemberOfType))
     {
-      assertEquals(a.getValues().size(), 4);
+      assertEquals(a.size(), 4);
 
-      assertTrue(a.hasValue());
-      assertTrue(a.hasValue(new AttributeValue(isMemberOfType,
+      assertTrue(!a.isEmpty());
+      assertTrue(a.contains(new AttributeValue(isMemberOfType,
                                      "cn=test group 1,ou=groups,o=test")));
-      assertFalse(a.hasValue(new AttributeValue(isMemberOfType,
+      assertFalse(a.contains(new AttributeValue(isMemberOfType,
                                       "cn=test group 2,ou=groups,o=test")));
-      assertTrue(a.hasValue(new AttributeValue(isMemberOfType,
+      assertTrue(a.contains(new AttributeValue(isMemberOfType,
                                      "cn=test group 3,ou=groups,o=test")));
-      assertTrue(a.hasValue(new AttributeValue(isMemberOfType,
+      assertTrue(a.contains(new AttributeValue(isMemberOfType,
                                      "cn=test group 4,ou=groups,o=test")));
-      assertFalse(a.hasValue(new AttributeValue(isMemberOfType,
+      assertFalse(a.contains(new AttributeValue(isMemberOfType,
                                       "cn=test group 5,ou=groups,o=test")));
-      assertTrue(a.hasValue(new AttributeValue(isMemberOfType,
+      assertTrue(a.contains(new AttributeValue(isMemberOfType,
                                      "cn=test group 6,ou=groups,o=test")));
-      assertFalse(a.hasValue(new AttributeValue(isMemberOfType,
+      assertFalse(a.contains(new AttributeValue(isMemberOfType,
                                       "cn=not a group,ou=groups,o=test")));
-      assertFalse(a.hasValue(new AttributeValue(isMemberOfType, "invalid")));
+      assertFalse(a.contains(new AttributeValue(isMemberOfType, "invalid")));
     }
 
     InternalClientConnection conn =

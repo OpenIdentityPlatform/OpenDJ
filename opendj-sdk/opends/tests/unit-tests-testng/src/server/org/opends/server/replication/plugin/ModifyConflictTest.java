@@ -28,7 +28,7 @@ package org.opends.server.replication.plugin;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -41,7 +41,6 @@ import static org.opends.server.replication.protocol.OperationContext.*;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
@@ -49,11 +48,13 @@ import org.opends.server.replication.plugin.FakeOperation;
 import org.opends.server.replication.plugin.FakeOperationComparator;
 import org.opends.server.replication.plugin.Historical;
 import org.opends.server.replication.protocol.ModifyContext;
-import org.opends.server.replication.protocol.ReplicationMessage;
-import org.opends.server.replication.protocol.UpdateMessage;
+import org.opends.server.replication.protocol.ReplicationMsg;
+import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -62,6 +63,7 @@ import org.opends.server.types.ModificationType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
+import static org.opends.server.TestCaseUtils.*;
 
 /*
  * Test the conflict resolution for modify operations As a consequence,
@@ -78,6 +80,11 @@ public class ModifyConflictTest
     extends ReplicationTestCase
 {
 
+  private static final String ORGANIZATION = "organization";
+  private static final String DISPLAYNAME = "displayname";
+  private static final String EMPLOYEENUMBER = "employeenumber";
+  private static final String DESCRIPTION = "description";
+
   /**
    * Test that conflict between a modify-replace and modify-add for
    * multi-valued attributes are handled correctly.
@@ -93,14 +100,14 @@ public class ModifyConflictTest
     /*
      * simulate a modify-replace done at time t10
      */
-    testModify(entry, hist, "description", ModificationType.REPLACE,
+    testModify(entry, hist, DESCRIPTION, ModificationType.REPLACE,
                "init value", 10, true);
 
     /*
      * Now simulate an add at an earlier date that the previous replace
      * conflict resolution should remove it.
      */
-    testModify(entry, hist, "description", ModificationType.ADD,
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
                "older value", 1, false);
 
     /*
@@ -108,18 +115,18 @@ public class ModifyConflictTest
      * conflict resolution should remove it. (a second time to make
      * sure...)
      */
-    testModify(entry, hist, "description", ModificationType.ADD,
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
                "older value", 2, false);
 
     /*
      * Now simulate an add at a later date that the previous replace.
      * conflict resolution should keep it
      */
-    testModify(entry, hist, "description", ModificationType.ADD, "new value",
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD, "new value",
                11, true);
 
   }
-  
+
   /**
    * Test that conflict between a modify-replace and modify-add for
    * single-valued attributes are handled correctly.
@@ -135,14 +142,14 @@ public class ModifyConflictTest
     /*
      * simulate a modify-replace done at time t10
      */
-    testModify(entry, hist, "displayname", ModificationType.REPLACE,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
                "init value", 10, true);
 
     /*
      * Now simulate an add at an earlier date that the previous replace
      * conflict resolution should remove it.
      */
-    testModify(entry, hist, "displayname", ModificationType.ADD,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
                "older value", 1, false);
 
     /*
@@ -150,20 +157,20 @@ public class ModifyConflictTest
      * conflict resolution should remove it. (a second time to make
      * sure...)
      */
-    testModify(entry, hist, "displayname", ModificationType.ADD,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
                "older value", 2, false);
 
     /*
      * Now simulate an add at a later date that the previous replace.
      * conflict resolution should remove it
      */
-    testModify(entry, hist, "displayname", ModificationType.ADD, "new value",
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD, "new value",
                11, false);
 
   }
-  
+
   /**
-   * Test that replace with null value is corrrectly seen as a delete
+   * Test that replace with null value is correctly seen as a delete
    * by doing first a replace with null, then add at at previous time
    * then check that the add was ignored
    */
@@ -178,14 +185,14 @@ public class ModifyConflictTest
     /*
      * simulate a replace with null done at time t3
      */
-    testModify(entry, hist, "displayname", ModificationType.REPLACE, null, 3,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE, null, 3,
         true);
 
     /*
      * Now simulate an add at an earlier date that the previous replace. The
      * conflict resolution should detect that this add must be ignored.
      */
-    testModify(entry, hist, "displayname", ModificationType.ADD,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "older value", 1, false);
 
     /*
@@ -193,14 +200,14 @@ public class ModifyConflictTest
      * conflict resolution should detect that this add must be ignored. (a
      * second time to make sure that historical information is kept...)
      */
-    testModify(entry, hist, "displayname", ModificationType.ADD,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "older value", 2, false);
 
     /*
      * Now simulate an add at a later date that the previous delete.
      * conflict resolution should keep it
      */
-    testModify(entry, hist, "displayname", ModificationType.ADD, "new value",
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD, "new value",
         4, true);
   }
 
@@ -219,14 +226,14 @@ public class ModifyConflictTest
     /*
      * simulate a modify-add done at time t10
      */
-    testModify(entry, hist, "description", ModificationType.ADD,
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
         "init value", 10, true);
 
     /*
      * Now simulate a replace at an earlier date that the previous replace
      * conflict resolution should keep it.
      */
-    testModify(entry, hist, "description", ModificationType.REPLACE,
+    testModify(entry, hist, DESCRIPTION, ModificationType.REPLACE,
         "older value", 1, true);
 
     /*
@@ -234,18 +241,18 @@ public class ModifyConflictTest
      * conflict resolution should remove it. (a second time to make
      * sure...)
      */
-    testModify(entry, hist, "description", ModificationType.REPLACE,
+    testModify(entry, hist, DESCRIPTION, ModificationType.REPLACE,
         "older value", 2, true);
 
     /*
      * Now simulate a replace at a later date that the previous replace.
      * conflict resolution should keep it
      */
-    testModify(entry, hist, "description", ModificationType.REPLACE,
+    testModify(entry, hist, DESCRIPTION, ModificationType.REPLACE,
         "new value", 11, true);
 
   }
-  
+
   /**
    * Test that conflict between modify-add and modify-replace for
    * single-valued attributes are handled correctly.
@@ -261,21 +268,21 @@ public class ModifyConflictTest
     /*
      * simulate a modify-add done at time 2
      */
-    testModify(entry, hist, "displayname", ModificationType.ADD,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "init value", 2, true);
 
     /*
      * Now simulate a replace at an earlier date that the previous replace
      * conflict resolution should keep it.
      */
-    testModify(entry, hist, "displayname", ModificationType.REPLACE,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
         "older value", 1, true);
 
     /*
      * Now simulate a replace at a later date.
      * Conflict resolution should keept it.
      */
-    testModify(entry, hist, "displayname", ModificationType.REPLACE,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
         "older value", 3, true);
 
   }
@@ -297,14 +304,14 @@ public class ModifyConflictTest
      * simulate a delete of the whole description attribute done at time
      * t10
      */
-    testModify(entry, hist, "description", ModificationType.DELETE, null, 10,
+    testModify(entry, hist, DESCRIPTION, ModificationType.DELETE, null, 10,
         true);
 
     /*
      * Now simulate an add at an earlier date that the previous delete. The
      * conflict resolution should detect that this add must be ignored.
      */
-    testModify(entry, hist, "description", ModificationType.ADD,
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
         "older value", 1, false);
 
     /*
@@ -312,17 +319,249 @@ public class ModifyConflictTest
      * conflict resolution should detect that this add must be ignored. (a
      * second time to make sure that historical information is kept...)
      */
-    testModify(entry, hist, "description", ModificationType.ADD,
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
         "older value", 2, false);
 
     /*
      * Now simulate an add at a later date that the previous delete.
      * conflict resolution should keep it
      */
-    testModify(entry, hist, "description", ModificationType.ADD, "new value",
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD, "new value",
         11, true);
   }
-  
+
+  /**
+   * Test that conflict between a delete-attribute value and
+   * add attribute-values from 2 different servers are handled correctly.
+   * This test was created to reproduce issue 3392.
+   */
+  @Test()
+  public void delValueAndAddvalue() throws Exception
+  {
+    // create an entry to use with conflicts tests.
+    Entry entry = initializeEntry();
+
+    //
+    // Create description with values value1 and value2 and add
+    // this attribute to the entry.
+    //
+    AttributeBuilder builder = new AttributeBuilder(DESCRIPTION);
+    builder.add("value1");
+    builder.add("value2");
+
+    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    entry.addAttribute(builder.toAttribute(), duplicateValues);
+
+
+    // load historical from the entry
+    Historical hist = Historical.load(entry);
+
+    /*
+     * simulate a delete of the description attribute value "value1"
+     * done at time t1
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.DELETE, "value1",
+        1, true);
+
+
+    /*
+     * Now simulate an add of "value3" at time t2
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
+        "value3", 2, true);
+
+    /*
+     * Now simulate a delete of value "value1" at time t3
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.DELETE, "value1",
+        3, false);
+
+    /*
+     * Now simulate an add of "value4" at time t4
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
+        "value4", 4, true);
+
+  }
+
+  /**
+   * Test that conflict between several delete-attribute value and
+   * are handled correctly.
+   * This test was created to reproduce and fix issue 3397.
+   */
+  @Test()
+  public void delValueAndDelValue() throws Exception
+  {
+    // create an entry to use with conflicts tests.
+    Entry entry = initializeEntry();
+
+    //
+    // Create an attribute with values value1, value2, value3 and value4 and
+    // add this attribute to the entry.
+    //
+    AttributeBuilder builder = new AttributeBuilder(DESCRIPTION);
+    builder.add("value1");
+    builder.add("value2");
+    builder.add("value3");
+    builder.add("value4");
+
+    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    entry.addAttribute(builder.toAttribute(), duplicateValues);
+
+
+    // load historical from the entry
+    Historical hist = Historical.load(entry);
+
+    /*
+     * simulate a delete of the description attribute values
+     *  "value1" and "value2" done at time t1
+     */
+    testModify(entry, hist, DESCRIPTION,
+        buildModWith2Vals(DESCRIPTION, ModificationType.DELETE,
+            "value1", "value2"),
+            1, true);
+
+
+    /*
+     * simulate a delete of the description attribute values
+     *  "value2" and "value3" done at time t1
+     */
+    testModify(entry, hist, DESCRIPTION,
+        buildModWith2Vals(DESCRIPTION, ModificationType.DELETE,
+            "value2", "value3"),
+            2, true);
+
+
+    // Check that entry now only contains 1 attribute value  : "value1"
+    List<Attribute> attrs = entry.getAttribute(DESCRIPTION);
+    Attribute attr = attrs.get(0);
+    assertEquals(1, attr.size());
+  }
+
+  /**
+   * Test that conflict between a delete attribute and a delete
+   * value on a single valued attribute works correctly.
+   * This test was created to reproduce and fix issue 3399.
+   */
+  @Test()
+  public void delAttributeAndDelValueSingle() throws Exception
+  {
+    // create an entry to use with conflicts tests.
+    Entry entry = initializeEntry();
+
+    //
+    // Create a single valued attribute with value : "value1"
+    // add this attribute to the entry.
+    //
+    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    Attribute attribute = Attributes.create(EMPLOYEENUMBER, "value1");
+    entry.addAttribute(attribute, duplicateValues);
+
+    // load historical from the entry
+    Historical hist = Historical.load(entry);
+
+    /*
+     * simulate a delete of attribute employeenumber.
+     */
+    testModify(
+        entry, hist, EMPLOYEENUMBER, ModificationType.DELETE, null, 1, true);
+
+    /*
+     * now simulate a delete of value "value1"
+     */
+    testModify(
+        entry, hist, EMPLOYEENUMBER, ModificationType.DELETE,
+        "value1", 2, false);
+  }
+
+  /**
+   * Test that conflict between a delete attribute and a delete
+   * value on a single valued attribute works correctly.
+   * This test was created to reproduce and fix issue 3399.
+   */
+  @Test()
+  public void delValueAndDelAttributeSingle() throws Exception
+  {
+    // create an entry to use with conflicts tests.
+    Entry entry = initializeEntry();
+
+    // Create a single valued attribute with value : "value1"
+    // add this attribute to the entry.
+    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    Attribute attribute = Attributes.create(EMPLOYEENUMBER, "value1");
+    entry.addAttribute(attribute, duplicateValues);
+
+    // load historical from the entry
+    Historical hist = Historical.load(entry);
+
+    /*
+     * now simulate a delete of value "value1"
+     */
+    testModify(
+        entry, hist, EMPLOYEENUMBER, ModificationType.DELETE,
+        "value1", 1, true);
+
+    /*
+     * simulate a delete of attribute employeenumber.
+     */
+    testModify(
+        entry, hist, EMPLOYEENUMBER, ModificationType.DELETE, null, 2, false);
+  }
+
+  /**
+   * Test that conflict between a delete-attribute value and
+   * add attribute-values from 2 different servers
+   * and replayed in the non-natural order are handled correctly.
+   * This test was created to reproduce issue 3392.
+   */
+  @Test()
+  public void delValueAndAddvalueDisordered() throws Exception
+  {
+    // create an entry to use with conflicts tests.
+    Entry entry = initializeEntry();
+
+    //
+    // Create description with values value1 and value2 and add
+    // this attribute to the entry.
+    //
+    AttributeBuilder builder = new AttributeBuilder(DESCRIPTION);
+    builder.add("value1");
+    builder.add("value2");
+
+    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    entry.addAttribute(builder.toAttribute(), duplicateValues);
+
+    // load historical from the entry
+    Historical hist = Historical.load(entry);
+
+    /*
+     * simulate a delete of the description attribute value "value1"
+     * done at time t3
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.DELETE, "value1",
+        3, true);
+
+
+    /*
+     * Now simulate an add of "value3" at time t4
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
+        "value3", 4, true);
+
+    /*
+     * Now simulate a delete of value "value1" at time t1
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.DELETE, "value1",
+        1, false);
+
+    /*
+     * Now simulate an add of "value4" at time t2
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
+        "value4", 2, true);
+
+  }
+
   /**
    * Test that conflict between a modify-delete-attribute and modify-add
    * for multi-valued attributes are handled correctly.
@@ -332,6 +571,11 @@ public class ModifyConflictTest
   {
     Entry entry = initializeEntry();
 
+    // Create a single valued attribute with value : "value1"
+    // add this attribute to the entry.
+    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    Attribute attribute = Attributes.create(DISPLAYNAME, "value1");
+    entry.addAttribute(attribute, duplicateValues);
 
     // load historical from the entry
     Historical hist = Historical.load(entry);
@@ -340,14 +584,14 @@ public class ModifyConflictTest
      * simulate a delete of the whole description attribute done at time
      * t2
      */
-    testModify(entry, hist, "displayname", ModificationType.DELETE, null, 3,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, null, 3,
         true);
 
     /*
      * Now simulate an add at an earlier date that the previous delete. The
      * conflict resolution should detect that this add must be ignored.
      */
-    testModify(entry, hist, "displayname", ModificationType.ADD,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "older value", 1, false);
 
     /*
@@ -355,17 +599,17 @@ public class ModifyConflictTest
      * conflict resolution should detect that this add must be ignored. (a
      * second time to make sure that historical information is kept...)
      */
-    testModify(entry, hist, "displayname", ModificationType.ADD,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "older value", 2, false);
 
     /*
      * Now simulate an add at a later date that the previous delete.
      * conflict resolution should keep it
      */
-    testModify(entry, hist, "displayname", ModificationType.ADD, "new value",
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD, "new value",
         4, true);
   }
-  
+
   /**
    * Test that conflict between a modify-delete-attribute and modify-add
    * for multi-valued attributes are handled correctly.
@@ -383,17 +627,158 @@ public class ModifyConflictTest
      * simulate a delete of the whole description attribute done at time
      * t4
      */
-    testModify(entry, hist, "description", ModificationType.DELETE, null, 4,
+    testModify(entry, hist, DESCRIPTION, ModificationType.DELETE, null, 4,
         true);
 
     /*
      * Now simulate a replace at an earlier date that the previous delete. The
      * conflict resolution should detect that this replace must be ignored.
      */
-    testModify(entry, hist, "description", ModificationType.REPLACE,
+    testModify(entry, hist, DESCRIPTION, ModificationType.REPLACE,
         "new value", 3, false);
   }
-  
+
+  /**
+   * Test that conflict between a modify-replace and a a modify-delete
+   * with some attribute values is resolved correctly.
+   * This test has been created to reproduce Issue 3397.
+   */
+  @Test()
+  public void replaceAndDelete() throws Exception
+  {
+    AttributeType descriptionAttrType =
+      DirectoryServer.getSchema().getAttributeType(DESCRIPTION);
+
+    // create an entry to use with conflicts tests.
+    Entry entry = initializeEntry();
+
+    //
+    // Create description with values value1 and value2 and add
+    // this attribute to the entry.
+    //
+    AttributeBuilder builder = new AttributeBuilder(DESCRIPTION);
+    builder.add("value1");
+    builder.add("value2");
+    builder.add("value3");
+    builder.add("value4");
+
+    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    entry.addAttribute(builder.toAttribute(), duplicateValues);
+
+    // load historical from the entry
+    Historical hist = Historical.load(entry);
+
+    // simulate a REPLACE of the attribute with values : value1, value2, value3
+    // at time t1.
+    builder = new AttributeBuilder(DESCRIPTION);
+    builder.add("value1");
+    builder.add("value2");
+    builder.add("value3");
+
+    Modification mod =
+      new Modification(ModificationType.REPLACE, builder.toAttribute());
+    testModify(entry, hist, DESCRIPTION, mod, 1, true);
+
+    // simulate a DELETE of the attribute values : value3 and value4
+    // at time t2.
+    builder = new AttributeBuilder(DESCRIPTION);
+    builder.add("value3");
+    builder.add("value4");
+    mod = new Modification(ModificationType.DELETE, builder.toAttribute());
+    List<Modification> mods = replayModify(entry, hist, mod, 2);
+    mod = mods.get(0);
+    assertEquals(mod.getAttribute().getName(), DESCRIPTION);
+    assertEquals(mod.getModificationType(), ModificationType.DELETE);
+    assertEquals(mod.getAttribute().size(), 1);
+    assertTrue(mod.getAttribute().contains(
+        new AttributeValue(descriptionAttrType, "value3")));
+  }
+
+  /**
+   * Test that conflict between a modify-replace and a a modify-delete
+   * with some attribute values is resolved correctly when they are replayed
+   * disorderly.
+   * This test has been created to reproduce Issue 3397.
+   */
+  @Test()
+  public void replaceAndDeleteDisorder() throws Exception
+  {
+    AttributeType descriptionAttrType =
+      DirectoryServer.getSchema().getAttributeType(DESCRIPTION);
+
+    // create an entry to use with conflicts tests.
+    Entry entry = initializeEntry();
+
+    //
+    // Create description with values value1 and value2 and add
+    // this attribute to the entry.
+    //
+    AttributeBuilder builder = new AttributeBuilder(DESCRIPTION);
+    builder.add("value1");
+    builder.add("value2");
+    builder.add("value3");
+    builder.add("value4");
+
+    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    entry.addAttribute(builder.toAttribute(), duplicateValues);
+
+    // load historical from the entry
+    Historical hist = Historical.load(entry);
+
+    // simulate a DELETE of the attribute values : value3 and value4
+    // at time t2.
+    builder = new AttributeBuilder(DESCRIPTION);
+    builder.add("value3");
+    builder.add("value4");
+    Modification mod =
+      new Modification(ModificationType.DELETE, builder.toAttribute());
+    List<Modification> mods = replayModify(entry, hist, mod, 2);
+    entry.applyModifications(mods);
+    // check that the MOD is not altered by the replay mechanism.
+    mod = mods.get(0);
+    assertEquals(mod.getAttribute().getName(), DESCRIPTION);
+    assertEquals(mod.getModificationType(), ModificationType.DELETE);
+    assertEquals(mod.getAttribute().size(), 2);
+    assertTrue(mod.getAttribute().contains(
+        new AttributeValue(descriptionAttrType, "value3")));
+    assertTrue(mod.getAttribute().contains(
+        new AttributeValue(descriptionAttrType, "value4")));
+    Attribute resultEntryAttr = entry.getAttribute(descriptionAttrType).get(0);
+    // check that the entry now contains value1 and value2 and no other values.
+    assertEquals(resultEntryAttr.size(), 2);
+    assertTrue(resultEntryAttr.contains(
+        new AttributeValue(descriptionAttrType, "value1")));
+    assertTrue(resultEntryAttr.contains(
+        new AttributeValue(descriptionAttrType, "value2")));
+
+    // simulate a REPLACE of the attribute with values : value1, value2, value3
+    // at time t1.
+    builder = new AttributeBuilder(DESCRIPTION);
+    builder.add("value1");
+    builder.add("value2");
+    builder.add("value3");
+
+    mod = new Modification(ModificationType.REPLACE, builder.toAttribute());
+    mods = replayModify(entry, hist, mod, 1);
+    entry.applyModifications(mods);
+    mod = mods.get(0);
+    // check that value3 has been removed from the MOD-REPLACE because
+    // a later operation contains a MOD-DELETE of this value.
+    assertEquals(mod.getAttribute().getName(), DESCRIPTION);
+    assertEquals(mod.getModificationType(), ModificationType.REPLACE);
+    assertEquals(mod.getAttribute().size(), 2);
+    assertTrue(mod.getAttribute().contains(
+        new AttributeValue(descriptionAttrType, "value1")));
+    assertTrue(mod.getAttribute().contains(
+        new AttributeValue(descriptionAttrType, "value2")));
+    // check that the entry now contains value1 and value2 and no other values.
+    assertEquals(resultEntryAttr.size(), 2);
+    assertTrue(resultEntryAttr.contains(
+        new AttributeValue(descriptionAttrType, "value1")));
+    assertTrue(resultEntryAttr.contains(
+        new AttributeValue(descriptionAttrType, "value2")));
+  }
+
   /**
    * Test that conflict between a modify-delete-attribute and modify-add
    * for multi-valued attributes are handled correctly.
@@ -403,6 +788,11 @@ public class ModifyConflictTest
   {
     Entry entry = initializeEntry();
 
+    // Create a single valued attribute with value : "value1"
+    // add this attribute to the entry.
+    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    Attribute attribute = Attributes.create(DISPLAYNAME, "value1");
+    entry.addAttribute(attribute, duplicateValues);
 
     // load historical from the entry
     Historical hist = Historical.load(entry);
@@ -411,14 +801,14 @@ public class ModifyConflictTest
      * simulate a delete of the whole description attribute done at time
      * t4
      */
-    testModify(entry, hist, "displayname", ModificationType.DELETE, null, 4,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, null, 4,
         true);
 
     /*
      * Now simulate a replace at an earlier date that the previous delete. The
      * conflict resolution should detect that this replace must be ignored.
      */
-    testModify(entry, hist, "displayname", ModificationType.REPLACE,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
         "new value", 3, false);
   }
 
@@ -437,28 +827,97 @@ public class ModifyConflictTest
     /*
      * simulate a add of the description attribute done at time t10
      */
-    testModify(entry, hist, "description", ModificationType.ADD,
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
         "init value", 10, true);
     /*
      * Now simulate an add at an earlier date that the previous add. The
      * conflict resolution should detect that this add must be kept.
      */
-    testModify(entry, hist, "description", ModificationType.ADD,
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
         "older value", 1, true);
 
     /*
      * Now simulate an add with a value already existing.
      * The conflict resolution should remove this add.
      */
-    testModify(entry, hist, "description", ModificationType.ADD,
-        "older value", 2, false);
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
+        "init value", 13, false);
 
     /*
      * Now simulate an add at a later date that the previous add. conflict
      * resolution should keep it
      */
-    testModify(entry, hist, "description", ModificationType.ADD, "new value",
-        11, true);
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD, "new value",
+        14, true);
+  }
+
+  /**
+   * Test that conflict between two modify-add with for
+   * multi-valued attributes are handled correctly when some of the values
+   * are the same :
+   *  - first ADD done with value1
+   *  - second ADD done with value1 and value2
+   * This test has been created to make sure that issue 3394 is fixed.
+   */
+  @Test()
+  public void addAndAddSameValues() throws Exception
+  {
+    Entry entry = initializeEntry();
+
+    // load historical from the entry
+    Historical hist = Historical.load(entry);
+
+    /*
+     * simulate a add of the description attribute done at time 1
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
+        "value1", 1, true);
+
+
+    /*
+     * simulate an add of the description attribute values
+     *  "value1" and "value2" done at time 2
+     */
+    testModify(entry, hist, DESCRIPTION,
+               buildModWith2Vals(DESCRIPTION, ModificationType.ADD, "value1",
+                                 "value2"),
+               2, true);
+
+    // Check that entry now only contains the 2 attribute values
+    List<Attribute> attrs = entry.getAttribute(DESCRIPTION);
+    Attribute attr = attrs.get(0);
+    assertEquals(2, attr.size());
+    attr.contains(new AttributeValue(attr.getAttributeType(), "value1"));
+    attr.contains(new AttributeValue(attr.getAttributeType(), "value2"));
+
+
+    // do the same as before but in reverse order
+    entry = initializeEntry();
+
+    // load historical from the entry
+    hist = Historical.load(entry);
+
+    /*
+     * simulate an add of the description attribute values
+     *  "value1" and "value2" done at time 1
+     */
+    testModify(entry, hist, DESCRIPTION,
+               buildModWith2Vals(DESCRIPTION, ModificationType.ADD, "value1",
+                                 "value2"),
+               1, true);
+
+    /*
+     * simulate a add of the description attribute done at time 1
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
+        "value1", 2, false);
+
+    // Check that entry now only contains the 2 attribute values
+    attrs = entry.getAttribute(DESCRIPTION);
+    attr = attrs.get(0);
+    assertEquals(2, attr.size());
+    attr.contains(new AttributeValue(attr.getAttributeType(), "value1"));
+    attr.contains(new AttributeValue(attr.getAttributeType(), "value2"));
   }
 
   /**
@@ -476,21 +935,21 @@ public class ModifyConflictTest
     /*
      * simulate a add of the description attribute done at time t10
      */
-    testModify(entry, hist, "displayname", ModificationType.ADD,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "init value", 10, true);
     /*
      * Now simulate an add at an earlier date that the previous add. The
      * conflict resolution should detect that this add must be kept.
-     * and that the previous value must be discarded, and therefore 
+     * and that the previous value must be discarded, and therefore
      * turn the add into a replace.
      */
-    Modification mod = buildMod("displayname", ModificationType.ADD,
+    Modification mod = buildMod(DISPLAYNAME, ModificationType.ADD,
         "older value");
     List<Modification> mods = replayModify(entry, hist, mod, 1);
-    
+
     /*
      * After replay the mods should contain only one mod,
-     * the mod should now be a replace with the older value. 
+     * the mod should now be a replace with the older value.
      */
     testMods(mods, 1, ModificationType.REPLACE, "older value");
 
@@ -499,11 +958,11 @@ public class ModifyConflictTest
      * The conflict modify code should detect that there is already a value
      * and skip this change.
      */
-    mod = buildMod("displayname", ModificationType.ADD, "new value");
+    mod = buildMod(DISPLAYNAME, ModificationType.ADD, "new value");
     mods = replayModify(entry, hist, mod, 2);
     assertTrue(mods.isEmpty());
   }
-  
+
   /**
    * Test that conflict between add delete and add are handled correctly.
    */
@@ -518,32 +977,32 @@ public class ModifyConflictTest
     /*
      * simulate a add of the description attribute done at time t1
      */
-    testModify(entry, hist, "displayname", ModificationType.ADD,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "init value", 1, true);
-    
+
     /*
      * simulate a del of the description attribute done at time t3
      * this should be processed normally
      */
-    testModify(entry, hist, "displayname", ModificationType.DELETE,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE,
         "init value", 3, true);
-    
+
     /*
      * Now simulate another add, that would come from another master
      * and done at time t2 (between t1 and t2)
      * This add should not be processed.
      */
-    testModify(entry, hist, "displayname", ModificationType.ADD,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "second value", 2, false);
   }
-  
+
   /**
    * Test that conflict between add, add and delete are handled correctly.
-   * 
+   *
    * This test simulate the case where a simple add is done on a first server
-   * and at a later date but before replication happens, a add followed by 
+   * and at a later date but before replication happens, a add followed by
    * a delete of the second value is done on another server.
-   * The test checks that the firs tvalue wins and stay in the entry.  
+   * The test checks that the firs tvalue wins and stay in the entry.
    */
   @Test()
   public void addAddDelSingle() throws Exception
@@ -556,34 +1015,34 @@ public class ModifyConflictTest
     /*
      * simulate a add of the description attribute done at time t1
      */
-    testModify(entry, hist, "displayname", ModificationType.ADD,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "first value", 1, true);
-    
+
     /*
      * simulate a add of the description attribute done at time t2
      * with a second value. This should not work because there is already
      * a value
      */
-    testModify(entry, hist, "displayname", ModificationType.ADD,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "second value", 2, false);
-    
+
     /*
      * Now simulate a delete of the second value.
      * The delete should not be accepted because it is done on a value
      * that did not get into the entry.
      */
-    testModify(entry, hist, "displayname", ModificationType.DELETE,
+    testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE,
         "second value", 2, false);
   }
 
   /**
    * Check that the mods given as first parameter match the next parameters.
-   * 
+   *
    * @param mods The mods that must be tested.
    * @param size the size that the mods must have.
-   * @param modType the type of Modification that the first mod of the 
-   *                mods should have.   
-   * @param value the value that the first mod of the mods should have.  
+   * @param modType the type of Modification that the first mod of the
+   *                mods should have.
+   * @param value the value that the first mod of the mods should have.
    */
   private void testMods(
       List<Modification> mods, int size, ModificationType modType, String value)
@@ -591,7 +1050,7 @@ public class ModifyConflictTest
     assertEquals(size, mods.size());
     Modification newMod = mods.get(0);
     assertTrue(newMod.getModificationType().equals(modType));
-    AttributeValue val = newMod.getAttribute().getValues().iterator().next();
+    AttributeValue val = newMod.getAttribute().iterator().next();
     assertEquals(val.getStringValue(), value);
   }
 
@@ -604,16 +1063,16 @@ public class ModifyConflictTest
     AttributeType entryuuidAttrType =
       DirectoryServer.getSchema().getAttributeType(
           Historical.ENTRYUIDNAME);
-    
+
     /*
-     * Objectclass and DN do not have any impact on the modifty conflict
+     * Objectclass and DN do not have any impact on the modify conflict
      * resolution for the description attribute. Always use the same values
      * for all these tests.
      */
-    DN dn = DN.decode("dc=com");
+    DN dn = DN.decode(TEST_ROOT_DN_STRING);
     Map<ObjectClass, String> objectClasses = new HashMap<ObjectClass, String>();
-    ObjectClass org = DirectoryServer.getObjectClass("organization");
-    objectClasses.put(org, "organization");
+    ObjectClass org = DirectoryServer.getObjectClass(ORGANIZATION);
+    objectClasses.put(org, ORGANIZATION);
 
     /*
      * start with a new entry with an empty attribute
@@ -624,13 +1083,9 @@ public class ModifyConflictTest
     UUID uuid = UUID.randomUUID();
 
     // Create the att values list
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(
-        1);
-    values.add(new AttributeValue(entryuuidAttrType,
-        new ASN1OctetString(uuid.toString())));
     ArrayList<Attribute> uuidList = new ArrayList<Attribute>(1);
-    Attribute uuidAttr = new Attribute(entryuuidAttrType,
-        "entryUUID", values);
+    Attribute uuidAttr = Attributes.create(entryuuidAttrType, uuid
+        .toString());
     uuidList.add(uuidAttr);
 
     /*
@@ -651,7 +1106,7 @@ public class ModifyConflictTest
   {
     AttributeType entryuuidAttrType =
       DirectoryServer.getSchema().getAttributeType(Historical.ENTRYUIDNAME);
-    
+
     // Get the historical uuid associated to the entry
     // (the one that needs to be tested)
     String uuid = Historical.getEntryUuid(entry);
@@ -659,14 +1114,14 @@ public class ModifyConflictTest
     // Get the Entry uuid in String format
     List<Attribute> uuidAttrs = entry
         .getOperationalAttribute(entryuuidAttrType);
-    uuidAttrs.get(0).getValues().iterator().next().toString();
+    uuidAttrs.get(0).iterator().next().toString();
 
     if (uuidAttrs != null)
     {
       if (uuidAttrs.size() > 0)
       {
         Attribute att = uuidAttrs.get(0);
-        String retrievedUuid = (att.getValues().iterator().next()).toString();
+        String retrievedUuid = (att.iterator().next()).toString();
         assertTrue(retrievedUuid.equals(uuid));
       }
     }
@@ -681,10 +1136,10 @@ public class ModifyConflictTest
         FakeOperation fk = fks.iterator().next();
         assertTrue(new FakeOperationComparator().compare(fk, fk) == 0);
         assertTrue(new FakeOperationComparator().compare(null , fk) < 0);
-        ReplicationMessage generatedMsg = fk.generateMessage() ;
-        if (generatedMsg instanceof UpdateMessage)
+        ReplicationMsg generatedMsg = fk.generateMessage() ;
+        if (generatedMsg instanceof UpdateMsg)
         {
-          UpdateMessage new_name = (UpdateMessage) generatedMsg;
+          UpdateMsg new_name = (UpdateMsg) generatedMsg;
           assertEquals(new_name.getUniqueId(),uuid);
 
         }
@@ -699,15 +1154,25 @@ public class ModifyConflictTest
   }
 
   /**
-   * 
+   *
    *
    */
   private void testModify(Entry entry,
       Historical hist, String attrName,
       ModificationType modType, String value,
-      int date, boolean keepChangeResult)
+      int date, boolean keepChangeResult) throws DirectoryException
   {
     Modification mod = buildMod(attrName, modType, value);
+    testModify(entry, hist, attrName, mod, date, keepChangeResult);
+  }
+
+  /**
+   *
+   */
+  private void testModify(Entry entry,
+      Historical hist, String attrName, Modification mod,
+      int date, boolean keepChangeResult) throws DirectoryException
+  {
     List<Modification> mods = replayModify(entry, hist, mod, date);
 
     if (keepChangeResult)
@@ -728,10 +1193,11 @@ public class ModifyConflictTest
       assertFalse(mods.contains(mod));
       assertEquals(0, mods.size());
     }
+    entry.applyModifications(mods);
   }
 
   /**
-   * 
+   *
    */
   private List<Modification> replayModify(
       Entry entry, Historical hist, Modification mod, int date)
@@ -739,7 +1205,7 @@ public class ModifyConflictTest
     AttributeType historicalAttrType =
       DirectoryServer.getSchema().getAttributeType(
           Historical.HISTORICALATTRIBUTENAME);
-    
+
     InternalClientConnection connection =
       InternalClientConnection.getRootConnection();
     ChangeNumber t = new ChangeNumber(date, (short) 0, (short) 0);
@@ -777,7 +1243,7 @@ public class ModifyConflictTest
     entry.addAttribute(hist.encode(), null);
     Historical hist2 = Historical.load(entry);
     assertEquals(hist2.encode().toString(), hist.encode().toString());
-    
+
     return mods;
   }
 
@@ -785,16 +1251,27 @@ public class ModifyConflictTest
       String attrName, ModificationType modType, String value)
   {
     /* create AttributeType that will be used for this test */
-    AttributeType attrType =
-      DirectoryServer.getAttributeType(attrName, true);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    if (value != null)
-      values.add(new AttributeValue(attrType, value));
-    Attribute attr = new Attribute(attrType, attrName, values);
+    Attribute attr;
+    if (value != null) {
+      attr = Attributes.create(attrName, value);
+    } else {
+      attr = Attributes.empty(attrName);
+    }
     Modification mod = new Modification(modType, attr);
-    
+
     return mod;
+  }
+
+  private Modification buildModWith2Vals(
+      String attrName, ModificationType modType, String value1,  String value2)
+  {
+    AttributeBuilder builder = new AttributeBuilder(attrName);
+    builder.add(value1);
+    builder.add(value2);
+
+    Modification mod = new Modification(modType, builder.toAttribute());
+    return mod;
+
   }
 
   /**
@@ -805,7 +1282,7 @@ public class ModifyConflictTest
   {
     AttributeType entryuuidAttrType =
       DirectoryServer.getSchema().getAttributeType(
-          Historical.ENTRYUIDNAME); 
+          Historical.ENTRYUIDNAME);
 
     // Get the historical uuid associated to the entry
     // (the one that needs to be tested)
@@ -814,14 +1291,14 @@ public class ModifyConflictTest
     // Get the op uuid in String format
     List<Attribute> uuidAttrs = addOp.getOperationalAttributes().get(
         entryuuidAttrType);
-    uuidAttrs.get(0).getValues().iterator().next().toString();
+    uuidAttrs.get(0).iterator().next().toString();
 
     if (uuidAttrs != null)
     {
       if (uuidAttrs.size() > 0)
       {
         Attribute att = uuidAttrs.get(0);
-        String retrievedUuid = (att.getValues().iterator().next()).toString();
+        String retrievedUuid = (att.iterator().next()).toString();
         assertTrue(retrievedUuid.equals(uuid));
       }
     }

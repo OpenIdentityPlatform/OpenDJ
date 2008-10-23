@@ -104,19 +104,20 @@
               'Number of server instances required by the deployment: %s' \
               % len(_topologyServerList)
             </message>
-            
+         
             <iterate var="server" in="_topologyServerList">
               <sequence>
                 <!-- Create the instance-->
                 <call function="'createInstance'">
-                  { 'dsHost'    : server.getHostname(),
-                    'dsDir'     : server.getDir(),
-                    'dsPort'    : server.getPort(),
-                    'dsSslPort' : server.getSslPort(),
-                    'dsJmxPort' : server.getJmxPort(),
-                    'dsBindDN'  : server.getRootDn(),
-                    'dsBindPwd' : server.getRootPwd(),
-                    'dsBaseDN'  : server.getBaseDn()
+                  { 'dsHost'      : server.getHostname(),
+                    'dsDir'       : server.getDir(),
+                    'dsPort'      : server.getPort(),
+                    'dsAdminPort' : server.getAdminPort(),
+                    'dsSslPort'   : server.getSslPort(),
+                    'dsJmxPort'   : server.getJmxPort(),
+                    'dsBindDN'    : server.getRootDn(),
+                    'dsBindPwd'   : server.getRootPwd(),
+                    'dsBaseDN'    : server.getBaseDn()
                   }
                 </call>
                 
@@ -525,6 +526,14 @@
         </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
+      <function-arg-def name="dsAdminPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
+        <function-arg-description>
+          Directory Server admin port number      
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
       <function-arg-def name="dsSslPort"
                         type="optional"
                         default="DIRECTORY_INSTANCE_SSL_PORT">
@@ -681,6 +690,7 @@
         { 'location'               : dsHost,
           'dsPath'                 : '%s/%s' % (dsDir, OPENDSNAME),
           'dsPort'                 : dsPort,
+          'dsAdminPort'            : dsAdminPort,
           'dsJmxPort'              : dsJmxPort,
           'dsBindDN'               : dsBindDN,
           'dsBindPwd'              : dsBindPwd,
@@ -795,12 +805,12 @@
       
       <!--- Stop DS -->                
       <call function="'StopDsWithScript'">
-        { 'location'  : syncserver.getHostname(),
-          'dsHost'    : syncserver.getHostname(),
-          'dsPath'    : syncserverPath,
-          'dsPort'    : syncserver.getPort(),
-          'dsBindDN'  : syncserver.getRootDn(),
-          'dsBindPwd' : syncserver.getRootPwd()
+        { 'location'    : syncserver.getHostname(),
+          'dsHost'      : syncserver.getHostname(),
+          'dsPath'      : syncserverPath,
+          'dsAdminPort' : syncserver.getAdminPort(),
+          'dsBindDN'    : syncserver.getRootDn(),
+          'dsBindPwd'   : syncserver.getRootPwd()
         }
       </call>
       
@@ -863,12 +873,12 @@
       </message>
       
       <call function="'listSyncProviders'">
-        { 'location'       : syncserver.getHostname(),
-          'dsPath'         : syncserverPath,
-          'dsInstanceHost' : syncserver.getHostname(),
-          'dsInstancePort' : syncserver.getPort(),
-          'dsInstanceDn'   : syncserver.getRootDn(),
-          'dsInstancePswd' : syncserver.getRootPwd()
+        { 'location'            : syncserver.getHostname(),
+          'dsPath'              : syncserverPath,
+          'dsInstanceHost'      : syncserver.getHostname(),
+          'dsInstanceAdminPort' : syncserver.getAdminPort(),
+          'dsInstanceDn'        : syncserver.getRootDn(),
+          'dsInstancePswd'      : syncserver.getRootPwd()
         }
       </call>
       
@@ -887,7 +897,7 @@
             { 'location'              : syncserver.getHostname(),
               'dsPath'                : syncserverPath,
               'dsInstanceHost'        : syncserver.getHostname(),
-              'dsInstancePort'        : syncserver.getPort(),
+              'dsInstanceAdminPort'   : syncserver.getAdminPort(),
               'dsInstanceDn'          : syncserver.getRootDn(),
               'dsInstancePswd'        : syncserver.getRootPwd(),
               'replicationPort'       : replicationServer.getPort(),
@@ -907,7 +917,7 @@
             { 'location'              : syncserver.getHostname(),
               'dsPath'                : syncserverPath,
               'dsInstanceHost'        : syncserver.getHostname(),
-              'dsInstancePort'        : syncserver.getPort(),
+              'dsInstanceAdminPort'   : syncserver.getAdminPort(),
               'dsInstanceDn'          : syncserver.getRootDn(),
               'dsInstancePswd'        : syncserver.getRootPwd(),
               'domainName'            : 'SUFFIX-%s' % i,
@@ -921,12 +931,12 @@
       
       <!--- Stop DS -->                
       <call function="'StopDsWithScript'">
-        { 'location'  : syncserver.getHostname(),
-          'dsHost'    : syncserver.getHostname(),
-          'dsPath'    : syncserverPath,
-          'dsPort'    : syncserver.getPort(),
-          'dsBindDN'  : syncserver.getRootDn(),
-          'dsBindPwd' : syncserver.getRootPwd()
+        { 'location'    : syncserver.getHostname(),
+          'dsHost'      : syncserver.getHostname(),
+          'dsPath'      : syncserverPath,
+          'dsAdminPort' : syncserver.getAdminPort(),
+          'dsBindDN'    : syncserver.getRootDn(),
+          'dsBindPwd'   : syncserver.getRootPwd()
         }
       </call>
     </sequence>
@@ -968,9 +978,9 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePort" type="required">
+      <function-arg-def name="dsInstanceAdminPort" type="required">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -1016,9 +1026,9 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="refInstancePort" type="required">
+      <function-arg-def name="refInstanceAdminPort" type="required">
         <function-arg-description>
-          Reference Directory server port number
+          Reference Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -1120,12 +1130,13 @@
         STAFCmdParamsList.append('enable')
         STAFCmdParamsList.append('-n')                    
         STAFCmdParamsList.append('-Q')
+        STAFCmdParamsList.append('-X')
           
         if dsInstanceHost:
           STAFCmdParamsList.append('--host1 %s' % dsInstanceHost)
       
-        if dsInstancePort:
-          STAFCmdParamsList.append('--port1 %s' % dsInstancePort)
+        if dsInstanceAdminPort:
+          STAFCmdParamsList.append('--port1 %s' % dsInstanceAdminPort)
       
         if dsInstanceDn:
           STAFCmdParamsList.append('--bindDN1 "%s"' % dsInstanceDn)
@@ -1142,8 +1153,8 @@
         if refInstanceHost:
           STAFCmdParamsList.append('--host2 %s' % refInstanceHost)
       
-        if refInstancePort:
-          STAFCmdParamsList.append('--port2 %s' % refInstancePort)
+        if refInstanceAdminPort:
+          STAFCmdParamsList.append('--port2 %s' % refInstanceAdminPort)
       
         if refInstanceDn:
           STAFCmdParamsList.append('--bindDN2 "%s"' % refInstanceDn)
@@ -1226,11 +1237,11 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePort" 
+      <function-arg-def name="dsInstanceAdminPort" 
                         type="optional"
                         default="None">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -1244,9 +1255,9 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="sourceInstancePort" type="required">
+      <function-arg-def name="sourceInstanceAdminPort" type="required">
         <function-arg-description>
-          Source Directory server port number
+          Source Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -1302,18 +1313,19 @@
           STAFCmdParamsList.append('initialize-all')          
         STAFCmdParamsList.append('-n')                    
         STAFCmdParamsList.append('-Q')
-          
+        STAFCmdParamsList.append('-X')
+         
         if dsInstanceHost:
           STAFCmdParamsList.append('-O %s' % dsInstanceHost)
       
-        if dsInstancePort:
-          STAFCmdParamsList.append('--portDestination %s' % dsInstancePort)
+        if dsInstanceAdminPort:
+          STAFCmdParamsList.append('--portDestination %s' % dsInstanceAdminPort)
       
         if sourceInstanceHost:
           STAFCmdParamsList.append('-h %s' % sourceInstanceHost)
       
-        if sourceInstancePort:
-          STAFCmdParamsList.append('-p %s' % sourceInstancePort)
+        if sourceInstanceAdminPort:
+          STAFCmdParamsList.append('-p %s' % sourceInstanceAdminPort)
       
         if replicationDnList:
           for dn in replicationDnList:
@@ -1377,7 +1389,7 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePort" type="required">
+      <function-arg-def name="dsInstanceAdminPort" type="required">
         <function-arg-description>
           Directory server port number
         </function-arg-description>
@@ -1431,12 +1443,13 @@
         STAFCmdParamsList.append('disable')
         STAFCmdParamsList.append('-n')                    
         STAFCmdParamsList.append('-Q')
-          
+        STAFCmdParamsList.append('-X')
+
         if dsInstanceHost:
           STAFCmdParamsList.append('-h %s' % dsInstanceHost)
       
-        if dsInstancePort:
-          STAFCmdParamsList.append('-p %s' % dsInstancePort)
+        if dsInstanceAdminPort:
+          STAFCmdParamsList.append('-p %s' % dsInstanceAdminPort)
       
         if replicationDnList:
           for dn in replicationDnList:
@@ -1496,6 +1509,7 @@
         hostname = None
         dir = None
         port = None
+        adminport = None
         sslport = None
         jmxport = None
         rootDn = None
@@ -1517,6 +1531,8 @@
             dir = line[line.find('Directory') + 10:].strip()
           elif line.find('Port') != -1:
             port = line[line.find('Port') + 5:].strip()
+          elif line.find('Adminport') != -1:
+            adminport = line[line.find('Adminport') + 10:].strip()
           elif line.find('Sslport') != -1:
             sslport = line[line.find('Sslport') + 8:].strip()
           elif line.find('Jmxport') != -1:
@@ -1534,8 +1550,8 @@
           elif line.find('ChangelogServer') != -1:
             changelogList.append( line[line.find('ChangelogServer') + 16:].strip() )
           elif (line.isspace()) or (len(line) == 0):
-            server = Server(hostname, dir, port, sslport, jmxport, rootDn,
-                            rootPwd, baseDn)
+            server = Server(hostname, dir, port, adminport, sslport, jmxport,
+                            rootDn, rootPwd, baseDn)
             
             if changelogport != None:
               changelogServer = ChangelogServer(changelogport, serverId)
@@ -1558,6 +1574,7 @@
             hostname = None
             dir = None
             port = None
+            adminport = None
             sslport = None
             jmxport = None
             rootDn = None
@@ -1569,8 +1586,8 @@
             serverId += 1
         
         if hostname != None:
-          server = Server(hostname, dir, port, sslport, jmxport, rootDn,
-                          rootPwd, baseDn)
+          server = Server(hostname, dir, port, adminport, sslport, jmxport,
+                          rootDn, rootPwd, baseDn)
           
           if changelogport != None:
             changelogServer = ChangelogServer(changelogport, serverId)
@@ -1749,11 +1766,11 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePort" 
+      <function-arg-def name="dsInstanceAdminPort" 
                         type="optional"
                         default="None">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -1802,7 +1819,7 @@
     <sequence>
       <message>
         'Preparing instance %s:%s for external initialization' \
-         % (dsInstanceHost,dsInstancePort)
+         % (dsInstanceHost,dsInstanceAdminPort)
       </message>                
         
       <!-- Local variables -->
@@ -1819,12 +1836,13 @@
         STAFCmdParamsList.append('pre-external-initialization')          
         STAFCmdParamsList.append('-n')                    
         STAFCmdParamsList.append('-Q')
+        STAFCmdParamsList.append('-X')
           
         if dsInstanceHost:
           STAFCmdParamsList.append('-h %s' % dsInstanceHost)
       
-        if dsInstancePort:
-          STAFCmdParamsList.append('-p %s' % dsInstancePort)
+        if dsInstanceAdminPort:
+          STAFCmdParamsList.append('-p %s' % dsInstanceAdminPort)
       
         if localOnly:
           STAFCmdParamsList.append('-l')
@@ -1903,11 +1921,11 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePort" 
+      <function-arg-def name="dsInstanceAdminPort" 
                         type="optional"
                         default="None">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>    
@@ -1947,7 +1965,7 @@
     <sequence>
       <message>
         'Post-processing external initialization of instance %s:%s' \
-         % (dsInstanceHost,dsInstancePort)
+         % (dsInstanceHost,dsInstanceAdminPort)
       </message>                
         
       <!-- Local variables -->
@@ -1964,12 +1982,13 @@
         STAFCmdParamsList.append('post-external-initialization')          
         STAFCmdParamsList.append('-n')                    
         STAFCmdParamsList.append('-Q')
-          
+        STAFCmdParamsList.append('-X')
+ 
         if dsInstanceHost:
           STAFCmdParamsList.append('-h %s' % dsInstanceHost)
       
-        if dsInstancePort:
-          STAFCmdParamsList.append('-p %s' % dsInstancePort)
+        if dsInstanceAdminPort:
+          STAFCmdParamsList.append('-p %s' % dsInstanceAdminPort)
             
         if replicationDnList:
           for dn in replicationDnList:
@@ -2042,12 +2061,21 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
-      
+
       <function-arg-def name="sourceInstancePort" 
                         type="optional"
                         default="None">
         <function-arg-description>
           Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
+      </function-arg-def>
+
+      <function-arg-def name="sourceInstanceAdminPort" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -2110,20 +2138,20 @@
     <sequence>
       <message>
         'Resetting %s data in replication topology using backup %s on instance \
-         %s:%s' % (suffixDn,backupDir,sourceInstanceHost,sourceInstancePort)
+        %s:%s' % (suffixDn,backupDir,sourceInstanceHost,sourceInstanceAdminPort)
       </message>                
 
         
       <!-- Pre-initialise the servers in the topology -->
       <call function="'preInitializeReplication'">
-        { 'location'          : location,
-          'dsPath'            : dsPath,
-          'dsInstanceHost'    : sourceInstanceHost,
-          'dsInstancePort'    : sourceInstancePort,
-          'localOnly'         : False,
-          'replicationDnList' : [suffixDn],
-          'adminUID'          : adminUID,
-          'adminPswd'         : adminPswd
+        { 'location'            : location,
+          'dsPath'              : dsPath,
+          'dsInstanceHost'      : sourceInstanceHost,
+          'dsInstanceAdminPort' : sourceInstanceAdminPort,
+          'localOnly'           : False,
+          'replicationDnList'   : [suffixDn],
+          'adminUID'            : adminUID,
+          'adminPswd'           : adminPswd
         }
       </call>                
         
@@ -2149,26 +2177,26 @@
 
       <!-- Post-initialise the servers in the topology -->
       <call function="'postInitializeReplication'">
-        { 'location'          : location,
-          'dsPath'            : dsPath,
-          'dsInstanceHost'    : sourceInstanceHost,
-          'dsInstancePort'    : sourceInstancePort,
-          'replicationDnList' : [suffixDn],
-          'adminUID'          : adminUID,
-          'adminPswd'         : adminPswd
+        { 'location'            : location,
+          'dsPath'              : dsPath,
+          'dsInstanceHost'      : sourceInstanceHost,
+          'dsInstanceAdminPort' : sourceInstanceAdminPort,
+          'replicationDnList'   : [suffixDn],
+          'adminUID'            : adminUID,
+          'adminPswd'           : adminPswd
         }
       </call>                
                 
         
       <!-- Initialise the servers in the topology -->
       <call function="'initializeReplication'">
-        { 'location'           : location,
-          'dsPath'             : dsPath,
-          'sourceInstanceHost' : sourceInstanceHost,
-          'sourceInstancePort' : sourceInstancePort,
-          'replicationDnList'  : [suffixDn],
-          'adminUID'           : adminUID,
-          'adminPswd'          : adminPswd
+        { 'location'                : location,
+          'dsPath'                  : dsPath,
+          'sourceInstanceHost'      : sourceInstanceHost,
+          'sourceInstanceAdminPort' : sourceInstanceAdminPort,
+          'replicationDnList'       : [suffixDn],
+          'adminUID'                : adminUID,
+          'adminPswd'               : adminPswd
         }
       </call>
         

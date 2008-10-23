@@ -347,5 +347,15 @@ public class TelexNumberSyntax
     // acceptable.
     return true;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

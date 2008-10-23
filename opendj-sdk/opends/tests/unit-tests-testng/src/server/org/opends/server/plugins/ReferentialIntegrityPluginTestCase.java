@@ -42,7 +42,6 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
 
 import java.util.LinkedList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.HashSet;
 
@@ -404,7 +403,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
     List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
     for (Attribute a : attrList){
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
         pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
     }
     ReferentialIntegrityPluginCfg configuration =
@@ -553,7 +552,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
     List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
     for (Attribute a : attrList){
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
         pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
     }
     ReferentialIntegrityPluginCfg configuration =
@@ -798,13 +797,12 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   private void
   addAttrEntry(DN dn, String attrTypeString, String... attrValStrings) {
     LinkedList<Modification> mods = new LinkedList<Modification>();
-    LinkedHashSet<AttributeValue> attrValues =
-                                            new LinkedHashSet<AttributeValue>();
     AttributeType attrType = getAttrType(attrTypeString);
-    for(String valString : attrValStrings)
-      attrValues.add(new AttributeValue(attrType, valString));
-    Attribute attr = new Attribute(attrType, attrTypeString, attrValues);
-    mods.add(new Modification(ModificationType.ADD, attr));
+    AttributeBuilder builder = new AttributeBuilder(attrType, attrTypeString);
+    for(String valString : attrValStrings) {
+      builder.add(valString);
+    }
+    mods.add(new Modification(ModificationType.ADD, builder.toAttribute()));
     InternalClientConnection conn =
             InternalClientConnection.getRootConnection();
     conn.processModify(dn, mods);
@@ -823,13 +821,12 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   private void
   replaceAttrEntry(DN dn, String attrTypeString, String... attrValStrings) {
     LinkedList<Modification> mods = new LinkedList<Modification>();
-    LinkedHashSet<AttributeValue> attrValues =
-            new LinkedHashSet<AttributeValue>();
     AttributeType attrType = getAttrType(attrTypeString);
-    for(String valString : attrValStrings)
-      attrValues.add(new AttributeValue(attrType, valString));
-    Attribute attr = new Attribute(attrType, attrTypeString, attrValues);
-    mods.add(new Modification(ModificationType.REPLACE, attr));
+    AttributeBuilder builder = new AttributeBuilder(attrType, attrTypeString);
+    for(String valString : attrValStrings) {
+      builder.add(valString);
+    }
+    mods.add(new Modification(ModificationType.REPLACE, builder.toAttribute()));
     InternalClientConnection conn =
             InternalClientConnection.getRootConnection();
     conn.processModify(dn, mods);
@@ -854,7 +851,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     for(String attrTypeString : attrTypeStrings) {
       AttributeType attrType = getAttrType(attrTypeString);
       mods.add(new Modification(ModificationType.DELETE,
-              new Attribute(attrType)));
+          Attributes.empty(attrType)));
     }
     InternalClientConnection conn =
             InternalClientConnection.getRootConnection();

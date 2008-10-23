@@ -26,45 +26,46 @@
  */
 package org.opends.server.tasks;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+
+
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.messages.ConfigMessages.
-     INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.opends.messages.Message;
+import org.opends.messages.TaskMessages;
+import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.server.BackendCfg;
+import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.types.DebugLogLevel;
-
-import org.opends.messages.TaskMessages;
-import org.opends.messages.Message;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
-import org.opends.server.admin.std.server.BackendCfg;
-import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.admin.server.ServerManagementContext;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+
 
 /**
  * This class defines a number of static utility methods for server tasks.
@@ -359,7 +360,7 @@ public class TaskUtils
 
     for (Attribute a : attrList)
     {
-      for (AttributeValue v  : a.getValues())
+      for (AttributeValue v  : a)
       {
         String valueString = toLowerCase(v.getStringValue());
         if (valueString.equals("true") || valueString.equals("yes") ||
@@ -395,10 +396,9 @@ public class TaskUtils
     if (attrList != null && !attrList.isEmpty())
     {
       Attribute attr = attrList.get(0);
-      LinkedHashSet<AttributeValue> values = attr.getValues();
-      if ((values != null) && (! values.isEmpty()))
+      if (!attr.isEmpty())
       {
-        for (AttributeValue value : values)
+        for (AttributeValue value : attr)
         {
           valueStrings.add(value.getStringValue());
         }
@@ -425,10 +425,9 @@ public class TaskUtils
     }
     String valueString = null;
     Attribute attr = attrList.get(0);
-    LinkedHashSet<AttributeValue> values = attr.getValues();
-    if ((values != null) && (! values.isEmpty()))
+    if (!attr.isEmpty())
     {
-      valueString = values.iterator().next().getStringValue();
+      valueString = attr.iterator().next().getStringValue();
     }
     return valueString;
   }
@@ -451,10 +450,10 @@ public class TaskUtils
     if (attrList != null && !attrList.isEmpty())
     {
       Attribute attr = attrList.get(0);
-      LinkedHashSet<AttributeValue> values = attr.getValues();
-      if ((values != null) && (! values.isEmpty()))
+      if (!attr.isEmpty())
       {
-        String valueString = values.iterator().next().getStringValue();
+        String valueString = attr.iterator().next()
+            .getStringValue();
         try
         {
           return Integer.parseInt(valueString);

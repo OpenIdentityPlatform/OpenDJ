@@ -40,14 +40,11 @@
              { 'parent' : STAXParentID }
         </call>
         <script>
-          CurrentTestPath={'group':'indexes','suite':'indexes'}
+          CurrentTestPath['group'] = 'indexes'
           envAlreadyLoaded='true'
-          _setupSteps=['testGroup_Preamble','testSuite_Preamble',
-                       'indexes_setup']
-          _testSteps=['indexes_search', 'indexes_dynamic_modify',
-                      'indexes_dynamic_add', 'indexes_remove', 'indexes_add']
-          _cleanupSteps=['indexes_cleanup','testSuite_Postamble',
-                         'testGroup_Postamble']
+          _testSteps=['indexes_setup','indexes_search','indexes_dynamic_modify',
+                      'indexes_dynamic_add','indexes_remove', 'indexes_add',
+                      'indexes_cleanup']
         </script>
         <!---
           #@TestSuiteName      Indexes
@@ -59,11 +56,9 @@
         <try>
           <!-- the pre-requisites are in a separate iteration -->
           <sequence>
-            <iterate in="_setupSteps" var="_setupStep">
-              <call function="_setupStep" />
-            </iterate>
+            <call function="'testGroup_Preamble'"/>
             <iterate in="_testSteps" var="_testStep" indexvar="_testStepNumber">
-              <call function="_testStep" />
+              <call function="_testStep"/>
             </iterate>
           </sequence>
           <catch exception="'STAXException.Topology.CreationException'">
@@ -77,9 +72,7 @@
             </message>
           </catch>
           <finally>
-            <iterate in="_cleanupSteps" var="_cleanupStep">
-              <call function="_cleanupStep" />
-            </iterate>
+            <call function="'testGroup_Postamble'"/>
           </finally>
         </try>
       </sequence>
@@ -99,14 +92,21 @@
       #@TestPostamble             none
       #@TestResult                Success if entry are indexed correctly
     -->
-    <block name="'Search'">
+    <block name="'indexes_search'">
       <sequence>
+        <script>
+          CurrentTestPath['suite'] = STAXCurrentBlock
+        </script>
+        <call function="'testSuite_Preamble'"/>
+
         <message log="1" level="'info'">
           'starting the search tests'
         </message>
         <call function="'loopThroughFilters'">
           { 'filters' : 'search' }
         </call>
+
+        <call function="'testSuite_Postamble'"/>
       </sequence>
     </block>
   </function>
@@ -125,8 +125,13 @@
       #@TestPostamble             none
       #@TestResult                Success if entry are indexed correctly
     -->
-    <block name="'Modify'">
+    <block name="'indexes_modify'">
       <sequence>
+        <script>
+          CurrentTestPath['suite'] = STAXCurrentBlock
+        </script>
+        <call function="'testSuite_Preamble'"/>
+
         <try>
           <sequence>
             <call function="'loopThroughFilters'">
@@ -150,11 +155,11 @@
               { 'functionName'      : 'StopDsWithScript',
                 'functionException' : 'CLI.stop-ds',
                 'functionFailureTC' : 'Indexes - Modify' ,
-                'functionArguments' : { 'location'  : STAF_REMOTE_HOSTNAME,
-                                        'dsHost'    : DIRECTORY_INSTANCE_HOST,
-                                        'dsPort'    : DIRECTORY_INSTANCE_PORT,
-                                        'dsBindDN'  : DIRECTORY_INSTANCE_DN  ,
-                                        'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+                'functionArguments' : { 'location'    : STAF_REMOTE_HOSTNAME,
+                                        'dsHost'      : DIRECTORY_INSTANCE_HOST,
+                                        'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                                        'dsBindDN'    : DIRECTORY_INSTANCE_DN  ,
+                                        'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD }
               }
             </call>
             <call function="'runFunction'">
@@ -188,6 +193,8 @@
             </message>
           </catch>
         </try>
+
+        <call function="'testSuite_Postamble'"/>
       </sequence>
     </block>
   </function>
@@ -207,8 +214,13 @@
       #@TestPostamble             none
       #@TestResult                Success if entry are indexed correctly
     -->
-    <block name="'Modify'">
+    <block name="'indexes_dynamic_modify'">
       <sequence>
+        <script>
+          CurrentTestPath['suite'] = STAXCurrentBlock
+        </script>
+        <call function="'testSuite_Preamble'"/>
+
         <try>
           <sequence>
             <call function="'loopThroughFilters'">
@@ -259,6 +271,8 @@
             </message>
           </catch>
         </try>
+
+        <call function="'testSuite_Postamble'"/>
       </sequence>
     </block>
   </function>
@@ -280,8 +294,13 @@
       #@TestPostamble           none
       #@TestResult              Success if entry are indexed correctly
     -->
-    <block name="'Add'">
+    <block name="'indexes_add'">
       <sequence>
+        <script>
+          CurrentTestPath['suite'] = STAXCurrentBlock
+        </script>
+        <call function="'testSuite_Preamble'"/>
+
         <try>
           <sequence>
             <call function="'loopThroughFilters'">
@@ -306,11 +325,11 @@
                 'functionFailureTC' : '%s: %s: %s' % (CurrentTestPath['group'], 
                                                       CurrentTestPath['suite'], 
                                                       STAXCurrentBlock ) ,
-                'functionArguments' : { 'location'  : STAF_REMOTE_HOSTNAME,
-                                        'dsHost'    : DIRECTORY_INSTANCE_HOST,
-                                        'dsPort'    : DIRECTORY_INSTANCE_PORT,
-                                        'dsBindDN'  : DIRECTORY_INSTANCE_DN  ,
-                                        'dsBindPwd' : DIRECTORY_INSTANCE_PSWD 
+                'functionArguments' : { 'location'    : STAF_REMOTE_HOSTNAME,
+                                        'dsHost'      : DIRECTORY_INSTANCE_HOST,
+                                        'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                                        'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+                                        'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD 
                                       }
               }
             </call>
@@ -345,6 +364,8 @@
             </message>
           </catch>
         </try>
+
+        <call function="'testSuite_Postamble'"/>
       </sequence>
     </block>
   </function>
@@ -367,8 +388,13 @@
       #@TestPostamble           none
       #@TestResult              Success if entry are indexed correctly
     -->
-    <block name="'Add'">
+    <block name="'indexes_dynamic_add'">
       <sequence>
+        <script>
+          CurrentTestPath['suite'] = STAXCurrentBlock
+        </script>
+        <call function="'testSuite_Preamble'"/>
+
         <try>
           <sequence>
             <call function="'loopThroughFilters'">
@@ -417,6 +443,8 @@
             </message>
           </catch>            
         </try>
+
+        <call function="'testSuite_Postamble'"/>
       </sequence>
     </block>
   </function>
@@ -437,8 +465,13 @@
       #@TestPostamble           none
       #@TestResult              Success if entry are indexed as expected
     -->
-    <block name="'Remove'">
+    <block name="'indexes_remove'">
       <sequence>
+        <script>
+          CurrentTestPath['suite'] = STAXCurrentBlock
+        </script>
+        <call function="'testSuite_Preamble'"/>
+
         <try>
           <sequence>
             <call function="'loopThroughFilters'">
@@ -464,6 +497,8 @@
             </message>
           </catch>
         </try>
+
+        <call function="'testSuite_Postamble'"/>
       </sequence>
     </block>
   </function>
@@ -483,8 +518,13 @@
       #@TestPostamble           none
       #@TestResult              Success if entry are indexed as expected
     -->
-    <block name="'Entry_Limit'">
+    <block name="'indexes_entry_limit'">
       <sequence>
+        <script>
+          CurrentTestPath['suite'] = STAXCurrentBlock
+        </script>
+        <call function="'testSuite_Preamble'"/>
+        
         <try>
           <sequence>
             <call function="'loopThroughFilters'">
@@ -515,6 +555,8 @@
             </message>
           </catch>
         </try>
+
+        <call function="'testSuite_Postamble'"/>
       </sequence>
     </block>
   </function>
@@ -534,8 +576,13 @@
       #@TestPostamble           none
       #@TestResult              Success if entry are indexed as expected
     -->
-    <block name="'Entry_Limit'">
+    <block name="'indexes_vlv_add'">
       <sequence>
+        <script>
+          CurrentTestPath['suite'] = STAXCurrentBlock
+        </script>
+        <call function="'testSuite_Preamble'"/>
+        
         <try>
           <sequence>
             <call function="'loopThroughFilters'">
@@ -566,6 +613,8 @@
             </message>
           </catch>
         </try>
+
+        <call function="'testSuite_Postamble'"/>
       </sequence>
     </block>
   </function>
@@ -645,10 +694,10 @@
             testNumber=0
             
           </script>
-          <testcase name="'%s: %d.%s: %03d-%03d.%s: %s%02d' 
-            % ( CurrentTestPath['group'], len(_testSteps)-_testStepNumber, 
-                filters, len(indexTests)-indexTestNumber, indexTestNumber, 
-                test.getAttribute(), test.getName(), testNumber)" >
+          <testcase name="getTestCaseName('%s: %03d-%03d.%s: %s%02d')
+            % (filters, len(indexTests)-indexTestNumber, indexTestNumber, 
+               test.getAttribute(), test.getName(), testNumber)">
+
             <sequence>
               <call function="'testCase_Preamble'" />
               <message log="1" level="'trace'">
@@ -700,52 +749,70 @@
   
   <!-- Setup the instance for indexes tests -->
   <function name="indexes_setup">
-    <sequence>
-      <call function="'runFunction'">
-        { 'functionName'      : 'createTopology',
-          'functionMessage'   : 'Create DS topology as described in config.py',
-          'functionException' : 'Topology.CreationException',
-          'functionArguments' : { 'initialiseInstance' : True }
-        }
-      </call>
-      <call function="'runFunction'">
-        { 'functionName'      : 'StartDsWithScript'                                      ,
-          'functionMessage'   : 'Start DS to run on port %s' \
-                                 % (DIRECTORY_INSTANCE_PORT) ,
-          'functionArguments' : { 'location' : STAF_REMOTE_HOSTNAME }
-        }
-      </call>
-      <call function="'runFunction'">
-        { 'functionName'      : 'isAlive',
-          'functionMessage'   : 'Checking if the server is available',
-          'functionException' : 'Topology.StartException',
-          'functionArguments' : { 'noOfLoops'        : 5,
-                                  'noOfMilliSeconds' : 2000 
-                                }
-        }
-      </call>
-    </sequence>
+    <block name="'indexes_setup'">
+      <sequence>
+        <script>
+          CurrentTestPath['suite'] = STAXCurrentBlock
+        </script>
+        <call function="'testSuite_Preamble'"/>     
+
+        <call function="'runFunction'">
+          { 'functionName'      : 'createTopology',
+            'functionMessage'   : 'Create DS topology as described in config.py',
+            'functionException' : 'Topology.CreationException',
+            'functionArguments' : { 'initialiseInstance' : True }
+          }
+        </call>
+        <call function="'runFunction'">
+          { 'functionName'      : 'StartDsWithScript'                                      ,
+            'functionMessage'   : 'Start DS to run on port %s' \
+                                  % (DIRECTORY_INSTANCE_PORT) ,
+            'functionArguments' : { 'location' : STAF_REMOTE_HOSTNAME }
+          }
+        </call>
+        <call function="'runFunction'">
+          { 'functionName'      : 'isAlive',
+            'functionMessage'   : 'Checking if the server is available',
+            'functionException' : 'Topology.StartException',
+            'functionArguments' : { 'noOfLoops'        : 5,
+                                    'noOfMilliSeconds' : 2000 
+                                  }
+          }
+        </call>
+
+        <call function="'testSuite_Postamble'"/>
+      </sequence>
+    </block>
   </function>
   
   <!-- cleanup after the tests -->
   <function name="indexes_cleanup">
-    <sequence>
-      <call function="'runFunction'">
-        { 'functionName'      : 'StopDsWithScript' ,
-          'functionMessage'   : 'Stop DS running on port %s' \
-                                 % (DIRECTORY_INSTANCE_PORT),
-          'functionArguments' : { 'location'  : STAF_REMOTE_HOSTNAME,
-                                  'dsHost'    : DIRECTORY_INSTANCE_HOST,
-                                  'dsPort'    : DIRECTORY_INSTANCE_PORT,
-                                  'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-                                  'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
-        }
-      </call>
-      <call function="'runFunction'">
-        { 'functionName'    : 'removeTopology',
-          'functionMessage' : 'Remove DS topology created for the Test Suite'
-        }
-      </call>
-    </sequence>
+    <block name="'indexes_cleanup'">
+      <sequence>
+        <script>
+          CurrentTestPath['suite'] = STAXCurrentBlock
+        </script>
+        <call function="'testSuite_Preamble'"/>
+
+        <call function="'runFunction'">
+          { 'functionName'      : 'StopDsWithScript' ,
+            'functionMessage'   : 'Stop DS running on port %s' \
+                                  % (DIRECTORY_INSTANCE_PORT),
+            'functionArguments' : { 'location'    : STAF_REMOTE_HOSTNAME,
+                                    'dsHost'      : DIRECTORY_INSTANCE_HOST,
+                                    'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                                    'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+                                    'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD }
+          }
+        </call>
+        <call function="'runFunction'">
+          { 'functionName'    : 'removeTopology',
+            'functionMessage' : 'Remove DS topology created for the Test Suite'
+          }
+        </call>
+
+        <call function="'testSuite_Postamble'"/>
+      </sequence>
+    </block>
   </function>
 </stax>

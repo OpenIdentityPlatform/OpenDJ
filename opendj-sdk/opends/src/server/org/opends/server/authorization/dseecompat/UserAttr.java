@@ -283,8 +283,7 @@ public class UserAttr implements KeywordBindRule {
         List<Attribute> attrs=evalCtx.getResourceEntry().getAttribute(attrType);
         if(!attrs.isEmpty()) {
             for(Attribute a : attrs) {
-                LinkedHashSet<AttributeValue> vals=a.getValues();
-                for(AttributeValue v : vals) {
+                for(AttributeValue v : a) {
                     String urlStr=v.getStringValue();
                     LDAPURL url;
                     try {

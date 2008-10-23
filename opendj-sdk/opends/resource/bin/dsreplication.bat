@@ -27,6 +27,6 @@ rem      Copyright 2008 Sun Microsystems, Inc.
 
 setlocal
 
-set OPENDS_INVOKE_CLASS="org.opends.guitools.replicationcli.ReplicationCliMain"
+set OPENDS_INVOKE_CLASS="org.opends.server.tools.dsreplication.ReplicationCliMain"
 set SCRIPT_NAME=dsreplication
 for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*

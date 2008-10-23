@@ -35,7 +35,6 @@ import org.opends.server.types.InitializationException;
 
 import static org.opends.messages.UtilityMessages.*;
 import org.opends.messages.Message;
-import static org.opends.server.util.ServerConstants.*;
 
 
 

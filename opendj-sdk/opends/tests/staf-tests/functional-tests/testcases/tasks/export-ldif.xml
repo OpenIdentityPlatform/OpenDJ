@@ -65,14 +65,14 @@
             <call function="'testCase_Preamble'"/>              
             
             <call function="'exportLdif'">
-              { 'location'    : STAF_REMOTE_HOSTNAME ,
-              'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-              'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'ldifFile'  :  '%s/tasks/export_asynchronous' % remote.data,
-              'startTask'  : '0',
-              'backEnd'   : DIRECTORY_INSTANCE_BE}
+              { 'location'          : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+              'ldifFile'            : '%s/tasks/export_asynchronous' % remote.data,
+              'startTask'           : '0',
+              'backEnd'             : DIRECTORY_INSTANCE_BE}
             </call>
             <message>'--- Check log files export_asynchronous ---'</message>
             <call function="'listFolder'">
@@ -113,20 +113,19 @@
             <call function="'testCase_Preamble'"/>              
             
             <call function="'exportLdif'">
-              { 'location'    : STAF_REMOTE_HOSTNAME ,
-              'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-              'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'ldifFile'  :  '%s/tasks/export_synchronous' % remote.data,
-              'backEnd'   : DIRECTORY_INSTANCE_BE}
+              { 'location'          : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+              'ldifFile'            : '%s/tasks/export_synchronous' % remote.data,
+              'backEnd'             : DIRECTORY_INSTANCE_BE}
             </call>
             
             <!-- manage-tasks -->
             <call function="'manage-tasks'">
               { 'location'     : STAF_REMOTE_HOSTNAME ,
               'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'dsQuiet'        : ' '
@@ -181,14 +180,14 @@
             
             
             <call function="'exportLdif'">
-              { 'location'    : STAF_REMOTE_HOSTNAME ,
-              'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-              'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'ldifFile'  :  '%s/tasks/export_schedule_asynchronous' % remote.data,
-              'startTask'  : '20061212000000',
-              'backEnd'   : DIRECTORY_INSTANCE_BE}
+              { 'location'          : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+              'ldifFile'            : '%s/tasks/export_schedule_asynchronous' % remote.data,
+              'startTask'           : '20061212000000',
+              'backEnd'             : DIRECTORY_INSTANCE_BE}
             </call>
             
             <message>'--- Check log files export_asynchronous ---'</message>

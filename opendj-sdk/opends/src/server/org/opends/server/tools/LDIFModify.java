@@ -330,7 +330,7 @@ public class LDIFModify
         AttributeType t = a.getAttributeType();
         if (t.isObjectClassType())
         {
-          for (AttributeValue v : a.getValues())
+          for (AttributeValue v : a)
           {
             String stringValue = v.getStringValue();
             String lowerValue  = toLowerCase(stringValue);

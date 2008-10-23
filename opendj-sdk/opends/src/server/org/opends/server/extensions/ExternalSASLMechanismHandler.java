@@ -301,7 +301,7 @@ public class ExternalSASLMechanismHandler
             boolean found = false;
             for (Attribute a : certAttrList)
             {
-              if (a.hasValue(v))
+              if (a.contains(v))
               {
                 found = true;
                 break;
@@ -349,7 +349,7 @@ public class ExternalSASLMechanismHandler
             boolean found = false;
             for (Attribute a : certAttrList)
             {
-              if (a.hasValue(v))
+              if (a.contains(v))
               {
                 found = true;
                 break;

@@ -82,6 +82,12 @@ public class ReplSessionSecurity
   private String sslCipherSuites[];
 
   /**
+   * The default soTimeout value to be used at handshake phases.
+   * (DS<->RS and RS<->RS)
+   */
+  public static final int HANDSHAKE_TIMEOUT = 4000;
+
+  /**
    * Create a ReplSessionSecurity instance from the supplied configuration
    * values.
    *
@@ -192,13 +198,15 @@ public class ReplSessionSecurity
    * @param serverURL The remote replication server to which the socket is
    *                  connected.
    * @param socket The connected socket.
+   * @param soTimeout The socket timeout option to use for the protocol session.
    * @return The new protocol session.
    * @throws ConfigException If the protocol session could not be established
    *                         due to a configuration problem.
    * @throws IOException     If the protocol session could not be established
    *                         for some other reason.
    */
-  public ProtocolSession createClientSession(String serverURL, Socket socket)
+  public ProtocolSession createClientSession(String serverURL, Socket socket,
+    int soTimeout)
     throws ConfigException, IOException
   {
     boolean useSSL = isSecurePort(serverURL);
@@ -214,6 +222,7 @@ public class ReplSessionSecurity
         socket.getInetAddress().getHostName(),
         socket.getPort(), false);
       secureSocket.setUseClientMode(true);
+      secureSocket.setSoTimeout(soTimeout);
 
       if (sslProtocols != null)
       {
@@ -240,12 +249,13 @@ public class ReplSessionSecurity
    * Create a new protocol session in the server role on the provided socket.
    * @param socket The connected socket.
    * @return The new protocol session.
+   * @param soTimeout The socket timeout option to use for the protocol session.
    * @throws ConfigException If the protocol session could not be established
    *                         due to a configuration problem.
    * @throws IOException     If the protocol session could not be established
    *                         for some other reason.
    */
-  public ProtocolSession createServerSession(Socket socket)
+  public ProtocolSession createServerSession(Socket socket, int soTimeout)
     throws ConfigException, IOException
   {
     if (useSSL)
@@ -264,6 +274,7 @@ public class ReplSessionSecurity
           socket.getPort(), false);
         secureSocket.setUseClientMode(false);
         secureSocket.setNeedClientAuth(true);
+        secureSocket.setSoTimeout(soTimeout);
 
         if (sslProtocols != null)
         {

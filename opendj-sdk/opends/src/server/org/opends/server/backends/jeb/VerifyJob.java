@@ -49,12 +49,12 @@ import org.opends.server.util.StaticUtils;
 import org.opends.server.util.ServerConstants;
 
 import org.opends.server.types.*;
+
 import static org.opends.messages.JebMessages.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1316,7 +1316,7 @@ public class VerifyJob
                 {
                   for (Attribute a : attrs)
                   {
-                    for (AttributeValue v : a.getValues())
+                    for (AttributeValue v : a)
                     {
                       ByteString nv =
                           approximateMatchingRule.normalizeValue(v.getValue());
@@ -1837,8 +1837,7 @@ public class VerifyJob
     {
       for (Attribute attr : attrList)
       {
-        LinkedHashSet<AttributeValue> values = attr.getValues();
-        for (AttributeValue value : values)
+        for (AttributeValue value : attr)
         {
           byte[] normalizedBytes = value.getNormalizedValue().value();
 
@@ -2142,7 +2141,7 @@ public class VerifyJob
     {
         if (statEntry != null)
         {
-            Attribute a = new Attribute(t, v);
+            Attribute a = Attributes.create(t, v);
             statEntry.addAttribute(a, null);
         }
     }

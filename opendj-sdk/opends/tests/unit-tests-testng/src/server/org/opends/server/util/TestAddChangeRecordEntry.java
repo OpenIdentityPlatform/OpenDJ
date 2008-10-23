@@ -35,6 +35,7 @@ import java.util.Map;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -68,7 +69,7 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
     TestCaseUtils.startServer();
 
     attributes = new HashMap<AttributeType, List<Attribute>>();
-    attribute = new Attribute("cn", "hello world");
+    attribute = Attributes.create("cn", "hello world");
     ArrayList<Attribute> alist = new ArrayList<Attribute>(1);
     alist.add(attribute);
     attributes.put(attribute.getAttributeType(), alist);

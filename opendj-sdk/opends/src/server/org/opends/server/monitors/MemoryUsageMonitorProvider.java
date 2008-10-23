@@ -34,7 +34,6 @@ import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 
 import org.opends.server.admin.std.server.MemoryUsageMonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
@@ -42,6 +41,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.InitializationException;
@@ -257,19 +257,18 @@ public class MemoryUsageMonitorProvider
     AttributeType attrType = DirectoryServer.getDefaultAttributeType(name);
 
     ASN1OctetString encodedValue = new ASN1OctetString(value);
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-
+    AttributeBuilder builder = new AttributeBuilder(attrType);
     try
     {
-      values.add(new AttributeValue(encodedValue,
+      builder.add(new AttributeValue(encodedValue,
                                     attrType.normalize(encodedValue)));
     }
     catch (Exception e)
     {
-      values.add(new AttributeValue(encodedValue, encodedValue));
+      builder.add(new AttributeValue(encodedValue, encodedValue));
     }
 
-    return new Attribute(attrType, name, values);
+    return builder.toAttribute();
   }
 
 

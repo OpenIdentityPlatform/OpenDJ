@@ -26,7 +26,6 @@
  */
 package org.opends.server.workflowelement;
 
-import static org.opends.messages.ConfigMessages.*;
 
 import java.util.List;
 import org.opends.server.admin.std.server.WorkflowElementCfg;
@@ -37,13 +36,13 @@ import org.opends.server.types.CanceledOperationException;
 /**
  * This class defines the super class for all the workflow elements. A workflow
  * element is a task in a workflow. A workflow element can wrap a physical
- * repository such as a local backend, a remote LDAP server or a local ldif
+ * repository such as a local backend, a remote LDAP server or a local LDIF
  * file. A workflow element can also be used to route operations. This is the
  * case for load balancing and distribution. And workflow element can be used
  * in a virtual environment to transform data (DN and attribute renaming,
  * attribute value renaming...).
  *
- * @param  <T>  The type of configuration handled by this workflow elelemnt.
+ * @param  <T>  The type of configuration handled by this workflow element.
  */
 public abstract class WorkflowElement
        <T extends WorkflowElementCfg>
@@ -53,12 +52,13 @@ public abstract class WorkflowElement
   private boolean isPrivate = false;
 
 
+  // An information indicating the type of the current workflow element.
+  // This information is for debug and tooling purpose only.
+  private String workflowElementTypeInfo = "not defined";
+
+
   // The workflow element identifier.
   private String workflowElementID = null;
-
-  // The parent of the workflow element (null if the workflow element is
-  // the root of the processing tree).
-  private WorkflowElement<?> parent = null;
 
 
   /**
@@ -74,27 +74,36 @@ public abstract class WorkflowElement
    *
    * @param workflowElementID  the workflow element identifier as defined
    *                           in the configuration.
+   * @param workflowElementTypeInfo  an information to indicate the type of
+   *                                 the current workflow element. For example
+   *                                 "Backend" if the current workflow element
+   *                                 is a local backend workflow element.
    */
-  public void initialize(String workflowElementID)
+  public void initialize(
+      String workflowElementID,
+      String workflowElementTypeInfo)
   {
     this.workflowElementID = workflowElementID;
+    this.workflowElementTypeInfo = workflowElementTypeInfo;
   }
 
 
   /**
-   * Set the parent of the current workflow element.
+   * Get the type of the workflow element. The type is a string information
+   * indicating which type is the current workflow element. This information
+   * is intended to be used by tools for trace and debug purpose.
    *
-   * @param parent  the parent of the workflow element
+   * @return the type of the workflow element.
    */
-  protected void setParent(WorkflowElement<?> parent)
+  public String getWorkflowElementTypeInfo()
   {
-    this.parent = parent;
+    return this.workflowElementTypeInfo;
   }
 
 
   /**
    * Indicates whether the provided configuration is acceptable for
-   * this workflow elelement.
+   * this workflow element.
    *
    * @param  configuration        The workflow element configuration for
    *                              which to make the determination.
@@ -132,7 +141,7 @@ public abstract class WorkflowElement
    * @param operation the operation to execute
    *
    * @throws CanceledOperationException if this operation should be
-   * cancelled
+   * canceled
    */
   public abstract void execute(Operation operation)
       throws CanceledOperationException;
@@ -167,7 +176,7 @@ public abstract class WorkflowElement
   /**
    * Provides the workflow element identifier.
    *
-   * @return the worflow element identifier
+   * @return the workflow element identifier
    */
   public String getWorkflowElementID()
   {

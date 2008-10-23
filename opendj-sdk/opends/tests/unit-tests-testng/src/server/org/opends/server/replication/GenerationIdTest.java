@@ -40,7 +40,6 @@ import java.net.ServerSocket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -50,36 +49,40 @@ import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.backends.MemoryBackend;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.common.ChangeNumberGenerator;
+import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.plugin.ReplicationBroker;
 import org.opends.server.replication.plugin.ReplicationDomain;
 import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.DoneMessage;
-import org.opends.server.replication.protocol.EntryMessage;
-import org.opends.server.replication.protocol.ErrorMessage;
-import org.opends.server.replication.protocol.InitializeTargetMessage;
-import org.opends.server.replication.protocol.ReplicationMessage;
+import org.opends.server.replication.protocol.ChangeStatusMsg;
+import org.opends.server.replication.protocol.DoneMsg;
+import org.opends.server.replication.protocol.EntryMsg;
+import org.opends.server.replication.protocol.ErrorMsg;
+import org.opends.server.replication.protocol.InitializeTargetMsg;
+import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.SocketSession;
+import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationBackend;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.tasks.LdifFileWriter;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import static org.opends.server.TestCaseUtils.*;
 
 /**
  * Tests contained here:
@@ -87,7 +90,7 @@ import org.testng.annotations.Test;
  * - testSingleRS : test generation ID setting with different servers and one
  *   Replication server.
  *
- * - testMultiRS : tests generation ID propagatoion with more than one
+ * - testMultiRS : tests generation ID propagation with more than one
  *   Replication server.
  *
  */
@@ -97,11 +100,10 @@ public class GenerationIdTest extends ReplicationTestCase
   // The tracer object for the debug logger
   private static final DebugTracer TRACER = getTracer();
 
-  private static final String baseDnStr = "dc=example,dc=com";
-  private static final String baseSnStr = "genidcom";
+  private static final String baseDnStr = TEST_ROOT_DN_STRING;
+  private static final String testName = "generationIdTest";
 
   private static final int   WINDOW_SIZE = 10;
-  private static final int   CHANGELOG_QUEUE_SIZE = 100;
   private static final short server1ID = 1;
   private static final short server2ID = 2;
   private static final short server3ID = 3;
@@ -120,7 +122,7 @@ public class GenerationIdTest extends ReplicationTestCase
   private Entry taskInitRemoteS2;
   SocketSession ssSession = null;
   boolean ssShutdownRequested = false;
-  protected String[] updatedEntries;
+  private String[] updatedEntries;
 
   private static int[] replServerPort = new int[20];
 
@@ -128,11 +130,6 @@ public class GenerationIdTest extends ReplicationTestCase
    * A temporary LDIF file containing some test entries.
    */
   private File ldifFile;
-
-  /**
-   * A temporary file to contain rejected entries.
-   */
-  private File rejectFile;
 
   /**
    * A makeldif template used to create some test entries.
@@ -198,34 +195,14 @@ public class GenerationIdTest extends ReplicationTestCase
   @BeforeClass
   public void setUp() throws Exception
   {
-    //log("Starting generationIdTest setup: debugEnabled:" + debugEnabled());
-
-    // This test suite depends on having the schema available.
-    TestCaseUtils.startServer();
+    super.setUp();
 
     baseDn = DN.decode(baseDnStr);
 
     updatedEntries = newLDIFEntries();
 
-    // Create an internal connection in order to provide operations
-    // to DS to populate the db -
-    connection = InternalClientConnection.getRootConnection();
-
-    // Synchro provider
-    String synchroStringDN = "cn=Synchronization Providers,cn=config";
-
-    // Synchro multi-master
-    synchroPluginStringDN = "cn=Multimaster Synchronization, "
-      + synchroStringDN;
-
     // Synchro suffix
     synchroServerEntry = null;
-
-    // Add config entries to the current DS server based on :
-    // Add the replication plugin: synchroPluginEntry & synchroPluginStringDN
-    // Add synchroServerEntry
-    // Add replServerEntry
-    configureReplication();
 
     taskInitRemoteS2 = TestCaseUtils.makeEntry(
         "dn: ds-task-id=" + UUID.randomUUID() +
@@ -236,19 +213,6 @@ public class GenerationIdTest extends ReplicationTestCase
         "ds-task-class-name: org.opends.server.tasks.InitializeTargetTask",
         "ds-task-initialize-domain-dn: " + baseDn,
         "ds-task-initialize-replica-server-id: " + server2ID);
-
-    // Change log
-    String changeLogStringDN = "cn=Changelog Server, " + synchroPluginStringDN;
-    String changeLogLdif = "dn: " + changeLogStringDN + "\n"
-    + "objectClass: top\n"
-    + "objectClass: ds-cfg-synchronization-changelog-server-config\n"
-    + "cn: Changelog Server\n" + "ds-cfg-changelog-port: 8990\n"
-    + "ds-cfg-changelog-server-id: 1\n"
-    + "ds-cfg-window-size: " + WINDOW_SIZE + "\n"
-    + "ds-cfg-changelog-max-queue-size: " + CHANGELOG_QUEUE_SIZE;
-    replServerEntry = TestCaseUtils.entryFromLdifString(changeLogLdif);
-    replServerEntry = null;
-
   }
 
   // Tests that entries have been written in the db
@@ -261,8 +225,9 @@ public class GenerationIdTest extends ReplicationTestCase
     {
 
       int dns = entry.indexOf("dn: ");
-      int dne = entry.indexOf("dc=com");
-      String dn = entry.substring(dns+4,dne+6);
+      int dne = entry.indexOf(TestCaseUtils.TEST_ROOT_DN_STRING);
+      String dn = entry.substring(dns + 4,
+        dne + TestCaseUtils.TEST_ROOT_DN_STRING.length());
 
       debugInfo("Search Entry: " + dn);
 
@@ -306,7 +271,7 @@ public class GenerationIdTest extends ReplicationTestCase
     {
         "dn: " + baseDn + "\n"
         + "objectClass: top\n"
-        + "objectClass: domain\n"
+        + "objectClass: organization\n"
         + "entryUUID: 21111111-1111-1111-1111-111111111111\n"
         + "\n",
         "dn: ou=People," + baseDn + "\n"
@@ -345,8 +310,8 @@ public class GenerationIdTest extends ReplicationTestCase
       String[] updatedEntries)
   {
     // Expect the broker to receive the entries
-    ReplicationMessage msg;
-    short entriesReceived = 0;
+    ReplicationMsg msg;
+    short entriesReceived = -100;
     while (true)
     {
       try
@@ -357,26 +322,26 @@ public class GenerationIdTest extends ReplicationTestCase
         if (msg == null)
           break;
 
-        if (msg instanceof InitializeTargetMessage)
+        if (msg instanceof InitializeTargetMsg)
         {
           debugInfo("Broker " + serverID + " receives InitializeTargetMessage ");
           entriesReceived = 0;
         }
-        else if (msg instanceof EntryMessage)
+        else if (msg instanceof EntryMsg)
         {
-          EntryMessage em = (EntryMessage)msg;
+          EntryMsg em = (EntryMsg)msg;
           debugInfo("Broker " + serverID + " receives entry " + new String(em.getEntryBytes()));
           entriesReceived++;
         }
-        else if (msg instanceof DoneMessage)
+        else if (msg instanceof DoneMsg)
         {
-          debugInfo("Broker " + serverID + "  receives done ");
+          debugInfo("Broker " + serverID + " receives done ");
           break;
         }
-        else if (msg instanceof ErrorMessage)
+        else if (msg instanceof ErrorMsg)
         {
-          ErrorMessage em = (ErrorMessage)msg;
-          debugInfo("Broker " + serverID + "  receives ERROR "
+          ErrorMsg em = (ErrorMsg)msg;
+          debugInfo("Broker " + serverID + " receives ERROR "
               + em.toString());
           break;
         }
@@ -404,40 +369,28 @@ public class GenerationIdTest extends ReplicationTestCase
   /**
    * Creates a new replicationServer.
    * @param changelogId The serverID of the replicationServer to create.
-   * @param all         Specifies whether to coonect the created replication
+   * @param all         Specifies whether to connect the created replication
    *                    server to the other replication servers in the test.
    * @return The new created replication server.
    */
   private ReplicationServer createReplicationServer(short changelogId,
-      boolean all, String suffix)
+      boolean all, String testCase)
   {
     SortedSet<String> servers = null;
     servers = new TreeSet<String>();
     try
     {
-      if (changelogId==changelog1ID)
-      {
-        if (replServer1!=null)
-          return replServer1;
-      }
-      else if (changelogId==changelog2ID)
-      {
-        if (replServer2!=null)
-          return replServer2;
-      }
-      else if (changelogId==changelog3ID)
-      {
-        if (replServer3!=null)
-          return replServer3;
-      }
       if (all)
       {
-        servers.add("localhost:" + getChangelogPort(changelog1ID));
-        servers.add("localhost:" + getChangelogPort(changelog2ID));
-        servers.add("localhost:" + getChangelogPort(changelog3ID));
+        if (changelogId != changelog1ID)
+          servers.add("localhost:" + getChangelogPort(changelog1ID));
+        if (changelogId != changelog2ID)
+          servers.add("localhost:" + getChangelogPort(changelog2ID));
+        if (changelogId != changelog3ID)
+          servers.add("localhost:" + getChangelogPort(changelog3ID));
       }
       int chPort = getChangelogPort(changelogId);
-      String chDir = "genid"+changelogId+suffix+"Db";
+      String chDir = "generationIdTest"+changelogId+testCase+"Db";
       ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(chPort, chDir, 0, changelogId, 0, 100,
             servers);
@@ -465,12 +418,11 @@ public class GenerationIdTest extends ReplicationTestCase
     try
     {
       // suffix synchronized
-      String synchroServerStringDN = synchroPluginStringDN;
       String synchroServerLdif =
-        "dn: cn=" + baseSnStr + ", cn=domains," + synchroServerStringDN + "\n"
+        "dn: cn=" + testName + ", cn=domains," + SYNCHRO_PLUGIN_DN + "\n"
         + "objectClass: top\n"
         + "objectClass: ds-cfg-replication-domain\n"
-        + "cn: " + baseSnStr + "\n"
+        + "cn: " + testName + "\n"
         + "ds-cfg-base-dn: " + baseDnStr + "\n"
         + "ds-cfg-replication-server: localhost:"
         + getChangelogPort(changelogID)+"\n"
@@ -478,17 +430,19 @@ public class GenerationIdTest extends ReplicationTestCase
         + "ds-cfg-receive-status: true\n"
         + "ds-cfg-window-size: " + WINDOW_SIZE;
 
-      if (synchroServerEntry == null)
-      {
-        synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
-        DirectoryServer.getConfigHandler().addEntry(synchroServerEntry, null);
-        assertNotNull(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()),
+      // Must be no connection already done or disconnectFromReplServer should
+      // have been called
+      assertTrue(synchroServerEntry == null);
+
+      synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
+      DirectoryServer.getConfigHandler().addEntry(synchroServerEntry, null);
+      assertNotNull(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()),
         "Unable to add the synchronized server");
-        configEntryList.add(synchroServerEntry.getDN());
+      configEntryList.add(synchroServerEntry.getDN());
 
-        replDomain = ReplicationDomain.retrievesReplicationDomain(baseDn);
+      replDomain = ReplicationDomain.retrievesReplicationDomain(baseDn);
 
-      }
+
       if (replDomain != null)
       {
         debugInfo("ReplicationDomain: Import/Export is running ? " + replDomain.ieRunning());
@@ -509,18 +463,20 @@ public class GenerationIdTest extends ReplicationTestCase
     try
     {
       // suffix synchronized
-      String synchroServerStringDN = "cn=" + baseSnStr + ", cn=domains," +
-      synchroPluginStringDN;
-      if (synchroServerEntry != null)
-      {
-        DN synchroServerDN = DN.decode(synchroServerStringDN);
-        DirectoryServer.getConfigHandler().deleteEntry(synchroServerDN,null);
-        assertTrue(DirectoryServer.getConfigEntry(synchroServerEntry.getDN())==null,
-        "Unable to delete the synchronized domain");
-        synchroServerEntry = null;
+      String synchroServerStringDN = "cn=" + testName + ", cn=domains," +
+      SYNCHRO_PLUGIN_DN;
+      // Must have called connectServer1ToChangelog previously
+      assertTrue(synchroServerEntry != null);
 
-        configEntryList.remove(configEntryList.indexOf(synchroServerDN));
-      }
+      DN synchroServerDN = DN.decode(synchroServerStringDN);
+      DirectoryServer.getConfigHandler().deleteEntry(synchroServerDN, null);
+      assertTrue(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()) ==
+        null,
+        "Unable to delete the synchronized domain");
+      synchroServerEntry = null;
+
+      configEntryList.remove(configEntryList.indexOf(synchroServerDN));
+
     }
     catch(Exception e)
     {
@@ -572,10 +528,9 @@ public class GenerationIdTest extends ReplicationTestCase
         if (attrs != null)
         {
           Attribute attr = attrs.get(0);
-          LinkedHashSet<AttributeValue> values = attr.getValues();
-          if (values.size() == 1)
+          if (attr.size() == 1)
           {
-            genId = Long.decode(values.iterator().next().getStringValue());
+            genId = Long.decode(attr.iterator().next().getStringValue());
           }
         }
 
@@ -588,10 +543,8 @@ public class GenerationIdTest extends ReplicationTestCase
     return genId;
   }
 
-  private Entry getTaskImport()
+  private void performLdifImport()
   {
-    Entry task = null;
-
     try
     {
       // Create a temporary test LDIF file.
@@ -599,27 +552,25 @@ public class GenerationIdTest extends ReplicationTestCase
       String resourcePath = DirectoryServer.getInstanceRoot() + File.separator +
       "config" + File.separator + "MakeLDIF";
       LdifFileWriter.makeLdif(ldifFile.getPath(), resourcePath, template);
-      // Create a temporary rejects file.
-      rejectFile = File.createTempFile("import-test-rejects", ".ldif");
 
-      task = TestCaseUtils.makeEntry(
-          "dn: ds-task-id=" + UUID.randomUUID() +
-          ",cn=Scheduled Tasks,cn=Tasks",
-          "objectclass: top",
-          "objectclass: ds-task",
-          "objectclass: ds-task-import",
-          "ds-task-class-name: org.opends.server.tasks.ImportTask",
-          "ds-task-import-backend-id: userRoot",
-          "ds-task-import-ldif-file: " + ldifFile.getPath(),
-          "ds-task-import-reject-file: " + rejectFile.getPath(),
-          "ds-task-import-overwrite-rejects: TRUE",
-          "ds-task-import-exclude-attribute: description"
-      );
+      // Launch import of the Ldif file on the memory test backend
+      // Note: we do not use a task here as import task does not work on memory
+      // backend: it disables then re-enables backend which leads to backend
+      // object instance lost and this is not accepttable for a backend with
+      // non persistent data
+      LDIFImportConfig importConfig =
+        new LDIFImportConfig(ldifFile.getAbsolutePath());
+
+      MemoryBackend memoryBackend =
+        (MemoryBackend) DirectoryServer.getBackend(TEST_BACKEND_ID);
+      memoryBackend.importLDIF(importConfig);
+
     }
     catch(Exception e)
     {
+     fail("Could not perform ldif import on memory test backend: "
+       + e.getMessage());
     }
-    return task;
   }
 
   private String createEntry(UUID uid)
@@ -642,7 +593,7 @@ public class GenerationIdTest extends ReplicationTestCase
         + "userPassword: password\n" + "initials: AA\n");
   }
 
-  static protected ReplicationMessage createAddMsg()
+  static protected ReplicationMsg createAddMsg()
   {
     Entry personWithUUIDEntry = null;
     String user1entryUUID;
@@ -738,9 +689,9 @@ public class GenerationIdTest extends ReplicationTestCase
     debugInfo("Starting "+ testCase + " debugEnabled:" + debugEnabled());
 
     debugInfo(testCase + " Clearing DS1 backend");
-    ReplicationDomain.clearJEBackend(false,
-        "userRoot",
-        baseDn.toNormalizedString());
+    // Special test were we want to test with an empty backend. So free it
+    // for this special test.
+    TestCaseUtils.initializeTestBackend(false);
 
     try
     {
@@ -748,7 +699,7 @@ public class GenerationIdTest extends ReplicationTestCase
       long genId;
 
       replServer1 = createReplicationServer(changelog1ID, false, testCase);
-      
+
       // To search the replication server db later in these tests, we need
       // to attach the search backend to the replication server just created.
       Thread.sleep(500);
@@ -762,14 +713,14 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo(testCase + " Configuring DS1 to replicate to RS1(" + changelog1ID + ") on an empty backend");
       connectServer1ToChangelog(changelog1ID);
 
-      debugInfo(testCase + " Expect genId to be not retrievable frm suffix root entry");
+      debugInfo(testCase + " Expect genId to be not retrievable from suffix root entry");
       genId = readGenIdFromSuffixRootEntry();
       assertEquals(genId,-1);
 
       debugInfo(testCase + " Expect genId to be set in memory on the replication " +
       " server side (not wrote on disk/db since no change occurred).");
       rgenId = replServer1.getGenerationId(baseDn);
-      assertEquals(rgenId, 3211313L);
+      assertEquals(rgenId, EMPTY_DN_GENID);
 
       // Clean for next test
       debugInfo(testCase + " Unconfiguring DS1 to replicate to RS1(" + changelog1ID + ")");
@@ -788,7 +739,7 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo(testCase + " Test that the generationId is written in the DB in the root entry on DS1");
       genId = readGenIdFromSuffixRootEntry();
       assertTrue(genId != -1);
-      assertTrue(genId != 3211313L);
+      assertTrue(genId != EMPTY_DN_GENID);
 
       debugInfo(testCase + " Test that the generationId is set on RS1");
       rgenId = replServer1.getGenerationId(baseDn);
@@ -807,21 +758,6 @@ public class GenerationIdTest extends ReplicationTestCase
       {
         fail("DS2 with bad genID failed to connect to RS1.");
       }
-      try
-      {
-        ReplicationMessage msg = broker2.receive();
-        if (!(msg instanceof ErrorMessage))
-        {
-          fail("Broker connection is expected to receive an ErrorMessage."
-              + msg);
-        }
-        ErrorMessage emsg = (ErrorMessage)msg;
-        debugInfo(testCase + " " + emsg.getMsgID() + " " + emsg.getDetails());
-      }
-      catch(SocketTimeoutException se)
-      {
-        fail("Broker is expected to receive an ErrorMessage.");
-      }
 
       //===========================================================
       debugInfo(testCase + " ** TEST ** DS3 connection to RS1 with good genID");
@@ -833,6 +769,22 @@ public class GenerationIdTest extends ReplicationTestCase
       catch(SocketException se)
       {
         fail("Broker connection is expected to be accepted.");
+      }
+
+      // Broker 2 should receive an update topo message to signal broker 3
+      // arrival in topology
+      try
+      {
+        ReplicationMsg msg = broker2.receive();
+        if (!(msg instanceof TopologyMsg))
+        {
+          fail("Broker 2 connection is expected to receive a TopologyMsg."
+              + msg);
+        }
+      }
+      catch(SocketTimeoutException se)
+      {
+        fail("DS2 is expected to receive a TopologyMsg.");
       }
 
       //===========================================================
@@ -863,7 +815,7 @@ public class GenerationIdTest extends ReplicationTestCase
       // Verify that DS3 receives this change
       try
       {
-        ReplicationMessage msg = broker3.receive();
+        ReplicationMsg msg = broker3.receive();
         debugInfo("Broker 3 received expected update msg" + msg);
       }
       catch(SocketTimeoutException e)
@@ -873,7 +825,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
       //===========================================================
       debugInfo(testCase + " ** TEST ** Persistence of the generation ID in RS1");
-      
+
       long genIdBeforeShut = replServer1.getGenerationId(baseDn);
 
       debugInfo("Shutdown replServer1");
@@ -881,7 +833,7 @@ public class GenerationIdTest extends ReplicationTestCase
       broker2 = null;
       broker3.stop();
       broker3 = null;
-      replServer1.shutdown();
+      replServer1.remove();
       replServer1 = null;
 
       debugInfo("Create again replServer1");
@@ -903,7 +855,7 @@ public class GenerationIdTest extends ReplicationTestCase
         " after replServer1 restart. Before : " + genIdBeforeShut +
         " after : " + genIdAfterRestart);
 
-      // By the way also verify that no change occured on the replication server db
+      // By the way also verify that no change occurred on the replication server db
       // and still contain the ADD submitted initially.
       Thread.sleep(500);
       checkChangelogSize(1);
@@ -927,12 +879,92 @@ public class GenerationIdTest extends ReplicationTestCase
       {
         fail("Broker connection is expected to be accepted.");
       }
+
+      // Broker 2 should receive an update topo message to signal broker 3
+      // arrival in topology
+      try
+      {
+        ReplicationMsg msg = broker2.receive();
+        if (!(msg instanceof TopologyMsg))
+        {
+          fail("Broker 2 connection is expected to receive a TopologyMsg."
+              + msg);
+        }
+      }
+      catch(SocketTimeoutException se)
+      {
+        fail("DS2 is expected to receive a TopologyMsg.");
+      }
+
       debugInfo("Launch on-line import on DS1");
+      long oldGenId = genId;
       genId=-1;
-      Entry importTask = getTaskImport();
-      addTask(importTask, ResultCode.SUCCESS, null);
-      waitTaskState(importTask, TaskState.COMPLETED_SUCCESSFULLY, null);
-      Thread.sleep(500);
+      disconnectFromReplServer(changelog1ID);
+      performLdifImport();
+      connectServer1ToChangelog(changelog1ID);
+
+      // Broker 2 and 3 should receive 2 update topo messages to signal broker 1
+      // has disconnected from topology then reconnected
+      try
+      {
+        ReplicationMsg msg = broker2.receive();
+        if (!(msg instanceof TopologyMsg))
+        {
+          fail("Broker 2 connection is expected to receive a first TopologyMsg" +
+            " for Broker 1 import + reconnect."
+              + msg);
+        }
+      }
+      catch(SocketTimeoutException se)
+      {
+        fail("DS2 is expected to receive a first TopologyMsg for DS1 import + " +
+          "reconnect.");
+      }
+      try
+      {
+        ReplicationMsg msg = broker3.receive();
+        if (!(msg instanceof TopologyMsg))
+        {
+          fail("Broker 3 connection is expected to receive a first TopologyMsg" +
+            " for Broker 1 import + reconnect."
+              + msg);
+        }
+      }
+      catch(SocketTimeoutException se)
+      {
+        fail("DS3 is expected to receive a first TopologyMsg for DS1 import + " +
+          "reconnect.");
+      }
+      try
+      {
+        ReplicationMsg msg = broker2.receive();
+        if (!(msg instanceof TopologyMsg))
+        {
+          fail("Broker 2 connection is expected to receive a second TopologyMsg" +
+            " for Broker 1 import + reconnect."
+              + msg);
+        }
+      }
+      catch(SocketTimeoutException se)
+      {
+        fail("DS2 is expected to receive a second TopologyMsg for DS1 import + " +
+          "reconnect.");
+      }
+      try
+      {
+        ReplicationMsg msg = broker3.receive();
+        if (!(msg instanceof TopologyMsg))
+        {
+          fail("Broker 3 connection is expected to receive a second TopologyMsg" +
+            " for Broker 1 import + reconnect."
+              + msg);
+        }
+      }
+      catch(SocketTimeoutException se)
+      {
+        fail("DS3 is expected to receive a second TopologyMsg for DS1 import + " +
+          "reconnect.");
+      }
 
       debugInfo("Create Reset task on DS1 to propagate the new gen ID as the reference");
       Entry taskReset = TestCaseUtils.makeEntry(
@@ -944,13 +976,121 @@ public class GenerationIdTest extends ReplicationTestCase
           "ds-task-class-name: org.opends.server.tasks.SetGenerationIdTask",
           "ds-task-reset-generation-id-domain-base-dn: " + baseDnStr);
       addTask(taskReset, ResultCode.SUCCESS, null);
-      waitTaskState(taskReset, TaskState.COMPLETED_SUCCESSFULLY, null);
-      Thread.sleep(200);
+      waitTaskState(taskReset, TaskState.COMPLETED_SUCCESSFULLY, null);      
+
+      // Broker 2 and 3 should receive 1 change status message to order them
+      // to enter the bad gen id status
+      try
+      {
+        ReplicationMsg msg = broker2.receive();
+        if (!(msg instanceof ChangeStatusMsg))
+        {
+          fail("Broker 2 connection is expected to receive 1 ChangeStatusMsg" +
+            " to enter the bad gen id status"
+              + msg);
+        }
+        ChangeStatusMsg csMsg = (ChangeStatusMsg)msg;
+        if (csMsg.getRequestedStatus() != ServerStatus.BAD_GEN_ID_STATUS)
+        {
+          fail("Broker 2 connection is expected to receive 1 ChangeStatusMsg" +
+            " to enter the bad gen id status"
+              + msg);
+        }
+      }
+      catch(SocketTimeoutException se)
+      {
+        fail("DS2 is expected to receive 1 ChangeStatusMsg to enter the " +
+          "bad gen id status.");
+      }
+      try
+      {
+        ReplicationMsg msg = broker3.receive();
+        if (!(msg instanceof ChangeStatusMsg))
+        {
+          fail("Broker 3 connection is expected to receive 1 ChangeStatusMsg" +
+            " to enter the bad gen id status"
+              + msg);
+        }
+        ChangeStatusMsg csMsg = (ChangeStatusMsg)msg;
+        if (csMsg.getRequestedStatus() != ServerStatus.BAD_GEN_ID_STATUS)
+        {
+          fail("Broker 3 connection is expected to receive 1 ChangeStatusMsg" +
+            " to enter the bad gen id status"
+              + msg);
+        }
+      }
+      catch(SocketTimeoutException se)
+      {
+        fail("DS3 is expected to receive 1 ChangeStatusMsg to enter the " +
+          "bad gen id status.");
+      }
+
+      // Broker 2 and 3 should receive 1 update topo message to signal other broker gen id
+      // has been resetted, and 2 topo messages to signal DS1 has been disconnected
+      // then reconnected
+      try
+      {
+        ReplicationMsg msg = broker2.receive();
+        if (!(msg instanceof TopologyMsg))
+        {
+          fail("Broker 2 connection is expected to receive 1 TopologyMsg" +
+            " for gen id reset of broker 3."
+              + msg);
+        }
+        msg = broker2.receive();
+        if (!(msg instanceof TopologyMsg))
+        {
+          fail("Broker 2 connection is expected to receive 1 TopologyMsg" +
+            " for DS1 disconnected."
+              + msg);
+        }
+        msg = broker2.receive();
+        if (!(msg instanceof TopologyMsg))
+        {
+          fail("Broker 2 connection is expected to receive 1 TopologyMsg" +
+            " for DS1 reconnected."
+              + msg);
+        }
+      }
+      catch(SocketTimeoutException se)
+      {
+        fail("DS2 is expected to receive 3 TopologyMsg for gen id reset.");
+      }
+      try
+      {
+        ReplicationMsg msg = broker3.receive();
+        if (!(msg instanceof TopologyMsg))
+        {
+          fail("Broker 3 connection is expected to receive 1 TopologyMsg" +
+            " for gen id reset of broker 2."
+              + msg);
+        }
+        msg = broker3.receive();
+        if (!(msg instanceof TopologyMsg))
+        {
+          fail("Broker 3 connection is expected to receive 1 TopologyMsg" +
+            " for DS1 disconnected."
+              + msg);
+        }
+        msg = broker3.receive();
+        if (!(msg instanceof TopologyMsg))
+        {
+          fail("Broker 3 connection is expected to receive 1 TopologyMsg" +
+            " for DS1 reconnected"
+              + msg);
+        }
+      }
+      catch(SocketTimeoutException se)
+      {
+        fail("DS3 is expected to receive 3 TopologyMsg for gen id reset.");
+      }
 
       debugInfo("DS1 root entry must contain the new gen ID");
       genId = readGenIdFromSuffixRootEntry();
       assertTrue(genId != -1, "DS is expected to have a new genID computed " +
           " after on-line import but genId=" + genId);
+      assertTrue(genId != oldGenId, "The new genID after import and reset of genID "
+        + "is expected to be diffrent from previous one");
 
       debugInfo("RS1 must have the new gen ID");
       rgenId = replServer1.getGenerationId(baseDn);
@@ -961,7 +1101,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
       assertTrue(!replServer1.getReplicationServerDomain(baseDn, false).
           isDegradedDueToGenerationId(server1ID),
-      "Expecting that DS1 status in RS1 is : not degraded.");
+      "Expecting that DS1 status in RS1 is : not in bad gen id.");
 
       //===============================================================
       debugInfo(testCase + " ** TEST ** Previous test set a new gen ID on the "+
@@ -969,12 +1109,12 @@ public class GenerationIdTest extends ReplicationTestCase
 
       assertTrue(replServer1.getReplicationServerDomain(baseDn, false).
           isDegradedDueToGenerationId(server2ID),
-      "Expecting that DS2 with old gen ID is degraded from RS1");
+      "Expecting that DS2 with old gen ID is in bad gen id from RS1");
       assertTrue(replServer1.getReplicationServerDomain(baseDn, false).
           isDegradedDueToGenerationId(server3ID),
-      "Expecting that DS3 with old gen ID is degraded from RS1");
+      "Expecting that DS3 with old gen ID is in bad gen id from RS1");
 
-      debugInfo("Add entries to DS1, update should not be sent to DS2 and DS3 that are degraded");
+      debugInfo("Add entries to DS1, update should not be sent to DS2 and DS3 that are in bad gen id");
       String[] ent3 = { createEntry(UUID.randomUUID()) };
       this.addTestEntriesToDB(ent3);
 
@@ -984,45 +1124,14 @@ public class GenerationIdTest extends ReplicationTestCase
 
       try
       {
-        ReplicationMessage msg = broker2.receive();
-        if (!(msg instanceof ErrorMessage))
-        {
-          fail("Broker 2 connection is expected to receive an ErrorMessage."
-              + msg);
-        }
-        ErrorMessage emsg = (ErrorMessage)msg;
-        debugInfo(testCase + " " + emsg.getMsgID() + " " + emsg.getDetails());
-      }
-      catch(SocketTimeoutException se)
-      {
-        fail("DS2 is expected to receive an ErrorMessage.");
-      }
-      try
-      {
-        ReplicationMessage msg = broker3.receive();
-        if (!(msg instanceof ErrorMessage))
-        {
-          fail("DS3 connection is expected to receive an ErrorMessage."
-              + msg);
-        }
-        ErrorMessage emsg = (ErrorMessage)msg;
-        debugInfo(testCase + " " + emsg.getMsgID() + " " + emsg.getDetails());
-      }
-      catch(SocketTimeoutException se)
-      {
-        fail("DS3 is expected to receive an ErrorMessage.");
-      }
-
-      try
-      {
-        ReplicationMessage msg = broker2.receive();
-        fail("No update message is supposed to be received by degraded broker2" + msg);
+        ReplicationMsg msg = broker2.receive();
+        fail("No update message is supposed to be received by broker2 in bad gen id. " + msg);
       } catch(SocketTimeoutException e) { /* expected */ }
 
       try
       {
-        ReplicationMessage msg = broker3.receive();
-        fail("No update message is supposed to be received by degraded broker3"+ msg);
+        ReplicationMsg msg = broker3.receive();
+        fail("No update message is supposed to be received by broker3 in bad gen id. " + msg);
       } catch(SocketTimeoutException e) { /* expected */ }
 
 
@@ -1035,13 +1144,13 @@ public class GenerationIdTest extends ReplicationTestCase
 
       try
       {
-        ReplicationMessage msg = broker3.receive();
-        fail("No update message is supposed to be received by degraded broker3"+ msg);
+        ReplicationMsg msg = broker3.receive();
+        fail("No update message is supposed to be received by broker3 in bad gen id. "+ msg);
       } catch(SocketTimeoutException e) { /* expected */ }
 
-      
+
       //===============================================================
-      debugInfo(testCase + " ** TEST ** Previous test degraded DS2 and DS3, "+
+      debugInfo(testCase + " ** TEST ** Previous test put DS2 and DS3 in bad gen id, "+
           " now simulates \"dsreplication initialize \"by doing a TU+reset " +
           " from DS1 to DS2 and DS3, verify NON degradation of DS2 and DS3");
 
@@ -1053,16 +1162,45 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo("broker2 has been initialized from DS with #entries=" + receivedEntriesNb);
 
       broker2.stop();
-      
+
       // Simulates the broker restart at the end of the import
       broker2 = openReplicationSession(baseDn,
           server2ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges, genId);
 
       broker3.stop();
-      
+
       // Simulates the broker restart at the end of the import
       broker3 = openReplicationSession(baseDn,
           server3ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges, genId);
+
+      // Broker 2 should receive 2 update topo messages to signal broker 3
+      // stopped and restarted
+      try
+      {
+        ReplicationMsg msg = broker2.receive();
+        if (!(msg instanceof TopologyMsg))
+        {
+          fail("Broker 2 connection is expected to receive a first TopologyMsg."
+              + msg);
+        }
+      }
+      catch(SocketTimeoutException se)
+      {
+        fail("DS2 is expected to receive a first TopologyMsg.");
+      }
+      try
+      {
+        ReplicationMsg msg = broker2.receive();
+        if (!(msg instanceof TopologyMsg))
+        {
+          fail("Broker 2 connection is expected to receive a second TopologyMsg."
+              + msg);
+        }
+      }
+      catch(SocketTimeoutException se)
+      {
+        fail("DS2 is expected to receive a second TopologyMsg.");
+      }
 
       debugInfo("Adding reset task to DS1");
       taskReset = TestCaseUtils.makeEntry(
@@ -1078,6 +1216,38 @@ public class GenerationIdTest extends ReplicationTestCase
       waitTaskState(taskReset, TaskState.COMPLETED_SUCCESSFULLY, null);
       Thread.sleep(200);
 
+      // Broker 2 and 3 should not receive a change status as they are connected with
+      // the right genid, but should anyway receive a topo message to update them with potential
+      // updates.
+      try
+      {
+        ReplicationMsg msg = broker2.receive();
+        if (!(msg instanceof TopologyMsg))
+        {
+          fail("Broker 2 connection is expected to receive 1 TopologyMsg" +
+            " for topo update on reset gen id."
+              + msg);
+        }
+      }
+      catch(SocketTimeoutException se)
+      {
+        fail("DS2 is expected to receive 1 TopologyMsg for topo update on reset gen id.");
+      }
+      try
+      {
+        ReplicationMsg msg = broker3.receive();
+        if (!(msg instanceof TopologyMsg))
+        {
+          fail("Broker 3 connection is expected to receive 1 TopologyMsg" +
+            " for topo update on reset gen id."
+              + msg);
+        }
+      }
+      catch(SocketTimeoutException se)
+      {
+        fail("DS3 is expected to receive 1 TopologyMsg for topo update on reset gen id.");
+      }
+
       debugInfo("Verify that RS1 has still the right genID");
       assertEquals(replServer1.getGenerationId(baseDn), rgenId);
 
@@ -1085,11 +1255,17 @@ public class GenerationIdTest extends ReplicationTestCase
       Thread.sleep(500);
       checkChangelogSize(1);
 
-      debugInfo("Verifying that DS2 is not degraded any more");
+      debugInfo("Verifying that DS2 is not in bad gen id any more");
 
       assertTrue(!replServer1.getReplicationServerDomain(baseDn, false).
           isDegradedDueToGenerationId(server2ID),
-      "Expecting that DS2 is not degraded from RS1");
+      "Expecting that DS2 is not in bad gen id from RS1");
+
+      debugInfo("Verifying that DS3 is not in bad gen id any more");
+
+      assertTrue(!replServer1.getReplicationServerDomain(baseDn, false).
+          isDegradedDueToGenerationId(server3ID),
+      "Expecting that DS3 is not in bad gen id from RS1");
 
       debugInfo("DS2 is publishing a change and RS1 must store this change, DS3 must receive it.");
       AddMsg emsg = (AddMsg)createAddMsg();
@@ -1100,15 +1276,15 @@ public class GenerationIdTest extends ReplicationTestCase
 
       try
       {
-        ReplicationMessage msg = broker3.receive();
+        ReplicationMsg msg = broker3.receive();
 
-        /* expected */ 
+        /* expected */
         AddMsg rcvmsg = (AddMsg)msg;
         assertEquals(rcvmsg.getChangeNumber(), emsg.getChangeNumber());
       } 
-      catch(SocketTimeoutException e) 
-      { 
-        fail("The msg send by DS2 is expected to be received by DS3);");
+      catch(SocketTimeoutException e)
+      {
+        fail("The msg send by DS2 is expected to be received by DS3)");
       }
 
       //===============================================================
@@ -1117,25 +1293,15 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo("Disconnect DS from replServer1 (required in order to DEL entries).");
       disconnectFromReplServer(changelog1ID);
 
-      postTest();
-
-      debugInfo(testCase + " Clearing DS backend");
-      ReplicationDomain.clearJEBackend(false,
-          replDomain.getBackend().getBackendID(),
-          baseDn.toNormalizedString());
-
-      // At this moment, root entry of the domain has been removed so
-      // genId is no more in the database ... but it has still the old
-      // value in memory.
-      testEntriesInDb();
-      replDomain.loadGenerationId();
-
       debugInfo("Successfully ending " + testCase);
     }
     catch(Exception e)
     {
       fail(testCase + " Exception:"+ e.getMessage() + " " +
           stackTraceToSingleLineString(e));
+    } finally
+    {
+      postTest();
     }
   }
 
@@ -1144,7 +1310,7 @@ public class GenerationIdTest extends ReplicationTestCase
    * testMultiRS tests basic features of generationID
    * with more than one Replication Server.
    * The following test focus on:
-   * - genId checking accross multiple starting RS (replication servers)
+   * - genId checking across multiple starting RS (replication servers)
    * - genId setting propagation from one RS to the others
    * - genId reset   propagation from one RS to the others
    */
@@ -1156,118 +1322,131 @@ public class GenerationIdTest extends ReplicationTestCase
 
     debugInfo("Starting " + testCase);
 
-    ReplicationDomain.clearJEBackend(false,
-        "userRoot",
-        baseDn.toNormalizedString());
-
-    debugInfo ("Creating 3 RS");
-    replServer1 = createReplicationServer(changelog1ID, true, testCase);
-    replServer2 = createReplicationServer(changelog2ID, true, testCase);
-    replServer3 = createReplicationServer(changelog3ID, true, testCase);
-    Thread.sleep(500);
-
-    debugInfo("Connecting DS to replServer1");
-    connectServer1ToChangelog(changelog1ID);
-    Thread.sleep(1500);
-
-    debugInfo("Expect genId are set in all replServers.");
-    assertEquals(replServer1.getGenerationId(baseDn), 3211313L, " in replServer1");
-    assertEquals(replServer2.getGenerationId(baseDn), 3211313L, " in replServer2");
-    assertEquals(replServer3.getGenerationId(baseDn), 3211313L, " in replServer3");
-
-    debugInfo("Disconnect DS from replServer1.");
-    disconnectFromReplServer(changelog1ID);
-    Thread.sleep(1000);
-
-    debugInfo("Add entries to DS");
-    this.addTestEntriesToDB(updatedEntries);
-
-    debugInfo("Connecting DS to replServer2");
-    connectServer1ToChangelog(changelog2ID);
-    Thread.sleep(1000);
-
-    debugInfo("Expect genIds to be set in all servers based on the added entries.");
-    genId = readGenIdFromSuffixRootEntry();
-    assertTrue(genId != -1);
-    assertEquals(replServer1.getGenerationId(baseDn), genId);
-    assertEquals(replServer2.getGenerationId(baseDn), genId);
-    assertEquals(replServer3.getGenerationId(baseDn), genId);
-
-    debugInfo("Connecting broker2 to replServer3 with a good genId");
     try
     {
-      broker2 = openReplicationSession(baseDn,
+      // Special test were we want to test with an empty backend. So free it
+      // for this special test.
+      TestCaseUtils.initializeTestBackend(false);
+
+      debugInfo("Creating 3 RS");
+      replServer1 = createReplicationServer(changelog1ID, true, testCase);
+      replServer2 = createReplicationServer(changelog2ID, true, testCase);
+      replServer3 = createReplicationServer(changelog3ID, true, testCase);
+      Thread.sleep(500);
+
+      debugInfo("Connecting DS to replServer1");
+      connectServer1ToChangelog(changelog1ID);
+      Thread.sleep(1500);
+
+      debugInfo("Expect genId are set in all replServers.");
+      assertEquals(replServer1.getGenerationId(baseDn), EMPTY_DN_GENID,
+        " in replServer1");
+      assertEquals(replServer2.getGenerationId(baseDn), EMPTY_DN_GENID,
+        " in replServer2");
+      assertEquals(replServer3.getGenerationId(baseDn), EMPTY_DN_GENID,
+        " in replServer3");
+
+      debugInfo("Disconnect DS from replServer1.");
+      disconnectFromReplServer(changelog1ID);
+      Thread.sleep(3000);
+
+      debugInfo(
+        "Expect genIds to be resetted in all servers to -1 as no more DS in topo");
+      assertEquals(replServer1.getGenerationId(baseDn), -1);
+      assertEquals(replServer2.getGenerationId(baseDn), -1);
+      assertEquals(replServer3.getGenerationId(baseDn), -1);
+
+      debugInfo("Add entries to DS");
+      this.addTestEntriesToDB(updatedEntries);
+
+      debugInfo("Connecting DS to replServer2");
+      connectServer1ToChangelog(changelog2ID);
+      Thread.sleep(3000);
+
+      debugInfo(
+        "Expect genIds to be set in all servers based on the added entries.");
+      genId = readGenIdFromSuffixRootEntry();
+      assertTrue(genId != -1);
+      assertEquals(replServer1.getGenerationId(baseDn), genId);
+      assertEquals(replServer2.getGenerationId(baseDn), genId);
+      assertEquals(replServer3.getGenerationId(baseDn), genId);
+
+      debugInfo("Connecting broker2 to replServer3 with a good genId");
+      try
+      {
+        broker2 = openReplicationSession(baseDn,
           server2ID, 100, getChangelogPort(changelog3ID),
           1000, !emptyOldChanges, genId);
-      Thread.sleep(1000);
-    }
-    catch(SocketException se)
-    {
-      fail("Broker connection is expected to be accepted.");
-    }
+        Thread.sleep(1000);
+      } catch (SocketException se)
+      {
+        fail("Broker connection is expected to be accepted.");
+      }
 
-    debugInfo("Expecting that broker2 is not degraded since it has a correct genId");
-    assertTrue(!replServer1.getReplicationServerDomain(baseDn, false).
+      debugInfo(
+        "Expecting that broker2 is not in bad gen id since it has a correct genId");
+      assertTrue(!replServer1.getReplicationServerDomain(baseDn, false).
         isDegradedDueToGenerationId(server2ID));
 
-    debugInfo("Disconnecting DS from replServer1");
-    disconnectFromReplServer(changelog1ID);
+      debugInfo("Disconnecting DS from replServer1");
+      disconnectFromReplServer(changelog1ID);
 
-    debugInfo("Expect all genIds to keep their value since broker2 is still connected.");
-    assertEquals(replServer1.getGenerationId(baseDn), genId);
-    assertEquals(replServer2.getGenerationId(baseDn), genId);
-    assertEquals(replServer3.getGenerationId(baseDn), genId);
+      debugInfo(
+        "Expect all genIds to keep their value since broker2 is still connected.");
+      assertEquals(replServer1.getGenerationId(baseDn), genId);
+      assertEquals(replServer2.getGenerationId(baseDn), genId);
+      assertEquals(replServer3.getGenerationId(baseDn), genId);
 
-    debugInfo("Connecting broker2 to replServer1 with a bad genId");
-    try
-    {
-      long badgenId=1;
-      broker3 = openReplicationSession(baseDn,
+      debugInfo("Connecting broker2 to replServer1 with a bad genId");
+      try
+      {
+        long badgenId = 1;
+        broker3 = openReplicationSession(baseDn,
           server3ID, 100, getChangelogPort(changelog1ID),
           1000, !emptyOldChanges, badgenId);
-      Thread.sleep(1000);
-    }
-    catch(SocketException se)
-    {
-      fail("Broker connection is expected to be accepted.");
-    }
+        Thread.sleep(1000);
+      } catch (SocketException se)
+      {
+        fail("Broker connection is expected to be accepted.");
+      }
 
-    debugInfo("Expecting that broker3 is degraded since it has a bad genId");
-    assertTrue(replServer1.getReplicationServerDomain(baseDn, false).
+      debugInfo(
+        "Expecting that broker3 is in bad gen id since it has a bad genId");
+      assertTrue(replServer1.getReplicationServerDomain(baseDn, false).
         isDegradedDueToGenerationId(server3ID));
 
-    int found = testEntriesInDb();
-    assertEquals(found, updatedEntries.length,
+      int found = testEntriesInDb();
+      assertEquals(found, updatedEntries.length,
         " Entries present in DB :" + found +
         " Expected entries :" + updatedEntries.length);
 
-    debugInfo("Connecting DS to replServer1.");
-    connectServer1ToChangelog(changelog1ID);
-    Thread.sleep(1000);
+      debugInfo("Connecting DS to replServer1.");
+      connectServer1ToChangelog(changelog1ID);
+      Thread.sleep(1000);
 
 
-    debugInfo("Adding reset task to DS.");
-    Entry taskReset = TestCaseUtils.makeEntry(
-        "dn: ds-task-id=resetgenid"+ UUID.randomUUID() +
+      debugInfo("Adding reset task to DS.");
+      Entry taskReset = TestCaseUtils.makeEntry(
+        "dn: ds-task-id=resetgenid" + UUID.randomUUID() +
         ",cn=Scheduled Tasks,cn=Tasks",
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-reset-generation-id",
         "ds-task-class-name: org.opends.server.tasks.SetGenerationIdTask",
         "ds-task-reset-generation-id-domain-base-dn: " + baseDnStr);
-    addTask(taskReset, ResultCode.SUCCESS, null);
-    waitTaskState(taskReset, TaskState.COMPLETED_SUCCESSFULLY, null);
-    Thread.sleep(500);
+      addTask(taskReset, ResultCode.SUCCESS, null);
+      waitTaskState(taskReset, TaskState.COMPLETED_SUCCESSFULLY, null);
+      Thread.sleep(500);
 
-    debugInfo("Verifying that all replservers genIds have been reset.");
-    genId = readGenIdFromSuffixRootEntry();
-    assertEquals(replServer1.getGenerationId(baseDn), genId);
-    assertEquals(replServer2.getGenerationId(baseDn), genId);
-    assertEquals(replServer3.getGenerationId(baseDn), genId);
+      debugInfo("Verifying that all replservers genIds have been reset.");
+      genId = readGenIdFromSuffixRootEntry();
+      assertEquals(replServer1.getGenerationId(baseDn), genId);
+      assertEquals(replServer2.getGenerationId(baseDn), genId);
+      assertEquals(replServer3.getGenerationId(baseDn), genId);
 
-    debugInfo("Adding reset task to DS.");
-    taskReset = TestCaseUtils.makeEntry(
-        "dn: ds-task-id=resetgenid"+ UUID.randomUUID() +
+      debugInfo("Adding reset task to DS.");
+      taskReset = TestCaseUtils.makeEntry(
+        "dn: ds-task-id=resetgenid" + UUID.randomUUID() +
         ",cn=Scheduled Tasks,cn=Tasks",
         "objectclass: top",
         "objectclass: ds-task",
@@ -1275,23 +1454,25 @@ public class GenerationIdTest extends ReplicationTestCase
         "ds-task-class-name: org.opends.server.tasks.SetGenerationIdTask",
         "ds-task-reset-generation-id-domain-base-dn: " + baseDnStr,
         "ds-task-reset-generation-id-new-value: -1");
-    addTask(taskReset, ResultCode.SUCCESS, null);
-    waitTaskState(taskReset, TaskState.COMPLETED_SUCCESSFULLY, null);
-    Thread.sleep(500);
+      addTask(taskReset, ResultCode.SUCCESS, null);
+      waitTaskState(taskReset, TaskState.COMPLETED_SUCCESSFULLY, null);
+      Thread.sleep(500);
 
-    debugInfo("Verifying that all replservers genIds have been reset.");
-    genId = readGenIdFromSuffixRootEntry();
-    assertEquals(replServer1.getGenerationId(baseDn), -1);
-    assertEquals(replServer2.getGenerationId(baseDn), -1);
-    assertEquals(replServer3.getGenerationId(baseDn), -1);
+      debugInfo("Verifying that all replservers genIds have been reset.");
+      genId = readGenIdFromSuffixRootEntry();
+      assertEquals(replServer1.getGenerationId(baseDn), -1);
+      assertEquals(replServer2.getGenerationId(baseDn), -1);
+      assertEquals(replServer3.getGenerationId(baseDn), -1);
 
-    debugInfo("Disconnect DS from replServer1 (required in order to DEL entries).");
-    disconnectFromReplServer(changelog1ID);
+      debugInfo(
+        "Disconnect DS from replServer1 (required in order to DEL entries).");
+      disconnectFromReplServer(changelog1ID);
 
-    debugInfo("Cleaning entries");
-    postTest();
-
-    debugInfo("Successfully ending " + testCase);
+      debugInfo("Successfully ending " + testCase);
+    } finally
+    {
+      postTest();
+    }
   }
 
   /**
@@ -1311,35 +1492,43 @@ public class GenerationIdTest extends ReplicationTestCase
     broker3 = null;
 
     if (replServer1 != null)
+    {
+      replServer1.clearDb();
       replServer1.remove();
+      replServer1 = null;
+    }
     if (replServer2 != null)
+    {
+      replServer2.clearDb();
       replServer2.remove();
+      replServer2 = null;
+    }
     if (replServer3 != null)
+    {
+      replServer3.clearDb();
       replServer3.remove();
-    replServer1 = null;
-    replServer2 = null;
-    replServer3 = null;
+      replServer3 = null;
+    }
 
     super.cleanRealEntries();
 
+    // Clean replication server ports
+    for (int i = 0; i < replServerPort.length; i++)
+    {
+      replServerPort[i] = 0;
+    }
+
+    debugInfo("Clearing DS backend");
     try
     {
-      ReplicationDomain.clearJEBackend(false,
-        replDomain.getBackend().getBackendID(),
-        baseDn.toNormalizedString());
-
-      // At this moment, root entry of the domain has been removed so
-      // genId is no more in the database ... but it has still the old
-      // value in memory.
-      testEntriesInDb();
-      replDomain.loadGenerationId();
-    }
-    catch (Exception e) {}
+      TestCaseUtils.initializeTestBackend(false);
+    } catch (Exception ex)
+    {debugInfo("postTest(): error cleaning memory backend: " + ex);}
   }
-  
+
   /**
    * Test generationID saving when the root entry does not exist
-   * at the moement when the replication is enabled.
+   * at the moment when the replication is enabled.
    * @throws Exception
    */
   @Test(enabled=false, groups="slow")
@@ -1349,9 +1538,9 @@ public class GenerationIdTest extends ReplicationTestCase
     debugInfo("Starting "+ testCase + " debugEnabled:" + debugEnabled());
 
     debugInfo(testCase + " Clearing DS1 backend");
-    ReplicationDomain.clearJEBackend(false,
-        "userRoot",
-        baseDn.toNormalizedString());
+    // Special test were we want to test with an empty backend. So free it
+    // for this special test.
+    TestCaseUtils.initializeTestBackend(false);
 
     try
     {
@@ -1378,8 +1567,8 @@ public class GenerationIdTest extends ReplicationTestCase
 
       debugInfo(testCase + " Expect genId attribute to be retrievable");
       genId = readGenIdFromSuffixRootEntry();
-      assertEquals(genId, 3211313L);
-      
+      assertEquals(genId, EMPTY_DN_GENID);
+
       disconnectFromReplServer(changelog1ID);
     }
     finally
@@ -1388,7 +1577,7 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo("Successfully ending " + testCase);
     }
   }
-  
+
   /**
    * Loop opening sessions to the Replication Server 
    * to check that it handle correctly deconnection and reconnection. 
@@ -1399,39 +1588,36 @@ public class GenerationIdTest extends ReplicationTestCase
     String testCase = "testLoop";
     debugInfo("Starting "+ testCase + " debugEnabled:" + debugEnabled());
     long rgenId;
-    
-    ReplicationDomain.clearJEBackend(false,
-        "userRoot",
-        baseDn.toNormalizedString());
+
+    // Special test were we want to test with an empty backend. So free it
+    // for this special test.
+    TestCaseUtils.initializeTestBackend(false);
 
     replServer1 = createReplicationServer(changelog1ID, false, testCase);
     replServer1.clearDb();
 
     ReplicationBroker broker = null;
-    try 
+    try
     {
-      for (int i=0; i< 100; i++)
+      for (int i=0; i< 5; i++)
       {
         long generationId = 1000+i;
         broker = openReplicationSession(baseDn,
             server2ID, 100, getChangelogPort(changelog1ID),
-            1000, !emptyOldChanges, generationId);
-
+            1000, !emptyOldChanges, generationId);        
         debugInfo(testCase + " Expect genId to be set in memory on the replication " +
-        " server side even if not wrote on disk/db since no change occurred.");
+        " server side even if not wrote on disk/db since no change occurred.");                
         rgenId = replServer1.getGenerationId(baseDn);
-        if (rgenId != generationId)
-        {
-          fail("replication server failed to set generation ID");
-          replServer1.getGenerationId(baseDn);
-        }
+        assertEquals(rgenId, generationId);
         broker.stop();
         broker = null;
+        Thread.sleep(2000); // Let time to RS to clear info about previous connection
       }
     } finally
     {
       if (broker != null)
         broker.stop();
+      postTest();
     }
   }
   

@@ -302,5 +302,15 @@ public class DeliveryMethodSyntax
 
     return true;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

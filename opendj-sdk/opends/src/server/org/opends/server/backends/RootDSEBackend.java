@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -782,17 +781,7 @@ public class RootDSEBackend
   private Attribute createAttribute(String name, String lowerName,
                                     String value)
   {
-    AttributeType type = DirectoryServer.getAttributeType(lowerName);
-    if (type == null)
-    {
-      type = DirectoryServer.getDefaultAttributeType(name);
-    }
-
-    LinkedHashSet<AttributeValue> attrValues =
-         new LinkedHashSet<AttributeValue>(1);
-    attrValues.add(new AttributeValue(type, new ASN1OctetString(value)));
-
-    return new Attribute(type, name, attrValues);
+    return Attributes.create(name, value);
   }
 
 
@@ -816,28 +805,29 @@ public class RootDSEBackend
       type = DirectoryServer.getDefaultAttributeType(name);
     }
 
-    LinkedHashSet<AttributeValue> attrValues =
-         new LinkedHashSet<AttributeValue>();
-    for (DN dn : values)
-    {
-      attrValues.add(new AttributeValue(type,
-                                        new ASN1OctetString(dn.toString())));
+    AttributeBuilder builder = new AttributeBuilder(type, name);
+    for (DN dn : values) {
+      builder.add(
+          new AttributeValue(type, new ASN1OctetString(dn.toString())));
     }
 
-    return new Attribute(type, name, attrValues);
+    return builder.toAttribute();
   }
 
 
 
   /**
-   * Creates an attribute for the root DSE with the following criteria.
+   * Creates an attribute for the root DSE with the following
+   * criteria.
    *
-   * @param  name       The name for the attribute.
-   * @param  lowerName  The name for the attribute formatted in all lowercase
-   *                    characters.
-   * @param  values     The set of values to use for the attribute.
-   *
-   * @return  The constructed attribute.
+   * @param name
+   *          The name for the attribute.
+   * @param lowerName
+   *          The name for the attribute formatted in all lowercase
+   *          characters.
+   * @param values
+   *          The set of values to use for the attribute.
+   * @return The constructed attribute.
    */
   private Attribute createAttribute(String name, String lowerName,
                                     Collection<String> values)
@@ -848,14 +838,13 @@ public class RootDSEBackend
       type = DirectoryServer.getDefaultAttributeType(name);
     }
 
-    LinkedHashSet<AttributeValue> attrValues =
-         new LinkedHashSet<AttributeValue>();
-    for (String s : values)
-    {
-      attrValues.add(new AttributeValue(type, new ASN1OctetString(s)));
+    AttributeBuilder builder = new AttributeBuilder(type, name);
+    builder.setInitialCapacity(values.size());
+    for (String s : values) {
+      builder.add(new AttributeValue(type, new ASN1OctetString(s)));
     }
 
-    return new Attribute(type, name, attrValues);
+    return builder.toAttribute();
   }
 
 
@@ -935,11 +924,11 @@ public class RootDSEBackend
    * {@inheritDoc}
    */
   @Override()
-  public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
-         throws DirectoryException
+  public void replaceEntry(Entry oldEntry, Entry newEntry,
+      ModifyOperation modifyOperation) throws DirectoryException
   {
     Message message = ERR_ROOTDSE_MODIFY_NOT_SUPPORTED.get(
-        String.valueOf(entry.getDN()), String.valueOf(configEntryDN));
+        String.valueOf(newEntry.getDN()), String.valueOf(configEntryDN));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 

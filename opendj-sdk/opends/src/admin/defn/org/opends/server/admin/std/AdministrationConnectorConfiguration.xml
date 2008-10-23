@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  ! -->
+<adm:managed-object name="administration-connector"
+  plural-name="administration-connectors"
+  package="org.opends.server.admin.std"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    is used to interact with administration tools using LDAP.
+  </adm:synopsis>
+  <adm:description>
+    It is a dedicated entry point for administration.
+  </adm:description>
+  <adm:tag name="core-server" />
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-administration-connector</ldap:name>
+      <ldap:superior>top</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property-reference name="listen-port" />
+  <adm:property name="listen-address" multi-valued="true">
+    <adm:synopsis>
+      Specifies the address or set of addresses on which this
+      <adm:user-friendly-name />
+      should listen for connections from LDAP clients.
+    </adm:synopsis>
+    <adm:description>
+      Multiple addresses may be provided as separate values for this
+      attribute. If no values are provided, then the
+      <adm:user-friendly-name />
+      listens on all interfaces.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:server-restart />
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>0.0.0.0</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:ip-address />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-listen-address</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="key-manager-provider" mandatory="true">
+    <adm:synopsis>
+      Specifies the name of the key manager that is used with
+      the
+      <adm:user-friendly-name />
+      .
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:server-restart />
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:aggregation relation-name="key-manager-provider"
+        parent-path="/">
+        <adm:constraint>
+          <adm:synopsis>
+            The referenced key manager provider must be enabled.
+          </adm:synopsis>
+          <adm:target-is-enabled-condition>
+            <adm:contains property="enabled" value="true" />
+          </adm:target-is-enabled-condition>
+        </adm:constraint>
+      </adm:aggregation>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-key-manager-provider</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="trust-manager-provider" mandatory="true">
+    <adm:synopsis>
+      Specifies the name of the trust manager that is used with
+      the
+      <adm:user-friendly-name />
+      .
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:server-restart />
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:aggregation relation-name="trust-manager-provider"
+        parent-path="/">
+        <adm:constraint>
+          <adm:synopsis>
+            The referenced trust manager provider must be enabled.
+          </adm:synopsis>
+          <adm:target-is-enabled-condition>
+            <adm:contains property="enabled" value="true" />
+          </adm:target-is-enabled-condition>
+        </adm:constraint>
+      </adm:aggregation>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-trust-manager-provider</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="ssl-cert-nickname" mandatory="true">
+    <adm:synopsis>
+      Specifies the nickname (also called the alias) of the certificate
+      that the
+      <adm:user-friendly-name />
+      will use when performing SSL communication.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:server-restart />
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>Let the server decide.</adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string></adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-ssl-cert-nickname</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

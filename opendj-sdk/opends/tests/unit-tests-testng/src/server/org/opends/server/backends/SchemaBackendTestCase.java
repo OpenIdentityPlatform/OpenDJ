@@ -5293,7 +5293,7 @@ public class SchemaBackendTestCase
     assertTrue(schemaEntry.hasAttribute(mtType));
 
     AttributeValue oldMTValue =
-         schemaEntry.getAttribute(mtType).get(0).getValues().iterator().next();
+         schemaEntry.getAttribute(mtType).get(0).iterator().next();
 
     String path = TestCaseUtils.createTempFile(
          "dn: cn=schema",
@@ -5323,7 +5323,7 @@ public class SchemaBackendTestCase
     assertTrue(schemaEntry.hasAttribute(mtType));
 
     AttributeValue newMTValue =
-         schemaEntry.getAttribute(mtType).get(0).getValues().iterator().next();
+         schemaEntry.getAttribute(mtType).get(0).iterator().next();
     assertFalse(oldMTValue.equals(newMTValue));
   }
 
@@ -5340,7 +5340,7 @@ public class SchemaBackendTestCase
   public void testAddAndDeleteDefinitionWithExtraSpaces()
          throws Exception
   {
-    int resultCode = TestCaseUtils.applyModifications(
+    int resultCode = TestCaseUtils.applyModifications(false,
       "dn: cn=schema",
       "changetype: modify",
       "add: objectClasses",
@@ -5354,7 +5354,7 @@ public class SchemaBackendTestCase
     assertNotNull(DirectoryServer.getObjectClass(
                        "testaddanddeletedefinitionwithextraspaces-oid"));
 
-    resultCode = TestCaseUtils.applyModifications(
+    resultCode = TestCaseUtils.applyModifications(false,
       "dn: cn=schema",
       "changetype: modify",
       "delete: objectClasses",

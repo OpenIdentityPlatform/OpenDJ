@@ -25,39 +25,39 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
 
 
+
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.protocols.ldap.LDAPResultCode.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
+import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.Base64;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -129,6 +129,22 @@ public class SearchResultEntryProtocolOp
    */
   public SearchResultEntryProtocolOp(SearchResultEntry searchEntry)
   {
+    this(searchEntry,3);
+  }
+
+
+
+  /**
+   * Creates a new search result entry protocol op from the provided search
+   * result entry and ldap protocol version.
+   *
+   * @param  searchEntry  The search result entry object to use to create this
+   *                      search result entry protocol op.
+   * @param ldapVersion The version of the LDAP protocol.
+   */
+  public SearchResultEntryProtocolOp(SearchResultEntry searchEntry,
+          int ldapVersion)
+  {
     this.dn = searchEntry.getDN();
 
     attributes = new LinkedList<LDAPAttribute>();
@@ -139,21 +155,84 @@ public class SearchResultEntryProtocolOp
       attributes.add(new LDAPAttribute(ocAttr));
     }
 
-    for (List<Attribute> attrList :
-         searchEntry.getUserAttributes().values())
+    if (ldapVersion == 2)
     {
-      for (Attribute a : attrList)
+      // Merge attributes having the same type into a single
+      // attribute.
+      boolean needsMerge;
+      Map<AttributeType, List<Attribute>> attrs = searchEntry
+          .getUserAttributes();
+      for (Map.Entry<AttributeType, List<Attribute>> attrList : attrs
+          .entrySet())
       {
-        attributes.add(new LDAPAttribute(a));
+        needsMerge = true;
+
+        if(attrList!=null && attrList.getValue().size()==1)
+        {
+          Attribute a = attrList.getValue().get(0);
+          if(!a.hasOptions())
+          {
+            needsMerge = false;
+            attributes.add(new LDAPAttribute(a));
+          }
+        }
+
+        if(needsMerge)
+        {
+          AttributeBuilder builder = new AttributeBuilder(attrList.getKey());
+          for (Attribute a : attrList.getValue())
+          {
+            builder.addAll(a);
+          }
+          attributes.add(new LDAPAttribute(builder.toAttribute()));
+        }
+      }
+
+      attrs = searchEntry.getOperationalAttributes();
+      for (Map.Entry<AttributeType, List<Attribute>> attrList : attrs
+          .entrySet())
+      {
+        needsMerge = true;
+
+        if(attrList!=null && attrList.getValue().size()==1)
+        {
+          Attribute a = attrList.getValue().get(0);
+          if(!a.hasOptions())
+          {
+            needsMerge = false;
+            attributes.add(new LDAPAttribute(a));
+          }
+        }
+
+        if(needsMerge)
+        {
+          AttributeBuilder builder = new AttributeBuilder(attrList.getKey());
+          for (Attribute a : attrList.getValue())
+          {
+            builder.addAll(a);
+          }
+          attributes.add(new LDAPAttribute(builder.toAttribute()));
+        }
       }
     }
-
-    for (List<Attribute> attrList :
-         searchEntry.getOperationalAttributes().values())
+    else
     {
-      for (Attribute a : attrList)
+      // LDAPv3
+      for (List<Attribute> attrList : searchEntry.getUserAttributes().values())
       {
-        attributes.add(new LDAPAttribute(a));
+        for (Attribute a : attrList)
+        {
+          attributes.add(new LDAPAttribute(a));
+        }
+      }
+
+      for (List<Attribute> attrList : searchEntry.getOperationalAttributes()
+          .values())
+      {
+        for (Attribute a : attrList)
+        {
+          attributes.add(new LDAPAttribute(a));
+        }
       }
     }
   }
@@ -590,12 +669,13 @@ public class SearchResultEntryProtocolOp
           // Check to see if any of the existing attributes in the list have the
           // same set of options.  If so, then add the values to that attribute.
           boolean attributeSeen = false;
-          for (Attribute ea : attrs)
-          {
+          for (int i = 0; i < attrs.size(); i++) {
+            Attribute ea = attrs.get(i);
             if (ea.optionsEqual(attr.getOptions()))
             {
-              LinkedHashSet<AttributeValue> valueSet = ea.getValues();
-              valueSet.addAll(attr.getValues());
+              AttributeBuilder builder = new AttributeBuilder(ea);
+              builder.addAll(attr);
+              attrs.set(i, builder.toAttribute());
               attributeSeen = true;
             }
           }

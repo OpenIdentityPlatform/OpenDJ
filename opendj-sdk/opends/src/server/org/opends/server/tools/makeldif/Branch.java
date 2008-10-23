@@ -65,9 +65,6 @@ public class Branch
   // The set of subordinate templates for this branch.
   private Template[] subordinateTemplates;
 
-  // The template file in which this branch appears.
-  private TemplateFile templateFile;
-
   // The set of template lines that correspond to the RDN components.
   private TemplateLine[] rdnLines;
 
@@ -109,7 +106,6 @@ public class Branch
                 String[] subordinateTemplateNames, int[] numEntriesPerTemplate,
                 TemplateLine[] extraLines)
   {
-    this.templateFile             = templateFile;
     this.branchDN                 = branchDN;
     this.subordinateTemplateNames = subordinateTemplateNames;
     this.numEntriesPerTemplate    = numEntriesPerTemplate;
@@ -150,7 +146,7 @@ public class Branch
     {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           try
           {
@@ -174,7 +170,7 @@ public class Branch
     {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           try
           {

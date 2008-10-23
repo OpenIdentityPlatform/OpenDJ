@@ -354,7 +354,7 @@ compareProcessing:
           boolean matchFound = false;
           for (Attribute a : attrList)
           {
-            if (a.hasValue(value))
+            if (a.contains(value))
             {
               matchFound = true;
               break;

@@ -78,6 +78,7 @@ public class InstallDSArgumentParser extends ArgumentParser
   FileBasedArgument directoryManagerPwdFileArg;
   FileBasedArgument keyStorePasswordFileArg;
   IntegerArgument   ldapPortArg;
+  IntegerArgument   adminConnectorPortArg;
   IntegerArgument   ldapsPortArg;
   IntegerArgument   jmxPortArg;
   IntegerArgument   sampleDataArg;
@@ -251,6 +252,19 @@ public class InstallDSArgumentParser extends ArgumentParser
         "ldapPort", true, 1, true, 65535,
         INFO_INSTALLDS_DESCRIPTION_LDAPPORT.get());
     addArgument(ldapPortArg);
+
+    defaultPort = UserData.getDefaultAdminConnectorPort();
+    if (defaultPort == -1)
+    {
+      defaultPort = 4444;
+    }
+    adminConnectorPortArg = new IntegerArgument(
+        "adminConnectorPort".toLowerCase(), null,
+        "adminConnectorPort", false, false,
+        true, INFO_PORT_PLACEHOLDER.get(), defaultPort,
+        "adminConnectorPort", true, 1, true, 65535,
+        INFO_INSTALLDS_DESCRIPTION_ADMINCONNECTORPORT.get());
+    addArgument(adminConnectorPortArg);
 
     jmxPortArg = new IntegerArgument(
         "jmxPort".toLowerCase(), 'x', "jmxPort", false, false,
@@ -536,6 +550,17 @@ public class InstallDSArgumentParser extends ArgumentParser
     {
       Set<Integer> ports = new HashSet<Integer>();
       ports.add(ldapPortArg.getIntValue());
+
+      if (ports.contains(adminConnectorPortArg.getIntValue()))
+      {
+        Message message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
+            String.valueOf(adminConnectorPortArg.getIntValue()));
+        errorMessages.add(message);
+      }
+      else
+      {
+        ports.add(adminConnectorPortArg.getIntValue());
+      }
 
       if (jmxPortArg.isPresent())
       {

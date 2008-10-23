@@ -79,7 +79,6 @@
             <message>'-- Disable the Client Connections monitor provider --'</message>   
             <call function="'dsconfig'">
               { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'           : 'set-monitor-provider-prop' ,
@@ -138,7 +137,6 @@
             <message>'-- Disable the Entry Caches monitor provider --'</message>   
             <call function="'dsconfig'">
               { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'           : 'set-monitor-provider-prop' ,
@@ -197,7 +195,6 @@
             <message>'-- Disable the JVM Memory Usage monitor provider --'</message>   
             <call function="'dsconfig'">
               { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'           : 'set-monitor-provider-prop' ,
@@ -257,7 +254,6 @@
             <message>'-- Disable the JVM Stack Trace monitor provider --'</message>   
             <call function="'dsconfig'">
               { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'           : 'set-monitor-provider-prop' ,
@@ -317,7 +313,6 @@
             <message>'-- Disable the System Info monitor provider --'</message>   
             <call function="'dsconfig'">
               { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'           : 'set-monitor-provider-prop' ,
@@ -381,7 +376,6 @@
             <message>'-- Disable the Version monitor provider --'</message>   
             <call function="'dsconfig'">
               { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'           : 'set-monitor-provider-prop' ,
@@ -428,7 +422,6 @@
             <message>'-- Create a new  monitor provider for Version --'</message>   
             <call function="'dsconfig'">
               { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'           : 'create-monitor-provider' ,
@@ -441,7 +434,6 @@
             <message>'-- Disable the Version monitor provider --'</message>   
             <call function="'dsconfig'">
               { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'           : 'set-monitor-provider-prop' ,
@@ -466,7 +458,6 @@
             <message>'-- Enable the new Version monitor provider --'</message>   
             <call function="'dsconfig'">
               { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'           : 'set-monitor-provider-prop' ,
@@ -491,7 +482,6 @@
             <message>'-- Delete the new  monitor provider for Version --'</message>   
             <call function="'dsconfig'">
               { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'           : 'delete-monitor-provider' ,

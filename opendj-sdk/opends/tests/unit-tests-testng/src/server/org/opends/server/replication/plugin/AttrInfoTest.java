@@ -27,7 +27,6 @@
 package org.opends.server.replication.plugin;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
@@ -36,6 +35,7 @@ import org.opends.server.replication.plugin.AttrInfoMultiple;
 import org.opends.server.replication.plugin.ValueInfo;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -124,9 +124,8 @@ public class AttrInfoTest
     assertTrue(attrInfo4.getValuesInfo().size() == 1);
 
     // Check delete(LinkedHashSet<AttributeValue> values, ChangeNumber CN)
-    LinkedHashSet<AttributeValue> attVals = new LinkedHashSet<AttributeValue>();
-    attVals.add(att);
-    attrInfo3.delete(attVals, updateTime) ;
+    AttributeType type = DirectoryServer.getAttributeType("description");
+    attrInfo3.delete(Attributes.create(type, att), updateTime) ;
     assertTrue(attrInfo3.getValuesInfo().size() == 1);
 
     // Check delete(ChangeNumber CN)

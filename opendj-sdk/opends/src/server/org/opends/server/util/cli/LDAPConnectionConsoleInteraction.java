@@ -47,7 +47,6 @@ import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ApplicationKeyManager;
 
 import javax.net.ssl.KeyManager;
-import javax.net.ssl.TrustManager;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
@@ -61,6 +60,7 @@ import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.opends.server.admin.AdministrationConnector;
 
 /**
  * Supports interacting with a user through the command line to
@@ -281,7 +281,7 @@ public class LDAPConnectionConsoleInteraction {
     this.app = app;
     this.secureArgsList = secureArgs;
     this.commandBuilder = new CommandBuilder(null);
-    copySecureArgsList = new SecureConnectionCliArgs();
+    copySecureArgsList = new SecureConnectionCliArgs(secureArgs.alwaysSSL());
     try
     {
       copySecureArgsList.createGlobalArguments();
@@ -507,7 +507,12 @@ public class LDAPConnectionConsoleInteraction {
       }
       else
       {
-        portNumber = 636;
+        if (secureArgsList.alwaysSSL()) {
+          portNumber =
+            AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
+        } else {
+          portNumber = 636;
+        }
       }
     }
     final int tmpPortNumber = portNumber;
@@ -553,8 +558,13 @@ public class LDAPConnectionConsoleInteraction {
       try
       {
         app.println();
-        portNumber = app.readValidatedInput(INFO_LDAP_CONN_PROMPT_PORT_NUMBER
-            .get(portNumber), callback);
+        Message askPortNumber = null;
+        if (secureArgsList.alwaysSSL()) {
+          askPortNumber = INFO_ADMIN_CONN_PROMPT_PORT_NUMBER.get(portNumber);
+        } else {
+          askPortNumber = INFO_LDAP_CONN_PROMPT_PORT_NUMBER.get(portNumber);
+        }
+        portNumber = app.readValidatedInput(askPortNumber, callback);
       }
       catch (CLIException e)
       {
@@ -1358,7 +1368,7 @@ public class LDAPConnectionConsoleInteraction {
    *
    * @return trust manager for connections
    */
-  public TrustManager getTrustManager() {
+  public ApplicationTrustManager getTrustManager() {
     return this.trustManager;
   }
 

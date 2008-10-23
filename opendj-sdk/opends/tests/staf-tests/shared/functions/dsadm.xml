@@ -27,19 +27,47 @@
  ! -->
 <stax>
   
+  <function name="_adminCommonArgs">
+    <function-prolog>
+      This function resolves common admin arguments
+    </function-prolog>
+    <function-no-args/>
+
+    <script>
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+
+        if dsInstanceAdminPort:
+          STAFCmdParamsList.append('-p %s' % dsInstanceAdminPort)
+          STAFCmdParamsList.append('-X')
+
+        if dsInstanceDn:
+          STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
+
+        if dsInstancePswd:
+          STAFCmdParamsList.append('-w "%s"' % dsInstancePswd)
+
+    </script>
+
+  </function>
+
   <!-- This function sets up DS using the setup script -->
   <function name="SetUpDsWithScript">
     <function-prolog>
       This function sets up a Directory Server using a script
     </function-prolog>    
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -48,6 +76,14 @@
       <function-arg-def name="dsPort" type="optional">
         <function-arg-description>
           Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsAdminPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
+        <function-arg-description>
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
@@ -115,7 +151,10 @@
                   
         if dsPort:
           STAFCmdParamsList.append('-p %s' % dsPort)
-        
+
+        if dsAdminPort:
+          STAFCmdParamsList.append('--adminConnectorPort %s' % dsAdminPort)
+
         if dsJmxPort:
           STAFCmdParamsList.append('-x %s' % dsJmxPort)
               
@@ -267,13 +306,17 @@
       This function starts a Directory Server using the script
     </function-prolog>    
     <function-map-args>    
-      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-     <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath"
+                       type="optional"
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -285,9 +328,9 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPort" type="optional">
+      <function-arg-def name="dsAdminPort" type="optional">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
       </function-arg-def>
@@ -421,9 +464,10 @@
         if dsHost:
           STAFCmdParamsList.append('-h %s' % dsHost)
         
-        if dsPort:
-          STAFCmdParamsList.append('-p %s' % dsPort)
-        
+        if dsAdminPort:
+          STAFCmdParamsList.append('-p %s' % dsAdminPort)
+          STAFCmdParamsList.append('-X')
+
         if dsUseSSL:
           STAFCmdParamsList.append('-Z')
           
@@ -453,9 +497,6 @@
           
         if dsStopTime:
           STAFCmdParamsList.append('-t "%s"' % dsStopTime)
-          
-        if dsTrustAll:
-          STAFCmdParamsList.append('-X')
 
         if dsKeyStoreFile:
           STAFCmdParamsList.append('-K "%s"' % dsKeyStoreFile)
@@ -506,41 +547,62 @@
       This function restarts a Directory Server
     </function-prolog>    
     <function-map-args>    
-      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-     <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath"
+                       type="optional"
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
     
-      <function-arg-def name="dsHost"  type="optional" default="'%s' % DIRECTORY_INSTANCE_HOST">
+      <function-arg-def name="dsHost"
+                        type="optional"
+                        default="'%s' % DIRECTORY_INSTANCE_HOST">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
     
-      <function-arg-def name="dsPort" type="optional" default="'%s' % DIRECTORY_INSTANCE_PORT">
+      <function-arg-def name="dsPort"
+                        type="optional"
+                        default="'%s' % DIRECTORY_INSTANCE_PORT">
         <function-arg-description>
           Directory server port number
         </function-arg-description> 
         <function-arg-property name="type" value="port"/>
       </function-arg-def>      
-    
-      <function-arg-def name="dsBindDN" type="optional" default="'%s' % DIRECTORY_INSTANCE_DN">
+
+      <function-arg-def name="dsAdminPort"
+                        type="optional"
+                        default="'%s' % DIRECTORY_INSTANCE_ADMIN_PORT">
+        <function-arg-description>
+          Directory server admin port number
+        </function-arg-description> 
+        <function-arg-property name="type" value="port"/>
+      </function-arg-def>
+
+      <function-arg-def name="dsBindDN"
+                        type="optional"
+                        default="'%s' % DIRECTORY_INSTANCE_DN">
         <function-arg-description>
           Bind DN
         </function-arg-description>
         <function-arg-property name="type" value="DN"/>
       </function-arg-def>
     
-      <function-arg-def name="dsBindPwd" type="optional" default="'%s' % DIRECTORY_INSTANCE_PSWD">  
+      <function-arg-def name="dsBindPwd"
+                        type="optional"
+                        default="'%s' % DIRECTORY_INSTANCE_PSWD">  
         <function-arg-description>
           Bind password
         </function-arg-description>
@@ -576,9 +638,10 @@
         if dsHost:
           STAFCmdParamsList.append('-h %s' % dsHost)
         
-        if dsPort:
-          STAFCmdParamsList.append('-p %s' % dsPort)
-          
+        if dsAdminPort:
+          STAFCmdParamsList.append('-p %s' % dsAdminPort)
+          STAFCmdParamsList.append('-X')
+
         if dsBindDN:
           STAFCmdParamsList.append('-D "%s"' % dsBindDN)
         
@@ -702,13 +765,17 @@
       This function performs an offline import of an ldif file using the script
     </function-prolog>  
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">             
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">             
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -719,9 +786,9 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>            
-      <function-arg-def name="dsInstancePort" type="optional">
+      <function-arg-def name="dsInstanceAdminPort" type="optional">
         <function-arg-description>
-          Directory server port number
+          Directory server adminport number
         </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
@@ -881,7 +948,7 @@
       </script>
 
       <!-- Set common ldap arguments -->      
-      <call function="'_ldapCommonArgs'" />                     
+      <call function="'_adminCommonArgs'" />                     
         
        <script>
         if dsPath:
@@ -1264,37 +1331,57 @@
       This function verifies an import of an ldif file 
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
         <function-arg-property name="type" value="pathname"/>
       </function-arg-def>
-      <function-arg-def name="dsHost" type="optional" default="DIRECTORY_INSTANCE_HOST">
+      <function-arg-def name="dsHost"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_HOST">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>      
-      <function-arg-def name="dsPort" type="optional" default="DIRECTORY_INSTANCE_PORT">
+      <function-arg-def name="dsPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_PORT">
         <function-arg-description>
           Directory server port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
-      <function-arg-def name="dsDn" type="optional" default="DIRECTORY_INSTANCE_DN">
+      <function-arg-def name="dsAdminPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
+        <function-arg-description>
+          Directory server admin port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsDn"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_DN">
         <function-arg-description>
           Bind DN
         </function-arg-description>
         <function-arg-property name="type" value="DN"/>
       </function-arg-def> 
-      <function-arg-def name="dsPswd" type="optional" default="DIRECTORY_INSTANCE_PSWD">
+      <function-arg-def name="dsPswd"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_PSWD">
         <function-arg-description>
           Bind password
         </function-arg-description>
@@ -1306,25 +1393,33 @@
         </function-arg-description>
         <function-arg-property name="type" value="list"/>
       </function-arg-def>
-      <function-arg-def name="missingEntries" type="optional" default="'NULL'">
+      <function-arg-def name="missingEntries"
+                        type="optional"
+                        default="'NULL'">
         <function-arg-description>
           Optional entries expected to be missing after import
         </function-arg-description>
         <function-arg-property name="type" value="list"/>
       </function-arg-def>
-      <function-arg-def name="expectedAttributes" type="optional" default="'NULL'">
+      <function-arg-def name="expectedAttributes"
+                        type="optional"
+                        default="'NULL'">
         <function-arg-description>
           Optional attributes expected to be present after import
         </function-arg-description>
         <function-arg-property name="type" value="list"/>
       </function-arg-def>                  
-      <function-arg-def name="missingAttributes" type="optional" default="'NULL'">
+      <function-arg-def name="missingAttributes"
+                        type="optional"
+                        default="'NULL'">
         <function-arg-description>
           Optional attributes expected to be missing after import
         </function-arg-description>
         <function-arg-property name="type" value="list"/>
       </function-arg-def>
-      <function-arg-def name="suffix" type="optional" default="DIRECTORY_INSTANCE_SFX">
+      <function-arg-def name="suffix"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_SFX">
         <function-arg-description>
           Optional main suffix for the import
         </function-arg-description>
@@ -1346,6 +1441,7 @@
         myPath=dsPath
         myhost=dsHost
         myport=dsPort
+        myadminport=dsAdminPort
         mydn=dsDn
         mypswd=dsPswd
       </script>
@@ -1428,12 +1524,12 @@
       <if expr="stopDS == 'yes'">
         <!-- StopDS -->
         <call function="'StopDsWithScript'">
-           { 'location'  : myLocation ,
-             'dsPath'    : myPath,           
-             'dsHost'    : myhost ,
-             'dsPort'    : myport ,
-             'dsBindDN'  : mydn ,
-             'dsBindPwd' : mypswd }
+           { 'location'    : myLocation ,
+             'dsPath'      : myPath,
+             'dsHost'      : myhost ,
+             'dsAdminPort' : myadminport ,
+             'dsBindDN'    : mydn ,
+             'dsBindPwd'   : mypswd }
         </call>  
       </if>
     </sequence>
@@ -1445,13 +1541,17 @@
     </function-prolog>
 
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -1463,9 +1563,9 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>            
-      <function-arg-def name="dsInstancePort" type="optional">
+      <function-arg-def name="dsInstanceAdminPort" type="optional">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
@@ -1524,7 +1624,7 @@
       </script>
 
       <!-- Set common ldap arguments -->      
-      <call function="'_ldapCommonArgs'" />                     
+      <call function="'_adminCommonArgs'" />                     
         
        <script>
         if dsPath:
@@ -1820,13 +1920,17 @@
         This function performs an off line backup
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -1838,9 +1942,9 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>            
-      <function-arg-def name="dsInstancePort" type="optional">
+      <function-arg-def name="dsInstanceAdminPort" type="optional">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
@@ -1897,7 +2001,7 @@
       </script>
 
       <!-- Set common ldap arguments -->      
-      <call function="'_ldapCommonArgs'" />                     
+      <call function="'_adminCommonArgs'" />                     
         
        <script>
         if dsPath:
@@ -2159,13 +2263,17 @@
       This function performs an off line restore
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -2177,9 +2285,9 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>            
-      <function-arg-def name="dsInstancePort" type="optional">
+      <function-arg-def name="dsInstanceAdminPort" type="optional">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
@@ -2230,7 +2338,7 @@
       </script>
 
       <!-- Set common ldap arguments -->      
-      <call function="'_ldapCommonArgs'" />                     
+      <call function="'_adminCommonArgs'" />                     
         
        <script>
         if dsPath:
@@ -3258,7 +3366,7 @@
           STAFCmd='%s/ldapmodify%s' % (dsBinPath,fileExt)
 
         STAFCmdParamsList.append('-a')
-
+        
         if dsHost:
           STAFCmdParamsList.append('-h %s' % dsHost)
 
@@ -3495,13 +3603,17 @@
       This function shows server status using the status script
     </function-prolog>    
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -3541,6 +3653,8 @@
         STAFCmdParams=''
 
         STAFCmdParamsList.append('-n')
+        STAFCmdParamsList.append('-X')
+        
         if dsPath:
           dsBinPath='%s/%s' % (dsPath,fileFolder) 
           STAFCmd='%s/status%s' % (dsBinPath,fileExt)   
@@ -3912,7 +4026,7 @@
   </function>
   
   <!-- manage-tasks Function -->
-  <function name="manage-tasks">
+  <function name="manage-tasks" scope="local">
     <function-prolog>
       This function performs a manage-tasks command line
     </function-prolog>  
@@ -3938,12 +4052,14 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>            
-      <function-arg-def name="dsInstancePort" type="optional">
+      <function-arg-def name="dsInstanceAdminPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
-      </function-arg-def>
+      </function-arg-def>      
       <function-arg-def name="dsInstanceDn" type="optional">
         <function-arg-description>
           Bind DN
@@ -4082,12 +4198,14 @@
       </script>
 
       <!-- Set common ldap arguments -->      
-      <call function="'_ldapCommonArgs'" />                     
+      <call function="'_adminCommonArgs'" />                     
         
        <script>
         if dsPath:
           dsBinPath='%s/%s' % (dsPath,fileFolder) 
           STAFCmd='%s/manage-tasks%s' % (dsBinPath,fileExt)
+          
+        
 
         if dsBindPasswordFile:
           STAFCmdParamsList.append('-j %s' % dsBindPasswordFile)
@@ -4118,10 +4236,7 @@
           
         if dsKeyStorePassword:
           STAFCmdParamsList.append('-W %s' % dsKeyStorePassword)
-          
-        if dsTrustAll:
-          STAFCmdParamsList.append('-X')
-          
+
         if dsUseSSL:
           STAFCmdParamsList.append('-Z')
 

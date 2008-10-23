@@ -326,6 +326,18 @@ public class JmxClientConnection
 
 
   /**
+   * Retrieves the port number for this connection on the client system.
+   *
+   * @return  The port number for this connection on the client system.
+   */
+  public int getClientPort()
+  {
+    return -1;
+  }
+
+
+
+  /**
    * Retrieves a string representation of the address on the server to which the
    * client connected.
    *
@@ -335,6 +347,21 @@ public class JmxClientConnection
   public String getServerAddress()
   {
     return "jmx";
+  }
+
+
+
+  /**
+   * Retrieves the port number for this connection on the server
+   * system if available.
+   *
+   * @return The port number for this connection on the server system
+   *         or -1 if there is no server port associated with this
+   *         connection (e.g. internal client).
+   */
+  public int getServerPort()
+  {
+    return -1;
   }
 
 
@@ -1258,6 +1285,17 @@ public class JmxClientConnection
   {
     super.finalize();
     disconnect(DisconnectReason.OTHER, false, null);
+  }
+
+  /**
+   * To be implemented.
+   *
+   * @return number of operations performed on this connection
+   */
+  @Override
+  public long getNumberOfOperations() {
+    // JMX connections will not be limited.
+    return 0;
   }
 }
 

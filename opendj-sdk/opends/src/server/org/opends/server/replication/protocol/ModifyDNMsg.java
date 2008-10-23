@@ -44,13 +44,12 @@ import org.opends.server.types.operation.PostOperationModifyDNOperation;
 /**
  * Message used to send Modify DN information.
  */
-public class ModifyDNMsg extends UpdateMessage
+public class ModifyDNMsg extends UpdateMsg
 {
   private String newRDN;
   private String newSuperior;
   private boolean deleteOldRdn;
   private String newSuperiorId;
-  private static final long serialVersionUID = -4905520652801395185L;
 
   /**
    * construct a new Modify DN message.
@@ -104,15 +103,16 @@ public class ModifyDNMsg extends UpdateMessage
    * Creates a new ModifyDN message from a byte[].
    *
    * @param in The byte[] from which the operation must be read.
-   * @throws DataFormatException The input byte[] is not a valid AddMsg.
+   * @throws DataFormatException The input byte[] is not a valid ModifyDNMsg.
    * @throws UnsupportedEncodingException If UTF8 is not supported.
    */
   public ModifyDNMsg(byte[] in) throws DataFormatException,
                                        UnsupportedEncodingException
   {
-    super(in);
-
-    int pos = decodeHeader(MSG_TYPE_MODIFYDN_REQUEST, in);
+    byte[] allowedPduTypes = new byte[2];
+    allowedPduTypes[0] = MSG_TYPE_MODIFYDN;
+    allowedPduTypes[1] = MSG_TYPE_MODIFYDN_V1;
+    int pos = decodeHeader(allowedPduTypes, in);
 
     /* read the newRDN
      * first calculate the length then construct the string
@@ -167,12 +167,7 @@ public class ModifyDNMsg extends UpdateMessage
   }
 
   /**
-   * Get the byte array representation of this Message.
-   *
-   * @return The byte array representation of this Message.
-   *
-   * @throws UnsupportedEncodingException  When the encoding of the message
-   *         failed because the UTF-8 encoding is not supported.
+   * {@inheritDoc}
    */
   @Override
   public byte[] getBytes() throws UnsupportedEncodingException
@@ -199,7 +194,7 @@ public class ModifyDNMsg extends UpdateMessage
     else
       length += 1;
 
-    byte[] resultByteArray = encodeHeader(MSG_TYPE_MODIFYDN_REQUEST, length);
+    byte[] resultByteArray = encodeHeader(MSG_TYPE_MODIFYDN, length);
     int pos = resultByteArray.length - length;
 
     /* put the new RDN and a terminating 0 */
@@ -236,8 +231,33 @@ public class ModifyDNMsg extends UpdateMessage
   @Override
   public String toString()
   {
-    return ("MODDN " + getDn() + " " + newRDN + " " + newSuperior + " " +
-            getChangeNumber());
+     if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
+    {
+      return "ModifyDNMsg content: " +
+        "\nprotocolVersion: " + protocolVersion +
+        "\ndn: " + dn +
+        "\nchangeNumber: " + changeNumber +
+        "\nuniqueId: " + uniqueId +
+        "\nassuredFlag: " + assuredFlag +
+        "\nnewRDN: " + newRDN +
+        "\nnewSuperior: " + newSuperior +
+        "\ndeleteOldRdn: " + deleteOldRdn;
+    }
+    if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V2)
+    {
+      return "ModifyDNMsg content: " +
+        "\nprotocolVersion: " + protocolVersion +
+        "\ndn: " + dn +
+        "\nchangeNumber: " + changeNumber +
+        "\nuniqueId: " + uniqueId +
+        "\nnewRDN: " + newRDN +
+        "\nnewSuperior: " + newSuperior +
+        "\ndeleteOldRdn: " + deleteOldRdn +
+        "\nassuredFlag: " + assuredFlag +
+        "\nassuredMode: " + assuredMode +
+        "\nsafeDataLevel: " + safeDataLevel;
+    }
+    return "!!! Unknown version: " + protocolVersion + "!!!";
   }
 
   /**
@@ -247,6 +267,56 @@ public class ModifyDNMsg extends UpdateMessage
   public void setNewSuperior(String string)
   {
     newSuperior = string;
+  }
+
+  /**
+   * Get the new superior.
+   *
+   * @return The new superior.
+   */
+  public String getNewSuperior()
+  {
+    return newSuperior;
+  }
+
+  /**
+   * Get the new superior id.
+   *
+   * @return The new superior id.
+   */
+  public String getNewSuperiorId()
+  {
+    return newSuperiorId;
+  }
+
+  /**
+   * Get the delete old rdn option.
+   *
+   * @return The delete old rdn option.
+   */
+  public boolean deleteOldRdn()
+  {
+    return deleteOldRdn;
+  }
+
+  /**
+   * Set the new superior id.
+   *
+   * @param newSup The new superior id.
+   */
+  public void setNewSuperiorId(String newSup)
+  {
+    newSuperiorId = newSup;
+  }
+
+  /**
+   * Set the delete old rdn option.
+   *
+   * @param delete The delete old rdn option.
+   */
+  public void  setDeleteOldRdn(boolean delete)
+  {
+    deleteOldRdn = delete;
   }
 
   /**
@@ -371,4 +441,61 @@ public class ModifyDNMsg extends UpdateMessage
     return 100;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public byte[] getBytes_V1() throws UnsupportedEncodingException
+  {
+    byte[] byteNewRdn = newRDN.getBytes("UTF-8");
+    byte[] byteNewSuperior = null;
+    byte[] byteNewSuperiorId = null;
+
+    // calculate the length necessary to encode the parameters
+    int length = byteNewRdn.length + 1 + 1;
+    if (newSuperior != null)
+    {
+      byteNewSuperior = newSuperior.getBytes("UTF-8");
+      length += byteNewSuperior.length + 1;
+    }
+    else
+      length += 1;
+
+    if (newSuperiorId != null)
+    {
+      byteNewSuperiorId = newSuperiorId.getBytes("UTF-8");
+      length += byteNewSuperiorId.length + 1;
+    }
+    else
+      length += 1;
+
+    byte[] resultByteArray = encodeHeader_V1(MSG_TYPE_MODIFYDN_V1, length);
+    int pos = resultByteArray.length - length;
+
+    /* put the new RDN and a terminating 0 */
+    pos = addByteArray(byteNewRdn, resultByteArray, pos);
+
+    /* put the newsuperior and a terminating 0 */
+    if (newSuperior != null)
+    {
+      pos = addByteArray(byteNewSuperior, resultByteArray, pos);
+    }
+    else
+      resultByteArray[pos++] = 0;
+
+    /* put the newsuperiorId and a terminating 0 */
+    if (newSuperiorId != null)
+    {
+      pos = addByteArray(byteNewSuperiorId, resultByteArray, pos);
+    }
+    else
+      resultByteArray[pos++] = 0;
+
+    /* put the deleteoldrdn flag */
+    if (deleteOldRdn)
+      resultByteArray[pos++] = 1;
+    else
+      resultByteArray[pos++] = 0;
+
+    return resultByteArray;
+  }
 }

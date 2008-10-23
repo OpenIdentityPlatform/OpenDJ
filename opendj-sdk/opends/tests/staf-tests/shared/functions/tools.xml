@@ -864,12 +864,12 @@
           
           <!--- Stop DS -->
           <call function="'StopDsWithScript'">
-            { 'location'  : server.getHostname(),
-              'dsHost'    : server.getHostname(),
-              'dsPath'    : '%s/%s' % (server.getDir(),OPENDSNAME),
-              'dsPort'    : server.getPort(),
-              'dsBindDN'  : server.getRootDn(),
-              'dsBindPwd' : server.getRootPwd()
+            { 'location'    : server.getHostname(),
+              'dsHost'      : server.getHostname(),
+              'dsPath'      : '%s/%s' % (server.getDir(),OPENDSNAME),
+              'dsAdminPort' : server.getAdminPort(),
+              'dsBindDN'    : server.getRootDn(),
+              'dsBindPwd'   : server.getRootPwd()
             }
           </call>
         </sequence>
@@ -1447,9 +1447,11 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePort" type="required">
+      <function-arg-def name="dsInstanceAdminPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -1638,9 +1640,10 @@
         if dsSaslOption:
           STAFCmdParamsList.append('-o %s' % dsSaslOption)
           
-        if dsInstancePort:
-          STAFCmdParamsList.append('-p %s' % dsInstancePort)
-          
+        if dsInstanceAdminPort:
+          STAFCmdParamsList.append('-p %s' % dsInstanceAdminPort)
+          STAFCmdParamsList.append('-X')
+
         if dsTrustStorePath:
           STAFCmdParamsList.append('-P %s' % dsTrustStorePath)
           
@@ -1661,10 +1664,7 @@
                                      
         if dsKeyStorePassword:
           STAFCmdParamsList.append('-W %s' % dsKeyStorePassword)
-          
-        if dsTrustAll:
-          STAFCmdParamsList.append('-X')
-                          
+      
         if dsUseSSL:
           STAFCmdParamsList.append('-Z')
           

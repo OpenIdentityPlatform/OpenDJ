@@ -32,6 +32,7 @@ import java.util.Set;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Modification;
@@ -41,8 +42,6 @@ import org.opends.server.types.ModificationType;
 /**
  * This Class is used to encode/decode historical information
  * from the String form to the internal usable form.
- *
- * @author Gilles Bellaton
  */
 public class HistVal
 {
@@ -54,8 +53,12 @@ public class HistVal
   private HistKey histKey;
   private String stringValue;
 
+  // This flag indicates that this HistVal was generated to store the last date
+  // when the entry was renamed.
+  private boolean ismodDN = false;
+
   /**
-   * Create a new HistVal form the String encoded form.
+   * Create a new HistVal from the String encoded form.
    *
    * @param strVal The String encoded form of historical information.
    */
@@ -73,10 +76,13 @@ public class HistVal
      *  or
      *  description:00000108b3a6554100000001:add
      *  or
+     *  dn:00000108b3a6554100000001:add (ADD operation)
+     *  or
+     *  dn:00000108b3a6554100000001:moddn (MODIFYDN operation)
      *
      *  so after split
      *  token[0] will contain the attribute name
-     *  token[1] will contain the changenumber
+     *  token[1] will contain the change number
      *  token[2] will contain the type of historical information
      *  token[3] will contain the attribute value
      *
@@ -103,9 +109,24 @@ public class HistVal
       attrString = token[0];
     }
 
-    attrType = DirectoryServer.getSchema().getAttributeType(attrString);
-    if (attrType == null)
-      attrType = DirectoryServer.getDefaultAttributeType(attrString);
+    if (attrString.compareTo("dn") != 0)
+    {
+      // This HistVal was used to store the date when some
+       // modifications were done to the entries.
+      attrType = DirectoryServer.getSchema().getAttributeType(attrString);
+      if (attrType == null)
+        attrType = DirectoryServer.getDefaultAttributeType(attrString);
+    }
+    else
+    {
+      // This HistVal is used to store the date when the entry
+      // was added to the directory or when it was last renamed.
+      attrType = null;
+      if ((token.length >= 3) && (token[2].compareTo("moddn") == 0))
+      {
+        ismodDN = true;
+      }
+    }
 
     cn = new ChangeNumber(token[1]);
     histKey = HistKey.decodeKey(token[2]);
@@ -139,7 +160,9 @@ public class HistVal
 
   /**
    * Get the type of this HistVal.
+   *
    * @return Returns the type of this HistVal.
+   *         Can return NULL if the HistVal was generated for a ADD Operation.
    */
   public AttributeType getAttrType()
   {
@@ -198,27 +221,55 @@ public class HistVal
    */
   public Modification generateMod()
   {
-    Attribute attr = new Attribute(attrType, attrString, options, null);
-    Modification mod;
+    AttributeBuilder builder = new AttributeBuilder(attrType, attrString);
+    builder.setOptions(options);
+
     if (histKey != HistKey.DELATTR)
     {
-      LinkedHashSet<AttributeValue> values =
-                                 new LinkedHashSet<AttributeValue>(1);
-      values.add(attributeValue);
-      attr.setValues(values);
+      builder.add(attributeValue);
     }
+    Attribute attr = builder.toAttribute();
+
+    Modification mod;
     switch (histKey)
     {
-      case ADD : mod = new Modification(ModificationType.ADD, attr);
+    case ADD:
+      mod = new Modification(ModificationType.ADD, attr);
       break;
-      case DEL : mod = new Modification(ModificationType.DELETE, attr);
+    case DEL:
+      mod = new Modification(ModificationType.DELETE, attr);
       break;
-      case REPL: mod = new Modification(ModificationType.REPLACE, attr);
+    case REPL:
+      mod = new Modification(ModificationType.REPLACE, attr);
       break;
-      case DELATTR: mod = new Modification(ModificationType.DELETE, attr);
+    case DELATTR:
+      mod = new Modification(ModificationType.DELETE, attr);
       break;
-      default: mod = null;
+    default:
+      mod = null;
     }
     return mod;
+  }
+
+  /**
+   * Indicates if the HistVal was generated for a ADD operation.
+   *
+   * @return a boolean indicating if the HistVal was generated for a ADD
+   *         operation.
+   */
+  public boolean isADDOperation()
+  {
+    return ((attrType == null) && (ismodDN == false));
+  }
+
+  /**
+   * Indicates if the HistVal was generated for a MODDN operation.
+   *
+   * @return a boolean indicating if the HistVal was generated for a ADDMODDN
+   *         operation.
+   */
+  public boolean isMODDNOperation()
+  {
+    return ((attrType == null) && (ismodDN == true));
   }
 }

@@ -889,5 +889,15 @@ public class UTCTimeSyntax
                                    message, e);
     }
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

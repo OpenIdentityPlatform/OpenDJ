@@ -35,7 +35,6 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.server.api.ConfigHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.DITContentRuleSyntax;
@@ -91,9 +90,6 @@ public class SchemaConfigManager
   // The schema that has been parsed from the server configuration.
   private Schema schema;
 
-  // The configuration handler for the Directory Server.
-  private ConfigHandler configHandler;
-
 
 
   /**
@@ -101,8 +97,6 @@ public class SchemaConfigManager
    */
   public SchemaConfigManager()
   {
-    configHandler = DirectoryServer.getConfigHandler();
-
     schema = new Schema();
   }
 
@@ -499,7 +493,7 @@ public class SchemaConfigManager
     {
       for (Attribute a : attrList)
       {
-        mods.add(new Modification(ModificationType.ADD, a.duplicate()));
+        mods.add(new Modification(ModificationType.ADD, a));
       }
     }
 
@@ -540,7 +534,7 @@ public class SchemaConfigManager
     {
       for (Attribute a : ocList)
       {
-        mods.add(new Modification(ModificationType.ADD, a.duplicate()));
+        mods.add(new Modification(ModificationType.ADD, a));
       }
     }
 
@@ -580,7 +574,7 @@ public class SchemaConfigManager
     {
       for (Attribute a : nfList)
       {
-        mods.add(new Modification(ModificationType.ADD, a.duplicate()));
+        mods.add(new Modification(ModificationType.ADD, a));
       }
     }
 
@@ -622,7 +616,7 @@ public class SchemaConfigManager
     {
       for (Attribute a : dcrList)
       {
-        mods.add(new Modification(ModificationType.ADD, a.duplicate()));
+        mods.add(new Modification(ModificationType.ADD, a));
       }
     }
 
@@ -664,7 +658,7 @@ public class SchemaConfigManager
     {
       for (Attribute a : dsrList)
       {
-        mods.add(new Modification(ModificationType.ADD, a.duplicate()));
+        mods.add(new Modification(ModificationType.ADD, a));
       }
     }
 
@@ -706,7 +700,7 @@ public class SchemaConfigManager
     {
       for (Attribute a : mruList)
       {
-        mods.add(new Modification(ModificationType.ADD, a.duplicate()));
+        mods.add(new Modification(ModificationType.ADD, a));
       }
     }
 
@@ -725,7 +719,7 @@ public class SchemaConfigManager
     {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           // Parse the attribute type.
           AttributeType attrType;
@@ -818,7 +812,7 @@ public class SchemaConfigManager
     {
       for (Attribute a : ocList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           // Parse the objectclass.
           ObjectClass oc;
@@ -913,7 +907,7 @@ public class SchemaConfigManager
     {
       for (Attribute a : nfList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           // Parse the name form.
           NameForm nf;
@@ -1005,7 +999,7 @@ public class SchemaConfigManager
     {
       for (Attribute a : dcrList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           // Parse the DIT content rule.
           DITContentRule dcr;
@@ -1099,7 +1093,7 @@ public class SchemaConfigManager
     {
       for (Attribute a : dsrList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           // Parse the DIT content rule.
           DITStructureRule dsr;
@@ -1193,7 +1187,7 @@ public class SchemaConfigManager
     {
       for (Attribute a : mruList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           // Parse the matching rule use definition.
           MatchingRuleUse mru;

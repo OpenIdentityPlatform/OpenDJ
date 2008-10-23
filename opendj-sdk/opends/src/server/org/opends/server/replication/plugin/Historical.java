@@ -25,30 +25,33 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
-import org.opends.messages.Message;
 
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.logError;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.HashSet;
 
+import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.OperationContext;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.operation.PreOperationAddOperation;
+import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 
 /**
@@ -92,6 +95,12 @@ public class Historical
    */
   private HashMap<AttributeType,AttrInfoWithOptions> attributesInfo
                            = new HashMap<AttributeType,AttrInfoWithOptions>();
+
+  // The date when the entry was added.
+  private ChangeNumber ADDDate = null;
+
+  // The date when the entry was last renamed.
+  private ChangeNumber MODDNDate = null;
 
   /**
    * {@inheritDoc}
@@ -168,11 +177,102 @@ public class Historical
     }
 
     Attribute attr = encode();
+    Modification mod = new Modification(ModificationType.REPLACE, attr);
+    mods.add(mod);
+    modifiedEntry.replaceAttribute(attr);
+  }
+
+  /**
+     * Add historical information for a MODRDN operation to existing
+     * historical information.
+     *
+     * @param modifyDNOperation the modification for which the historical
+     *                          information should be created.
+     */
+  public void generateState(PreOperationModifyDNOperation modifyDNOperation)
+  {
+    // Update this historical information with the operation ChangeNumber.
+    this.MODDNDate = OperationContext.getChangeNumber(modifyDNOperation);
+
+    // Update the operations mods and the modified entry so that the
+    // historical information gets stored in the DB and indexed accordingly.
+    Entry modifiedEntry = modifyDNOperation.getUpdatedEntry();
+    List<Modification> mods = modifyDNOperation.getModifications();
+
+    Attribute attr = encode();
     Modification mod;
     mod = new Modification(ModificationType.REPLACE, attr);
     mods.add(mod);
+
     modifiedEntry.removeAttribute(attr.getAttributeType());
     modifiedEntry.addAttribute(attr, null);
+  }
+
+  /**
+   * Generate and add to the Operation the historical information for
+   * the ADD Operation.
+   * This historical information will be used to generate fake operation
+   * in case a Directory Server can not find a Replication Server with
+   * all its changes at connection time.
+   * This should only happen if a Directory Server or a Replication Server
+   * crashes.
+   *
+   * @param addOperation     The Operation to process.
+   */
+  public static void generateState(PreOperationAddOperation addOperation)
+  {
+    AttributeType historicalAttrType =
+      DirectoryServer.getSchema().getAttributeType(HISTORICALATTRIBUTENAME);
+
+    Attribute attr =
+      Attributes.create(historicalAttrType,
+          encodeAddHistorical(OperationContext.getChangeNumber(addOperation)));
+
+    List<Attribute> attrList = new LinkedList<Attribute>();
+    attrList.add(attr);
+    addOperation.setAttribute(historicalAttrType, attrList);
+  }
+
+  /**
+   * Generate historical information for an ADD Operation.
+   * This historical information will be used to generate fake operation
+   * in case a Directory Server can not find a Replication Server with
+   * all its changes at connection time.
+   * This should only happen if a Directory Server or a Replication Server
+   * crashes.
+   *
+   * @param cn     The date when the ADD Operation happened.
+   * @return       The encoded historical information for the ADD Operation.
+   */
+  private static AttributeValue encodeAddHistorical(ChangeNumber cn)
+  {
+    AttributeType historicalAttrType =
+      DirectoryServer.getSchema().getAttributeType(HISTORICALATTRIBUTENAME);
+
+    String strValue = "dn:" + cn.toString() +":add";
+    AttributeValue val = new AttributeValue(historicalAttrType, strValue);
+    return val;
+  }
+
+  /**
+   * Generate historical information for a MODDN Operation.
+   * This historical information will be used to generate fake operation
+   * in case a Directory Server can not find a Replication Server with
+   * all its changes at connection time.
+   * This should only happen if a Directory Server or a Replication Server
+   * crashes.
+   *
+   * @param cn     The date when the MODDN Operation happened.
+   * @return       The encoded historical information for the MODDN Operation.
+   */
+  private static AttributeValue encodeMODDNHistorical(ChangeNumber cn)
+  {
+    AttributeType historicalAttrType =
+      DirectoryServer.getSchema().getAttributeType(HISTORICALATTRIBUTENAME);
+
+    String strValue = "dn:" + cn.toString() +":moddn";
+    AttributeValue val = new AttributeValue(historicalAttrType, strValue);
+    return val;
   }
 
   /**
@@ -225,11 +325,11 @@ public class Historical
   {
     AttributeType historicalAttrType =
       DirectoryServer.getSchema().getAttributeType(HISTORICALATTRIBUTENAME);
-    LinkedHashSet<AttributeValue> hist = new LinkedHashSet<AttributeValue>();
+    AttributeBuilder builder = new AttributeBuilder(historicalAttrType);
 
+    // Encode the historical information for modify operation.
     for (Map.Entry<AttributeType, AttrInfoWithOptions> entryWithOptions :
                                                    attributesInfo.entrySet())
-
     {
       AttributeType type = entryWithOptions.getKey();
       HashMap<Set<String> , AttributeInfo> attrwithoptions =
@@ -273,7 +373,7 @@ public class Historical
             ":del:" + valInfo.getValue().toString();
             AttributeValue val = new AttributeValue(historicalAttrType,
                                                     strValue);
-            hist.add(val);
+            builder.add(val);
           }
           else if (valInfo.getValueUpdateTime() != null)
           {
@@ -303,7 +403,7 @@ public class Historical
 
             AttributeValue val = new AttributeValue(historicalAttrType,
                                                     strValue);
-            hist.add(val);
+            builder.add(val);
           }
         }
 
@@ -313,22 +413,24 @@ public class Historical
               + optionsString + ":" + deleteTime.toString()
               + ":attrDel";
           AttributeValue val = new AttributeValue(historicalAttrType, strValue);
-          hist.add(val);
+          builder.add(val);
         }
       }
     }
 
-    Attribute attr;
+    // Encode the historical information for the ADD Operation.
+    if (ADDDate != null)
+    {
+      builder.add(encodeAddHistorical(ADDDate));
+    }
 
-    if (hist.isEmpty())
+    // Encode the historical information for the MODDN Operation.
+    if (MODDNDate != null)
     {
-      attr = new Attribute(historicalAttrType, HISTORICALATTRIBUTENAME, null);
+      builder.add(encodeMODDNHistorical(MODDNDate));
     }
-    else
-    {
-      attr = new Attribute(historicalAttrType, HISTORICALATTRIBUTENAME, hist);
-    }
-    return attr;
+
+    return builder.toAttribute();
   }
 
 
@@ -356,7 +458,7 @@ public class Historical
     {
       for (Attribute attr : hist)
       {
-        for (AttributeValue val : attr.getValues())
+        for (AttributeValue val : attr)
         {
           HistVal histVal = new HistVal(val.getStringValue());
           AttributeType attrType = histVal.getAttrType();
@@ -365,53 +467,64 @@ public class Historical
           AttributeValue value = histVal.getAttributeValue();
           HistKey histKey = histVal.getHistKey();
 
-          if (attrType == null)
+          if (histVal.isADDOperation())
           {
-            /*
-             * This attribute is unknown from the schema
-             * Just skip it, the modification will be processed but no
-             * historical information is going to be kept.
-             * Log information for the repair tool.
-             */
-            Message message = ERR_UNKNOWN_ATTRIBUTE_IN_HISTORICAL.get(
-                entry.getDN().toNormalizedString(), histVal.getAttrString());
-            logError(message);
-            continue;
+            histObj.ADDDate = cn;
           }
-
-          /* if attribute type does not match we create new
-           *   AttrInfoWithOptions and AttrInfo
-           *   we also add old AttrInfoWithOptions into histObj.attributesInfo
-           * if attribute type match but options does not match we create new
-           *   AttrInfo that we add to AttrInfoWithOptions
-           * if both match we keep everything
-           */
-          if (attrType != lastAttrType)
+          else if (histVal.isMODDNOperation())
           {
-            attrInfo = AttributeInfo.createAttributeInfo(attrType);
-            attrInfoWithOptions = new AttrInfoWithOptions();
-            attrInfoWithOptions.put(options, attrInfo);
-            histObj.attributesInfo.put(attrType, attrInfoWithOptions);
-
-            lastAttrType = attrType;
-            lastOptions = options;
+            histObj.MODDNDate = cn;
           }
           else
           {
-            if (!options.equals(lastOptions))
+            if (attrType == null)
+            {
+              /*
+               * This attribute is unknown from the schema
+               * Just skip it, the modification will be processed but no
+               * historical information is going to be kept.
+               * Log information for the repair tool.
+               */
+              Message message = ERR_UNKNOWN_ATTRIBUTE_IN_HISTORICAL.get(
+                  entry.getDN().toNormalizedString(), histVal.getAttrString());
+              logError(message);
+              continue;
+            }
+
+            /* if attribute type does not match we create new
+             *   AttrInfoWithOptions and AttrInfo
+             *   we also add old AttrInfoWithOptions into histObj.attributesInfo
+             * if attribute type match but options does not match we create new
+             *   AttrInfo that we add to AttrInfoWithOptions
+             * if both match we keep everything
+             */
+            if (attrType != lastAttrType)
             {
               attrInfo = AttributeInfo.createAttributeInfo(attrType);
+              attrInfoWithOptions = new AttrInfoWithOptions();
               attrInfoWithOptions.put(options, attrInfo);
+              histObj.attributesInfo.put(attrType, attrInfoWithOptions);
+
+              lastAttrType = attrType;
               lastOptions = options;
             }
-          }
+            else
+            {
+              if (!options.equals(lastOptions))
+              {
+                attrInfo = AttributeInfo.createAttributeInfo(attrType);
+                attrInfoWithOptions.put(options, attrInfo);
+                lastOptions = options;
+              }
+            }
 
-          attrInfo.load(histKey, value, cn);
+            attrInfo.load(histKey, value, cn);
+          }
         }
       }
     } catch (Exception e)
     {
-      // Any exception happening here means that the coding of the hsitorical
+      // Any exception happening here means that the coding of the historical
       // information was wrong.
       // Log an error and continue with an empty historical.
       Message message = ERR_BAD_HISTORICAL.get(entry.getDN().toString());
@@ -426,8 +539,8 @@ public class Historical
   /**
    * Use this historical information to generate fake operations that would
    * result in this historical information.
-   * TODO : This is only implemented for modify operation, should implement ADD
-   *        DELETE and MODRDN.
+   * TODO : This is only implemented for MODIFY, MODRDN and  ADD
+   *        need to complete with DELETE.
    * @param entry The Entry to use to generate the FakeOperation Iterable.
    *
    * @return an Iterable of FakeOperation that would result in this historical
@@ -442,29 +555,52 @@ public class Historical
     {
       for (Attribute attr : attrs)
       {
-        for (AttributeValue val : attr.getValues())
+        for (AttributeValue val : attr)
         {
           HistVal histVal = new HistVal(val.getStringValue());
-          ChangeNumber cn = histVal.getCn();
-          Modification mod = histVal.generateMod();
-          ModifyFakeOperation modifyFakeOperation;
-
-          FakeOperation fakeOperation = operations.get(cn);
-
-          if (fakeOperation != null)
+          if (histVal.isADDOperation())
           {
-            fakeOperation.addModification(mod);
+            // Found some historical information indicating that this
+            // entry was just added.
+            // Create the corresponding ADD operation.
+            operations.put(histVal.getCn(),
+                new FakeAddOperation(histVal.getCn(), entry));
+          }
+          else if (histVal.isMODDNOperation())
+          {
+            // Found some historical information indicating that this
+            // entry was just renamed.
+            // Create the corresponding ADD operation.
+            operations.put(histVal.getCn(),
+                new FakeModdnOperation(histVal.getCn(), entry));
           }
           else
           {
-            String uuidString = getEntryUuid(entry);
-            if (uuidString != null)
+            // Found some historical information for modify operation.
+            // Generate the corresponding ModifyOperation or update
+            // the already generated Operation if it can be found.
+            ChangeNumber cn = histVal.getCn();
+            Modification mod = histVal.generateMod();
+            FakeModifyOperation modifyFakeOperation;
+            FakeOperation fakeOperation = operations.get(cn);
+
+            if ((fakeOperation != null) &&
+                      (fakeOperation instanceof FakeModifyOperation))
             {
-                modifyFakeOperation = new ModifyFakeOperation(entry.getDN(),
-                      cn, uuidString);
+              modifyFakeOperation = (FakeModifyOperation) fakeOperation;
+              modifyFakeOperation.addModification(mod);
+            }
+            else
+            {
+              String uuidString = getEntryUuid(entry);
+              if (uuidString != null)
+              {
+                modifyFakeOperation = new FakeModifyOperation(entry.getDN(),
+                    cn, uuidString);
 
                 modifyFakeOperation.addModification(mod);
                 operations.put(histVal.getCn(), modifyFakeOperation);
+              }
             }
           }
         }
@@ -503,9 +639,9 @@ public class Historical
     if (uuidAttrs != null)
     {
       Attribute uuid = uuidAttrs.get(0);
-      if (uuid.hasValue())
+      if (!uuid.isEmpty())
       {
-        AttributeValue uuidVal = uuid.getValues().iterator().next();
+        AttributeValue uuidVal = uuid.iterator().next();
         uuidString =  uuidVal.getStringValue();
       }
     }
@@ -531,9 +667,9 @@ public class Historical
     if (uuidAttrs != null)
     {
       Attribute uuid = uuidAttrs.get(0);
-      if (uuid.hasValue())
+      if (!uuid.isEmpty())
       {
-        AttributeValue uuidVal = uuid.getValues().iterator().next();
+        AttributeValue uuidVal = uuid.iterator().next();
         uuidString =  uuidVal.getStringValue();
       }
     }

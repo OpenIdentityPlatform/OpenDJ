@@ -27,6 +27,6 @@ rem      Copyright 2008 Sun Microsystems, Inc.
 
 setlocal
 
-set OPENDS_INVOKE_CLASS="org.opends.guitools.statuspanel.StatusCli"
+set OPENDS_INVOKE_CLASS="org.opends.server.tools.status.StatusCli"
 set SCRIPT_NAME=status
 for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*

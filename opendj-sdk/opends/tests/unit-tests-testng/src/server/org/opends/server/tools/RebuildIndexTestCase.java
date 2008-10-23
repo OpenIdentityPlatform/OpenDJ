@@ -37,7 +37,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
@@ -75,7 +75,7 @@ public class RebuildIndexTestCase
       InternalClientConnection.getRootConnection();
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.ADD,
-                      new Attribute("ds-cfg-base-dn", "o=airius.com")));
+        Attributes.create("ds-cfg-base-dn", "o=airius.com")));
     String userRootDN  = "ds-cfg-backend-id=userRoot,cn=Backends,cn=config";
     ModifyOperation modifyOperation =
          rootConnection.processModify(DN.decode(userRootDN), mods);
@@ -97,7 +97,7 @@ public class RebuildIndexTestCase
       InternalClientConnection.getRootConnection();
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.DELETE,
-                      new Attribute("ds-cfg-base-dn", "o=airius.com")));
+        Attributes.create("ds-cfg-base-dn", "o=airius.com")));
     String userRootDN  = "ds-cfg-backend-id=userRoot,cn=Backends,cn=config";
     ModifyOperation modifyOperation =
          rootConnection.processModify(DN.decode(userRootDN), mods);

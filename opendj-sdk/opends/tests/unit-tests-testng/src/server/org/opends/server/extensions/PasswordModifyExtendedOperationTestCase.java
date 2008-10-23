@@ -50,8 +50,8 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPPasswordModify;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -1251,7 +1251,7 @@ public class PasswordModifyExtendedOperationTestCase
     String attr  = "ds-cfg-allow-pre-encoded-passwords";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
+                              Attributes.create(attr, "true")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1275,7 +1275,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
+                              Attributes.create(attr, "false")));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -1493,7 +1493,7 @@ public class PasswordModifyExtendedOperationTestCase
     String attr  = "ds-cfg-allow-user-password-changes";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
+                              Attributes.create(attr, "false")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1516,7 +1516,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
+                              Attributes.create(attr, "true")));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -1561,7 +1561,7 @@ public class PasswordModifyExtendedOperationTestCase
     String attr  = "ds-cfg-allow-user-password-changes";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
+                              Attributes.create(attr, "false")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1585,7 +1585,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
+                              Attributes.create(attr, "true")));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -1630,7 +1630,7 @@ public class PasswordModifyExtendedOperationTestCase
     String attr  = "ds-cfg-password-change-requires-current-password";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
+                              Attributes.create(attr, "true")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1654,7 +1654,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
+                              Attributes.create(attr, "false")));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -1699,7 +1699,7 @@ public class PasswordModifyExtendedOperationTestCase
     String attr  = "ds-cfg-require-secure-authentication";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
+                              Attributes.create(attr, "true")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1722,7 +1722,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
+                              Attributes.create(attr, "false")));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -1767,7 +1767,7 @@ public class PasswordModifyExtendedOperationTestCase
     String attr  = "ds-cfg-require-secure-password-changes";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
+                              Attributes.create(attr, "true")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1790,7 +1790,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
+                              Attributes.create(attr, "false")));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -1835,7 +1835,7 @@ public class PasswordModifyExtendedOperationTestCase
     String attr  = "ds-cfg-require-secure-password-changes";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
+                              Attributes.create(attr, "true")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1859,7 +1859,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
+                              Attributes.create(attr, "false")));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -1904,7 +1904,7 @@ public class PasswordModifyExtendedOperationTestCase
     String attr  = "ds-cfg-min-password-age";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "24 hours")));
+                              Attributes.create(attr, "24 hours")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1926,7 +1926,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "0 seconds")));
+                              Attributes.create(attr, "0 seconds")));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -1971,7 +1971,7 @@ public class PasswordModifyExtendedOperationTestCase
     String attr  = "ds-cfg-min-password-age";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "24 hours")));
+                              Attributes.create(attr, "24 hours")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1994,7 +1994,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "0 seconds")));
+                              Attributes.create(attr, "0 seconds")));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -2042,9 +2042,9 @@ public class PasswordModifyExtendedOperationTestCase
     String attr2 = "ds-cfg-expire-passwords-without-warning";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr1, "90 days")));
+                              Attributes.create(attr1, "90 days")));
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr2, "true")));
+                              Attributes.create(attr2, "true")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -2052,7 +2052,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("pwdchangedtime",
+                              Attributes.create("pwdchangedtime",
                                             "20050101000000.000Z")));
     modifyOperation = conn.processModify(userEntry.getDN(), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -2074,9 +2074,9 @@ public class PasswordModifyExtendedOperationTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr1, "0 seconds")));
+                              Attributes.create(attr1, "0 seconds")));
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr2, "false")));
+                              Attributes.create(attr2, "false")));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -2125,11 +2125,11 @@ public class PasswordModifyExtendedOperationTestCase
     String attr3 = "ds-cfg-allow-expired-password-changes";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr1, "90 days")));
+                              Attributes.create(attr1, "90 days")));
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr2, "true")));
+                              Attributes.create(attr2, "true")));
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr3, "true")));
+                              Attributes.create(attr3, "true")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -2137,7 +2137,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("pwdchangedtime",
+                              Attributes.create("pwdchangedtime",
                                             "20050101000000.000Z")));
     modifyOperation = conn.processModify(userEntry.getDN(), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -2160,11 +2160,11 @@ public class PasswordModifyExtendedOperationTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr1, "0 seconds")));
+                              Attributes.create(attr1, "0 seconds")));
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr2, "false")));
+                              Attributes.create(attr2, "false")));
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr3, "false")));
+                              Attributes.create(attr3, "false")));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -2211,7 +2211,7 @@ public class PasswordModifyExtendedOperationTestCase
     String attr = "ds-cfg-password-generator";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                      new Attribute(DirectoryServer.getAttributeType(attr))));
+                      Attributes.empty(DirectoryServer.getAttributeType(attr))));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -2234,7 +2234,7 @@ public class PasswordModifyExtendedOperationTestCase
     String genDN =
          "cn=Random Password Generator,cn=Password Generators,cn=config";
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, genDN)));
+                              Attributes.create(attr, genDN)));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -2281,7 +2281,7 @@ public class PasswordModifyExtendedOperationTestCase
     String attr = "ds-cfg-password-generator";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                      new Attribute(DirectoryServer.getAttributeType(attr))));
+                      Attributes.empty(DirectoryServer.getAttributeType(attr))));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -2304,7 +2304,7 @@ public class PasswordModifyExtendedOperationTestCase
     String genDN =
          "cn=Random Password Generator,cn=Password Generators,cn=config";
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, genDN)));
+                              Attributes.create(attr, genDN)));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -2352,7 +2352,7 @@ public class PasswordModifyExtendedOperationTestCase
          "cn=Length-Based Password Validator,cn=Password Validators,cn=config";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, valDN)));
+                              Attributes.create(attr, valDN)));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -2374,7 +2374,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                      new Attribute(DirectoryServer.getAttributeType(attr))));
+                      Attributes.empty(DirectoryServer.getAttributeType(attr))));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -2422,7 +2422,7 @@ public class PasswordModifyExtendedOperationTestCase
          "cn=Length-Based Password Validator,cn=Password Validators,cn=config";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, valDN)));
+                              Attributes.create(attr, valDN)));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -2444,7 +2444,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                      new Attribute(DirectoryServer.getAttributeType(attr))));
+                      Attributes.empty(DirectoryServer.getAttributeType(attr))));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -2484,7 +2484,7 @@ public class PasswordModifyExtendedOperationTestCase
     String attr  = "ds-cfg-allow-multiple-password-values";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
+                              Attributes.create(attr, "true")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -2516,7 +2516,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
+                              Attributes.create(attr, "false")));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -2559,7 +2559,7 @@ public class PasswordModifyExtendedOperationTestCase
     String attr  = "ds-cfg-allow-multiple-password-values";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
+                              Attributes.create(attr, "true")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -2591,7 +2591,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
+                              Attributes.create(attr, "false")));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -2610,7 +2610,7 @@ public class PasswordModifyExtendedOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    TestCaseUtils.applyModifications(
+    TestCaseUtils.applyModifications(false,
       "dn: uid=test.user,o=test",
       "changetype: add",
       "objectClass: top",
@@ -2629,8 +2629,8 @@ public class PasswordModifyExtendedOperationTestCase
       //          then this will likely need to be updated, but I don't want to
       //          have to give the user the bypass-acl privilege.
       "aci: (targetattr=\"*\")(version 3.0; acl \"Self Modify Rights\"; " +
-           "allow (read,search,compare,write) userdn=\"ldap:///self\";)",
-      "",
+           "allow (read,search,compare,write) userdn=\"ldap:///self\";)");
+    TestCaseUtils.applyModifications(true,
       "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
       "changetype: modify",
       "replace: ds-cfg-last-login-time-attribute",
@@ -2670,7 +2670,7 @@ public class PasswordModifyExtendedOperationTestCase
     }
     finally
     {
-      TestCaseUtils.applyModifications(
+      TestCaseUtils.applyModifications(true,
         "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
         "changetype: modify",
         "replace: ds-cfg-last-login-time-attribute",
@@ -2693,7 +2693,7 @@ public class PasswordModifyExtendedOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    TestCaseUtils.applyModifications(
+    TestCaseUtils.applyModifications(false,
       "dn: uid=test.user,o=test",
       "changetype: add",
       "objectClass: top",
@@ -2704,8 +2704,8 @@ public class PasswordModifyExtendedOperationTestCase
       "givenName: Test",
       "sn: User",
       "cn: Test User",
-      "userPassword: oldpassword",
-      "",
+      "userPassword: oldpassword");
+    TestCaseUtils.applyModifications(true,
       "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
       "changetype: modify",
       "replace: ds-cfg-lockout-failure-count",
@@ -2742,7 +2742,7 @@ public class PasswordModifyExtendedOperationTestCase
     }
     finally
     {
-      TestCaseUtils.applyModifications(
+      TestCaseUtils.applyModifications(true,
         "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
         "changetype: modify",
         "replace: ds-cfg-lockout-failure-count",

@@ -30,7 +30,6 @@ package org.opends.server.monitors;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.TreeMap;
 
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
@@ -41,6 +40,7 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.InitializationException;
@@ -138,7 +138,7 @@ public class ClientConnectionMonitorProvider
     // Get information about all the available connections.
     ArrayList<Collection<ClientConnection>> connCollections =
          new ArrayList<Collection<ClientConnection>>();
-    for (ConnectionHandler handler : DirectoryServer.getConnectionHandlers())
+    for (ConnectionHandler<?> handler : DirectoryServer.getConnectionHandlers())
     {
       ConnectionHandler<? extends ConnectionHandlerCfg> connHandler =
            (ConnectionHandler<? extends ConnectionHandlerCfg>) handler;
@@ -160,18 +160,17 @@ public class ClientConnectionMonitorProvider
 
     // Iterate through all the client connections and create a one-line summary
     // of each.
-    AttributeType attrType =
-         DirectoryServer.getDefaultAttributeType("connection");
-    LinkedHashSet<AttributeValue> values =
-         new LinkedHashSet<AttributeValue>(connMap.size());
+    AttributeType attrType = DirectoryServer
+        .getDefaultAttributeType("connection");
+    AttributeBuilder builder = new AttributeBuilder(attrType);
     for (ClientConnection conn : connMap.values())
     {
-      values.add(new AttributeValue(attrType, conn.getMonitorSummary()));
+      builder.add(new AttributeValue(attrType, conn.getMonitorSummary()));
     }
 
 
     ArrayList<Attribute> attrs = new ArrayList<Attribute>(1);
-    attrs.add(new Attribute(attrType, "connection", values));
+    attrs.add(builder.toAttribute());
     return attrs;
   }
 }

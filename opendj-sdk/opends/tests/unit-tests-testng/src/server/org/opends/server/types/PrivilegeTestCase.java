@@ -66,7 +66,6 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPPasswordModify;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.tools.dsconfig.DSConfig;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -201,7 +200,7 @@ public class PrivilegeTestCase
       "uid: pwreset.target",
       "userPassword: password");
 
-    TestCaseUtils.applyModifications(
+    TestCaseUtils.applyModifications(false,
       "dn: o=test",
       "changetype: modify",
       "add: aci",
@@ -559,7 +558,7 @@ public class PrivilegeTestCase
     ArrayList<Modification> mods = new ArrayList<Modification>();
 
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("ds-cfg-size-limit", "2000")));
+                              Attributes.create("ds-cfg-size-limit", "2000")));
 
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode("cn=config"), mods);
@@ -569,7 +568,7 @@ public class PrivilegeTestCase
 
       mods.clear();
       mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("ds-cfg-size-limit", "1000")));
+          Attributes.create("ds-cfg-size-limit", "1000")));
 
       modifyOperation = conn.processModify(DN.decode("cn=config"), mods);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -806,7 +805,7 @@ public class PrivilegeTestCase
     ArrayList<Modification> mods = new ArrayList<Modification>();
 
     mods.add(new Modification(ModificationType.ADD,
-                              new Attribute("attributetypes", attrDefinition)));
+        Attributes.create("attributetypes", attrDefinition)));
 
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode("cn=schema"), mods);
@@ -816,7 +815,7 @@ public class PrivilegeTestCase
 
       mods.clear();
       mods.add(new Modification(ModificationType.DELETE,
-                        new Attribute("attributetypes", attrDefinition)));
+          Attributes.create("attributetypes", attrDefinition)));
 
       modifyOperation = conn.processModify(DN.decode("cn=schema"), mods);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1237,7 +1236,7 @@ public class PrivilegeTestCase
     // Try to modify the entry to add a description.
     ArrayList<Modification> mods = new ArrayList<Modification>(1);
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("description", "foo")));
+        Attributes.create("description", "foo")));
 
     ModifyOperationBasis modifyOperation =
          new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
@@ -1435,7 +1434,7 @@ public class PrivilegeTestCase
     // Try to modify the entry to add a description.
     ArrayList<Modification> mods = new ArrayList<Modification>(1);
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("description", "foo")));
+        Attributes.create("description", "foo")));
 
     ModifyOperationBasis modifyOperation =
          new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
@@ -2422,7 +2421,7 @@ public class PrivilegeTestCase
     // the client connection reflects that.
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.ADD,
-                      new Attribute("ds-privilege-name", "config-read")));
+        Attributes.create("ds-privilege-name", "config-read")));
     ModifyOperation modifyOperation =
          rootConnection.processModify(DN.decode("cn=Test User,o=test"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -2433,7 +2432,7 @@ public class PrivilegeTestCase
     // immediately.
     mods.clear();
     mods.add(new Modification(ModificationType.DELETE,
-                      new Attribute("ds-privilege-name", "config-read")));
+        Attributes.create("ds-privilege-name", "config-read")));
     modifyOperation =
          rootConnection.processModify(DN.decode("cn=Test User,o=test"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -2473,7 +2472,7 @@ public class PrivilegeTestCase
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.ADD,
-                      new Attribute("ds-cfg-default-root-privilege-name",
+        Attributes.create("ds-cfg-default-root-privilege-name",
                                     "proxied-auth")));
     ModifyOperation modifyOperation =
          internalRootConn.processModify(DN.decode("cn=Root DNs,cn=config"),
@@ -2491,7 +2490,7 @@ public class PrivilegeTestCase
     // Update the set of root privileges to revoke proxied auth.
     mods.clear();
     mods.add(new Modification(ModificationType.DELETE,
-                      new Attribute("ds-cfg-default-root-privilege-name",
+        Attributes.create("ds-cfg-default-root-privilege-name",
                                     "proxied-auth")));
     modifyOperation =
          internalRootConn.processModify(DN.decode("cn=Root DNs,cn=config"),

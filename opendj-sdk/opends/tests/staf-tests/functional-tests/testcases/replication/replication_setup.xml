@@ -200,13 +200,13 @@
                     { 'location'             : clientHost,
                       'dsPath'               : clientPath,
                       'dsInstanceHost'       : server.getHostname(),
-                      'dsInstancePort'       : server.getPort(),
+                      'dsInstanceAdminPort'  : server.getAdminPort(),
                       'dsInstanceDn'         : server.getRootDn(),
                       'dsInstancePswd'       : server.getRootPwd(),
                       'dsReplicationPort'    : replicationServer.getPort(),
                       'dsSecureReplication'  : secureReplication,
                       'refInstanceHost'      : masterHost,
-                      'refInstancePort'      : master.getPort(),
+                      'refInstanceAdminPort' : master.getAdminPort(),
                       'refInstanceDn'        : master.getRootDn(),
                       'refInstancePswd'      : master.getRootPwd(),
                       'refReplicationPort'  : masterReplicationServer.getPort(),
@@ -236,16 +236,17 @@
       
                 <!-- Retrieve replication-domain name -->
                 <call function="'dsconfig'">
-                  { 'location'       : server.getHostname(),
-                    'dsPath'         : '%s/%s' % (server.getDir(),OPENDSNAME),
-                    'dsInstanceHost' : server.getHostname(),
-                    'dsInstancePort' : server.getPort(),
-                    'dsInstanceDn'   : server.getRootDn(),
-                    'dsInstancePswd' : server.getRootPwd(),
-                    'subcommand'     : 'list-replication-domains',
-                    'objectType'     : 'provider-name',
-                    'objectName'     : 'Multimaster Synchronization',
-                    'optionsString'  : '--script-friendly'
+                  { 'location'            : server.getHostname(),
+                    'dsPath'              : '%s/%s' \
+                                            % (server.getDir(),OPENDSNAME),
+                    'dsInstanceHost'      : server.getHostname(),
+                    'dsInstanceAdminPort' : server.getAdminPort(),
+                    'dsInstanceDn'        : server.getRootDn(),
+                    'dsInstancePswd'      : server.getRootPwd(),
+                    'subcommand'          : 'list-replication-domains',
+                    'objectType'          : 'provider-name',
+                    'objectName'          : 'Multimaster Synchronization',
+                    'optionsString'       : '--script-friendly'
                   }
                 </call>
                 <if expr='RC == 0'>
@@ -273,16 +274,17 @@
                 </message>
                 <!-- Remove peer RS from replicated domain -->
                 <call function="'dsconfig'">
-                  { 'location'       : server.getHostname(),
-                    'dsPath'         : '%s/%s' % (server.getDir(),OPENDSNAME),
-                    'dsInstanceHost' : server.getHostname(),
-                    'dsInstancePort' : server.getPort(),
-                    'dsInstanceDn'   : server.getRootDn(),
-                    'dsInstancePswd' : server.getRootPwd(),
-                    'subcommand'     : 'set-replication-domain-prop',
-                    'objectType'     : 'provider-name',
-                    'objectName'     : 'Multimaster Synchronization',
-                    'optionsString'  : options
+                  { 'location'            : server.getHostname(),
+                    'dsPath'              : '%s/%s' \
+                                            % (server.getDir(),OPENDSNAME),
+                    'dsInstanceHost'      : server.getHostname(),
+                    'dsInstanceAdminPort' : server.getAdminPort(),
+                    'dsInstanceDn'        : server.getRootDn(),
+                    'dsInstancePswd'      : server.getRootPwd(),
+                    'subcommand'          : 'set-replication-domain-prop',
+                    'objectType'          : 'provider-name',
+                    'objectName'          : 'Multimaster Synchronization',
+                    'optionsString'       : options
                   }
                 </call>
               </sequence>
@@ -299,24 +301,24 @@
                 
               <!-- Initialise the servers in the topology -->
               <call function="'initializeReplication'">
-                { 'location'           : clientHost,
-                  'dsPath'             : clientPath,
-                  'sourceInstanceHost' : masterHost,
-                  'sourceInstancePort' : master.getPort(),
-                  'replicationDnList'  : [synchroSuffix]
+                { 'location'                : clientHost,
+                  'dsPath'                  : clientPath,
+                  'sourceInstanceHost'      : masterHost,
+                  'sourceInstanceAdminPort' : master.getAdminPort(),
+                  'replicationDnList'       : [synchroSuffix]
                 }
               </call>
               <if expr="0">
               <iterate var="server" in="consumerList">
                 <sequence>
 <!--                  <call function="'initializeReplication'">
-                    { 'location'           : clientHost,
-                      'dsPath'             : clientPath,
-                      'dsInstanceHost'     : server.getHostname(),
-                      'dsInstancePort'     : server.getPort(),
-                      'sourceInstanceHost' : masterHost,
-                      'sourceInstancePort' : master.getPort(),
-                      'replicationDnList'  : [synchroSuffix]
+                    { 'location'                : clientHost,
+                      'dsPath'                  : clientPath,
+                      'dsInstanceHost'          : server.getHostname(),
+                      'dsInstanceAdminPort'     : server.getAdminPort(),
+                      'sourceInstanceHost'      : masterHost,
+                      'sourceInstanceAdminPort' : master.getAdminPort(),
+                      'replicationDnList'       : [synchroSuffix]
                     }
                   </call> -->
 
@@ -360,47 +362,50 @@
               <sequence>
                 <!-- Set the debug logger to "enabled" -->
                 <call function="'dsconfigSet'">
-                  { 'location'         : server.getHostname(),
-                    'dsPath'           : '%s/%s' % (server.getDir(),OPENDSNAME),
-                    'dsInstanceHost'   : server.getHostname(),
-                    'dsInstancePort'   : server.getPort(),
-                    'dsInstanceDn'     : server.getRootDn(),
-                    'dsInstancePswd'   : server.getRootPwd(),
-                    'objectName'       : 'log-publisher',
-                    'propertyType'     : 'publisher',
-                    'propertyName'     : 'File-based Debug Logger',
-                    'attributeName'    : 'enabled',
-                    'attributeValue'   : 'true'
+                  { 'location'            : server.getHostname(),
+                    'dsPath'              : '%s/%s' \
+                                            % (server.getDir(),OPENDSNAME),
+                    'dsInstanceHost'      : server.getHostname(),
+                    'dsInstanceAdminPort' : server.getAdminPort(),
+                    'dsInstanceDn'        : server.getRootDn(),
+                    'dsInstancePswd'      : server.getRootPwd(),
+                    'objectName'          : 'log-publisher',
+                    'propertyType'        : 'publisher',
+                    'propertyName'        : 'File-based Debug Logger',
+                    'attributeName'       : 'enabled',
+                    'attributeValue'      : 'true'
                   }
                 </call>
                 <!-- Set the debug level to "info" -->
                 <call function="'dsconfigSet'">
-                  { 'location'         : server.getHostname(),
-                    'dsPath'           : '%s/%s' % (server.getDir(),OPENDSNAME),
-                    'dsInstanceHost'   : server.getHostname(),
-                    'dsInstancePort'   : server.getPort(),
-                    'dsInstanceDn'     : server.getRootDn(),
-                    'dsInstancePswd'   : server.getRootPwd(),
-                    'objectName'       : 'log-publisher',
-                    'propertyType'     : 'publisher',
-                    'propertyName'     : 'File-based Debug Logger',
-                    'attributeName'    : 'default-debug-level',
-                    'attributeValue'   : 'info'
+                  { 'location'            : server.getHostname(),
+                    'dsPath'              : '%s/%s' \
+                                            % (server.getDir(),OPENDSNAME),
+                    'dsInstanceHost'      : server.getHostname(),
+                    'dsInstanceAdminPort' : server.getAdminPort(),
+                    'dsInstanceDn'        : server.getRootDn(),
+                    'dsInstancePswd'      : server.getRootPwd(),
+                    'objectName'          : 'log-publisher',
+                    'propertyType'        : 'publisher',
+                    'propertyName'        : 'File-based Debug Logger',
+                    'attributeName'       : 'default-debug-level',
+                    'attributeValue'      : 'info'
                   }
                 </call>
                 <!-- Set the debug logger log file to "logs/errors" -->              
                 <call function="'dsconfigSet'">
-                  { 'location'         : server.getHostname(),
-                    'dsPath'           : '%s/%s' % (server.getDir(),OPENDSNAME),
-                    'dsInstanceHost'   : server.getHostname(),
-                    'dsInstancePort'   : server.getPort(),
-                    'dsInstanceDn'     : server.getRootDn(),
-                    'dsInstancePswd'   : server.getRootPwd(),
-                    'objectName'       : 'log-publisher',
-                    'propertyType'     : 'publisher',
-                    'propertyName'     : 'File-based Debug Logger',
-                    'attributeName'    : 'log-file',
-                    'attributeValue'   : 'logs/errors'
+                  { 'location'            : server.getHostname(),
+                    'dsPath'              : '%s/%s' \
+                                            % (server.getDir(),OPENDSNAME),
+                    'dsInstanceHost'      : server.getHostname(),
+                    'dsInstanceAdminPort' : server.getAdminPort(),
+                    'dsInstanceDn'        : server.getRootDn(),
+                    'dsInstancePswd'      : server.getRootPwd(),
+                    'objectName'          : 'log-publisher',
+                    'propertyType'        : 'publisher',
+                    'propertyName'        : 'File-based Debug Logger',
+                    'attributeName'       : 'log-file',
+                    'attributeValue'      : 'logs/errors'
                   }
                 </call>
               </sequence>

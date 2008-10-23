@@ -28,34 +28,31 @@ package org.opends.server.extensions;
 
 
 
+import static org.testng.Assert.*;
+
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.WorkQueue;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.SearchOperation;
 import org.opends.server.plugins.DelayPreOpPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Control;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DN;
 import org.opends.server.tools.LDAPSearch;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
-
-import static org.testng.Assert.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 
 
@@ -106,7 +103,7 @@ public class TraditionalWorkQueueTestCase
     String attr = "ds-cfg-num-worker-threads";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "30")));
+        Attributes.create(attr, "30")));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -115,7 +112,7 @@ public class TraditionalWorkQueueTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "24")));
+        Attributes.create(attr, "24")));
     modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 

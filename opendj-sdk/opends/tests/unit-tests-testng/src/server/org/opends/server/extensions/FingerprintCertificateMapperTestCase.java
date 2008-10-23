@@ -28,38 +28,34 @@ package org.opends.server.extensions;
 
 
 
+import static org.testng.Assert.*;
+
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.
-            FingerprintCertificateMapperCfgDefn;
-import org.opends.server.admin.std.server.
-            FingerprintCertificateMapperCfg;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.meta.FingerprintCertificateMapperCfgDefn;
+import org.opends.server.admin.std.server.FingerprintCertificateMapperCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ResultCode;
-
-import static org.testng.Assert.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 
 
@@ -455,7 +451,7 @@ public class FingerprintCertificateMapperTestCase
     String mapperDN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
 
     Attribute a =
-         new Attribute(DirectoryServer.getAttributeType(
+      Attributes.empty(DirectoryServer.getAttributeType(
                             "ds-cfg-fingerprint-attribute"));
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
@@ -483,7 +479,7 @@ public class FingerprintCertificateMapperTestCase
     String mapperDN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
 
     Attribute a =
-         new Attribute(DirectoryServer.getAttributeType(
+      Attributes.empty(DirectoryServer.getAttributeType(
                             "ds-cfg-fingerprint-algorithm"));
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
@@ -556,7 +552,7 @@ public class FingerprintCertificateMapperTestCase
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("ds-cfg-certificate-mapper",
+        Attributes.create("ds-cfg-certificate-mapper",
                                             mapperDN)));
 
     InternalClientConnection conn =
@@ -582,7 +578,7 @@ public class FingerprintCertificateMapperTestCase
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("ds-cfg-certificate-mapper",
+        Attributes.create("ds-cfg-certificate-mapper",
                                             mapperDN)));
 
     InternalClientConnection conn =
@@ -610,7 +606,7 @@ public class FingerprintCertificateMapperTestCase
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-         new Attribute("ds-cfg-fingerprint-attribute",
+        Attributes.create("ds-cfg-fingerprint-attribute",
                        attrName)));
 
     InternalClientConnection conn =
@@ -637,7 +633,7 @@ public class FingerprintCertificateMapperTestCase
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                      new Attribute("ds-cfg-fingerprint-algorithm",
+        Attributes.create("ds-cfg-fingerprint-algorithm",
                                     algorithm)));
 
     InternalClientConnection conn =
@@ -667,19 +663,18 @@ public class FingerprintCertificateMapperTestCase
     AttributeType attrType =
          DirectoryServer.getAttributeType("ds-cfg-user-base-dn");
 
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
+    AttributeBuilder builder = new AttributeBuilder(attrType);
     if (baseDNs != null)
     {
       for (String baseDN : baseDNs)
       {
-        values.add(new AttributeValue(attrType, baseDN));
+        builder.add(baseDN);
       }
     }
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attrType, attrType.getNameOrOID(),
-                                            values)));
+                              builder.toAttribute()));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();

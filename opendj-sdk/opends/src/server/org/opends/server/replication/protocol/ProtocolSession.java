@@ -36,7 +36,7 @@ import java.util.zip.DataFormatException;
  * protocol.
  *
  * This interface is designed to make easy the move from one format
- * of the ReplicationMessage on the wire to another format.
+ * of the ReplicationMsg on the wire to another format.
  */
 public interface ProtocolSession
 {
@@ -50,37 +50,53 @@ public interface ProtocolSession
   public abstract void close() throws IOException;
 
   /**
-   * This method is called when a ReplicationMessage must be sent to
-   * the remote entity.
+   * This method is called when a ReplicationMsg must be sent to
+   * the remote entity. The PDU is send using serialization of the current
+   * protocol version.
    *
    * It can be called by several threads and must implement appropriate
    * replication (typically, this method or a part of it should be
    * synchronized).
    *
-   * @param msg The ReplicationMessage that must be sent.
+   * @param msg The ReplicationMsg that must be sent.
    * @throws IOException If an IO error happen during the publish process.
    */
-  public abstract void publish(ReplicationMessage msg)
+  public abstract void publish(ReplicationMsg msg)
                   throws IOException;
 
   /**
-   * Attempt to receive a ReplicationMessage.
+   * Same as publish(ReplicationMsg msg), but forcing the usage of a particular
+   * protocol version for the PDU serialization.
+   *
+   * @param msg The ReplicationMsg that must be sent.
+   * @param reqProtocolVersion The protocol version to use for serialization.
+   * The version should normally be older than the current one.
+   * @throws IOException If an IO error happen during the publish process.
+   */
+  public abstract void publish(ReplicationMsg msg, short reqProtocolVersion)
+                  throws IOException;
+
+  /**
+   * Attempt to receive a ReplicationMsg.
    * This method should block the calling thread until a
-   * ReplicationMessage is available or until an error condition.
+   * ReplicationMsg is available or until an error condition.
    *
    * This method can only be called by a single thread and therefore does not
-   * neet to implement any replication.
+   * need to implement any replication.
    *
-   * @return The ReplicationMessage that was received.
-   * @throws IOException When error happened durin IO process.
+   * @return The ReplicationMsg that was received.
+   * @throws IOException When error happened during IO process.
    * @throws ClassNotFoundException When the data received does extend the
-   *         ReplicationMessage class.
+   *         ReplicationMsg class.
    * @throws DataFormatException When the data received is not formatted as a
-   *         ReplicationMessage.
+   *         ReplicationMsg.
+   * @throws NotSupportedOldVersionPDUException If the received PDU is part of
+   * an old protocol version and we do not support it.
    */
-  public abstract ReplicationMessage receive()
+  public abstract ReplicationMsg receive()
                   throws IOException, ClassNotFoundException,
-                         DataFormatException;
+                         DataFormatException,
+                         NotSupportedOldVersionPDUException;
 
   /**
    * Stop using the security layer, if there is any.
@@ -106,7 +122,7 @@ public interface ProtocolSession
   * With this option set to a non-zero value, calls to the receive() method
   * block for only this amount of time after which a
   * java.net.SocketTimeoutException is raised.
-  * The Broker is valid and useable even after such an Exception is raised.
+  * The Broker is valid and usable even after such an Exception is raised.
   *
   * @param timeout the specified timeout, in milliseconds.
   * @throws SocketException if there is an error in the underlying protocol,

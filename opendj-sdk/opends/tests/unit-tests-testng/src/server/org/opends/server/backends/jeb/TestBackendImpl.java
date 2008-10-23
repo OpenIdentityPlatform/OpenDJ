@@ -670,7 +670,7 @@ public class TestBackendImpl extends JebTestCase {
 
     //Only one index should be used because it is below the FILTER_CANDIDATEassertEquals(ec.getDN2URI().)_THRESHOLD.
     debugString =
-        result.get(0).getAttribute("debugsearchindex").get(0).getValues().toString();
+        result.get(0).getAttribute("debugsearchindex").get(0).toString();
     assertTrue(debugString.split("cn").length <= 3);
     finalStartPos = debugString.indexOf("final=") + 13;
     finalEndPos = debugString.indexOf("]", finalStartPos);
@@ -690,7 +690,7 @@ public class TestBackendImpl extends JebTestCase {
     result = search.getSearchEntries();
 
     debugString =
-        result.get(0).getAttribute("debugsearchindex").get(0).getValues().toString();
+        result.get(0).getAttribute("debugsearchindex").get(0).toString();
     assertTrue(!debugString.contains("NOT-INDEXED"));
     finalStartPos = debugString.indexOf("final=") + 13;
     finalEndPos = debugString.indexOf("]", finalStartPos);
@@ -710,7 +710,7 @@ public class TestBackendImpl extends JebTestCase {
     result = search.getSearchEntries();
 
     debugString =
-        result.get(0).getAttribute("debugsearchindex").get(0).getValues().toString();
+        result.get(0).getAttribute("debugsearchindex").get(0).toString();
     assertTrue(!debugString.contains("NOT-INDEXED"));
     finalStartPos = debugString.indexOf("final=") + 13;
     finalEndPos = debugString.indexOf("]", finalStartPos);
@@ -730,7 +730,7 @@ public class TestBackendImpl extends JebTestCase {
     result = search.getSearchEntries();
 
     debugString =
-        result.get(0).getAttribute("debugsearchindex").get(0).getValues().toString();
+        result.get(0).getAttribute("debugsearchindex").get(0).toString();
     assertTrue(!debugString.contains("NOT-INDEXED"));
     finalStartPos = debugString.indexOf("final=") + 13;
     finalEndPos = debugString.indexOf("]", finalStartPos);
@@ -750,7 +750,7 @@ public class TestBackendImpl extends JebTestCase {
     result = search.getSearchEntries();
 
     debugString =
-        result.get(0).getAttribute("debugsearchindex").get(0).getValues().toString();
+        result.get(0).getAttribute("debugsearchindex").get(0).toString();
     assertTrue(!debugString.contains("NOT-INDEXED"));
     finalStartPos = debugString.indexOf("final=") + 13;
     finalEndPos = debugString.indexOf("]", finalStartPos);
@@ -909,7 +909,8 @@ public class TestBackendImpl extends JebTestCase {
     SubstringIndexer substringIndexer;
     OrderingIndexer orderingIndexer;
 
-    backend.replaceEntry(replaceEntry, null);
+    oldEntry = entries.get(0);
+    backend.replaceEntry(oldEntry, replaceEntry, null);
 
     EntryContainer ec =
         backend.getRootContainer().getEntryContainer(DN.decode("dc=test,dc=com"));
@@ -917,26 +918,20 @@ public class TestBackendImpl extends JebTestCase {
     try
     {
       entry = ec.getEntry(DN.decode("uid=user.0,ou=People,dc=test,dc=com"));
-      oldEntry = entries.get(0);
       entryID = ec.getDN2ID().get(null,
           DN.decode("uid=user.0,ou=People,dc=test,dc=com"), LockMode.DEFAULT);
 
       assertNotNull(entry);
-      LinkedHashSet<AttributeValue> values =
-          entry.getAttribute("cn").get(0).getValues();
-      for (AttributeValue value : values) {
+      for (AttributeValue value : entry.getAttribute("cn").get(0)) {
         assertEquals(value.getStringValue(), "Testing Test");
       }
-      values = entry.getAttribute("sn").get(0).getValues();
-      for (AttributeValue value : values) {
+      for (AttributeValue value : entry.getAttribute("sn").get(0)) {
         assertEquals(value.getStringValue(), "Test");
       }
-      values = entry.getAttribute("givenname").get(0).getValues();
-      for (AttributeValue value : values) {
+      for (AttributeValue value : entry.getAttribute("givenname").get(0)) {
         assertEquals(value.getStringValue(), "Testing");
       }
-      values = entry.getAttribute("employeenumber").get(0).getValues();
-      for (AttributeValue value : values) {
+      for (AttributeValue value : entry.getAttribute("employeenumber").get(0)) {
         assertEquals(value.getStringValue(), "777");
       }
 
@@ -1017,7 +1012,8 @@ public class TestBackendImpl extends JebTestCase {
   @Test(dependsOnMethods = {"testSearchNotIndexed", "testAdd",
       "testSearchIndex", "testSearchScope", "testMatchedDN",
       "testNumSubordinates", "testNumSubordinatesIndexEntryLimitExceeded"})
-  public void testModifyEntry() throws Exception {
+  public void testModifyEntry() throws Exception
+  {
     Entry entry;
     Entry newEntry;
     EntryID entryID;
@@ -1031,160 +1027,146 @@ public class TestBackendImpl extends JebTestCase {
     SubstringIndexer substringIndexer;
     OrderingIndexer orderingIndexer;
 
-
-    EntryContainer ec =
-        backend.getRootContainer().getEntryContainer(DN.decode("dc=test,dc=com"));
+    EntryContainer ec = backend.getRootContainer().getEntryContainer(
+        DN.decode("dc=test,dc=com"));
     ec.sharedLock.lock();
     try
     {
       ArrayList<Modification> modifications = new ArrayList<Modification>();
-      modifications.add(new Modification(ModificationType.ADD, new
-          Attribute("title", "debugger")));
+      modifications.add(new Modification(ModificationType.ADD, Attributes
+          .create("title", "debugger")));
 
-      attribute = DirectoryServer.getAttributeType("title");
-      LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-      values.add(new AttributeValue(attribute, "debugger2"));
-      LinkedHashSet<String> options = new LinkedHashSet<String>(1);
-      options.add("lang-en");
-      Attribute attr = new Attribute(attribute, "title", options, values);
-      modifications.add(new Modification(ModificationType.ADD, attr));
+      AttributeBuilder builder = new AttributeBuilder("title");
+      builder.setOption("lang-en");
+      builder.add("debugger2");
 
-      modifications.add(new Modification(ModificationType.DELETE, new
-          Attribute("cn", "Aaren Atp")));
-      modifications.add(new Modification(ModificationType.ADD, new
-          Attribute("cn", "Aaren Rigor")));
-      modifications.add(new Modification(ModificationType.ADD, new
-          Attribute("cn", "Aarenister Rigor")));
+      modifications.add(new Modification(ModificationType.ADD, builder
+          .toAttribute()));
+      modifications.add(new Modification(ModificationType.DELETE,
+          Attributes.create("cn", "Aaren Atp")));
+      modifications.add(new Modification(ModificationType.ADD, Attributes
+          .create("cn", "Aaren Rigor")));
+      modifications.add(new Modification(ModificationType.ADD, Attributes
+          .create("cn", "Aarenister Rigor")));
 
-      attribute = DirectoryServer.getAttributeType("givenname");
-      values = new LinkedHashSet<AttributeValue>();
-      values.add(new AttributeValue(attribute, "test"));
-      options = new LinkedHashSet<String>(1);
-      options.add("lang-de");
-      attr = new Attribute(attribute, "givenName", options, values);
-      modifications.add(new Modification(ModificationType.ADD, attr));
+      builder = new AttributeBuilder("givenname");
+      builder.add("test");
+      builder.setOption("lang-de");
+      modifications.add(new Modification(ModificationType.ADD, builder
+          .toAttribute()));
 
-      attribute = DirectoryServer.getAttributeType("givenname");
-      values = new LinkedHashSet<AttributeValue>();
-      values.add(new AttributeValue(attribute, "test2"));
-      options = new LinkedHashSet<String>(1);
-      options.add("lang-cn");
-      attr = new Attribute(attribute, "givenName", options, values);
-      modifications.add(new Modification(ModificationType.DELETE, attr));
+      builder = new AttributeBuilder("givenname");
+      builder.add("test2");
+      builder.setOption("lang-cn");
+      modifications.add(new Modification(ModificationType.DELETE, builder
+          .toAttribute()));
 
-      attribute = DirectoryServer.getAttributeType("givenname");
-      values = new LinkedHashSet<AttributeValue>();
-      values.add(new AttributeValue(attribute, "newtest3"));
-      options = new LinkedHashSet<String>(1);
-      options.add("lang-es");
-      attr = new Attribute(attribute, "givenName", options, values);
-      modifications.add(new Modification(ModificationType.REPLACE, attr));
+      builder = new AttributeBuilder("givenname");
+      builder.add("newtest3");
+      builder.setOption("lang-es");
+      modifications.add(new Modification(ModificationType.REPLACE, builder
+          .toAttribute()));
 
-      modifications.add(new Modification(ModificationType.REPLACE, new
-          Attribute("employeenumber", "222")));
+      modifications.add(new Modification(ModificationType.REPLACE,
+          Attributes.create("employeenumber", "222")));
 
       newEntry = entries.get(1);
       newEntry.applyModifications(modifications);
       entry = ec.getEntry(DN.decode("uid=user.1,ou=People,dc=test,dc=com"));
-      entryID = ec.getDN2ID().get(null, DN.decode("uid=user.1,ou=People,dc=test,dc=com"), LockMode.DEFAULT);
+      entryID = ec.getDN2ID().get(null,
+          DN.decode("uid=user.1,ou=People,dc=test,dc=com"), LockMode.DEFAULT);
 
       assertNotNull(entryID);
-
 
       attribute = DirectoryServer.getAttributeType("title");
       titleIndex = ec.getAttributeIndex(attribute);
       attribute = DirectoryServer.getAttributeType("name");
       nameIndex = ec.getAttributeIndex(attribute);
 
-      //This current entry in the DB shouldn't be in the presence titleIndex.
+      // This current entry in the DB shouldn't be in the presence
+      // titleIndex.
       addKeys = new HashSet<byte[]>();
       addKeys.add(AttributeIndex.presenceKey.getData());
       key = new DatabaseEntry();
-      for (byte[] keyBytes : addKeys) {
+      for (byte[] keyBytes : addKeys)
+      {
         key.setData(keyBytes);
       }
       assertEquals(titleIndex.presenceIndex.containsID(null, key, entryID),
           ConditionResult.FALSE);
 
-      //This current entry should be in the presence nameIndex.
+      // This current entry should be in the presence nameIndex.
       addKeys = new HashSet<byte[]>();
       addKeys.add(AttributeIndex.presenceKey.getData());
       key = new DatabaseEntry();
-      for (byte[] keyBytes : addKeys) {
+      for (byte[] keyBytes : addKeys)
+      {
         key.setData(keyBytes);
       }
       assertEquals(nameIndex.presenceIndex.containsID(null, key, entryID),
           ConditionResult.TRUE);
 
       ArrayList<Control> noControls = new ArrayList<Control>(0);
-      InternalClientConnection conn =
-          InternalClientConnection.getRootConnection();
+      InternalClientConnection conn = InternalClientConnection
+          .getRootConnection();
 
-    ModifyOperationBasis modifyOp = new ModifyOperationBasis(conn,
-        conn.nextOperationID(),
-        conn.nextMessageID(),
-        noControls,
-        DN.decode("uid=user.1,ou=People,dc=test,dc=com"),
-        modifications);
+      ModifyOperationBasis modifyOp = new ModifyOperationBasis(conn, conn
+          .nextOperationID(), conn.nextMessageID(), noControls, DN
+          .decode("uid=user.1,ou=People,dc=test,dc=com"), modifications);
 
-
-    backend.replaceEntry(newEntry, modifyOp);
+      backend.replaceEntry(entry, newEntry, modifyOp);
 
       entry = ec.getEntry(DN.decode("uid=user.1,ou=People,dc=test,dc=com"));
 
-      assertTrue(entry.getAttribute("title").contains(new
-          Attribute("title", "debugger")));
+      assertTrue(entry.getAttribute("title").contains(
+          Attributes.create("title", "debugger")));
 
-      assertTrue(entry.getAttribute("cn").get(0).getValues().contains(
-          new AttributeValue(
-              entry.getAttribute("cn").get(0).getAttributeType(),
-              "Aaren Rigor")));
-      assertTrue(entry.getAttribute("cn").get(0).getValues().contains(
+      assertTrue(entry.getAttribute("cn").get(0)
+          .contains(
+              new AttributeValue(entry.getAttribute("cn").get(0)
+                  .getAttributeType(), "Aaren Rigor")));
+      assertTrue(entry.getAttribute("cn").get(0).contains(
           new AttributeValue(
               entry.getAttribute("cn").get(0).getAttributeType(),
               "Aarenister Rigor")));
-      assertFalse(entry.getAttribute("cn").get(0).getValues().contains(
+      assertFalse(entry.getAttribute("cn").get(0).contains(
           new AttributeValue(
-              entry.getAttribute("cn").get(0).getAttributeType(),
-              "Aaren Atp")));
+              entry.getAttribute("cn").get(0).getAttributeType(), "Aaren Atp")));
 
-      options = new LinkedHashSet<String>();
+      Set<String> options = new LinkedHashSet<String>();
       options.add("lang-de");
-      assertTrue(entry.getAttribute("givenname", options).get(0).getValues().contains(
-          new AttributeValue(
-              entry.getAttribute("givenname", options).get(0).getAttributeType(),
-              "test")));
+      assertTrue(entry.getAttribute("givenname", options).get(0).contains(
+          new AttributeValue(entry.getAttribute("givenname", options).get(0)
+              .getAttributeType(), "test")));
       options = new LinkedHashSet<String>();
       options.add("lang-cn");
-      assertNull
-          (entry.getAttribute("givenname", options));
+      assertNull(entry.getAttribute("givenname", options));
       options = new LinkedHashSet<String>();
       options.add("lang-es");
-      assertTrue(entry.getAttribute("givenname", options).get(0).getValues().contains(
-          new AttributeValue(
-              entry.getAttribute("givenname", options).get(0).getAttributeType(),
-              "newtest3")));
+      assertTrue(entry.getAttribute("givenname", options).get(0).contains(
+          new AttributeValue(entry.getAttribute("givenname", options).get(0)
+              .getAttributeType(), "newtest3")));
       options = new LinkedHashSet<String>();
       options.add("lang-fr");
-      assertTrue(entry.getAttribute("givenname", options).get(0).getValues().contains(
-          new AttributeValue(
-              entry.getAttribute("givenname", options).get(0).getAttributeType(),
-              "test2")));
+      assertTrue(entry.getAttribute("givenname", options).get(0).contains(
+          new AttributeValue(entry.getAttribute("givenname", options).get(0)
+              .getAttributeType(), "test2")));
 
-      assertTrue(entry.getAttribute("employeenumber").contains(new
-          Attribute("employeenumber", "222")));
-      assertFalse(entry.getAttribute("employeenumber").contains(new
-          Attribute("employeenumber", "1")));
+      assertTrue(entry.getAttribute("employeenumber").contains(
+          Attributes.create("employeenumber", "222")));
+      assertFalse(entry.getAttribute("employeenumber").contains(
+          Attributes.create("employeenumber", "1")));
 
       addKeys = new HashSet<byte[]>();
       presenceIndexer = new PresenceIndexer(titleIndex.getAttributeType());
       presenceIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
-      for (byte[] keyBytes : addKeys) {
+      for (byte[] keyBytes : addKeys)
+      {
         key.setData(keyBytes);
         assertEquals(titleIndex.presenceIndex.containsID(null, key, entryID),
-          ConditionResult.TRUE);
+            ConditionResult.TRUE);
       }
 
       addKeys = new HashSet<byte[]>();
@@ -1192,10 +1174,11 @@ public class TestBackendImpl extends JebTestCase {
       presenceIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
-      for (byte[] keyBytes : addKeys) {
+      for (byte[] keyBytes : addKeys)
+      {
         key.setData(keyBytes);
         assertEquals(nameIndex.presenceIndex.containsID(null, key, entryID),
-          ConditionResult.TRUE);
+            ConditionResult.TRUE);
       }
 
       addKeys = new HashSet<byte[]>();
@@ -1203,10 +1186,11 @@ public class TestBackendImpl extends JebTestCase {
       orderingIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
-      for (byte[] keyBytes : addKeys) {
+      for (byte[] keyBytes : addKeys)
+      {
         key.setData(keyBytes);
         assertEquals(titleIndex.orderingIndex.containsID(null, key, entryID),
-          ConditionResult.TRUE);
+            ConditionResult.TRUE);
       }
 
       addKeys = new HashSet<byte[]>();
@@ -1214,10 +1198,11 @@ public class TestBackendImpl extends JebTestCase {
       orderingIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
-      for (byte[] keyBytes : addKeys) {
+      for (byte[] keyBytes : addKeys)
+      {
         key.setData(keyBytes);
         assertEquals(nameIndex.orderingIndex.containsID(null, key, entryID),
-          ConditionResult.TRUE);
+            ConditionResult.TRUE);
       }
 
       addKeys = new HashSet<byte[]>();
@@ -1225,10 +1210,11 @@ public class TestBackendImpl extends JebTestCase {
       equalityIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
-      for (byte[] keyBytes : addKeys) {
+      for (byte[] keyBytes : addKeys)
+      {
         key.setData(keyBytes);
         assertEquals(titleIndex.equalityIndex.containsID(null, key, entryID),
-          ConditionResult.TRUE);
+            ConditionResult.TRUE);
       }
 
       addKeys = new HashSet<byte[]>();
@@ -1236,34 +1222,37 @@ public class TestBackendImpl extends JebTestCase {
       equalityIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
-      for (byte[] keyBytes : addKeys) {
+      for (byte[] keyBytes : addKeys)
+      {
         key.setData(keyBytes);
         assertEquals(nameIndex.equalityIndex.containsID(null, key, entryID),
-          ConditionResult.TRUE);
+            ConditionResult.TRUE);
       }
 
       addKeys = new HashSet<byte[]>();
       substringIndexer = new SubstringIndexer(titleIndex.getAttributeType(),
-                   titleIndex.getConfiguration().getSubstringLength());
+          titleIndex.getConfiguration().getSubstringLength());
       substringIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
-      for (byte[] keyBytes : addKeys) {
+      for (byte[] keyBytes : addKeys)
+      {
         key.setData(keyBytes);
         assertEquals(titleIndex.substringIndex.containsID(null, key, entryID),
-          ConditionResult.TRUE);
+            ConditionResult.TRUE);
       }
 
       addKeys = new HashSet<byte[]>();
       substringIndexer = new SubstringIndexer(nameIndex.getAttributeType(),
-                   nameIndex.getConfiguration().getSubstringLength());
+          nameIndex.getConfiguration().getSubstringLength());
       substringIndexer.indexEntry(entry, addKeys);
 
       key = new DatabaseEntry();
-      for (byte[] keyBytes : addKeys) {
+      for (byte[] keyBytes : addKeys)
+      {
         key.setData(keyBytes);
         assertEquals(nameIndex.substringIndex.containsID(null, key, entryID),
-          ConditionResult.TRUE);
+            ConditionResult.TRUE);
       }
     }
     finally
@@ -1397,7 +1386,7 @@ public class TestBackendImpl extends JebTestCase {
       "testSearchNotIndexed",
       "testModifyDNNewSuperior", "testMatchedDN"})
   public void testApplyIndexConfig() throws Exception {
-    int resultCode = TestCaseUtils.applyModifications(
+    int resultCode = TestCaseUtils.applyModifications(true,
         "dn: ds-cfg-attribute=givenName,cn=Index," +
             "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
         "changetype: modify",
@@ -1475,10 +1464,10 @@ public class TestBackendImpl extends JebTestCase {
 
     //No indexes should be used.
     String debugString =
-        result.get(0).getAttribute("debugsearchindex").get(0).getValues().toString();
+        result.get(0).getAttribute("debugsearchindex").get(0).toString();
     assertTrue(debugString.contains("NOT-INDEXED"));
 
-    resultCode = TestCaseUtils.applyModifications(
+    resultCode = TestCaseUtils.applyModifications(true,
         "dn: ds-cfg-attribute=givenName,cn=Index," +
             "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
         "changetype: modify",
@@ -1532,7 +1521,7 @@ public class TestBackendImpl extends JebTestCase {
     assertFalse(apfound);
 
     // Delete the entries attribute index.
-    resultCode = TestCaseUtils.applyModifications(
+    resultCode = TestCaseUtils.applyModifications(true,
         "dn: ds-cfg-attribute=givenName,cn=Index," +
             "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
         "changetype: delete");
@@ -1549,7 +1538,7 @@ public class TestBackendImpl extends JebTestCase {
     }
 
     // Add it back
-    resultCode = TestCaseUtils.applyModifications(
+    resultCode = TestCaseUtils.applyModifications(true,
         "dn: ds-cfg-attribute=givenName,cn=Index," +
             "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
         "changetype: add",
@@ -1603,7 +1592,7 @@ public class TestBackendImpl extends JebTestCase {
 
     // Make sure changing the index entry limit on an index where the limit
     // is already exceeded causes warnings.
-    resultCode = TestCaseUtils.applyModifications(
+    resultCode = TestCaseUtils.applyModifications(true,
         "dn: ds-cfg-attribute=mail,cn=Index," +
             "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
         "changetype: modify",
@@ -1614,7 +1603,7 @@ public class TestBackendImpl extends JebTestCase {
 
     // Make sure removing a index entry limit for an index makes it use the
     // backend wide setting.
-    resultCode = TestCaseUtils.applyModifications(
+    resultCode = TestCaseUtils.applyModifications(true,
         "dn: ds-cfg-attribute=mail,cn=Index," +
             "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
         "changetype: modify",
@@ -1658,7 +1647,7 @@ public class TestBackendImpl extends JebTestCase {
 
     //No indexes should be used.
     debugString =
-        result.get(0).getAttribute("debugsearchindex").get(0).getValues().toString();
+        result.get(0).getAttribute("debugsearchindex").get(0).toString();
     assertTrue(debugString.contains("NOT-INDEXED"));
 
   }

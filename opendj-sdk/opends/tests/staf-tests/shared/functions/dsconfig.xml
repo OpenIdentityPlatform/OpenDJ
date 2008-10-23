@@ -36,8 +36,8 @@
       if dsInstanceHost:
         STAFCmdParamsList.append('-h %s' % dsInstanceHost)
       
-      if dsInstancePort:
-        STAFCmdParamsList.append('-p %s' % dsInstancePort)
+      if dsInstanceAdminPort:
+        STAFCmdParamsList.append('-p %s' % dsInstanceAdminPort)
       
       if dsInstanceDn:
         STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
@@ -46,6 +46,7 @@
         STAFCmdParamsList.append('-w "%s"' % dsInstancePswd)
         
       STAFCmdParamsList.append('-n')
+      STAFCmdParamsList.append('-X')
     </script>
   </function>
   
@@ -65,22 +66,29 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath" 
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
         <function-arg-property name="type" value="filepath" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstanceHost" type="optional" default="STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="dsInstanceHost" 
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
-      <function-arg-def name="dsInstancePort" type="required">
+
+      <function-arg-def name="dsInstanceAdminPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -228,11 +236,13 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePort" type="required">
+      <function-arg-def name="dsInstanceAdminPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
-        <function-arg-property name="type" value="integer" />
+        <function-arg-property name="type" value="Port number" />
       </function-arg-def>
       
       <function-arg-def name="dsInstanceDn" type="required">
@@ -386,9 +396,11 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePort" type="required">
+      <function-arg-def name="dsInstanceAdminPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -512,9 +524,11 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePort" type="required">
+      <function-arg-def name="dsInstanceAdminPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -573,7 +587,7 @@
         { 'location'               : location,
           'dsPath'                 : dsPath,
           'dsInstanceHost'         : dsInstanceHost,
-          'dsInstancePort'         : dsInstancePort,
+          'dsInstanceAdminPort'    : dsInstanceAdminPort,
           'dsInstanceDn'           : dsInstanceDn,
           'dsInstancePswd'         : dsInstancePswd,
           'objectName'             : 'password-policy',
@@ -625,9 +639,11 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePort" type="required">
+      <function-arg-def name="dsInstanceAdminPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -683,19 +699,19 @@
     </function-map-args>
     <sequence>
       <call function="'dsconfigSet'">
-        { 'location'       : location,
-          'dsPath'         : dsPath,
-          'dsInstanceHost' : dsInstanceHost,
-          'dsInstancePort' : dsInstancePort,
-          'dsInstanceDn'   : dsInstanceDn,
-          'dsInstancePswd' : dsInstancePswd,
-          'objectName'     : 'password-validator',
-          'propertyType'   : 'validator',
-          'propertyName'   : propertyName,
-          'attributeName'  : attributeName,
-          'attributeValue' : attributeValue,
-          'modifyType'     : modifyType,
-          'expectedRC'     : expectedRC
+        { 'location'            : location,
+          'dsPath'              : dsPath,
+          'dsInstanceHost'      : dsInstanceHost,
+          'dsInstanceAdminPort' : dsInstanceAdminPort,
+          'dsInstanceDn'        : dsInstanceDn,
+          'dsInstancePswd'      : dsInstancePswd,
+          'objectName'          : 'password-validator',
+          'propertyType'        : 'validator',
+          'propertyName'        : propertyName,
+          'attributeName'       : attributeName,
+          'attributeValue'      : attributeValue,
+          'modifyType'          : modifyType,
+          'expectedRC'          : expectedRC
         }
       </call>
       <return>
@@ -738,11 +754,13 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePort" type="required">
+      <function-arg-def name="dsInstanceAdminPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
-        </function-arg-description>      
-        <function-arg-property name="type" value="integer" />
+          Directory server admin port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
       </function-arg-def>
       
       <function-arg-def name="dsInstanceDn" type="required">
@@ -851,11 +869,13 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePort" type="required">
+      <function-arg-def name="dsInstanceAdminPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
-        </function-arg-description>      
-        <function-arg-property name="type" value="integer" />
+          Directory server admin port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
       </function-arg-def>
       
       <function-arg-def name="dsInstanceDn" type="required">
@@ -912,7 +932,7 @@
         { 'location'               : location,
           'dsPath'                 : dsPath,
           'dsInstanceHost'         : dsInstanceHost,
-          'dsInstancePort'         : dsInstancePort,
+          'dsInstanceAdminPort'    : dsInstanceAdminPort,
           'dsInstanceDn'           : dsInstanceDn,
           'dsInstancePswd'         : dsInstancePswd,
           'objectName'             : 'identity-mapper',
@@ -964,11 +984,13 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePort" type="required">
+      <function-arg-def name="dsInstanceAdminPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
-        <function-arg-property name="type" value="integer" />
+        <function-arg-property name="type" value="Port number" />
       </function-arg-def>
       
       <function-arg-def name="dsInstanceDn" type="required">
@@ -1078,9 +1100,11 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePort" type="required">
+      <function-arg-def name="dsInstanceAdminPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -1136,19 +1160,19 @@
     </function-map-args>
     <sequence>
       <call function="'dsconfigSet'">
-        { 'location'       : location,
-          'dsPath'         : dsPath,
-          'dsInstanceHost' : dsInstanceHost,
-          'dsInstancePort' : dsInstancePort,
-          'dsInstanceDn'   : dsInstanceDn,
-          'dsInstancePswd' : dsInstancePswd,
-          'objectName'     : 'sasl-mechanism-handler',
-          'propertyType'   : 'handler',
-          'propertyName'   : handlerName,
-          'attributeName'  : propertyName,
-          'attributeValue' : propertyValue,
-          'modifyType'     : modifyType,
-          'expectedRC'     : expectedRC
+        { 'location'            : location,
+          'dsPath'              : dsPath,
+          'dsInstanceHost'      : dsInstanceHost,
+          'dsInstanceAdminPort' : dsInstanceAdminPort,
+          'dsInstanceDn'        : dsInstanceDn,
+          'dsInstancePswd'      : dsInstancePswd,
+          'objectName'          : 'sasl-mechanism-handler',
+          'propertyType'        : 'handler',
+          'propertyName'        : handlerName,
+          'attributeName'       : propertyName,
+          'attributeValue'      : propertyValue,
+          'modifyType'          : modifyType,
+          'expectedRC'          : expectedRC
         }
       </call>
       <return>
@@ -1190,11 +1214,11 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>      
     
-      <function-arg-def name="port" 
+      <function-arg-def name="adminPort" 
                         type="optional" 
-                        default="DIRECTORY_INSTANCE_PORT">
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>      
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -1263,10 +1287,9 @@
         dsconfigCmd=''
         dsBinPath='%s/%s' % (dsPath,fileFolder)
         dsconfigCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
-        dsconfigParams = 'create-local-db-index -n -h %s -p %s -D "%s" -w %s --backend-name %s --index-name %s --set index-type:%s' % (host,port,rootDN,rootPwd,backendID, indexAttribute, ' --set index-type:'.join(indexTypes))
+        dsconfigParams = 'create-local-db-index -n -X -h %s -p %s -D "%s" -w %s --backend-name %s --index-name %s --set index-type:%s' % (host,adminPort,rootDN,rootPwd,backendID, indexAttribute, ' --set index-type:'.join(indexTypes))
       </script>
       
-      <call function="'_dsconfigCommonArgs'" />
       <call function="'runCommand'">
         { 'name'      : 'dsconfig addIndex',
           'location'  : location,
@@ -1314,11 +1337,11 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>      
     
-      <function-arg-def name="port" 
+      <function-arg-def name="adminPort" 
                         type="optional" 
-                        default="DIRECTORY_INSTANCE_PORT">
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>      
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -1402,9 +1425,9 @@
         operationArguments = indexProperty
         if indexPropertyValue:
           operationArguments = '%s:%s' % (indexProperty, indexPropertyValue)
-        dsconfigParams = 'set-local-db-index-prop -n -h %s -p %s -D "%s" -w %s --backend-name %s --index-name %s --%s %s' % ( host, port, rootDN, rootPwd, backendID, indexAttribute, operation, operationArguments )
+        dsconfigParams = 'set-local-db-index-prop -n -X -h %s -p %s -D "%s" -w %s --backend-name %s --index-name %s --%s %s' % ( host, adminPort, rootDN, rootPwd, backendID, indexAttribute, operation, operationArguments)
       </script>
-      <call function="'_dsconfigCommonArgs'" />
+
       <call function="'runCommand'">
         { 'name'      : 'dsconfig modifyIndex',
           'location'  : location,
@@ -1452,9 +1475,9 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>      
     
-      <function-arg-def name="port" 
+      <function-arg-def name="adminPort" 
                         type="optional" 
-                        default="DIRECTORY_INSTANCE_PORT">
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
           Directory server port number
         </function-arg-description>      
@@ -1508,9 +1531,8 @@
         dsconfigCmd=''
         dsBinPath='%s/%s' % (dsPath,fileFolder)
         dsconfigCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
-        dsconfigParams = 'delete-local-db-index -n -h %s -p %s -D "%s" -w %s --backend-name %s --index-name %s' % (host,port,rootDN,rootPwd,backendID, indexAttribute)
+        dsconfigParams = 'delete-local-db-index -n -X -h %s -p %s -D "%s" -w %s --backend-name %s --index-name %s' % (host,adminPort,rootDN,rootPwd,backendID, indexAttribute)
       </script>
-      <call function="'_dsconfigCommonArgs'" />
       <call function="'runCommand'">
         { 'name'      : 'dsconfig removeIndex',
           'location'  : location,
@@ -1559,9 +1581,9 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePort" type="required">
+      <function-arg-def name="dsInstanceAdminPort" type="required">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -1674,9 +1696,9 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePort" type="required">
+      <function-arg-def name="dsInstanceAdminPort" type="required">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -1770,9 +1792,9 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePort" type="required">
+      <function-arg-def name="dsInstanceAdminPort" type="required">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -1901,9 +1923,9 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
-      <function-arg-def name="dsInstancePort" type="required">
+      <function-arg-def name="dsInstanceAdminPort" type="required">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -1975,7 +1997,7 @@
         #STAFCmdParamsList.append('-h %s' % dsInstanceHost)
         #STAFCmdParamsList.append('-D %s' % dsInstanceDn)
         #STAFCmdParamsList.append('-w %s' % dsInstancePswd)
-        #STAFCmdParamsList.append('-p %s' % dsInstancePort)
+        #STAFCmdParamsList.append('-p %s' % dsInstanceAdminPort)
         STAFCmdParamsList.append('--backend-name %s' % dsBackendID)
         STAFCmdParamsList.append('--type local-db')
         STAFCmdParamsList.append(baseDNOption)
@@ -2037,9 +2059,9 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePort" type="required">
+      <function-arg-def name="dsInstanceAdminPort" type="required">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -2175,9 +2197,11 @@
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePort" type="required">
+      <function-arg-def name="dsInstanceAdminPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -2239,15 +2263,15 @@
       <!-- Call dsconfig -->
       <call function="'dsconfig'">
         {
-        'location'       : location ,
-        'dsPath'         : dsPath ,
-        'dsInstanceHost' : dsInstanceHost ,
-        'dsInstancePort' : dsInstancePort ,
-        'dsInstanceDn'   : dsInstanceDn ,
-        'dsInstancePswd' : dsInstancePswd ,
-        'subcommand'     : subcommand ,
-        'optionsString'  : optionsString ,
-        'expectedRC'     : expectedRC
+        'location'            : location ,
+        'dsPath'              : dsPath ,
+        'dsInstanceHost'      : dsInstanceHost ,
+        'dsInstanceAdminPort' : dsInstanceAdminPort ,
+        'dsInstanceDn'        : dsInstanceDn ,
+        'dsInstancePswd'      : dsInstancePswd ,
+        'subcommand'          : subcommand ,
+        'optionsString'       : optionsString ,
+        'expectedRC'          : expectedRC
         }
       </call>
   
@@ -2323,17 +2347,17 @@
           </message>
           <!-- Remove peer RS from replicated domain -->
           <call function="'dsconfig'">
-            { 'location'       : server.getHostname(),
-              'dsPath'         : '%s/%s' % (server.getDir(),OPENDSNAME),
-              'dsInstanceHost' : server.getHostname(),
-              'dsInstancePort' : server.getPort(),
-              'dsInstanceDn'   : server.getRootDn(),
-              'dsInstancePswd' : server.getRootPwd(),
-              'subcommand'     : 'set-replication-server-prop',
-              'objectType'     : 'provider-name',
-              'objectName'     : 'Multimaster Synchronization',
-              'optionsString'  : '--reset replication-server',
-              'expectedRC'     : expectedRC
+            { 'location'            : server.getHostname(),
+              'dsPath'              : '%s/%s' % (server.getDir(),OPENDSNAME),
+              'dsInstanceHost'      : server.getHostname(),
+              'dsInstanceAdminPort' : server.getAdminPort(),
+              'dsInstanceDn'        : server.getRootDn(),
+              'dsInstancePswd'      : server.getRootPwd(),
+              'subcommand'          : 'set-replication-server-prop',
+              'objectType'          : 'provider-name',
+              'objectName'          : 'Multimaster Synchronization',
+              'optionsString'       : '--reset replication-server',
+              'expectedRC'          : expectedRC
             }
           </call>
         </sequence>
@@ -2422,18 +2446,18 @@
       </message>
       <!-- Remove peer RS from replicated domain -->
       <call function="'dsconfig'">
-        { 'location'       : mainServer.getHostname(),
-          'dsPath'         : '%s/%s' \
-                             % (mainServer.getDir(),OPENDSNAME),
-          'dsInstanceHost' : mainServer.getHostname(),
-          'dsInstancePort' : mainServer.getPort(),
-          'dsInstanceDn'   : mainServer.getRootDn(),
-          'dsInstancePswd' : mainServer.getRootPwd(),
-          'subcommand'     : 'set-replication-server-prop',
-          'objectType'     : 'provider-name',
-          'objectName'     : 'Multimaster Synchronization',
-          'optionsString'  : optionString,
-          'expectedRC'     : expectedRC
+        { 'location'            : mainServer.getHostname(),
+          'dsPath'              : '%s/%s' \
+                                  % (mainServer.getDir(),OPENDSNAME),
+          'dsInstanceHost'      : mainServer.getHostname(),
+          'dsInstanceAdminPort' : mainServer.getAdminPort(),
+          'dsInstanceDn'        : mainServer.getRootDn(),
+          'dsInstancePswd'      : mainServer.getRootPwd(),
+          'subcommand'          : 'set-replication-server-prop',
+          'objectType'          : 'provider-name',
+          'objectName'          : 'Multimaster Synchronization',
+          'optionsString'       : optionString,
+          'expectedRC'          : expectedRC
         }
       </call>
   

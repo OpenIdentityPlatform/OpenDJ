@@ -528,9 +528,11 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
-      <function-arg-def name="dsInstancePort" type="required">
+      <function-arg-def name="dsInstanceAdminPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
@@ -568,8 +570,8 @@
         if dsInstanceHost:
           STAFCmdParamsList.append('-h %s' % dsInstanceHost)
 
-        if dsInstancePort:
-          STAFCmdParamsList.append('-p %s' % dsInstancePort)
+        if dsInstanceAdminPort:
+          STAFCmdParamsList.append('-p %s' % dsInstanceAdminPort)
 
         if dsInstanceDn:
           STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
@@ -578,6 +580,7 @@
           STAFCmdParamsList.append('-w "%s"' % dsInstancePswd)
 
         STAFCmdParamsList.append('-n')
+        STAFCmdParamsList.append('-X')
 
         STAFCmdParamsList.append('set-connection-handler-prop')
         STAFCmdParamsList.append('--handler-name "SNMP Connection Handler"')

@@ -290,6 +290,8 @@ public final class DSConfig extends ConsoleApplication {
    */
   private static final DebugTracer TRACER = getTracer();
 
+  // This CLI is always using the administration connector with SSL
+  private static final boolean alwaysSSL = true;
 
 
   /**
@@ -330,7 +332,7 @@ public final class DSConfig extends ConsoleApplication {
   public static int main(String[] args, boolean initializeServer,
       OutputStream outStream, OutputStream errStream) {
     DSConfig app = new DSConfig(System.in, outStream, errStream,
-        new LDAPManagementContextFactory());
+        new LDAPManagementContextFactory(alwaysSSL));
     // Only initialize the client environment when run as a standalone
     // application.
     if (initializeServer) {
@@ -1055,11 +1057,6 @@ public final class DSConfig extends ConsoleApplication {
 
     CommandBuilder commandBuilder =
       new CommandBuilder(commandName, subcommandName);
-
-    if (advancedModeArgument.isPresent())
-    {
-      commandBuilder.addArgument(advancedModeArgument);
-    }
 
     if ((factory != null) && (factory.getContextCommandBuilder() != null))
     {

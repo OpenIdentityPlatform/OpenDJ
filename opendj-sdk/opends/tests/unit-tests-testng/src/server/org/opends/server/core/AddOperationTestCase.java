@@ -28,33 +28,53 @@ package org.opends.server.core;
 
 
 
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.testng.Assert.*;
+
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-import org.testng.annotations.AfterMethod;
-
-import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.plugins.UpdatePreOpPlugin;
-import org.opends.server.plugins.DelayPreOpPlugin;
-import org.opends.server.protocols.asn1.*;
+import org.opends.server.protocols.asn1.ASN1Element;
+import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.*;
+import org.opends.server.protocols.ldap.AddRequestProtocolOp;
+import org.opends.server.protocols.ldap.AddResponseProtocolOp;
+import org.opends.server.protocols.ldap.BindRequestProtocolOp;
+import org.opends.server.protocols.ldap.BindResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.types.*;
-
-import static org.testng.Assert.*;
-
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.ServerConstants.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LockManager;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.Operation;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.WritabilityMode;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 
 
@@ -423,7 +443,7 @@ public class AddOperationTestCase
 
     UpdatePreOpPlugin.reset();
 
-    Attribute a = new Attribute("description", "bar");
+    Attribute a = Attributes.create("description", "bar");
     UpdatePreOpPlugin.addAttributeToSet(a);
 
     AddOperation addOperation =
@@ -442,13 +462,13 @@ public class AddOperationTestCase
     boolean foundBar = false;
     for (Attribute attr : attrList)
     {
-      if (attr.hasValue(new AttributeValue(a.getAttributeType(),
+      if (attr.contains(new AttributeValue(a.getAttributeType(),
                                            new ASN1OctetString("foo"))))
       {
         foundFoo = true;
       }
 
-      if (attr.hasValue(new AttributeValue(a.getAttributeType(),
+      if (attr.contains(new AttributeValue(a.getAttributeType(),
                                                 new ASN1OctetString("bar"))))
       {
         foundBar = true;
@@ -486,7 +506,7 @@ public class AddOperationTestCase
 
     UpdatePreOpPlugin.reset();
 
-    Attribute a = new Attribute("description", "foo");
+    Attribute a = Attributes.create("description", "foo");
     UpdatePreOpPlugin.addAttributeToSet(a);
 
     AddOperation addOperation =
@@ -1247,7 +1267,7 @@ public class AddOperationTestCase
     boolean found = false;
     for (Attribute a : attrList)
     {
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
       {
         if (v.getStringValue().equalsIgnoreCase("top"))
         {
@@ -1549,7 +1569,7 @@ public class AddOperationTestCase
 
     AttributeType attrType = DirectoryServer.getAttributeType("description");
     ArrayList<Attribute> attrList = new ArrayList<Attribute>();
-    attrList.add(new Attribute(attrType));
+    attrList.add(Attributes.empty(attrType));
     userAttrs.put(attrType, attrList);
 
 

@@ -379,5 +379,15 @@ public class IntegerSyntax
       return true;
     }
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

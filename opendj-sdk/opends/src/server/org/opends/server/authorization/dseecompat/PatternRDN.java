@@ -36,7 +36,6 @@ import static org.opends.messages.AccessControlMessages.
 import static org.opends.messages.AccessControlMessages.
      WARN_PATTERN_DN_TYPE_WILDCARD_IN_MULTIVALUED_RDN;
 import java.util.List;
-import java.util.LinkedHashSet;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.Set;
@@ -295,11 +294,7 @@ public class PatternRDN
           subAnyElements = null;
         }
 
-        LinkedHashSet<AttributeValue> values =
-             new LinkedHashSet<AttributeValue>(1);
-        values.add(value);
-        Attribute attr = new Attribute(type, type.getNameOrOID(), values);
-
+        Attribute attr = Attributes.create(type, value);
         switch (attr.matchesSubstring(subInitial, subAnyElements, subFinal))
         {
           case TRUE:

@@ -172,7 +172,7 @@ public class PasswordPolicyImportPluginTestCase
     List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
     for (Attribute a : attrList)
     {
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
       {
         pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
       }
@@ -248,7 +248,7 @@ public class PasswordPolicyImportPluginTestCase
     {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
         }

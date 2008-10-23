@@ -154,7 +154,7 @@ public final class ReadOnlyConfigAttribute
    *
    * @return  The attribute syntax for this configuration attribute.
    */
-  public AttributeSyntax getSyntax()
+  public AttributeSyntax<?> getSyntax()
   {
     return DirectoryServer.getDefaultStringSyntax();
   }

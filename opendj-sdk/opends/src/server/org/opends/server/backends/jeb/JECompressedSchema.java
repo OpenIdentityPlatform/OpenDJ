@@ -28,22 +28,17 @@ package org.opends.server.backends.jeb;
 
 
 
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import com.sleepycat.je.Cursor;
-import com.sleepycat.je.Database;
-import com.sleepycat.je.DatabaseConfig;
-import com.sleepycat.je.DatabaseEntry;
-import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.DeadlockException;
-import com.sleepycat.je.Environment;
-import com.sleepycat.je.LockMode;
-import com.sleepycat.je.OperationStatus;
 
 import org.opends.messages.Message;
 import org.opends.server.api.CompressedSchema;
@@ -54,17 +49,24 @@ import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.ByteArray;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ObjectClass;
 
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.messages.JebMessages.*;
-import static org.opends.server.util.StaticUtils.*;
+import com.sleepycat.je.Cursor;
+import com.sleepycat.je.Database;
+import com.sleepycat.je.DatabaseConfig;
+import com.sleepycat.je.DatabaseEntry;
+import com.sleepycat.je.DatabaseException;
+import com.sleepycat.je.DeadlockException;
+import com.sleepycat.je.Environment;
+import com.sleepycat.je.LockMode;
+import com.sleepycat.je.OperationStatus;
 
 
 
@@ -108,7 +110,7 @@ public final class JECompressedSchema
   private ConcurrentHashMap<ByteArray,AttributeType> atDecodeMap;
 
   // The map between encoded representations and attribute options.
-  private ConcurrentHashMap<ByteArray,LinkedHashSet<String>> aoDecodeMap;
+  private ConcurrentHashMap<ByteArray,Set<String>> aoDecodeMap;
 
   // The map between encoded representations and object class sets.
   private ConcurrentHashMap<ByteArray,Map<ObjectClass,String>> ocDecodeMap;
@@ -116,7 +118,7 @@ public final class JECompressedSchema
   // The map between attribute descriptions and their encoded
   // representations.
   private ConcurrentHashMap<AttributeType,
-               ConcurrentHashMap<LinkedHashSet<String>,ByteArray>> adEncodeMap;
+               ConcurrentHashMap<Set<String>,ByteArray>> adEncodeMap;
 
   // The map between object class sets and encoded representations.
   private ConcurrentHashMap<Map<ObjectClass,String>,ByteArray> ocEncodeMap;
@@ -148,11 +150,11 @@ public final class JECompressedSchema
     this.environment = environment;
 
     atDecodeMap = new ConcurrentHashMap<ByteArray,AttributeType>();
-    aoDecodeMap = new ConcurrentHashMap<ByteArray,LinkedHashSet<String>>();
+    aoDecodeMap = new ConcurrentHashMap<ByteArray,Set<String>>();
     ocDecodeMap = new ConcurrentHashMap<ByteArray,Map<ObjectClass,String>>();
     adEncodeMap =
          new ConcurrentHashMap<AttributeType,
-                  ConcurrentHashMap<LinkedHashSet<String>,ByteArray>>();
+                  ConcurrentHashMap<Set<String>,ByteArray>>();
     ocEncodeMap = new ConcurrentHashMap<Map<ObjectClass,String>,ByteArray>();
 
     adCounter = new AtomicInteger(1);
@@ -287,11 +289,11 @@ public final class JECompressedSchema
         atDecodeMap.put(token, attrType);
         aoDecodeMap.put(token, options);
 
-        ConcurrentHashMap<LinkedHashSet<String>,ByteArray> map =
+        ConcurrentHashMap<Set<String>,ByteArray> map =
              adEncodeMap.get(attrType);
         if (map == null)
         {
-          map = new ConcurrentHashMap<LinkedHashSet<String>,ByteArray>(1);
+          map = new ConcurrentHashMap<Set<String>,ByteArray>(1);
           map.put(options, token);
           adEncodeMap.put(attrType, map);
         }
@@ -438,16 +440,16 @@ public final class JECompressedSchema
          throws DirectoryException
   {
     AttributeType type = attribute.getAttributeType();
-    LinkedHashSet<String> options = attribute.getOptions();
+    Set<String> options = attribute.getOptions();
 
-    ConcurrentHashMap<LinkedHashSet<String>,ByteArray> map =
+    ConcurrentHashMap<Set<String>,ByteArray> map =
          adEncodeMap.get(type);
     if (map == null)
     {
       byte[] tokenArray;
       synchronized (adEncodeMap)
       {
-        map = new ConcurrentHashMap<LinkedHashSet<String>,ByteArray>(1);
+        map = new ConcurrentHashMap<Set<String>,ByteArray>(1);
 
         int intValue = adCounter.getAndIncrement();
         tokenArray = encodeInt(intValue);
@@ -521,11 +523,10 @@ public final class JECompressedSchema
    */
   private byte[] encodeAttribute(byte[] adArray, Attribute attribute)
   {
-    LinkedHashSet<AttributeValue> values = attribute.getValues();
     int totalValuesLength = 0;
-    byte[][] subArrays = new  byte[values.size()*2][];
+    byte[][] subArrays = new  byte[attribute.size()*2][];
     int pos = 0;
-    for (AttributeValue v : values)
+    for (AttributeValue v : attribute)
     {
       byte[] vBytes = v.getValueBytes();
       byte[] lBytes = ASN1Element.encodeLength(vBytes.length);
@@ -537,7 +538,7 @@ public final class JECompressedSchema
     }
 
     byte[] adArrayLength = ASN1Element.encodeLength(adArray.length);
-    byte[] countBytes = ASN1Element.encodeLength(values.size());
+    byte[] countBytes = ASN1Element.encodeLength(attribute.size());
     int totalLength = adArrayLength.length + adArray.length +
                       countBytes.length + totalValuesLength;
     byte[] array = new byte[totalLength];
@@ -591,7 +592,7 @@ public final class JECompressedSchema
     System.arraycopy(encodedEntry, pos, adArray.array(), 0, adArrayLength);
     pos += adArrayLength;
     AttributeType attrType = atDecodeMap.get(adArray);
-    LinkedHashSet<String> options = aoDecodeMap.get(adArray);
+    Set<String> options = aoDecodeMap.get(adArray);
     if ((attrType == null) || (options == null))
     {
       Message message = ERR_JEB_COMPSCHEMA_UNRECOGNIZED_AD_TOKEN.get(
@@ -614,17 +615,16 @@ public final class JECompressedSchema
     }
 
 
-    // Read the appropriate number of values.
-    LinkedHashSet<AttributeValue> values =
-         new LinkedHashSet<AttributeValue>(numValues);
-    for (int i=0; i < numValues; i++)
+    // For the common case of a single value with no options, generate
+    // less garbage.
+    if (numValues == 1 && options.isEmpty())
     {
       int valueLength = encodedEntry[pos] & 0x7F;
       if (valueLength != encodedEntry[pos++])
       {
         int valueLengthBytes = valueLength;
         valueLength = 0;
-        for (int j=0; j < valueLengthBytes; j++, pos++)
+        for (int j = 0; j < valueLengthBytes; j++, pos++)
         {
           valueLength = (valueLength << 8) | (encodedEntry[pos] & 0xFF);
         }
@@ -632,11 +632,38 @@ public final class JECompressedSchema
 
       byte[] valueBytes = new byte[valueLength];
       System.arraycopy(encodedEntry, pos, valueBytes, 0, valueLength);
-      pos += valueLength;
-      values.add(new AttributeValue(attrType, new ASN1OctetString(valueBytes)));
-    }
 
-    return new Attribute(attrType, attrType.getPrimaryName(), options, values);
+      return Attributes.create(attrType, new AttributeValue(attrType,
+          new ASN1OctetString(valueBytes)));
+    }
+    else
+    {
+      // Read the appropriate number of values.
+      AttributeBuilder builder = new AttributeBuilder(attrType);
+      builder.setOptions(options);
+      builder.setInitialCapacity(numValues);
+      for (int i = 0; i < numValues; i++)
+      {
+        int valueLength = encodedEntry[pos] & 0x7F;
+        if (valueLength != encodedEntry[pos++])
+        {
+          int valueLengthBytes = valueLength;
+          valueLength = 0;
+          for (int j = 0; j < valueLengthBytes; j++, pos++)
+          {
+            valueLength = (valueLength << 8) | (encodedEntry[pos] & 0xFF);
+          }
+        }
+
+        byte[] valueBytes = new byte[valueLength];
+        System.arraycopy(encodedEntry, pos, valueBytes, 0, valueLength);
+        pos += valueLength;
+        builder.add(new AttributeValue(attrType,
+            new ASN1OctetString(valueBytes)));
+      }
+
+      return builder.toAttribute();
+    }
   }
 
 

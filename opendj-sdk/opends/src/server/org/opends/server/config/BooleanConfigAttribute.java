@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+
 import javax.management.AttributeList;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanParameterInfo;
@@ -167,7 +168,7 @@ public final class BooleanConfigAttribute
    *
    * @return  The attribute syntax for this configuration attribute.
    */
-  public AttributeSyntax getSyntax()
+  public AttributeSyntax<?> getSyntax()
   {
     return DirectoryServer.getDefaultBooleanSyntax();
   }
@@ -453,8 +454,7 @@ public final class BooleanConfigAttribute
           }
 
 
-          LinkedHashSet<AttributeValue> values = a.getValues();
-          if (values.isEmpty())
+          if (a.isEmpty())
           {
             // This is illegal -- it must have a value.
             Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
@@ -463,7 +463,7 @@ public final class BooleanConfigAttribute
           else
           {
             // Get the value and parse it as a Boolean.
-            Iterator<AttributeValue> iterator = values.iterator();
+            Iterator<AttributeValue> iterator = a.iterator();
             String valueString = iterator.next().getStringValue().toLowerCase();
 
             if (valueString.equals("true") || valueString.equals("yes") ||
@@ -516,8 +516,7 @@ public final class BooleanConfigAttribute
         }
 
 
-        LinkedHashSet<AttributeValue> values = a.getValues();
-        if (values.isEmpty())
+        if (a.isEmpty())
         {
           // This is illegal -- it must have a value.
           Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
@@ -526,7 +525,7 @@ public final class BooleanConfigAttribute
         else
         {
           // Get the value and parse it as a Boolean.
-          Iterator<AttributeValue> iterator = values.iterator();
+          Iterator<AttributeValue> iterator = a.iterator();
           String valueString = iterator.next().getStringValue().toLowerCase();
 
           if (valueString.equals("true") || valueString.equals("yes") ||

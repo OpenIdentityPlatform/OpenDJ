@@ -38,7 +38,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.GroupManager;
 import org.opends.server.core.ModifyOperation;
@@ -47,6 +46,7 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
@@ -794,10 +794,10 @@ public class VirtualStaticGroupTestCase
     assertTrue(e.hasAttribute(memberType));
 
     Attribute a = e.getAttribute(memberType).get(0);
-    assertEquals(a.getValues().size(), 4);
+    assertEquals(a.size(), 4);
 
     AttributeValue v = new AttributeValue(memberType, u1.toString());
-    assertTrue(a.hasValue(v));
+    assertTrue(a.contains(v));
 
     cleanUp();
   }
@@ -824,24 +824,24 @@ public class VirtualStaticGroupTestCase
     assertTrue(e.hasAttribute(memberType));
 
     Attribute a = e.getAttribute(memberType).get(0);
-    assertEquals(a.getValues().size(), 1);
+    assertEquals(a.size(), 1);
 
     AttributeValue v = new AttributeValue(memberType, u4.toString());
-    assertTrue(a.hasValue(v));
+    assertTrue(a.contains(v));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
     LinkedList<Modification> mods = new LinkedList<Modification>();
     mods.add(new Modification(ModificationType.ADD,
-         new Attribute("memberurl",
+        Attributes.create("memberurl",
                        "ldap:///o=test??sub?(objectClass=person)")));
     ModifyOperation modifyOperation = conn.processModify(d1, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     a = e.getAttribute(memberType).get(0);
-    assertEquals(a.getValues().size(), 4);
-    assertTrue(a.hasValue(v));
+    assertEquals(a.size(), 4);
+    assertTrue(a.contains(v));
 
     cleanUp();
   }
@@ -866,10 +866,10 @@ public class VirtualStaticGroupTestCase
     assertTrue(e.hasAttribute(memberType));
 
     Attribute a = e.getAttribute(memberType).get(0);
-    assertEquals(a.getValues().size(), 1);
+    assertEquals(a.size(), 1);
 
     AttributeValue v = new AttributeValue(memberType, u4.toString());
-    assertTrue(a.hasValue(v));
+    assertTrue(a.contains(v));
 
 
     InternalClientConnection conn =
@@ -877,7 +877,7 @@ public class VirtualStaticGroupTestCase
 
     LinkedList<Modification> mods = new LinkedList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-         new Attribute("ds-cfg-allow-retrieving-membership", "false")));
+        Attributes.create("ds-cfg-allow-retrieving-membership", "false")));
     DN definitionDN =
          DN.decode("cn=Virtual Static member,cn=Virtual Attributes,cn=config");
     ModifyOperation modifyOperation = conn.processModify(definitionDN, mods);
@@ -889,15 +889,15 @@ public class VirtualStaticGroupTestCase
     assertTrue(e.hasAttribute(memberType));
 
     a = e.getAttribute(memberType).get(0);
-    assertEquals(a.getValues().size(), 0);
+    assertEquals(a.size(), 0);
 
     v = new AttributeValue(memberType, u4.toString());
-    assertTrue(a.hasValue(v));
+    assertTrue(a.contains(v));
 
 
     mods = new LinkedList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-         new Attribute("ds-cfg-allow-retrieving-membership", "true")));
+        Attributes.create("ds-cfg-allow-retrieving-membership", "true")));
     modifyOperation = conn.processModify(definitionDN, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 

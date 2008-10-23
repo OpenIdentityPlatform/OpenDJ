@@ -27,6 +27,7 @@
 package org.opends.server.core;
 
 
+import org.opends.server.core.networkgroups.NetworkGroupNamingContexts;
 import org.opends.server.types.*;
 
 

@@ -18,6 +18,11 @@ ds-cfg-key-manager-provider: cn=JKS,cn=Key Manager Providers,cn=config
 replace: ds-cfg-trust-manager-provider
 ds-cfg-trust-manager-provider: cn=JKS,cn=Trust Manager Providers,cn=config
 
+dn: cn=Administration Connector,cn=config
+changeType: modify
+replace: ds-cfg-listen-port
+ds-cfg-listen-port: #adminport#
+
 dn: cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config
 changeType: modify
 replace: ds-cfg-enabled

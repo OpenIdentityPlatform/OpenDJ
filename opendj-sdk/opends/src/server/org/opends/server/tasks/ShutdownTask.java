@@ -25,29 +25,27 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
-import org.opends.messages.Message;
 
 
 
-import java.util.LinkedHashSet;
+import static org.opends.messages.TaskMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.List;
 
+import org.opends.messages.Message;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
-
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.messages.TaskMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -103,13 +101,13 @@ public class ShutdownTask
     if ((attrList != null) && (attrList.size() > 0))
     {
       Attribute attr = attrList.get(0);
-      LinkedHashSet<AttributeValue> values = attr.getValues();
-      if ((values != null) && (! values.isEmpty()))
+      if (!attr.isEmpty())
       {
-        String valueString = values.iterator().next().getStringValue();
+        String valueString = attr.iterator().next()
+            .getStringValue();
 
-        shutdownMessage = INFO_TASK_SHUTDOWN_CUSTOM_MESSAGE.get(
-            String.valueOf(taskEntry.getDN()), String.valueOf(valueString));
+        shutdownMessage = INFO_TASK_SHUTDOWN_CUSTOM_MESSAGE.get(String
+            .valueOf(taskEntry.getDN()), String.valueOf(valueString));
       }
     }
 
@@ -119,14 +117,13 @@ public class ShutdownTask
     if ((attrList != null) && (attrList.size() > 0))
     {
       Attribute attr = attrList.get(0);
-      LinkedHashSet<AttributeValue> values = attr.getValues();
-      if ((values != null) && (! values.isEmpty()))
+      if (!attr.isEmpty())
       {
-        String valueString =
-             toLowerCase(values.iterator().next().getStringValue());
+        String valueString = toLowerCase(attr.iterator().next()
+            .getStringValue());
 
-        restart = (valueString.equals("true") || valueString.equals("yes") ||
-                   valueString.equals("on") || valueString.equals("1"));
+        restart = (valueString.equals("true") || valueString.equals("yes")
+            || valueString.equals("on") || valueString.equals("1"));
       }
     }
 

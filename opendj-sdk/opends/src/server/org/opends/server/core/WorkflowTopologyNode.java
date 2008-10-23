@@ -77,8 +77,8 @@ public class WorkflowTopologyNode extends WorkflowTopology
    */
   public WorkflowTopologyNode(
       WorkflowImpl workflowImpl,
-      WorkflowElement[] preWorkflowElements,
-      WorkflowElement[] postWorkflowElements
+      WorkflowElement<?>[] preWorkflowElements,
+      WorkflowElement<?>[] postWorkflowElements
       )
   {
     super(workflowImpl);
@@ -92,7 +92,7 @@ public class WorkflowTopologyNode extends WorkflowTopology
    * @param operation the operation to execute
    *
    * @throws CanceledOperationException if this operation should
-   * be cancelled.
+   * be canceled.
    */
   public void execute(Operation operation)
       throws CanceledOperationException {
@@ -114,7 +114,7 @@ public class WorkflowTopologyNode extends WorkflowTopology
    * @param searchOp the search operation to execute
    *
    * @throws CanceledOperationException if this operation should
-   * be cancelled.
+   * be canceled.
    */
   private void executeSearchOnSubordinates(SearchOperation searchOp)
       throws CanceledOperationException {
@@ -152,7 +152,7 @@ public class WorkflowTopologyNode extends WorkflowTopology
       }
 
       // If the request base DN is not a subordinate of the subordinate
-      // worklfow base DN then don't search in the subordinate workflow.
+      // workflow base DN then don't search in the subordinate workflow.
       if (! originalBaseDN.isAncestorOf(subordinateDN))
       {
         continue;
@@ -220,7 +220,7 @@ public class WorkflowTopologyNode extends WorkflowTopology
 
   /**
    * Gets the base DN of the workflow that handles a given dn. The elected
-   * workflow may be the current workflow or one of its subordiante workflows.
+   * workflow may be the current workflow or one of its subordinate workflows.
    *
    * @param  dn  the DN for which we are looking a parent DN
    * @return the base DN which is the parent of the <code>dn</code>,
@@ -298,7 +298,7 @@ public class WorkflowTopologyNode extends WorkflowTopology
       WorkflowTopologyNode newWorkflow
       )
   {
-    // Dont try to add the workflow to itself.
+    // Don't try to add the workflow to itself.
     if (newWorkflow == this)
     {
       return;
@@ -314,7 +314,7 @@ public class WorkflowTopologyNode extends WorkflowTopology
       DN newDN = newWorkflow.getBaseDN();
       DN subordinateDN = curSubordinate.getBaseDN();
 
-      // Dont try to add workflow when baseDNs are
+      // Don't try to add workflow when baseDNs are
       // the same on both workflows.
       if (newDN.equals(subordinateDN)) {
         return;
@@ -370,7 +370,7 @@ public class WorkflowTopologyNode extends WorkflowTopology
     DN parentBaseDN = getBaseDN();
     DN newBaseDN    = newWorkflow.getBaseDN();
 
-    // dont' try to insert workflows when baseDNs are the same on both
+    // don't try to insert workflows when baseDNs are the same on both
     // workflows
     if (parentBaseDN.equals(newBaseDN))
     {

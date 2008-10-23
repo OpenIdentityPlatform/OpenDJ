@@ -358,4 +358,41 @@ public class ServerState implements Iterable<Short>
     }
     return newState;
   }
+
+  /**
+   * Computes the number of changes a first server state has in advance
+   * compared to a second server state.
+   * @param ss1 The server state supposed to be newer than the second one
+   * @param ss2 The server state supposed to be older than the first one
+   * @return The difference of changes (sum of the differences for each server
+   * id changes). 0 If no gap between 2 states.
+   * @throws IllegalArgumentException If one of the passed state is null
+   */
+  public static int diffChanges(ServerState ss1, ServerState ss2)
+    throws  IllegalArgumentException
+  {
+     if ( (ss1 == null) || (ss2 == null) )
+       throw new IllegalArgumentException("Null server state(s)");
+
+     int diff = 0;
+     for (Short serverId : ss1.list.keySet())
+     {
+       ChangeNumber cn1 = ss1.list.get(serverId);
+       if (cn1 != null)
+       {
+         ChangeNumber cn2 = ss2.list.get(serverId);
+         if (cn2 != null)
+         {
+           diff += ChangeNumber.diffSeqNum(cn1, cn2);
+         } else {
+           // ss2 does not have a change for this server id but ss1, so the
+           // server holding ss1 has every changes represented in cn1 in advance
+           // compared to server hodling ss2, add this amount
+           diff += cn1.getSeqnum();
+         }
+       }
+     }
+
+     return diff;
+  }
 }

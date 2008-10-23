@@ -97,6 +97,8 @@ public class InstallReviewPanel extends ReviewPanel {
         String.valueOf(userData.getHostName()));
     setFieldValue(FieldName.SERVER_PORT,
         String.valueOf(userData.getServerPort()));
+    setFieldValue(FieldName.ADMIN_CONNECTOR_PORT,
+        String.valueOf(userData.getAdminConnectorPort()));
     setFieldValue(FieldName.SECURITY_OPTIONS,
         getSecurityOptionsString(userData.getSecurityOptions(), false));
     setFieldValue(FieldName.DIRECTORY_MANAGER_DN, userData
@@ -192,6 +194,12 @@ public class InstallReviewPanel extends ReviewPanel {
             INFO_SERVER_PORT_TOOLTIP.get(),
             LabelFieldDescriptor.FieldType.READ_ONLY,
             LabelFieldDescriptor.LabelType.PRIMARY, 0));
+
+    hm.put(FieldName.ADMIN_CONNECTOR_PORT, new LabelFieldDescriptor(
+        INFO_ADMIN_CONNECTOR_PORT_LABEL.get(),
+        INFO_ADMIN_CONNECTOR_PORT_TOOLTIP.get(),
+        LabelFieldDescriptor.FieldType.READ_ONLY,
+        LabelFieldDescriptor.LabelType.PRIMARY, 0));
 
     hm.put(FieldName.SECURITY_OPTIONS, new LabelFieldDescriptor(
             INFO_SERVER_SECURITY_LABEL.get(),
@@ -450,7 +458,8 @@ public class InstallReviewPanel extends ReviewPanel {
         new FieldName[]
           {
             FieldName.SERVER_LOCATION, FieldName.HOST_NAME,
-            FieldName.SERVER_PORT, FieldName.SECURITY_OPTIONS,
+            FieldName.SERVER_PORT, FieldName.ADMIN_CONNECTOR_PORT,
+            FieldName.SECURITY_OPTIONS,
             FieldName.DIRECTORY_MANAGER_DN, FieldName.GLOBAL_ADMINISTRATOR_UID,
             FieldName.DATA_OPTIONS, FieldName.REPLICATION_PORT
           };
@@ -461,6 +470,7 @@ public class InstallReviewPanel extends ReviewPanel {
         new FieldName[]
           {
             FieldName.HOST_NAME, FieldName.SERVER_PORT,
+            FieldName.ADMIN_CONNECTOR_PORT,
             FieldName.SECURITY_OPTIONS, FieldName.DIRECTORY_MANAGER_DN,
             FieldName.GLOBAL_ADMINISTRATOR_UID, FieldName.DATA_OPTIONS,
             FieldName.REPLICATION_PORT

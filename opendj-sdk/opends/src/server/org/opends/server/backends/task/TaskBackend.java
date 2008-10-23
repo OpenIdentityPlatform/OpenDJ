@@ -660,10 +660,10 @@ public class TaskBackend
    * {@inheritDoc}
    */
   @Override()
-  public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
-         throws DirectoryException
+  public void replaceEntry(Entry oldEntry, Entry newEntry,
+      ModifyOperation modifyOperation) throws DirectoryException
   {
-    DN entryDN = entry.getDN();
+    DN entryDN = newEntry.getDN();
 
     Lock entryLock = null;
     if (! taskScheduler.holdsSchedulerLock())
@@ -715,8 +715,8 @@ public class TaskBackend
         TaskState state = t.getTaskState();
         if (TaskState.isPending(state))
         {
-          Task newTask =
-                    taskScheduler.entryToScheduledTask(entry, modifyOperation);
+          Task newTask = taskScheduler.entryToScheduledTask(newEntry,
+              modifyOperation);
           taskScheduler.removePendingTask(t.getTaskID());
           taskScheduler.scheduleTask(newTask, true);
           return;
@@ -749,7 +749,7 @@ public class TaskBackend
               break;
             }
 
-            Iterator<AttributeValue> iterator = a.getValues().iterator();
+            Iterator<AttributeValue> iterator = a.iterator();
             if (! iterator.hasNext())
             {
               acceptable = false;

@@ -104,7 +104,6 @@
               </script>
               <call function="'dsconfig'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'subcommand'     : 'set-entry-cache-prop',
@@ -118,7 +117,6 @@
               </script>
               <call function="'dsconfig'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'subcommand'     : 'get-entry-cache-prop',
@@ -162,7 +160,6 @@
               </script>
               <call function="'dsconfig'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'subcommand'     : 'set-entry-cache-prop',
@@ -199,7 +196,6 @@
               </script>
               <call function="'dsconfig'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'subcommand'     : 'set-entry-cache-prop',
@@ -243,7 +239,6 @@
               </script>
               <call function="'dsconfig'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'subcommand'     : 'create-entry-cache',
@@ -257,7 +252,6 @@
               </script>
               <call function="'dsconfig'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'subcommand'     : 'get-entry-cache-prop',

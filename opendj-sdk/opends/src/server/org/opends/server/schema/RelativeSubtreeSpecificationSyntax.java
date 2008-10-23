@@ -275,4 +275,14 @@ public final class RelativeSubtreeSpecificationSyntax
       return false;
     }
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }

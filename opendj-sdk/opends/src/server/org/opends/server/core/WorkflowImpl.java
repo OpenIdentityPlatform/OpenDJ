@@ -28,6 +28,8 @@ package org.opends.server.core;
 
 import static org.opends.messages.CoreMessages.*;
 import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+
 import static org.opends.server.util.Validator.ensureNotNull;
 
 import java.util.Collection;
@@ -52,7 +54,7 @@ public class WorkflowImpl implements Workflow
   private String workflowID = null;
 
   // The root of the workflow task tree.
-  private WorkflowElement rootWorkflowElement = null;
+  private WorkflowElement<?> rootWorkflowElement = null;
 
   // The base DN of the data handled by the workflow.
   private DN baseDN = null;
@@ -90,9 +92,9 @@ public class WorkflowImpl implements Workflow
    * @param rootWorkflowElement the root node of the workflow task tree
    */
   public WorkflowImpl(
-      String          workflowId,
-      DN              baseDN,
-      WorkflowElement rootWorkflowElement
+      String             workflowId,
+      DN                 baseDN,
+      WorkflowElement<?> rootWorkflowElement
       )
   {
     this.workflowID = workflowId;
@@ -130,7 +132,7 @@ public class WorkflowImpl implements Workflow
   /**
    * Gets the workflow internal identifier.
    *
-   * @return the workflow internal indentifier
+   * @return the workflow internal identifier
    */
   public String getWorkflowId()
   {
@@ -158,15 +160,28 @@ public class WorkflowImpl implements Workflow
    * @param operation  the operation to execute
    *
    * @throws CanceledOperationException if this operation should
-   * be cancelled.
+   * be canceled.
    */
-  public void execute(Operation operation) throws CanceledOperationException {
-    rootWorkflowElement.execute(operation);
+  public void execute(Operation operation)
+    throws CanceledOperationException
+  {
+    if (rootWorkflowElement != null)
+    {
+      rootWorkflowElement.execute(operation);
+    }
+    else
+    {
+      // No root workflow element? It's a configuration error.
+      operation.setResultCode(ResultCode.OPERATIONS_ERROR);
+      MessageBuilder message = new MessageBuilder(
+        ERR_ROOT_WORKFLOW_ELEMENT_NOT_DEFINED.get(workflowID));
+      operation.setErrorMessage(message);
+    }
   }
 
 
   /**
-   * Registers the current worklow (this) with the server.
+   * Registers the current workflow (this) with the server.
    *
    * @throws  DirectoryException  If the workflow ID for the provided workflow
    *                              conflicts with the workflow ID of an existing
@@ -197,7 +212,7 @@ public class WorkflowImpl implements Workflow
 
 
   /**
-   * Deregisters the current worklow (this) with the server.
+   * Deregisters the current workflow (this) with the server.
    */
   public void deregister()
   {
@@ -214,7 +229,7 @@ public class WorkflowImpl implements Workflow
 
 
   /**
-   * Deregisters a worklow with the server. The workflow to deregister
+   * Deregisters a workflow with the server. The workflow to deregister
    * is identified with its identifier.
    *
    * @param workflowID  the identifier of the workflow to deregister
@@ -283,7 +298,7 @@ public class WorkflowImpl implements Workflow
    *
    * @return the root workflow element.
    */
-  WorkflowElement getRootWorkflowElement()
+  WorkflowElement<?> getRootWorkflowElement()
   {
     return rootWorkflowElement;
   }

@@ -55,8 +55,6 @@ public class UninstallUserData extends UserData {
   private String localServerUrl;
   private HashSet<ServerDescriptor> remoteServers =
     new HashSet<ServerDescriptor>();
-  private boolean useSSL;
-  private boolean useStartTLS;
   private String replicationServer;
   private String referencedHostName;
 
@@ -364,43 +362,4 @@ public class UninstallUserData extends UserData {
     this.remoteServers.addAll(remoteServers);
   }
 
-  /**
-   * Whether we must use SSL to connect to the local server or not.
-   * @return <CODE>true</CODE> if we must use SSL to connect to the local server
-   * and <CODE>false</CODE> otherwise.
-   */
-  public boolean useSSL()
-  {
-    return useSSL;
-  }
-
-  /**
-   * Sets whether we must use SSL to connect to the local server or not.
-   * @param useSSL whether we must use SSL to connect to the local server or
-   * not.
-   */
-  public void setUseSSL(boolean useSSL)
-  {
-    this.useSSL = useSSL;
-  }
-
-  /**
-   * Whether we must use Start TLS to connect to the local server or not.
-   * @return <CODE>true</CODE> if we must use Start TLS to connect to the local
-   * server and <CODE>false</CODE> otherwise.
-   */
-  public boolean useStartTLS()
-  {
-    return useStartTLS;
-  }
-
-  /**
-   * Sets whether we must use Start TLS to connect to the local server or not.
-   * @param useStartTLS whether we must use Start TLS to connect to the local
-   * server or not.
-   */
-  public void setUseStartTLS(boolean useStartTLS)
-  {
-    this.useStartTLS = useStartTLS;
-  }
 }

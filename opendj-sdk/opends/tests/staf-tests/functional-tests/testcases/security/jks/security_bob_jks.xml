@@ -243,13 +243,11 @@
             <call function="'dsconfig'">
             {
               'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort' : DIRECTORY_INSTANCE_SSL_PORT ,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'     : 'get-connection-handler-prop' ,
               'objectType'     : 'handler-name' ,
               'objectName'     : 'LDAPS Connection Handler',
-              'optionsString'  : '-Z -X',
               'expectedRC'     : 0 
             }
           </call>

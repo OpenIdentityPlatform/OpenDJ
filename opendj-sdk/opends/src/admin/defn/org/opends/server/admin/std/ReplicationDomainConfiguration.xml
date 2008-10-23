@@ -193,4 +193,151 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="assured-type" mandatory="false" advanced="true">
+    <adm:synopsis>
+      Defines the assured mode of the replicated domain.
+    </adm:synopsis>
+    <adm:description>
+      The assured mode can be disable or enabled. When enabled, two sub modes
+      are available: Safe Data or Safe Read modes.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>not-assured</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="not-assured">
+          <adm:synopsis>
+            Updates sent for replication (for being replayed on other LDAP
+            servers of the topology) are sent without waiting for any
+            aknowledgement and the LDAP client call returns immediately.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="safe-data">
+          <adm:synopsis>
+            Assured mode is enabled in Safe Data sub mode: updates sent for
+            replication are subject to acknowledgement defined by the
+            assured-sd-level property. After acknowlegement is received, LDAP
+            client call returns.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="safe-read">
+          <adm:synopsis>
+            Assured mode is enabled in Safe Read sub mode: updates sent for
+            replication are subject to acknowledgement of LDAP servers of the
+            topology having the same group id than us (defined with
+            assured-sr-group-id property). After acknowlegement is received,
+            LDAP client call returns.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-assured-type</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="assured-sd-level" mandatory="false" advanced="true">
+    <adm:synopsis>
+      The level of acknowledgment for Safe Data assured sub mode.
+    </adm:synopsis>
+    <adm:description>
+      When assured mode configured in Safe Data mode, this value defines the
+      number of replication servers that should acknowledge the sent update
+      before the LDAP client call can return.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>1</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="1" upper-limit="127"></adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-assured-sd-level</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="assured-timeout" mandatory="false" advanced="true">
+    <adm:synopsis>
+      The timeout value when waiting for assured mode acknowledgements.
+    </adm:synopsis>
+    <adm:description>
+      Defines the amount of milliseconds the server will wait for assured
+      acknowledgements (in either Safe Data or Safe Read assured sub modes)
+      before returning anyway the LDAP client call.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>1000ms</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="ms" lower-limit="1" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-assured-timeout</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="group-id" mandatory="false" advanced="true">
+    <adm:synopsis>
+      The group id associated with this replicated domain.
+    </adm:synopsis>
+    <adm:description>
+      This value defines the group id of the replicated domain. The replication
+      system will preferably connect and send updates to replicate to a
+      replication server with the same group id as him.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>1</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="1" upper-limit="127"></adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-group-id</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="referrals-url" multi-valued="true" mandatory="false"
+  advanced="true">
+    <adm:synopsis>
+      The URLs other LDAP servers should you to refer to us.
+    </adm:synopsis>
+    <adm:description>
+      URLs used by peer servers of the topology to refer to us through LDAP
+      referrals. If this attribute is not defined, every URLs available to
+      access this server will be used. If defined, only URLs specified here will
+      be used.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:undefined/>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string>
+        <adm:pattern>
+          <adm:regex>^ldap://.+$</adm:regex>
+          <adm:usage>LDAP URL</adm:usage>
+          <adm:synopsis>
+            A LDAP URL compliant with RFC 2255.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-referrals-url</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>

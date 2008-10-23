@@ -48,13 +48,28 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   int windowSize;
   private SortedSet<String> servers;
 
+  /*
+   * Assured mode properties
+   */
+  // Timeout (in milliseconds) when waiting for acknowledgments
+  private long assuredTimeout = 1000;
+
+  // Group id
+  private int groupId = 1;
+
+  // Threshold for status analyzers
+  private int degradedStatusThreshold = 5000;
+
+  /**
+   * Constructor without assured info
+   */
   public ReplServerFakeConfiguration(
       int port, String dirName, int purgeDelay, int serverId,
       int queueSize, int windowSize, SortedSet<String> servers)
   {
     this.port    = port;
     this.dirName = dirName;
-    
+
     if (purgeDelay == 0)
     {
       this.purgeDelay = 24*60*60;
@@ -85,6 +100,20 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
     }
 
     this.servers = servers;
+  }
+  
+  /**
+   * Constructor with assured info
+   */
+  public ReplServerFakeConfiguration(
+      int port, String dirName, int purgeDelay, int serverId,
+      int queueSize, int windowSize, SortedSet<String> servers,
+      int groupId, long assuredTimeout, int degradedStatusThreshold)
+  {
+    this(port, dirName, purgeDelay, serverId, queueSize, windowSize, servers);
+    this.groupId = groupId;
+    this.assuredTimeout = assuredTimeout;
+    this.degradedStatusThreshold = degradedStatusThreshold;
   }
 
   /**
@@ -182,6 +211,26 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
    */
   public ServerManagedObject<? extends Configuration> managedObject() {
     return null;
+  }
+
+  public int getGroupId()
+  {
+    return groupId;
+  }
+
+  public long getAssuredTimeout()
+  {
+    return assuredTimeout;
+  }
+  
+  public int getDegradedStatusThreshold()
+  {
+    return degradedStatusThreshold;
+  }
+  
+  public void setDegradedStatusThreshold(int degradedStatusThreshold)
+  {
+    this.degradedStatusThreshold = degradedStatusThreshold;
   }
 
 }

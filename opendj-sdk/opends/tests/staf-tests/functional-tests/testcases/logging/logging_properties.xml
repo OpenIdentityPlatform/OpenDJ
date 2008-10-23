@@ -74,7 +74,6 @@
           
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'create-log-publisher',
@@ -90,7 +89,6 @@
           <message>'------  set auto-flush to true --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'set-log-publisher-prop',
@@ -105,7 +103,6 @@
           </message>
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-publisher',
@@ -120,7 +117,6 @@
           <message>'------  set append  to false  --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'set-log-publisher-prop',
@@ -133,7 +129,6 @@
           <message>'------  get append --' </message>     
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-publisher',
@@ -149,7 +144,6 @@
           <message>'------  set asynchronous  to true  --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
             'subcommand'     : 'set-log-publisher-prop',
@@ -162,7 +156,6 @@
           <message>'------  get asynchronous --' </message>     
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
             'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
             'objectName'             : 'log-publisher' ,
@@ -177,7 +170,6 @@
           <message>'------  set buffer-size  to 10mb  --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
             'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
             'subcommand'           : 'set-log-publisher-prop' ,    
@@ -189,7 +181,6 @@
           <message>'------  get buffer-size --' </message>     
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-publisher',
@@ -205,7 +196,6 @@
           <message>'------  set time-interval  to 3m  --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'set-log-publisher-prop',
@@ -218,7 +208,6 @@
           <message>'------  get time-interval --' </message>
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-publisher',
@@ -234,7 +223,6 @@
           <message>'------  set log-file  to logs/testaccess  --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'set-log-publisher-prop',
@@ -247,7 +235,6 @@
           <message>'------  get log-file --' </message>
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-publisher',
@@ -262,7 +249,6 @@
           <message>'------  set log-file  to logs/access  --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'set-log-publisher-prop',
@@ -277,7 +263,6 @@
           <message>'------  set log-file-permissions  to 777  --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'set-log-publisher-prop',
@@ -290,7 +275,6 @@
           <message>'------  get log-file-permissions --' </message>
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-publisher',
@@ -306,7 +290,6 @@
           <message>'------  set queue-size  to 1000  --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
             'subcommand'     : 'set-log-publisher-prop',
@@ -319,7 +302,6 @@
           <message>'------  get queue-size --' </message>
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-publisher',
@@ -337,7 +319,6 @@
           </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'set-log-publisher-prop',
@@ -352,7 +333,6 @@
           </message>
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-publisher',
@@ -370,7 +350,6 @@
           </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
             'subcommand'     : 'set-log-publisher-prop',
@@ -385,7 +364,6 @@
           </message>
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-publisher',
@@ -402,7 +380,6 @@
           <message>'------  delete logger publisher --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'delete-log-publisher',
@@ -442,7 +419,6 @@
           </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'set-log-publisher-prop',
@@ -455,7 +431,6 @@
           <message>'------  get default-severity --' </message>
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-publisher',
@@ -472,7 +447,6 @@
           
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
             'subcommand'     : 'set-log-publisher-prop',
@@ -487,7 +461,6 @@
           </message>
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-publisher',
@@ -528,7 +501,6 @@
           <message>'------  set default-debug-category  --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'set-log-publisher-prop',
@@ -541,7 +513,6 @@
           <message>'------  get default-debug-category --' </message>     
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-publisher',
@@ -557,7 +528,6 @@
           <message>'------  set default-debug-level    --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'  : DIRECTORY_INSTANCE_PORT ,
             'dsInstanceDn'    : DIRECTORY_INSTANCE_DN ,
             'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
             'subcommand'      : 'set-log-publisher-prop',
@@ -570,7 +540,6 @@
           <message>'------  get default-debug-level --' </message>
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-publisher',
@@ -587,7 +556,6 @@
           </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'set-log-publisher-prop',
@@ -600,7 +568,6 @@
           <message>'------  get default-include-throwable-cause --' </message>     
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-publisher',
@@ -617,7 +584,6 @@
           </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'set-log-publisher-prop',
@@ -632,7 +598,6 @@
           </message>
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-publisher',
@@ -649,7 +614,6 @@
           </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
             'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
             'subcommand'           : 'set-log-publisher-prop' ,    
@@ -661,7 +625,6 @@
           <message>'------  get default-omit-method-return-value --' </message>     
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-publisher',
@@ -678,7 +641,6 @@
           </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'set-log-publisher-prop',
@@ -691,7 +653,6 @@
           <message>'------  get default-throwable-stack-frames --' </message>     
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-publisher',

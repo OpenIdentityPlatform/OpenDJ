@@ -46,9 +46,9 @@ import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.DN;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
+import org.opends.server.types.DirectoryException;
 import org.testng.annotations.Test;
+import static org.opends.server.TestCaseUtils.*;
 
 /**
  * Test if the replication domain is able to switch of replication server
@@ -57,12 +57,10 @@ import org.testng.annotations.Test;
 @Test(sequential = true)
 public class ReplicationServerFailoverTest extends ReplicationTestCase
 {
-
-  private static final String BASEDN_STRING = "dc=example,dc=com";
   private static final short DS1_ID = 1;
   private static final short DS2_ID = 2;
-  private static final short RS1_ID = 11;
-  private static final short RS2_ID = 12;
+  private static final short RS1_ID = 31;
+  private static final short RS2_ID = 32;
   private int rs1Port = -1;
   private int rs2Port = -1;
   private ReplicationDomain rd1 = null;
@@ -78,7 +76,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
     logError(Message.raw(Category.SYNC, Severity.NOTICE, s));
     if (debugEnabled())
     {
-      TRACER.debugInfo("** TEST **" + s);
+      TRACER.debugInfo("*** TEST *** " + s);
     }
   }
 
@@ -107,15 +105,26 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
       rd2 = null;
     }
 
+    try
+    {
+      // Clear any reference to a domain in synchro plugin
+      MultimasterReplication.deleteDomain(DN.decode(TEST_ROOT_DN_STRING));
+    } catch (DirectoryException ex)
+    {
+      fail("Error deleting reference to domain: " + TEST_ROOT_DN_STRING);
+    }
+
     if (rs1 != null)
     {
-      rs1.shutdown();
+      rs1.clearDb();
+      rs1.remove();
       rs1 = null;
     }
 
     if (rs2 != null)
     {
-      rs2.shutdown();
+      rs2.clearDb();
+      rs2.remove();
       rs2 = null;
     }
     rs1Port = -1;
@@ -127,10 +136,10 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
    * 1 DS (DS1) and 2 RS (RS1 and RS2) in topology.
    * DS1 connected to one RS
    * Both RS are connected together (RS1<->RS2)
-   * The RS connected to DS1 fails, DS1 should be connected 
+   * The RS connected to DS1 fails, DS1 should be connected
    * to the other RS
    *
-   * @throws Exception If a problem occured
+   * @throws Exception If a problem occurred
    */
   @Test
   public void testFailOverSingle() throws Exception
@@ -141,42 +150,53 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
 
     initTest();
 
-    // Start RS1
-    rs1 = createReplicationServer(RS1_ID, testCase);
-    // Start RS2
-    rs2 = createReplicationServer(RS2_ID, testCase);
-
-    // Start DS1
-    DN baseDn = DN.decode(BASEDN_STRING);
-    rd1 = createReplicationDomain(baseDn, DS1_ID, testCase);
-
-    // DS1 connected to RS1 ?
-    String msg = "Before " + RS1_ID + " failure";
-    // Check which replication server is connected to this LDAP server 
-    rsPort = findReplServerConnected(rd1);
-
-    if (rsPort == rs1Port)
+    try
     {
-      // Simulate RS1 failure
-      rs1.shutdown();
-      // Let time for failover to happen
-      sleep(5000);
-      // DS1 connected to RS2 ?
-      msg = "After " + RS1_ID + " failure";
-      checkConnection(DS1_ID, RS2_ID, msg);
-    }
-    else
-    { // Simulate RS2 failure
-      rs2.shutdown();
-      // Let time for failover to happen
-      sleep(5000);
+      // Start RS1
+      rs1 = createReplicationServer(RS1_ID, testCase);
+      // Start RS2
+      rs2 = createReplicationServer(RS2_ID, testCase);
+
+      // Start DS1
+      DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+      rd1 = createReplicationDomain(baseDn, DS1_ID);
+      
+      // Wait a bit so that connections are performed
+      sleep(2000);
+
       // DS1 connected to RS1 ?
-      msg = "After " + RS2_ID + " failure";
-      checkConnection(DS1_ID, RS1_ID, msg);
+      // Check which replication server is connected to this LDAP server
+      rsPort = findReplServerConnected(rd1);
+
+      if (rsPort == rs1Port)
+      {
+        // Simulate RS1 failure
+        String msg = "Before " + RS1_ID + " failure";
+        debugInfo(msg);
+        rs1.remove();
+        // Let time for failover to happen
+        // DS1 connected to RS2 ?
+        msg = "After " + RS1_ID + " failure";
+        checkConnection(30, DS1_ID, RS2_ID, msg);
+      }
+      else if (rsPort == rs2Port)
+      { // Simulate RS2 failure
+        String msg = "Before " + RS2_ID + " failure";
+        debugInfo(msg);
+        rs2.remove();
+        // DS1 connected to RS1 ?
+        msg = "After " + RS2_ID + " failure";
+        checkConnection(30, DS1_ID, RS1_ID, msg);
+      }
+      else {
+        fail("DS1 is not connected to a RS");
+      }
+
+      debugInfo(testCase + " successfully ended.");
+    } finally
+    {
+      endTest();
     }
-
-
-    endTest();
   }
 
   /**
@@ -188,14 +208,9 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
    * RS1 comes back (no change)
    * RS2 fails, DS1 and DS2 should be both connected to RS1
    *
-   * @throws Exception If a problem occured
+   * @throws Exception If a problem occurred
    */
-  @Test(enabled = false)
-  // This test to be run in standalone, not in precommit
-  // because the timing is important as we restart servers after they fail
-  // and thus cannot warrenty that the recovering server is the right one if
-  // the sleep time is not enough with regard to thread scheduling in heavy
-  // precommit environment
+  @Test(groups="slow")
   public void testFailOverMulti() throws Exception
   {
     String testCase = "testFailOverMulti";
@@ -204,68 +219,63 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
 
     initTest();
 
-    // Start RS1
-    rs1 = createReplicationServer(RS1_ID, testCase);
-    // Start RS2
-    rs2 = createReplicationServer(RS2_ID, testCase);
+    try
+    {
+      // Start RS1
+      rs1 = createReplicationServer(RS1_ID, testCase);
+      // Start RS2
+      rs2 = createReplicationServer(RS2_ID, testCase);
 
-    // Start DS1
-    DN baseDn = DN.decode(BASEDN_STRING);
-    rd1 = createReplicationDomain(baseDn, DS1_ID, testCase);
-    // Start DS2
-    rd2 = createReplicationDomain(baseDn, DS2_ID, testCase);
+      // Start DS1
+      DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+      rd1 = createReplicationDomain(baseDn, DS1_ID);
+      // Start DS2
+      rd2 = createReplicationDomain(baseDn, DS2_ID);
+      
+      // Wait a bit so that connections are performed
+      sleep(3000);
 
-    // DS1 connected to RS1 ?
-    //String msg = "Before " + RS1_ID + " failure";
-    //checkConnection(DS1_ID, RS1_ID, msg);
-    // DS2 connected to RS2 ?
-    //checkConnection(DS2_ID, RS1_ID, msg);
+      // Simulate RS1 failure
+      rs1.remove();
 
-    // Simulate RS1 failure
-    rs1.shutdown();
-    // Let time for failover to happen
-    sleep(5000);
+      // DS1 connected to RS2 ?
+      String msg = "After " + RS1_ID + " failure";
+      checkConnection(30, DS1_ID, RS2_ID, msg);
+      // DS2 connected to RS2 ?
+      checkConnection(30, DS2_ID, RS2_ID, msg);
 
-    // DS1 connected to RS2 ?
-    String msg = "After " + RS1_ID + " failure";
-    checkConnection(DS1_ID, RS2_ID, msg);
-    // DS2 connected to RS2 ?
-    checkConnection(DS2_ID, RS2_ID, msg);
+      // Restart RS1
+      rs1 = createReplicationServer(RS1_ID, testCase);
 
-    // Restart RS1
-    rs1 = createReplicationServer(RS1_ID, testCase);
-    // Let time for RS1 to restart
-    sleep(5000);
+      // DS1 connected to RS2 ?
+      msg = "Before " + RS2_ID + " failure";
+      checkConnection(30, DS1_ID, RS2_ID, msg);
+      // DS2 connected to RS2 ?
+      checkConnection(30, DS2_ID, RS2_ID, msg);
 
-    // DS1 connected to RS2 ?
-    msg = "Before " + RS2_ID + " failure";
-    checkConnection(DS1_ID, RS2_ID, msg);
-    // DS2 connected to RS2 ?
-    checkConnection(DS2_ID, RS2_ID, msg);
+      // Simulate RS2 failure
+      rs2.remove();
 
-    // Simulate RS2 failure
-    rs2.shutdown();
-    // Let time for failover to happen
-    sleep(5000);
+      // DS1 connected to RS1 ?
+      msg = "After " + RS2_ID + " failure";
+      checkConnection(30, DS1_ID, RS1_ID, msg);
+      // DS2 connected to RS1 ?
+      checkConnection(30, DS2_ID, RS1_ID, msg);
 
-    // DS1 connected to RS1 ?
-    msg = "After " + RS2_ID + " failure";
-    checkConnection(DS1_ID, RS1_ID, msg);
-    // DS2 connected to RS1 ?
-    checkConnection(DS2_ID, RS1_ID, msg);
+      // Restart RS2
+      rs2 = createReplicationServer(RS2_ID, testCase);
 
-    // Restart RS2
-    rs2 = createReplicationServer(RS2_ID, testCase);
-    // Let time for RS2 to restart
-    sleep(5000);
+      // DS1 connected to RS1 ?
+      msg = "After " + RS2_ID + " restart";
+      checkConnection(30, DS1_ID, RS1_ID, msg);
+      // DS2 connected to RS1 ?
+      checkConnection(30, DS2_ID, RS1_ID, msg);
 
-    // DS1 connected to RS1 ?
-    msg = "After " + RS2_ID + " restart";
-    checkConnection(DS1_ID, RS1_ID, msg);
-    // DS2 connected to RS1 ?
-    checkConnection(DS2_ID, RS1_ID, msg);
-
-    endTest();
+      debugInfo(testCase + " successfully ended.");
+    } finally
+    {
+      endTest();
+    }
   }
 
   private void sleep(long time)
@@ -281,58 +291,92 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
 
   /**
    * Check connection of the provided replication domain to the provided
-   * replication server.
+   * replication server. Waits for connection to be ok up to secTimeout seconds
+   * before failing.
    */
-  private void checkConnection(short dsId, short rsId, String msg)
+  private void checkConnection(int secTimeout, short dsId, short rsId, String msg)
   {
 
     int rsPort = -1;
     ReplicationDomain rd = null;
-    if (dsId == DS1_ID)
+    switch (dsId)
     {
-      rd = rd1;
-    } else if (dsId == DS2_ID)
-    {
-      rd = rd2;
-    } else
-    {
-      fail("Unknown replication domain server id.");
+      case DS1_ID:
+        rd = rd1;
+        break;
+      case DS2_ID:
+        rd = rd2;
+        break;
+      default:
+        fail("Unknown replication domain server id.");
     }
 
-    if (rsId == RS1_ID)
+    switch (rsId)
     {
-      rsPort = rs1Port;
-    } else if (rsId == RS2_ID)
-    {
-      rsPort = rs2Port;
-    } else
-    {
-      fail("Unknown replication server id.");
+      case RS1_ID:
+        rsPort = rs1Port;
+        break;
+      case RS2_ID:
+        rsPort = rs2Port;
+        break;
+      default:
+        fail("Unknown replication server id.");
     }
 
-    // Connected ?
-    assertEquals(rd.isConnected(), true,
-      "Replication domain " + dsId +
-      " is not connected to a replication server (" + msg + ")");
-    // Right port ?
-    String serverStr = rd.getReplicationServer();
-    int index = serverStr.lastIndexOf(':');
-    if ((index == -1) || (index >= serverStr.length()))
-      fail("Enable to find port number in: " + serverStr);
-    String rdPortStr = serverStr.substring(index + 1);
-    int rdPort = -1;
-    try
+    int nSec = 0;
+
+    // Go out of the loop only if connection is verified or if timeout occurs
+    while (true)
     {
-      rdPort = (new Integer(rdPortStr)).intValue();
-    } catch (Exception e)
-    {
-      fail("Enable to get an int from: " + rdPortStr);
+      // Test connection
+      boolean connected = rd.isConnected();
+      int rdPort = -1;
+      boolean rightPort = false;
+      if (connected)
+      {
+        String serverStr = rd.getReplicationServer();
+        int index = serverStr.lastIndexOf(':');
+        if ((index == -1) || (index >= serverStr.length()))
+          fail("Enable to find port number in: " + serverStr);
+        String rdPortStr = serverStr.substring(index + 1);
+        try
+        {
+          rdPort = (new Integer(rdPortStr)).intValue();
+        } catch (Exception e)
+        {
+          fail("Enable to get an int from: " + rdPortStr);
+        }
+        if (rdPort == rsPort)
+          rightPort = true;
+      }
+      if (connected && rightPort)
+      {
+        // Connection verified
+        debugInfo("checkConnection: connection from domain " + dsId + " to" +
+          " replication server " + rsId + " obtained after "
+          + nSec + " seconds.");
+        return;
+      }
+
+      // Sleep 1 second
+      try
+      {
+        Thread.sleep(1000);
+      } catch (InterruptedException ex)
+      {
+        fail("Error sleeping " + stackTraceToSingleLineString(ex));
+      }
+      nSec++;
+
+      if (nSec > secTimeout)
+      {
+        // Timeout reached, end with error
+        fail("checkConnection: could not verify connection from domain " + dsId
+          + " to replication server " + rsId + " after " + secTimeout + " seconds."
+          + " Domain connected: " + connected + ", connection port: " + rdPort
+          + " (should be: " + rsPort + "). [" + msg + "]");
+      }
     }
-    assertEquals(rdPort, rsPort,
-      "Replication domain " + dsId +
-      " is not connected to right replication server port (" +
-      rdPort + ") was expecting " + rsPort +
-      " (" + msg + ")");
   }
 
   /**
@@ -378,7 +422,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
         fail("Unknown replication server id.");
       }
 
-      String dir = "genid" + serverId + suffix + "Db";
+      String dir = "replicationServerFailoverTest" + serverId + suffix + "Db";
       ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(port, dir, 0, serverId, 0, 100,
         replServers);
@@ -395,8 +439,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
   /**
    * Creates a new ReplicationDomain.
    */
-  private ReplicationDomain createReplicationDomain(DN baseDn, short serverId,
-    String suffix)
+  private ReplicationDomain createReplicationDomain(DN baseDn, short serverId)
   {
 
     SortedSet<String> replServers = new TreeSet<String>();
@@ -405,7 +448,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
       // Create a domain with two replication servers
       replServers.add("localhost:" + rs1Port);
       replServers.add("localhost:" + rs2Port);
-      
+
       DomainFakeCfg domainConf =
         new DomainFakeCfg(baseDn, serverId, replServers);
       //domainConf.setHeartbeatInterval(500);
@@ -422,48 +465,20 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
     return null;
   }
 
-  /**
-   * Set up the environment.
-   *
-   * @throws Exception
-   *           If the environment could not be set up.
-   */
-  @BeforeClass
-  @Override
-  public void setUp() throws Exception
-  {
-    super.setUp();
-  // In case we need to extend
-  }
-
-  /**
-   * Clean up the environment.
-   *
-   * @throws Exception
-   *           If the environment could not be set up.
-   */
-  @AfterClass
-  @Override
-  public void classCleanUp() throws Exception
-  {
-    super.classCleanUp();
-  // In case we need it extend
-  }
-  
   private int findReplServerConnected(ReplicationDomain rd)
-  {  
+  {
     int rsPort = -1;
-  
+
     // First check that the Replication domain is connected
     if (!rd.isConnected())
       return rsPort;
-  
+
     String serverStr = rd.getReplicationServer();
     int index = serverStr.lastIndexOf(':');
     if ((index == -1) || (index >= serverStr.length()))
       fail("Enable to find port number in: " + serverStr);
     rsPort = (new Integer(serverStr.substring(index + 1)));
-  
+
       return rsPort;
   }
 }

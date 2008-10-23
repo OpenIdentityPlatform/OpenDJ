@@ -28,11 +28,10 @@ package org.opends.server.replication.plugin;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Entry;
@@ -129,7 +128,8 @@ public class AttrInfoMultiple extends AttributeInfo
      while (it.hasNext())
      {
        ValueInfo info = it.next();
-       if (CN.newerOrEquals(info.getValueUpdateTime()))
+       if (CN.newerOrEquals(info.getValueUpdateTime()) &&
+           CN.newerOrEquals(info.getValueDeleteTime()))
          it.remove();
      }
 
@@ -161,31 +161,37 @@ public class AttrInfoMultiple extends AttributeInfo
    }
 
    /**
-    * Change historical information after a delete of a set of values.
-    *
-    * @param values values that were deleted
-    * @param CN time when the delete was done
-    */
-   protected void delete(LinkedHashSet<AttributeValue> values, ChangeNumber CN)
-   {
-     for (AttributeValue val : values)
-     {
-       ValueInfo info = new ValueInfo(val, null, CN);
-       this.valuesInfo.remove(info);
-       this.valuesInfo.add(info);
-       if (CN.newer(lastUpdateTime))
-       {
-         lastUpdateTime = CN;
-       }
-     }
-   }
+     * Change historical information after a delete of a set of
+     * values.
+     *
+     * @param attr
+     *          the attribute containing the set of values that were
+     *          deleted
+     * @param CN
+     *          time when the delete was done
+     */
+  protected void delete(Attribute attr, ChangeNumber CN)
+  {
+    for (AttributeValue val : attr)
+    {
+      ValueInfo info = new ValueInfo(val, null, CN);
+      this.valuesInfo.remove(info);
+      this.valuesInfo.add(info);
+      if (CN.newer(lastUpdateTime))
+      {
+        lastUpdateTime = CN;
+      }
+    }
+  }
 
    /**
-    * Update the historical information when a value is added.
-    *
-    * @param val values that was added
-    * @param CN time when the value was added
-    */
+     * Update the historical information when a value is added.
+     *
+     * @param val
+     *          values that was added
+     * @param CN
+     *          time when the value was added
+     */
    protected void add(AttributeValue val, ChangeNumber CN)
    {
      ValueInfo info = new ValueInfo(val, CN, null);
@@ -198,25 +204,26 @@ public class AttrInfoMultiple extends AttributeInfo
    }
 
    /**
-    * Update the historical information when values are added.
-    *
-    * @param values the set of added values
-    * @param CN time when the add is done
-    */
-   private void add(LinkedHashSet<AttributeValue> values,
-            ChangeNumber CN)
-   {
-     for (AttributeValue val : values)
-     {
-       ValueInfo info = new ValueInfo(val, CN, null);
-       this.valuesInfo.remove(info);
-       valuesInfo.add(info);
-       if (CN.newer(lastUpdateTime))
-       {
-         lastUpdateTime = CN;
-       }
-     }
-   }
+     * Update the historical information when values are added.
+     *
+     * @param attr
+     *          the attribute containing the set of added values
+     * @param CN
+     *          time when the add is done
+     */
+  private void add(Attribute attr, ChangeNumber CN)
+  {
+    for (AttributeValue val : attr)
+    {
+      ValueInfo info = new ValueInfo(val, CN, null);
+      this.valuesInfo.remove(info);
+      valuesInfo.add(info);
+      if (CN.newer(lastUpdateTime))
+      {
+        lastUpdateTime = CN;
+      }
+    }
+  }
 
   /**
    * Get the List of ValueInfo for this attribute Info.
@@ -240,10 +247,8 @@ public class AttrInfoMultiple extends AttributeInfo
     // conflict
     // with some more recent operations on this same entry
     // we need to take the more complex path to solve them
-    Attribute modAttr = m.getAttribute();
-    AttributeType type = modAttr.getAttributeType();
-
-    if (ChangeNumber.compare(changeNumber, getLastUpdateTime()) <= 0)
+    if ((ChangeNumber.compare(changeNumber, getLastUpdateTime()) <= 0) ||
+        (m.getModificationType() != ModificationType.REPLACE))
     {
       // the attribute was modified after this change -> conflict
 
@@ -259,12 +264,14 @@ public class AttrInfoMultiple extends AttributeInfo
           break;
         }
 
-        conflictDelete(changeNumber, type, m, modifiedEntry, modAttr);
+        if (!conflictDelete(changeNumber, m, modifiedEntry))
+        {
+          modsIterator.remove();
+        }
         break;
 
       case ADD:
-        conflictAdd(modsIterator, changeNumber,
-                    modAttr.getValues(), modAttr.getOptions());
+        conflictAdd(changeNumber, m, modsIterator);
         break;
 
       case REPLACE:
@@ -276,6 +283,7 @@ public class AttrInfoMultiple extends AttributeInfo
           modsIterator.remove();
           break;
         }
+
         /* save the values that are added by the replace operation
          * into addedValues
          * first process the replace as a delete operation -> this generate
@@ -284,15 +292,18 @@ public class AttrInfoMultiple extends AttributeInfo
          * -> this generate the list of values that needs to be added
          * concatenate the 2 generated lists into a replace
          */
-        LinkedHashSet<AttributeValue> addedValues = modAttr.getValues();
-        modAttr.setValues(new LinkedHashSet<AttributeValue>());
+        Attribute addedValues = m.getAttribute();
+        m.setAttribute(new AttributeBuilder(addedValues, true).toAttribute());
 
-        this.conflictDelete(changeNumber, type, m, modifiedEntry, modAttr);
+        conflictDelete(changeNumber, m, modifiedEntry);
+        Attribute keptValues = m.getAttribute();
 
-        LinkedHashSet<AttributeValue> keptValues = modAttr.getValues();
-        this.conflictAdd(modsIterator, changeNumber, addedValues,
-            modAttr.getOptions());
-        keptValues.addAll(addedValues);
+        m.setAttribute(addedValues);
+        conflictAdd(changeNumber, m, modsIterator);
+
+        AttributeBuilder builder = new AttributeBuilder(keptValues);
+        builder.addAll(m.getAttribute());
+        m.setAttribute(builder.toAttribute());
         break;
 
       case INCREMENT:
@@ -339,13 +350,13 @@ public class AttrInfoMultiple extends AttributeInfo
     switch (mod.getModificationType())
     {
     case DELETE:
-      if (modAttr.getValues().isEmpty())
+      if (modAttr.isEmpty())
       {
         delete(changeNumber);
       }
       else
       {
-        delete(modAttr.getValues(), changeNumber);
+        delete(modAttr, changeNumber);
       }
       break;
 
@@ -354,13 +365,13 @@ public class AttrInfoMultiple extends AttributeInfo
       {
         delete(changeNumber);
       }
-      add(modAttr.getValues(), changeNumber);
+      add(modAttr, changeNumber);
       break;
 
     case REPLACE:
       /* TODO : can we replace specific attribute values ????? */
       delete(changeNumber);
-      add(modAttr.getValues(), changeNumber);
+      add(modAttr, changeNumber);
       break;
 
     case INCREMENT:
@@ -374,21 +385,13 @@ public class AttrInfoMultiple extends AttributeInfo
    * modification.
    *
    * @param changeNumber The changeNumber of the currently processed change
-   * @param type attribute type
    * @param m the modification that is being processed
    * @param modifiedEntry the entry that is modified (before current mod)
-   * @param attrInfo the historical info associated to the entry
-   * @param modAttr the attribute modification
    * @return false if there is nothing to do
    */
-  private boolean conflictDelete(ChangeNumber changeNumber,
-                                AttributeType type, Modification m,
-                                Entry modifiedEntry,
-                                Attribute modAttr )
+  private boolean conflictDelete(ChangeNumber changeNumber, Modification m,
+      Entry modifiedEntry)
   {
-    LinkedHashSet<AttributeValue> delValues;
-    LinkedHashSet<AttributeValue> replValues;
-
     /*
      * We are processing a conflicting DELETE modification
      *
@@ -405,21 +408,18 @@ public class AttrInfoMultiple extends AttributeInfo
      * it must be removed so we simply ignore them
      */
 
-
-
-    delValues = modAttr.getValues();
-    if ((delValues == null) || (delValues.isEmpty()))
+    Attribute modAttr = m.getAttribute();
+    if (modAttr.isEmpty())
     {
       /*
        * We are processing a DELETE attribute modification
        */
       m.setModificationType(ModificationType.REPLACE);
-      replValues = new LinkedHashSet<AttributeValue>();
+      AttributeBuilder builder = new AttributeBuilder(modAttr, true);
 
-      for (Iterator it = getValuesInfo().iterator();
-           it.hasNext();)
+      for (Iterator<ValueInfo> it = getValuesInfo().iterator(); it.hasNext();)
       {
-        ValueInfo valInfo; valInfo = (ValueInfo) it.next();
+        ValueInfo valInfo; valInfo = it.next();
 
         if (changeNumber.older(valInfo.getValueUpdateTime()))
         {
@@ -427,7 +427,7 @@ public class AttrInfoMultiple extends AttributeInfo
            * this value has been updated after this delete, therefore
            * this value must be kept
            */
-          replValues.add(valInfo.getValue());
+          builder.add(valInfo.getValue());
         }
         else
         {
@@ -443,7 +443,8 @@ public class AttrInfoMultiple extends AttributeInfo
         }
       }
 
-      modAttr.setValues(replValues);
+      m.setAttribute(builder.toAttribute());
+
       if (changeNumber.newer(getDeleteTime()))
       {
         deleteTime = changeNumber;
@@ -459,11 +460,10 @@ public class AttrInfoMultiple extends AttributeInfo
        * we are processing DELETE of some attribute values
        */
       ArrayList<ValueInfo> valuesInfo = getValuesInfo();
+      AttributeBuilder builder = new AttributeBuilder(modAttr);
 
-      for (Iterator<AttributeValue> delValIterator = delValues.iterator();
-           delValIterator.hasNext();)
+      for (AttributeValue val : modAttr)
       {
-        AttributeValue val = delValIterator.next();
         Boolean deleteIt = true;  // true if the delete must be done
 
         /* update historical information */
@@ -488,22 +488,35 @@ public class AttrInfoMultiple extends AttributeInfo
         {
           valuesInfo.add(valInfo);
         }
+
         /* if the attribute value is not to be deleted
          * or if attribute value is not present suppress it from the
-         * mod to make sure the delete is going to process again
+         * MOD to make sure the delete is going to succeed
          */
-        modifiedEntry.getAttribute(type);
         if (!deleteIt
-            || !modifiedEntry.hasValue(type, modAttr.getOptions(), val))
+            || !modifiedEntry.hasValue(modAttr.getAttributeType(), modAttr
+                .getOptions(), val))
         {
-          delValIterator.remove();
+          // this value was already deleted before and therefore
+          // this should not be replayed.
+          builder.remove(val);
+          if (builder.isEmpty())
+          {
+            // This was the last values in the set of values to be deleted.
+            // this MOD must therefore be skipped.
+            return false;
+          }
         }
       }
+
+      m.setAttribute(builder.toAttribute());
+
       if (changeNumber.newer(getLastUpdateTime()))
       {
         lastUpdateTime = changeNumber;
       }
     }
+
     return true;
   }
 
@@ -511,26 +524,22 @@ public class AttrInfoMultiple extends AttributeInfo
    * Process a add attribute values that is conflicting with a previous
    * modification.
    *
-   * @param modsIterator iterator on the list of modification
    * @param changeNumber  the historical info associated to the entry
-   * @param addValues the values that are added
-   * @param options the options that are added
+   * @param m the modification that is being processed
+   * @param modsIterator iterator on the list of modification
    * @return false if operation becomes empty and must not be processed
    */
-  private boolean conflictAdd(Iterator modsIterator, ChangeNumber changeNumber,
-                          LinkedHashSet<AttributeValue> addValues,
-                          Set<String> options)
+  private boolean conflictAdd(ChangeNumber changeNumber, Modification m,
+      Iterator<Modification> modsIterator)
   {
-    /* if historicalattributedelete is newer forget this mod
-     *   else find attr value
-     *     if does not exist
-     *           add historicalvalueadded timestamp
-     *           add real value in entry
-     *     else if timestamp older and already was historicalvalueadded
-     *        update historicalvalueadded
-     *     else if timestamp older and was historicalvaluedeleted
-     *        change historicalvaluedeleted into historicalvalueadded
-     *        add value in real entry
+    /*
+     * if historicalattributedelete is newer forget this mod else find
+     * attr value if does not exist add historicalvalueadded timestamp
+     * add real value in entry else if timestamp older and already was
+     * historicalvalueadded update historicalvalueadded else if
+     * timestamp older and was historicalvaluedeleted change
+     * historicalvaluedeleted into historicalvalueadded add value in
+     * real entry
      */
 
     if (changeNumber.older(getDeleteTime()))
@@ -542,10 +551,9 @@ public class AttrInfoMultiple extends AttributeInfo
       return false;
     }
 
-    for (Iterator<AttributeValue> valIterator = addValues.iterator();
-         valIterator.hasNext();)
+    AttributeBuilder builder = new AttributeBuilder(m.getAttribute());
+    for (AttributeValue addVal : m.getAttribute())
     {
-      AttributeValue addVal= valIterator.next();
       ArrayList<ValueInfo> valuesInfo = getValuesInfo();
       ValueInfo valInfo = new ValueInfo(addVal, changeNumber, null);
       int index = valuesInfo.indexOf(valInfo);
@@ -572,7 +580,7 @@ public class AttrInfoMultiple extends AttributeInfo
             valuesInfo.remove(index);
             valuesInfo.add(valInfo);
           }
-          valIterator.remove();
+          builder.remove(addVal);
         }
         else
         {
@@ -596,12 +604,16 @@ public class AttrInfoMultiple extends AttributeInfo
              * remove this value from the list of values to add
              * don't update the historical information
              */
-            valIterator.remove();
+            builder.remove(addVal);
           }
         }
       }
     }
-    if (addValues.isEmpty())
+
+    Attribute attr = builder.toAttribute();
+    m.setAttribute(attr);
+
+    if (attr.isEmpty())
     {
       modsIterator.remove();
     }
@@ -610,6 +622,7 @@ public class AttrInfoMultiple extends AttributeInfo
     {
       lastUpdateTime = changeNumber;
     }
+
     return true;
   }
 

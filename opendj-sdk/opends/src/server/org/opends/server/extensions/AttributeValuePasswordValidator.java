@@ -142,8 +142,8 @@ public class AttributeValuePasswordValidator
 
       for (Attribute a : attrList)
       {
-        if (a.hasValue(vf) ||
-            (config.isTestReversedPassword() && a.hasValue(vr)))
+        if (a.contains(vf) ||
+            (config.isTestReversedPassword() && a.contains(vr)))
         {
 
           invalidReason.append(ERR_ATTRVALUE_VALIDATOR_PASSWORD_IN_ENTRY.get());

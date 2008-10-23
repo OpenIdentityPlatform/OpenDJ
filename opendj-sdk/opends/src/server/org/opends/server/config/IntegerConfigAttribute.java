@@ -33,6 +33,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+
 import javax.management.AttributeList;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanParameterInfo;
@@ -325,7 +326,7 @@ public final class IntegerConfigAttribute
    *
    * @return  The attribute syntax for this configuration attribute.
    */
-  public AttributeSyntax getSyntax()
+  public AttributeSyntax<?> getSyntax()
   {
     return DirectoryServer.getDefaultIntegerSyntax();
   }
@@ -1069,8 +1070,7 @@ public final class IntegerConfigAttribute
           }
 
 
-          LinkedHashSet<AttributeValue> values = a.getValues();
-          if (values.isEmpty())
+          if (a.isEmpty())
           {
             if (isRequired())
             {
@@ -1086,7 +1086,7 @@ public final class IntegerConfigAttribute
           }
           else
           {
-            int numValues = values.size();
+            int numValues = a.size();
             if ((numValues > 1) && (! isMultiValued()))
             {
               // This is illegal -- the attribute is single-valued.
@@ -1096,7 +1096,7 @@ public final class IntegerConfigAttribute
             }
 
             pendingValues = new ArrayList<Long>(numValues);
-            for (AttributeValue v : values)
+            for (AttributeValue v : a)
             {
               long longValue;
               try
@@ -1152,8 +1152,7 @@ public final class IntegerConfigAttribute
         }
 
 
-        LinkedHashSet<AttributeValue> values = a.getValues();
-        if (values.isEmpty())
+        if (a.isEmpty())
         {
           if (isRequired())
           {
@@ -1169,7 +1168,7 @@ public final class IntegerConfigAttribute
         }
         else
         {
-          int numValues = values.size();
+          int numValues = a.size();
           if ((numValues > 1) && (! isMultiValued()))
           {
             // This is illegal -- the attribute is single-valued.
@@ -1179,7 +1178,7 @@ public final class IntegerConfigAttribute
           }
 
           activeValues = new ArrayList<Long>(numValues);
-          for (AttributeValue v : values)
+          for (AttributeValue v : a)
           {
             long longValue;
             try

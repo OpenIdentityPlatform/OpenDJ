@@ -80,7 +80,7 @@ public class DummyTask
       {
         for (Attribute a : attrList)
         {
-          for (AttributeValue v : a.getValues())
+          for (AttributeValue v : a)
           {
             sleepTime = Long.parseLong(v.getStringValue());
           }

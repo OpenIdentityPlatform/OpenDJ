@@ -68,6 +68,10 @@ public enum FieldName
   /**
    * The value associated with this is a String.
    */
+  ADMIN_CONNECTOR_PORT,
+  /**
+   * The value associated with this is a String.
+   */
   DIRECTORY_MANAGER_DN,
   /**
    * The value associated with this is a String.
@@ -133,11 +137,6 @@ public enum FieldName
    * The value associated with this is a String.
    */
   REMOTE_SERVER_PORT,
-  /**
-   * Whether the Remote Server Port is a secure port or not.  The value
-   * associated with this is a Boolean.
-   */
-  REMOTE_SERVER_IS_SECURE_PORT,
   /**
    * The value associated with this is a String.
    */

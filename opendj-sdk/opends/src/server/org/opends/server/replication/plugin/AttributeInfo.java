@@ -76,7 +76,7 @@ public abstract class AttributeInfo
       ChangeNumber changeNumber, Modification mod);
 
   /**
-   * Create a new AttributeInfo object that will be used with the givene type.
+   * Create a new AttributeInfo object that will be used with the given type.
    *
    * @param type the AttrbuteType with which the ATtributeInfo is going to be
    *             used.

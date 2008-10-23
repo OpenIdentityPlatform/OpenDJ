@@ -284,7 +284,7 @@ public abstract class Backend
    *          {@code false} if not.
    */
   public boolean isIndexed(AttributeType attributeType,
-                           MatchingRule matchingRule)
+                           MatchingRule<?> matchingRule)
   {
     return false;
   }
@@ -379,7 +379,7 @@ public abstract class Backend
           return false;
         }
 
-        MatchingRule matchingRule;
+        MatchingRule<?> matchingRule;
         String matchingRuleID = filter.getMatchingRuleID();
         if (matchingRuleID != null)
         {
@@ -545,54 +545,52 @@ public abstract class Backend
 
   /**
    * Replaces the specified entry with the provided entry in this
-   * backend.  The backend must ensure that an entry already exists
-   * with the same DN as the provided entry.  The caller must hold a
+   * backend. The backend must ensure that an entry already exists
+   * with the same DN as the provided entry. The caller must hold a
    * write lock on the DN of the provided entry.
    *
-   * @param  entry            The new entry to use in place of the
-   *                          existing entry with the same DN.
-   * @param  modifyOperation  The modify operation with which this
-   *                          action is associated.  This may be
-   *                          {@code null} for modifications performed
-   *                          internally.
-   *
-   * @throws  DirectoryException  If a problem occurs while trying to
-   *                              replace the entry.
-   *
-   * @throws CanceledOperationException  If this backend noticed and
-   *                                       reacted to a request to
-   *                                       cancel or abandon the
-   *                                       modify operation.
+   * @param oldEntry
+   *          The original entry that is being replaced.
+   * @param newEntry
+   *          The new entry to use in place of the existing entry with
+   *          the same DN.
+   * @param modifyOperation
+   *          The modify operation with which this action is
+   *          associated. This may be {@code null} for modifications
+   *          performed internally.
+   * @throws DirectoryException
+   *           If a problem occurs while trying to replace the entry.
+   * @throws CanceledOperationException
+   *           If this backend noticed and reacted to a request to
+   *           cancel or abandon the modify operation.
    */
-  public abstract void replaceEntry(Entry entry,
-                                    ModifyOperation modifyOperation)
-         throws DirectoryException, CanceledOperationException;
+  public abstract void replaceEntry(Entry oldEntry, Entry newEntry,
+      ModifyOperation modifyOperation) throws DirectoryException,
+      CanceledOperationException;
 
 
 
   /**
    * Moves and/or renames the provided entry in this backend, altering
-   * any subordinate entries as necessary.  This must ensure that an
+   * any subordinate entries as necessary. This must ensure that an
    * entry already exists with the provided current DN, and that no
-   * entry exists with the target DN of the provided entry.  The
-   * caller must hold write locks on both the current DN and the new
-   * DN for the entry.
+   * entry exists with the target DN of the provided entry. The caller
+   * must hold write locks on both the current DN and the new DN for
+   * the entry.
    *
-   * @param  currentDN          The current DN of the entry to be
-   *                            replaced.
-   * @param  entry              The new content to use for the entry.
-   * @param  modifyDNOperation  The modify DN operation with which
-   *                            this action is associated.  This may
-   *                            be {@code null} for modify DN
-   *                            operations performed internally.
-   *
-   * @throws  DirectoryException  If a problem occurs while trying to
-   *                              perform the rename.
-   *
-   * @throws CanceledOperationException  If this backend noticed and
-   *                                       reacted to a request to
-   *                                       cancel or abandon the
-   *                                       modify DN operation.
+   * @param currentDN
+   *          The current DN of the entry to be replaced.
+   * @param entry
+   *          The new content to use for the entry.
+   * @param modifyDNOperation
+   *          The modify DN operation with which this action is
+   *          associated. This may be {@code null} for modify DN
+   *          operations performed internally.
+   * @throws DirectoryException
+   *           If a problem occurs while trying to perform the rename.
+   * @throws CanceledOperationException
+   *           If this backend noticed and reacted to a request to
+   *           cancel or abandon the modify DN operation.
    */
   public abstract void renameEntry(DN currentDN, Entry entry,
                             ModifyDNOperation modifyDNOperation)

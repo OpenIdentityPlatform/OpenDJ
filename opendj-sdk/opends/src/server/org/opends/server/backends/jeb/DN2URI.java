@@ -106,6 +106,7 @@ public class DN2URI extends DatabaseContainer
    * @param entryContainer The entryContainer of the DN database.
    * @throws DatabaseException If an error occurs in the JE database.
    */
+  @SuppressWarnings("unchecked")
   DN2URI(String name, Environment env,
         EntryContainer entryContainer)
       throws DatabaseException
@@ -136,7 +137,10 @@ public class DN2URI extends DatabaseContainer
       dn2uriConfig.setTransactional(true);
     }
     this.dbConfig = dn2uriConfig;
-    this.dbConfig.setBtreeComparator(dn2uriComparator.getClass());
+    //This line causes an unchecked cast error if the SuppressWarnings
+    //annotation is removed at the beginning of this method.
+    this.dbConfig.setBtreeComparator((Class<? extends Comparator<byte[]>>)
+                                  dn2uriComparator.getClass());
   }
 
   /**
@@ -309,7 +313,7 @@ public class DN2URI extends DatabaseContainer
           case ADD:
             if (a != null)
             {
-              for (AttributeValue v : a.getValues())
+              for (AttributeValue v : a)
               {
                 insert(txn, entryDN, v.getStringValue());
               }
@@ -317,13 +321,13 @@ public class DN2URI extends DatabaseContainer
             break;
 
           case DELETE:
-            if (a == null || !a.hasValue())
+            if (a == null || a.isEmpty())
             {
               delete(txn, entryDN);
             }
             else
             {
-              for (AttributeValue v : a.getValues())
+              for (AttributeValue v : a)
               {
                 delete(txn, entryDN, v.getStringValue());
               }
@@ -338,7 +342,7 @@ public class DN2URI extends DatabaseContainer
             delete(txn, entryDN);
             if (a != null)
             {
-              for (AttributeValue v : a.getValues())
+              for (AttributeValue v : a)
               {
                 insert(txn, entryDN, v.getStringValue());
               }

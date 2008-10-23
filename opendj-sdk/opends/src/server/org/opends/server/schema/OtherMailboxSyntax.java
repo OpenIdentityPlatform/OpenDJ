@@ -293,5 +293,15 @@ public class OtherMailboxSyntax
     // If we've gotten here, then the value is OK.
     return true;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

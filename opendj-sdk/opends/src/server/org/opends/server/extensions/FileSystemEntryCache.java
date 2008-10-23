@@ -215,6 +215,7 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @SuppressWarnings("unchecked")
   public void initializeEntryCache(FileSystemEntryCacheCfg configuration)
           throws ConfigException, InitializationException {
 
@@ -309,6 +310,8 @@ public class FileSystemEntryCache
         entryCacheEnv.openDatabase(null, INDEXCLASSDBNAME, entryCacheDBConfig);
       // Instantiate the class catalog
       classCatalog = new StoredClassCatalog(entryCacheClassDB);
+      //This line causes an unchecked call error if the SuppressWarnings
+      //annotation is removed at the beginning of this method.
       entryCacheDataBinding =
           new SerialBinding(classCatalog,
           FileSystemEntryCacheIndex.class);
@@ -438,6 +441,7 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @SuppressWarnings("unchecked")
   public void finalizeEntryCache() {
 
     cacheWriteLock.lock();
@@ -462,7 +466,8 @@ public class FileSystemEntryCache
           // Persistent state save report.
           Message message = NOTE_FSCACHE_SAVE.get();
           logError(message);
-
+          //This line causes an unchecked call error if the SuppressWarnings
+          //annotation is removed at the beginning of this method.
           entryCacheDataBinding.objectToEntry(entryCacheIndex, indexData);
           DatabaseEntry indexKey =
             new DatabaseEntry(INDEXKEY.getBytes("UTF-8"));
@@ -696,6 +701,7 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @SuppressWarnings("unchecked")
   public void clear() {
 
     cacheWriteLock.lock();
@@ -719,6 +725,8 @@ public class FileSystemEntryCache
             INDEXCLASSDBNAME, entryCacheDBConfig);
           // Instantiate the class catalog
           classCatalog = new StoredClassCatalog(entryCacheClassDB);
+          //This line causes an unchecked call error if the SuppressWarnings
+          //annotation is removed at the beginning of this method.
           entryCacheDataBinding = new SerialBinding(classCatalog,
             FileSystemEntryCacheIndex.class);
         }

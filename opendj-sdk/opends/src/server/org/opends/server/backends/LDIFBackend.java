@@ -808,15 +808,15 @@ public class LDIFBackend
    * {@inheritDoc}
    */
   @Override()
-  public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
-         throws DirectoryException
+  public void replaceEntry(Entry oldEntry, Entry newEntry,
+      ModifyOperation modifyOperation) throws DirectoryException
   {
     backendLock.writeLock().lock();
 
     try
     {
       // Make sure that the target entry exists.  If not, then fail.
-      DN entryDN = entry.getDN();
+      DN entryDN = newEntry.getDN();
       if (! entryMap.containsKey(entryDN))
       {
         DN matchedDN = null;
@@ -838,7 +838,7 @@ public class LDIFBackend
                                      null);
       }
 
-      entryMap.put(entryDN, entry.duplicate(false));
+      entryMap.put(entryDN, newEntry.duplicate(false));
       writeLDIF();
       return;
     }

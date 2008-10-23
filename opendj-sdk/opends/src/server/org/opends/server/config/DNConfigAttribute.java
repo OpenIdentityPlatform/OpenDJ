@@ -33,6 +33,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+
 import javax.management.AttributeList;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanParameterInfo;
@@ -253,7 +254,7 @@ public final class DNConfigAttribute
    *
    * @return  The attribute syntax for this configuration attribute.
    */
-  public AttributeSyntax getSyntax()
+  public AttributeSyntax<?> getSyntax()
   {
     return DirectoryServer.getDefaultStringSyntax();
   }
@@ -809,8 +810,7 @@ public final class DNConfigAttribute
           }
 
 
-          LinkedHashSet<AttributeValue> values = a.getValues();
-          if (values.isEmpty())
+          if (a.isEmpty())
           {
             if (isRequired())
             {
@@ -826,7 +826,7 @@ public final class DNConfigAttribute
           }
           else
           {
-            int numValues = values.size();
+            int numValues = a.size();
             if ((numValues > 1) && (! isMultiValued()))
             {
               // This is illegal -- the attribute is single-valued.
@@ -836,7 +836,7 @@ public final class DNConfigAttribute
             }
 
             pendingValues = new ArrayList<DN>(numValues);
-            for (AttributeValue v : values)
+            for (AttributeValue v : a)
             {
               DN dn;
               try
@@ -880,8 +880,7 @@ public final class DNConfigAttribute
         }
 
 
-        LinkedHashSet<AttributeValue> values = a.getValues();
-        if (values.isEmpty())
+        if (a.isEmpty())
         {
           if (isRequired())
           {
@@ -897,7 +896,7 @@ public final class DNConfigAttribute
         }
         else
         {
-          int numValues = values.size();
+          int numValues = a.size();
           if ((numValues > 1) && (! isMultiValued()))
           {
             // This is illegal -- the attribute is single-valued.
@@ -907,7 +906,7 @@ public final class DNConfigAttribute
           }
 
           activeValues = new ArrayList<DN>(numValues);
-          for (AttributeValue v : values)
+          for (AttributeValue v : a)
           {
             DN dn;
             try

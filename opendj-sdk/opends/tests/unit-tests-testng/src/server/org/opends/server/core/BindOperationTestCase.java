@@ -31,10 +31,8 @@ package org.opends.server.core;
 import java.net.Socket;
 import java.util.ArrayList;
 
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.BindOperation;
@@ -44,7 +42,6 @@ import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
@@ -52,7 +49,6 @@ import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.tools.dsconfig.DSConfig;
 import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
@@ -1814,7 +1810,7 @@ public class BindOperationTestCase
     String attr = "ds-cfg-bind-with-dn-requires-password";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "false")));
+        Attributes.create(attr, "false")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode("cn=config"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1826,7 +1822,7 @@ public class BindOperationTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attr, "true")));
+        Attributes.create(attr, "true")));
     modifyOperation =  conn.processModify(DN.decode("cn=config"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -2018,7 +2014,7 @@ public class BindOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    TestCaseUtils.applyModifications(
+    TestCaseUtils.applyModifications(false,
       "dn: uid=test.user,o=test",
       "changetype: add",
       "objectClass: top",
@@ -2080,7 +2076,7 @@ public class BindOperationTestCase
     }
     finally
     {
-      TestCaseUtils.applyModifications(
+      TestCaseUtils.applyModifications(true,
         "dn: cn=config",
         "changetype: modify",
         "replace: ds-cfg-writability-mode",
@@ -2112,7 +2108,7 @@ public class BindOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    TestCaseUtils.applyModifications(
+    TestCaseUtils.applyModifications(false,
       "dn: uid=test.user,o=test",
       "changetype: add",
       "objectClass: top",
@@ -2123,8 +2119,8 @@ public class BindOperationTestCase
       "givenName: Test",
       "sn: User",
       "cn: Test User",
-      "userPassword: password",
-      "",
+      "userPassword: password");
+    TestCaseUtils.applyModifications(true,
       "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
       "changetype: modify",
       "replace: ds-cfg-last-login-time-attribute",
@@ -2175,7 +2171,7 @@ public class BindOperationTestCase
     }
     finally
     {
-      TestCaseUtils.applyModifications(
+      TestCaseUtils.applyModifications(true,
         "dn: cn=config",
         "changetype: modify",
         "replace: ds-cfg-writability-mode",
@@ -2207,7 +2203,7 @@ public class BindOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    TestCaseUtils.applyModifications(
+    TestCaseUtils.applyModifications(false,
       "dn: uid=test.user,o=test",
       "changetype: add",
       "objectClass: top",
@@ -2218,8 +2214,8 @@ public class BindOperationTestCase
       "givenName: Test",
       "sn: User",
       "cn: Test User",
-      "userPassword: password",
-      "",
+      "userPassword: password");
+    TestCaseUtils.applyModifications(true,
       "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
       "changetype: modify",
       "replace: ds-cfg-last-login-time-attribute",
@@ -2269,7 +2265,7 @@ public class BindOperationTestCase
     }
     finally
     {
-      TestCaseUtils.applyModifications(
+      TestCaseUtils.applyModifications(true,
         "dn: cn=config",
         "changetype: modify",
         "replace: ds-cfg-writability-mode",

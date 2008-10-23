@@ -29,7 +29,6 @@ package org.opends.server.config;
 
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -41,6 +40,7 @@ import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -243,13 +243,15 @@ public final class ConfigEntry
     }
 
     ArrayList<Attribute> attrs = new ArrayList<Attribute>(2);
-    attrs.add(new Attribute(attrType, name, attribute.getActiveValues()));
+    AttributeBuilder builder = new AttributeBuilder(attrType, name);
+    builder.addAll(attribute.getActiveValues());
+    attrs.add(builder.toAttribute());
     if (attribute.hasPendingValues())
     {
-      LinkedHashSet<String> options = new LinkedHashSet<String>(1);
-      options.add(OPTION_PENDING_VALUES);
-      attrs.add(new Attribute(attrType, name, options,
-                              attribute.getPendingValues()));
+      builder = new AttributeBuilder(attrType, name);
+      builder.setOption(OPTION_PENDING_VALUES);
+      builder.addAll(attribute.getPendingValues());
+      attrs.add(builder.toAttribute());
     }
 
     entry.putAttribute(attrType, attrs);

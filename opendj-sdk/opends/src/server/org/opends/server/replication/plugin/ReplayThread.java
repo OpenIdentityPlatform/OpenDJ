@@ -37,13 +37,13 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.protocol.UpdateMessage;
+import org.opends.server.replication.protocol.UpdateMsg;
 
 /**
  * Thread that is used to get message from the replication servers (stored
  * in the updates queue) and replay them in the current server. A configurable
  * number of this thread is created for the whole MultimasterReplication object
- * (i.e: these threads are shared accross the ReplicationDomain objects for
+ * (i.e: these threads are shared across the ReplicationDomain objects for
  * replaying the updates they receive)
  */
 public class ReplayThread extends DirectoryThread
@@ -102,7 +102,7 @@ public class ReplayThread extends DirectoryThread
           TimeUnit.SECONDS)) != null))
         {
           // Find replication domain for that update message
-          UpdateMessage updateMsg = updateToreplay.getUpdateMessage();
+          UpdateMsg updateMsg = updateToreplay.getUpdateMessage();
           ReplicationDomain domain = updateToreplay.getReplicationDomain();
           domain.replay(updateMsg);
         }

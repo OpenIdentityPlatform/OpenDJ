@@ -27,26 +27,25 @@
 
 package org.opends.server.protocols.ldap;
 
+import static org.opends.server.config.ConfigConstants.*;
+import static org.testng.Assert.*;
+
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Collection;
 
-import static org.opends.server.config.ConfigConstants.*;
-
+import org.opends.messages.Message;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.TestCaseUtils;
-import org.opends.messages.Message;
-import org.opends.server.types.*;
-import org.opends.server.config.ConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import static org.testng.Assert.*;
-
+import org.opends.server.types.SSLClientAuthPolicy;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -119,15 +118,15 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     Collection<ClientConnection> cons=LDAPConnHandler.getClientConnections();
     LDAPConnHandler.processServerShutdown(reasonMsg);
     //Reset some things for the SSL handler
-    Attribute useSSL=new Attribute(ATTR_USE_SSL, String.valueOf(false));
-    Attribute startTls=new Attribute(ATTR_ALLOW_STARTTLS, String.valueOf(false));
+    Attribute useSSL=Attributes.create(ATTR_USE_SSL, String.valueOf(false));
+    Attribute startTls=Attributes.create(ATTR_ALLOW_STARTTLS, String.valueOf(false));
     AttributeType attrType=DirectoryServer.getAttributeType(ATTR_LISTEN_PORT, true);
-    Attribute a=new Attribute(attrType);
+    Attribute a=Attributes.empty(attrType);
     LDAPHandlerEntry.removeAttribute(a, null);
     LDAPHandlerEntry.removeAttribute(useSSL, null);
     LDAPHandlerEntry.removeAttribute(startTls, null);
-    Attribute useSSL1=new Attribute(ATTR_USE_SSL, String.valueOf(true));
-    Attribute startTls1=new Attribute(ATTR_ALLOW_STARTTLS, String.valueOf(false));
+    Attribute useSSL1=Attributes.create(ATTR_USE_SSL, String.valueOf(true));
+    Attribute startTls1=Attributes.create(ATTR_ALLOW_STARTTLS, String.valueOf(false));
     LDAPHandlerEntry.addAttribute(useSSL1,null);
     LDAPHandlerEntry.addAttribute(startTls1,null);
     LDAPConnectionHandler LDAPSConnHandler = getLDAPHandlerInstance(LDAPHandlerEntry);
@@ -171,22 +170,22 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
         "ds-cfg-trust-manager-provider: cn=JKS,cn=Trust Manager Providers,cn=config");
 
     // Add some invalid attrs and some duplicate attrs
-    Attribute a2=new Attribute(ATTR_LISTEN_PORT, String.valueOf(389));
-    Attribute a2a=new Attribute(ATTR_LISTEN_PORT, String.valueOf(70000));
-    Attribute a3=new Attribute(ATTR_LISTEN_ADDRESS, "localhost");
-    Attribute a3a=new Attribute(ATTR_LISTEN_ADDRESS, "FAFASFSDFSADFASDFSDFSDAFAS");
-    Attribute a4=new Attribute(ATTR_ACCEPT_BACKLOG, String.valueOf(Long.MAX_VALUE));
-    Attribute a5=new Attribute(ATTR_ALLOWED_CLIENT, "129.800.990.45");
-    Attribute a6=new Attribute(ATTR_DENIED_CLIENT, "129.");
-    Attribute a7=new Attribute(ATTR_ALLOW_LDAPV2, "45");
-    Attribute a8=new Attribute(ATTR_KEEP_LDAP_STATS, "45");
-    Attribute a9=new Attribute(ATTR_SEND_REJECTION_NOTICE, "45");
-    Attribute a10=new Attribute(ATTR_USE_TCP_KEEPALIVE, "45");
-    Attribute a11=new Attribute(ATTR_USE_TCP_NODELAY, "45");
-    Attribute a12=new Attribute(ATTR_ALLOW_REUSE_ADDRESS, "45");
-    Attribute a13=new Attribute(ATTR_MAX_REQUEST_SIZE, "45 FLUBBERBYTES");
-    Attribute a14=new Attribute(ATTR_USE_SSL, "45");
-    Attribute a15=new Attribute(ATTR_ALLOW_STARTTLS, "45");
+    Attribute a2=Attributes.create(ATTR_LISTEN_PORT, String.valueOf(389));
+    Attribute a2a=Attributes.create(ATTR_LISTEN_PORT, String.valueOf(70000));
+    Attribute a3=Attributes.create(ATTR_LISTEN_ADDRESS, "localhost");
+    Attribute a3a=Attributes.create(ATTR_LISTEN_ADDRESS, "FAFASFSDFSADFASDFSDFSDAFAS");
+    Attribute a4=Attributes.create(ATTR_ACCEPT_BACKLOG, String.valueOf(Long.MAX_VALUE));
+    Attribute a5=Attributes.create(ATTR_ALLOWED_CLIENT, "129.800.990.45");
+    Attribute a6=Attributes.create(ATTR_DENIED_CLIENT, "129.");
+    Attribute a7=Attributes.create(ATTR_ALLOW_LDAPV2, "45");
+    Attribute a8=Attributes.create(ATTR_KEEP_LDAP_STATS, "45");
+    Attribute a9=Attributes.create(ATTR_SEND_REJECTION_NOTICE, "45");
+    Attribute a10=Attributes.create(ATTR_USE_TCP_KEEPALIVE, "45");
+    Attribute a11=Attributes.create(ATTR_USE_TCP_NODELAY, "45");
+    Attribute a12=Attributes.create(ATTR_ALLOW_REUSE_ADDRESS, "45");
+    Attribute a13=Attributes.create(ATTR_MAX_REQUEST_SIZE, "45 FLUBBERBYTES");
+    Attribute a14=Attributes.create(ATTR_USE_SSL, "45");
+    Attribute a15=Attributes.create(ATTR_ALLOW_STARTTLS, "45");
     BadHandlerEntry.addAttribute(a2, null);
     BadHandlerEntry.addAttribute(a3, null);
     BadHandlerEntry.addAttribute(a2a, null);
@@ -257,26 +256,26 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     AttributeType at11=DirectoryServer.getAttributeType(ATTR_MAX_REQUEST_SIZE,true);
     AttributeType at12=DirectoryServer.getAttributeType(ATTR_ACCEPT_BACKLOG,true);
     //Remove them
-    Attribute rAttr0=new Attribute(at0);
+    Attribute rAttr0=Attributes.empty(at0);
     GoodHandlerEntry.removeAttribute(rAttr0, null);
 
-    Attribute rAttr2=new Attribute(at2);
+    Attribute rAttr2=Attributes.empty(at2);
     GoodHandlerEntry.removeAttribute(rAttr2, null);
-    Attribute rAttr3=new Attribute(at3);
+    Attribute rAttr3=Attributes.empty(at3);
     GoodHandlerEntry.removeAttribute(rAttr3, null);
-    Attribute rAttr4=new Attribute(at4);
+    Attribute rAttr4=Attributes.empty(at4);
     GoodHandlerEntry.removeAttribute(rAttr4, null);
-    Attribute rAttr5=new Attribute(at5);
+    Attribute rAttr5=Attributes.empty(at5);
     GoodHandlerEntry.removeAttribute(rAttr5, null);
-    Attribute rAttr6=new Attribute(at6);
+    Attribute rAttr6=Attributes.empty(at6);
     GoodHandlerEntry.removeAttribute(rAttr6, null);
-    Attribute rAttr7=new Attribute(at7);
+    Attribute rAttr7=Attributes.empty(at7);
     GoodHandlerEntry.removeAttribute(rAttr7, null);
-    Attribute rAttr8=new Attribute(at8);
-    Attribute rAttr9=new Attribute(at9);
-    Attribute rAttr10=new Attribute(at10);
-    Attribute rAttr11=new Attribute(at11);
-    Attribute rAttr12=new Attribute(at12);
+    Attribute rAttr8=Attributes.empty(at8);
+    Attribute rAttr9=Attributes.empty(at9);
+    Attribute rAttr10=Attributes.empty(at10);
+    Attribute rAttr11=Attributes.empty(at11);
+    Attribute rAttr12=Attributes.empty(at12);
     GoodHandlerEntry.removeAttribute(rAttr8, null);
     GoodHandlerEntry.removeAttribute(rAttr9, null);
     GoodHandlerEntry.removeAttribute(rAttr10, null);
@@ -284,21 +283,21 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     GoodHandlerEntry.removeAttribute(rAttr12, null);
     //Make new AttrTypes with different values
     long newPort=getFreePort();
-    Attribute a2=new Attribute(ATTR_LISTEN_PORT, String.valueOf(newPort));
+    Attribute a2=Attributes.create(ATTR_LISTEN_PORT, String.valueOf(newPort));
     //uncomment if want to test listen address
 //    Attribute a3=new Attribute(ATTR_LISTEN_ADDRESS, "localhost");
-    Attribute a4=new Attribute(ATTR_ACCEPT_BACKLOG, String.valueOf(25));
-    Attribute a5=new Attribute(ATTR_ALLOWED_CLIENT, "129.56.56.45");
-    Attribute a6=new Attribute(ATTR_DENIED_CLIENT, "129.*.*.90");
-    Attribute a7=new Attribute(ATTR_ALLOW_LDAPV2, "true");
-    Attribute a8=new Attribute(ATTR_KEEP_LDAP_STATS, "true");
-    Attribute a9=new Attribute(ATTR_SEND_REJECTION_NOTICE, "false");
-    Attribute a10=new Attribute(ATTR_USE_TCP_KEEPALIVE, "false");
-    Attribute a11=new Attribute(ATTR_USE_TCP_NODELAY, "false");
-    Attribute a12=new Attribute(ATTR_ALLOW_REUSE_ADDRESS, "false");
-    Attribute a13=new Attribute(ATTR_MAX_REQUEST_SIZE, "45 kb");
-    Attribute a14=new Attribute(ATTR_USE_SSL, "false");
-    Attribute a15=new Attribute(ATTR_ALLOW_STARTTLS, "true");
+    Attribute a4=Attributes.create(ATTR_ACCEPT_BACKLOG, String.valueOf(25));
+    Attribute a5=Attributes.create(ATTR_ALLOWED_CLIENT, "129.56.56.45");
+    Attribute a6=Attributes.create(ATTR_DENIED_CLIENT, "129.*.*.90");
+    Attribute a7=Attributes.create(ATTR_ALLOW_LDAPV2, "true");
+    Attribute a8=Attributes.create(ATTR_KEEP_LDAP_STATS, "true");
+    Attribute a9=Attributes.create(ATTR_SEND_REJECTION_NOTICE, "false");
+    Attribute a10=Attributes.create(ATTR_USE_TCP_KEEPALIVE, "false");
+    Attribute a11=Attributes.create(ATTR_USE_TCP_NODELAY, "false");
+    Attribute a12=Attributes.create(ATTR_ALLOW_REUSE_ADDRESS, "false");
+    Attribute a13=Attributes.create(ATTR_MAX_REQUEST_SIZE, "45 kb");
+    Attribute a14=Attributes.create(ATTR_USE_SSL, "false");
+    Attribute a15=Attributes.create(ATTR_ALLOW_STARTTLS, "true");
     //Add them
     GoodHandlerEntry.addAttribute(a2, null);
 //    GoodHandlerEntry.addAttribute(a3, null);

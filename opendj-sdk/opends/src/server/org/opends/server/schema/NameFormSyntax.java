@@ -1255,5 +1255,15 @@ public class NameFormSyntax
 
     return startPos;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

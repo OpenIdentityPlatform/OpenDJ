@@ -277,7 +277,8 @@ public class ManageAccountTestCase
     String[] args =
     {
       "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-b", "uid=test.user,o=test"
@@ -298,7 +299,8 @@ public class ManageAccountTestCase
     {
       "invalid-subcommand",
       "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-b", "uid=test.user,o=test"
@@ -336,7 +338,8 @@ public class ManageAccountTestCase
     {
       "get-all",
       "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-X",
       "-D", "",
       "-w", "",
       "-b", "uid=test.user,o=test"
@@ -374,93 +377,14 @@ public class ManageAccountTestCase
     {
       "get-all",
       "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-X",
       "-D", "uid=test.user,o=test",
       "-w", "password",
       "-b", "uid=test.user,o=test"
     };
 
     assertFalse(ManageAccount.main(args, null, System.err) == 0);
-  }
-
-
-
-  /**
-   * Tests the ability to use the manage-account tool when using SSL.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test
-  public void testUsingSSL()
-         throws Exception
-  {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry(
-      "dn: uid=test.user,o=test",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: password"
-    );
-
-    String[] args =
-    {
-      "get-all",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
-      "-Z",
-      "-X",
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-b", "uid=test.user,o=test"
-    };
-
-    assertEquals(ManageAccount.main(args, null, System.err), 0);
-  }
-
-
-
-  /**
-   * Tests the ability to use the manage-account tool when using StartTLS.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test
-  public void testUsingStartTLS()
-         throws Exception
-  {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry(
-      "dn: uid=test.user,o=test",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: password"
-    );
-
-    String[] args =
-    {
-      "get-all",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-q",
-      "-X",
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-b", "uid=test.user,o=test"
-    };
-
-    assertEquals(ManageAccount.main(args, null, System.err), 0);
   }
 
 
@@ -493,7 +417,8 @@ public class ManageAccountTestCase
     {
       "get-all",
       "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-X",
       "-o", "mech=PLAIN",
       "-o", "authid=dn:cn=Directory Manager",
       "-w", "password",
@@ -535,7 +460,8 @@ public class ManageAccountTestCase
     {
       subCommand,
       "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-b", "uid=test.user,o=test",
@@ -576,7 +502,8 @@ public class ManageAccountTestCase
     {
       subCommand,
       "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-b", "uid=test.user,o=test",
@@ -618,7 +545,8 @@ public class ManageAccountTestCase
     {
       subCommand,
       "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-b", "uid=test.user,o=test",
@@ -660,7 +588,8 @@ public class ManageAccountTestCase
     {
       subCommand,
       "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-b", "uid=test.user,o=test",
@@ -702,7 +631,8 @@ public class ManageAccountTestCase
     {
       subCommand,
       "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-b", "uid=test.user,o=test",
@@ -744,7 +674,8 @@ public class ManageAccountTestCase
     {
       subCommand,
       "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-b", "uid=test.user,o=test"
@@ -785,7 +716,8 @@ public class ManageAccountTestCase
     {
       subCommand,
       "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-b", "uid=test.user,o=test",
@@ -827,7 +759,8 @@ public class ManageAccountTestCase
     {
       subCommand,
       "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-b", "uid=test.user,o=test",
@@ -869,7 +802,8 @@ public class ManageAccountTestCase
     {
       subCommand,
       "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-b", "uid=test.user,o=test",

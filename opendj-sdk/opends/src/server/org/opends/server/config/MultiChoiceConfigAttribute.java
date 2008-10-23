@@ -290,7 +290,7 @@ public final class MultiChoiceConfigAttribute
    *
    * @return  The attribute syntax for this configuration attribute.
    */
-  public AttributeSyntax getSyntax()
+  public AttributeSyntax<?> getSyntax()
   {
     return DirectoryServer.getDefaultStringSyntax();
   }
@@ -832,8 +832,7 @@ public final class MultiChoiceConfigAttribute
           }
 
 
-          LinkedHashSet<AttributeValue> values = a.getValues();
-          if (values.isEmpty())
+          if (a.isEmpty())
           {
             if (isRequired())
             {
@@ -849,7 +848,7 @@ public final class MultiChoiceConfigAttribute
           }
           else
           {
-            int numValues = values.size();
+            int numValues = a.size();
             if ((numValues > 1) && (! isMultiValued()))
             {
               // This is illegal -- the attribute is single-valued.
@@ -859,7 +858,7 @@ public final class MultiChoiceConfigAttribute
             }
 
             pendingValues = new ArrayList<String>(numValues);
-            for (AttributeValue v : values)
+            for (AttributeValue v : a)
             {
               String lowerValue = v.getStringValue().toLowerCase();
               if (! allowedValues.contains(lowerValue))
@@ -895,8 +894,7 @@ public final class MultiChoiceConfigAttribute
         }
 
 
-        LinkedHashSet<AttributeValue> values = a.getValues();
-        if (values.isEmpty())
+        if (a.isEmpty())
         {
           if (isRequired())
           {
@@ -912,7 +910,7 @@ public final class MultiChoiceConfigAttribute
         }
         else
         {
-          int numValues = values.size();
+          int numValues = a.size();
           if ((numValues > 1) && (! isMultiValued()))
           {
             // This is illegal -- the attribute is single-valued.
@@ -922,7 +920,7 @@ public final class MultiChoiceConfigAttribute
           }
 
           activeValues = new ArrayList<String>(numValues);
-          for (AttributeValue v : values)
+          for (AttributeValue v : a)
           {
             String lowerValue = v.getStringValue().toLowerCase();
             if (! allowedValues.contains(lowerValue))

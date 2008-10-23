@@ -33,12 +33,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.AccountUsableResponseControl;
 import org.opends.server.controls.MatchedValuesControl;
+import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -715,8 +717,7 @@ public class SearchOperationBasis
     }
 
     // Make a copy of the entry and pare it down to only include the set
-    // of
-    // requested attributes.
+    // of requested attributes.
     Entry entryToReturn;
     if ((getAttributes() == null) || getAttributes().isEmpty())
     {
@@ -739,22 +740,16 @@ public class SearchOperationBasis
             AttributeType ocType =
                  DirectoryServer.getObjectClassAttributeType();
             List<Attribute> ocList = new ArrayList<Attribute>(1);
-            ocList.add(new Attribute(ocType));
+            ocList.add(Attributes.empty(ocType));
             entryToReturn.putAttribute(ocType, ocList);
           }
           else
           {
             // First, add the objectclass attribute.
             Attribute ocAttr = entry.getObjectClassAttribute();
-            try
+            if (ocAttr != null)
             {
-              if (ocAttr != null)
-                entryToReturn.setObjectClasses(ocAttr.getValues());
-            }
-            catch (DirectoryException e)
-            {
-              // We cannot get this exception because the object classes have
-              // already been validated in the entry they came from.
+              entryToReturn.replaceAttribute(ocAttr);
             }
           }
 
@@ -855,7 +850,7 @@ public class SearchOperationBasis
               AttributeType ocType =
                    DirectoryServer.getObjectClassAttributeType();
               List<Attribute> ocList = new ArrayList<Attribute>(1);
-              ocList.add(new Attribute(ocType));
+              ocList.add(Attributes.empty(ocType));
               entryToReturn.putAttribute(ocType, ocList);
             }
             else
@@ -914,20 +909,27 @@ public class SearchOperationBasis
       }
 
 
+      // Build a list of all filtered attributes. These will be
+      // replaced in the entry after processing.
+      List<Attribute> modifiedAttributes = new LinkedList<Attribute>();
+
+
       // Next, the set of user attributes.
       for (AttributeType t : entryToReturn.getUserAttributes().keySet())
       {
         for (Attribute a : entryToReturn.getUserAttribute(t))
         {
-          Iterator<AttributeValue> valueIterator = a.getValues().iterator();
-          while (valueIterator.hasNext())
+          // Assume that the attribute will be either empty or contain
+          // very few values.
+          AttributeBuilder builder = new AttributeBuilder(a, true);
+          for (AttributeValue v : a)
           {
-            AttributeValue v = valueIterator.next();
-            if (! matchedValuesControl.valueMatches(t, v))
+            if (matchedValuesControl.valueMatches(t, v))
             {
-              valueIterator.remove();
+              builder.add(v);
             }
           }
+          modifiedAttributes.add(builder.toAttribute());
         }
       }
 
@@ -935,17 +937,31 @@ public class SearchOperationBasis
       // Then the set of operational attributes.
       for (AttributeType t : entryToReturn.getOperationalAttributes().keySet())
       {
-        for (Attribute a : entryToReturn.getOperationalAttribute(t))
+        for (Attribute a : entryToReturn.getUserAttribute(t))
         {
-          Iterator<AttributeValue> valueIterator = a.getValues().iterator();
-          while (valueIterator.hasNext())
+          // Assume that the attribute will be either empty or contain
+          // very few values.
+          AttributeBuilder builder = new AttributeBuilder(a);
+          for (AttributeValue v : a)
           {
-            AttributeValue v = valueIterator.next();
-            if (! matchedValuesControl.valueMatches(t, v))
+            if (matchedValuesControl.valueMatches(t, v))
             {
-              valueIterator.remove();
+              builder.add(v);
             }
           }
+          modifiedAttributes.add(builder.toAttribute());
+        }
+      }
+
+
+      // Replace any modified attributes.
+      for (Attribute a : modifiedAttributes)
+      {
+        entryToReturn.replaceAttribute(a);
+        if (a.isEmpty())
+        {
+          // Add a place holder.
+          entryToReturn.addAttribute(a, null);
         }
       }
     }

@@ -2161,7 +2161,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         ServerDescriptor.ServerProperty property;
         if (isSecure)
         {
-          property = ServerDescriptor.ServerProperty.LDAPS_PORT;
+          property = ServerDescriptor.ServerProperty.ADMIN_PORT;
         }
         else
         {
@@ -2178,7 +2178,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           ADSContext.ServerProperty adsProperty;
           if (isSecure)
           {
-            adsProperty = ADSContext.ServerProperty.LDAPS_PORT;
+            adsProperty = ADSContext.ServerProperty.ADMIN_PORT;
           }
           else
           {

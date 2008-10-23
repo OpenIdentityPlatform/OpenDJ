@@ -218,5 +218,15 @@ public class PostalAddressSyntax
     // We'll allow any value.
     return true;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

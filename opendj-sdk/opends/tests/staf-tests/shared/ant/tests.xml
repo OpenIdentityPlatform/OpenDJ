@@ -47,13 +47,13 @@
     <mkdir dir="${tests.run.dir}/${tests.run.time}/server-logs"/>
     <mkdir dir="${tests.run.dir}/${tests.run.time}/coverage"/>
 
-    <delete file="${test.plan.default}"/>
+    <!--<delete file="${test.plan.default}"/>
     <for list="${test.plan.list}" param="item">
       <sequential>
       <echo file="${test.plan.default}" append="true">@{item}
 </echo>
       </sequential>
-    </for>
+    </for>-->
 
     <!-- generate the timestamped config file that will be used for this run -->
     <copy file="${tests.config.stubs}"

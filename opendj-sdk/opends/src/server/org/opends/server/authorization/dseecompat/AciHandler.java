@@ -328,7 +328,7 @@ public class AciHandler
             //deleted than this access check is skipped.
             ModificationType modType=m.getModificationType();
             if((modType == ModificationType.DELETE &&
-                modAttr.getValues().isEmpty()) ||
+                modAttr.isEmpty()) ||
                (modType == ModificationType.REPLACE ||
                 modType == ModificationType.INCREMENT)) {
                                 /*
@@ -341,7 +341,7 @@ public class AciHandler
                    resourceEntry.getAttribute(modAttrType,modAttr.getOptions());
                 if(attrList != null) {
                   for (Attribute a : attrList) {
-                    for (AttributeValue v : a.getValues()) {
+                    for (AttributeValue v : a) {
                       container.setCurrentAttributeValue(v);
                       container.setRights(ACI_WRITE_DELETE);
                       if(!skipAccessCheck &&
@@ -353,8 +353,8 @@ public class AciHandler
               }
             }
 
-            if(modAttr.hasValue()) {
-               for(AttributeValue v : modAttr.getValues()) {
+            if(!modAttr.isEmpty()) {
+               for(AttributeValue v : modAttr) {
                    container.setCurrentAttributeType(modAttrType);
                    switch (m.getModificationType())
                    {
@@ -380,7 +380,7 @@ public class AciHandler
                        {
                          for (Attribute attr : modifiedAttrs)
                          {
-                           for (AttributeValue val : attr.getValues())
+                           for (AttributeValue val : attr)
                            {
                              container.setCurrentAttributeValue(val);
                              container.setRights(ACI_WRITE_ADD);
@@ -842,7 +842,7 @@ public class AciHandler
              entry.getOperationalAttribute(aciType, null);
         for (Attribute attribute : attributeList)
         {
-          for (AttributeValue value : attribute.getValues())
+          for (AttributeValue value : attribute)
           {
             try {
               DN dn=entry.getDN();
@@ -1217,15 +1217,16 @@ public class AciHandler
     boolean ret;
     if(!(ret=skipAccessCheck(operation))) {
       Entry e = new Entry(dn, null, null, null);
-      LinkedHashSet<AttributeValue> vals = new LinkedHashSet<AttributeValue>();
-      List<String> URLStrings=reference.getReferralURLs();
-      //Load the values, a bind rule might want to evaluate them.
-      for(String URLString : URLStrings) {
-        vals.add(new AttributeValue(refAttrType, URLString));
+      AttributeBuilder builder =
+        new AttributeBuilder(refAttrType, ATTR_REFERRAL_URL);
+      List<String> URLStrings = reference.getReferralURLs();
+
+      // Load the values, a bind rule might want to evaluate them.
+      for (String URLString : URLStrings) {
+        builder.add(new AttributeValue(refAttrType, URLString));
       }
-      Attribute attr =
-                     new Attribute(refAttrType, ATTR_REFERRAL_URL, vals);
-      e.addAttribute(attr,null);
+
+      e.addAttribute(builder.toAttribute(),null);
       SearchResultEntry se=new  SearchResultEntry(e);
       AciLDAPOperationContainer operationContainer =
               new AciLDAPOperationContainer(operation,

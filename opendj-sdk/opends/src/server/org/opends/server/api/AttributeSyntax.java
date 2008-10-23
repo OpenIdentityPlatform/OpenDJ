@@ -215,6 +215,15 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
 
 
   /**
+   * Indicates whether this attribute syntax is a binary one.
+   * @return  {@code true} if it is a binary syntax rule
+   *          , or {@code false} if not.
+   */
+  public abstract boolean isBinary();
+
+
+
+  /**
    * Retrieves the hash code for this attribute syntax.  It will be
    * calculated as the sum of the characters in the OID.
    *

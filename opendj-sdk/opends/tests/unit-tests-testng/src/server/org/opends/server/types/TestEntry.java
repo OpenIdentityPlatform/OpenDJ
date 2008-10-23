@@ -46,7 +46,6 @@ import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.schema.RFC3672SubtreeSpecificationSyntax;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.AfterClass;
 
 /**
  * This class defines a set of tests for the {@link Entry} class.
@@ -112,16 +111,12 @@ public final class TestEntry extends TypesTestCase {
     Entry testEntry = new Entry(entryDN, objectClasses, null, null);
 
     // Now add the attribute.
-    LinkedHashSet<AttributeValue> attributeValues =
-      new LinkedHashSet<AttributeValue>();
+    AttributeBuilder builder = new AttributeBuilder(type);
     for (String value : values) {
-      AttributeValue attributeValue = new AttributeValue(type, value);
-      attributeValues.add(attributeValue);
+      builder.add(value);
     }
-    Attribute attribute = new Attribute(type, type.getNameOrOID(),
-        attributeValues);
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-    attributes.add(attribute);
+    attributes.add(builder.toAttribute());
     testEntry.putAttribute(type, attributes);
 
     return testEntry;
@@ -351,7 +346,7 @@ public final class TestEntry extends TypesTestCase {
     assertTrue(e.hasAttribute(ocType, options));
     assertTrue(e.hasAttribute(cnType, options));
     assertTrue(e.hasAttribute(nameType, options));
-    assertFalse(e.hasAttribute(nameType, false, options));
+    assertFalse(e.hasAttribute(nameType, options, false));
     assertFalse(e.hasAttribute(uidType, options));
     assertTrue(e.hasAttribute(mnType, options));
 
@@ -359,7 +354,7 @@ public final class TestEntry extends TypesTestCase {
     assertTrue(e.hasAttribute(ocType, options));
     assertTrue(e.hasAttribute(cnType, options));
     assertTrue(e.hasAttribute(nameType, options));
-    assertFalse(e.hasAttribute(nameType, false, options));
+    assertFalse(e.hasAttribute(nameType, options, false));
     assertFalse(e.hasAttribute(uidType, options));
     assertTrue(e.hasAttribute(mnType, options));
 
@@ -367,7 +362,7 @@ public final class TestEntry extends TypesTestCase {
     assertFalse(e.hasAttribute(ocType, options));
     assertTrue(e.hasAttribute(cnType, options));
     assertTrue(e.hasAttribute(nameType, options));
-    assertFalse(e.hasAttribute(nameType, false, options));
+    assertFalse(e.hasAttribute(nameType, options, false));
     assertFalse(e.hasAttribute(uidType, options));
     assertFalse(e.hasAttribute(mnType, options));
 
@@ -375,7 +370,7 @@ public final class TestEntry extends TypesTestCase {
     assertFalse(e.hasAttribute(ocType, options));
     assertFalse(e.hasAttribute(cnType, options));
     assertFalse(e.hasAttribute(nameType, options));
-    assertFalse(e.hasAttribute(nameType, false, options));
+    assertFalse(e.hasAttribute(nameType, options, false));
     assertFalse(e.hasAttribute(uidType, options));
     assertFalse(e.hasAttribute(mnType, options));
 
@@ -384,7 +379,7 @@ public final class TestEntry extends TypesTestCase {
     assertFalse(e.hasAttribute(ocType, options));
     assertFalse(e.hasAttribute(cnType, options));
     assertFalse(e.hasAttribute(nameType, options));
-    assertFalse(e.hasAttribute(nameType, false, options));
+    assertFalse(e.hasAttribute(nameType, options, false));
     assertFalse(e.hasAttribute(uidType, options));
     assertFalse(e.hasAttribute(mnType, options));
   }

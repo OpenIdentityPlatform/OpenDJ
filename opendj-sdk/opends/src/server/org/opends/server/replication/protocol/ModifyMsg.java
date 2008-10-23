@@ -56,11 +56,9 @@ import java.util.zip.DataFormatException;
 /**
  * Message used to send Modify information.
  */
-public class ModifyMsg extends UpdateMessage
+public class ModifyMsg extends UpdateMsg
 {
-  private static final long serialVersionUID = -4905520652801395185L;
   private byte[] encodedMods = null;
-  private byte[] encodedMsg = null;
 
   /**
    * Creates a new Modify message from a ModifyOperation.
@@ -95,31 +93,49 @@ public class ModifyMsg extends UpdateMessage
    * Creates a new Modify message from a byte[].
    *
    * @param in The byte[] from which the operation must be read.
-   * @throws DataFormatException If the input byte[] is not a valid modifyMsg
+   * @throws DataFormatException If the input byte[] is not a valid ModifyMsg
    * @throws UnsupportedEncodingException If UTF8 is not supported by the JVM.
    */
   public ModifyMsg(byte[] in) throws DataFormatException,
                                      UnsupportedEncodingException
   {
-    super(in);
-    encodedMsg = in;
+    // Decode header
+    byte[] allowedPduTypes = new byte[2];
+    allowedPduTypes[0] = MSG_TYPE_MODIFY;
+    allowedPduTypes[1] = MSG_TYPE_MODIFY_V1;
+    int pos = decodeHeader(allowedPduTypes, in);
+
+    /* Read the mods : all the remaining bytes but the terminating 0 */
+    int length = in.length - pos - 1;
+    encodedMods = new byte[length];
+    try
+    {
+      System.arraycopy(in, pos, encodedMods, 0, length);
+    } catch (IndexOutOfBoundsException e)
+    {
+      throw new DataFormatException(e.getMessage());
+    } catch (ArrayStoreException e)
+    {
+      throw new DataFormatException(e.getMessage());
+    } catch (NullPointerException e)
+    {
+      throw new DataFormatException(e.getMessage());
+    }
   }
 
   /**
-   * Get the byte array representation of this Message.
-   *
-   * @return The byte array representation of this Message.
-   *
-   * @throws UnsupportedEncodingException  When the encoding of the message
-   *         failed because the UTF-8 encoding is not supported.
+   * {@inheritDoc}
    */
   @Override
   public byte[] getBytes() throws UnsupportedEncodingException
   {
-    if (encodedMsg == null)
-    {
-      encode();
-    }
+    /* encode the header in a byte[] large enough to also contain the mods */
+    byte[] encodedMsg = encodeHeader(MSG_TYPE_MODIFY, encodedMods.length + 1);
+
+    /* add the mods */
+    int pos = encodedMsg.length - (encodedMods.length + 1);
+    addByteArray(encodedMods, encodedMsg, pos);
+
     return encodedMsg;
   }
 
@@ -131,11 +147,6 @@ public class ModifyMsg extends UpdateMessage
                    String newDn)
                    throws LDAPException, ASN1Exception, DataFormatException
   {
-    if (encodedMods == null)
-    {
-      decode();
-    }
-
     if (newDn == null)
       newDn = getDn();
 
@@ -156,39 +167,6 @@ public class ModifyMsg extends UpdateMessage
     ModifyContext ctx = new ModifyContext(getChangeNumber(), getUniqueId());
     mod.setAttachment(SYNCHROCONTEXT, ctx);
     return mod;
-  }
-
-  /**
-   * Encode the Msg information into a byte array.
-   *
-   * @throws UnsupportedEncodingException If utf8 is not suported.
-   */
-  private void encode() throws UnsupportedEncodingException
-  {
-    /* encode the header in a byte[] large enough to also contain the mods */
-    encodedMsg = encodeHeader(MSG_TYPE_MODIFY_REQUEST, encodedMods.length + 1);
-    int pos = encodedMsg.length - (encodedMods.length + 1);
-
-    /* add the mods */
-    pos = addByteArray(encodedMods, encodedMsg, pos);
-  }
-
-  /**
-   * Decode the encodedMsg into mods and dn.
-   *
-   * @throws DataFormatException when the encodedMsg is no a valid modify.
-   */
-  private void decode() throws DataFormatException
-  {
-    int pos = decodeHeader(MSG_TYPE_MODIFY_REQUEST, encodedMsg);
-
-    /* Read the mods : all the remaining bytes but the terminating 0 */
-    encodedMods = new byte[encodedMsg.length-pos-1];
-    int i =0;
-    while (pos<encodedMsg.length-1)
-    {
-      encodedMods[i++] = encodedMsg[pos++];
-    }
   }
 
   /**
@@ -233,7 +211,37 @@ public class ModifyMsg extends UpdateMessage
   @Override
   public String toString()
   {
-    return("MOD " + getDn() + " " + getChangeNumber());
+    if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
+    {
+      return "ModifyMsg content: " +
+        "\nprotocolVersion: " + protocolVersion +
+        "\ndn: " + dn +
+        "\nchangeNumber: " + changeNumber +
+        "\nuniqueId: " + uniqueId +
+        "\nassuredFlag: " + assuredFlag;
+    }
+    if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V2)
+    {
+      return "ModifyMsg content: " +
+        "\nprotocolVersion: " + protocolVersion +
+        "\ndn: " + dn +
+        "\nchangeNumber: " + changeNumber +
+        "\nuniqueId: " + uniqueId +
+        "\nassuredFlag: " + assuredFlag +
+        "\nassuredMode: " + assuredMode +
+        "\nsafeDataLevel: " + safeDataLevel;
+    }
+    return "!!! Unknown version: " + protocolVersion + "!!!";
+  }
+
+  /**
+   * Set the Modification associated to the UpdateMsg to the provided value.
+   *
+   * @param mods The new Modification associated to this ModifyMsg.
+   */
+  public void setMods(List<Modification> mods)
+  {
+    encodedMods = modsToByte(mods);
   }
 
   /**
@@ -242,9 +250,25 @@ public class ModifyMsg extends UpdateMessage
   @Override
   public int size()
   {
-    // The ModifyMsh can be very large when added or deleted attribute
+    // The ModifyMsg can be very large when added or deleted attribute
     // values are very large. We therefore need to count the
     // whole encoded msg.
-    return encodedMsg.length;
+    return encodedMods.length + 100; // 100 let's assume header size is 100
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public byte[] getBytes_V1() throws UnsupportedEncodingException
+  {
+    /* encode the header in a byte[] large enough to also contain the mods */
+    byte[] encodedMsg = encodeHeader_V1(MSG_TYPE_MODIFY_V1, encodedMods.length +
+      1);
+
+    /* add the mods */
+    int pos = encodedMsg.length - (encodedMods.length + 1);
+    addByteArray(encodedMods, encodedMsg, pos);
+
+    return encodedMsg;
   }
 }

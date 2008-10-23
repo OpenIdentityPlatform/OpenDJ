@@ -661,8 +661,8 @@ public class TestModifyDNOperation extends OperationTestCase
 
     for(Attribute attribute : newEntry.getAttribute("cn"))
     {
-      assertTrue(attribute.hasValue(new AttributeValue(attribute.getAttributeType(), "Aaccf Amar Test")));
-      assertTrue(attribute.hasValue(new AttributeValue(attribute.getAttributeType(), "Aaccf Amar")));
+      assertTrue(attribute.contains(new AttributeValue(attribute.getAttributeType(), "Aaccf Amar Test")));
+      assertTrue(attribute.contains(new AttributeValue(attribute.getAttributeType(), "Aaccf Amar")));
     }
 
     examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
@@ -685,12 +685,12 @@ public class TestModifyDNOperation extends OperationTestCase
     assertNull(DirectoryServer.getEntry(DN.decode("cn=Aaccf Amar Test,dc=example,dc=com")));
     for(Attribute attribute : newOldEntry.getAttribute("cn"))
     {
-      assertTrue(attribute.hasValue(new AttributeValue(attribute.getAttributeType(), "Aaccf Amar Test")));
-      assertTrue(attribute.hasValue(new AttributeValue(attribute.getAttributeType(), "Aaccf Amar")));
+      assertTrue(attribute.contains(new AttributeValue(attribute.getAttributeType(), "Aaccf Amar Test")));
+      assertTrue(attribute.contains(new AttributeValue(attribute.getAttributeType(), "Aaccf Amar")));
     }
     for(Attribute attribute : newOldEntry.getAttribute("uid"))
     {
-      assertTrue(attribute.hasValue(new AttributeValue(attribute.getAttributeType(), "user.0")));
+      assertTrue(attribute.contains(new AttributeValue(attribute.getAttributeType(), "user.0")));
     }
     examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
   }

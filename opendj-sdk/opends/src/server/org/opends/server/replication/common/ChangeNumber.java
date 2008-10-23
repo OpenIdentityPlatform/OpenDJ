@@ -26,6 +26,8 @@
  */
 package org.opends.server.replication.common;
 
+import java.util.Date;
+
 /**
  * Class used to represent Change Numbers.
  */
@@ -143,6 +145,19 @@ public class ChangeNumber implements java.io.Serializable,
   }
 
   /**
+   * Convert the ChangeNumber to a printable String that is .
+   * @return the string
+   */
+  public String toStringUI()
+  {
+    Date date = new Date(timeStamp);
+    return String.format(
+        "%016x%04x%08x (%s,%d,%d)",
+        timeStamp, serverId, seqnum,
+        date.toString(), serverId, seqnum);
+  }
+
+  /**
    * Compares 2 ChangeNumber.
    * @param CN1 the first ChangeNumber to compare
    * @param CN2 the second ChangeNumber to compare
@@ -186,35 +201,42 @@ public class ChangeNumber implements java.io.Serializable,
     }
   }
 
-  /**
-   * Computes the difference in number of changes between 2
-   * change numbers.
-   * @param op1 the first ChangeNumber
-   * @param op2 the second ChangeNumber
-   * @return the difference
-   */
-  public static int diffSeqNum(ChangeNumber op1, ChangeNumber op2)
+ /**
+  * Computes the difference in number of changes between 2
+  * change numbers. First one is expected to be newer than second one. If this
+  * is not the case, 0 will be returned.
+  * @param op1 the first ChangeNumber
+  * @param op2 the second ChangeNumber
+  * @return the difference
+  */
+ public static int diffSeqNum(ChangeNumber op1, ChangeNumber op2)
   {
     int totalCount = 0;
     int max = op1.getSeqnum();
-    if (op2 != null)
+    long maxTimeStamp = op1.getTime();
+    if (op1 != null)
     {
-      int current = op2.getSeqnum();
-      if (current == max)
+      if (op2 != null)
       {
-      }
-      else if (current < max)
+        int current = op2.getSeqnum();
+        long currentTimestamp = op2.getTime();
+        if (current != max)
+        {
+          if (currentTimestamp <= maxTimeStamp)
+          {
+            if (current < max)
+            {
+              totalCount += max - current;
+            } else
+            {
+              totalCount += Integer.MAX_VALUE - (current - max) + 1;
+            }
+          }
+        }
+      } else
       {
-        totalCount += max - current;
+        totalCount += max;
       }
-      else
-      {
-        totalCount += Integer.MAX_VALUE - (current - max) + 1;
-      }
-    }
-    else
-    {
-      totalCount += max;
     }
     return totalCount;
   }

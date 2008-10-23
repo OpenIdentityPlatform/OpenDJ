@@ -226,5 +226,15 @@ public class OctetStringSyntax
     // All values will be acceptable for the octet string syntax.
     return true;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

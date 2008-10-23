@@ -81,6 +81,8 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
+import org.opends.server.core.networkgroups.NetworkGroup;
+import org.opends.server.core.networkgroups.NetworkGroupConfigManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.JMXAlertHandler;
 import static org.opends.server.loggers.AccessLogger.*;
@@ -189,6 +191,7 @@ import
 import org.opends.server.protocols.internal.InternalConnectionHandler;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.crypto.CryptoManagerSync;
+import org.opends.server.servicetag.ServiceTagRegistration;
 import static org.opends.messages.ConfigMessages.*;
 
 import javax.management.MBeanServer;
@@ -470,7 +473,7 @@ public class DirectoryServer
   private ConcurrentHashMap<String,SASLMechanismHandler> saslMechanismHandlers;
 
   // The connection handler configuration manager for the Directory Server.
-  private ConnectionHandlerConfigManager connectionHandlerConfigManager;
+  private ConnectionHandlerConfigManager connectionHandlerConfigManager = null;
 
   // The set of alert handlers registered with the Directory Server.
   private CopyOnWriteArrayList<AlertHandler> alertHandlers;
@@ -738,6 +741,10 @@ public class DirectoryServer
   // mode is 'manual'.
   private WorkflowElementConfigManager workflowElementConfigManager;
 
+  // The ServiceTag Registration service for the Directory Server.
+  // The Registration is used to create and register a ServiceTag
+  // if it does not exist in the common servicetag registry.
+  private ServiceTagRegistration serviceTagRegistry;
 
 
   /**
@@ -1288,6 +1295,11 @@ public class DirectoryServer
       }
 
 
+      // Mark the current time as the start time.
+      startUpTime  = System.currentTimeMillis();
+      startTimeUTC = TimeThread.getGMTTime();
+
+
       // Determine whether or not we should start the connection handlers.
       boolean startConnectionHandlers =
            (! environmentConfig.disableConnectionHandlers());
@@ -1329,8 +1341,13 @@ public class DirectoryServer
       entryCacheConfigManager = new EntryCacheConfigManager();
       entryCacheConfigManager.initializeDefaultEntryCache();
 
+      // Initialize the administration connector.
+      if (startConnectionHandlers)
+      {
+        initializeAdministrationConnector();
+      }
 
-      // Initialize the key manager provider.
+        // Initialize the key manager provider.
       keyManagerProviderConfigManager = new KeyManagerProviderConfigManager();
       keyManagerProviderConfigManager.initializeKeyManagerProviders();
 
@@ -1407,7 +1424,8 @@ public class DirectoryServer
       initializeVirtualAttributes();
 
 
-      // Initialize all the connection handlers.
+      // Initialize all the connection handlers
+      // (including the administration connector).
       if (startConnectionHandlers)
       {
         initializeConnectionHandlers();
@@ -1449,6 +1467,7 @@ public class DirectoryServer
       }
 
 
+      // Start administration connector and connection handlers
       if (startConnectionHandlers)
       {
         startConnectionHandlers();
@@ -1467,11 +1486,8 @@ public class DirectoryServer
       }
 
 
-      // Mark the current time as the start time and indicate that the server is
-      // now running.
-      startUpTime  = System.currentTimeMillis();
-      startTimeUTC = TimeThread.getGMTTime();
-      isRunning    = true;
+      // Indicate that the server is now running.
+      isRunning = true;
 
       Message message = NOTE_DIRECTORY_SERVER_STARTED.get();
       logError(message);
@@ -2562,7 +2578,7 @@ public class DirectoryServer
    *                                   the backends that is not related to the
    *                                   server configuration.
    */
-  private void initializeBackends()
+  public void initializeBackends()
           throws ConfigException, InitializationException
   {
     backendConfigManager = new BackendConfigManager();
@@ -2809,13 +2825,17 @@ public class DirectoryServer
    *                                   attempting to initialize and start the
    *                                   Directory Server.
    */
-  private void configureWorkflowsManual()
+  public void configureWorkflowsManual()
       throws ConfigException, InitializationException
   {
     // First of all re-initialize the current workflow configuration
     NetworkGroup.resetConfig();
     WorkflowImpl.resetConfig();
     directoryServer.workflowElements.clear();
+
+    // We now need to complete the workflow creation for the
+    // config backend and rootDSE backend.
+    createAndRegisterRemainingWorkflows();
 
     // Then configure the workflows
     workflowElementConfigManager = new WorkflowElementConfigManager();
@@ -2826,10 +2846,6 @@ public class DirectoryServer
 
     networkGroupConfigManager = new NetworkGroupConfigManager();
     networkGroupConfigManager.initializeNetworkGroups();
-
-    // We now need to complete the workflow creation for the
-    // config backend and rootDSE backend.
-    createAndRegisterRemainingWorkflows();
   }
 
 
@@ -2849,10 +2865,10 @@ public class DirectoryServer
 
     // For each base DN in a backend create a workflow and register
     // the workflow with the default network group
-    Map<String, Backend> backends = getBackends();
-    for (String backendID: backends.keySet())
+    Map<String, Backend> backendMap = getBackends();
+    for (String backendID: backendMap.keySet())
     {
-      Backend backend = backends.get(backendID);
+      Backend backend = backendMap.get(backendID);
       for (DN baseDN: backend.getBaseDNs())
       {
         WorkflowImpl workflowImpl;
@@ -3053,8 +3069,31 @@ public class DirectoryServer
   private void initializeConnectionHandlers()
           throws ConfigException, InitializationException
   {
-    connectionHandlerConfigManager = new ConnectionHandlerConfigManager();
+    if (connectionHandlerConfigManager == null) {
+      connectionHandlerConfigManager = new ConnectionHandlerConfigManager();
+    }
     connectionHandlerConfigManager.initializeConnectionHandlerConfig();
+  }
+
+
+
+  /**
+   * Initializes the administration connector for the Directory Server.
+   *
+   * @throws  ConfigException  If a configuration problem is identified while
+   *                           initializing the administration connector.
+   *
+   * @throws  InitializationException  If a problem occurs while initializing
+   *                                   the administration connector that is not
+   *                                   related to the server configuration.
+   */
+  public void initializeAdministrationConnector()
+         throws ConfigException, InitializationException
+  {
+    if (connectionHandlerConfigManager == null) {
+      connectionHandlerConfigManager = new ConnectionHandlerConfigManager();
+    }
+    connectionHandlerConfigManager.initializeAdministrationConnectorConfig();
   }
 
 
@@ -8904,7 +8943,13 @@ public class DirectoryServer
   throws IOException
   {
     outputStream.write(getBytes(PRINTABLE_VERSION_STRING));
-    return;
+
+    // Print extensions' extra information
+    String extensionInformation =
+         ClassLoaderProvider.getInstance().printExtensionInformation();
+    if ( extensionInformation != null ) {
+      outputStream.write(extensionInformation.getBytes());
+    }
   }
 
 
@@ -9668,6 +9713,19 @@ public class DirectoryServer
       System.exit(1);
     }
 
+    try {
+        directoryServer.serviceTagRegistry =
+                ServiceTagRegistration.getRegistrationService();
+        directoryServer.serviceTagRegistry.registerServiceTags("Server");
+    }
+    catch(Exception ex) {
+        // ServiceTags Registration errors do not prevent the server to
+        // start. WARNING logged in debug mode
+        if (debugEnabled()) {
+           TRACER.debugCaught(DebugLogLevel.WARNING, ex);
+      }
+    }
+
     try
     {
       directoryServer.startServer();
@@ -9689,8 +9747,8 @@ public class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, ce);
       }
 
-      Message message = ERR_DSCORE_CANNOT_START.get(ce.getMessage()
-          + " " + ce.getCause().getLocalizedMessage());
+      Message message = ERR_DSCORE_CANNOT_START.get(ce.getMessage() +
+      (ce.getCause() != null ? " " + ce.getCause().getLocalizedMessage() : ""));
       shutDown(directoryServer.getClass().getName(), message);
     }
     catch (Exception e)
@@ -10093,6 +10151,13 @@ public class DirectoryServer
     System.out.println(SetupUtils.INCOMPATIBILITY_EVENTS+separator+
         StaticUtils.listToString(
             VersionCompatibilityIssue.getAllEvents(), ","));
+
+    // Print extensions' extra information
+    String extensionInformation =
+                  ClassLoaderProvider.getInstance().printExtensionInformation();
+    if ( extensionInformation != null ) {
+      System.out.print(extensionInformation);
+    }
   }
 
 }

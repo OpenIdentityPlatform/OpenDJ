@@ -30,11 +30,11 @@ package org.opends.server.tools.makeldif;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
@@ -309,28 +309,26 @@ public class TemplateEntry
       }
       else if (t.isOperational())
       {
-        LinkedHashSet<AttributeValue> values =
-             new LinkedHashSet<AttributeValue>();
+        AttributeBuilder builder = new AttributeBuilder(t, t.getNameOrOID());
         for (TemplateValue v : valueList)
         {
-          values.add(new AttributeValue(t, v.getValue().toString()));
+          builder.add(new AttributeValue(t, v.getValue().toString()));
         }
 
         ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-        attrList.add(new Attribute(t, t.getNameOrOID(), values));
+        attrList.add(builder.toAttribute());
         operationalAttributes.put(t, attrList);
       }
       else
       {
-        LinkedHashSet<AttributeValue> values =
-             new LinkedHashSet<AttributeValue>();
+        AttributeBuilder builder = new AttributeBuilder(t, t.getNameOrOID());
         for (TemplateValue v : valueList)
         {
-          values.add(new AttributeValue(t, v.getValue().toString()));
+          builder.add(new AttributeValue(t, v.getValue().toString()));
         }
 
         ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-        attrList.add(new Attribute(t, t.getNameOrOID(), values));
+        attrList.add(builder.toAttribute());
         userAttributes.put(t, attrList);
       }
     }

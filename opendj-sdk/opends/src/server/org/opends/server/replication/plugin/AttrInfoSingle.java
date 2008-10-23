@@ -28,10 +28,10 @@ package org.opends.server.replication.plugin;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
@@ -86,13 +86,12 @@ public class AttrInfoSingle extends AttributeInfo
   public void processLocalOrNonConflictModification(ChangeNumber changeNumber,
       Modification mod)
   {
-    Attribute modAttr = mod.getAttribute();
-    LinkedHashSet<AttributeValue> values = null;
-    if (modAttr != null)
-      values = modAttr.getValues();
     AttributeValue newValue = null;
-    if ((values != null) && (values.size() != 0))
-      newValue = values.iterator().next();
+    Attribute modAttr = mod.getAttribute();
+    if (modAttr != null && !modAttr.isEmpty())
+    {
+      newValue = modAttr.iterator().next();
+    }
 
     switch (mod.getModificationType())
     {
@@ -134,22 +133,35 @@ public class AttrInfoSingle extends AttributeInfo
   {
     boolean conflict = false;
 
-    Attribute modAttr = mod.getAttribute();
-    LinkedHashSet<AttributeValue> values = null;
-    if (modAttr != null)
-      values = modAttr.getValues();
     AttributeValue newValue = null;
-    if ((values != null) && (values.size() != 0))
-      newValue = values.iterator().next();
+    Attribute modAttr = mod.getAttribute();
+    if (modAttr != null && !modAttr.isEmpty())
+    {
+      newValue = modAttr.iterator().next();
+    }
 
     switch (mod.getModificationType())
     {
     case DELETE:
       if ((changeNumber.newer(addTime)) &&
-          ((newValue == null) || ((newValue != null)
-                                  && (newValue.equals(value)))))
+          ((newValue == null) ||
+              ((newValue != null) && (newValue.equals(value))) ||
+              (value == null)))
       {
-        deleteTime = changeNumber;
+        if (changeNumber.newer(deleteTime))
+          deleteTime = changeNumber;
+        AttributeType type = modAttr.getAttributeType();
+        if (!modifiedEntry.hasAttribute(type))
+        {
+          conflict = true;
+          modsIterator.remove();
+        }
+        else if ((newValue != null) &&
+            (!modifiedEntry.hasValue(type, modAttr.getOptions(), newValue)))
+        {
+          conflict = true;
+          modsIterator.remove();
+        }
       }
       else
       {

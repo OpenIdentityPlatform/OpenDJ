@@ -106,9 +106,10 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
       "--noPropertiesFile",
       "-Q",
       "list-connection-handlers",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
       "-D", "malformed",
-      "-w", "password"
+      "-w", "password",
+      "-X"
     };
 
     assertFalse(DSConfig.main(args, false, null, null)
@@ -127,9 +128,10 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
       "--noPropertiesFile",
       "-Q",
       "list-connection-handlers",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
       "-D", "cn=Does Not Exist",
-      "-w", "password"
+      "-w", "password",
+      "-X"
     };
 
     assertFalse(DSConfig.main(args, false, System.out, System.err)
@@ -148,9 +150,10 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
       "--noPropertiesFile",
       "-Q",
       "list-connection-handlers",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
       "-D", "cn=Directory Manager",
-      "-w", "wrongPassword"
+      "-w", "wrongPassword",
+      "-X"
     };
 
     assertFalse(DSConfig.main(args, false, System.out, System.err)
@@ -175,9 +178,10 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
       "--noPropertiesFile",
       "-Q",
       "list-connection-handlers",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
       "-D", "cn=Directory Manager",
       "-j", validPasswordFile,
+      "-X"
     };
 
     assertEquals(DSConfig.main(args, false, System.out,
@@ -199,37 +203,15 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
       "--noPropertiesFile",
       "-Q",
       "list-connection-handlers",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
       "-D", "cn=Directory Manager",
-      "-j",invalidPasswordFile
+      "-j",invalidPasswordFile,
+      "-X"
     };
 
     assertFalse(DSConfig.main(args, false, System.out, System.err)
         == SUCCESSFUL.getReturnCode());
   }
-
-  /**
-   * Tests a list-connection-handlerss over SSL using blind trust.
-   */
-  @Test()
-  public void testListConnectionHandlersSSLBlindTrust()
-  {
-    String[] args =
-    {
-      "-n",
-      "--noPropertiesFile",
-      "-Q",
-      "list-connection-handlers",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
-      "-w", "password",
-      "-Z",
-      "-X"
-    };
-
-    assertEquals(DSConfig.main(args, false, System.out,
-        System.err), SUCCESSFUL.getReturnCode());
-  }
-
 
 
   /**
@@ -239,7 +221,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
   public void testListConnectionHandlersSSLTrustStore()
   {
     String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                            "config" + File.separator + "client.truststore";
+                            "config" + File.separator + "admin-truststore";
 
     String[] args =
     {
@@ -247,9 +229,8 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
       "--noPropertiesFile",
       "-Q",
       "list-connection-handlers",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
       "-w", "password",
-      "-Z",
       "-P", trustStorePath
     };
 
@@ -257,56 +238,6 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
         System.err), SUCCESSFUL.getReturnCode());
   }
 
-
-
-  /**
-   * Tests a list-connection-handlers using StartTLS with blind trust.
-   */
-  @Test()
-  public void testListConnectionHandlersStartTLSBlindTrust()
-  {
-    String[] args =
-    {
-      "-n",
-      "--noPropertiesFile",
-      "-Q",
-      "list-connection-handlers",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-w", "password",
-      "-q",
-      "-X"
-    };
-
-    assertEquals(DSConfig.main(args, false, null, System.err),
-        SUCCESSFUL.getReturnCode());
-  }
-
-
-
-  /**
-   * Tests a list-connection-handlers using StartTLS with a trust store.
-   */
-  @Test()
-  public void testListConnectionHandlersStartTLSTrustStore()
-  {
-    String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                            "config" + File.separator + "client.truststore";
-
-    String[] args =
-    {
-      "-n",
-      "--noPropertiesFile",
-      "-Q",
-      "list-connection-handlers",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-w", "password",
-      "-q",
-      "-P", trustStorePath
-    };
-
-    assertEquals(DSConfig.main(args, false, null, System.err),
-        SUCCESSFUL.getReturnCode());
-  }
 
   /**
    * Tests the dsconfig with the "--help" option.

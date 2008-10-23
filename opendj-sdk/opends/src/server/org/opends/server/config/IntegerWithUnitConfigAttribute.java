@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+
 import javax.management.AttributeList;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanParameterInfo;
@@ -310,7 +311,7 @@ public final class IntegerWithUnitConfigAttribute
    *
    * @return  The attribute syntax for this configuration attribute.
    */
-  public AttributeSyntax getSyntax()
+  public AttributeSyntax<?> getSyntax()
   {
     return DirectoryServer.getDefaultStringSyntax();
   }
@@ -945,8 +946,7 @@ public final class IntegerWithUnitConfigAttribute
           }
 
 
-          LinkedHashSet<AttributeValue> values = a.getValues();
-          if (values.isEmpty())
+          if (a.isEmpty())
           {
             // This is illegal -- it must have a value.
             Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
@@ -954,7 +954,7 @@ public final class IntegerWithUnitConfigAttribute
           }
           else
           {
-            Iterator<AttributeValue> iterator = values.iterator();
+            Iterator<AttributeValue> iterator = a.iterator();
 
             String valueString = iterator.next().getStringValue();
 
@@ -1031,8 +1031,7 @@ public final class IntegerWithUnitConfigAttribute
         }
 
 
-        LinkedHashSet<AttributeValue> values = a.getValues();
-        if (values.isEmpty())
+        if (a.isEmpty())
         {
           // This is illegal -- it must have a value.
           Message message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
@@ -1040,7 +1039,7 @@ public final class IntegerWithUnitConfigAttribute
         }
         else
         {
-          Iterator<AttributeValue> iterator = values.iterator();
+          Iterator<AttributeValue> iterator = a.iterator();
 
           String valueString = iterator.next().getStringValue();
 

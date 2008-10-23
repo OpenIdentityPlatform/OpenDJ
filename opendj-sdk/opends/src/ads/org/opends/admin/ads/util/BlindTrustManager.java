@@ -34,7 +34,7 @@ import javax.net.ssl.X509TrustManager;
 /**
  * An X509TrustManager which trusts everything.
  */
-class BlindTrustManager implements X509TrustManager {
+public class BlindTrustManager implements X509TrustManager {
 
   /**
    * {@inheritDoc}

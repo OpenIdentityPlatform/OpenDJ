@@ -52,7 +52,7 @@ import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Transaction;
 
 /**
- * This class is used to represent a Db environement that can be used
+ * This class is used to represent a Db environment that can be used
  * to create ReplicationDB.
  */
 public class ReplicationDbEnv

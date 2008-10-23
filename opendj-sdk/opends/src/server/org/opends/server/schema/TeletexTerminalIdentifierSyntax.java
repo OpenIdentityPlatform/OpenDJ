@@ -391,5 +391,15 @@ public class TeletexTerminalIdentifierSyntax
     // If we've gotten here, then the value must be valid.
     return true;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

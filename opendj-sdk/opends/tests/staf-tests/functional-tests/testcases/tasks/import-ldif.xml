@@ -65,21 +65,20 @@
             <call function="'testCase_Preamble'"/>              
             
             <call function="'ImportLdifWithScript'">
-              { 'location'     : STAF_REMOTE_HOSTNAME ,
-              'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'dsLdifFile'     : '%s/tasks/import.ldif' % remote.data,
-              'dsAppend'       : ' ',
-              'dsBackEnd'      : DIRECTORY_INSTANCE_BE}
+              { 'location'          : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+              'dsLdifFile'          : '%s/tasks/import.ldif' % remote.data,
+              'dsAppend'            : ' ',
+              'dsBackEnd'           : DIRECTORY_INSTANCE_BE}
             </call>
 
             <!-- manage-tasks -->
             <call function="'manage-tasks'">
               { 'location'     : STAF_REMOTE_HOSTNAME ,
               'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'dsQuiet'        : ' '
@@ -144,15 +143,15 @@
             <call function="'testCase_Preamble'"/>              
             
             <call function="'ImportLdifWithScript'">
-              { 'location'    : STAF_REMOTE_HOSTNAME ,
-              'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-              'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'dsLdifFile'  : '%s/tasks/import.ldif' % remote.data,
-              'dsAppend' : ' ',
-              'startTask'  : '0',
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE}
+              { 'location'          : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+              'dsLdifFile'          : '%s/tasks/import.ldif' % remote.data,
+              'dsAppend'            : ' ',
+              'startTask'           : '0',
+              'dsBackEnd'           : DIRECTORY_INSTANCE_BE}
             </call>
             <call function="'Sleep'">
               { 'location'  :	 STAF_REMOTE_HOSTNAME,
@@ -205,15 +204,15 @@
             <call function="'testCase_Preamble'"/>              
             
             <call function="'ImportLdifWithScript'">
-              { 'location'     : STAF_REMOTE_HOSTNAME ,
-              'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'dsLdifFile'     : '%s/tasks/import.ldif' % remote.data,
-              'dsAppend'       : ' ',
-              'startTask'      : '20061212000000',
-              'dsBackEnd'      : DIRECTORY_INSTANCE_BE}
+              { 'location'          : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+              'dsLdifFile'          : '%s/tasks/import.ldif' % remote.data,
+              'dsAppend'            : ' ',
+              'startTask'           : '20061212000000',
+              'dsBackEnd'           : DIRECTORY_INSTANCE_BE}
             </call>
             <call function="'Sleep'">
               { 'location'  :	 STAF_REMOTE_HOSTNAME,

@@ -49,7 +49,6 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
@@ -127,7 +126,7 @@ public class LDAPADListPluginTestCase
     List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
     for (Attribute a : attrList)
     {
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
       {
         pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
       }
@@ -213,7 +212,7 @@ public class LDAPADListPluginTestCase
     {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
         }

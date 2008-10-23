@@ -124,7 +124,7 @@ public class TaskBackendTestCase
     assertTrue(TaskState.isPending(task.getTaskState()));
 
     // Perform a modification to delete that task.
-    int resultCode = TestCaseUtils.applyModifications(
+    int resultCode = TestCaseUtils.applyModifications(true,
       "dn: " + taskDN,
       "changetype: delete");
     assertEquals(resultCode, 0);
@@ -174,7 +174,7 @@ public class TaskBackendTestCase
 
 
     // Perform a modification to delete that task.
-    int resultCode = TestCaseUtils.applyModifications(
+    int resultCode = TestCaseUtils.applyModifications(true,
       "dn: " + taskDN,
       "changetype: delete");
     assertFalse(resultCode == 0);
@@ -213,7 +213,7 @@ public class TaskBackendTestCase
 
 
     // Perform a modification to delete that task.
-    int resultCode = TestCaseUtils.applyModifications(
+    int resultCode = TestCaseUtils.applyModifications(true,
       "dn: " + taskDN,
       "changetype: delete");
     assertEquals(resultCode, 0);
@@ -258,7 +258,7 @@ public class TaskBackendTestCase
     assertTrue(TaskState.isPending(task.getTaskState()));
 
     // Perform a modification to update a non-state attribute.
-    int resultCode = TestCaseUtils.applyModifications(
+    int resultCode = TestCaseUtils.applyModifications(true,
       "dn: " + taskDN,
       "changetype: modify",
       "add: description",
@@ -267,7 +267,7 @@ public class TaskBackendTestCase
 
 
     // Perform a modification to update the task state.
-    resultCode = TestCaseUtils.applyModifications(
+    resultCode = TestCaseUtils.applyModifications(true,
       "dn: " + taskDN,
       "changetype: modify",
       "replace: ds-task-state",
@@ -275,7 +275,7 @@ public class TaskBackendTestCase
     assertEquals(resultCode, 0);
 
     // Delete the task.
-    resultCode = TestCaseUtils.applyModifications(
+    resultCode = TestCaseUtils.applyModifications(true,
       "dn: " + taskDN,
       "changetype: delete");
     assertEquals(resultCode, 0);
@@ -326,7 +326,7 @@ public class TaskBackendTestCase
 
 
     // Perform a modification to change something other than the state.
-    int resultCode = TestCaseUtils.applyModifications(
+    int resultCode = TestCaseUtils.applyModifications(true,
       "dn: " + taskDN,
       "changetype: modify",
       "replace: description",
@@ -335,7 +335,7 @@ public class TaskBackendTestCase
 
 
     // Perform a modification to cancel the task.
-    resultCode = TestCaseUtils.applyModifications(
+    resultCode = TestCaseUtils.applyModifications(true,
       "dn: " + taskDN,
       "changetype: modify",
       "replace: ds-task-state",
@@ -351,7 +351,7 @@ public class TaskBackendTestCase
 
 
     // Perform a modification to delete that task.
-    resultCode = TestCaseUtils.applyModifications(
+    resultCode = TestCaseUtils.applyModifications(true,
       "dn: " + taskDN,
       "changetype: delete");
     assertEquals(resultCode, 0);
@@ -390,7 +390,7 @@ public class TaskBackendTestCase
 
 
     // Perform a modification to update a non-state attribute.
-    int resultCode = TestCaseUtils.applyModifications(
+    int resultCode = TestCaseUtils.applyModifications(true,
       "dn: " + taskDN,
       "changetype: modify",
       "add: description",
@@ -399,7 +399,7 @@ public class TaskBackendTestCase
 
 
     // Perform a modification to delete that task.
-    resultCode = TestCaseUtils.applyModifications(
+    resultCode = TestCaseUtils.applyModifications(true,
       "dn: " + taskDN,
       "changetype: delete");
     assertEquals(resultCode, 0);

@@ -368,6 +368,24 @@ public class ServerLoader extends Thread
   }
 
   /**
+   * Returns the administration connector URL for the given server properties.
+   * It returns NULL if according to the server properties no administration
+   * connector URL can be generated.
+   * @param serverProperties the server properties to be used to generate
+   * the administration connector URL.
+   * @return the administration connector URL for the given server properties.
+   */
+  private String getAdminConnectorUrl(
+    Map<ServerProperty,Object> serverProperties)
+  {
+    String adminUrl = null;
+      adminUrl = "ldaps://"+getHostNameForLdapUrl(serverProperties)+":"+
+      serverProperties.get(ServerProperty.ADMIN_PORT);
+
+    return adminUrl;
+  }
+
+  /**
    * Returns the host name to be used to generate an LDAP URL based on the
    * contents of the provided server properties.
    * @param serverProperties the server properties.
@@ -415,6 +433,7 @@ public class ServerLoader extends Thread
     LinkedHashSet<PreferredConnection> ldapUrls =
       new LinkedHashSet<PreferredConnection>();
 
+    String adminConnectorUrl = getAdminConnectorUrl(serverProperties);
     String ldapsUrl = getLdapsUrl(serverProperties);
     String startTLSUrl = getStartTlsLdapUrl(serverProperties);
     String ldapUrl = getLdapUrl(serverProperties);
@@ -425,7 +444,11 @@ public class ServerLoader extends Thread
     for (PreferredConnection connection : preferredLDAPURLs)
     {
       String url = connection.getLDAPURL();
-      if (url.equalsIgnoreCase(ldapsUrl) &&
+      if (url.equalsIgnoreCase(adminConnectorUrl))
+      {
+        ldapUrls.add(connection);
+      }
+      else if (url.equalsIgnoreCase(ldapsUrl) &&
           connection.getType() == PreferredConnection.Type.LDAPS)
       {
         ldapUrls.add(connection);
@@ -442,6 +465,12 @@ public class ServerLoader extends Thread
       }
     }
 
+    if (adminConnectorUrl != null)
+    {
+      ldapUrls.add(
+          new PreferredConnection(adminConnectorUrl,
+          PreferredConnection.Type.LDAPS));
+    }
     if (ldapsUrl != null)
     {
       ldapUrls.add(

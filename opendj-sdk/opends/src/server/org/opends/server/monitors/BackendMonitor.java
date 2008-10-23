@@ -28,7 +28,9 @@ package org.opends.server.monitors;
 
 
 
-import java.util.LinkedHashSet;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -38,17 +40,14 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteStringFactory;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryConfig;
-import org.opends.server.types.DN;
 import org.opends.server.types.ObjectClass;
-
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.ServerConstants.*;
 
 
 
@@ -191,33 +190,24 @@ public class BackendMonitor
   {
     LinkedList<Attribute> attrs = new LinkedList<Attribute>();
 
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(backendIDType,
-                        ByteStringFactory.create(backend.getBackendID())));
-    attrs.add(new Attribute(backendIDType, ATTR_MONITOR_BACKEND_ID, values));
+    attrs.add(Attributes.create(backendIDType, backend.getBackendID()));
 
-    values = new LinkedHashSet<AttributeValue>();
+    AttributeBuilder builder = new AttributeBuilder(baseDNType);
     DN[] baseDNs = backend.getBaseDNs();
     for (DN dn : baseDNs)
     {
-      values.add(new AttributeValue(baseDNType,
-                                    ByteStringFactory.create(dn.toString())));
+      builder.add(new AttributeValue(baseDNType, dn.toString()));
     }
-    attrs.add(new Attribute(baseDNType, ATTR_MONITOR_BACKEND_BASE_DN, values));
+    attrs.add(builder.toAttribute());
 
-    values = new LinkedHashSet<AttributeValue>();
-    values.add(BooleanSyntax.createBooleanValue(backend.isPrivateBackend()));
-    attrs.add(new Attribute(isPrivateType, ATTR_MONITOR_BACKEND_IS_PRIVATE,
-                            values));
+    attrs.add(Attributes.create(isPrivateType, BooleanSyntax
+        .createBooleanValue(backend.isPrivateBackend())));
 
-    values = new LinkedHashSet<AttributeValue>();
     long backendCount = backend.getEntryCount();
-    values.add(new AttributeValue(entryCountType,
-         ByteStringFactory.create(String.valueOf(backendCount))));
-    attrs.add(new Attribute(entryCountType, ATTR_MONITOR_BACKEND_ENTRY_COUNT,
-                            values));
+    attrs.add(Attributes.create(entryCountType, String
+        .valueOf(backendCount)));
 
-    values = new LinkedHashSet<AttributeValue>();
+    builder = new AttributeBuilder(baseDNEntryCountType);
     if (baseDNs.length != 1)
     {
       for (DN dn : baseDNs)
@@ -235,28 +225,21 @@ public class BackendMonitor
           }
         }
         String s = entryCount + " " + dn.toString();
-        values.add(new AttributeValue(baseDNEntryCountType,
-            ByteStringFactory.create(s)));
+        builder.add(new AttributeValue(baseDNEntryCountType, s));
       }
     }
     else
     {
-      // This is done to avoid recalculating the number of entries using the
-      // hasNumSubordinates method in the case where the backend has a single
-      // base DN.
+      // This is done to avoid recalculating the number of entries
+      // using the hasNumSubordinates method in the case where the
+      // backend has a single base DN.
       String s = backendCount + " " + baseDNs[0].toString();
-      values.add(new AttributeValue(baseDNEntryCountType,
-          ByteStringFactory.create(s)));
+      builder.add(new AttributeValue(baseDNEntryCountType, s));
     }
-    attrs.add(new Attribute(baseDNEntryCountType,
-        ATTR_MONITOR_BASE_DN_ENTRY_COUNT, values));
+    attrs.add(builder.toAttribute());
 
-    values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(writabilityModeType,
-         ByteStringFactory.create(
-              String.valueOf(backend.getWritabilityMode()))));
-    attrs.add(new Attribute(writabilityModeType,
-                            ATTR_MONITOR_BACKEND_WRITABILITY_MODE, values));
+    attrs.add(Attributes.create(writabilityModeType, String
+        .valueOf(backend.getWritabilityMode())));
 
     return attrs;
   }

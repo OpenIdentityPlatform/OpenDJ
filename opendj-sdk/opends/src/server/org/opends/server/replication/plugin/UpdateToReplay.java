@@ -26,7 +26,7 @@
  */
 package org.opends.server.replication.plugin;
 
-import org.opends.server.replication.protocol.UpdateMessage;
+import org.opends.server.replication.protocol.UpdateMsg;
 
 /**
  * This is a bag class to hold an update to replay in the queue of updates to
@@ -36,7 +36,7 @@ import org.opends.server.replication.protocol.UpdateMessage;
  */
 public class UpdateToReplay
 {
-  private UpdateMessage updateMessage = null;
+  private UpdateMsg updateMessage = null;
   private ReplicationDomain replicationDomain = null;
 
   /**
@@ -46,7 +46,7 @@ public class UpdateToReplay
    * @param replicationDomain The replication domain to use for replaying the
    * change from the update message
    */
-  public UpdateToReplay(UpdateMessage updateMessage,
+  public UpdateToReplay(UpdateMsg updateMessage,
     ReplicationDomain replicationDomain)
   {
     this.updateMessage = updateMessage;
@@ -57,7 +57,7 @@ public class UpdateToReplay
    * Getter for update message.
    * @return The update message
    */
-  public UpdateMessage getUpdateMessage()
+  public UpdateMsg getUpdateMessage()
   {
     return updateMessage;
   }

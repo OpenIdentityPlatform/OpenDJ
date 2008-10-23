@@ -65,6 +65,8 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
+import org.opends.server.core.QueueingStrategy;
+import org.opends.server.core.WorkQueueStrategy;
 import org.opends.server.extensions.NullConnectionSecurityProvider;
 import org.opends.server.extensions.TLSConnectionSecurityProvider;
 import org.opends.server.types.AddressMask;
@@ -108,6 +110,11 @@ public final class LDAPConnectionHandler extends
    */
   private static final String CLASS_NAME =
     "org.opends.server.protocols.ldap.LDAPConnectionHandler";
+
+  /**
+   * Default friendly name for the LDAP connection handler.
+   */
+  private static final String DEFAULT_FRIENDLY_NAME = "LDAP Connection Handler";
 
   // The current configuration state.
   private LDAPConnectionHandlerCfg currentConfig;
@@ -185,19 +192,47 @@ public final class LDAPConnectionHandler extends
   // new client connections.
   private ConnectionSecurityProvider securityProvider;
 
+// Queueing strategy
+  private final QueueingStrategy queueingStrategy;
 
+  // The condition variable that will be used by the start method
+  // to wait for the socket port to be opened and ready to process
+  // requests before returning.
+  private Object waitListen = new Object();
+
+  // The friendly name of this connection handler.
+  private String friendlyName;
 
   /**
    * Creates a new instance of this LDAP connection handler. It must
    * be initialized before it may be used.
    */
   public LDAPConnectionHandler() {
-    super("LDAP Connection Handler Thread");
+   this(new WorkQueueStrategy(), DEFAULT_FRIENDLY_NAME);
+  }
+
+
+  /**
+   * Creates a new instance of this LDAP connection handler, using a queueing
+   * strategy. It must be initialized before it may be used.
+   * @param strategy Request handling strategy.
+   * @param friendlyName Friendly name to use in this connector.
+   *        If null, the default one is used.
+   */
+  public LDAPConnectionHandler(QueueingStrategy strategy, String friendlyName) {
+    super(DEFAULT_FRIENDLY_NAME + " Thread");
+
+    if (friendlyName == null) {
+      this.friendlyName = DEFAULT_FRIENDLY_NAME;
+    } else {
+      this.friendlyName = friendlyName;
+    }
+
+    this.queueingStrategy = strategy;
 
     // No real implementation is required. Do all the work in the
     // initializeConnectionHandler method.
   }
-
 
 
   /**
@@ -683,7 +718,7 @@ public final class LDAPConnectionHandler extends
     // set of listeners.
     listeners = new LinkedList<HostPort>();
     StringBuilder nameBuffer = new StringBuilder();
-    nameBuffer.append("LDAP Connection Handler");
+    nameBuffer.append(friendlyName);
     for (InetAddress a : listenAddresses) {
       listeners.add(new HostPort(a.getHostAddress(), listenPort));
       nameBuffer.append(" ");
@@ -723,6 +758,10 @@ public final class LDAPConnectionHandler extends
         throw new InitializationException(message);
       }
     }
+
+    // Create a system property to store the LDAP(S) port the server is
+    // listening to. This information can be displayed with jinfo.
+    System.setProperty(protocol + "_port", String.valueOf(listenPort));
 
     // Create and start the request handlers.
     requestHandlers = new LDAPRequestHandler[numRequestHandlers];
@@ -831,6 +870,32 @@ public final class LDAPConnectionHandler extends
 
 
 
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void start()
+  {
+    // The Directory Server start process should only return
+    // when the connection handlers port are fully opened
+    // and working. The start method therefore needs to wait for
+    // the created thread to
+    synchronized (waitListen)
+    {
+      super.start();
+
+      try
+      {
+        waitListen.wait();
+      } catch (InterruptedException e) {
+        // If something interrupted the start its probably better
+        // to return ASAP.
+      }
+    }
+  }
+
+
   /**
    * Operates in a loop, accepting new connections and ensuring that
    * requests on those connections are handled properly.
@@ -847,7 +912,7 @@ public final class LDAPConnectionHandler extends
           cleanUpSelector();
           listening = false;
 
-          logError(ERR_LDAP_CONNHANDLER_STOPPED_LISTENING.get(handlerName));
+          logError(NOTE_LDAP_CONNHANDLER_STOPPED_LISTENING.get(handlerName));
         }
 
         try {
@@ -876,7 +941,7 @@ public final class LDAPConnectionHandler extends
             channel.register(selector, SelectionKey.OP_ACCEPT);
             numRegistered++;
 
-            logError(ERR_LDAP_CONNHANDLER_STARTED_LISTENING.get(handlerName));
+            logError(NOTE_LDAP_CONNHANDLER_STARTED_LISTENING.get(handlerName));
           } catch (Exception e) {
             if (debugEnabled())
             {
@@ -887,6 +952,14 @@ public final class LDAPConnectionHandler extends
                 get(String.valueOf(currentConfig.dn()), a.getHostAddress(),
                     listenPort, stackTraceToSingleLineString(e)));
           }
+        }
+
+        // At this point, the connection Handler either started
+        // correctly or failed to start but the start process
+        // should be notified and resume its work in any cases.
+        synchronized(waitListen)
+        {
+          waitListen.notify();
         }
 
         // If none of the listeners were created successfully, then
@@ -1191,4 +1264,16 @@ public final class LDAPConnectionHandler extends
       }
     }
   }
+
+
+
+  /**
+   * Get the queueing strategy.
+   *
+   * @return The queueing strategy.
+   */
+  public QueueingStrategy getQueueingStrategy() {
+    return queueingStrategy;
+  }
+
 }

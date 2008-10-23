@@ -32,20 +32,44 @@ import java.io.File;
 import java.net.ServerSocket;
 import java.util.UUID;
 
+import org.opends.messages.Category;
+import org.opends.messages.Message;
+import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperationBasis;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.replication.plugin.ReplicationDomain;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 /**
  * Test re-synchronization after after backup/restore and LDIF import.
  */
 public class ReSyncTest extends ReplicationTestCase
 {
+  // The tracer object for the debug logger
+  private static final DebugTracer TRACER = getTracer();
+
+  private void debugInfo(String s)
+  {
+    logError(Message.raw(Category.SYNC, Severity.NOTICE, s));
+    if (debugEnabled())
+    {
+      TRACER.debugInfo(s);
+    }
+  }
+
+  protected static final String EXAMPLE_DN = "dc=example,dc=com";
+
  /**
   * Set up the environment for performing the tests in this Class.
   *
@@ -55,48 +79,47 @@ public class ReSyncTest extends ReplicationTestCase
  @BeforeClass
   public void setup() throws Exception
   {
+   super.setUp();
+
    /*
-    * - Start a server and a replicationServer, configure replication
+    * - Configure replication
     * - Do some changes.
     */
-    TestCaseUtils.startServer();
 
     // find  a free port for the replicationServer
     ServerSocket socket = TestCaseUtils.bindFreePort();
     int replServerPort = socket.getLocalPort();
     socket.close();
 
-    // Create an internal connection
-    connection = InternalClientConnection.getRootConnection();
+    // This test uses restore task which does not work with memory backend
+    // (like the test backend we use in every tests): backend is disabled then
+    // re-enabled and this clears the backend reference and thus the underlying
+    // data. So for this particular test, we use a classical backend. Let's
+    // clear it and create the root entry
 
-    //  Create backend top level entries
+    ReplicationDomain.clearJEBackend(false, "userRoot", EXAMPLE_DN);
     addEntry("dn: dc=example,dc=com\n" + "objectClass: top\n"
         + "objectClass: domain\n");
 
-    // top level synchro provider
-    String synchroStringDN = "cn=Synchronization Providers,cn=config";
-
-    // Multimaster Synchro plugin
-    synchroPluginStringDN = "cn=Multimaster Synchronization, "
-        + synchroStringDN;
-
     // Change log
     String replServerLdif =
-      "dn: " + "cn=Replication Server, " + synchroPluginStringDN + "\n"
+      "dn: " + "cn=Replication Server, " + SYNCHRO_PLUGIN_DN + "\n"
         + "objectClass: top\n"
         + "objectClass: ds-cfg-replication-server\n"
         + "cn: Replication Server\n"
         + "ds-cfg-replication-port:" + replServerPort + "\n"
-        + "ds-cfg-replication-server-id: 1\n";
+        + "ds-cfg-replication-db-directory: ReSyncTest\n"    
+        + "ds-cfg-replication-server-id: 104\n";
     replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
     // suffix synchronized
+    String reSyncTest = "reSyncTest";
     String domainLdif =
-      "dn: cn=example, cn=domains, " + synchroPluginStringDN + "\n"
+      "dn: cn=" + reSyncTest + ", cn=domains, " + SYNCHRO_PLUGIN_DN + "\n"
         + "objectClass: top\n"
         + "objectClass: ds-cfg-replication-domain\n"
-        + "cn: example\n"
-        + "ds-cfg-base-dn: dc=example,dc=com\n"
+        + "cn: " + reSyncTest + "\n"
+        + "ds-cfg-base-dn: " + EXAMPLE_DN + "\n"
         + "ds-cfg-replication-server: localhost:"+ replServerPort + "\n"
         + "ds-cfg-server-id: 123\n";
     synchroServerEntry = TestCaseUtils.entryFromLdifString(domainLdif);
@@ -107,7 +130,7 @@ public class ReSyncTest extends ReplicationTestCase
     Thread.sleep(1000);
 
     // Create a dummy entry
-    addEntry("dn: dc=dummy, dc=example,dc=com\n"
+    addEntry("dn: dc=dummy," + EXAMPLE_DN + "\n"
         + "objectClass: top\n" + "objectClass: domain\n");
   }
 
@@ -150,7 +173,8 @@ public class ReSyncTest extends ReplicationTestCase
 
     // Delete the entry we are going to use to make sure that
     // we do test something.
-    connection.processDelete(DN.decode("dc=foo, dc=example,dc=com"));
+
+    connection.processDelete(DN.decode("dc=fooUniqueName1," + EXAMPLE_DN));
 
     task("dn: ds-task-id=" + UUID.randomUUID()
         +  ",cn=Scheduled Tasks,cn=Tasks\n"
@@ -161,8 +185,10 @@ public class ReSyncTest extends ReplicationTestCase
         + "ds-backup-directory-path: bak\n"
         + "ds-task-backup-all: TRUE\n");
 
-    addEntry("dn: dc=foo, dc=example,dc=com\n"
+    debugInfo("testResyncAfterRestore: backup done");
+    addEntry("dn: dc=fooUniqueName1," + EXAMPLE_DN + "\n"
         + "objectClass: top\n" + "objectClass: domain\n");
+    debugInfo("testResyncAfterRestore: entry added");
 
     task("dn: ds-task-id=" + UUID.randomUUID()
         + ",cn=Scheduled Tasks,cn=Tasks\n"
@@ -173,10 +199,12 @@ public class ReSyncTest extends ReplicationTestCase
         + "ds-backup-directory-path: bak" + File.separator
         + "userRoot\n");
 
-   if (getEntry(DN.decode("dc=foo, dc=example,dc=com"), 30000, true) == null)
+    debugInfo("testResyncAfterRestore: restore done");
+
+   if (getEntry(DN.decode("dc=fooUniqueName1," + EXAMPLE_DN), 30000, true) == null)
      fail("The Directory has not been resynchronized after the restore.");
 
-   connection.processDelete(DN.decode("dc=foo, dc=example,dc=com"));
+   connection.processDelete(DN.decode("dc=fooUniqueName1," + EXAMPLE_DN));
   }
 
   /**
@@ -194,7 +222,7 @@ public class ReSyncTest extends ReplicationTestCase
 
     // delete the entry we are going to use to make sure that
     // we do test something.
-    connection.processDelete(DN.decode("dc=foo, dc=example,dc=com"));
+    connection.processDelete(DN.decode("dc=fooUniqueName2," + EXAMPLE_DN));
 
     String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
     String path = buildRoot + File.separator + "build" +
@@ -210,8 +238,10 @@ public class ReSyncTest extends ReplicationTestCase
         + "ds-task-export-backend-id: userRoot\n"
         + "ds-task-export-ldif-file: " + path + "\n");
 
-    addEntry("dn: dc=foo, dc=example,dc=com\n"
+    debugInfo("testResyncAfterImport: export done");
+    addEntry("dn: dc=fooUniqueName2," + EXAMPLE_DN + "\n"
         + "objectClass: top\n" + "objectClass: domain\n");
+    debugInfo("testResyncAfterImport: entry added");
 
     task("dn: ds-task-id=" + UUID.randomUUID()
         + ",cn=Scheduled Tasks,cn=Tasks\n"
@@ -223,9 +253,27 @@ public class ReSyncTest extends ReplicationTestCase
         + "ds-task-import-ldif-file: " + path + "\n"
         + "ds-task-import-reject-file: " + path + "reject\n");
 
-   if (getEntry(DN.decode("dc=foo, dc=example,dc=com"), 30000, true) == null)
+    debugInfo("testResyncAfterImport: import done");
+
+   if (getEntry(DN.decode("dc=fooUniqueName2," + EXAMPLE_DN), 30000, true) == null)
      fail("The Directory has not been resynchronized after the restore.");
   }
+  
+  /**
+   * Clean up the environment.
+   *
+   * @throws Exception If the environment could not be set up.
+   */
+  @AfterClass
+  @Override
+  public void classCleanUp() throws Exception
+  {
+    callParanoiaCheck = false;
+    super.classCleanUp();
 
+    // Clear the backend
+    ReplicationDomain.clearJEBackend(false, "userRoot", EXAMPLE_DN);
 
+    paranoiaCheck();
+  }
 }

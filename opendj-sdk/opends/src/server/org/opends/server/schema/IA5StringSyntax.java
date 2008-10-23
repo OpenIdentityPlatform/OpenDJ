@@ -251,5 +251,15 @@ public class IA5StringSyntax
 
     return true;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

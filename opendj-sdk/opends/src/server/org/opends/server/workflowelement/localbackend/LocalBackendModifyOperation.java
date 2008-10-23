@@ -28,11 +28,16 @@ package org.opends.server.workflowelement.localbackend;
 
 
 
-import java.util.ArrayList;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -66,24 +71,26 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
+import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.AccountStatusNotification;
 import org.opends.server.types.AccountStatusNotificationType;
-import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
+import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
@@ -92,16 +99,10 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SynchronizationProviderResult;
 import org.opends.server.types.operation.PostOperationModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
-import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyOperation;
+import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.util.TimeThread;
-
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.util.Validator;
 
 
 
@@ -463,38 +464,9 @@ modifyProcessing:
 
         if (! noOp)
         {
-          // Invoke any conflict resolution processing that might be needed by
-          // the synchronization provider.
-          for (SynchronizationProvider provider :
-            DirectoryServer.getSynchronizationProviders())
-          {
-            try
-            {
-              SynchronizationProviderResult result =
-                  provider.handleConflictResolution(this);
-              if (! result.continueProcessing())
-              {
-                setResultCode(result.getResultCode());
-                appendErrorMessage(result.getErrorMessage());
-                setMatchedDN(result.getMatchedDN());
-                setReferralURLs(result.getReferralURLs());
+            if(!handleConflictResolution()) {
                 break modifyProcessing;
-              }
             }
-            catch (DirectoryException de)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
-
-              logError(ERR_MODIFY_SYNCH_CONFLICT_RESOLUTION_FAILED.get(
-                            getConnectionID(), getOperationID(),
-                            getExceptionMessage(de)));
-              setResponseData(de);
-              break modifyProcessing;
-            }
-          }
         }
 
 
@@ -641,37 +613,11 @@ modifyProcessing:
           }
           else
           {
-            for (SynchronizationProvider provider :
-              DirectoryServer.getSynchronizationProviders())
-            {
-              try
-              {
-                SynchronizationProviderResult result =
-                    provider.doPreOperation(this);
-                if (! result.continueProcessing())
-                {
-                  setResultCode(result.getResultCode());
-                  appendErrorMessage(result.getErrorMessage());
-                  setMatchedDN(result.getMatchedDN());
-                  setReferralURLs(result.getReferralURLs());
+              if(!processPreOperation()) {
                   break modifyProcessing;
-                }
               }
-              catch (DirectoryException de)
-              {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
 
-                logError(ERR_MODIFY_SYNCH_PREOP_FAILED.get(getConnectionID(),
-                              getOperationID(), getExceptionMessage(de)));
-                setResponseData(de);
-                break modifyProcessing;
-              }
-            }
-
-            backend.replaceEntry(modifiedEntry, this);
+            backend.replaceEntry(currentEntry, modifiedEntry, this);
 
 
 
@@ -707,27 +653,7 @@ modifyProcessing:
       }
       finally
       {
-        for (SynchronizationProvider provider :
-          DirectoryServer.getSynchronizationProviders())
-        {
-          try
-          {
-            provider.doPostOperation(this);
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            logError(ERR_MODIFY_SYNCH_POSTOP_FAILED.get(getConnectionID(),
-                getOperationID(), getExceptionMessage(de)));
-            setResponseData(de);
-            break;
-          }
-        }
-
+        processPostOperation();
         LockManager.unlock(entryDN, entryLock);
       }
     }
@@ -1060,7 +986,7 @@ modifyProcessing:
       // is related to synchronization in some way.
       if (t.isObsolete())
       {
-        if (a.hasValue() &&
+        if (!a.isEmpty() &&
                 (m.getModificationType() != ModificationType.DELETE))
         {
           if (! (isInternalOperation() || isSynchronizationOperation() ||
@@ -1100,7 +1026,7 @@ modifyProcessing:
         if (t.equals(disabledAttr))
         {
           enabledStateChanged = true;
-          for (AttributeValue v : a.getValues())
+          for (AttributeValue v : a)
           {
             try
             {
@@ -1259,27 +1185,26 @@ modifyProcessing:
           // password values (increment doesn't make any sense for passwords).
           // Then perform the appropriate type of processing for that kind of
           // modification.
-          boolean isAdd = (m.getModificationType() == ModificationType.ADD);
-          LinkedHashSet<AttributeValue> pwValues = a.getValues();
-          LinkedHashSet<AttributeValue> encodedValues =
-            new LinkedHashSet<AttributeValue>();
           switch (m.getModificationType())
           {
           case ADD:
           case REPLACE:
-            processInitialAddOrReplacePW(isAdd, pwValues, encodedValues, a);
+            processInitialAddOrReplacePW(m);
             break;
 
           case DELETE:
-            processInitialDeletePW(pwValues, encodedValues, a);
+            processInitialDeletePW(m);
             break;
 
           default:
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                ERR_MODIFY_INVALID_MOD_TYPE_FOR_PASSWORD.get(
-                    String.valueOf(m.getModificationType()),
-                    a.getName()));
+                ERR_MODIFY_INVALID_MOD_TYPE_FOR_PASSWORD.get(String.valueOf(m
+                    .getModificationType()), a.getName()));
           }
+
+          // Password processing may have changed the attribute in
+          // this modification.
+          a = m.getAttribute();
         }
 
         switch (m.getModificationType())
@@ -1309,24 +1234,19 @@ modifyProcessing:
   /**
    * Performs the initial password policy add or replace processing.
    *
-   * @param  isAdd          Indicates whether it is an add or replace update.
-   * @param  pwValues       The set of password values as included in the
-   *                        request.
-   * @param  encodedValues  The set of encoded password values.
-   * @param  pwAttr         The attribute involved in the password change.
-   *
-   * @throws  DirectoryException  If a problem occurs that should cause the
-   *                              modify operation to fail.
+   * @param m
+   *          The modification involved in the password change.
+   * @throws DirectoryException
+   *           If a problem occurs that should cause the modify
+   *           operation to fail.
    */
-  private void processInitialAddOrReplacePW(boolean isAdd,
-                    LinkedHashSet<AttributeValue> pwValues,
-                    LinkedHashSet<AttributeValue> encodedValues,
-                    Attribute pwAttr)
-          throws DirectoryException
+  private void processInitialAddOrReplacePW(Modification m)
+      throws DirectoryException
   {
-    int passwordsToAdd = pwValues.size();
+    Attribute pwAttr = m.getAttribute();
+    int passwordsToAdd = pwAttr.size();
 
-    if (isAdd)
+    if (m.getModificationType() == ModificationType.ADD)
     {
       numPasswords += passwordsToAdd;
     }
@@ -1335,48 +1255,48 @@ modifyProcessing:
       numPasswords = passwordsToAdd;
     }
 
-
-    // If there were multiple password values, then make sure that's OK.
-    if ((! isInternalOperation()) &&
-        (! pwPolicyState.getPolicy().allowMultiplePasswordValues()) &&
-        (passwordsToAdd > 1))
+    // If there were multiple password values, then make sure that's
+    // OK.
+    if ((!isInternalOperation())
+        && (!pwPolicyState.getPolicy().allowMultiplePasswordValues())
+        && (passwordsToAdd > 1))
     {
       pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                     ERR_MODIFY_MULTIPLE_VALUES_NOT_ALLOWED.get());
+          ERR_MODIFY_MULTIPLE_VALUES_NOT_ALLOWED.get());
     }
 
-
     // Iterate through the password values and see if any of them are
-    // pre-encoded.  If so, then check to see if we'll allow it.  Otherwise,
-    // store the clear-text values for later validation and update the attribute
-    // with the encoded values.
-    for (AttributeValue v : pwValues)
+    // pre-encoded. If so, then check to see if we'll allow it.
+    // Otherwise, store the clear-text values for later validation and
+    // update the attribute with the encoded values.
+    AttributeBuilder builder = new AttributeBuilder(pwAttr, true);
+    for (AttributeValue v : pwAttr)
     {
       if (pwPolicyState.passwordIsPreEncoded(v.getValue()))
       {
-        if ((! isInternalOperation()) &&
-            ! pwPolicyState.getPolicy().allowPreEncodedPasswords())
+        if ((!isInternalOperation())
+            && !pwPolicyState.getPolicy().allowPreEncodedPasswords())
         {
           pwpErrorType = PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                         ERR_MODIFY_NO_PREENCODED_PASSWORDS.get());
+              ERR_MODIFY_NO_PREENCODED_PASSWORDS.get());
         }
         else
         {
-          encodedValues.add(v);
+          builder.add(v);
         }
       }
       else
       {
-        if (isAdd)
+        if (m.getModificationType() == ModificationType.ADD)
         {
           // Make sure that the password value doesn't already exist.
           if (pwPolicyState.passwordMatches(v.getValue()))
           {
             pwpErrorType = PasswordPolicyErrorType.PASSWORD_IN_HISTORY;
             throw new DirectoryException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
-                                         ERR_MODIFY_PASSWORD_EXISTS.get());
+                ERR_MODIFY_PASSWORD_EXISTS.get());
           }
         }
 
@@ -1389,12 +1309,12 @@ modifyProcessing:
 
         for (ByteString s : pwPolicyState.encodePassword(v.getValue()))
         {
-          encodedValues.add(new AttributeValue(pwAttr.getAttributeType(), s));
+          builder.add(new AttributeValue(pwAttr.getAttributeType(), s));
         }
       }
     }
 
-    pwAttr.setValues(encodedValues);
+    m.setAttribute(builder.toAttribute());
   }
 
 
@@ -1402,69 +1322,65 @@ modifyProcessing:
   /**
    * Performs the initial password policy delete processing.
    *
-   * @param  pwValues       The set of password values as included in the
-   *                        request.
-   * @param  encodedValues  The set of encoded password values.
-   * @param  pwAttr         The attribute involved in the password change.
-   *
-   * @throws  DirectoryException  If a problem occurs that should cause the
-   *                              modify operation to fail.
+   * @param m
+   *          The modification involved in the password change.
+   * @throws DirectoryException
+   *           If a problem occurs that should cause the modify
+   *           operation to fail.
    */
-  private void processInitialDeletePW(LinkedHashSet<AttributeValue> pwValues,
-                    LinkedHashSet<AttributeValue> encodedValues,
-                    Attribute pwAttr)
-          throws DirectoryException
+  private void processInitialDeletePW(Modification m) throws DirectoryException
   {
     // Iterate through the password values and see if any of them are
-    // pre-encoded.  We will never allow pre-encoded passwords for user password
-    // changes, but we will allow them for administrators.  For each clear-text
-    // value, verify that at least one value in the entry matches and replace
-    // the clear-text value with the appropriate encoded forms.
-    for (AttributeValue v : pwValues)
+    // pre-encoded. We will never allow pre-encoded passwords for user
+    // password changes, but we will allow them for administrators.
+    // For each clear-text value, verify that at least one value in the
+    // entry matches and replace the clear-text value with the appropriate
+    // encoded forms.
+    Attribute pwAttr = m.getAttribute();
+    AttributeBuilder builder = new AttributeBuilder(pwAttr, true);
+    for (AttributeValue v : pwAttr)
     {
       if (pwPolicyState.passwordIsPreEncoded(v.getValue()))
       {
-        if ((! isInternalOperation()) && selfChange)
+        if ((!isInternalOperation()) && selfChange)
         {
           pwpErrorType = PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                         ERR_MODIFY_NO_PREENCODED_PASSWORDS.get());
+              ERR_MODIFY_NO_PREENCODED_PASSWORDS.get());
         }
         else
         {
-          encodedValues.add(v);
+          builder.add(v);
         }
       }
       else
       {
-        List<Attribute> attrList =
-             currentEntry.getAttribute(pwAttr.getAttributeType());
+        List<Attribute> attrList = currentEntry.getAttribute(pwAttr
+            .getAttributeType());
         if ((attrList == null) || (attrList.isEmpty()))
         {
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                       ERR_MODIFY_NO_EXISTING_VALUES.get());
+              ERR_MODIFY_NO_EXISTING_VALUES.get());
         }
         boolean found = false;
         for (Attribute attr : attrList)
         {
-          for (AttributeValue av : attr.getValues())
+          for (AttributeValue av : attr)
           {
             if (pwPolicyState.getPolicy().usesAuthPasswordSyntax())
             {
               if (AuthPasswordSyntax.isEncoded(av.getValue()))
               {
-                StringBuilder[] compoenents =
-                     AuthPasswordSyntax.decodeAuthPassword(av.getStringValue());
-                PasswordStorageScheme scheme =
-                     DirectoryServer.getAuthPasswordStorageScheme(
-                          compoenents[0].toString());
+                StringBuilder[] components = AuthPasswordSyntax
+                    .decodeAuthPassword(av.getStringValue());
+                PasswordStorageScheme<?> scheme = DirectoryServer
+                    .getAuthPasswordStorageScheme(components[0].toString());
                 if (scheme != null)
                 {
-                  if (scheme.authPasswordMatches(v.getValue(),
-                                                 compoenents[1].toString(),
-                                                 compoenents[2].toString()))
+                  if (scheme.authPasswordMatches(v.getValue(), components[1]
+                      .toString(), components[2].toString()))
                   {
-                    encodedValues.add(av);
+                    builder.add(av);
                     found = true;
                   }
                 }
@@ -1473,7 +1389,7 @@ modifyProcessing:
               {
                 if (av.equals(v))
                 {
-                  encodedValues.add(v);
+                  builder.add(v);
                   found = true;
                 }
               }
@@ -1482,17 +1398,16 @@ modifyProcessing:
             {
               if (UserPasswordSyntax.isEncoded(av.getValue()))
               {
-                String[] compoenents = UserPasswordSyntax.decodeUserPassword(
-                                            av.getStringValue());
-                PasswordStorageScheme scheme =
-                     DirectoryServer.getPasswordStorageScheme(
-                          toLowerCase(compoenents[0]));
+                String[] components = UserPasswordSyntax.decodeUserPassword(av
+                    .getStringValue());
+                PasswordStorageScheme<?> scheme = DirectoryServer
+                    .getPasswordStorageScheme(toLowerCase(components[0]));
                 if (scheme != null)
                 {
-                  if (scheme.passwordMatches(v.getValue(),
-                                  new ASN1OctetString(compoenents[1])))
+                  if (scheme.passwordMatches(v.getValue(), new ASN1OctetString(
+                      components[1])))
                   {
-                    encodedValues.add(av);
+                    builder.add(av);
                     found = true;
                   }
                 }
@@ -1501,7 +1416,7 @@ modifyProcessing:
               {
                 if (av.equals(v))
                 {
-                  encodedValues.add(v);
+                  builder.add(v);
                   found = true;
                 }
               }
@@ -1521,105 +1436,156 @@ modifyProcessing:
         else
         {
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                       ERR_MODIFY_INVALID_PASSWORD.get());
+              ERR_MODIFY_INVALID_PASSWORD.get());
         }
 
         currentPasswordProvided = true;
       }
     }
 
-    pwAttr.setValues(encodedValues);
+    m.setAttribute(builder.toAttribute());
   }
 
 
 
   /**
-   * Performs the initial schema processing for an add modification and updates
-   * the entry appropriately.
+   * Performs the initial schema processing for an add modification
+   * and updates the entry appropriately.
    *
-   * @param  attr  The attribute being added.
-   *
-   * @throws  DirectoryException  If a problem occurs that should cause the
-   *                              modify operation to fail.
+   * @param attr
+   *          The attribute being added.
+   * @throws DirectoryException
+   *           If a problem occurs that should cause the modify
+   *           operation to fail.
    */
   private void processInitialAddSchema(Attribute attr)
-          throws DirectoryException
+      throws DirectoryException
   {
-    // Make sure that one or more values have been provided for the attribute.
-    LinkedHashSet<AttributeValue> newValues = attr.getValues();
-    if ((newValues == null) || newValues.isEmpty())
+    // Make sure that one or more values have been provided for the
+    // attribute.
+    if (attr.isEmpty())
     {
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                     ERR_MODIFY_ADD_NO_VALUES.get(String.valueOf(entryDN),
-                                                 attr.getName()));
+          ERR_MODIFY_ADD_NO_VALUES.get(String.valueOf(entryDN),
+              attr.getName()));
     }
 
-    // If the server is configured to check schema and the operation is not a
-    // synchronization operation, make sure that all the new values are valid
-    // according to the associated syntax.
-    if ((DirectoryServer.checkSchema()) && (! isSynchronizationOperation()))
+    // If the server is configured to check schema and the operation
+    // is not a synchronization operation, make sure that all the new
+    // values are valid according to the associated syntax.
+    if ((DirectoryServer.checkSchema()) && (!isSynchronizationOperation()))
     {
-      AcceptRejectWarn syntaxPolicy =
-           DirectoryServer.getSyntaxEnforcementPolicy();
-      AttributeSyntax syntax = attr.getAttributeType().getSyntax();
+      AcceptRejectWarn syntaxPolicy = DirectoryServer
+          .getSyntaxEnforcementPolicy();
+      AttributeSyntax<?> syntax = attr.getAttributeType().getSyntax();
 
       if (syntaxPolicy == AcceptRejectWarn.REJECT)
       {
         MessageBuilder invalidReason = new MessageBuilder();
-        for (AttributeValue v : newValues)
+        for (AttributeValue v : attr)
         {
-          if (! syntax.valueIsAcceptable(v.getValue(), invalidReason))
+          if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
           {
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                           ERR_MODIFY_ADD_INVALID_SYNTAX.get(
-                                String.valueOf(entryDN), attr.getName(),
-                                v.getStringValue(), invalidReason));
+                ERR_MODIFY_ADD_INVALID_SYNTAX.get(String.valueOf(entryDN), attr
+                    .getName(), v.getStringValue(), invalidReason));
           }
         }
       }
       else if (syntaxPolicy == AcceptRejectWarn.WARN)
       {
         MessageBuilder invalidReason = new MessageBuilder();
-        for (AttributeValue v : newValues)
+        for (AttributeValue v : attr)
         {
-          if (! syntax.valueIsAcceptable(v.getValue(), invalidReason))
+          if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
           {
             setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
             logError(ERR_MODIFY_ADD_INVALID_SYNTAX.get(String.valueOf(entryDN),
-                          attr.getName(), v.getStringValue(), invalidReason));
+                attr.getName(), v.getStringValue(), invalidReason));
             invalidReason = new MessageBuilder();
           }
         }
       }
     }
 
-
-    // Add the provided attribute or merge an existing attribute with
-    // the values of the new attribute.  If there are any duplicates,
-    // then fail.
+    // If the attribute to be added is the object class attribute then
+    // make sure that all the object classes are known and not
+    // obsoleted.
     if (attr.getAttributeType().isObjectClassType())
     {
-      modifiedEntry.addObjectClasses(newValues);
+      validateObjectClasses(attr);
     }
-    else
+
+    // Add the provided attribute or merge an existing attribute with
+    // the values of the new attribute. If there are any duplicates,
+    // then fail.
+    LinkedList<AttributeValue> duplicateValues =
+      new LinkedList<AttributeValue>();
+    modifiedEntry.addAttribute(attr, duplicateValues);
+    if (!duplicateValues.isEmpty())
     {
-      LinkedList<AttributeValue> duplicateValues =
-           new LinkedList<AttributeValue>();
-      modifiedEntry.addAttribute(attr, duplicateValues);
-      if (! duplicateValues.isEmpty())
+      StringBuilder buffer = new StringBuilder();
+      Iterator<AttributeValue> iterator = duplicateValues.iterator();
+      buffer.append(iterator.next().getStringValue());
+      while (iterator.hasNext())
       {
-        StringBuilder buffer = new StringBuilder();
-        Iterator<AttributeValue> iterator = duplicateValues.iterator();
+        buffer.append(", ");
         buffer.append(iterator.next().getStringValue());
-        while (iterator.hasNext())
+      }
+
+      throw new DirectoryException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
+          ERR_MODIFY_ADD_DUPLICATE_VALUE.get(String.valueOf(entryDN), attr
+              .getName(), buffer));
+    }
+  }
+
+
+
+  /**
+   * Ensures that the provided object class attribute contains known
+   * non-obsolete object classes.
+   *
+   * @param attr
+   *          The object class attribute to validate.
+   * @throws DirectoryException
+   *           If the attribute contained unknown or obsolete object
+   *           classes.
+   */
+  private void validateObjectClasses(Attribute attr) throws DirectoryException
+  {
+    Validator.ensureTrue(attr.getAttributeType().isObjectClassType());
+    for (AttributeValue v : attr)
+    {
+      String name = v.getStringValue();
+
+      String lowerName;
+      try
+      {
+        lowerName = v.getNormalizedStringValue();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
         {
-          buffer.append(", ");
-          buffer.append(iterator.next().getStringValue());
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        throw new DirectoryException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
-                       ERR_MODIFY_ADD_DUPLICATE_VALUE.get(
-                            String.valueOf(entryDN), attr.getName(), buffer));
+        lowerName = toLowerCase(v.getStringValue());
+      }
+
+      ObjectClass oc = DirectoryServer.getObjectClass(lowerName);
+      if (oc == null)
+      {
+        Message message = ERR_ENTRY_ADD_UNKNOWN_OC.get(name, String
+            .valueOf(entryDN));
+        throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
+      }
+
+      if (oc.isObsolete())
+      {
+        Message message = ERR_ENTRY_ADD_OBSOLETE_OC.get(name, String
+            .valueOf(entryDN));
+        throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
       }
     }
   }
@@ -1627,13 +1593,14 @@ modifyProcessing:
 
 
   /**
-   * Performs the initial schema processing for a delete modification and
-   * updates the entry appropriately.
+   * Performs the initial schema processing for a delete modification
+   * and updates the entry appropriately.
    *
-   * @param  attr  The attribute being deleted.
-   *
-   * @throws  DirectoryException  If a problem occurs that should cause the
-   *                              modify operation to fail.
+   * @param attr
+   *          The attribute being deleted.
+   * @throws DirectoryException
+   *           If a problem occurs that should cause the modify
+   *           operation to fail.
    */
   private void processInitialDeleteSchema(Attribute attr)
           throws DirectoryException
@@ -1688,209 +1655,124 @@ modifyProcessing:
 
 
   /**
-   * Performs the initial schema processing for a replace modification and
-   * updates the entry appropriately.
+   * Performs the initial schema processing for a replace modification
+   * and updates the entry appropriately.
    *
-   * @param  attr  The attribute being replaced.
-   *
-   * @throws  DirectoryException  If a problem occurs that should cause the
-   *                              modify operation to fail.
+   * @param attr
+   *          The attribute being replaced.
+   * @throws DirectoryException
+   *           If a problem occurs that should cause the modify
+   *           operation to fail.
    */
   private void processInitialReplaceSchema(Attribute attr)
-          throws DirectoryException
+      throws DirectoryException
   {
-    // If it is the objectclass attribute, then treat that separately.
-    if (attr.getAttributeType().isObjectClassType())
+    // If the server is configured to check schema and the operation
+    // is not a synchronization operation, make sure that all the
+    // new values are valid according to the associated syntax.
+    if ((DirectoryServer.checkSchema()) && (!isSynchronizationOperation()))
     {
-      modifiedEntry.setObjectClasses(attr.getValues());
-      return;
-    }
-
-
-    // If the provided attribute does not have any values, then we will simply
-    // remove the attribute from the entry (if it exists).
-    AttributeType t = attr.getAttributeType();
-    if (! attr.hasValue())
-    {
-      modifiedEntry.removeAttribute(t, attr.getOptions());
-      RDN rdn = modifiedEntry.getDN().getRDN();
-      if ((rdn !=  null) && rdn.hasAttributeType(t) &&
-          (! modifiedEntry.hasValue(t, attr.getOptions(),
-                                    rdn.getAttributeValue(t))))
-      {
-        throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_RDN,
-                       ERR_MODIFY_DELETE_RDN_ATTR.get(String.valueOf(entryDN),
-                                                      attr.getName()));
-      }
-
-      return;
-    }
-
-    // If the server is configured to check schema and the operation is not a
-    // synchronization operation, make sure that all the new values are valid
-    // according to the associated syntax.
-    LinkedHashSet<AttributeValue> newValues = attr.getValues();
-    if ((DirectoryServer.checkSchema()) && (! isSynchronizationOperation()))
-    {
-      AcceptRejectWarn syntaxPolicy =
-        DirectoryServer.getSyntaxEnforcementPolicy();
-      AttributeSyntax syntax = t.getSyntax();
+      AcceptRejectWarn syntaxPolicy = DirectoryServer
+          .getSyntaxEnforcementPolicy();
+      AttributeSyntax<?> syntax = attr.getAttributeType().getSyntax();
 
       if (syntaxPolicy == AcceptRejectWarn.REJECT)
       {
         MessageBuilder invalidReason = new MessageBuilder();
-        for (AttributeValue v : newValues)
+        for (AttributeValue v : attr)
         {
-          if (! syntax.valueIsAcceptable(v.getValue(), invalidReason))
+          if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
           {
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                           ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(
-                                String.valueOf(entryDN), attr.getName(),
-                                v.getStringValue(), invalidReason));
+                ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(String.valueOf(entryDN),
+                    attr.getName(), v.getStringValue(), invalidReason));
           }
         }
       }
       else if (syntaxPolicy == AcceptRejectWarn.WARN)
       {
         MessageBuilder invalidReason = new MessageBuilder();
-        for (AttributeValue v : newValues)
+        for (AttributeValue v : attr)
         {
-          if (! syntax.valueIsAcceptable(v.getValue(), invalidReason))
+          if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
           {
             setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
-            logError(ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(
-                          String.valueOf(entryDN), attr.getName(),
-                          v.getStringValue(), invalidReason));
+            logError(ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(String
+                .valueOf(entryDN), attr.getName(), v.getStringValue(),
+                invalidReason));
             invalidReason = new MessageBuilder();
           }
         }
       }
     }
 
-
-    // If the provided attribute does not have any options, then we will simply
-    // use it in place of any existing attribute of the provided type (or add it
-    // if it doesn't exist).
-    if (! attr.hasOptions())
+    // If the attribute to be replaced is the object class attribute
+    // then make sure that all the object classes are known and not
+    // obsoleted.
+    if (attr.getAttributeType().isObjectClassType())
     {
-      List<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(attr);
-      modifiedEntry.putAttribute(t, attrList);
-
-      RDN rdn = modifiedEntry.getDN().getRDN();
-      if ((rdn !=  null) && rdn.hasAttributeType(t) &&
-          (! modifiedEntry.hasValue(t, attr.getOptions(),
-                                    rdn.getAttributeValue(t))))
-      {
-        throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_RDN,
-                                     ERR_MODIFY_DELETE_RDN_ATTR.get(
-                                          String.valueOf(entryDN),
-                                          attr.getName()));
-      }
-
-      return;
+      validateObjectClasses(attr);
     }
 
+    // Replace the provided attribute.
+    modifiedEntry.replaceAttribute(attr);
 
-    // See if there is an existing attribute of the provided type.  If not, then
-    // we'll use the new one.
-    List<Attribute> attrList = modifiedEntry.getAttribute(t);
-    if ((attrList == null) || attrList.isEmpty())
-    {
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(attr);
-      modifiedEntry.putAttribute(t, attrList);
-
-      RDN rdn = modifiedEntry.getDN().getRDN();
-      if ((rdn !=  null) && rdn.hasAttributeType(t) &&
-          (! modifiedEntry.hasValue(t, attr.getOptions(),
-                                    rdn.getAttributeValue(t))))
-      {
-        throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_RDN,
-                                     ERR_MODIFY_DELETE_RDN_ATTR.get(
-                                          String.valueOf(entryDN),
-                                          attr.getName()));
-      }
-
-      return;
-    }
-
-
-    // There must be an existing occurrence of the provided attribute in the
-    // entry.  If there is a version with exactly the set of options provided,
-    // then replace it.  Otherwise, add a new one.
-    boolean found = false;
-    for (int i=0; i < attrList.size(); i++)
-    {
-      if (attrList.get(i).optionsEqual(attr.getOptions()))
-      {
-        attrList.set(i, attr);
-        found = true;
-        break;
-      }
-    }
-
-    if (! found)
-    {
-      attrList.add(attr);
-    }
-
+    // Make sure that the RDN attribute value(s) has not been removed.
+    AttributeType t = attr.getAttributeType();
     RDN rdn = modifiedEntry.getDN().getRDN();
-    if ((rdn !=  null) && rdn.hasAttributeType(t) &&
-        (! modifiedEntry.hasValue(t, attr.getOptions(),
-                                  rdn.getAttributeValue(t))))
+    if ((rdn != null)
+        && rdn.hasAttributeType(t)
+        && (!modifiedEntry.hasValue(t, attr.getOptions(), rdn
+            .getAttributeValue(t))))
     {
       throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_RDN,
-                                   ERR_MODIFY_DELETE_RDN_ATTR.get(
-                                        String.valueOf(entryDN),
-                                        attr.getName()));
+          ERR_MODIFY_DELETE_RDN_ATTR.get(String.valueOf(entryDN), attr
+              .getName()));
     }
   }
 
 
 
   /**
-   * Performs the initial schema processing for an increment modification and
-   * updates the entry appropriately.
+   * Performs the initial schema processing for an increment
+   * modification and updates the entry appropriately.
    *
-   * @param  attr  The attribute being incremented.
-   *
-   * @throws  DirectoryException  If a problem occurs that should cause the
-   *                              modify operation to fail.
+   * @param attr
+   *          The attribute being incremented.
+   * @throws DirectoryException
+   *           If a problem occurs that should cause the modify
+   *           operation to fail.
    */
   private void processInitialIncrementSchema(Attribute attr)
-          throws DirectoryException
+      throws DirectoryException
   {
     // The specified attribute type must not be an RDN attribute.
     AttributeType t = attr.getAttributeType();
     RDN rdn = modifiedEntry.getDN().getRDN();
-    if ((rdn !=  null) && rdn.hasAttributeType(t))
+    if ((rdn != null) && rdn.hasAttributeType(t))
     {
       throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_RDN,
-                                   ERR_MODIFY_INCREMENT_RDN.get(
-                                        String.valueOf(entryDN),
-                                        attr.getName()));
+          ERR_MODIFY_INCREMENT_RDN.get(String.valueOf(entryDN),
+              attr.getName()));
     }
 
-
-    // The provided attribute must have a single value, and it must be an
-    // integer.
-    LinkedHashSet<AttributeValue> values = attr.getValues();
-    if ((values == null) || values.isEmpty())
+    // The provided attribute must have a single value, and it must be
+    // an integer.
+    if (attr.isEmpty())
     {
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                   ERR_MODIFY_INCREMENT_REQUIRES_VALUE.get(
-                                        String.valueOf(entryDN),
-                                        attr.getName()));
-    }
-    else if (values.size() > 1)
-    {
-      throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                     ERR_MODIFY_INCREMENT_REQUIRES_SINGLE_VALUE.get(
-                          String.valueOf(entryDN), attr.getName()));
+          ERR_MODIFY_INCREMENT_REQUIRES_VALUE.get(String.valueOf(entryDN), attr
+              .getName()));
     }
 
-    AttributeValue v = values.iterator().next();
+    if (attr.size() > 1)
+    {
+      throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+          ERR_MODIFY_INCREMENT_REQUIRES_SINGLE_VALUE.get(String
+              .valueOf(entryDN), attr.getName()));
+    }
+
+    AttributeValue v = attr.iterator().next();
 
     long incrementValue;
     try
@@ -1905,79 +1787,60 @@ modifyProcessing:
       }
 
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                     ERR_MODIFY_INCREMENT_PROVIDED_VALUE_NOT_INTEGER.get(
-                          String.valueOf(entryDN), attr.getName(),
-                          v.getStringValue()), e);
+          ERR_MODIFY_INCREMENT_PROVIDED_VALUE_NOT_INTEGER.get(String
+              .valueOf(entryDN), attr.getName(), v.getStringValue()), e);
     }
 
-
-    // Get the corresponding attribute from the entry and make sure that it has
-    // a single integer value.
-    List<Attribute> attrList = modifiedEntry.getAttribute(t, attr.getOptions());
-    if ((attrList == null) || attrList.isEmpty())
+    // Get the attribute that is to be incremented.
+    Attribute a = modifiedEntry.getExactAttribute(t, attr.getOptions());
+    if (a == null)
     {
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                     ERR_MODIFY_INCREMENT_REQUIRES_EXISTING_VALUE.get(
-                          String.valueOf(entryDN), attr.getName()));
+          ERR_MODIFY_INCREMENT_REQUIRES_EXISTING_VALUE.get(String
+              .valueOf(entryDN), attr.getName()));
     }
 
-    boolean updated = false;
-    for (Attribute a : attrList)
+    // Increment each attribute value by the specified amount.
+    AttributeBuilder builder = new AttributeBuilder(a, true);
+    for (AttributeValue existingValue : a)
     {
-      LinkedHashSet<AttributeValue> valueList = a.getValues();
-      if ((valueList == null) || valueList.isEmpty())
+      String s = existingValue.getStringValue();
+      long currentValue;
+      try
       {
-        continue;
+        currentValue = Long.parseLong(s);
       }
-
-      LinkedHashSet<AttributeValue> newValueList =
-        new LinkedHashSet<AttributeValue>(valueList.size());
-      for (AttributeValue existingValue : valueList)
+      catch (Exception e)
       {
-        long newIntValue;
-        try
+        if (debugEnabled())
         {
-          long existingIntValue =
-                    Long.parseLong(existingValue.getStringValue());
-          newIntValue = existingIntValue + incrementValue;
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                         ERR_MODIFY_INCREMENT_REQUIRES_INTEGER_VALUE.get(
-                              String.valueOf(entryDN), a.getName(),
-                              existingValue.getStringValue()), e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        ByteString newValue = new ASN1OctetString(String.valueOf(newIntValue));
-        newValueList.add(new AttributeValue(t, newValue));
+        throw new DirectoryException(
+            ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+            ERR_MODIFY_INCREMENT_REQUIRES_INTEGER_VALUE.get(String
+                .valueOf(entryDN), a.getName(), existingValue.getStringValue()),
+            e);
       }
 
-      a.setValues(newValueList);
-      updated = true;
+      long newValue = currentValue + incrementValue;
+      builder.add(new AttributeValue(t, String.valueOf(newValue)));
     }
 
-    if (! updated)
-    {
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                     ERR_MODIFY_INCREMENT_REQUIRES_EXISTING_VALUE.get(
-                          String.valueOf(entryDN), attr.getName()));
-    }
+    // Replace the existing attribute with the incremented version.
+    modifiedEntry.replaceAttribute(builder.toAttribute());
   }
 
 
 
   /**
-   * Performs additional preliminary processing that is required for a password
-   * change.
+   * Performs additional preliminary processing that is required for a
+   * password change.
    *
-   * @throws  DirectoryException  If a problem occurs that should cause the
-   *                              modify operation to fail.
+   * @throws DirectoryException
+   *           If a problem occurs that should cause the modify
+   *           operation to fail.
    */
   public void performAdditionalPasswordChangedProcessing()
          throws DirectoryException
@@ -2390,5 +2253,83 @@ modifyProcessing:
       }
     }
   }
+
+  private boolean handleConflictResolution() {
+      boolean returnVal = true;
+
+      for (SynchronizationProvider<?> provider :
+          DirectoryServer.getSynchronizationProviders()) {
+          try {
+              SynchronizationProviderResult result =
+                  provider.handleConflictResolution(this);
+              if (! result.continueProcessing()) {
+                  setResultCode(result.getResultCode());
+                  appendErrorMessage(result.getErrorMessage());
+                  setMatchedDN(result.getMatchedDN());
+                  setReferralURLs(result.getReferralURLs());
+                  returnVal = false;
+                  break;
+              }
+          } catch (DirectoryException de) {
+              if (debugEnabled()) {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+              }
+              logError(ERR_MODIFY_SYNCH_CONFLICT_RESOLUTION_FAILED.get(
+                      getConnectionID(), getOperationID(),
+                      getExceptionMessage(de)));
+              setResponseData(de);
+              returnVal = false;
+              break;
+          }
+      }
+      return returnVal;
+  }
+
+  private boolean processPreOperation() {
+      boolean returnVal = true;
+      for (SynchronizationProvider<?> provider :
+          DirectoryServer.getSynchronizationProviders()) {
+          try {
+              SynchronizationProviderResult result =
+                  provider.doPreOperation(this);
+              if (! result.continueProcessing()) {
+                  setResultCode(result.getResultCode());
+                  appendErrorMessage(result.getErrorMessage());
+                  setMatchedDN(result.getMatchedDN());
+                  setReferralURLs(result.getReferralURLs());
+                  returnVal = false;
+                  break;
+              }
+          } catch (DirectoryException de) {
+              if (debugEnabled()) {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+              }
+              logError(ERR_MODIFY_SYNCH_PREOP_FAILED.get(getConnectionID(),
+                      getOperationID(), getExceptionMessage(de)));
+              setResponseData(de);
+              returnVal = false;
+              break;
+          }
+      }
+      return returnVal;
+  }
+
+  private void processPostOperation() {
+      for (SynchronizationProvider<?> provider :
+          DirectoryServer.getSynchronizationProviders()) {
+          try {
+              provider.doPostOperation(this);
+          } catch (DirectoryException de) {
+              if (debugEnabled()) {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+              }
+              logError(ERR_MODIFY_SYNCH_POSTOP_FAILED.get(getConnectionID(),
+                      getOperationID(), getExceptionMessage(de)));
+              setResponseData(de);
+              break;
+          }
+      }
+  }
 }
+
 

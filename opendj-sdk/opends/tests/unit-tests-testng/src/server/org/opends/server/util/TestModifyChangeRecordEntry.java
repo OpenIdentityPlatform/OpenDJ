@@ -34,6 +34,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.RawModification;
@@ -70,7 +71,7 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
 
     // Create a simple set of modifications.
     modifications = new ArrayList<RawModification>();
-    attribute = new Attribute("cn", "hello world");
+    attribute = Attributes.create("cn", "hello world");
     LDAPAttribute lattribute = new LDAPAttribute(attribute);
     LDAPModification modification = new LDAPModification(
         ModificationType.ADD, lattribute);

@@ -32,7 +32,6 @@ import org.opends.messages.Message;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import javax.management.Attribute;
@@ -403,7 +402,7 @@ public final class JMXMBean
    * @return  <CODE>true</CODE> if the specified component was successfully
    *          removed, or <CODE>false</CODE> if not.
    */
-  public boolean removeMonitorProvider(MonitorProvider component)
+  public boolean removeMonitorProvider(MonitorProvider<?> component)
   {
     synchronized (monitorProviders)
     {
@@ -438,13 +437,12 @@ public final class JMXMBean
       {
         if (attrType.equals(a.getAttributeType()))
         {
-          LinkedHashSet<AttributeValue> values = a.getValues();
-          if (values.isEmpty())
+          if (a.isEmpty())
           {
             continue;
           }
 
-          Iterator<AttributeValue> iterator = values.iterator();
+          Iterator<AttributeValue> iterator = a.iterator();
           AttributeValue value = iterator.next();
 
           if (iterator.hasNext())
@@ -672,13 +670,12 @@ monitorLoop:
         {
           if (attrType.equals(a.getAttributeType()))
           {
-            LinkedHashSet<AttributeValue> values = a.getValues();
-            if (values.isEmpty())
+            if (a.isEmpty())
             {
               continue;
             }
 
-            Iterator<AttributeValue> iterator = values.iterator();
+            Iterator<AttributeValue> iterator = a.iterator();
             AttributeValue value = iterator.next();
 
             if (iterator.hasNext())
@@ -890,21 +887,24 @@ monitorLoop:
    */
   private ClientConnection getClientConnection()
   {
-      ClientConnection clientConnection=null;
-      java.security.AccessControlContext acc = java.security.AccessController
-      .getContext();
-      try
-      {
-          javax.security.auth.Subject subject = javax.security.auth.Subject
+    ClientConnection clientConnection = null;
+    java.security.AccessControlContext acc = java.security.AccessController
+        .getContext();
+    try
+    {
+      javax.security.auth.Subject subject = javax.security.auth.Subject
           .getSubject(acc);
-          if(subject != null) {
-            Set privateCreds = subject.getPrivateCredentials(Credential.class);
-            clientConnection = ((Credential) privateCreds
-                    .iterator().next()).getClientConnection();
-          }
+      if (subject != null)
+      {
+        Set<?> privateCreds = subject.getPrivateCredentials(Credential.class);
+        clientConnection = ((Credential) privateCreds.iterator().next())
+            .getClientConnection();
       }
-      catch (Exception e) {}
-      return clientConnection;
+    }
+    catch (Exception e)
+    {
+    }
+    return clientConnection;
   }
 }
 

@@ -164,33 +164,20 @@ public class SubstringIndexer extends Indexer
 
     for (Attribute attr : attrList)
     {
-      indexValues(attr.getValues(), keys);
-    }
-  }
-
-  /**
-   * Generate the set of index keys for a set of attribute values.
-   * @param values The set of attribute values to be indexed.
-   * @param keys The set into which the keys will be inserted.
-   */
-  private void indexValues(Set<AttributeValue> values,
-                           Set<byte[]> keys)
-  {
-    if (values == null) return;
-
-    for (AttributeValue value : values)
-    {
-      try
+      for (AttributeValue value : attr)
       {
-        byte[] normalizedBytes = value.getNormalizedValue().value();
-
-        substringKeys(normalizedBytes, keys);
-      }
-      catch (DirectoryException e)
-      {
-        if (debugEnabled())
+        try
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          byte[] normalizedBytes = value.getNormalizedValue().value();
+
+          substringKeys(normalizedBytes, keys);
+        }
+        catch (DirectoryException e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
         }
       }
     }
@@ -254,37 +241,20 @@ public class SubstringIndexer extends Indexer
 
     for (Attribute attr : attrList)
     {
-      indexValues(attr.getValues(), modifiedKeys, insert);
-    }
-  }
-
-  /**
-   * Generate the set of index keys for a set of attribute values.
-   * @param values The set of attribute values to be indexed.
-   * @param modifiedKeys The map into which the modified
-   *  keys will be inserted.
-   * @param insert <code>true</code> if generated keys should
-   * be inserted or <code>false</code> otherwise.
-   */
-  private void indexValues(Set<AttributeValue> values,
-                           Map<byte[], Boolean> modifiedKeys,
-                           Boolean insert)
-  {
-    if (values == null) return;
-
-    for (AttributeValue value : values)
-    {
-      try
+      for (AttributeValue value : attr)
       {
-        byte[] normalizedBytes = value.getNormalizedValue().value();
-
-        substringKeys(normalizedBytes, modifiedKeys, insert);
-      }
-      catch (DirectoryException e)
-      {
-        if (debugEnabled())
+        try
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          byte[] normalizedBytes = value.getNormalizedValue().value();
+
+          substringKeys(normalizedBytes, modifiedKeys, insert);
+        }
+        catch (DirectoryException e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
         }
       }
     }

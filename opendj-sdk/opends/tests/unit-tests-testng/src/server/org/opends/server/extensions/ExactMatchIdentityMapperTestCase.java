@@ -48,9 +48,9 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -155,7 +155,7 @@ public class ExactMatchIdentityMapperTestCase
          "ds-cfg-match-attribute: uid");
 
     AttributeType t = DirectoryServer.getAttributeType("ds-cfg-match-base-dn");
-    e.addAttribute(new Attribute(t), new ArrayList<AttributeValue>());
+    e.addAttribute(Attributes.empty(t), new ArrayList<AttributeValue>());
     entries.add(e);
 
 

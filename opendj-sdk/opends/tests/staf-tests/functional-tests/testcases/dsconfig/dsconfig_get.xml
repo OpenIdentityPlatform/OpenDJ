@@ -85,7 +85,6 @@
                   <call function="'dsconfig'">
                   {   
                     'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD , 
                     'subcommand'     :  '%s' % componentList[componentNumber][0] ,
@@ -99,7 +98,6 @@
                   <call function="'dsconfig'">
                   {                       
                     'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD , 
                     'subcommand'     :  '%s' % componentList[componentNumber][0] ,
@@ -165,7 +163,6 @@
                 <call function="'dsconfig'">
                   {   
                     'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
                     'subcommand'     :  '%s' % componentList2[componentNumber][0] ,

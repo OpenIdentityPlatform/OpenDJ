@@ -28,22 +28,16 @@ package org.opends.server.types;
 
 
 
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-
-import org.testng.annotations.Test;
-
-import org.opends.server.TestCaseUtils;
-import org.opends.messages.MessageBuilder;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.tools.LDAPModify;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-
+import static org.opends.server.types.AcceptRejectWarn.*;
 import static org.testng.Assert.*;
 
-import static org.opends.server.types.AcceptRejectWarn.*;
+import java.util.LinkedList;
+
+import org.opends.messages.MessageBuilder;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.tools.LDAPModify;
+import org.testng.annotations.Test;
 
 
 
@@ -411,7 +405,7 @@ public class EntrySchemaCheckingTestCase
          "objectClass: domain",
          "dc: example");
 
-    e.addAttribute(new Attribute("dc", "foo"),
+    e.addAttribute(Attributes.create("dc", "foo"),
                    new LinkedList<AttributeValue>());
 
     assertFalse(e.conformsToSchema(null, false, true, true, new MessageBuilder()));
@@ -441,12 +435,11 @@ public class EntrySchemaCheckingTestCase
          DirectoryServer.getAttributeType("creatorsname");
     assertTrue(creatorsNameType.isOperational());
 
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(2);
-    values.add(new AttributeValue(creatorsNameType, "cn=Directory Manager"));
-    values.add(new AttributeValue(creatorsNameType, "cn=Another User"));
-
-    e.addAttribute(new Attribute(creatorsNameType, "creatorsName", values),
-                   new LinkedList<AttributeValue>());
+    AttributeBuilder builder = new AttributeBuilder(creatorsNameType,
+        "creatorsName");
+    builder.add("cn=Directory Manager");
+    builder.add("cn=Another User");
+    e.addAttribute(builder.toAttribute(), new LinkedList<AttributeValue>());
 
     assertFalse(e.conformsToSchema(null, false, true, true, new MessageBuilder()));
   }
@@ -1455,7 +1448,7 @@ public class EntrySchemaCheckingTestCase
          "sn: User",
          "cn: Test User");
 
-    e.addAttribute(new Attribute("name", "foo"),
+    e.addAttribute(Attributes.create("name", "foo"),
                    new LinkedList<AttributeValue>());
 
     assertFalse(e.conformsToSchema(null, false, true, true, new MessageBuilder()));

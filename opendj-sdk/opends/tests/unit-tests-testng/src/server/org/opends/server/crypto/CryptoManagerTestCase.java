@@ -100,11 +100,11 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     assertNotNull(cert);
 
     // The certificate should now be accessible in the truststore backend via LDAP.
-    final InitialLdapContext ctx = ConnectionUtils.createLdapContext(
-            "ldap://" + "127.0.0.1" + ":"
-                    + String.valueOf(TestCaseUtils.getServerLdapPort()),
+    final InitialLdapContext ctx = ConnectionUtils.createLdapsContext(
+            "ldaps://" + "127.0.0.1" + ":"
+                    + String.valueOf(TestCaseUtils.getServerAdminPort()),
             "cn=Directory Manager", "password",
-          ConnectionUtils.getDefaultLDAPTimeout(), null);
+          ConnectionUtils.getDefaultLDAPTimeout(), null, null, null);
     // TODO: should the below dn be in ConfigConstants?
     final String dnStr = "ds-cfg-key-id=ads-certificate,cn=ads-truststore";
     final LdapName dn = new LdapName(dnStr);
@@ -415,7 +415,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
 
     String compromisedTime = TimeThread.getGeneralizedTime();
     for (Entry e : searchOp.getSearchEntries()) {
-      TestCaseUtils.applyModifications(
+      TestCaseUtils.applyModifications(true,
         "dn: " + e.getDN().toNormalizedString(),
         "changetype: modify",
         "replace: " + ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME,
@@ -443,7 +443,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     // 3. Delete the compromised entry(ies) and ensure ciphertext produced
     // using a compromised key can no longer be decrypted.
     for (Entry e : searchOp.getSearchEntries()) {
-      TestCaseUtils.applyModifications(
+      TestCaseUtils.applyModifications(true,
         "dn: " + e.getDN().toNormalizedString(), "changetype: delete");
     }
     Thread.sleep(1000); // Clearing the cache is asynchronous.

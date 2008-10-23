@@ -338,9 +338,7 @@ public class TestRebuildJob extends JebTestCase
     if (attrType == null)
       attrType = DirectoryServer.getDefaultAttributeType(type);
     List<Attribute> attrList = e.getAttribute(attrType, null);
-    LinkedHashSet<AttributeValue> values =
-        attrList.get(0).getValues();
-    AttributeValue v = values.iterator().next();
+    AttributeValue v = attrList.get(0).iterator().next();
     long retVal = Long.parseLong(v.getStringValue());
     return (retVal);
   }
