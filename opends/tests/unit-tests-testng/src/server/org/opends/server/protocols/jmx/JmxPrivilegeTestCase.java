@@ -65,7 +65,7 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.Control;
@@ -222,7 +222,7 @@ public class JmxPrivilegeTestCase
       "uid: pwreset.target",
       "userPassword: password");
 
-    TestCaseUtils.applyModifications(
+    TestCaseUtils.applyModifications(false,
       "dn: o=test",
       "changetype: modify",
       "add: aci",
@@ -432,8 +432,8 @@ public class JmxPrivilegeTestCase
     InternalClientConnection rootConnection =
       InternalClientConnection.getRootConnection();
     ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.ADD,
-                      new Attribute("ds-privilege-name", "jmx-read")));
+    mods.add(new Modification(ModificationType.ADD, Attributes.create(
+        "ds-privilege-name", "jmx-read")));
     ModifyOperation modifyOperation =
          rootConnection.processModify(DN.decode(user), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -464,7 +464,7 @@ public class JmxPrivilegeTestCase
     // remove JMX_READ privilege
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.DELETE,
-                      new Attribute("ds-privilege-name", "jmx-read")));
+        Attributes.create("ds-privilege-name", "jmx-read")));
     modifyOperation =
          rootConnection.processModify(DN.decode(user), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -648,7 +648,7 @@ public class JmxPrivilegeTestCase
     ArrayList<Modification> mods = new ArrayList<Modification>();
 
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("ds-cfg-size-limit", "2000")));
+        Attributes.create("ds-cfg-size-limit", "2000")));
 
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode("cn=config"), mods);
@@ -658,7 +658,7 @@ public class JmxPrivilegeTestCase
 
       mods.clear();
       mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("ds-cfg-size-limit", "1000")));
+          Attributes.create("ds-cfg-size-limit", "1000")));
 
       modifyOperation = conn.processModify(DN.decode("cn=config"), mods);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -740,7 +740,7 @@ public class JmxPrivilegeTestCase
     ArrayList<Modification> mods = new ArrayList<Modification>();
 
     mods.add(new Modification(ModificationType.ADD,
-                              new Attribute("attributetypes", attrDefinition)));
+        Attributes.create("attributetypes", attrDefinition)));
 
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode("cn=schema"), mods);
@@ -750,7 +750,7 @@ public class JmxPrivilegeTestCase
 
       mods.clear();
       mods.add(new Modification(ModificationType.DELETE,
-                        new Attribute("attributetypes", attrDefinition)));
+          Attributes.create("attributetypes", attrDefinition)));
 
       modifyOperation = conn.processModify(DN.decode("cn=schema"), mods);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1172,7 +1172,7 @@ public class JmxPrivilegeTestCase
     // Try to modify the entry to add a description.
     ArrayList<Modification> mods = new ArrayList<Modification>(1);
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("description", "foo")));
+        Attributes.create("description", "foo")));
 
     ModifyOperationBasis modifyOperation = new ModifyOperationBasis(conn,
         conn.nextOperationID(), conn.nextMessageID(), controls, e.getDN(),
@@ -1371,7 +1371,7 @@ public class JmxPrivilegeTestCase
     // Try to modify the entry to add a description.
     ArrayList<Modification> mods = new ArrayList<Modification>(1);
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("description", "foo")));
+        Attributes.create("description", "foo")));
 
     ModifyOperationBasis modifyOperation =
          new ModifyOperationBasis(conn,
@@ -1556,7 +1556,7 @@ public class JmxPrivilegeTestCase
     // the client connection reflects that.
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.ADD,
-                      new Attribute("ds-privilege-name", "jmx-read")));
+        Attributes.create("ds-privilege-name", "jmx-read")));
     ModifyOperation modifyOperation =
          rootConnection.processModify(DN.decode("cn=Test User,o=test"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1567,7 +1567,7 @@ public class JmxPrivilegeTestCase
     // immediately.
     mods.clear();
     mods.add(new Modification(ModificationType.DELETE,
-                      new Attribute("ds-privilege-name", "jmx-read")));
+        Attributes.create("ds-privilege-name", "jmx-read")));
     modifyOperation =
          rootConnection.processModify(DN.decode("cn=Test User,o=test"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1608,7 +1608,7 @@ public class JmxPrivilegeTestCase
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.ADD,
-                      new Attribute("ds-cfg-default-root-privilege-name",
+        Attributes.create("ds-cfg-default-root-privilege-name",
                                     "proxied-auth")));
     ModifyOperation modifyOperation =
          internalRootConn.processModify(DN.decode("cn=Root DNs,cn=config"),
@@ -1626,7 +1626,7 @@ public class JmxPrivilegeTestCase
     // Update the set of root privileges to revoke proxied auth.
     mods.clear();
     mods.add(new Modification(ModificationType.DELETE,
-                      new Attribute("ds-cfg-default-root-privilege-name",
+        Attributes.create("ds-cfg-default-root-privilege-name",
                                     "proxied-auth")));
     modifyOperation =
          internalRootConn.processModify(DN.decode("cn=Root DNs,cn=config"),

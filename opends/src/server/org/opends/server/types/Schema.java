@@ -3354,43 +3354,36 @@ public final class Schema
                           LinkedList<Modification> mods)
   {
     AttributeType attributeTypesType =
-         DirectoryServer.getAttributeType(ATTR_ATTRIBUTE_TYPES_LC,
-                                          true);
+      DirectoryServer.getAttributeType(ATTR_ATTRIBUTE_TYPES_LC, true);
 
-    LinkedHashSet<AttributeValue> values =
-         new LinkedHashSet<AttributeValue>();
+    AttributeBuilder builder = new AttributeBuilder(elementType);
     for (String s : oldElements)
     {
-      if (! newElements.contains(s))
+      if (!newElements.contains(s))
       {
-        values.add(new AttributeValue(attributeTypesType, s));
+        builder.add(new AttributeValue(attributeTypesType, s));
       }
     }
 
-    if (! values.isEmpty())
+    if (!builder.isEmpty())
     {
       mods.add(new Modification(ModificationType.DELETE,
-                        new Attribute(elementType,
-                                      elementType.getNameOrOID(),
-                                      values)));
+                                builder.toAttribute()));
     }
 
-
-    values.clear();
+    builder.clear();
     for (String s : newElements)
     {
-      if (! oldElements.contains(s))
+      if (!oldElements.contains(s))
       {
-        values.add(new AttributeValue(attributeTypesType, s));
+        builder.add(new AttributeValue(attributeTypesType, s));
       }
     }
 
-    if (! values.isEmpty())
+    if (!builder.isEmpty())
     {
       mods.add(new Modification(ModificationType.ADD,
-                        new Attribute(elementType,
-                                      elementType.getNameOrOID(),
-                                      values)));
+                                builder.toAttribute()));
     }
   }
 
@@ -3398,7 +3391,7 @@ public final class Schema
 
   /**
    * Destroys the structures maintained by the schema so that they are
-   * no longer usable.  This should only be called at the end of the
+   * no longer usable. This should only be called at the end of the
    * server shutdown process, and it can help detect inappropriate
    * cached references.
    */

@@ -140,7 +140,7 @@ public class LDIFBackendTestCase
          throws Exception
   {
     // Add a number of entries to the server.
-    int resultCode = TestCaseUtils.applyModifications(
+    int resultCode = TestCaseUtils.applyModifications(false,
       "dn: ou=dummy,o=ldif",
       "changetype: add",
       "objectClass: top",
@@ -180,7 +180,7 @@ public class LDIFBackendTestCase
 
 
     // Verify that we can delete a single leaf entry.
-    resultCode = TestCaseUtils.applyModifications(
+    resultCode = TestCaseUtils.applyModifications(false,
       "dn: ou=sub5,ou=dummy,o=ldif",
       "changetype: delete");
     assertEquals(resultCode, 0);

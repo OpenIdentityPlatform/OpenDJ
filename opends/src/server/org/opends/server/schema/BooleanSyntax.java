@@ -304,5 +304,15 @@ public class BooleanSyntax
                                    message);
     }
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

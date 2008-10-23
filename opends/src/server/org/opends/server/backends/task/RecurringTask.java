@@ -30,7 +30,6 @@ import org.opends.messages.Message;
 
 
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.opends.server.core.DirectoryServer;
@@ -79,10 +78,6 @@ public class RecurringTask
   // class.
   private String taskClassName;
 
-  // The reference to the task scheduler that will be used to schedule new
-  // iterations of this recurring task.
-  private TaskScheduler taskScheduler;
-
 
 
   /**
@@ -100,7 +95,6 @@ public class RecurringTask
   public RecurringTask(TaskScheduler taskScheduler, Entry recurringTaskEntry)
          throws DirectoryException
   {
-    this.taskScheduler        = taskScheduler;
     this.recurringTaskEntry   = recurringTaskEntry;
     this.recurringTaskEntryDN = recurringTaskEntry.getDN();
 
@@ -130,14 +124,13 @@ public class RecurringTask
     }
 
     Attribute attr = attrList.get(0);
-    LinkedHashSet<AttributeValue> values = attr.getValues();
-    if ((values == null) || values.isEmpty())
+    if (attr.isEmpty())
     {
       Message message = ERR_RECURRINGTASK_NO_ID.get(ATTR_RECURRING_TASK_ID);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
-    Iterator<AttributeValue> iterator = values.iterator();
+    Iterator<AttributeValue> iterator = attr.iterator();
     AttributeValue value = iterator.next();
     if (iterator.hasNext())
     {
@@ -178,15 +171,14 @@ public class RecurringTask
     }
 
     attr = attrList.get(0);
-    values = attr.getValues();
-    if ((values == null) || values.isEmpty())
+    if (attr.isEmpty())
     {
       Message message =
           ERR_RECURRINGTASK_NO_CLASS_VALUES.get(ATTR_RECURRING_TASK_CLASS_NAME);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
-    iterator = values.iterator();
+    iterator = attr.iterator();
     value = iterator.next();
     if (iterator.hasNext())
     {
@@ -199,7 +191,7 @@ public class RecurringTask
 
 
     // Make sure that the specified class can be loaded.
-    Class taskClass;
+    Class<?> taskClass;
     try
     {
       taskClass = DirectoryServer.loadClass(taskClassName);

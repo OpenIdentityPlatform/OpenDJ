@@ -739,22 +739,19 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         Message msg = INFO_DSCFG_CONFIRM_CREATE_SUCCESS.get(ufn);
         app.printVerboseMessage(msg);
 
-        for (PropertyEditorModification mod : editor.getModifications())
-        {
-          try
-          {
-            Argument arg = createArgument(mod);
-            handler.getCommandBuilder().addArgument(arg);
+        if (handler != null) {
+          for (PropertyEditorModification mod : editor.getModifications()) {
+            try {
+              Argument arg = createArgument(mod);
+              handler.getCommandBuilder().addArgument(arg);
+            } catch (ArgumentException ae) {
+              // This is a bug
+              throw new RuntimeException(
+                "Unexpected error generating the command builder: " + ae, ae);
+            }
           }
-          catch (ArgumentException ae)
-          {
-            // This is a bug
-            throw new RuntimeException(
-                "Unexpected error generating the command builder: "+ae, ae);
-          }
+          handler.setCommandBuilderUseful(true);
         }
-        handler.setCommandBuilderUseful(true);
-
         return MenuResult.success();
       } catch (MissingMandatoryPropertiesException e) {
         if (app.isInteractive()) {

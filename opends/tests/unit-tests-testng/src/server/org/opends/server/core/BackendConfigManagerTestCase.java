@@ -37,7 +37,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -247,7 +247,7 @@ public class BackendConfigManagerTestCase
     // Modify the backend to enable it.
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("ds-cfg-enabled", "true")));
+        Attributes.create("ds-cfg-enabled", "true")));
     ModifyOperation modifyOperation =
          conn.processModify(backendEntry.getDN(), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -271,7 +271,7 @@ public class BackendConfigManagerTestCase
     // Modify the backend to disable it.
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("ds-cfg-enabled", "false")));
+        Attributes.create("ds-cfg-enabled", "false")));
     modifyOperation =
          conn.processModify(backendEntry.getDN(), mods);
     assertNull(DirectoryServer.getBackend(backendID));
@@ -613,7 +613,7 @@ public class BackendConfigManagerTestCase
     // Disable the intermediate (child) backend.  This should be allowed.
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("ds-cfg-enabled",
+        Attributes.create("ds-cfg-enabled",
                                             "false")));
     ModifyOperation modifyOperation =
          conn.processModify(childBackendEntry.getDN(), mods);
@@ -632,7 +632,7 @@ public class BackendConfigManagerTestCase
     // Re-enable the intermediate backend.
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("ds-cfg-enabled", "true")));
+        Attributes.create("ds-cfg-enabled", "true")));
     modifyOperation = conn.processModify(childBackendEntry.getDN(), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 

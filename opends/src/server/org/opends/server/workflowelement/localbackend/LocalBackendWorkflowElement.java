@@ -34,7 +34,10 @@ import java.util.TreeMap;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.LocalBackendWorkflowElementCfg;
+import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
@@ -48,11 +51,14 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.LeafWorkflowElement;
 
+import static org.opends.server.config.ConfigConstants.*;
+
+
 
 
 /**
  * This class defines a local backend workflow element; e-g an entity that
- * handle the processing of an operation aginst a local backend.
+ * handle the processing of an operation against a local backend.
  */
 public class LocalBackendWorkflowElement extends
     LeafWorkflowElement<LocalBackendWorkflowElementCfg>
@@ -71,6 +77,10 @@ public class LocalBackendWorkflowElement extends
   // a lock to guarantee safe concurrent access to the registeredLocalBackends
   // variable
   private static Object registeredLocalBackendsLock = new Object();
+
+
+  // A string indicating the type of the workflow element.
+  private final String BACKEND_WORKFLOW_ELEMENT = "Backend";
 
 
   /**
@@ -95,7 +105,7 @@ public class LocalBackendWorkflowElement extends
   private void initialize(String workflowElementID, Backend backend)
   {
     // Initialize the workflow ID
-    super.initialize(workflowElementID);
+    super.initialize(workflowElementID, BACKEND_WORKFLOW_ELEMENT);
 
     this.backend  = backend;
 
@@ -142,7 +152,7 @@ public class LocalBackendWorkflowElement extends
   {
     // null all fields so that any use of the finalized object will raise
     // an NPE
-    super.initialize(null);
+    super.initialize(null, null);
     backend = null;
   }
 
@@ -197,17 +207,35 @@ public class LocalBackendWorkflowElement extends
     boolean isAcceptable = true;
 
     // If the workflow element is disabled then do nothing. Note that the
-    // config manager could have finalized the object right before.
+    // configuration manager could have finalized the object right before.
     if (configuration.isEnabled())
     {
       // Read configuration.
       String newBackendID = configuration.getBackend();
       Backend newBackend  = DirectoryServer.getBackend(newBackendID);
 
-      // Get the new config
+      // If the backend is null (i.e. not found in the list of
+      // registered backends, this is probably because we are looking
+      // for the config backend
+      if (newBackend == null) {
+        ServerManagementContext context = ServerManagementContext.getInstance();
+        RootCfg root = context.getRootConfiguration();
+        try {
+          BackendCfg backendCfg = root.getBackend(newBackendID);
+          if (backendCfg.getBaseDN().contains(DN.decode(DN_CONFIG_ROOT))) {
+            newBackend = DirectoryServer.getConfigHandler();
+          }
+        } catch (Exception ex) {
+          // Unable to find the backend
+          newBackend = null;
+        }
+      }
+
+      // Get the new configuration
       if (applyChanges)
       {
-        super.initialize(configuration.getWorkflowElementId());
+        super.initialize(
+          configuration.getWorkflowElementId(), BACKEND_WORKFLOW_ELEMENT);
         backend = newBackend;
       }
     }

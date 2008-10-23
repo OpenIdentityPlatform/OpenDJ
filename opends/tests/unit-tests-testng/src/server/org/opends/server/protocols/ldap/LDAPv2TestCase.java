@@ -82,7 +82,7 @@ public class LDAPv2TestCase
   public void testRejectBindRequest()
          throws Exception
   {
-    TestCaseUtils.applyModifications(
+    TestCaseUtils.applyModifications(true,
       "dn: cn=LDAP Connection Handler,cn=Connection Handlers,cn=config",
       "changetype: modify",
       "replace: ds-cfg-allow-ldap-v2",
@@ -108,7 +108,7 @@ public class LDAPv2TestCase
     }
     finally
     {
-      TestCaseUtils.applyModifications(
+      TestCaseUtils.applyModifications(true,
         "dn: cn=LDAP Connection Handler,cn=Connection Handlers,cn=config",
         "changetype: modify",
         "replace: ds-cfg-allow-ldap-v2",

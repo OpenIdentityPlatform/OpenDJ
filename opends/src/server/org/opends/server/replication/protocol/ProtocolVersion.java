@@ -33,30 +33,55 @@ package org.opends.server.replication.protocol;
 public class ProtocolVersion
 {
   /**
-   * Get the version included in the Start Message mean the replication
-   * protocol version used by the server that created the message.
-   *
-   * @return The version used by the server that created the message.
+   * The constant for the first historical version of the replication protocol.
    */
-  static short CURRENT_VERSION = 1;
+  public static final short REPLICATION_PROTOCOL_V1 = 1;
+  /**
+   * The constant for the real value of the first historical version of the
+   * replication protocol (was used in start messages only).
+   */
+  public static final short REPLICATION_PROTOCOL_V1_REAL = 49;
+  /**
+   * The constant for the second version of the replication protocol.
+   */
+  public static final short REPLICATION_PROTOCOL_V2 = 2;
 
   /**
-   * Specifies the current version of the replication protocol.
+   * The replication protocol version used by the instance of RS/DS in this VM.
+   */
+  private static short currentVersion = -1;
+
+  static
+  {
+    resetCurrentVersion();
+  }
+
+  /**
+   * Gets the current version of the replication protocol.
    *
    * @return The current version of the protocol.
    */
-  public static short currentVersion()
+  public static short getCurrentVersion()
   {
-    return CURRENT_VERSION;
+    return currentVersion;
   }
 
   /**
    * For test purpose.
-   * @param currentVersion The provided current version.
+   * @param curVersion The provided current version.
    */
-  public static void setCurrentVersion(short currentVersion)
+  public static void setCurrentVersion(short curVersion)
   {
-    CURRENT_VERSION = currentVersion;
+    currentVersion = curVersion;
+  }
+
+  /**
+   * Resets the protocol version to the default value (the latest version).
+   * For test purpose.
+   */
+  public static void resetCurrentVersion()
+  {
+    currentVersion = REPLICATION_PROTOCOL_V2;
   }
 
   /**
@@ -68,8 +93,7 @@ public class ProtocolVersion
    */
   public static short minWithCurrent(short version)
   {
-    Short sVersion = Short.valueOf(version);
-    Short newVersion = (sVersion<CURRENT_VERSION?sVersion:CURRENT_VERSION);
+    short newVersion = (version < currentVersion ? version : currentVersion);
     return newVersion;
   }
 }

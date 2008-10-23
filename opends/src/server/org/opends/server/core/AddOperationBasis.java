@@ -47,12 +47,12 @@ import static org.opends.server.util.StaticUtils.toLowerCase;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -61,7 +61,7 @@ import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PreParseAddOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
-
+import org.opends.server.protocols.ldap.LDAPResultCode;
 
 
 
@@ -380,16 +380,32 @@ public class AddOperationBasis
           {
             if (! (isInternalOperation() || isSynchronizationOperation()))
             {
-              setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-              appendErrorMessage(ERR_ADD_ATTR_IS_NO_USER_MOD.get(
+              throw new LDAPException(LDAPResultCode.UNWILLING_TO_PERFORM,
+                      ERR_ADD_ATTR_IS_NO_USER_MOD.get(
                       String.valueOf(entryDN),
                       attr.getName()));
+            }
+          }
 
-              objectClasses = null;
-              userAttributes = null;
-              operationalAttributes = null;
-              ldapError = true;
-              return;
+          if(attrType.isBinary())
+          {
+            if(!attr.hasOption("binary"))
+            {
+              //A binary option wasn't provided by the client so add it.
+              AttributeBuilder builder = new AttributeBuilder(attr);
+              builder.setOption("binary");
+              attr = builder.toAttribute();
+            }
+          }
+          else
+          {
+            // binary option is not honored for non-BER-encodable attributes.
+            if(attr.hasOption("binary"))
+            {
+              throw new LDAPException(LDAPResultCode.UNDEFINED_ATTRIBUTE_TYPE,
+                      ERR_ADD_ATTR_IS_INVALID_OPTION.get(
+                      String.valueOf(entryDN),
+                      attr.getName()));
             }
           }
 
@@ -437,15 +453,17 @@ public class AddOperationBasis
               // have the same set of options.  If so, then add the values
               // to that attribute.
               boolean attributeSeen = false;
-              for (Attribute ea : attrs)
-              {
+              for (int i = 0; i < attrs.size(); i++) {
+                Attribute ea = attrs.get(i);
                 if (ea.optionsEqual(attr.getOptions()))
                 {
-                  LinkedHashSet<AttributeValue> valueSet = ea.getValues();
-                  valueSet.addAll(attr.getValues());
+                  AttributeBuilder builder = new AttributeBuilder(ea);
+                  builder.addAll(attr);
+                  attrs.set(i, builder.toAttribute());
                   attributeSeen = true;
                 }
               }
+
               if (!attributeSeen)
               {
                 // This is the first occurrence of the attribute and options.
@@ -815,8 +833,8 @@ public class AddOperationBasis
     {
       // Invoke the post response plugins that have been registered by
       // the workflow elements
-      List localOperations =
-        (List)getAttachment(Operation.LOCALBACKENDOPERATIONS);
+      List<?> localOperations =
+        (List<?>)getAttachment(Operation.LOCALBACKENDOPERATIONS);
 
       if (localOperations != null)
       {
@@ -851,8 +869,8 @@ public class AddOperationBasis
       return;
     }
 
-    List localOperations =
-      (List)getAttachment(Operation.LOCALBACKENDOPERATIONS);
+    List<?> localOperations =
+      (List<?>)getAttachment(Operation.LOCALBACKENDOPERATIONS);
 
     if (localOperations != null)
     {

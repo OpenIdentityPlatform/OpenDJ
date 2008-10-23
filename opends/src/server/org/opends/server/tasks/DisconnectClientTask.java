@@ -109,7 +109,7 @@ public class DisconnectClientTask
 connIDLoop:
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           try
           {
@@ -147,7 +147,7 @@ connIDLoop:
 notifyClientLoop:
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           String stringValue = toLowerCase(v.getStringValue());
           if (stringValue.equals("true"))
@@ -181,7 +181,7 @@ notifyClientLoop:
 disconnectMessageLoop:
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           disconnectMessage = Message.raw(v.getStringValue());
           break disconnectMessageLoop;
@@ -199,7 +199,7 @@ disconnectMessageLoop:
   {
     // Get the specified client connection.
     ClientConnection clientConnection = null;
-    for (ConnectionHandler handler : DirectoryServer.getConnectionHandlers())
+    for (ConnectionHandler<?> handler : DirectoryServer.getConnectionHandlers())
     {
       ConnectionHandler<? extends ConnectionHandlerCfg> connHandler =
            (ConnectionHandler<? extends ConnectionHandlerCfg>) handler;

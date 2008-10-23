@@ -28,20 +28,16 @@ package org.opends.server.types;
 
 
 
+import static org.testng.Assert.*;
+
 import java.util.Collections;
 import java.util.LinkedHashSet;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.meta.
-            VirtualAttributeCfgDefn.ConflictBehavior;
+import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.ConflictBehavior;
 import org.opends.server.extensions.EntryDNVirtualAttributeProvider;
-import org.opends.server.protocols.internal.InternalClientConnection;
-
-import static org.testng.Assert.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 
 
@@ -114,8 +110,6 @@ public class VirtualAttributeTestCase
                  virtualAttributeRule);
 
     assertTrue(virtualAttribute.isVirtual());
-    assertTrue(virtualAttribute.duplicate(true).isVirtual());
-    assertTrue(virtualAttribute.duplicate(false).isVirtual());
   }
 
 
@@ -129,26 +123,23 @@ public class VirtualAttributeTestCase
   public void testValues()
          throws Exception
   {
-    LinkedHashSet<AttributeValue> values = virtualAttribute.getValues();
-    assertEquals(values.size(), 1);
-    assertTrue(values.contains(new AttributeValue(entryDNType, "o=test")));
+    assertEquals(virtualAttribute.size(), 1);
+    assertTrue(virtualAttribute.contains(new AttributeValue(entryDNType, "o=test")));
 
-    assertTrue(virtualAttribute.hasValue());
+    assertTrue(!virtualAttribute.isEmpty());
 
-    assertTrue(virtualAttribute.hasValue(new AttributeValue(entryDNType,
+    assertTrue(virtualAttribute.contains(new AttributeValue(entryDNType,
                                                             "o=test")));
-    assertFalse(virtualAttribute.hasValue(new AttributeValue(entryDNType,
+    assertFalse(virtualAttribute.contains(new AttributeValue(entryDNType,
                                                              "o=not test")));
 
     LinkedHashSet<AttributeValue> testValues =
          new LinkedHashSet<AttributeValue>();
     testValues.add(new AttributeValue(entryDNType, "o=test"));
-    assertTrue(virtualAttribute.hasAllValues(testValues));
-    assertTrue(virtualAttribute.hasAnyValue(testValues));
+    assertTrue(virtualAttribute.containsAll(testValues));
 
     testValues.add(new AttributeValue(entryDNType, "o=not test"));
-    assertFalse(virtualAttribute.hasAllValues(testValues));
-    assertTrue(virtualAttribute.hasAnyValue(testValues));
+    assertFalse(virtualAttribute.containsAll(testValues));
   }
 
 

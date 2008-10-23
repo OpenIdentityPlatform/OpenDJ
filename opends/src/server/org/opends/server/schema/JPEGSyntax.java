@@ -226,5 +226,15 @@ public class JPEGSyntax
     // All values will be acceptable for the JPEG syntax.
     return true;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

@@ -91,7 +91,8 @@ public class AllowedTaskTestCase
     String[] args =
     {
       "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-Z", "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-f", path
@@ -119,7 +120,8 @@ public class AllowedTaskTestCase
     args = new String[]
     {
       "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-Z", "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-f", path
@@ -153,7 +155,8 @@ public class AllowedTaskTestCase
     args = new String[]
     {
       "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-Z", "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-f", path

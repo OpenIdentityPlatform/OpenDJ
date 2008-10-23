@@ -60,7 +60,6 @@ import org.opends.server.types.SearchScope;
 import static org.opends.server.types.ResultCode.*;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.backends.task.FailedDependencyAction;
-import static org.opends.server.util.ServerConstants.*;
 import org.opends.server.util.StaticUtils;
 
 import java.io.IOException;

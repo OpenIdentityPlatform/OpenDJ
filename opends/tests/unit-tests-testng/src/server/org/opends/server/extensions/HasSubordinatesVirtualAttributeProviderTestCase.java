@@ -29,7 +29,7 @@ package org.opends.server.extensions;
 import org.opends.server.types.*;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.DirectoryServerTestCase;
-import static org.opends.server.util.StaticUtils.getBytes;
+import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.ServerConstants.OID_REAL_ATTRS_ONLY;
 import static org.opends.server.util.ServerConstants.OID_VIRTUAL_ATTRS_ONLY;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -45,7 +45,6 @@ import static org.testng.Assert.assertEquals;
 
 import java.util.List;
 import java.util.LinkedHashSet;
-import java.util.UUID;
 import java.util.LinkedList;
 
 public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectoryServerTestCase {
@@ -195,7 +194,6 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
       new Object[] { DN.decode("cn=Work Queue,cn=config"), false },
       new Object[] { DN.decode("cn=tasks"), true },
       new Object[] { DN.decode("cn=Recurring Tasks,cn=tasks"), false },
-      new Object[] { DN.decode("cn=Scheduled Tasks,cn=tasks"), false },
       new Object[] { DN.decode("cn=backups"), false }
     };
   }
@@ -223,13 +221,13 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
     assertFalse(attrList.isEmpty());
     for (Attribute a : attrList)
     {
-      assertTrue(a.hasValue());
-      assertEquals(a.getValues().size(), 1);
-      assertTrue(a.getValues().contains(new AttributeValue(
-          ByteStringFactory.create(String.valueOf(hasSubs)),
-          ByteStringFactory.create(String.valueOf(hasSubs)))));
-      assertTrue(a.hasValue(new AttributeValue(hasSubordinatesType,
-                                               String.valueOf(hasSubs))));
+      assertTrue(!a.isEmpty());
+      assertEquals(a.size(), 1);
+      assertTrue(a.contains(new AttributeValue(ByteStringFactory
+          .create(toUpperCase(String.valueOf(hasSubs))), ByteStringFactory
+          .create(toUpperCase(String.valueOf(hasSubs))))));
+      assertTrue(a.contains(new AttributeValue(hasSubordinatesType,
+          toUpperCase(String.valueOf(hasSubs)))));
     }
   }
 

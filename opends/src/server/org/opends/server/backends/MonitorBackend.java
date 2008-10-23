@@ -28,11 +28,17 @@ package org.opends.server.backends;
 
 
 
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.opends.messages.Message;
@@ -47,21 +53,21 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IndexType;
 import org.opends.server.types.InitializationException;
@@ -78,13 +84,6 @@ import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
 import org.opends.server.util.Validator;
-
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -546,7 +545,7 @@ public class MonitorBackend
     }
 
     String rdnValue = rdn.getAttributeValue(0).getStringValue();
-    MonitorProvider monitorProvider =
+    MonitorProvider<?> monitorProvider =
          DirectoryServer.getMonitorProvider(toLowerCase(rdnValue));
     return (monitorProvider != null);
   }
@@ -754,12 +753,7 @@ public class MonitorBackend
     AttributeType  rdnType  = entryRDN.getAttributeType(0);
     AttributeValue rdnValue = entryRDN.getAttributeValue(0);
 
-    LinkedHashSet<AttributeValue> rdnValues =
-         new LinkedHashSet<AttributeValue>(1);
-    rdnValues.add(rdnValue);
-
-    Attribute rdnAttr = new Attribute(rdnType, entryRDN.getAttributeName(0),
-                                      rdnValues);
+    Attribute rdnAttr = Attributes.create(rdnType, rdnValue);
     ArrayList<Attribute> rdnList = new ArrayList<Attribute>(1);
     rdnList.add(rdnAttr);
     attrMap.put(rdnType, rdnList);
@@ -804,17 +798,7 @@ public class MonitorBackend
   private Attribute createAttribute(String name, String lowerName,
                                     String value)
   {
-    AttributeType type = DirectoryServer.getAttributeType(lowerName);
-    if (type == null)
-    {
-      type = DirectoryServer.getDefaultAttributeType(name);
-    }
-
-    LinkedHashSet<AttributeValue> attrValues =
-         new LinkedHashSet<AttributeValue>(1);
-    attrValues.add(new AttributeValue(type, new ASN1OctetString(value)));
-
-    return new Attribute(type, name, attrValues);
+    return Attributes.create(name, value);
   }
 
 
@@ -851,11 +835,11 @@ public class MonitorBackend
    * {@inheritDoc}
    */
   @Override()
-  public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
-         throws DirectoryException
+  public void replaceEntry(Entry oldEntry, Entry newEntry,
+      ModifyOperation modifyOperation) throws DirectoryException
   {
     Message message = ERR_MONITOR_MODIFY_NOT_SUPPORTED.get(
-        String.valueOf(entry.getDN()), String.valueOf(configEntryDN));
+        String.valueOf(newEntry.getDN()), String.valueOf(configEntryDN));
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -1042,7 +1026,7 @@ public class MonitorBackend
 
     // Get all the monitor providers, convert them to entries, and write them to
     // LDIF.
-    for (MonitorProvider monitorProvider :
+    for (MonitorProvider<?> monitorProvider :
          DirectoryServer.getMonitorProviders().values())
     {
       try

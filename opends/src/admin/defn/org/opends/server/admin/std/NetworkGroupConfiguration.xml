@@ -42,6 +42,55 @@
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+
+  <adm:relation name="network-group-criteria"
+    managed-object-name="network-group-criteria">
+    <adm:synopsis>
+      Specifies the set of criteria associated to this network group.
+    </adm:synopsis>
+    <adm:description>
+      A client connection can belong to a <adm:user-friendly-name /> only
+      if it matches all the criteria defined for this
+      <adm:user-friendly-name />.
+    </adm:description>
+    <adm:one-to-zero-or-one />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>cn=Criteria</ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
+
+  <adm:relation name="network-group-resource-limits"
+    managed-object-name="network-group-resource-limits">
+    <adm:synopsis>
+      Specifies the set of resource limits enforced by this
+      <adm:user-friendly-name />.
+    </adm:synopsis>
+    <adm:description>
+      All client connections belonging to a <adm:user-friendly-name />
+      must comply with the resource limits policy.
+    </adm:description>
+    <adm:one-to-zero-or-one />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>cn=ResourceLimits</ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
+
+  <adm:relation name="network-group-request-filtering-policy"
+    managed-object-name="network-group-request-filtering-policy">
+    <adm:synopsis>
+      Specifies the request filtering policy enforced by this
+      <adm:user-friendly-name />.
+    </adm:synopsis>
+    <adm:description>
+      All client connections belonging to a <adm:user-friendly-name />
+      must comply with the request filtering policy.
+    </adm:description>
+    <adm:one-to-zero-or-one />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>cn=RequestFilteringPolicy</ldap:rdn-sequence>
+     </adm:profile>
+   </adm:relation>
+
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
       Indicates whether the
@@ -82,11 +131,32 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="workflow" mandatory="true" read-only="true"
-    multi-valued="true">
+  <adm:property name="priority" mandatory="true">
+    <adm:synopsis>
+      Specifies the order in which the network groups are evaluated.
+    </adm:synopsis>
+    <adm:description>
+      A client connection is first compared against network group with
+      priority 1. If the client connection does not match the network group
+      criteria, the client connection is compared against network group
+      with priority 2 etc...
+    </adm:description>
+    <adm:syntax>
+      <adm:integer lower-limit="0"/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-priority</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="workflow" multi-valued="true">
     <adm:synopsis>
       Identifies the workflows in the network group.
     </adm:synopsis>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
     <adm:syntax>
       <adm:aggregation relation-name="workflow" parent-path="/">
         <adm:constraint>

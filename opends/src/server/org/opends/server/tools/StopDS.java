@@ -40,6 +40,7 @@ import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.net.ssl.SSLException;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -215,8 +216,6 @@ public class StopDS
     BooleanArgument   restart;
     BooleanArgument   showUsage;
     BooleanArgument   trustAll;
-    BooleanArgument   useSSL;
-    BooleanArgument   useStartTLS;
     FileBasedArgument bindPWFile;
     FileBasedArgument keyStorePWFile;
     FileBasedArgument trustStorePWFile;
@@ -265,19 +264,6 @@ public class StopDS
               true, 65535, INFO_STOPDS_DESCRIPTION_PORT.get());
       port.setPropertyName(OPTION_LONG_PORT);
       argParser.addArgument(port);
-
-      useSSL = new BooleanArgument("usessl", OPTION_SHORT_USE_SSL,
-                                   OPTION_LONG_USE_SSL,
-                                   INFO_STOPDS_DESCRIPTION_USESSL.get());
-      useSSL.setPropertyName(OPTION_LONG_USE_SSL);
-      argParser.addArgument(useSSL);
-
-      useStartTLS = new BooleanArgument(
-              "usestarttls", OPTION_SHORT_START_TLS,
-              OPTION_LONG_START_TLS,
-              INFO_STOPDS_DESCRIPTION_USESTARTTLS.get());
-      useStartTLS.setPropertyName(OPTION_LONG_START_TLS);
-      argParser.addArgument(useStartTLS);
 
       bindDN = new StringArgument("binddn", OPTION_SHORT_BINDDN,
                                   OPTION_LONG_BINDDN, false, false, true,
@@ -544,60 +530,26 @@ public class StopDS
     connectionOptions.setVersionNumber(3);
 
 
-    // See if we should use SSL or StartTLS when establishing the connection.
-    // If so, then make sure only one of them was specified.
-    if (useSSL.isPresent())
-    {
-      if (useStartTLS.isPresent())
-      {
-        Message message = ERR_STOPDS_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
-                useSSL.getLongIdentifier(),
-                useStartTLS.getLongIdentifier());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+    try {
+      String clientAlias;
+      if (certNickname.isPresent()) {
+        clientAlias = certNickname.getValue();
+      } else {
+        clientAlias = null;
       }
-      else
-      {
-        connectionOptions.setUseSSL(true);
-      }
-    }
-    else if (useStartTLS.isPresent())
-    {
-      connectionOptions.setStartTLS(true);
-    }
 
+      SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
+      sslConnectionFactory.init(trustAll.isPresent(), keyStoreFile.getValue(),
+        keyStorePW.getValue(), clientAlias,
+        trustStoreFile.getValue(),
+        trustStorePW.getValue());
 
-    // If we should blindly trust any certificate, then install the appropriate
-    // SSL connection factory.
-    if (useSSL.isPresent() || useStartTLS.isPresent())
-    {
-      try
-      {
-        String clientAlias;
-        if (certNickname.isPresent())
-        {
-          clientAlias = certNickname.getValue();
-        }
-        else
-        {
-          clientAlias = null;
-        }
-
-        SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
-        sslConnectionFactory.init(trustAll.isPresent(), keyStoreFile.getValue(),
-                                  keyStorePW.getValue(), clientAlias,
-                                  trustStoreFile.getValue(),
-                                  trustStorePW.getValue());
-
-        connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
-      }
-      catch (SSLConnectionException sce)
-      {
-        Message message =
-                ERR_STOPDS_CANNOT_INITIALIZE_SSL.get(sce.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
-      }
+      connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
+    } catch (SSLConnectionException sce) {
+      Message message =
+        ERR_STOPDS_CANNOT_INITIALIZE_SSL.get(sce.getMessage());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
     }
 
 
@@ -669,9 +621,16 @@ public class StopDS
     }
     catch (LDAPConnectionException lce)
     {
-      String hostPort = host.getValue() + ":" + port.getValue();
-      Message message = ERR_STOPDS_CANNOT_CONNECT.get(hostPort,
+      Message message = null;
+      if ((lce.getCause() != null) && (lce.getCause().getCause() != null) &&
+        lce.getCause().getCause() instanceof SSLException) {
+      message = ERR_STOPDS_CANNOT_CONNECT_SSL.get(host.getValue(),
+        port.getValue());
+      } else {
+        String hostPort = host.getValue() + ":" + port.getValue();
+        message = ERR_STOPDS_CANNOT_CONNECT.get(hostPort,
           lce.getMessage());
+      }
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR;
     }

@@ -29,7 +29,6 @@ package org.opends.server.protocols.ldap;
 
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
@@ -39,6 +38,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DebugLogLevel;
@@ -693,12 +693,11 @@ public class LDAPStatistics
     AttributeType attrType = DirectoryServer.getDefaultAttributeType(name);
 
     ASN1OctetString encodedValue = new ASN1OctetString(value);
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-
+    AttributeBuilder builder = new AttributeBuilder(attrType, name);
     try
     {
-      values.add(new AttributeValue(encodedValue,
-                                    attrType.normalize(encodedValue)));
+      builder.add(new AttributeValue(encodedValue, attrType
+          .normalize(encodedValue)));
     }
     catch (Exception e)
     {
@@ -707,18 +706,20 @@ public class LDAPStatistics
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      values.add(new AttributeValue(encodedValue, encodedValue));
+      builder.add(new AttributeValue(encodedValue, encodedValue));
     }
 
-    return new Attribute(attrType, name, values);
+    return builder.toAttribute();
   }
 
 
 
   /**
-   * Retrieves the number of client connections that have been established.
+   * Retrieves the number of client connections that have been
+   * established.
    *
-   * @return  The number of client connections that have been established.
+   * @return The number of client connections that have been
+   *         established.
    */
   public long getConnectionsEstablished()
   {

@@ -47,6 +47,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryConfig;
@@ -229,7 +230,7 @@ public class StaticGroup
     {
       for (Attribute a : memberAttrList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           try
           {
@@ -388,15 +389,8 @@ public class StaticGroup
                 ResultCode.ATTRIBUTE_OR_VALUE_EXISTS, msg);
       }
 
-      LinkedHashSet<AttributeValue> values =
-           new LinkedHashSet<AttributeValue>(1);
-      values.add(new AttributeValue(memberAttributeType,
-                                    nestedGroupDN.toString()));
-
-      Attribute attr = new Attribute(memberAttributeType,
-                                     memberAttributeType.getNameOrOID(),
-                                     values);
-
+      Attribute attr = Attributes.create(memberAttributeType,
+          nestedGroupDN.toString());
       LinkedList<Modification> mods = new LinkedList<Modification>();
       mods.add(new Modification(ModificationType.ADD, attr));
 
@@ -455,15 +449,8 @@ public class StaticGroup
                   String.valueOf(groupEntryDN)));
       }
 
-      LinkedHashSet<AttributeValue> values =
-           new LinkedHashSet<AttributeValue>(1);
-      values.add(new AttributeValue(memberAttributeType,
-                                                     nestedGroupDN.toString()));
-
-      Attribute attr = new Attribute(memberAttributeType,
-                                     memberAttributeType.getNameOrOID(),
-                                     values);
-
+      Attribute attr = Attributes.create(memberAttributeType,
+          nestedGroupDN.toString());
       LinkedList<Modification> mods = new LinkedList<Modification>();
       mods.add(new Modification(ModificationType.DELETE, attr));
 
@@ -663,14 +650,8 @@ public class StaticGroup
                                      message);
       }
 
-      LinkedHashSet<AttributeValue> values =
-           new LinkedHashSet<AttributeValue>(1);
-      values.add(new AttributeValue(memberAttributeType, userDN.toString()));
-
-      Attribute attr = new Attribute(memberAttributeType,
-                                     memberAttributeType.getNameOrOID(),
-                                     values);
-
+      Attribute attr = Attributes.create(memberAttributeType, userDN
+          .toString());
       LinkedList<Modification> mods = new LinkedList<Modification>();
       mods.add(new Modification(ModificationType.ADD, attr));
 
@@ -723,14 +704,8 @@ public class StaticGroup
       }
 
 
-      LinkedHashSet<AttributeValue> values =
-           new LinkedHashSet<AttributeValue>(1);
-      values.add(new AttributeValue(memberAttributeType, userDN.toString()));
-
-      Attribute attr = new Attribute(memberAttributeType,
-                                     memberAttributeType.getNameOrOID(),
-                                     values);
-
+      Attribute attr = Attributes.create(memberAttributeType, userDN
+          .toString());
       LinkedList<Modification> mods = new LinkedList<Modification>();
       mods.add(new Modification(ModificationType.DELETE, attr));
 

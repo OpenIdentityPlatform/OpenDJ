@@ -31,6 +31,7 @@ import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.tools.LDAPModify;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
+import static org.opends.server.TestCaseUtils.*;
 
 public class ReplicationRepairControlTest extends ReplicationTestCase
 {
@@ -38,14 +39,12 @@ public class ReplicationRepairControlTest extends ReplicationTestCase
   public void testRepairControl()
          throws Exception
   {
-    TestCaseUtils.startServer();
-
     TestCaseUtils.initializeTestBackend(true);
     
     // Test that we can't add an entry with the entryuuid attribute
     // without specifying the replication repair control. 
     String path = TestCaseUtils.createTempFile(
-        "dn: uid=test.repair,o=test\n" +
+        "dn: uid=test.repair," + TEST_ROOT_DN_STRING + "\n" +
         "changetype: add\n" +
         "objectClass: top\n" +
         "objectClass: person" +
@@ -73,7 +72,7 @@ public class ReplicationRepairControlTest extends ReplicationTestCase
     // Test that we can't add an entry with the ds-sync-hist attribute
     // without specifying the replication repair control. 
     String path1 = TestCaseUtils.createTempFile(
-        "dn: uid=test.repair,o=test\n" +
+        "dn: uid=test.repair," + TEST_ROOT_DN_STRING + "\n" +
         "changetype: add\n" +
         "objectClass: top\n" +
         "objectClass: person" +
@@ -103,7 +102,7 @@ public class ReplicationRepairControlTest extends ReplicationTestCase
     // possible to add an entry with the entryuuid and ds-sync-hist attributes
     // (notice the -J repairControlOid in the ldapmodify arguments)
     String path2 = TestCaseUtils.createTempFile(
-        "dn: uid=test.repair,o=test\n" +
+        "dn: uid=test.repair," + TEST_ROOT_DN_STRING + "\n" +
         "changetype: add\n" +
         "objectClass: top\n" +
         "objectClass: person" +

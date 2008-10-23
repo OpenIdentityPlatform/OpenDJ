@@ -28,9 +28,7 @@ package org.opends.server.workflowelement.localbackend;
 
 
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -55,11 +53,10 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyDNOperationWrapper;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
@@ -404,39 +401,8 @@ modifyDNProcessing:
           break modifyDNProcessing;
         }
 
-
-        // Invoke any conflict resolution processing that might be needed by the
-        // synchronization provider.
-        for (SynchronizationProvider provider :
-             DirectoryServer.getSynchronizationProviders())
-        {
-          try
-          {
-            SynchronizationProviderResult result =
-                 provider.handleConflictResolution(this);
-            if (! result.continueProcessing())
-            {
-              setResultCode(result.getResultCode());
-              appendErrorMessage(result.getErrorMessage());
-              setMatchedDN(result.getMatchedDN());
-              setReferralURLs(result.getReferralURLs());
-              break modifyDNProcessing;
-            }
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            logError(ERR_MODDN_SYNCH_CONFLICT_RESOLUTION_FAILED.get(
-                          getConnectionID(), getOperationID(),
-                          getExceptionMessage(de)));
-
-            setResponseData(de);
+        if(!handleConflictResolution()) {
             break modifyDNProcessing;
-          }
         }
 
 
@@ -608,37 +574,10 @@ modifyDNProcessing:
           }
           else
           {
-            for (SynchronizationProvider provider :
-                 DirectoryServer.getSynchronizationProviders())
-            {
-              try
-              {
-                SynchronizationProviderResult result =
-                    provider.doPreOperation(this);
-                if (! result.continueProcessing())
-                {
-                  setResultCode(result.getResultCode());
-                  appendErrorMessage(result.getErrorMessage());
-                  setMatchedDN(result.getMatchedDN());
-                  setReferralURLs(result.getReferralURLs());
+              if(!processPreOperation()) {
                   break modifyDNProcessing;
-                }
               }
-              catch (DirectoryException de)
-              {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
-
-                logError(ERR_MODDN_SYNCH_PREOP_FAILED.get(getConnectionID(),
-                              getOperationID(), getExceptionMessage(de)));
-                setResponseData(de);
-                break modifyDNProcessing;
-              }
-            }
-
-            currentBackend.renameEntry(entryDN, newEntry, this);
+              currentBackend.renameEntry(entryDN, newEntry, this);
           }
 
 
@@ -665,28 +604,7 @@ modifyDNProcessing:
       }
       finally
       {
-
-        for (SynchronizationProvider provider :
-          DirectoryServer.getSynchronizationProviders())
-        {
-          try
-          {
-            provider.doPostOperation(this);
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            logError(ERR_MODDN_SYNCH_POSTOP_FAILED.get(getConnectionID(),
-                getOperationID(), getExceptionMessage(de)));
-            setResponseData(de);
-            break;
-          }
-        }
-
+        processPostOperation();
         LockManager.unlock(entryDN, currentLock);
         LockManager.unlock(newDN, newLock);
       }
@@ -1012,12 +930,10 @@ modifyDNProcessing:
       int numValues  = currentRDN.getNumValues();
       for (int i=0; i < numValues; i++)
       {
-        LinkedHashSet<AttributeValue> valueSet =
-             new LinkedHashSet<AttributeValue>(1);
-        valueSet.add(currentRDN.getAttributeValue(i));
-
-        Attribute a = new Attribute(currentRDN.getAttributeType(i),
-                                    currentRDN.getAttributeName(i), valueSet);
+        Attribute a = Attributes.create(
+            currentRDN.getAttributeType(i),
+            currentRDN.getAttributeName(i),
+            currentRDN.getAttributeValue(i));
 
         // If the associated attribute type is marked NO-USER-MODIFICATION, then
         // refuse the update.
@@ -1047,12 +963,10 @@ modifyDNProcessing:
     int newRDNValues = newRDN.getNumValues();
     for (int i=0; i < newRDNValues; i++)
     {
-      LinkedHashSet<AttributeValue> valueSet =
-           new LinkedHashSet<AttributeValue>(1);
-      valueSet.add(newRDN.getAttributeValue(i));
-
-      Attribute a = new Attribute(newRDN.getAttributeType(i),
-                                  newRDN.getAttributeName(i), valueSet);
+      Attribute a = Attributes.create(
+          newRDN.getAttributeType(i),
+          newRDN.getAttributeName(i),
+          newRDN.getAttributeValue(i));
 
       LinkedList<AttributeValue> duplicateValues =
            new LinkedList<AttributeValue>();
@@ -1145,108 +1059,11 @@ modifyDNProcessing:
           break;
 
         case REPLACE:
-          duplicateValues = new LinkedList<AttributeValue>();
-          newEntry.removeAttribute(a.getAttributeType(), a.getOptions());
-          newEntry.addAttribute(a, duplicateValues);
+          newEntry.replaceAttribute(a);
           break;
 
         case INCREMENT:
-          List<Attribute> attrList =
-               newEntry.getAttribute(a.getAttributeType(),
-                                     a.getOptions());
-          if ((attrList == null) || attrList.isEmpty())
-          {
-            throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
-                                         ERR_MODDN_PREOP_INCREMENT_NO_ATTR.get(
-                                              String.valueOf(entryDN),
-                                              a.getName()));
-          }
-          else if (attrList.size() > 1)
-          {
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                           ERR_MODDN_PREOP_INCREMENT_MULTIPLE_VALUES.get(
-                                String.valueOf(entryDN), a.getName()));
-          }
-
-          LinkedHashSet<AttributeValue> values =
-               attrList.get(0).getValues();
-          if ((values == null) || values.isEmpty())
-          {
-            throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
-                                         ERR_MODDN_PREOP_INCREMENT_NO_ATTR.get(
-                                              String.valueOf(entryDN),
-                                              a.getName()));
-          }
-          else if (values.size() > 1)
-          {
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                           ERR_MODDN_PREOP_INCREMENT_MULTIPLE_VALUES.get(
-                                String.valueOf(entryDN), a.getName()));
-          }
-
-          long currentLongValue;
-          try
-          {
-            AttributeValue v = values.iterator().next();
-            currentLongValue = Long.parseLong(v.getStringValue());
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                           ERR_MODDN_PREOP_INCREMENT_VALUE_NOT_INTEGER.get(
-                                String.valueOf(entryDN), a.getName()));
-          }
-
-          LinkedHashSet<AttributeValue> newValues = a.getValues();
-          if ((newValues == null) || newValues.isEmpty())
-          {
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                           ERR_MODDN_PREOP_INCREMENT_NO_AMOUNT.get(
-                                String.valueOf(entryDN), a.getName()));
-          }
-          else if (newValues.size() > 1)
-          {
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                           ERR_MODDN_PREOP_INCREMENT_MULTIPLE_AMOUNTS.get(
-                                String.valueOf(entryDN), a.getName()));
-          }
-
-          long incrementAmount;
-          try
-          {
-            AttributeValue v = values.iterator().next();
-            incrementAmount = Long.parseLong(v.getStringValue());
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                           ERR_MODDN_PREOP_INCREMENT_AMOUNT_NOT_INTEGER.get(
-                                String.valueOf(entryDN), a.getName()));
-          }
-
-          long newLongValue = currentLongValue + incrementAmount;
-          ByteString newValueOS =
-               new ASN1OctetString(String.valueOf(newLongValue));
-
-          newValues = new LinkedHashSet<AttributeValue>(1);
-          newValues.add(new AttributeValue(a.getAttributeType(),
-                                           newValueOS));
-
-          List<Attribute> newAttrList = new ArrayList<Attribute>(1);
-          newAttrList.add(new Attribute(a.getAttributeType(),
-                                        a.getName(), newValues));
-          newEntry.putAttribute(a.getAttributeType(), newAttrList);
-
+          newEntry.incrementAttribute(a);
           break;
       }
     }
@@ -1377,6 +1194,85 @@ modifyDNProcessing:
 
       addResponseControl(responseControl);
     }
+  }
+
+  private boolean handleConflictResolution() {
+      boolean returnVal = true;
+
+      for (SynchronizationProvider<?> provider :
+          DirectoryServer.getSynchronizationProviders()) {
+          try {
+              SynchronizationProviderResult result =
+                  provider.handleConflictResolution(this);
+              if (!result.continueProcessing()) {
+                  setResultCode(result.getResultCode());
+                  appendErrorMessage(result.getErrorMessage());
+                  setMatchedDN(result.getMatchedDN());
+                  setReferralURLs(result.getReferralURLs());
+                  returnVal = false;
+                  break;
+              }
+          } catch (DirectoryException de) {
+              if (debugEnabled()) {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+              }
+              logError(ERR_MODDN_SYNCH_CONFLICT_RESOLUTION_FAILED.get(
+                      getConnectionID(), getOperationID(),
+                      getExceptionMessage(de)));
+
+              setResponseData(de);
+              returnVal = false;
+              break;
+          }
+      }
+      return returnVal;
+  }
+
+  private boolean processPreOperation() {
+      boolean returnVal = true;
+
+      for (SynchronizationProvider<?> provider :
+          DirectoryServer.getSynchronizationProviders()) {
+          try {
+              SynchronizationProviderResult result =
+                  provider.doPreOperation(this);
+              if (! result.continueProcessing()) {
+                  setResultCode(result.getResultCode());
+                  appendErrorMessage(result.getErrorMessage());
+                  setMatchedDN(result.getMatchedDN());
+                  setReferralURLs(result.getReferralURLs());
+                  returnVal = false;
+                  break;
+              }
+          } catch (DirectoryException de) {
+              if (debugEnabled()) {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+              }
+              logError(ERR_MODDN_SYNCH_PREOP_FAILED.get(getConnectionID(),
+                      getOperationID(), getExceptionMessage(de)));
+              setResponseData(de);
+              returnVal = false;
+              break;
+          }
+      }
+      return returnVal;
+  }
+
+  private void processPostOperation() {
+      for (SynchronizationProvider<?> provider : DirectoryServer
+              .getSynchronizationProviders()) {
+          try {
+              provider.doPostOperation(this);
+          } catch (DirectoryException de) {
+              if (debugEnabled()) {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+              }
+              logError(ERR_MODDN_SYNCH_POSTOP_FAILED.get(getConnectionID(),
+                      getOperationID(), getExceptionMessage(de)));
+              setResponseData(de);
+              break;
+          }
+      }
   }
 }
 

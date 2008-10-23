@@ -524,6 +524,18 @@ public final class AttributeType
 
 
   /**
+   * Indicates whether this attribute sytax is a binary one.
+   * @return  {@code true} if it is a binary syntax rule
+   *          , or {@code false} if not.
+   */
+  public boolean isBinary()
+  {
+    return syntax.isBinary();
+  }
+
+
+
+  /**
    * Retrieves the OID for this syntax associated with this attribute
    * type.
    *

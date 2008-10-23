@@ -87,8 +87,9 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
     {
       "create-ads",
       "--noPropertiesFile",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-w", "password"
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-w", "password",
+      "-X"
     };
 
     assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out,
@@ -107,7 +108,7 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
 //    {
 //      "delete-ads",
 //      "--noPropertiesFile",
-//      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+//      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
 //      "-w", "password",
 //      "--backendName", "admin"
 //    };
@@ -126,9 +127,10 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
     {
       "list-groups",
       "--noPropertiesFile",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
       "-D", "malformed",
-      "-w", "password"
+      "-w", "password",
+      "-X"
     };
 
     assertFalse(DsFrameworkCliMain.mainCLI(args, false, null, null)
@@ -145,9 +147,10 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
     {
       "list-groups",
       "--noPropertiesFile",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
       "-D", "cn=Does Not Exist",
-      "-w", "password"
+      "-w", "password",
+      "-X"
     };
 
     assertFalse(DsFrameworkCliMain.mainCLI(args, false, System.out, System.err)
@@ -164,9 +167,10 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
     {
       "list-groups",
       "--noPropertiesFile",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
       "-D", "cn=Directory Manager",
-      "-w", "wrongPassword"
+      "-w", "wrongPassword",
+      "-X"
     };
 
     assertFalse(DsFrameworkCliMain.mainCLI(args, false, System.out, System.err)
@@ -189,9 +193,10 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
     {
       "list-groups",
       "--noPropertiesFile",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
       "-D", "cn=Directory Manager",
       "-j", validPasswordFile,
+      "-X"
     };
 
     assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out,
@@ -211,9 +216,10 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
     {
       "list-groups",
       "--noPropertiesFile",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
       "-D", "cn=Directory Manager",
-      "-j",invalidPasswordFile
+      "-j",invalidPasswordFile,
+      "-X"
     };
 
     assertFalse(DsFrameworkCliMain.mainCLI(args, false, System.out, System.err)
@@ -230,9 +236,8 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
     {
       "list-groups",
       "--noPropertiesFile",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
       "-w", "password",
-      "-Z",
       "-X"
     };
 
@@ -249,15 +254,14 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
   public void testListGroupsSSLTrustStore()
   {
     String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                            "config" + File.separator + "client.truststore";
+                            "config" + File.separator + "admin-truststore";
 
     String[] args =
     {
       "list-groups",
       "--noPropertiesFile",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
       "-w", "password",
-      "-Z",
       "-P", trustStorePath
     };
 
@@ -265,52 +269,6 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
         System.err), SUCCESSFUL.getReturnCode());
   }
 
-
-
-  /**
-   * Tests a list-groups using StartTLS with blind trust.
-   */
-  @Test()
-  public void testListGroupsStartTLSBlindTrust()
-  {
-    String[] args =
-    {
-      "list-groups",
-      "--noPropertiesFile",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-w", "password",
-      "-q",
-      "-X"
-    };
-
-    assertEquals(DsFrameworkCliMain.mainCLI(args, false, null, System.err),
-        SUCCESSFUL.getReturnCode());
-  }
-
-
-
-  /**
-   * Tests a list-groups using StartTLS with a trust store.
-   */
-  @Test()
-  public void testListGroupsStartTLSTrustStore()
-  {
-    String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                            "config" + File.separator + "client.truststore";
-
-    String[] args =
-    {
-      "list-groups",
-      "--noPropertiesFile",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-w", "password",
-      "-q",
-      "-P", trustStorePath
-    };
-
-    assertEquals(DsFrameworkCliMain.mainCLI(args, false, null, System.err),
-        SUCCESSFUL.getReturnCode());
-  }
 
   /**
    * Tests the dsservice with the "--help" option.

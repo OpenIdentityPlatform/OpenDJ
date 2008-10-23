@@ -391,11 +391,11 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
             ArrayList<String> cmd = new ArrayList<String>();
             cmd.add(MAC_APPLICATIONS_OPENER);
             cmd.add(getScriptPath(
-                getPath(installation.getStatusPanelCommandFile())));
+                getPath(installation.getControlPanelCommandFile())));
             pb = new ProcessBuilder(cmd);
           } else {
             String cmd = getScriptPath(
-                getPath(installation.getStatusPanelCommandFile()));
+                getPath(installation.getControlPanelCommandFile()));
             pb = new ProcessBuilder(cmd);
           }
           Map<String, String> env = pb.environment();
@@ -426,7 +426,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
           if (returnValue != 0)
           {
             throw new Error(
-                    INFO_COULD_NOT_LAUNCH_STATUS_PANEL_MSG.get().toString());
+                    INFO_COULD_NOT_LAUNCH_CONTROL_PANEL_MSG.get().toString());
           }
         }
         catch (Throwable t)
@@ -434,7 +434,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
           // This looks like a bug
           t.printStackTrace();
           throw new Error(
-                  INFO_COULD_NOT_LAUNCH_STATUS_PANEL_MSG.get().toString());
+              INFO_COULD_NOT_LAUNCH_CONTROL_PANEL_MSG.get().toString());
         }
         return null;
       }

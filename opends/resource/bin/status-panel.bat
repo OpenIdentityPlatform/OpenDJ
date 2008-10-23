@@ -40,7 +40,7 @@ set INSTANCE_ROOT=%CD%
 cd /d %CUR_DIR%
 
 
-set SCRIPT_NAME=status-panel
+set SCRIPT_NAME=control-panel
 
 rem Set environment variables
 set SCRIPT_UTIL_CMD=set-full-environment
@@ -52,12 +52,12 @@ goto callJava
 
 :callLaunch
 if exist "%INSTALL_ROOT%\lib\set-java-args.bat" DO call "%INSTALL_ROOT%\lib\set-java-args.bat"
-"%INSTALL_ROOT%\lib\winlauncher.exe" launch "%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.guitools.statuspanel.StatusPanelLauncher
+"%INSTALL_ROOT%\lib\winlauncher.exe" launch "%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.guitools.controlpanel.ControlPanelLauncher
 goto end
 
 :callJava
 if exist "%INSTALL_ROOT%\lib\set-java-args.bat" DO call "%INSTALL_ROOT%\lib\set-java-args.bat"
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.guitools.statuspanel.StatusPanelLauncher %*
+"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.guitools.controlpanel.ControlPanelLauncher %*
 
 rem return part
 if %errorlevel% == 50 goto version

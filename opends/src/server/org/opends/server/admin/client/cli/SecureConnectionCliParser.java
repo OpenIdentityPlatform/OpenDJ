@@ -308,16 +308,19 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    *
    * @param outStream
    *          The output stream used for the usage.
+   * @param alwaysSSL If true, always use the SSL connection type. In this case,
+   * the arguments useSSL and startTLS are not present.
+   *
    * @throws ArgumentException
    *           If there is a problem with any of the parameters used
    *           to create this argument.
    * @return a ArrayList with the options created.
    */
   protected LinkedHashSet<Argument> createGlobalArguments(
-      OutputStream outStream)
+      OutputStream outStream, boolean alwaysSSL)
   throws ArgumentException
   {
-    secureArgsList = new SecureConnectionCliArgs();
+    secureArgsList = new SecureConnectionCliArgs(alwaysSSL);
     LinkedHashSet<Argument> set = secureArgsList.createGlobalArguments();
 
     showUsageArg = new BooleanArgument("showUsage", OPTION_SHORT_HELP,

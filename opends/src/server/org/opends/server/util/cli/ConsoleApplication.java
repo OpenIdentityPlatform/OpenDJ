@@ -50,6 +50,8 @@ import javax.naming.NamingException;
 import javax.naming.NoPermissionException;
 import javax.naming.ldap.InitialLdapContext;
 import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.TrustManager;
 
 import org.opends.admin.ads.util.ApplicationTrustManager;
@@ -860,12 +862,25 @@ public abstract class ConsoleApplication {
                   return null;
                 }
             }
-            else
-            {
-              Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
+          }
+          if (e.getRootCause() != null) {
+            if (e.getRootCause().getCause() != null) {
+              if (((e.getRootCause().getCause()
+                instanceof OpendsCertificateException)) ||
+                (e.getRootCause() instanceof SSLHandshakeException)) {
+                Message message =
+                  ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED.get(
                   hostName, String.valueOf(portNumber));
-              throw new ClientException(
+                throw new ClientException(
                   LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
+              }
+            }
+            if (e.getRootCause() instanceof SSLException) {
+              Message message =
+                ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(
+                hostName, String.valueOf(portNumber));
+              throw new ClientException(
+                LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
             }
           }
           Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(

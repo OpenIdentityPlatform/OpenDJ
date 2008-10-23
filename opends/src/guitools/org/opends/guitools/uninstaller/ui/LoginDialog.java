@@ -52,7 +52,9 @@ import javax.swing.text.JTextComponent;
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.guitools.statuspanel.ConfigFromFile;
+import org.opends.guitools.controlpanel.datamodel.ConnectionProtocolPolicy;
+import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
+import org.opends.guitools.controlpanel.util.ConfigFromFile;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
@@ -384,35 +386,25 @@ public class LoginDialog extends JDialog
         ctx = null;
         try
         {
+          ControlPanelInfo info = ControlPanelInfo.getInstance();
+          info.setTrustManager(getTrustManager());
+          info.regenerateDescriptor();
           ConfigFromFile conf = new ConfigFromFile();
           conf.readConfiguration();
-          String ldapUrl = conf.getLDAPURL();
-          String startTlsUrl = conf.getStartTLSURL();
-          String ldapsUrl = conf.getLDAPSURL();
           String dn = ADSContext.getAdministratorDN(tfUid.getText());
-          if (ldapsUrl != null)
-          {
-            usedUrl = ldapsUrl;
-            ctx = Utils.createLdapsContext(ldapsUrl, dn, tfPwd.getText(),
-                Utils.getDefaultLDAPTimeout(), null, getTrustManager());
-          }
-          else if (startTlsUrl != null)
-          {
-            usedUrl = startTlsUrl;
-            ctx = Utils.createStartTLSContext(startTlsUrl, dn, tfPwd.getText(),
-                Utils.getDefaultLDAPTimeout(), null, getTrustManager(), null);
-          }
-          else if (ldapUrl != null)
-          {
-            usedUrl = ldapUrl;
-            ctx = Utils.createLdapContext(ldapUrl, dn, tfPwd.getText(),
-                Utils.getDefaultLDAPTimeout(), null);
-          }
-          else
+          String pwd = tfPwd.getText();
+          info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
+          usedUrl = info.getAdminConnectorURL();
+          if (usedUrl == null)
           {
             throw new ApplicationException(ReturnCode.APPLICATION_ERROR,
                 ERR_COULD_NOT_FIND_VALID_LDAPURL.get(), null);
           }
+          ctx =
+            org.opends.guitools.controlpanel.util.Utilities.getAdminDirContext(
+              info, dn, pwd);
+
+
         } catch (NamingException ne)
         {
           if (isServerRunning())

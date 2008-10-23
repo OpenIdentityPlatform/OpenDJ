@@ -530,6 +530,12 @@ public class LDAPModify
             out.println(INFO_LDAPMODIFY_POSTREAD_ENTRY.get());
             out.println(buffer);
           }
+          else if (oid.equals(OID_CSN_CONTROL))
+          {
+            ASN1OctetString controlValue = c.getValue();
+            out.println(INFO_CHANGE_NUMBER_CONTROL_RESULT.get(operationType,
+                String.valueOf(controlValue)));
+          }
         }
       }
     }

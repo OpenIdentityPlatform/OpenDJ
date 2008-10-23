@@ -1041,14 +1041,15 @@
 
               <!-- Reset the changelog (call pre/post-external-init) -->
               <call function="'resetReplicationData'">
-                { 'location'           : clientHost,
-                  'dsPath'             : clientPath,
-                  'sourceInstanceHost' : masterHost,
-                  'sourceInstancePort' : master.getPort(),
-                  'sourceInstanceDn'   : master.getRootDn(),
-                  'sourceInstancePswd' : master.getRootPwd(),
-                  'backupDir'          : masterBackupDir,
-                  'suffixDn'           : synchroSuffix
+                { 'location'                : clientHost,
+                  'dsPath'                  : clientPath,
+                  'sourceInstanceHost'      : masterHost,
+                  'sourceInstancePort'      : master.getPort(),                 
+                  'sourceInstanceAdminPort' : master.getAdminPort(),
+                  'sourceInstanceDn'        : master.getRootDn(),
+                  'sourceInstancePswd'      : master.getRootPwd(),
+                  'backupDir'               : masterBackupDir,
+                  'suffixDn'                : synchroSuffix
                 }
               </call>                
 
@@ -1155,17 +1156,17 @@
 
               <!-- Set purge delay to 20s on "master" server -->              
               <call function="'dsconfigSet'">
-                { 'location'         : masterHost,
-                  'dsPath'           : masterPath,
-                  'dsInstanceHost'   : masterHost,
-                  'dsInstancePort'   : master.getPort(),
-                  'dsInstanceDn'     : master.getRootDn(),
-                  'dsInstancePswd'   : master.getRootPwd(),
-                  'objectName'       : 'replication-server' ,
-                  'propertyType'     : 'provider',
-                  'propertyName'     : 'Multimaster Synchronization',
-                  'attributeName'    : 'replication-purge-delay' ,
-                  'attributeValue'   : '20s'
+                { 'location'            : masterHost,
+                  'dsPath'              : masterPath,
+                  'dsInstanceHost'      : masterHost,
+                  'dsInstanceAdminPort' : master.getAdminPort(),
+                  'dsInstanceDn'        : master.getRootDn(),
+                  'dsInstancePswd'      : master.getRootPwd(),
+                  'objectName'          : 'replication-server' ,
+                  'propertyType'        : 'provider',
+                  'propertyName'        : 'Multimaster Synchronization',
+                  'attributeName'       : 'replication-purge-delay' ,
+                  'attributeValue'      : '20s'
                 }
               </call>
                 

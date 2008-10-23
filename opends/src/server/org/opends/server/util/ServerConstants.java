@@ -2181,8 +2181,11 @@ public final class ServerConstants
   public static final String OID_VLV_RESPONSE_CONTROL =
        "2.16.840.1.113730.3.4.10";
 
-
-
+  /**
+   * The OID for the CSN control.
+   */
+  public static final String OID_CSN_CONTROL =
+       "1.3.6.1.4.1.42.2.27.9.5.9";
 
   /**
    * The block length in bytes used when generating an HMAC-MD5 digest.

@@ -70,7 +70,6 @@
           </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'subcommand'     : 'create-log-rotation-policy',
@@ -86,7 +85,6 @@
           </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'     : 'set-log-publisher-prop',
@@ -99,7 +97,6 @@
           
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'subcommand'     : 'set-log-publisher-prop',
@@ -113,7 +110,6 @@
   
           <call function="'dsconfigGet'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'objectName'     : 'log-publisher',
@@ -156,7 +152,6 @@
               
               <call function="'dsconfigGet'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'objectName'     : 'log-publisher',
@@ -267,7 +262,6 @@
           </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'subcommand'     : 'set-log-publisher-prop',
@@ -283,7 +277,6 @@
           </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'subcommand'     : 'delete-log-rotation-policy',

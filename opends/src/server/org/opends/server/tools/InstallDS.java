@@ -726,6 +726,10 @@ public class InstallDS extends ConsoleApplication
     {
       int ldapPort = argParser.ldapPortArg.getIntValue();
       uData.setServerPort(ldapPort);
+
+      int adminConnectorPort = argParser.adminConnectorPortArg.getIntValue();
+      uData.setAdminConnectorPort(adminConnectorPort);
+
       if (!argParser.skipPortCheckArg.isPresent())
       {
         // Check if the port can be used.
@@ -740,6 +744,22 @@ public class InstallDS extends ConsoleApplication
           else
           {
             message = ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(ldapPort);
+          }
+          errorMessages.add(message);
+        }
+
+//      Check if the port can be used.
+        if (!SetupUtils.canUseAsPort(adminConnectorPort))
+        {
+          Message message;
+          if (SetupUtils.isPriviledgedPort(adminConnectorPort))
+          {
+            message = ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(
+                adminConnectorPort);
+          }
+          else
+          {
+            message = ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(adminConnectorPort);
           }
           errorMessages.add(message);
         }
@@ -1112,6 +1132,14 @@ public class InstallDS extends ConsoleApplication
         INFO_INSTALLDS_PROMPT_LDAPPORT.get(), usedPorts, true);
     uData.setServerPort(ldapPort);
     usedPorts.add(ldapPort);
+
+    //  Determine the Admin Connector port number.
+    int adminConnectorPort =
+      promptIfRequiredForPortData(argParser.adminConnectorPortArg,
+        INFO_INSTALLDS_PROMPT_ADMINCONNECTORPORT.get(), usedPorts, true);
+    uData.setAdminConnectorPort(adminConnectorPort);
+    usedPorts.add(adminConnectorPort);
+
     if (argParser.jmxPortArg.isPresent())
     {
       int jmxPort = promptIfRequiredForPortData(argParser.jmxPortArg,
@@ -2394,6 +2422,7 @@ public class InstallDS extends ConsoleApplication
     Message[] labels =
     {
         INFO_SERVER_PORT_LABEL.get(),
+        INFO_ADMIN_CONNECTOR_PORT_LABEL.get(),
         INFO_INSTALLDS_SERVER_JMXPORT_LABEL.get(),
         INFO_SERVER_SECURITY_LABEL.get(),
         INFO_SERVER_DIRECTORY_MANAGER_DN_LABEL.get(),
@@ -2405,6 +2434,7 @@ public class InstallDS extends ConsoleApplication
     Message[] values =
     {
         Message.raw(String.valueOf(uData.getServerPort())),
+        Message.raw(String.valueOf(uData.getAdminConnectorPort())),
         Message.raw(jmxPort != -1 ? String.valueOf(jmxPort) : null),
         Message.raw(
             QuickSetupStepPanel.getSecurityOptionsString(
@@ -2517,6 +2547,8 @@ public class InstallDS extends ConsoleApplication
           uData.getDirectoryManagerDn());
       argParser.ldapPortArg.setDefaultValue(
           String.valueOf(uData.getServerPort()));
+      argParser.adminConnectorPortArg.setDefaultValue(
+          String.valueOf(uData.getAdminConnectorPort()));
       int jmxPort = uData.getServerJMXPort();
       if (jmxPort != -1)
       {

@@ -89,7 +89,6 @@
     
                 <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : 'cn=Aroot' ,
                     'dsInstancePswd'         : 'PrivsRule' ,
                     'aciValue'               : GLOBAL_ACI_SEARCH ,
@@ -220,7 +219,6 @@
     
                 <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : 'cn=Aroot' ,
                     'dsInstancePswd'         : 'PrivsRule' ,
                     'aciValue'               : GLOBAL_ACI_SEARCH ,
@@ -285,7 +283,6 @@
     
                 <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : 'cn=Aroot' ,
                     'dsInstancePswd'         : 'PrivsRule' ,
                     'aciValue'               : GLOBAL_ACI_SEARCH ,
@@ -347,7 +344,6 @@
     
                 <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : 'cn=Aroot' ,
                     'dsInstancePswd'         : 'PrivsRule' ,
                     'aciValue'               : GLOBAL_ACI_SEARCH ,

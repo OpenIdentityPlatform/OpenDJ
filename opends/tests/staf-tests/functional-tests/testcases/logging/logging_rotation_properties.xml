@@ -68,7 +68,6 @@
           <message>'------  create a size limit rotation policy --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'create-log-rotation-policy',
@@ -82,7 +81,6 @@
           <message>'------  get file-size-limit --' </message>
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-rotation-policy',
@@ -97,7 +95,6 @@
           <message>'------  set file-size-limit  to 6kb  --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
             'subcommand'     : 'set-log-rotation-policy-prop',
@@ -110,7 +107,6 @@
           <message>'------  get file-size-limit --' </message>
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-rotation-policy',
@@ -124,7 +120,6 @@
           <message>'------  delete a size limit rotation policy --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'delete-log-rotation-policy',
@@ -162,7 +157,6 @@
           </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'create-log-rotation-policy',
@@ -176,7 +170,6 @@
           <message>'------  get rotation-interval --' </message>
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-rotation-policy',
@@ -192,7 +185,6 @@
           <message>'------  set rotation-interval  to 3s  --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'set-log-rotation-policy-prop',
@@ -205,7 +197,6 @@
           <message>'------  get rotation-interval --' </message>
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-rotation-policy',
@@ -220,7 +211,6 @@
           <message>'------  delete a time limit rotation policy --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'delete-log-rotation-policy',
@@ -259,7 +249,6 @@
           <message>'------  create a fixed time limit rotation policy --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'create-log-rotation-policy',
@@ -273,7 +262,6 @@
           <message>'------  get time-of-day --' </message>
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
             'objectName'             : 'log-rotation-policy',
@@ -288,7 +276,6 @@
           <message>'------  set time-of-day  to 3s  --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'set-log-rotation-policy-prop',
@@ -301,7 +288,6 @@
           <message>'------  get time-of-day --' </message>     
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
             'objectName'             : 'log-rotation-policy' ,
@@ -317,7 +303,6 @@
          
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
             'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'subcommand'     : 'delete-log-rotation-policy',

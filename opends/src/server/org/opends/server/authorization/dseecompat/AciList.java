@@ -235,7 +235,7 @@ public class AciList {
     int validAcis=0;
     ArrayList<Aci> acis = new ArrayList<Aci>();
     for (Attribute attribute : attributeList) {
-      for (AttributeValue value : attribute.getValues()) {
+      for (AttributeValue value : attribute) {
         try {
           Aci aci= Aci.decode(value.getValue(),dn);
           acis.add(aci);

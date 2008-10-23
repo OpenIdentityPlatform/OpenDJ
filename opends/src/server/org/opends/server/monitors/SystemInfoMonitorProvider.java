@@ -28,11 +28,12 @@ package org.opends.server.monitors;
 
 
 
+import static org.opends.server.loggers.debug.DebugLogger.*;
+
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.opends.server.admin.std.server.SystemInfoMonitorProviderCfg;
@@ -42,12 +43,11 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 
 
@@ -246,11 +246,11 @@ public class SystemInfoMonitorProvider
     AttributeType attrType = DirectoryServer.getDefaultAttributeType(name);
 
     ASN1OctetString encodedValue = new ASN1OctetString(value);
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
+    AttributeBuilder builder = new AttributeBuilder(attrType);
 
     try
     {
-      values.add(new AttributeValue(encodedValue,
+      builder.add(new AttributeValue(encodedValue,
                                     attrType.normalize(encodedValue)));
     }
     catch (Exception e)
@@ -260,10 +260,10 @@ public class SystemInfoMonitorProvider
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      values.add(new AttributeValue(encodedValue, encodedValue));
+      builder.add(new AttributeValue(encodedValue, encodedValue));
     }
 
-    return new Attribute(attrType, name, values);
+    return builder.toAttribute();
   }
 }
 

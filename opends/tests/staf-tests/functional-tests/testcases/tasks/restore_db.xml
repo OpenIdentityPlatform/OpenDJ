@@ -62,13 +62,13 @@
             <call function="'testCase_Preamble'"/>              
             
             <call function="'restore'">
-              { 'location'    : STAF_REMOTE_HOSTNAME ,
-              'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-              'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'backupDir'  :  '%s/tasks/backup_asynchronous' % remote.data,
-              'startTask'  : '0'}
+              { 'location'          : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+              'backupDir'           : '%s/tasks/backup_asynchronous' % remote.data,
+              'startTask'           : '0'}
             </call>
             
             
@@ -96,19 +96,18 @@
             
             
             <call function="'restore'">
-              { 'location'    : STAF_REMOTE_HOSTNAME ,
-              'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-              'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'backupDir'  :  '%s/tasks/backup_synchronous' % remote.data}
+              { 'location'          : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+              'backupDir'           : '%s/tasks/backup_synchronous' % remote.data}
             </call>
 
             <!-- manage-tasks -->
             <call function="'manage-tasks'">
               { 'location'     : STAF_REMOTE_HOSTNAME ,
               'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'dsQuiet'        : ' '
@@ -151,13 +150,13 @@
             
             
             <call function="'restore'">
-              { 'location'    : STAF_REMOTE_HOSTNAME ,
-              'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-              'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'startTask'  : '%s' % mydate,	                
-              'backupDir'  :  '%s/tasks/backup_schedule_asynchronous' % remote.data
+              { 'location'          : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+              'startTask'           : '%s' % mydate,	                
+              'backupDir'           : '%s/tasks/backup_schedule_asynchronous' % remote.data
               }
             </call>
             

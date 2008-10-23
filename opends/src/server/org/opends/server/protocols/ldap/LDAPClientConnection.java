@@ -139,6 +139,13 @@ public class LDAPClientConnection
   // The set of all operations currently in progress on this connection.
   private ConcurrentHashMap<Integer,AbstractOperation> operationsInProgress;
 
+  // The number of operations performed on this connection.
+  // Used to compare with the resource limits of the network group.
+  private long operationsPerformed;
+
+  // Lock on the number of operations
+  private Object operationsPerformedLock;
+
   // The connection security provider that was in use for the client connection
   // before switching to a TLS-based provider.
   private ConnectionSecurityProvider clearSecurityProvider;
@@ -251,6 +258,8 @@ public class LDAPClientConnection
     connectionValid      = true;
     disconnectRequested  = false;
     operationsInProgress = new ConcurrentHashMap<Integer,AbstractOperation>();
+    operationsPerformed = 0;
+    operationsPerformedLock = new Object();
     keepStats            = connectionHandler.keepStats();
     protocol             = "LDAP";
     writeSelector        = new AtomicReference<Selector>();
@@ -297,7 +306,7 @@ public class LDAPClientConnection
    *
    * @return  The connection handler that accepted this client connection.
    */
-  public ConnectionHandler getConnectionHandler()
+  public ConnectionHandler<?> getConnectionHandler()
   {
     return connectionHandler;
   }
@@ -385,18 +394,6 @@ public class LDAPClientConnection
 
 
   /**
-   * Retrieves the address and port of the client system, separated by a colon.
-   *
-   * @return  The address and port of the client system, separated by a colon.
-   */
-  public String getClientHostPort()
-  {
-    return clientAddress + ":" + clientPort;
-  }
-
-
-
-  /**
    * Retrieves a string representation of the address on the server to which the
    * client connected.
    *
@@ -418,18 +415,6 @@ public class LDAPClientConnection
   public int getServerPort()
   {
     return serverPort;
-  }
-
-
-
-  /**
-   * Retrieves the address and port of the server system, separated by a colon.
-   *
-   * @return  The address and port of the server system, separated by a colon.
-   */
-  public String getServerHostPort()
-  {
-    return serverAddress + ":" + serverPort;
   }
 
 
@@ -738,7 +723,7 @@ public class LDAPClientConnection
                               SearchResultEntry searchEntry)
   {
     SearchResultEntryProtocolOp protocolOp =
-         new SearchResultEntryProtocolOp(searchEntry);
+         new SearchResultEntryProtocolOp(searchEntry,ldapVersion);
 
     List<Control> entryControls = searchEntry.getControls();
     ArrayList<LDAPControl> controls;
@@ -1199,8 +1184,9 @@ public class LDAPClientConnection
         operationsInProgress.put(messageID, operation);
 
 
-        // Try to add the operation to the work queue.
-        DirectoryServer.enqueueRequest(operation);
+        // Try to add the operation to the work queue,
+        // or run it synchronously (typically for the administration connector)
+        connectionHandler.getQueueingStrategy().enqueueRequest(operation);
       }
       catch (DirectoryException de)
       {
@@ -1478,6 +1464,20 @@ public class LDAPClientConnection
     return connectionHandler.getMaxBlockedWriteTimeLimit();
   }
 
+
+
+  /**
+   * Returns the total number of operations initiated on this connection.
+   *
+   * @return the total number of operations on this connection
+   */
+  public long getNumberOfOperations() {
+    long tmpNumberOfOperations;
+    synchronized (operationsPerformedLock) {
+      tmpNumberOfOperations = operationsPerformed;
+    }
+    return tmpNumberOfOperations;
+  }
 
 
   /**
@@ -1792,6 +1792,9 @@ public class LDAPClientConnection
     if (keepStats)
     {
       statTracker.updateMessageRead(message);
+    }
+    synchronized (operationsPerformedLock) {
+      operationsPerformed++;
     }
 
     ArrayList<Control> opControls;
@@ -2807,6 +2810,7 @@ public class LDAPClientConnection
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getKeyManagerProviderDN()
   {
     return connectionHandler.getKeyManagerProviderDN();
@@ -2817,6 +2821,7 @@ public class LDAPClientConnection
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getTrustManagerProviderDN()
   {
     return connectionHandler.getTrustManagerProviderDN();
@@ -2834,6 +2839,7 @@ public class LDAPClientConnection
    *          for operations requring a server certificate, or
    *          {@code null} if any alias is acceptable.
    */
+  @Override
   public String getCertificateAlias()
   {
     return connectionHandler.getSSLServerCertNickname();
@@ -2853,6 +2859,7 @@ public class LDAPClientConnection
    * @return  The length of time in milliseconds that this client
    *          connection has been idle.
    */
+  @Override
   public long getIdleTime()
   {
     if (operationsInProgress.isEmpty() && getPersistentSearches().isEmpty())

@@ -65,13 +65,30 @@
       <call function="'getFreePort'">
         {
           'host'  : STAF_REMOTE_HOSTNAME,
+          'port'  : 5544,
+        }
+      </call>
+      <script>IMP_I1_ADMIN_PORT = STAXResult</script>    
+      
+      <call function="'getFreePort'">
+        {
+          'host'  : STAF_REMOTE_HOSTNAME,
           'port'  : 5600,
         }
       </call>
       <script>IMP_I2_PORT = STAXResult</script>
 
+      <call function="'getFreePort'">
+        {
+          'host'  : STAF_REMOTE_HOSTNAME,
+          'port'  : 5644,
+        }
+      </call>
+      <script>IMP_I2_ADMIN_PORT = STAXResult</script>
+
       <message>
-        'Got these free ports: %s, %s' % (IMP_I1_PORT, IMP_I2_PORT)
+        'Got these free ports: %s, %s, %sand  %s' % (IMP_I1_PORT, \
+        IMP_I1_ADMIN_PORT, IMP_I2_PORT, IMP_I2_ADMIN_PORT)
       </message>
 
       <!--- Test Case information
@@ -142,6 +159,7 @@
             c = '%s/setup%s' % (IMP_I1_ROOT, fileExt)
             p = []
             p.append('--cli --no-prompt --ldapPort %s' % (IMP_I1_PORT))
+            p.append('--adminConnectorPort %s' % IMP_I1_ADMIN_PORT)
             p.append('--rootUserPassword "kangourou"')
             p.append('--baseDN "o=o1"')
             p.append('--baseDN "o=o2"')
@@ -323,6 +341,7 @@
             p.append('--cli --no-prompt --rootUserDN "cn=DM"')
             p.append('--rootUserPassword "kangourou"')
             p.append('--ldapPort %s' % IMP_I2_PORT)
+            p.append('--adminConnectorPort %s' % IMP_I2_ADMIN_PORT)
             p.append('--baseDN "o=o1"')
             p.append('--ldifFile %s' % IMP_LDIF_FILE)
             p.append('--rejectFile %s' % IMP_REJECT_FILE)
@@ -416,11 +435,11 @@
           <!-- 2. Stop DS -->
           <message>'Stop DS'</message> 
           <call function="'StopDsWithScript'">
-            { 'location'  : STAF_REMOTE_HOSTNAME,
-              'dsPath'    : '%s' % IMP_I2_ROOT,
-              'dsPort'    : IMP_I2_PORT,
-              'dsBindDN'  : 'cn=DM',
-              'dsBindPwd' : 'kangourou',
+            { 'location'    : STAF_REMOTE_HOSTNAME,
+              'dsPath'      : '%s' % IMP_I2_ROOT,
+              'dsAdminPort' : IMP_I2_ADMIN_PORT,
+              'dsBindDN'    : 'cn=DM',
+              'dsBindPwd'   : 'kangourou',
             }
           </call>
 

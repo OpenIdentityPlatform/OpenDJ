@@ -661,27 +661,22 @@ public class SchemaBackend
    */
   public Entry getSchemaEntry(DN entryDN, boolean includeSchemaFile)
   {
-    LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
-         new LinkedHashMap<AttributeType,List<Attribute>>();
+    LinkedHashMap<AttributeType, List<Attribute>> userAttrs =
+      new LinkedHashMap<AttributeType, List<Attribute>>();
 
-    LinkedHashMap<AttributeType,List<Attribute>> operationalAttrs =
-         new LinkedHashMap<AttributeType,List<Attribute>>();
-
+    LinkedHashMap<AttributeType, List<Attribute>> operationalAttrs =
+      new LinkedHashMap<AttributeType, List<Attribute>>();
 
     // Add the RDN attribute(s) for the provided entry.
     RDN rdn = entryDN.getRDN();
     if (rdn != null)
     {
       int numAVAs = rdn.getNumValues();
-      for (int i=0; i < numAVAs; i++)
+      for (int i = 0; i < numAVAs; i++)
       {
-        LinkedHashSet<AttributeValue> valueSet =
-             new LinkedHashSet<AttributeValue>(1);
-        valueSet.add(rdn.getAttributeValue(i));
-
         AttributeType attrType = rdn.getAttributeType(i);
-        String attrName = rdn.getAttributeName(i);
-        Attribute a = new Attribute(attrType, attrName, valueSet);
+        Attribute a = Attributes.create(attrType, rdn
+            .getAttributeValue(i));
         ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
         attrList.add(a);
 
@@ -699,11 +694,11 @@ public class SchemaBackend
     Schema schema = DirectoryServer.getSchema();
 
     // Add the "attributeTypes" attribute.
-    LinkedHashSet<AttributeValue> valueSet =
-         DirectoryServer.getAttributeTypeSet();
+    LinkedHashSet<AttributeValue> valueSet = DirectoryServer
+        .getAttributeTypeSet();
 
-    // Add the file name to the description of the attribute type if this
-    // was requested by the caller.
+    // Add the file name to the description of the attribute type if
+    // this was requested by the caller.
     if (includeSchemaFile)
     {
       LinkedHashSet<AttributeValue> newValueSet =
@@ -714,14 +709,14 @@ public class SchemaBackend
         try
         {
           // Build a new attribute from this value,
-          // get the File name from this attribute, build a new attribute
-          // including this file name.
+          // get the File name from this attribute, build a new
+          // attribute including this file name.
           AttributeType attrType = AttributeTypeSyntax.decodeAttributeType(
               value.getValue(), schema, false);
           attrType = DirectoryServer.getAttributeType(attrType.getOID());
 
-          newValueSet.add(new AttributeValue(
-              attributeTypesType, attrType.getDefinitionWithFileName()));
+          newValueSet.add(new AttributeValue(attributeTypesType, attrType
+              .getDefinitionWithFileName()));
         }
         catch (DirectoryException e)
         {
@@ -731,15 +726,39 @@ public class SchemaBackend
       valueSet = newValueSet;
     }
 
-    Attribute attr;
-    if(AttributeTypeSyntax.isStripSyntaxMinimumUpperBound())
-        attr = stripMinUpperBoundValues(valueSet);
+    AttributeBuilder builder = new AttributeBuilder(attributeTypesType,
+        ATTR_ATTRIBUTE_TYPES);
+    builder.setInitialCapacity(valueSet.size());
+    if (AttributeTypeSyntax.isStripSyntaxMinimumUpperBound())
+    {
+      for (AttributeValue v : valueSet)
+      {
+        // If it exists, strip the minimum upper bound value from the
+        // attribute value.
+        if (v.toString().indexOf('{') != -1)
+        {
+          // Create an attribute value from the stripped string and
+          // add it to the valueset.
+          String strippedStr = v.toString().replaceFirst(
+              stripMinUpperBoundRegEx, "");
+          ASN1OctetString s = new ASN1OctetString(strippedStr);
+          AttributeValue strippedVal = new AttributeValue(s, s);
+          builder.add(strippedVal);
+        }
+        else
+        {
+          builder.add(v);
+        }
+      }
+    }
     else
-        attr = new Attribute(attributeTypesType, ATTR_ATTRIBUTE_TYPES,
-              valueSet);
+    {
+      builder.addAll(valueSet);
+    }
+
     ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-    attrList.add(attr);
-    if (attributeTypesType.isOperational() && (! showAllAttributes))
+    attrList.add(builder.toAttribute());
+    if (attributeTypesType.isOperational() && (!showAllAttributes))
     {
       operationalAttrs.put(attributeTypesType, attrList);
     }
@@ -751,8 +770,8 @@ public class SchemaBackend
     // Add the "objectClasses" attribute.
     valueSet = DirectoryServer.getObjectClassSet();
 
-    // Add the file name to the description if this was requested by the
-    // caller.
+    // Add the file name to the description if this was requested by
+    // the caller.
     if (includeSchemaFile)
     {
       LinkedHashSet<AttributeValue> newValueSet =
@@ -762,14 +781,14 @@ public class SchemaBackend
       {
         try
         {
-          // Build a new attribute from this value,
-          // get the File name from this attribute, build a new attribute
-          // including this file name.
+          // Build a new attribute from this value, get the File name
+          // from this attribute, build a new attribute including this
+          // file name.
           ObjectClass oc = ObjectClassSyntax.decodeObjectClass(
               value.getValue(), schema, false);
           oc = DirectoryServer.getObjectClass(oc.getOID());
-          newValueSet.add(new AttributeValue(
-              objectClassesType, oc.getDefinitionWithFileName()));
+          newValueSet.add(new AttributeValue(objectClassesType, oc
+              .getDefinitionWithFileName()));
         }
         catch (DirectoryException e)
         {
@@ -779,10 +798,12 @@ public class SchemaBackend
       valueSet = newValueSet;
     }
 
-    attr = new Attribute(objectClassesType, ATTR_OBJECTCLASSES, valueSet);
+    builder = new AttributeBuilder(objectClassesType, ATTR_OBJECTCLASSES);
+    builder.addAll(valueSet);
     attrList = new ArrayList<Attribute>(1);
-    attrList.add(attr);
-    if (objectClassesType.isOperational() && (! showAllAttributes))
+    attrList.add(builder.toAttribute());
+
+    if (objectClassesType.isOperational() && (!showAllAttributes))
     {
       operationalAttrs.put(objectClassesType, attrList);
     }
@@ -791,13 +812,13 @@ public class SchemaBackend
       userAttrs.put(objectClassesType, attrList);
     }
 
-
     // Add the "matchingRules" attribute.
-    valueSet = DirectoryServer.getMatchingRuleSet();
-    attr = new Attribute(matchingRulesType, ATTR_MATCHING_RULES, valueSet);
+    builder = new AttributeBuilder(matchingRulesType, ATTR_MATCHING_RULES);
+    builder.addAll(DirectoryServer.getMatchingRuleSet());
     attrList = new ArrayList<Attribute>(1);
-    attrList.add(attr);
-    if (matchingRulesType.isOperational() && (! showAllAttributes))
+    attrList.add(builder.toAttribute());
+
+    if (matchingRulesType.isOperational() && (!showAllAttributes))
     {
       operationalAttrs.put(matchingRulesType, attrList);
     }
@@ -806,19 +827,19 @@ public class SchemaBackend
       userAttrs.put(matchingRulesType, attrList);
     }
 
-
     // Add the "ldapSyntaxes" attribute.
-    valueSet = DirectoryServer.getAttributeSyntaxSet();
-    attr = new Attribute(ldapSyntaxesType, ATTR_LDAP_SYNTAXES, valueSet);
+    builder = new AttributeBuilder(ldapSyntaxesType, ATTR_LDAP_SYNTAXES);
+    builder.addAll(DirectoryServer.getAttributeSyntaxSet());
     attrList = new ArrayList<Attribute>(1);
-    attrList.add(attr);
+    attrList.add(builder.toAttribute());
 
-    // Note that we intentionally ignore showAllAttributes for attribute
-    // syntaxes, name forms, matching rule uses, DIT content rules, and DIT
-    // structure rules because those attributes aren't allowed in the subschema
-    // objectclass, and treating them as user attributes would cause schema
-    // updates to fail.  This means that you'll always have to explicitly
-    // request these attributes in order to be able to see them.
+    // Note that we intentionally ignore showAllAttributes for
+    // attribute syntaxes, name forms, matching rule uses, DIT content
+    // rules, and DIT structure rules because those attributes aren't
+    // allowed in the subschema objectclass, and treating them as user
+    // attributes would cause schema updates to fail. This means that
+    // you'll always have to explicitly request these attributes in
+    // order to be able to see them.
     if (ldapSyntaxesType.isOperational())
     {
       operationalAttrs.put(ldapSyntaxesType, attrList);
@@ -828,14 +849,15 @@ public class SchemaBackend
       userAttrs.put(ldapSyntaxesType, attrList);
     }
 
-
     // If there are any name forms defined, then add them.
     valueSet = DirectoryServer.getNameFormSet();
-    if (! valueSet.isEmpty())
+    if (!valueSet.isEmpty())
     {
-      attr = new Attribute(nameFormsType, ATTR_NAME_FORMS, valueSet);
+      builder = new AttributeBuilder(nameFormsType, ATTR_NAME_FORMS);
+      builder.addAll(valueSet);
       attrList = new ArrayList<Attribute>(1);
-      attrList.add(attr);
+      attrList.add(builder.toAttribute());
+
       if (nameFormsType.isOperational())
       {
         operationalAttrs.put(nameFormsType, attrList);
@@ -846,15 +868,16 @@ public class SchemaBackend
       }
     }
 
-
     // If there are any DIT content rules defined, then add them.
     valueSet = DirectoryServer.getDITContentRuleSet();
-    if (! valueSet.isEmpty())
+    if (!valueSet.isEmpty())
     {
-      attr = new Attribute(ditContentRulesType, ATTR_DIT_CONTENT_RULES,
-                           valueSet);
+      builder = new AttributeBuilder(ditContentRulesType,
+          ATTR_DIT_CONTENT_RULES);
+      builder.addAll(valueSet);
       attrList = new ArrayList<Attribute>(1);
-      attrList.add(attr);
+      attrList.add(builder.toAttribute());
+
       if (ditContentRulesType.isOperational())
       {
         operationalAttrs.put(ditContentRulesType, attrList);
@@ -865,15 +888,16 @@ public class SchemaBackend
       }
     }
 
-
     // If there are any DIT structure rules defined, then add them.
     valueSet = DirectoryServer.getDITStructureRuleSet();
-    if (! valueSet.isEmpty())
+    if (!valueSet.isEmpty())
     {
-      attr = new Attribute(ditStructureRulesType, ATTR_DIT_STRUCTURE_RULES,
-                           valueSet);
+      builder = new AttributeBuilder(ditStructureRulesType,
+          ATTR_DIT_STRUCTURE_RULES);
+      builder.addAll(valueSet);
       attrList = new ArrayList<Attribute>(1);
-      attrList.add(attr);
+      attrList.add(builder.toAttribute());
+
       if (ditStructureRulesType.isOperational())
       {
         operationalAttrs.put(ditStructureRulesType, attrList);
@@ -884,15 +908,16 @@ public class SchemaBackend
       }
     }
 
-
     // If there are any matching rule uses defined, then add them.
     valueSet = DirectoryServer.getMatchingRuleUseSet();
-    if (! valueSet.isEmpty())
+    if (!valueSet.isEmpty())
     {
-      attr = new Attribute(matchingRuleUsesType, ATTR_MATCHING_RULE_USE,
-                           valueSet);
+      builder = new AttributeBuilder(matchingRuleUsesType,
+          ATTR_MATCHING_RULE_USE);
+      builder.addAll(valueSet);
       attrList = new ArrayList<Attribute>(1);
-      attrList.add(attr);
+      attrList.add(builder.toAttribute());
+
       if (matchingRuleUsesType.isOperational())
       {
         operationalAttrs.put(matchingRuleUsesType, attrList);
@@ -903,20 +928,13 @@ public class SchemaBackend
       }
     }
 
-
     // Add the lastmod attributes.
-    valueSet = new LinkedHashSet<AttributeValue>(1);
-    valueSet.add(creatorsName);
     attrList = new ArrayList<Attribute>(1);
-    attrList.add(new Attribute(creatorsNameType, OP_ATTR_CREATORS_NAME,
-                               valueSet));
+    attrList.add(Attributes.create(creatorsNameType, creatorsName));
     operationalAttrs.put(creatorsNameType, attrList);
 
-    valueSet = new LinkedHashSet<AttributeValue>(1);
-    valueSet.add(createTimestamp);
     attrList = new ArrayList<Attribute>(1);
-    attrList.add(new Attribute(createTimestampType, OP_ATTR_CREATE_TIMESTAMP,
-                               valueSet));
+    attrList.add(Attributes.create(createTimestampType, createTimestamp));
     operationalAttrs.put(createTimestampType, attrList);
 
     if (DirectoryServer.getSchema().getYoungestModificationTime() != modifyTime)
@@ -924,28 +942,22 @@ public class SchemaBackend
       synchronized (this)
       {
         modifyTime = DirectoryServer.getSchema().getYoungestModificationTime();
-        modifyTimestamp =
-             GeneralizedTimeSyntax.createGeneralizedTimeValue(modifyTime);
+        modifyTimestamp = GeneralizedTimeSyntax
+            .createGeneralizedTimeValue(modifyTime);
       }
     }
 
-    valueSet = new LinkedHashSet<AttributeValue>(1);
-    valueSet.add(modifiersName);
     attrList = new ArrayList<Attribute>(1);
-    attrList.add(new Attribute(modifiersNameType, OP_ATTR_MODIFIERS_NAME,
-                               valueSet));
+    attrList.add(Attributes.create(modifiersNameType, modifiersName));
     operationalAttrs.put(modifiersNameType, attrList);
 
-    valueSet = new LinkedHashSet<AttributeValue>(1);
-    valueSet.add(modifyTimestamp);
     attrList = new ArrayList<Attribute>(1);
-    attrList.add(new Attribute(modifyTimestampType, OP_ATTR_MODIFY_TIMESTAMP,
-                               valueSet));
+    attrList.add(Attributes.create(modifyTimestampType, modifyTimestamp));
     operationalAttrs.put(modifyTimestampType, attrList);
 
-    //  Add the extra attributes.
-    Map<String, Attribute> attributes =
-      DirectoryServer.getSchema().getExtraAttributes();
+    // Add the extra attributes.
+    Map<String, Attribute> attributes = DirectoryServer.getSchema()
+        .getExtraAttributes();
     for (Attribute attribute : attributes.values())
     {
       attrList = new ArrayList<Attribute>(1);
@@ -988,10 +1000,9 @@ public class SchemaBackend
       }
     }
 
-
     // Construct and return the entry.
     Entry e = new Entry(entryDN, schemaObjectClasses, userAttrs,
-                        operationalAttrs);
+        operationalAttrs);
     e.processVirtualAttributes();
     return e;
   }
@@ -1052,8 +1063,8 @@ public class SchemaBackend
    * {@inheritDoc}
    */
   @Override()
-  public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
-         throws DirectoryException
+  public void replaceEntry(Entry oldEntry, Entry newEntry,
+      ModifyOperation modifyOperation) throws DirectoryException
   {
     // Make sure that the authenticated user has the necessary UPDATE_SCHEMA
     // privilege.
@@ -1094,15 +1105,9 @@ public class SchemaBackend
       switch (m.getModificationType())
       {
         case ADD:
-          LinkedHashSet<AttributeValue> values = a.getValues();
-          if (values.isEmpty())
-          {
-            continue;
-          }
-
           if (at.equals(attributeTypesType))
           {
-            for (AttributeValue v : values)
+            for (AttributeValue v : a)
             {
               AttributeType type;
               try
@@ -1129,7 +1134,7 @@ public class SchemaBackend
           }
           else if (at.equals(objectClassesType))
           {
-            for (AttributeValue v : values)
+            for (AttributeValue v : a)
             {
               ObjectClass oc;
               try
@@ -1156,7 +1161,7 @@ public class SchemaBackend
           }
           else if (at.equals(nameFormsType))
           {
-            for (AttributeValue v : values)
+            for (AttributeValue v : a)
             {
               NameForm nf;
               try
@@ -1183,7 +1188,7 @@ public class SchemaBackend
           }
           else if (at.equals(ditContentRulesType))
           {
-            for (AttributeValue v : values)
+            for (AttributeValue v : a)
             {
               DITContentRule dcr;
               try
@@ -1210,7 +1215,7 @@ public class SchemaBackend
           }
           else if (at.equals(ditStructureRulesType))
           {
-            for (AttributeValue v : values)
+            for (AttributeValue v : a)
             {
               DITStructureRule dsr;
               try
@@ -1237,7 +1242,7 @@ public class SchemaBackend
           }
           else if (at.equals(matchingRuleUsesType))
           {
-            for (AttributeValue v : values)
+            for (AttributeValue v : a)
             {
               MatchingRuleUse mru;
               try
@@ -1274,8 +1279,7 @@ public class SchemaBackend
 
 
         case DELETE:
-          values = a.getValues();
-          if (values.isEmpty())
+          if (a.isEmpty())
           {
             Message message =
                 ERR_SCHEMA_MODIFY_DELETE_NO_VALUES.get(a.getName());
@@ -1285,7 +1289,7 @@ public class SchemaBackend
 
           if (at.equals(attributeTypesType))
           {
-            for (AttributeValue v : values)
+            for (AttributeValue v : a)
             {
               AttributeType type;
               try
@@ -1313,7 +1317,7 @@ public class SchemaBackend
           }
           else if (at.equals(objectClassesType))
           {
-            for (AttributeValue v : values)
+            for (AttributeValue v : a)
             {
               ObjectClass oc;
               try
@@ -1340,7 +1344,7 @@ public class SchemaBackend
           }
           else if (at.equals(nameFormsType))
           {
-            for (AttributeValue v : values)
+            for (AttributeValue v : a)
             {
               NameForm nf;
               try
@@ -1367,7 +1371,7 @@ public class SchemaBackend
           }
           else if (at.equals(ditContentRulesType))
           {
-            for (AttributeValue v : values)
+            for (AttributeValue v : a)
             {
               DITContentRule dcr;
               try
@@ -1395,7 +1399,7 @@ public class SchemaBackend
           }
           else if (at.equals(ditStructureRulesType))
           {
-            for (AttributeValue v : values)
+            for (AttributeValue v : a)
             {
               DITStructureRule dsr;
               try
@@ -1423,7 +1427,7 @@ public class SchemaBackend
           }
           else if (at.equals(matchingRuleUsesType))
           {
-            for (AttributeValue v : values)
+            for (AttributeValue v : a)
             {
               MatchingRuleUse mru;
               try
@@ -1635,7 +1639,7 @@ public class SchemaBackend
 
 
     // Make sure that none of the associated matching rules are marked OBSOLETE.
-    MatchingRule mr = attributeType.getEqualityMatchingRule();
+    MatchingRule<?> mr = attributeType.getEqualityMatchingRule();
     if ((mr != null) && mr.isObsolete())
     {
       Message message = ERR_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR.get(
@@ -1777,7 +1781,7 @@ public class SchemaBackend
         continue;
       }
 
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
       {
         AttributeType at;
         try
@@ -2104,7 +2108,7 @@ public class SchemaBackend
         continue;
       }
 
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
       {
         ObjectClass oc;
         try
@@ -2409,7 +2413,7 @@ public class SchemaBackend
         continue;
       }
 
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
       {
         NameForm nf;
         try
@@ -2939,7 +2943,7 @@ public class SchemaBackend
         continue;
       }
 
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
       {
         DITStructureRule dsr;
         try
@@ -3054,7 +3058,7 @@ public class SchemaBackend
     // matching rule.  If there is, then it will only be acceptable if it's the
     // matching rule use that we are replacing (in which case we really do want
     // to use the "!=" operator).
-    MatchingRule matchingRule = matchingRuleUse.getMatchingRule();
+    MatchingRule<?> matchingRule = matchingRuleUse.getMatchingRule();
     MatchingRuleUse existingMRUForRule =
          schema.getMatchingRuleUse(matchingRule);
     if ((existingMRUForRule != null) && (existingMRUForRule != existingMRU))
@@ -3230,14 +3234,8 @@ public class SchemaBackend
     for (int i=0; i < rdn.getNumValues(); i++)
     {
       AttributeType type = rdn.getAttributeType(i);
-      String        name = rdn.getAttributeName(i);
-
-      LinkedHashSet<AttributeValue> values =
-           new LinkedHashSet<AttributeValue>(1);
-      values.add(rdn.getAttributeValue(i));
-
       LinkedList<Attribute> attrList = new LinkedList<Attribute>();
-      attrList.add(new Attribute(type, name, values));
+      attrList.add(Attributes.create(type, rdn.getAttributeValue(i)));
       if (type.isOperational())
       {
         operationalAttributes.put(type, attrList);
@@ -3294,8 +3292,9 @@ public class SchemaBackend
     if (! values.isEmpty())
     {
       ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(new Attribute(attributeTypesType,
-                                 attributeTypesType.getPrimaryName(), values));
+      AttributeBuilder builder = new AttributeBuilder(attributeTypesType);
+      builder.addAll(values);
+      attrList.add(builder.toAttribute());
       schemaEntry.putAttribute(attributeTypesType, attrList);
     }
 
@@ -3317,8 +3316,9 @@ public class SchemaBackend
     if (! values.isEmpty())
     {
       ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(new Attribute(objectClassesType,
-                                 objectClassesType.getPrimaryName(), values));
+      AttributeBuilder builder = new AttributeBuilder(objectClassesType);
+      builder.addAll(values);
+      attrList.add(builder.toAttribute());
       schemaEntry.putAttribute(objectClassesType, attrList);
     }
 
@@ -3338,8 +3338,9 @@ public class SchemaBackend
     if (! values.isEmpty())
     {
       ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(new Attribute(nameFormsType,
-                                 nameFormsType.getPrimaryName(), values));
+      AttributeBuilder builder = new AttributeBuilder(nameFormsType);
+      builder.addAll(values);
+      attrList.add(builder.toAttribute());
       schemaEntry.putAttribute(nameFormsType, attrList);
     }
 
@@ -3360,8 +3361,9 @@ public class SchemaBackend
     if (! values.isEmpty())
     {
       ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(new Attribute(ditContentRulesType,
-                                 ditContentRulesType.getPrimaryName(), values));
+      AttributeBuilder builder = new AttributeBuilder(ditContentRulesType);
+      builder.addAll(values);
+      attrList.add(builder.toAttribute());
       schemaEntry.putAttribute(ditContentRulesType, attrList);
     }
 
@@ -3383,9 +3385,9 @@ public class SchemaBackend
     if (! values.isEmpty())
     {
       ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(new Attribute(ditStructureRulesType,
-                                 ditStructureRulesType.getPrimaryName(),
-                                 values));
+      AttributeBuilder builder = new AttributeBuilder(ditStructureRulesType);
+      builder.addAll(values);
+      attrList.add(builder.toAttribute());
       schemaEntry.putAttribute(ditStructureRulesType, attrList);
     }
 
@@ -3406,9 +3408,9 @@ public class SchemaBackend
     if (! values.isEmpty())
     {
       ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(new Attribute(matchingRuleUsesType,
-                                 matchingRuleUsesType.getPrimaryName(),
-                                 values));
+      AttributeBuilder builder = new AttributeBuilder(matchingRuleUsesType);
+      builder.addAll(values);
+      attrList.add(builder.toAttribute());
       schemaEntry.putAttribute(matchingRuleUsesType, attrList);
     }
 
@@ -4229,7 +4231,7 @@ public class SchemaBackend
       {
         // Look for attributetypes that could have been added to the schema
         // or modified in the schema
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           // Parse the attribute type.
           AttributeType attrType = AttributeTypeSyntax.decodeAttributeType(
@@ -4343,7 +4345,7 @@ public class SchemaBackend
     {
       for (Attribute a : ocList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           // It IS important here to allow the unknown elements that could
           // appear in the new config schema.
@@ -5548,41 +5550,6 @@ public class SchemaBackend
                ALERT_DESCRIPTION_CANNOT_WRITE_NEW_SCHEMA_FILES);
 
     return alerts;
-  }
-
-
-
-  /**
-   * Returns an attribute that has the minimum upper bound value removed from
-   * all of its attribute values.
-   *
-   * @param valueSet The original valueset containing the
-   *                 attribute type definitions.
-   *
-   * @return  Attribute that with all of the minimum upper bound values removed
-   *          from its attribute values.
-   */
-  private Attribute
-  stripMinUpperBoundValues(LinkedHashSet<AttributeValue> valueSet) {
-
-    LinkedHashSet<AttributeValue> valueSetCopy =
-                                           new LinkedHashSet<AttributeValue>();
-    for(AttributeValue v : valueSet) {
-      //If it exists, strip the minimum upper bound value from the
-      //attribute value.
-      if(v.toString().indexOf('{') != -1) {
-        //Create an attribute value from the stripped string and add it to the
-        //valueset.
-        String strippedStr=
-                v.toString().replaceFirst(stripMinUpperBoundRegEx, "");
-        ASN1OctetString s=new ASN1OctetString(strippedStr);
-        AttributeValue strippedVal=new AttributeValue(s,s);
-        valueSetCopy.add(strippedVal);
-      } else
-        valueSetCopy.add(v);
-    }
-    return
-          new Attribute(attributeTypesType, ATTR_ATTRIBUTE_TYPES, valueSetCopy);
   }
 
 

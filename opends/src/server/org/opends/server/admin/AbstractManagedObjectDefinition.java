@@ -999,7 +999,8 @@ public abstract class AbstractManagedObjectDefinition
     allPropertyDefinitions.put(propName, d);
 
     if (d instanceof AggregationPropertyDefinition) {
-      AggregationPropertyDefinition apd = (AggregationPropertyDefinition) d;
+      AggregationPropertyDefinition<?, ?> apd =
+        (AggregationPropertyDefinition<?, ?>) d;
       aggregationPropertyDefinitions.put(propName, apd);
       // The key must also contain the managed object name, since several MOs
       // in an inheritance tree may aggregate the same aggregation property name

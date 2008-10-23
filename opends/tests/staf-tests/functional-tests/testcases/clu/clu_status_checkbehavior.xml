@@ -98,7 +98,7 @@
               <call function="'checktestString'">
                 { 
                 'returnString'     : Result ,
-                'expectedString'   : 'Administrative Users: %s' \
+                'expectedString'   : 'Administrative Users:     %s' \
                 % DIRECTORY_INSTANCE_DN 
                 }
               </call>
@@ -106,7 +106,7 @@
               <call function="'checktestString'">
                 { 
                 'returnString'     : Result ,
-                'expectedString'   : 'Server Run Status:    Started'
+                'expectedString'   : 'Server Run Status:        Started'
                 }
               </call>
               

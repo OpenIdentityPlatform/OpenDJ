@@ -300,7 +300,10 @@ final class ListSubCommandHandler extends SubCommandHandler {
           children.put(child.getManagedObjectDefinition().getName(), child);
         } else {
           // Indicate that the managed object does not exist.
-          throw new ManagedObjectNotFoundException();
+          Message msg = ERR_DSCFG_ERROR_FINDER_NO_CHILDREN.get(ufn);
+          app.println();
+          app.printVerboseMessage(msg);
+          return MenuResult.cancel();
         }
       } catch (AuthorizationException e) {
         Message msg = ERR_DSCFG_ERROR_LIST_AUTHZ.get(ufn);

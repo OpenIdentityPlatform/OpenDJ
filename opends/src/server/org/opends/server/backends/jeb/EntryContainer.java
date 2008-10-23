@@ -1112,17 +1112,8 @@ public class EntryContainer
       debugBuffer.append(" final=");
       entryIDList.toString(debugBuffer);
 
-      AttributeSyntax syntax =
-           DirectoryServer.getDefaultStringSyntax();
-      AttributeType attrType =
-           DirectoryServer.getDefaultAttributeType(ATTR_DEBUG_SEARCH_INDEX,
-                                                   syntax);
-      ASN1OctetString valueString =
-           new ASN1OctetString(debugBuffer.toString());
-      LinkedHashSet<AttributeValue> values =
-           new LinkedHashSet<AttributeValue>();
-      values.add(new AttributeValue(valueString, valueString));
-      Attribute attr = new Attribute(attrType, ATTR_DEBUG_SEARCH_INDEX, values);
+      Attribute attr = Attributes.create(ATTR_DEBUG_SEARCH_INDEX,
+          debugBuffer.toString());
 
       Entry debugEntry;
       debugEntry = new Entry(DN.decode("cn=debugsearch"), null, null, null);
@@ -1840,7 +1831,7 @@ public class EntryContainer
       EntryContainer.transactionCommit(txn);
 
       // Update the entry cache.
-      EntryCache entryCache = DirectoryServer.getEntryCache();
+      EntryCache<?> entryCache = DirectoryServer.getEntryCache();
       if (entryCache != null)
       {
         entryCache.putEntry(entry, backend, entryID.longValue());
@@ -2200,7 +2191,7 @@ public class EntryContainer
     }
 
     // Remove the entry from the entry cache.
-    EntryCache entryCache = DirectoryServer.getEntryCache();
+    EntryCache<?> entryCache = DirectoryServer.getEntryCache();
     if (entryCache != null)
     {
       entryCache.removeEntry(leafDN);
@@ -2221,7 +2212,7 @@ public class EntryContainer
   public boolean entryExists(DN entryDN)
       throws DirectoryException
   {
-    EntryCache entryCache = DirectoryServer.getEntryCache();
+    EntryCache<?> entryCache = DirectoryServer.getEntryCache();
 
     // Try the entry cache first.
     if (entryCache != null)
@@ -2265,7 +2256,7 @@ public class EntryContainer
   public Entry getEntry(DN entryDN)
       throws DatabaseException, DirectoryException
   {
-    EntryCache entryCache = DirectoryServer.getEntryCache();
+    EntryCache<?> entryCache = DirectoryServer.getEntryCache();
     Entry entry = null;
 
     // Try the entry cache first.
@@ -2315,7 +2306,8 @@ public class EntryContainer
    * The simplest case of replacing an entry in which the entry DN has
    * not changed.
    *
-   * @param entry           The new contents of the entry
+   * @param oldEntry           The old contents of the entry
+   * @param newEntry           The new contents of the entry
    * @param modifyOperation The modify operation with which this action is
    *                        associated.  This may be <CODE>null</CODE> for
    *                        modifications performed internally.
@@ -2323,39 +2315,30 @@ public class EntryContainer
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws CanceledOperationException if this operation should be cancelled.
    */
-  public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
-      throws DatabaseException, DirectoryException, CanceledOperationException
+  public void replaceEntry(Entry oldEntry, Entry newEntry,
+      ModifyOperation modifyOperation) throws DatabaseException,
+      DirectoryException, CanceledOperationException
   {
     Transaction txn = beginTransaction();
 
     try
     {
       // Read dn2id.
-      EntryID entryID = dn2id.get(txn, entry.getDN(), LockMode.RMW);
+      EntryID entryID = dn2id.get(txn, newEntry.getDN(), LockMode.RMW);
       if (entryID == null)
       {
         // The entry does not exist.
         Message message =
-            ERR_JEB_MODIFY_NO_SUCH_OBJECT.get(entry.getDN().toString());
+            ERR_JEB_MODIFY_NO_SUCH_OBJECT.get(newEntry.getDN().toString());
         DN matchedDN = getMatchedDN(baseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
             message, matchedDN, null);
       }
 
-      // Read id2entry for the original entry.
-      Entry originalEntry = id2entry.get(txn, entryID, LockMode.RMW);
-      if (originalEntry == null)
-      {
-        // The entry does not exist.
-        Message msg = ERR_JEB_MISSING_ID2ENTRY_RECORD.get(entryID.toString());
-        throw new DirectoryException(
-              DirectoryServer.getServerErrorResultCode(), msg);
-      }
-
       if (!isManageDsaITOperation(modifyOperation))
       {
         // Check if the entry is a referral entry.
-        dn2uri.checkTargetForReferral(originalEntry, null);
+        dn2uri.checkTargetForReferral(oldEntry, null);
       }
 
       // Update the referral database.
@@ -2363,28 +2346,28 @@ public class EntryContainer
       {
         // In this case we know from the operation what the modifications were.
         List<Modification> mods = modifyOperation.getModifications();
-        dn2uri.modifyEntry(txn, originalEntry, entry, mods);
+        dn2uri.modifyEntry(txn, oldEntry, newEntry, mods);
       }
       else
       {
-        dn2uri.replaceEntry(txn, originalEntry, entry);
+        dn2uri.replaceEntry(txn, oldEntry, newEntry);
       }
 
       // Replace id2entry.
-      id2entry.put(txn, entryID, entry);
+      id2entry.put(txn, entryID, newEntry);
 
       // Update the indexes.
       if (modifyOperation != null)
       {
         // In this case we know from the operation what the modifications were.
         List<Modification> mods = modifyOperation.getModifications();
-        indexModifications(txn, originalEntry, entry, entryID, mods);
+        indexModifications(txn, oldEntry, newEntry, entryID, mods);
       }
       else
       {
         // The most optimal would be to figure out what the modifications were.
-        indexRemoveEntry(txn, originalEntry, entryID);
-        indexInsertEntry(txn, entry, entryID);
+        indexRemoveEntry(txn, oldEntry, entryID);
+        indexInsertEntry(txn, newEntry, entryID);
       }
 
       if(modifyOperation != null)
@@ -2397,10 +2380,10 @@ public class EntryContainer
       EntryContainer.transactionCommit(txn);
 
       // Update the entry cache.
-      EntryCache entryCache = DirectoryServer.getEntryCache();
+      EntryCache<?> entryCache = DirectoryServer.getEntryCache();
       if (entryCache != null)
       {
-        entryCache.putEntry(entry, backend, entryID.longValue());
+        entryCache.putEntry(newEntry, backend, entryID.longValue());
       }
     }
     catch (DatabaseException databaseException)
@@ -2790,7 +2773,7 @@ public class EntryContainer
     }
 
     // Remove the entry from the entry cache.
-    EntryCache entryCache = DirectoryServer.getEntryCache();
+    EntryCache<?> entryCache = DirectoryServer.getEntryCache();
     if (entryCache != null)
     {
       entryCache.removeEntry(oldDN);
@@ -2939,7 +2922,7 @@ public class EntryContainer
     }
 
     // Remove the entry from the entry cache.
-    EntryCache entryCache = DirectoryServer.getEntryCache();
+    EntryCache<?> entryCache = DirectoryServer.getEntryCache();
     if (entryCache != null)
     {
       entryCache.removeEntry(oldDN);

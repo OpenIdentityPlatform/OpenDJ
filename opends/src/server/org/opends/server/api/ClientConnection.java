@@ -43,7 +43,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.core.NetworkGroup;
+import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
@@ -131,6 +131,8 @@ public abstract class ClientConnection
   // The network group to which the connection belongs to.
   private NetworkGroup networkGroup;
 
+  /** Need to evaluate the network group for the first operation. */
+  protected boolean mustEvaluateNetworkGroup;
 
 
   /**
@@ -152,6 +154,18 @@ public abstract class ClientConnection
     finalized          = false;
     privileges         = new HashSet<Privilege>();
     networkGroup       = NetworkGroup.getDefaultNetworkGroup();
+    networkGroup.addConnection(this);
+    mustEvaluateNetworkGroup = true;
+    if (debugEnabled())
+      {
+        Message message =
+                INFO_CHANGE_NETWORK_GROUP.get(
+                  getConnectionID(),
+                  "null",
+                  networkGroup.getID());
+        TRACER.debugMessage(DebugLogLevel.INFO, message.toString());
+      }
+
   }
 
 
@@ -205,6 +219,8 @@ public abstract class ClientConnection
       DirectoryServer.getAuthenticatedUsers().remove(
            authZEntry.getDN(), this);
     }
+
+    networkGroup.removeConnection(this);
 
     try
     {
@@ -313,6 +329,40 @@ public abstract class ClientConnection
 
 
   /**
+   * Retrieves the port number for this connection on the client
+   * system if available.
+   *
+   * @return The port number for this connection on the client system
+   *         or -1 if there is no client port associated with this
+   *         connection (e.g. internal client).
+   */
+  public abstract int getClientPort();
+
+
+
+  /**
+   * Retrieves the address and port (if available) of the client
+   * system, separated by a colon.
+   *
+   * @return The address and port of the client system, separated by a
+   *         colon.
+   */
+  public final String getClientHostPort()
+  {
+    int port = getClientPort();
+    if (port >= 0)
+    {
+      return getClientAddress() + ":" + port;
+    }
+    else
+    {
+      return getClientAddress();
+    }
+  }
+
+
+
+  /**
    * Retrieves a string representation of the address on the server to
    * which the client connected.
    *
@@ -320,6 +370,41 @@ public abstract class ClientConnection
    *          which the client connected.
    */
   public abstract String getServerAddress();
+
+
+
+
+  /**
+   * Retrieves the port number for this connection on the server
+   * system if available.
+   *
+   * @return The port number for this connection on the server system
+   *         or -1 if there is no server port associated with this
+   *         connection (e.g. internal client).
+   */
+  public abstract int getServerPort();
+
+
+
+  /**
+   * Retrieves the address and port of the server system, separated by
+   * a colon.
+   *
+   * @return The address and port of the server system, separated by a
+   *         colon.
+   */
+  public final String getServerHostPort()
+  {
+    int port = getServerPort();
+    if (port >= 0)
+    {
+      return getServerAddress() + ":" + port;
+    }
+    else
+    {
+      return getServerAddress();
+    }
+  }
 
 
 
@@ -443,6 +528,34 @@ public abstract class ClientConnection
   }
 
 
+
+  /**
+   * Retrieves the total number of operations performed
+   * on this connection.
+   *
+   * @return The total number of operations performed
+   * on this connection.
+   */
+  public abstract long getNumberOfOperations();
+
+  /**
+   * Indicates whether the network group must be evaluated for
+   * the next connection.
+   * @return boolean indicating if the network group must be evaluated
+   */
+  public boolean mustEvaluateNetworkGroup() {
+    return mustEvaluateNetworkGroup;
+  }
+
+  /**
+   * Indicates that the network group will have to be evaluated
+   * for the next connection.
+   *
+   * @param bool true if the network group must be evaluated
+   */
+  public void mustEvaluateNetworkGroup(boolean bool) {
+      mustEvaluateNetworkGroup = bool;
+  }
 
   /**
    * Indicates that the data in the provided buffer has been read from
@@ -1180,7 +1293,7 @@ public abstract class ClientConnection
     {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           String privName = toLowerCase(v.getStringValue());
 
@@ -1640,7 +1753,29 @@ public abstract class ClientConnection
    */
   public final void setNetworkGroup (NetworkGroup networkGroup)
   {
-    this.networkGroup = networkGroup;
+    if (this.networkGroup != networkGroup) {
+      if (debugEnabled())
+      {
+        Message message =
+                INFO_CHANGE_NETWORK_GROUP.get(
+                  getConnectionID(),
+                  this.networkGroup.getID(),
+                  networkGroup.getID());
+        TRACER.debugMessage(DebugLogLevel.INFO, message.toString());
+      }
+
+      // If there is a change, first remove this connection
+      // from the current network group
+      this.networkGroup.removeConnection(this);
+      // Then set the new network group
+      this.networkGroup = networkGroup;
+      // And add the connection to the new ng
+      this.networkGroup.addConnection(this);
+
+      // The client connection inherits the resource limits
+      sizeLimit = networkGroup.getSearchSizeLimit();
+      timeLimit = networkGroup.getSearchDurationLimit();
+    }
   }
 
 

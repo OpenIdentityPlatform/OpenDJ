@@ -359,13 +359,10 @@ public class AciEffectiveRights {
       if(hasAttrMask(mask, ACL_RIGHTS))  {
         String typeStr=aclRightsAttributeLevelStr + ";" +
                 a.getNormalizedPrimaryName();
-        AttributeType attributeType=
-                DirectoryServer.getDefaultAttributeType(typeStr);
-        LinkedHashSet<AttributeValue> vals =
-                new LinkedHashSet<AttributeValue>();
-        vals.add(new AttributeValue(attributeType, evalInfo.toString()));
-        Attribute attr =
-                new Attribute(attributeType, typeStr, vals);
+        AttributeType attributeType = DirectoryServer
+            .getDefaultAttributeType(typeStr);
+        Attribute attr = Attributes.create(attributeType, evalInfo
+            .toString());
         //It is possible that the user might have specified the same attributes
         //in both the search and the specific attribute part of the control.
         //Only try to add the attribute type if it already hasn't been added.
@@ -502,10 +499,8 @@ public class AciEffectiveRights {
     if(hasAttrMask(mask, ACL_RIGHTS)) {
       AttributeType attributeType=
               DirectoryServer.getDefaultAttributeType(aclRightsEntryLevelStr);
-      LinkedHashSet<AttributeValue> vals = new LinkedHashSet<AttributeValue>();
-      vals.add(new AttributeValue(attributeType, evalInfo.toString()));
-      Attribute attr =
-              new Attribute(attributeType, aclRightsEntryLevelStr, vals);
+      Attribute attr = Attributes.create(attributeType, evalInfo
+          .toString());
       retEntry.addAttribute(attr,null);
     }
     return retEntry;
@@ -608,14 +603,12 @@ public class AciEffectiveRights {
       String typeStr=
               aclRightsInfoAttrLogsStr + ";" + rightStr + ";" +
               aType.getPrimaryName();
-         AttributeType attributeType=
+      AttributeType attributeType=
                 DirectoryServer.getDefaultAttributeType(typeStr);
-      LinkedHashSet<AttributeValue> vals = new LinkedHashSet<AttributeValue>();
-      vals.add(new AttributeValue(attributeType, container.getEvalSummary()));
-      Attribute attr =
-                     new Attribute(attributeType, typeStr, vals);
-      //The attribute type might have already been added, probably not but it
-      //is possible.
+      Attribute attr = Attributes.create(attributeType,
+          container.getEvalSummary());
+      // The attribute type might have already been added, probably
+      // not but it is possible.
       if(!retEntry.hasAttribute(attributeType))
           retEntry.addAttribute(attr,null);
     }
@@ -640,12 +633,10 @@ public class AciEffectiveRights {
      if(hasAttrMask(mask,ACL_RIGHTS_INFO)) {
        String typeStr=
                aclRightsInfoEntryLogsStr + ";" + rightStr;
-          AttributeType attributeType=
+       AttributeType attributeType=
                  DirectoryServer.getDefaultAttributeType(typeStr);
-       LinkedHashSet<AttributeValue> vals = new LinkedHashSet<AttributeValue>();
-       vals.add(new AttributeValue(attributeType, container.getEvalSummary()));
-       Attribute attr =
-                      new Attribute(attributeType, typeStr, vals);
+       Attribute attr = Attributes.create(attributeType,
+           container.getEvalSummary());
        retEntry.addAttribute(attr,null);
      }
    }

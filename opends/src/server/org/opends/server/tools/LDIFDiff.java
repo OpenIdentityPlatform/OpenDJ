@@ -45,6 +45,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
@@ -282,7 +283,7 @@ public class LDIFDiff
     {
       // Bootstrap the Directory Server configuration for use as a client.
       DirectoryServer directoryServer = DirectoryServer.getInstance();
-      directoryServer.bootstrapClient();
+      DirectoryServer.bootstrapClient();
 
 
       // If we're to use the configuration then initialize it, along with the
@@ -291,7 +292,7 @@ public class LDIFDiff
       {
         try
         {
-          directoryServer.initializeJMX();
+          DirectoryServer.initializeJMX();
         }
         catch (Exception e)
         {
@@ -816,34 +817,32 @@ public class LDIFDiff
       }
     }
 
-    if (! sourceClasses.isEmpty())
+    if (!sourceClasses.isEmpty())
     {
       // Whatever is left must have been deleted.
       AttributeType attrType = DirectoryServer.getObjectClassAttributeType();
-      LinkedHashSet<AttributeValue> values =
-           new LinkedHashSet<AttributeValue>();
+      AttributeBuilder builder = new AttributeBuilder(attrType);
       for (ObjectClass oc : sourceClasses)
       {
-        values.add(new AttributeValue(attrType, oc.getNameOrOID()));
+        builder.add(new AttributeValue(attrType, oc.getNameOrOID()));
       }
 
-      Attribute attr = new Attribute(attrType, attrType.getNameOrOID(), values);
-      modifications.add(new Modification(ModificationType.DELETE, attr));
+      modifications.add(new Modification(ModificationType.DELETE, builder
+          .toAttribute()));
     }
 
     if (! targetClasses.isEmpty())
     {
       // Whatever is left must have been added.
       AttributeType attrType = DirectoryServer.getObjectClassAttributeType();
-      LinkedHashSet<AttributeValue> values =
-           new LinkedHashSet<AttributeValue>();
+      AttributeBuilder builder = new AttributeBuilder(attrType);
       for (ObjectClass oc : targetClasses)
       {
-        values.add(new AttributeValue(attrType, oc.getNameOrOID()));
+        builder.add(new AttributeValue(attrType, oc.getNameOrOID()));
       }
 
-      Attribute a = new Attribute(attrType, attrType.getNameOrOID(), values);
-      modifications.add(new Modification(ModificationType.ADD, a));
+      modifications.add(new Modification(ModificationType.ADD, builder
+          .toAttribute()));
     }
 
 
@@ -899,40 +898,25 @@ public class LDIFDiff
           }
           else
           {
-            // See if the value lists are equal.
-            LinkedHashSet<AttributeValue> sourceValues = sourceAttr.getValues();
-            LinkedHashSet<AttributeValue> targetValues = targetAttr.getValues();
-            LinkedHashSet<AttributeValue> deletedValues =
-                 new LinkedHashSet<AttributeValue>();
-            Iterator<AttributeValue> valueIterator = sourceValues.iterator();
-            while (valueIterator.hasNext())
+            // Compare the values.
+            AttributeBuilder addedValuesBuilder = new AttributeBuilder(
+                targetAttr);
+            addedValuesBuilder.removeAll(sourceAttr);
+            Attribute addedValues = addedValuesBuilder.toAttribute();
+            if (!addedValues.isEmpty())
             {
-              AttributeValue v = valueIterator.next();
-              valueIterator.remove();
-
-              if (! targetValues.remove(v))
-              {
-                // This particular value has been deleted.
-                deletedValues.add(v);
-              }
+              modifications.add(new Modification(ModificationType.ADD,
+                  addedValues));
             }
 
-            if (! deletedValues.isEmpty())
+            AttributeBuilder deletedValuesBuilder = new AttributeBuilder(
+                sourceAttr);
+            deletedValuesBuilder.removeAll(targetAttr);
+            Attribute deletedValues = deletedValuesBuilder.toAttribute();
+            if (!deletedValues.isEmpty())
             {
-              Attribute attr = new Attribute(type, sourceAttr.getName(),
-                                             sourceAttr.getOptions(),
-                                             deletedValues);
               modifications.add(new Modification(ModificationType.DELETE,
-                                                 attr));
-            }
-
-            // Anything left in the target list has been added.
-            if (! targetValues.isEmpty())
-            {
-              Attribute attr = new Attribute(type, sourceAttr.getName(),
-                                             sourceAttr.getOptions(),
-                                             targetValues);
-              modifications.add(new Modification(ModificationType.ADD, attr));
+                  deletedValues));
             }
           }
         }
@@ -982,8 +966,7 @@ public class LDIFDiff
         for (Modification m : modifications)
         {
           Attribute a = m.getAttribute();
-          LinkedHashSet<AttributeValue> values = a.getValues();
-          if (values.isEmpty())
+          if (a.isEmpty())
           {
             LinkedList<Modification> attrMods = new LinkedList<Modification>();
             attrMods.add(m);
@@ -992,14 +975,11 @@ public class LDIFDiff
           else
           {
             LinkedList<Modification> attrMods = new LinkedList<Modification>();
-            LinkedHashSet<AttributeValue> valueSet =
-                 new LinkedHashSet<AttributeValue>();
-            for (AttributeValue v : values)
+            for (AttributeValue v : a)
             {
-              valueSet.clear();
-              valueSet.add(v);
-              Attribute attr = new Attribute(a.getAttributeType(),
-                                             a.getName(), valueSet);
+              AttributeBuilder builder = new AttributeBuilder(a, true);
+              builder.add(v);
+              Attribute attr = builder.toAttribute();
 
               attrMods.clear();
               attrMods.add(new Modification(m.getModificationType(), attr));

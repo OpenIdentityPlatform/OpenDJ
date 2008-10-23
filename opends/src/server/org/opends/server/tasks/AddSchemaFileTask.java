@@ -30,7 +30,6 @@ import org.opends.messages.Message;
 
 
 import java.io.File;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
@@ -45,6 +44,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DebugLogLevel;
@@ -131,7 +131,7 @@ public class AddSchemaFileTask
     filesToAdd = new TreeSet<String>();
     for (Attribute a : attrList)
     {
-      for (AttributeValue v  : a.getValues())
+      for (AttributeValue v  : a)
       {
         String filename = v.getStringValue();
         filesToAdd.add(filename);
@@ -240,9 +240,9 @@ public class AddSchemaFileTask
           for (Modification m : modList)
           {
             Attribute a = m.getAttribute();
-            LinkedHashSet<AttributeValue> valuesWithFileElement =
-                 new LinkedHashSet<AttributeValue>();
-            for (AttributeValue v : a.getValues())
+            AttributeBuilder builder = new AttributeBuilder(a
+                .getAttributeType(), a.getName());
+            for (AttributeValue v : a)
             {
               String s = v.getStringValue();
               if (s.indexOf(SCHEMA_PROPERTY_FILENAME) < 0)
@@ -259,14 +259,11 @@ public class AddSchemaFileTask
                 }
               }
 
-              valuesWithFileElement.add(new AttributeValue(a.getAttributeType(),
-                                                           s));
+              builder.add(new AttributeValue(a.getAttributeType(), s));
             }
 
-            Attribute attrWithFile = new Attribute(a.getAttributeType(),
-                                                   a.getName(),
-                                                   valuesWithFileElement);
-            mods.add(new Modification(m.getModificationType(), attrWithFile));
+            mods.add(new Modification(m.getModificationType(), builder
+                .toAttribute()));
           }
         }
         catch (ConfigException ce)

@@ -26,6 +26,8 @@
  */
 package org.opends.server.tools;
 
+
+
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -38,26 +40,36 @@ import java.util.*;
 import org.testng.annotations.AfterClass;
 
 import org.opends.server.tasks.TaskUtils;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
 import org.opends.server.types.DN;
 import org.opends.server.types.Attribute;
 
 
 
-public class ImportLDIFTestCase extends ToolsTestCase {
+public class ImportLDIFTestCase extends ToolsTestCase
+{
 
   private File tempDir;
+
   private String ldifFilePath;
-  String configFilePath ;
+
+  String configFilePath;
+
   private String homeDirName;
+
   private String beID;
+
   private String baseDN = "dc=example,dc=com";
 
+
+
   /**
-  * Ensures that the ldif file is created with the entry.
-  *
-  * @throws  Exception  If an unexpected problem occurs.
-  */
+   * Ensures that the ldif file is created with the entry.
+   *
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
   @BeforeClass
   public void setUp() throws Exception
   {
@@ -66,31 +78,21 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     configFilePath = DirectoryServer.getConfigFile();
     TaskUtils.disableBackend(beID);
 
-    String entry =
-           "dn: dc=example,dc=com\n" +
-          "objectclass: domain\n" +
-          "objectclass: top\n" +
-          "dc: example\n\n" +
-          "dn: uid=user.0,dc=example,dc=com\n" +
-          "objectClass: person\n" +
-          "objectClass: inetorgperson\n" +
-          "objectClass: organizationalPerson\n" +
-          "objectClass: top\n" +
-          "givenName: Aaccf\n" +
-          "sn: Amar\n" +
-          "cn: Aaccf Amar\n" +
-          "employeeNumber: 0\n" +
-          "uid: user.0\n" +
-          "mail: user.0@example.com\n" +
-          "userPassword: password\n" +
-          "telephoneNumber: +1 380-535-2354\n" +
-          "description: This is the description for Aaccf Amar\n" +
-          "creatorsName: cn=Import\n" +
-          "modifiersName: cn=Import\n";
+    String entry = "dn: dc=example,dc=com\n" + "objectclass: domain\n"
+        + "objectclass: top\n" + "dc: example\n\n"
+        + "dn: uid=user.0,dc=example,dc=com\n" + "objectClass: person\n"
+        + "objectClass: inetorgperson\n"
+        + "objectClass: organizationalPerson\n" + "objectClass: top\n"
+        + "givenName: Aaccf\n" + "sn: Amar\n" + "cn: Aaccf Amar\n"
+        + "employeeNumber: 0\n" + "uid: user.0\n"
+        + "mail: user.0@example.com\n" + "userPassword: password\n"
+        + "telephoneNumber: +1 380-535-2354\n"
+        + "description: This is the description for Aaccf Amar\n"
+        + "creatorsName: cn=Import\n" + "modifiersName: cn=Import\n";
 
     tempDir = TestCaseUtils.createTemporaryDirectory("importLDIFtest");
     homeDirName = tempDir.getAbsolutePath();
-    ldifFilePath =  homeDirName + File.separator + "entries.ldif";
+    ldifFilePath = homeDirName + File.separator + "entries.ldif";
     FileOutputStream ldifFile = new FileOutputStream(ldifFilePath);
     PrintStream writer = new PrintStream(ldifFile);
     writer.println(entry);
@@ -101,10 +103,11 @@ public class ImportLDIFTestCase extends ToolsTestCase {
 
 
   /**
-   * Tests an  import of LDIF with only the operational attributes
+   * Tests an import of LDIF with only the operational attributes
    * included.
    *
-   * @throws  Exception  If an unexpected problem occurs.
+   * @throws Exception
+   *           If an unexpected problem occurs.
    */
   @Test
   public void testImportIncludeOnlyOperational() throws Exception
@@ -114,62 +117,75 @@ public class ImportLDIFTestCase extends ToolsTestCase {
 
     String[] args =
     {
-      "-f",configFilePath,
-      "--noPropertiesFile",
-      "-l",ldifFilePath,
-      "-R", rejectFilePath,
-      "-n", beID,
-      "-i", "+"
+        "-f",
+        configFilePath,
+        "--noPropertiesFile",
+        "-l",
+        ldifFilePath,
+        "-R",
+        rejectFilePath,
+        "-n",
+        beID,
+        "-i",
+        "+"
     };
-    assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);
-    //Expecting a non-empty reject file.
-    assertRejectedFile(reject,false);
+    assertEquals(
+        ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
+    // Expecting a non-empty reject file.
+    assertRejectedFile(reject, false);
   }
 
 
 
   /**
-   * Tests an  import of LDIF with only thel user attributes
-   * included.
+   * Tests an import of LDIF with only thel user attributes included.
    *
-   * @throws  Exception  If an unexpected problem occurs.
+   * @throws Exception
+   *           If an unexpected problem occurs.
    */
   @Test
-  public void testImportIncludeOnlyUser()  throws Exception
+  public void testImportIncludeOnlyUser() throws Exception
   {
     File reject = File.createTempFile("reject", ".ldif");
     String rejectFilePath = reject.getAbsolutePath();
 
     String[] args =
     {
-      "-f",configFilePath,
-      "--noPropertiesFile",
-      "-l",ldifFilePath,
-      "-R", rejectFilePath,
-      "-n", beID,
-      "-i", "*"
+        "-f",
+        configFilePath,
+        "--noPropertiesFile",
+        "-l",
+        ldifFilePath,
+        "-R",
+        rejectFilePath,
+        "-n",
+        beID,
+        "-i",
+        "*"
     };
-    assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);
-    //Expecting an empty reject file.
-    assertRejectedFile(reject,true);
+    assertEquals(
+        ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
+    // Expecting an empty reject file.
+    assertRejectedFile(reject, true);
 
-    Attribute[]  opAttr =
+    Attribute[] opAttr =
     {
-      new Attribute ("creatorsname", "cn=Import") ,
-      new Attribute("modifiersname","cn=Import")
-     }    ;
-    //operational attributes shouldn't be present.
-    assertEntry(opAttr,false);
+        Attributes.create("creatorsname", "cn=Import"),
+        Attributes.create("modifiersname", "cn=Import")
+    };
+    // operational attributes shouldn't be present.
+    assertEntry(opAttr, false);
   }
 
 
 
   /**
-   * Tests a simple Import LDIF with none of the attributes
-   * excluded or included. It is expected to import the entry(ies)
-   * with all the attributes in the ldif file.
+   * Tests a simple Import LDIF with none of the attributes excluded
+   * or included. It is expected to import the entry(ies) with all the
+   * attributes in the ldif file.
    *
-   * @throws  Exception  If an unexpected problem occurs.
+   * @throws Exception
+   *           If an unexpected problem occurs.
    */
   @Test
   public void testImportDefault() throws Exception
@@ -179,33 +195,41 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String rejectFilePath = reject.getAbsolutePath();
     String[] args =
     {
-      "-f", DirectoryServer.getConfigFile(),
-      "--noPropertiesFile",
-      "-l",ldifFilePath,
-      "-n", beID,
-      "-R", rejectFilePath
+        "-f",
+        DirectoryServer.getConfigFile(),
+        "--noPropertiesFile",
+        "-l",
+        ldifFilePath,
+        "-n",
+        beID,
+        "-R",
+        rejectFilePath
     };
-    assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);
-    //Reject file should be empty.
-    assertRejectedFile(reject,true);
-    //check the presence of some random attributes.
-    Attribute[]  attr =
+    assertEquals(
+        ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
+    // Reject file should be empty.
+    assertRejectedFile(reject, true);
+    // check the presence of some random attributes.
+    Attribute[] attr =
     {
-      new Attribute ("description",
-          "This is the description for Aaccf Amar"),
-      new Attribute("mail","user.0@example.com"),
-      new Attribute ("creatorsname", "cn=Import") ,
-      new Attribute("modifiersname","cn=Import")
-    }    ;
-    assertEntry(attr,true);
+        Attributes.create("description",
+            "This is the description for Aaccf Amar"),
+        Attributes.create("mail", "user.0@example.com"),
+        Attributes.create("creatorsname", "cn=Import"),
+        Attributes.create("modifiersname", "cn=Import")
+    };
+    assertEntry(attr, true);
   }
 
+
+
   /**
-   * Tests a simple Import LDIF using base DN with none of the attributes
-   * excluded or included. It is expected to import the entry(ies)
-   * with all the attributes in the ldif file.
+   * Tests a simple Import LDIF using base DN with none of the
+   * attributes excluded or included. It is expected to import the
+   * entry(ies) with all the attributes in the ldif file.
    *
-   * @throws  Exception  If an unexpected problem occurs.
+   * @throws Exception
+   *           If an unexpected problem occurs.
    */
   @Test
   public void testImportDefaultBaseDN() throws Exception
@@ -215,69 +239,82 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String rejectFilePath = reject.getAbsolutePath();
     String[] args =
     {
-      "-f", DirectoryServer.getConfigFile(),
-      "--noPropertiesFile",
-      "-l", ldifFilePath,
-      "-b", baseDN,
-      "-R", rejectFilePath
+        "-f",
+        DirectoryServer.getConfigFile(),
+        "--noPropertiesFile",
+        "-l",
+        ldifFilePath,
+        "-b",
+        baseDN,
+        "-R",
+        rejectFilePath
     };
-    assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);
-    //Reject file should be empty.
-    assertRejectedFile(reject,true);
-    //check the presence of some random attributes.
-    Attribute[]  attr =
+    assertEquals(
+        ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
+    // Reject file should be empty.
+    assertRejectedFile(reject, true);
+    // check the presence of some random attributes.
+    Attribute[] attr =
     {
-      new Attribute ("description",
-          "This is the description for Aaccf Amar"),
-      new Attribute("mail","user.0@example.com"),
-      new Attribute ("creatorsname", "cn=Import") ,
-      new Attribute("modifiersname","cn=Import")
-    }    ;
-    assertEntry(attr,true);
+        Attributes.create("description",
+            "This is the description for Aaccf Amar"),
+        Attributes.create("mail", "user.0@example.com"),
+        Attributes.create("creatorsname", "cn=Import"),
+        Attributes.create("modifiersname", "cn=Import")
+    };
+    assertEntry(attr, true);
   }
 
 
 
   /**
-   * Tests an  import of LDIF with  all the user attributes included
-   * but  "description"
+   * Tests an import of LDIF with all the user attributes included but
+   * "description"
    *
-   * @throws  Exception  If an unexpected problem occurs.
+   * @throws Exception
+   *           If an unexpected problem occurs.
    */
   @Test
-  public void testImportLDIFIncludeUserExcludeDescription()
-                          throws Exception
+  public void testImportLDIFIncludeUserExcludeDescription() throws Exception
   {
-   File reject = File.createTempFile("reject", ".ldif");
-   String rejectFilePath = reject.getAbsolutePath();
+    File reject = File.createTempFile("reject", ".ldif");
+    String rejectFilePath = reject.getAbsolutePath();
 
     String[] args =
     {
-      "-f", DirectoryServer.getConfigFile(),
-      "--noPropertiesFile",
-      "-l",ldifFilePath,
-      "-n", beID,
-      "-R",rejectFilePath,
-      "-i","*",
-      "-e", "description"
+        "-f",
+        DirectoryServer.getConfigFile(),
+        "--noPropertiesFile",
+        "-l",
+        ldifFilePath,
+        "-n",
+        beID,
+        "-R",
+        rejectFilePath,
+        "-i",
+        "*",
+        "-e",
+        "description"
     };
 
-    assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);
-    assertRejectedFile(reject,true);
+    assertEquals(
+        ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
+    assertRejectedFile(reject, true);
     Attribute[] attr =
-     {
-       new Attribute ("description",
-            "This is the description for Aaccf Amar")
+    {
+      Attributes.create("description",
+          "This is the description for Aaccf Amar")
     };
-    assertEntry(attr,false);
+    assertEntry(attr, false);
   }
 
 
 
   /**
-   * Tests an  import of LDIF with  all user attributes excluded option.
+   * Tests an import of LDIF with all user attributes excluded option.
    *
-   * @throws  Exception  If an unexpected problem occurs.
+   * @throws Exception
+   *           If an unexpected problem occurs.
    */
   @Test
   public void testImportLDIFExcludeUser() throws Exception
@@ -286,24 +323,32 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String rejectFilePath = reject.getAbsolutePath();
     String[] args =
     {
-      "-f", DirectoryServer.getConfigFile(),
-      "--noPropertiesFile",
-      "-l",ldifFilePath,
-      "-n", beID,
-      "-R",rejectFilePath,
-      "-e", "*"
+        "-f",
+        DirectoryServer.getConfigFile(),
+        "--noPropertiesFile",
+        "-l",
+        ldifFilePath,
+        "-n",
+        beID,
+        "-R",
+        rejectFilePath,
+        "-e",
+        "*"
     };
 
-    assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);
-    assertRejectedFile(reject,false);
+    assertEquals(
+        ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
+    assertRejectedFile(reject, false);
   }
 
 
 
   /**
-   * Tests an  import of LDIF with  all the operational attributes excluded option.
+   * Tests an import of LDIF with all the operational attributes
+   * excluded option.
    *
-   * @throws  Exception  If an unexpected problem occurs.
+   * @throws Exception
+   *           If an unexpected problem occurs.
    */
   @Test
   public void testImportLDIFExcludeOperational() throws Exception
@@ -313,29 +358,37 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String rejectFilePath = reject.getAbsolutePath();
     String[] args =
     {
-      "-f", DirectoryServer.getConfigFile(),
-      "--noPropertiesFile",
-      "-l",ldifFilePath,
-      "-n", beID,
-      "-R",rejectFilePath,
-      "-e", "+"
+        "-f",
+        DirectoryServer.getConfigFile(),
+        "--noPropertiesFile",
+        "-l",
+        ldifFilePath,
+        "-n",
+        beID,
+        "-R",
+        rejectFilePath,
+        "-e",
+        "+"
     };
-    assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);
-    assertRejectedFile(reject,true);
-    Attribute[] attrs = {
-       new Attribute ("creatorsname", "cn=Import") ,
-       new Attribute("modifiersname","cn=Import")
+    assertEquals(
+        ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
+    assertRejectedFile(reject, true);
+    Attribute[] attrs =
+    {
+        Attributes.create("creatorsname", "cn=Import"),
+        Attributes.create("modifiersname", "cn=Import")
     };
-    assertEntry(attrs,false);
+    assertEntry(attrs, false);
   }
 
 
 
-   /**
-   * Tests an  import of LDIF with all user attributes  and
-   * one operational attribute included..
+  /**
+   * Tests an import of LDIF with all user attributes and one
+   * operational attribute included..
    *
-   * @throws  Exception  If an unexpected problem occurs.
+   * @throws Exception
+   *           If an unexpected problem occurs.
    */
   @Test
   public void testImportLDIFUserAndOperational() throws Exception
@@ -345,29 +398,38 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String rejectFilePath = reject.getAbsolutePath();
     String[] args =
     {
-      "-f", DirectoryServer.getConfigFile(),
-      "--noPropertiesFile",
-      "-l",ldifFilePath,
-      "-n", beID,
-      "-R",rejectFilePath,
-      "-i", "*",
-      "-i","creatorsname"
+        "-f",
+        DirectoryServer.getConfigFile(),
+        "--noPropertiesFile",
+        "-l",
+        ldifFilePath,
+        "-n",
+        beID,
+        "-R",
+        rejectFilePath,
+        "-i",
+        "*",
+        "-i",
+        "creatorsname"
     };
-    assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);
-    assertRejectedFile(reject,true);
-    Attribute[] attrs = {
-       new Attribute ("creatorsname", "cn=Import")
+    assertEquals(
+        ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
+    assertRejectedFile(reject, true);
+    Attribute[] attrs =
+    {
+      Attributes.create("creatorsname", "cn=Import")
     };
-    assertEntry(attrs,true);
+    assertEntry(attrs, true);
   }
 
 
 
-   /**
-   * Tests an  import of LDIF with select user and operational
+  /**
+   * Tests an import of LDIF with select user and operational
    * attributes included..
    *
-   * @throws  Exception  If an unexpected problem occurs.
+   * @throws Exception
+   *           If an unexpected problem occurs.
    */
   @Test
   public void testImportLDIFSelectiveIncludeAttributes() throws Exception
@@ -377,37 +439,50 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String rejectFilePath = reject.getAbsolutePath();
     String[] args =
     {
-      "-f", DirectoryServer.getConfigFile(),
-      "--noPropertiesFile",
-      "-l",ldifFilePath,
-      "-n", beID,
-      "-R",rejectFilePath,
-      "-i", "cn",
-      "-i", "uid",
-      "-i", "dc",
-      "-i", "sn",
-      "-i","creatorsname"
+        "-f",
+        DirectoryServer.getConfigFile(),
+        "--noPropertiesFile",
+        "-l",
+        ldifFilePath,
+        "-n",
+        beID,
+        "-R",
+        rejectFilePath,
+        "-i",
+        "cn",
+        "-i",
+        "uid",
+        "-i",
+        "dc",
+        "-i",
+        "sn",
+        "-i",
+        "creatorsname"
     };
-    assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);
-    assertRejectedFile(reject,true);
-    Attribute[] attrsPr = {
-       new Attribute ("creatorsname", "cn=Import")
+    assertEquals(
+        ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
+    assertRejectedFile(reject, true);
+    Attribute[] attrsPr =
+    {
+      Attributes.create("creatorsname", "cn=Import")
     };
-    assertEntry(attrsPr,true);
-    Attribute[] attrsAb = {
-       new Attribute ("givenname", "Aaccf"),
-       new Attribute("employeenumber","0")
+    assertEntry(attrsPr, true);
+    Attribute[] attrsAb =
+    {
+        Attributes.create("givenname", "Aaccf"),
+        Attributes.create("employeenumber", "0")
     };
-    assertEntry(attrsAb,false);
+    assertEntry(attrsAb, false);
   }
 
 
 
   /**
-   * Tests an  import of LDIF with select user and operational
+   * Tests an import of LDIF with select user and operational
    * attributes encluded..
    *
-   * @throws  Exception  If an unexpected problem occurs.
+   * @throws Exception
+   *           If an unexpected problem occurs.
    */
   @Test
   public void testImportLDIFSelectiveExcludeAttributes() throws Exception
@@ -417,72 +492,88 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String rejectFilePath = reject.getAbsolutePath();
     String[] args =
     {
-      "-f", DirectoryServer.getConfigFile(),
-      "--noPropertiesFile",
-      "-l",ldifFilePath,
-      "-n", beID,
-      "-R",rejectFilePath,
-      "-e", "givenName",
-      "-e","creatorsname"
+        "-f",
+        DirectoryServer.getConfigFile(),
+        "--noPropertiesFile",
+        "-l",
+        ldifFilePath,
+        "-n",
+        beID,
+        "-R",
+        rejectFilePath,
+        "-e",
+        "givenName",
+        "-e",
+        "creatorsname"
     };
-    assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);
-    assertRejectedFile(reject,true);
-    Attribute[] attrsPr = {
-       new Attribute ("modifiersname", "cn=Import"),
-       new Attribute("employeenumber","0")
+    assertEquals(
+        ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
+    assertRejectedFile(reject, true);
+    Attribute[] attrsPr =
+    {
+        Attributes.create("modifiersname", "cn=Import"),
+        Attributes.create("employeenumber", "0")
     };
-    assertEntry(attrsPr,true);
-    Attribute[] attrsAb = {
-       new Attribute ("creatorsname", "cn=Import"),
-       new Attribute("givenname","Aaccf")
+    assertEntry(attrsPr, true);
+    Attribute[] attrsAb =
+    {
+        Attributes.create("creatorsname", "cn=Import"),
+        Attributes.create("givenname", "Aaccf")
     };
-    assertEntry(attrsAb,false);
+    assertEntry(attrsAb, false);
   }
 
 
 
   /**
-   * Utility method which is called by the testcase for asserting
-   * the rejected file.
+   * Utility method which is called by the testcase for asserting the
+   * rejected file.
    *
-   * @param reject The file to be asserted
-   * @param shouldBeEmpty whether the file should be empty.
+   * @param reject
+   *          The file to be asserted
+   * @param shouldBeEmpty
+   *          whether the file should be empty.
    */
   private void assertRejectedFile(File reject, boolean shouldBeEmpty)
   {
-    if(shouldBeEmpty)
+    if (shouldBeEmpty)
     {
-      assertEquals(reject.length(),0);
+      assertEquals(reject.length(), 0);
     }
     else
     {
-      assertFalse(reject.length()==0);
+      assertFalse(reject.length() == 0);
     }
     reject.delete();
   }
 
 
+
   /**
-   * Utility method which is called by the testcase for asserting
-   * the imported entry.
+   * Utility method which is called by the testcase for asserting the
+   * imported entry.
    *
-   * @param attrs The array of attributes to be asserted.
-   * @param assertType the boolean flag for assert type.
-   * @throws  Exception  If an unexpected problem occurs.
+   * @param attrs
+   *          The array of attributes to be asserted.
+   * @param assertType
+   *          the boolean flag for assert type.
+   * @throws Exception
+   *           If an unexpected problem occurs.
    */
-  private void assertEntry(Attribute[] attrs,boolean assertType)  throws Exception
+  private void assertEntry(Attribute[] attrs, boolean assertType)
+      throws Exception
   {
-    if(attrs != null && attrs.length > 0)
+    if (attrs != null && attrs.length > 0)
     {
       TaskUtils.enableBackend(beID);
-      Entry  entry = DirectoryServer.getEntry(DN.decode(
-        " uid=user.0,dc=example,dc=com"));
+      Entry entry = DirectoryServer.getEntry(DN
+          .decode(" uid=user.0,dc=example,dc=com"));
       TaskUtils.disableBackend(beID);
       assertNotNull(entry);
       List<Attribute> list = entry.getAttributes();
-      for(Attribute a : attrs)
+      for (Attribute a : attrs)
       {
-        if(assertType)
+        if (assertType)
         {
           assertTrue(list.contains(a));
         }
@@ -499,12 +590,13 @@ public class ImportLDIFTestCase extends ToolsTestCase {
   /**
    * Clean up method.
    *
-   * @throws  Exception  If an unexpected problem occurs.
+   * @throws Exception
+   *           If an unexpected problem occurs.
    */
   @AfterClass
   public void cleanUp() throws Exception
   {
-    //reinstate the backend.
+    // reinstate the backend.
     TaskUtils.enableBackend(beID);
     TestCaseUtils.deleteDirectory(tempDir);
   }

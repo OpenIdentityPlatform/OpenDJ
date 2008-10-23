@@ -49,6 +49,7 @@ import java.util.List;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -58,7 +59,7 @@ import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PreParseModifyOperation;
 import org.opends.server.workflowelement.localbackend.*;
-
+import org.opends.server.protocols.ldap.LDAPResultCode;
 
 
 /**
@@ -247,7 +248,33 @@ public class ModifyOperationBasis
       try {
         for (RawModification m : rawModifications)
         {
-          modifications.add(m.toModification());
+           Modification mod = m.toModification();
+           Attribute attr = mod.getAttribute();
+           AttributeType type = attr.getAttributeType();
+
+           if(type.isBinary())
+           {
+             if(!attr.hasOption("binary"))
+             {
+               //A binary option wasn't provided by the client so add it.
+               AttributeBuilder builder = new AttributeBuilder(attr);
+               builder.setOption("binary");
+               attr = builder.toAttribute();
+             }
+           }
+           else
+           {
+             // binary option is not honored for non-BER-encodable attributes.
+             if(attr.hasOption("binary"))
+             {
+               throw new LDAPException(LDAPResultCode.UNDEFINED_ATTRIBUTE_TYPE,
+                       ERR_ADD_ATTR_IS_INVALID_OPTION.get(
+                       String.valueOf(entryDN),
+                       attr.getName()));
+             }
+           }
+
+           modifications.add(mod);
         }
       }
       catch (LDAPException le)

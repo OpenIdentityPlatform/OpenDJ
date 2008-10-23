@@ -272,4 +272,14 @@ public final class RFC3672SubtreeSpecificationSyntax
       return false;
     }
   }
+
+
+
+ /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }

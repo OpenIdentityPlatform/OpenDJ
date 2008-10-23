@@ -34,6 +34,7 @@ import java.util.TreeSet;
 
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
@@ -42,19 +43,20 @@ import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.OperationContext;
-import org.opends.server.replication.protocol.UpdateMessage;
+import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.DN;
+import org.opends.server.types.Operation;
 
 /**
  *
  * This class is used to store the list of remote changes received
- * from a replication server and taht are either currently being replayed
+ * from a replication server and that are either currently being replayed
  * or that are waiting for being replayed.
  *
- * It is used to know when the ServerState must be updated and to conpute
+ * It is used to know when the ServerState must be updated and to compute
  * the dependencies between operations.
  *
- * One of this object is instanciated for each ReplicationDomain.
+ * One of this object is instantiated for each ReplicationDomain.
  *
  */
 public class RemotePendingChanges
@@ -74,7 +76,7 @@ public class RemotePendingChanges
     new TreeSet<PendingChange>();
 
   /**
-   * The ServerState that will be updated when UpdateMessage are fully replayed.
+   * The ServerState that will be updated when UpdateMsg are fully replayed.
    */
   private ServerState state;
 
@@ -89,7 +91,7 @@ public class RemotePendingChanges
    *
    * @param changeNumberGenerator The ChangeNumberGenerator that should
    *                              be adjusted when changes are received.
-   * @param state   The ServerState that will be updated when UpdateMessage
+   * @param state   The ServerState that will be updated when UpdateMsg
    *                have been fully replayed.
    */
   public RemotePendingChanges(ChangeNumberGenerator changeNumberGenerator,
@@ -100,13 +102,13 @@ public class RemotePendingChanges
   }
 
   /**
-   * Add a new UpdateMessage that was received from the replication server
+   * Add a new UpdateMsg that was received from the replication server
    * to the pendingList.
    *
-   * @param update The UpdateMessage that was received from the replication
+   * @param update The UpdateMsg that was received from the replication
    *               server and that will be added to the pending list.
    */
-  public synchronized void putRemoteUpdate(UpdateMessage update)
+  public synchronized void putRemoteUpdate(UpdateMsg update)
   {
     ChangeNumber changeNumber = update.getChangeNumber();
     changeNumberGenerator.adjust(changeNumber);
@@ -152,9 +154,9 @@ public class RemotePendingChanges
   /**
    * Get the first update in the list that have some dependencies cleared.
    *
-   * @return The UpdateMessage to be handled.
+   * @return The UpdateMsg to be handled.
    */
-  public synchronized UpdateMessage getNextUpdate()
+  public synchronized UpdateMsg getNextUpdate()
   {
     /*
      * Parse the list of Update with dependencies and check if the dependencies
@@ -214,7 +216,7 @@ public class RemotePendingChanges
     {
       if (pendingChange.getChangeNumber().older(changeNumber))
       {
-        UpdateMessage pendingMsg = pendingChange.getMsg();
+        UpdateMsg pendingMsg = pendingChange.getMsg();
         if (pendingMsg != null)
         {
           if (pendingMsg instanceof DeleteMsg)
@@ -295,7 +297,7 @@ public class RemotePendingChanges
     {
       if (pendingChange.getChangeNumber().older(changeNumber))
       {
-        UpdateMessage pendingMsg = pendingChange.getMsg();
+        UpdateMsg pendingMsg = pendingChange.getMsg();
         if (pendingMsg != null)
         {
           if (pendingMsg instanceof AddMsg)
@@ -347,7 +349,7 @@ public class RemotePendingChanges
     {
       if (pendingChange.getChangeNumber().older(changeNumber))
       {
-        UpdateMessage pendingMsg = pendingChange.getMsg();
+        UpdateMsg pendingMsg = pendingChange.getMsg();
         if (pendingMsg != null)
         {
           if (pendingMsg instanceof DeleteMsg)
@@ -422,7 +424,7 @@ public class RemotePendingChanges
     {
       if (pendingChange.getChangeNumber().older(changeNumber))
       {
-        UpdateMessage pendingMsg = pendingChange.getMsg();
+        UpdateMsg pendingMsg = pendingChange.getMsg();
         if (pendingMsg != null)
         {
           if (pendingMsg instanceof DeleteMsg)
@@ -467,5 +469,39 @@ public class RemotePendingChanges
       }
     }
     return hasDependencies;
+  }
+
+  /**
+   * Check the dependencies of a given Operation/UpdateMsg.
+   *
+   * @param op   The Operation for which dependencies must be checked.
+   * @param msg  The Message for which dependencies must be checked.
+   * @return     A boolean indicating if an operation cannot be replayed
+   *             because of dependencies.
+   */
+  public boolean checkDependencies(Operation op, UpdateMsg msg)
+  {
+    if (op instanceof ModifyOperation)
+    {
+      ModifyOperation newOp = (ModifyOperation) op;
+      return checkDependencies(newOp);
+
+    } else if (op instanceof DeleteOperation)
+    {
+      DeleteOperation newOp = (DeleteOperation) op;
+      return checkDependencies(newOp);
+
+    } else if (op instanceof AddOperation)
+    {
+      AddOperation newOp = (AddOperation) op;
+      return checkDependencies(newOp);
+    } else if (op instanceof ModifyDNOperationBasis)
+    {
+      ModifyDNMsg newMsg = (ModifyDNMsg) msg;
+      return checkDependencies(newMsg);
+    } else
+    {
+      return true;  // unknown type of operation ?!
+    }
   }
 }

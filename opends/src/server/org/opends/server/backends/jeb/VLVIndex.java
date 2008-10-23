@@ -112,8 +112,6 @@ public class VLVIndex extends DatabaseContainer
    */
   private LocalDBVLVIndexCfg config;
 
-  private ID2Entry id2entry;
-
   private DN baseDN;
 
   private SearchFilter filter;
@@ -150,7 +148,6 @@ public class VLVIndex extends DatabaseContainer
     this.baseDN = config.getBaseDN();
     this.scope = SearchScope.valueOf(config.getScope().name());
     this.sortedSetCapacity = config.getMaxBlockSize();
-    this.id2entry = entryContainer.getID2Entry();
 
     try
     {
@@ -1552,7 +1549,7 @@ public class VLVIndex extends DatabaseContainer
         // handled by the SortKey.compareValues method.
         for (Attribute a : attrList)
         {
-          for (AttributeValue v : a.getValues())
+          for (AttributeValue v : a)
           {
             if (sortValue == null)
             {

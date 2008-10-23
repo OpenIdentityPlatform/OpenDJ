@@ -28,21 +28,18 @@ package org.opends.server.plugins;
 
 
 
+import static org.testng.Assert.*;
+
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.EntryUUIDPluginCfgDefn;
 import org.opends.server.admin.std.server.EntryUUIDPluginCfg;
-import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
@@ -51,18 +48,14 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.Control;
-import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
-
-import static org.testng.Assert.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 
 
@@ -152,7 +145,7 @@ public class EntryUUIDPluginTestCase
     List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
     for (Attribute a : attrList)
     {
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
       {
         pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
       }
@@ -191,7 +184,7 @@ public class EntryUUIDPluginTestCase
     List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
     for (Attribute a : attrList)
     {
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
       {
         pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
       }
@@ -270,7 +263,7 @@ public class EntryUUIDPluginTestCase
     List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
     for (Attribute a : attrList)
     {
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
       {
         pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
       }

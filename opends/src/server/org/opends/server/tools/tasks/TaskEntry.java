@@ -44,7 +44,6 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
-import java.util.LinkedHashSet;
 import java.util.ArrayList;
 import java.util.TimeZone;
 import java.util.Date;
@@ -140,8 +139,7 @@ public class TaskEntry {
                 type.getNormalizedPrimaryName());
         List<Attribute> attrList = entry.getUserAttribute(type);
         for (Attribute attr : attrList) {
-          LinkedHashSet<AttributeValue> valuesSet = attr.getValues();
-          for (AttributeValue av : valuesSet) {
+          for (AttributeValue av : attr) {
             List<String> valueList = taskSpecificAttrValues.get(attrTypeName);
             if (valueList == null) {
               valueList = new ArrayList<String>();
@@ -372,9 +370,9 @@ public class TaskEntry {
   private String getSingleStringValue(Entry entry, String attrName) {
     List<Attribute> attrList = entry.getAttribute(attrName);
     if (attrList != null && attrList.size() == 1) {
-      Set<AttributeValue> values = attrList.get(0).getValues();
-      if (values != null && values.size() == 1) {
-        return values.iterator().next().getStringValue();
+      Attribute attr = attrList.get(0);
+      if (!attr.isEmpty()) {
+        return attr.iterator().next().getStringValue();
       }
     }
     return "";
@@ -385,11 +383,8 @@ public class TaskEntry {
     List<Attribute> attrList = entry.getAttribute(attrName);
     if (attrList != null) {
       for (Attribute attr : attrList) {
-        Set<AttributeValue> values = attr.getValues();
-        if (values != null) {
-          for (AttributeValue value : values) {
-            valuesList.add(value.getStringValue());
-          }
+        for (AttributeValue value : attr) {
+          valuesList.add(value.getStringValue());
         }
       }
     }

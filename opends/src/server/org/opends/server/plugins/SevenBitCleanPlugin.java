@@ -185,7 +185,7 @@ public final class SevenBitCleanPlugin
       {
         for (Attribute a : attrList)
         {
-          for (AttributeValue v : a.getValues())
+          for (AttributeValue v : a)
           {
             if (! is7BitClean(v.getValue()))
             {
@@ -252,7 +252,7 @@ public final class SevenBitCleanPlugin
           continue;
         }
 
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           if (! is7BitClean(v.getValue()))
           {
@@ -330,7 +330,7 @@ public final class SevenBitCleanPlugin
           continue;
         }
 
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           if (! is7BitClean(v.getValue()))
           {
@@ -458,7 +458,6 @@ public final class SevenBitCleanPlugin
   {
     for (byte b : value.value())
     {
-      int i = (b & 0xFF);
       if ((b & MASK) != b)
       {
         return false;

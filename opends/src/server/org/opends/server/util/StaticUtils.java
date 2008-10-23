@@ -49,7 +49,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.RandomAccess;
@@ -66,6 +65,7 @@ import org.opends.messages.ToolMessages;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
@@ -3700,23 +3700,22 @@ public final class StaticUtils
 
 
       // Create the attribute and add it to the appropriate map.
-      LinkedHashSet<AttributeValue> valueSet =
-           new LinkedHashSet<AttributeValue>(1);
-      valueSet.add(attrValue);
-
       if (attrType.isOperational())
       {
         List<Attribute> attrList = operationalAttributes.get(attrType);
         if ((attrList == null) || attrList.isEmpty())
         {
+          AttributeBuilder builder = new AttributeBuilder(attrType, attrName);
+          builder.add(attrValue);
           attrList = new ArrayList<Attribute>(1);
-          attrList.add(new Attribute(attrType, attrName, valueSet));
+          attrList.add(builder.toAttribute());
           operationalAttributes.put(attrType, attrList);
         }
         else
         {
-          Attribute attr = attrList.get(0);
-          attr.getValues().add(attrValue);
+          AttributeBuilder builder = new AttributeBuilder(attrList.get(0));
+          builder.add(attrValue);
+          attrList.set(0, builder.toAttribute());
         }
       }
       else
@@ -3724,14 +3723,17 @@ public final class StaticUtils
         List<Attribute> attrList = userAttributes.get(attrType);
         if ((attrList == null) || attrList.isEmpty())
         {
+          AttributeBuilder builder = new AttributeBuilder(attrType, attrName);
+          builder.add(attrValue);
           attrList = new ArrayList<Attribute>(1);
-          attrList.add(new Attribute(attrType, attrName, valueSet));
+          attrList.add(builder.toAttribute());
           userAttributes.put(attrType, attrList);
         }
         else
         {
-          Attribute attr = attrList.get(0);
-          attr.getValues().add(attrValue);
+          AttributeBuilder builder = new AttributeBuilder(attrList.get(0));
+          builder.add(attrValue);
+          attrList.set(0, builder.toAttribute());
         }
       }
     }

@@ -377,5 +377,15 @@ public class TelephoneNumberSyntax
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

@@ -66,37 +66,35 @@
             
             <call function="'dsconfig'">
               { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'subcommand'     : 'set-global-configuration-prop',
-              'optionsString'  : '--remove allowed-task:org.opends.server.tasks.ExportTask',
-              'expectedRC'     : 0
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'       : 'set-global-configuration-prop',
+              'optionsString'    : '--remove allowed-task:org.opends.server.tasks.ExportTask',
+              'expectedRC'       : 0
               }
             </call>           
             
             <!-- the export task is not allowed. the task must be rejected -->
             
             <call function="'exportLdif'">
-              { 'location'    : STAF_REMOTE_HOSTNAME ,
-              'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-              'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'ldifFile'  :  '%s/tasks/export_asynchronous' % remote.data,
-              'startTask'  : '0',
-              'backEnd'   : DIRECTORY_INSTANCE_BE,
-              'expectedRC'  : 1}
+              { 'location'          : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+              'ldifFile'            : '%s/tasks/export_asynchronous' % remote.data,
+              'startTask'           : '0',
+              'backEnd'             : DIRECTORY_INSTANCE_BE,
+              'expectedRC'          : 1}
             </call>
 
             <call function="'dsconfig'">
               { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'subcommand'     : 'set-global-configuration-prop',
-              'optionsString'  : '--add allowed-task:org.opends.server.tasks.ExportTask',
-              'expectedRC'     : 0
+              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'       : 'set-global-configuration-prop',
+              'optionsString'    : '--add allowed-task:org.opends.server.tasks.ExportTask',
+              'expectedRC'       : 0
               }
             </call>                       
             <call function="'testCase_Postamble'"/>

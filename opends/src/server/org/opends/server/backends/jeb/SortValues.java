@@ -112,7 +112,7 @@ public class SortValues
         // handled by the SortKey.compareValues method.
         for (Attribute a : attrList)
         {
-          for (AttributeValue v : a.getValues())
+          for (AttributeValue v : a)
           {
             if (sortValue == null)
             {

@@ -76,10 +76,11 @@ class SynchronizedSuffix:
 	    
 # Define Server class
 class Server:
-  def __init__(self, hostname, dir, port, sslPort, jmxPort, rootDn, rootPwd, baseDn):
+  def __init__(self, hostname, dir, port, adminPort, sslPort, jmxPort, rootDn, rootPwd, baseDn):
     self.hostname = hostname
     self.dir = dir
     self.port = port
+    self.adminPort = adminPort
     self.sslPort = sslPort
     self.jmxPort = jmxPort    
     self.rootDn = rootDn
@@ -105,6 +106,9 @@ class Server:
 
   def getPort(self):
     return self.port
+
+  def getAdminPort(self):
+    return self.adminPort
 
   def getSslPort(self):
     return self.sslPort

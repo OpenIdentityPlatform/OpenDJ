@@ -342,7 +342,7 @@ public class InstallationTest extends QuickSetupTestCase {
    */
   @Test(enabled = false)
   public void testGetStatusPanelCommandFile() {
-    assertExistentFile(installation.getStatusPanelCommandFile());
+    assertExistentFile(installation.getControlPanelCommandFile());
   }
 
   /**

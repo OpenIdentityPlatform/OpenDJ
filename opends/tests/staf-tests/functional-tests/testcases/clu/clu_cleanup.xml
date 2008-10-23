@@ -74,11 +74,11 @@
 
               <call function="'StopDsWithScript'">
                 {
-                'location'  : STAF_REMOTE_HOSTNAME,
-                'dsHost'    : DIRECTORY_INSTANCE_HOST,
-                'dsPort'    : DIRECTORY_INSTANCE_PORT,
-                'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-                'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+                'location'    : STAF_REMOTE_HOSTNAME ,
+                'dsHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT ,
+                'dsBindDN'    : DIRECTORY_INSTANCE_DN ,
+                'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD
                 }
               </call>
               

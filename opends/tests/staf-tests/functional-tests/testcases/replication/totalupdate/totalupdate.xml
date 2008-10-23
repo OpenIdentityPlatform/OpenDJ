@@ -91,12 +91,12 @@
               
               <!-- Stop "master" Directory Server -->
               <call function="'StopDsWithScript'">
-                { 'location'  : masterHost,
-                  'dsPath'    : masterPath,
-                  'dsHost'    : masterHost,
-                  'dsPort'    : master.getPort(),
-                  'dsBindDN'  : master.getRootDn(),
-                  'dsBindPwd' : master.getRootPwd()
+                { 'location'    : masterHost,
+                  'dsPath'      : masterPath,
+                  'dsHost'      : masterHost,
+                  'dsAdminPort' : master.getAdminPort(),
+                  'dsBindDN'    : master.getRootDn(),
+                  'dsBindPwd'   : master.getRootPwd()
                 }
               </call>
               
@@ -137,6 +137,7 @@
                   'dsPath'          : masterPath,
                   'dsHost'          : masterHost,
                   'dsPort'          : master.getPort(),
+                  'dsAdminPort'     : master.getAdminPort(),
                   'dsDn'            : master.getRootDn(),
                   'dsPswd'          : master.getRootPwd(),
                   'expectedEntries' : ['uid=scarter,ou=People,o=example',
@@ -151,24 +152,25 @@
                 <sequence>                                                                            
                   <!-- Perform the total update -->
                   <call function="'initializeReplication'">
-                    { 'location'  :  clientHost,
-                      'dsPath'  :  clientPath,
-                      'dsInstanceHost'  :  server.getHostname(),
-                      'dsInstancePort'  :  server.getPort(),
-                      'sourceInstanceHost'  :  masterHost,
-                      'sourceInstancePort'  :  master.getPort(),
-                      'replicationDnList'  :  ['o=example']
+                    { 'location'                :  clientHost,
+                      'dsPath'                  :  clientPath,
+                      'dsInstanceHost'          :  server.getHostname(),
+                      'dsInstanceAdminPort'     :  server.getAdminPort(),
+                      'sourceInstanceHost'      :  masterHost,
+                      'sourceInstanceAdminPort' :  master.getAdminPort(),
+                      'replicationDnList'       :  ['o=example']
                     }
                   </call>
                                                             
                   <!-- Verify the total update -->
                   <call function="'checkImport'">
-                    { 'location'  : server.getHostname(),
-                      'dsPath'    : '%s/%s' % (server.getDir(),OPENDSNAME),
-                      'dsHost'    : server.getHostname(),
-                      'dsPort'    : server.getPort(),
-                      'dsDn'      : server.getRootDn(),
-                      'dsPswd'    : server.getRootPwd(),
+                    { 'location'    : server.getHostname(),
+                      'dsPath'      : '%s/%s' % (server.getDir(),OPENDSNAME),
+                      'dsHost'      : server.getHostname(),
+                      'dsPort'      : server.getPort(),
+                      'dsAdminPort' : server.getAdminPort(),
+                      'dsDn'        : server.getRootDn(),
+                      'dsPswd'      : server.getRootPwd(),
                       'expectedEntries' : ['uid=scarter,ou=People,o=example',
                                            'uid=dmiller, ou=People, o=example',
                                            'uid=rhunt, ou=People, o=example'],
@@ -268,11 +270,11 @@
 
               <!-- Disable schema replication on "master" server -->       
               <call function="'disableReplication'">
-                { 'location'          : clientHost,
-                  'dsPath'            : clientPath,
-                  'dsInstanceHost'    : masterHost,
-                  'dsInstancePort'    : master.getPort(),
-                  'replicationDnList' : ['cn=schema']
+                { 'location'            : clientHost,
+                  'dsPath'              : clientPath,
+                  'dsInstanceHost'      : masterHost,
+                  'dsInstanceAdminPort' : master.getAdminPort(),
+                  'replicationDnList'   : ['cn=schema']
                 }
               </call>
                 
@@ -314,17 +316,17 @@
               <!-- Re-enable schema replication on "master" server, and 
                 at the same time initialise the schema across the topology -->
               <call function="'enableReplication'">
-                { 'location'          : clientHost,
-                  'dsPath'            : clientPath,
-                  'dsInstanceHost'    : masterHost,
-                  'dsInstancePort'    : master.getPort(),
-                  'dsInstanceDn'      : master.getRootDn(),
-                  'dsInstancePswd'    : master.getRootPwd(),
-                  'refInstanceHost'   : consumer.getHostname(),
-                  'refInstancePort'   : consumer.getPort(),
-                  'refInstanceDn'     : consumer.getRootDn(),
-                  'refInstancePswd'   : consumer.getRootPwd(),
-                  'replicationDnList' : ['cn=schema']
+                { 'location'             : clientHost,
+                  'dsPath'               : clientPath,
+                  'dsInstanceHost'       : masterHost,
+                  'dsInstanceAdminPort'  : master.getAdminPort(),
+                  'dsInstanceDn'         : master.getRootDn(),
+                  'dsInstancePswd'       : master.getRootPwd(),
+                  'refInstanceHost'      : consumer.getHostname(),
+                  'refInstanceAdminPort' : consumer.getAdminPort(),
+                  'refInstanceDn'        : consumer.getRootDn(),
+                  'refInstancePswd'      : consumer.getRootPwd(),
+                  'replicationDnList'    : ['cn=schema']
                 }
               </call>
                 
@@ -393,12 +395,12 @@
               
               <!-- Stop "master" Directory Server -->
               <call function="'StopDsWithScript'">
-                { 'location'  : masterHost,
-                  'dsPath'    : masterPath,
-                  'dsHost'    : masterHost,
-                  'dsPort'    : master.getPort(),
-                  'dsBindDN'  : master.getRootDn(),
-                  'dsBindPwd' : master.getRootPwd()
+                { 'location'    : masterHost,
+                  'dsPath'      : masterPath,
+                  'dsHost'      : masterHost,
+                  'dsAdminPort' : master.getAdminPort(),
+                  'dsBindDN'    : master.getRootDn(),
+                  'dsBindPwd'   : master.getRootPwd()
                 }
               </call>
               
@@ -440,6 +442,7 @@
                   'dsPath'          : masterPath,
                   'dsHost'          : masterHost,
                   'dsPort'          : master.getPort(),
+                  'dsAdminPort'     : master.getAdminPort(),
                   'dsDn'            : master.getRootDn(),
                   'dsPswd'          : master.getRootPwd(),
                   'expectedEntries' : ['uid=scarter,ou=People,o=example',
@@ -452,11 +455,11 @@
 
               <!-- Perform the total update -->
               <call function="'initializeReplication'">
-                { 'location'           : clientHost,
-                  'dsPath'             : clientPath,
-                  'sourceInstanceHost' : masterHost,
-                  'sourceInstancePort' : master.getPort(),
-                  'replicationDnList'  : ['o=example']
+                { 'location'                : clientHost,
+                  'dsPath'                  : clientPath,
+                  'sourceInstanceHost'      : masterHost,
+                  'sourceInstanceAdminPort' : master.getAdminPort(),
+                  'replicationDnList'       : ['o=example']
                 }
               </call>
 
@@ -465,12 +468,13 @@
                 <sequence>                                               
                   <!-- Verify the total update -->
                   <call function="'checkImport'">
-                    { 'location'  : server.getHostname(),
-                      'dsPath'    : '%s/%s' % (server.getDir(),OPENDSNAME),
-                      'dsHost'    : server.getHostname(),
-                      'dsPort'    : server.getPort(),
-                      'dsDn'      : server.getRootDn(),
-                      'dsPswd'    : server.getRootPwd(),
+                    { 'location'    : server.getHostname(),
+                      'dsPath'      : '%s/%s' % (server.getDir(),OPENDSNAME),
+                      'dsHost'      : server.getHostname(),
+                      'dsPort'      : server.getPort(),
+                      'dsAdminPort' : server.getAdminPort(),
+                      'dsDn'        : server.getRootDn(),
+                      'dsPswd'      : server.getRootPwd(),
                       'expectedEntries' : ['uid=scarter,ou=People,o=example',
                                            'uid=dmiller, ou=People, o=example',
                                            'uid=sholmes, ou=People, o=example'],

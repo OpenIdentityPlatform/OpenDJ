@@ -227,5 +227,15 @@ public class CertificateListSyntax
     // All values will be acceptable for the certificate list syntax.
     return true;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return true;
+  }
 }
 

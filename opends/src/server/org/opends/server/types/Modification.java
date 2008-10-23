@@ -28,10 +28,6 @@ package org.opends.server.types;
 
 
 
-import static org.opends.server.util.ServerConstants.*;
-
-
-
 /**
  * This class defines a data structure for storing and interacting
  * with a modification that may be requested of an entry in the
@@ -263,41 +259,6 @@ public final class Modification
     buffer.append(modificationType.toString());
     buffer.append(", ");
     buffer.append(attribute.toString());
-  }
-
-
-
-  /**
-   * Retrieves a string representation of this modification in LDIF
-   * form.
-   *
-   * @return  A string representation of this modification in LDIF
-   *          form.
-   */
-  public String toLDIF()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toLDIF(buffer);
-    return buffer.toString();
-  }
-
-
-
-  /**
-   * Appends a string representation of this modification in LDIF form
-   * to the provided buffer.
-   *
-   * @param  buffer  The buffer to which the information should be
-   *                 appended.
-   */
-  public void toLDIF(StringBuilder buffer)
-  {
-    buffer.append(modificationType.toString());
-    buffer.append(": ");
-    buffer.append(attribute.getName());
-    buffer.append(EOL);
-
-    attribute.toLDIF(buffer);
   }
 }
 

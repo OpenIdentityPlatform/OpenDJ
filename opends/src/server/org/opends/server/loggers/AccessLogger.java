@@ -32,6 +32,7 @@ import org.opends.messages.Message;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 
@@ -72,8 +73,8 @@ public class AccessLogger implements
 
   // The set of access loggers that have been registered with the server.  It
   // will initially be empty.
-  static CopyOnWriteArrayList<AccessLogPublisher> accessPublishers =
-      new CopyOnWriteArrayList<AccessLogPublisher>();
+  static CopyOnWriteArrayList<AccessLogPublisher<?>> accessPublishers =
+      new CopyOnWriteArrayList<AccessLogPublisher<?>>();
 
   // The singleton instance of this class for configuration purposes.
   static final AccessLogger instance = new AccessLogger();
@@ -96,7 +97,7 @@ public class AccessLogger implements
    * @param publisher The access log publisher to add.
    */
   public synchronized static void addAccessLogPublisher(
-      AccessLogPublisher publisher)
+      AccessLogPublisher<?> publisher)
   {
     accessPublishers.add(publisher);
   }
@@ -108,7 +109,7 @@ public class AccessLogger implements
    * @return The publisher that was removed or null if it was not found.
    */
   public synchronized static boolean removeAccessLogPublisher(
-      AccessLogPublisher publisher)
+      AccessLogPublisher<?> publisher)
   {
     boolean removed = accessPublishers.remove(publisher);
 
@@ -125,7 +126,7 @@ public class AccessLogger implements
    */
   public synchronized static void removeAllAccessLogPublishers()
   {
-    for(AccessLogPublisher publisher : accessPublishers)
+    for(AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.close();
     }
@@ -154,7 +155,7 @@ public class AccessLogger implements
 
       if(config.isEnabled())
       {
-        AccessLogPublisher AccessLogPublisher = getAccessPublisher(config);
+        AccessLogPublisher<?> AccessLogPublisher = getAccessPublisher(config);
 
         addAccessLogPublisher(AccessLogPublisher);
       }
@@ -199,7 +200,7 @@ public class AccessLogger implements
     {
       try
       {
-        AccessLogPublisher AccessLogPublisher = getAccessPublisher(config);
+        AccessLogPublisher<?> AccessLogPublisher = getAccessPublisher(config);
 
         addAccessLogPublisher(AccessLogPublisher);
       }
@@ -241,8 +242,8 @@ public class AccessLogger implements
 
     DN dn = config.dn();
 
-    AccessLogPublisher accessLogPublisher = null;
-    for(AccessLogPublisher publisher : accessPublishers)
+    AccessLogPublisher<?> accessLogPublisher = null;
+    for(AccessLogPublisher<?> publisher : accessPublishers)
     {
       if(publisher.getDN().equals(dn))
       {
@@ -293,8 +294,8 @@ public class AccessLogger implements
   {
     DN dn = config.dn();
 
-    AccessLogPublisher accessLogPublisher = null;
-    for(AccessLogPublisher publisher : accessPublishers)
+    AccessLogPublisher<?> accessLogPublisher = null;
+    for(AccessLogPublisher<?> publisher : accessPublishers)
     {
       if(publisher.getDN().equals(dn))
       {
@@ -317,8 +318,8 @@ public class AccessLogger implements
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
 
-    AccessLogPublisher accessLogPublisher = null;
-    for(AccessLogPublisher publisher : accessPublishers)
+    AccessLogPublisher<?> accessLogPublisher = null;
+    for(AccessLogPublisher<?> publisher : accessPublishers)
     {
       if(publisher.getDN().equals(config.dn()))
       {
@@ -347,7 +348,7 @@ public class AccessLogger implements
     ClassPropertyDefinition pd =
         d.getJavaClassPropertyDefinition();
     // Load the class and cast it to a DebugLogPublisher.
-    AccessLogPublisher publisher = null;
+    AccessLogPublisher<?> publisher = null;
     Class<? extends AccessLogPublisher> theClass;
     try {
       theClass = pd.loadClass(className, AccessLogPublisher.class);
@@ -387,7 +388,7 @@ public class AccessLogger implements
     return true;
   }
 
-  private AccessLogPublisher getAccessPublisher(AccessLogPublisherCfg config)
+  private AccessLogPublisher<?> getAccessPublisher(AccessLogPublisherCfg config)
       throws ConfigException {
     String className = config.getJavaClass();
     AccessLogPublisherCfgDefn d = AccessLogPublisherCfgDefn.getInstance();
@@ -395,7 +396,7 @@ public class AccessLogger implements
         d.getJavaClassPropertyDefinition();
     // Load the class and cast it to a AccessLogPublisher.
     Class<? extends AccessLogPublisher> theClass;
-    AccessLogPublisher AccessLogPublisher;
+    AccessLogPublisher<?> AccessLogPublisher;
     try {
       theClass = pd.loadClass(className, AccessLogPublisher.class);
       AccessLogPublisher = theClass.newInstance();
@@ -438,7 +439,7 @@ public class AccessLogger implements
    */
   public static void logConnect(ClientConnection clientConnection)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logConnect(clientConnection);
     }
@@ -460,7 +461,7 @@ public class AccessLogger implements
                                    DisconnectReason disconnectReason,
                                    Message message)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logDisconnect(clientConnection, disconnectReason, message);
     }
@@ -476,9 +477,40 @@ public class AccessLogger implements
    */
   public static void logAbandonRequest(AbandonOperation abandonOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logAbandonRequest(abandonOperation);
+    }
+  }
+
+
+
+  /**
+   * Writes a message to the access logger containing additional
+   * information associated with the provided abandon operation.
+   * <p>
+   * This method will only be called after the request has been logged
+   * and before the response. Implementations can choose to ignore
+   * intermediate responses or filter them based on their category.
+   *
+   * @param abandonOperation
+   *          The abandon operation containing the information to use
+   *          to log the abandon request.
+   * @param category
+   *          The category of the intermediate message.
+   * @param content
+   *          The content of the intermediate message. This comprises
+   *          of one or more key/value pairs which form the content of
+   *          the intermediate message.
+   */
+  public static void logAbandonIntermediateMessage(
+      AbandonOperation abandonOperation, String category,
+      Map<String, String> content)
+  {
+    for (AccessLogPublisher<?> publisher : accessPublishers)
+    {
+      publisher.logAbandonIntermediateMessage(abandonOperation,
+          category, content);
     }
   }
 
@@ -493,7 +525,7 @@ public class AccessLogger implements
    */
   public static void logAbandonResult(AbandonOperation abandonOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logAbandonResult(abandonOperation);
     }
@@ -510,9 +542,40 @@ public class AccessLogger implements
    */
   public static void logAddRequest(AddOperation addOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logAddRequest(addOperation);
+    }
+  }
+
+
+
+  /**
+   * Writes a message to the access logger containing additional
+   * information associated with the provided add operation.
+   * <p>
+   * This method will only be called after the request has been logged
+   * and before the response. Implementations can choose to ignore
+   * intermediate responses or filter them based on their category.
+   *
+   * @param addOperation
+   *          The add operation containing the information to use
+   *          to log the add request.
+   * @param category
+   *          The category of the intermediate message.
+   * @param content
+   *          The content of the intermediate message. This comprises
+   *          of one or more key/value pairs which form the content of
+   *          the intermediate message.
+   */
+  public static void logAddIntermediateMessage(
+      AddOperation addOperation, String category,
+      Map<String, String> content)
+  {
+    for (AccessLogPublisher<?> publisher : accessPublishers)
+    {
+      publisher.logAddIntermediateMessage(addOperation,
+          category, content);
     }
   }
 
@@ -527,7 +590,7 @@ public class AccessLogger implements
    */
   public static void logAddResponse(AddOperation addOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logAddResponse(addOperation);
     }
@@ -544,9 +607,40 @@ public class AccessLogger implements
    */
   public static void logBindRequest(BindOperation bindOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logBindRequest(bindOperation);
+    }
+  }
+
+
+
+  /**
+   * Writes a message to the access logger containing additional
+   * information associated with the provided bind operation.
+   * <p>
+   * This method will only be called after the request has been logged
+   * and before the response. Implementations can choose to ignore
+   * intermediate responses or filter them based on their category.
+   *
+   * @param bindOperation
+   *          The bind operation containing the information to use
+   *          to log the bind request.
+   * @param category
+   *          The category of the intermediate message.
+   * @param content
+   *          The content of the intermediate message. This comprises
+   *          of one or more key/value pairs which form the content of
+   *          the intermediate message.
+   */
+  public static void logBindIntermediateMessage(
+      BindOperation bindOperation, String category,
+      Map<String, String> content)
+  {
+    for (AccessLogPublisher<?> publisher : accessPublishers)
+    {
+      publisher.logBindIntermediateMessage(bindOperation,
+          category, content);
     }
   }
 
@@ -561,7 +655,7 @@ public class AccessLogger implements
    */
   public static void logBindResponse(BindOperation bindOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logBindResponse(bindOperation);
     }
@@ -578,9 +672,40 @@ public class AccessLogger implements
    */
   public static void logCompareRequest(CompareOperation compareOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logCompareRequest(compareOperation);
+    }
+  }
+
+
+
+  /**
+   * Writes a message to the access logger containing additional
+   * information associated with the provided compare operation.
+   * <p>
+   * This method will only be called after the request has been logged
+   * and before the response. Implementations can choose to ignore
+   * intermediate responses or filter them based on their category.
+   *
+   * @param compareOperation
+   *          The compare operation containing the information to use
+   *          to log the compare request.
+   * @param category
+   *          The category of the intermediate message.
+   * @param content
+   *          The content of the intermediate message. This comprises
+   *          of one or more key/value pairs which form the content of
+   *          the intermediate message.
+   */
+  public static void logCompareIntermediateMessage(
+      CompareOperation compareOperation, String category,
+      Map<String, String> content)
+  {
+    for (AccessLogPublisher<?> publisher : accessPublishers)
+    {
+      publisher.logCompareIntermediateMessage(compareOperation,
+          category, content);
     }
   }
 
@@ -595,7 +720,7 @@ public class AccessLogger implements
    */
   public static void logCompareResponse(CompareOperation compareOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logCompareResponse(compareOperation);
     }
@@ -612,9 +737,40 @@ public class AccessLogger implements
    */
   public static void logDeleteRequest(DeleteOperation deleteOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logDeleteRequest(deleteOperation);
+    }
+  }
+
+
+
+  /**
+   * Writes a message to the access logger containing additional
+   * information associated with the provided delete operation.
+   * <p>
+   * This method will only be called after the request has been logged
+   * and before the response. Implementations can choose to ignore
+   * intermediate responses or filter them based on their category.
+   *
+   * @param deleteOperation
+   *          The delete operation containing the information to use
+   *          to log the delete request.
+   * @param category
+   *          The category of the intermediate message.
+   * @param content
+   *          The content of the intermediate message. This comprises
+   *          of one or more key/value pairs which form the content of
+   *          the intermediate message.
+   */
+  public static void logDeleteIntermediateMessage(
+      DeleteOperation deleteOperation, String category,
+      Map<String, String> content)
+  {
+    for (AccessLogPublisher<?> publisher : accessPublishers)
+    {
+      publisher.logDeleteIntermediateMessage(deleteOperation,
+          category, content);
     }
   }
 
@@ -629,7 +785,7 @@ public class AccessLogger implements
    */
   public static void logDeleteResponse(DeleteOperation deleteOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logDeleteResponse(deleteOperation);
     }
@@ -646,9 +802,40 @@ public class AccessLogger implements
    */
   public static void logExtendedRequest(ExtendedOperation extendedOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logExtendedRequest(extendedOperation);
+    }
+  }
+
+
+
+  /**
+   * Writes a message to the access logger containing additional
+   * information associated with the provided extended operation.
+   * <p>
+   * This method will only be called after the request has been logged
+   * and before the response. Implementations can choose to ignore
+   * intermediate responses or filter them based on their category.
+   *
+   * @param extendedOperation
+   *          The extended operation containing the information to use
+   *          to log the extended request.
+   * @param category
+   *          The category of the intermediate message.
+   * @param content
+   *          The content of the intermediate message. This comprises
+   *          of one or more key/value pairs which form the content of
+   *          the intermediate message.
+   */
+  public static void logExtendedIntermediateMessage(
+      ExtendedOperation extendedOperation, String category,
+      Map<String, String> content)
+  {
+    for (AccessLogPublisher<?> publisher : accessPublishers)
+    {
+      publisher.logExtendedIntermediateMessage(extendedOperation,
+          category, content);
     }
   }
 
@@ -663,7 +850,7 @@ public class AccessLogger implements
    */
   public static void logExtendedResponse(ExtendedOperation extendedOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logExtendedResponse(extendedOperation);
     }
@@ -680,9 +867,40 @@ public class AccessLogger implements
    */
   public static void logModifyRequest(ModifyOperation modifyOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logModifyRequest(modifyOperation);
+    }
+  }
+
+
+
+  /**
+   * Writes a message to the access logger containing additional
+   * information associated with the provided modify operation.
+   * <p>
+   * This method will only be called after the request has been logged
+   * and before the response. Implementations can choose to ignore
+   * intermediate responses or filter them based on their category.
+   *
+   * @param modifyOperation
+   *          The modify operation containing the information to use
+   *          to log the modify request.
+   * @param category
+   *          The category of the intermediate message.
+   * @param content
+   *          The content of the intermediate message. This comprises
+   *          of one or more key/value pairs which form the content of
+   *          the intermediate message.
+   */
+  public static void logModifyIntermediateMessage(
+      ModifyOperation modifyOperation, String category,
+      Map<String, String> content)
+  {
+    for (AccessLogPublisher<?> publisher : accessPublishers)
+    {
+      publisher.logModifyIntermediateMessage(modifyOperation,
+          category, content);
     }
   }
 
@@ -697,7 +915,7 @@ public class AccessLogger implements
    */
   public static void logModifyResponse(ModifyOperation modifyOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logModifyResponse(modifyOperation);
     }
@@ -714,9 +932,40 @@ public class AccessLogger implements
    */
   public static void logModifyDNRequest(ModifyDNOperation modifyDNOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logModifyDNRequest(modifyDNOperation);
+    }
+  }
+
+
+
+  /**
+   * Writes a message to the access logger containing additional
+   * information associated with the provided modify DN operation.
+   * <p>
+   * This method will only be called after the request has been logged
+   * and before the response. Implementations can choose to ignore
+   * intermediate responses or filter them based on their category.
+   *
+   * @param modifyDNOperation
+   *          The modify DN operation containing the information to use
+   *          to log the modify DN request.
+   * @param category
+   *          The category of the intermediate message.
+   * @param content
+   *          The content of the intermediate message. This comprises
+   *          of one or more key/value pairs which form the content of
+   *          the intermediate message.
+   */
+  public static void logModifyDNIntermediateMessage(
+      ModifyDNOperation modifyDNOperation, String category,
+      Map<String, String> content)
+  {
+    for (AccessLogPublisher<?> publisher : accessPublishers)
+    {
+      publisher.logModifyDNIntermediateMessage(modifyDNOperation,
+          category, content);
     }
   }
 
@@ -732,7 +981,7 @@ public class AccessLogger implements
    */
   public static void logModifyDNResponse(ModifyDNOperation modifyDNOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logModifyDNResponse(modifyDNOperation);
     }
@@ -749,9 +998,40 @@ public class AccessLogger implements
    */
   public static void logSearchRequest(SearchOperation searchOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logSearchRequest(searchOperation);
+    }
+  }
+
+
+
+  /**
+   * Writes a message to the access logger containing additional
+   * information associated with the provided search operation.
+   * <p>
+   * This method will only be called after the request has been logged
+   * and before the response. Implementations can choose to ignore
+   * intermediate responses or filter them based on their category.
+   *
+   * @param searchOperation
+   *          The search operation containing the information to use
+   *          to log the search request.
+   * @param category
+   *          The category of the intermediate message.
+   * @param content
+   *          The content of the intermediate message. This comprises
+   *          of one or more key/value pairs which form the content of
+   *          the intermediate message.
+   */
+  public static void logSearchIntermediateMessage(
+      SearchOperation searchOperation, String category,
+      Map<String, String> content)
+  {
+    for (AccessLogPublisher<?> publisher : accessPublishers)
+    {
+      publisher.logSearchIntermediateMessage(searchOperation,
+          category, content);
     }
   }
 
@@ -769,7 +1049,7 @@ public class AccessLogger implements
   public static void logSearchResultEntry(SearchOperation searchOperation,
                                           SearchResultEntry searchEntry)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logSearchResultEntry(searchOperation, searchEntry);
     }
@@ -788,7 +1068,7 @@ public class AccessLogger implements
   public static void logSearchResultReference(SearchOperation searchOperation,
                           SearchResultReference searchReference)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logSearchResultReference(searchOperation, searchReference);
     }
@@ -805,7 +1085,7 @@ public class AccessLogger implements
    */
   public static void logSearchResultDone(SearchOperation searchOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logSearchResultDone(searchOperation);
     }
@@ -822,7 +1102,7 @@ public class AccessLogger implements
    */
   public static void logUnbind(UnbindOperation unbindOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers)
+    for (AccessLogPublisher<?> publisher : accessPublishers)
     {
       publisher.logUnbind(unbindOperation);
     }

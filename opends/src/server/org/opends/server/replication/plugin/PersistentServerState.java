@@ -64,7 +64,7 @@ import org.opends.server.types.SearchScope;
 /**
  * This class implements a ServerState that is stored on the backends
  * used to store the synchronized data and that is therefore persistent
- * accross server reboot.
+ * across server reboot.
  */
 public class PersistentServerState extends ServerState
 {
@@ -155,7 +155,7 @@ public class PersistentServerState extends ServerState
    * Run a search operation to find the base entry
    * of the replication domain for which this ServerState was created.
    *
-   * @return Thebasen Entry or null if no entry was found;
+   * @return The base entry or null if no entry was found;
    */
   private SearchResultEntry searchBaseEntry()
   {
@@ -264,8 +264,7 @@ public class PersistentServerState extends ServerState
     if (attrs != null)
     {
       Attribute attr = attrs.get(0);
-      LinkedHashSet<AttributeValue> values = attr.getValues();
-      for (AttributeValue value : values)
+      for (AttributeValue value : attr)
       {
         ChangeNumber changeNumber =
           new ChangeNumber(value.getStringValue());
@@ -276,9 +275,9 @@ public class PersistentServerState extends ServerState
 
   /**
    * Save the current values of this PersistentState object
-   * in the appropiate entry of the database.
+   * in the appropriate entry of the database.
    *
-   * @return a ResultCode indicating if the method was successfull.
+   * @return a ResultCode indicating if the method was successful.
    */
   private ResultCode updateStateEntry()
   {
@@ -412,7 +411,7 @@ public class PersistentServerState extends ServerState
         for (SearchResultEntry resEntry : op.getSearchEntries())
         {
           List<Attribute> attrs = resEntry.getAttribute(histType);
-          Iterator<AttributeValue> iav = attrs.get(0).getValues().iterator();
+          Iterator<AttributeValue> iav = attrs.get(0).iterator();
           try
           {
             while (true)

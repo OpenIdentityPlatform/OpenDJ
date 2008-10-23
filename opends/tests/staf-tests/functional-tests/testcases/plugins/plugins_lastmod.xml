@@ -176,7 +176,6 @@
     <message>'-- Disable the lastmod plugin --'</message>   
     <call function="'dsconfig'">
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
         'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
         'subcommand'          : 'set-plugin-prop' ,
@@ -241,7 +240,6 @@
     <message>'-- Enable the lastmod plugin --'</message>   
     <call function="'dsconfig'">
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
         'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
         'subcommand'          : 'set-plugin-prop' ,
@@ -274,7 +272,6 @@
     <message>'-- Disable the lastmod plugin --'</message>   
     <call function="'dsconfig'">
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
         'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
         'subcommand'          : 'set-plugin-prop' ,
@@ -329,7 +326,6 @@
     <message>'-- Enable the lastmod plugin --'</message>   
     <call function="'dsconfig'">
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
         'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
         'subcommand'          : 'set-plugin-prop' ,

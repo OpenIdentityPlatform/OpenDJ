@@ -65,7 +65,7 @@ public class DataReplicationOptions
   private AuthenticationData authenticationData = new AuthenticationData();
   {
     authenticationData.setDn(Constants.DIRECTORY_MANAGER_DN);
-    authenticationData.setPort(389);
+    authenticationData.setPort(4444);
   };
 
   /**

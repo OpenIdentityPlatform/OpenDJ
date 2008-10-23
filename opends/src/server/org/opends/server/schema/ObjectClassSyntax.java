@@ -1375,5 +1375,15 @@ public class ObjectClassSyntax
       return superiorChainIncludesTop(superiorClass.getSuperiorClass());
     }
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

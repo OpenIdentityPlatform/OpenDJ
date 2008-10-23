@@ -88,7 +88,7 @@ public class ConfigFileHandlerTestCase
   public void testChangingStructuralClass()
          throws Exception
   {
-    int resultCode = TestCaseUtils.applyModifications(
+    int resultCode = TestCaseUtils.applyModifications(true,
       "dn: cn=config",
       "changetype: modify",
       "replace: objectClass",

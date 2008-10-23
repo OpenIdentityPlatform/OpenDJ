@@ -28,10 +28,16 @@ package org.opends.server.workflowelement.localbackend;
 
 
 
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -61,19 +67,19 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicy;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.AuthPasswordSyntax;
-import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
+import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.LockManager;
@@ -86,16 +92,9 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SynchronizationProviderResult;
 import org.opends.server.types.operation.PostOperationAddOperation;
 import org.opends.server.types.operation.PostResponseAddOperation;
-import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PostSynchronizationAddOperation;
+import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.util.TimeThread;
-
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -887,13 +886,8 @@ addProcessing:
           if (isSynchronizationOperation() ||
               DirectoryServer.addMissingRDNAttributes())
           {
-            LinkedHashSet<AttributeValue> valueList =
-                 new LinkedHashSet<AttributeValue>(1);
-            valueList.add(v);
-
             attrList = new ArrayList<Attribute>();
-            attrList.add(new Attribute(t, n, valueList));
-
+            attrList.add(Attributes.create(t, n, v));
             operationalAttributes.put(t, attrList);
           }
           else
@@ -906,33 +900,31 @@ addProcessing:
         else
         {
           boolean found = false;
-          for (Attribute a : attrList)
-          {
+          for (int j = 0; j < attrList.size(); j++) {
+            Attribute a = attrList.get(j);
+
             if (a.hasOptions())
             {
               continue;
             }
-            else
-            {
-              if (! a.hasValue(v))
-              {
-                a.getValues().add(v);
-              }
 
-              found = true;
-              break;
+            if (!a.contains(v))
+            {
+              AttributeBuilder builder = new AttributeBuilder(a);
+              builder.add(v);
+              attrList.set(j, builder.toAttribute());
             }
+
+            found = true;
+            break;
           }
 
-          if (! found)
+          if (!found)
           {
             if (isSynchronizationOperation() ||
                 DirectoryServer.addMissingRDNAttributes())
             {
-              LinkedHashSet<AttributeValue> valueList =
-                   new LinkedHashSet<AttributeValue>(1);
-              valueList.add(v);
-              attrList.add(new Attribute(t, n, valueList));
+              attrList.add(Attributes.create(t, n, v));
             }
             else
             {
@@ -951,13 +943,8 @@ addProcessing:
           if (isSynchronizationOperation() ||
               DirectoryServer.addMissingRDNAttributes())
           {
-            LinkedHashSet<AttributeValue> valueList =
-                 new LinkedHashSet<AttributeValue>(1);
-            valueList.add(v);
-
             attrList = new ArrayList<Attribute>();
-            attrList.add(new Attribute(t, n, valueList));
-
+            attrList.add(Attributes.create(t, n, v));
             userAttributes.put(t, attrList);
           }
           else
@@ -970,33 +957,31 @@ addProcessing:
         else
         {
           boolean found = false;
-          for (Attribute a : attrList)
-          {
+          for (int j = 0; j < attrList.size(); j++) {
+            Attribute a = attrList.get(j);
+
             if (a.hasOptions())
             {
               continue;
             }
-            else
-            {
-              if (! a.hasValue(v))
-              {
-                a.getValues().add(v);
-              }
 
-              found = true;
-              break;
+            if (!a.contains(v))
+            {
+              AttributeBuilder builder = new AttributeBuilder(a);
+              builder.add(v);
+              attrList.set(j, builder.toAttribute());
             }
+
+            found = true;
+            break;
           }
 
-          if (! found)
+          if (!found)
           {
             if (isSynchronizationOperation() ||
                 DirectoryServer.addMissingRDNAttributes())
             {
-              LinkedHashSet<AttributeValue> valueList =
-                   new LinkedHashSet<AttributeValue>(1);
-              valueList.add(v);
-              attrList.add(new Attribute(t, n, valueList));
+              attrList.add(Attributes.create(t, n, v));
             }
             else
             {
@@ -1057,8 +1042,7 @@ addProcessing:
     if ((pwAttrList != null) && (! pwAttrList.isEmpty()))
     {
       Attribute a = pwAttrList.get(0);
-      LinkedHashSet<AttributeValue> valueSet = a.getValues();
-      Iterator<AttributeValue> iterator = valueSet.iterator();
+      Iterator<AttributeValue> iterator = a.iterator();
       if (iterator.hasNext())
       {
         DN policyDN;
@@ -1120,28 +1104,29 @@ addProcessing:
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
-    LinkedHashSet<AttributeValue> values = passwordAttr.getValues();
-    if (values.isEmpty())
+    if (passwordAttr.isEmpty())
     {
       // This will be treated the same as not having a password.
       return;
     }
 
-    if ((! passwordPolicy.allowMultiplePasswordValues()) && (values.size() > 1))
+    if ((!passwordPolicy.allowMultiplePasswordValues())
+        && (passwordAttr.size() > 1))
     {
-      // FIXME -- What if they're pre-encoded and might all be the same?
+      // FIXME -- What if they're pre-encoded and might all be the
+      // same?
       addPWPolicyControl(PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED);
 
-      Message message = ERR_PWPOLICY_MULTIPLE_PW_VALUES_NOT_ALLOWED.get(
-          passwordAttribute.getNameOrOID());
+      Message message = ERR_PWPOLICY_MULTIPLE_PW_VALUES_NOT_ALLOWED
+          .get(passwordAttribute.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
-    CopyOnWriteArrayList<PasswordStorageScheme> defaultStorageSchemes =
+    CopyOnWriteArrayList<PasswordStorageScheme<?>> defaultStorageSchemes =
          passwordPolicy.getDefaultStorageSchemes();
-    LinkedHashSet<AttributeValue> newValues =
-         new LinkedHashSet<AttributeValue>(defaultStorageSchemes.size());
-    for (AttributeValue v : values)
+    AttributeBuilder builder = new AttributeBuilder(passwordAttr, true);
+    builder.setInitialCapacity(defaultStorageSchemes.size());
+    for (AttributeValue v : passwordAttr)
     {
       ByteString value = v.getValue();
 
@@ -1152,7 +1137,7 @@ addProcessing:
         {
           if (passwordPolicy.allowPreEncodedPasswords())
           {
-            newValues.add(v);
+            builder.add(v);
             continue;
           }
           else
@@ -1173,7 +1158,7 @@ addProcessing:
         {
           if (passwordPolicy.allowPreEncodedPasswords())
           {
-            newValues.add(v);
+            builder.add(v);
             continue;
           }
           else
@@ -1222,7 +1207,7 @@ addProcessing:
         for (PasswordStorageScheme s : defaultStorageSchemes)
         {
           ByteString encodedValue = s.encodeAuthPassword(value);
-          newValues.add(new AttributeValue(passwordAttribute, encodedValue));
+          builder.add(new AttributeValue(passwordAttribute, encodedValue));
         }
       }
       else
@@ -1230,37 +1215,22 @@ addProcessing:
         for (PasswordStorageScheme s : defaultStorageSchemes)
         {
           ByteString encodedValue = s.encodePasswordWithScheme(value);
-          newValues.add(new AttributeValue(passwordAttribute, encodedValue));
+          builder.add(new AttributeValue(passwordAttribute, encodedValue));
         }
       }
     }
 
 
     // Put the new encoded values in the entry.
-    passwordAttr.setValues(newValues);
+    entry.replaceAttribute(builder.toAttribute());
 
 
     // Set the password changed time attribute.
-    ByteString timeString =
-         new ASN1OctetString(TimeThread.getGeneralizedTime());
-    AttributeType changedTimeType =
-         DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_CHANGED_TIME_LC);
-    if (changedTimeType == null)
-    {
-      changedTimeType = DirectoryServer.getDefaultAttributeType(
-                                             OP_ATTR_PWPOLICY_CHANGED_TIME);
-    }
-
-    LinkedHashSet<AttributeValue> changedTimeValues =
-         new LinkedHashSet<AttributeValue>(1);
-    changedTimeValues.add(new AttributeValue(changedTimeType, timeString));
-
     ArrayList<Attribute> changedTimeList = new ArrayList<Attribute>(1);
-    changedTimeList.add(new Attribute(changedTimeType,
-                                      OP_ATTR_PWPOLICY_CHANGED_TIME,
-                                      changedTimeValues));
-
-    entry.putAttribute(changedTimeType, changedTimeList);
+    Attribute changedTime = Attributes.create(
+        OP_ATTR_PWPOLICY_CHANGED_TIME, TimeThread.getGeneralizedTime());
+    changedTimeList.add(changedTime);
+    entry.putAttribute(changedTime.getAttributeType(), changedTimeList);
 
 
     // If we should force change on add, then set the appropriate flag.
@@ -1268,22 +1238,11 @@ addProcessing:
     {
       addPWPolicyControl(PasswordPolicyErrorType.CHANGE_AFTER_RESET);
 
-      AttributeType resetType =
-           DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_RESET_REQUIRED_LC);
-      if (resetType == null)
-      {
-        resetType = DirectoryServer.getDefaultAttributeType(
-                                         OP_ATTR_PWPOLICY_RESET_REQUIRED);
-      }
-
-      LinkedHashSet<AttributeValue> resetValues = new
-           LinkedHashSet<AttributeValue>(1);
-      resetValues.add(BooleanSyntax.createBooleanValue(true));
-
       ArrayList<Attribute> resetList = new ArrayList<Attribute>(1);
-      resetList.add(new Attribute(resetType, OP_ATTR_PWPOLICY_RESET_REQUIRED,
-                                  resetValues));
-      entry.putAttribute(resetType, resetList);
+      Attribute reset = Attributes.create(
+          OP_ATTR_PWPOLICY_RESET_REQUIRED, "TRUE");
+      resetList.add(reset);
+      entry.putAttribute(reset.getAttributeType(), resetList);
     }
   }
 
@@ -1336,10 +1295,10 @@ addProcessing:
           {
             for (Attribute a : attrList)
             {
-              AttributeSyntax syntax = a.getAttributeType().getSyntax();
+              AttributeSyntax<?> syntax = a.getAttributeType().getSyntax();
               if (syntax != null)
               {
-                for (AttributeValue v : a.getValues())
+                for (AttributeValue v : a)
                 {
                   if (! syntax.valueIsAcceptable(v.getValue(), invalidReason))
                   {
@@ -1363,10 +1322,10 @@ addProcessing:
           {
             for (Attribute a : attrList)
             {
-              AttributeSyntax syntax = a.getAttributeType().getSyntax();
+              AttributeSyntax<?> syntax = a.getAttributeType().getSyntax();
               if (syntax != null)
               {
-                for (AttributeValue v : a.getValues())
+                for (AttributeValue v : a)
                 {
                   if (! syntax.valueIsAcceptable(v.getValue(),
                                                  invalidReason))
@@ -1395,10 +1354,10 @@ addProcessing:
           {
             for (Attribute a : attrList)
             {
-              AttributeSyntax syntax = a.getAttributeType().getSyntax();
+              AttributeSyntax<?> syntax = a.getAttributeType().getSyntax();
               if (syntax != null)
               {
-                for (AttributeValue v : a.getValues())
+                for (AttributeValue v : a)
                 {
                   if (! syntax.valueIsAcceptable(v.getValue(),
                                                  invalidReason))
@@ -1418,10 +1377,10 @@ addProcessing:
           {
             for (Attribute a : attrList)
             {
-              AttributeSyntax syntax = a.getAttributeType().getSyntax();
+              AttributeSyntax<?> syntax = a.getAttributeType().getSyntax();
               if (syntax != null)
               {
-                for (AttributeValue v : a.getValues())
+                for (AttributeValue v : a)
                 {
                   if (! syntax.valueIsAcceptable(v.getValue(),
                                                  invalidReason))

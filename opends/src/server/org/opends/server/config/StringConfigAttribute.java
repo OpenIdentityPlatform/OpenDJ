@@ -33,6 +33,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+
 import javax.management.AttributeList;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanParameterInfo;
@@ -256,7 +257,7 @@ public final class StringConfigAttribute
    *
    * @return  The attribute syntax for this configuration attribute.
    */
-  public AttributeSyntax getSyntax()
+  public AttributeSyntax<?> getSyntax()
   {
     return DirectoryServer.getDefaultStringSyntax();
   }
@@ -745,8 +746,7 @@ public final class StringConfigAttribute
           }
 
 
-          LinkedHashSet<AttributeValue> values = a.getValues();
-          if (values.isEmpty())
+          if (a.isEmpty())
           {
             if (isRequired())
             {
@@ -762,7 +762,7 @@ public final class StringConfigAttribute
           }
           else
           {
-            int numValues = values.size();
+            int numValues = a.size();
             if ((numValues > 1) && (! isMultiValued()))
             {
               // This is illegal -- the attribute is single-valued.
@@ -772,7 +772,7 @@ public final class StringConfigAttribute
             }
 
             pendingValues = new ArrayList<String>(numValues);
-            for (AttributeValue v : values)
+            for (AttributeValue v : a)
             {
               pendingValues.add(v.getStringValue());
             }
@@ -799,8 +799,7 @@ public final class StringConfigAttribute
         }
 
 
-        LinkedHashSet<AttributeValue> values = a.getValues();
-        if (values.isEmpty())
+        if (a.isEmpty())
         {
           if (isRequired())
           {
@@ -816,7 +815,7 @@ public final class StringConfigAttribute
         }
         else
         {
-          int numValues = values.size();
+          int numValues = a.size();
           if ((numValues > 1) && (! isMultiValued()))
           {
             // This is illegal -- the attribute is single-valued.
@@ -826,7 +825,7 @@ public final class StringConfigAttribute
           }
 
           activeValues = new ArrayList<String>(numValues);
-          for (AttributeValue v : values)
+          for (AttributeValue v : a)
           {
             activeValues.add(v.getStringValue());
           }

@@ -48,7 +48,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.Control;
@@ -312,7 +312,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
     ASN1OctetString password = new ASN1OctetString("password");
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("userpassword", "password")));
+        Attributes.create("userpassword", "password")));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -381,7 +381,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
     ASN1OctetString password = new ASN1OctetString("passsword");
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("userpassword", "passsword")));
+        Attributes.create("userpassword", "passsword")));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -449,7 +449,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
     ASN1OctetString password = new ASN1OctetString("passSword");
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("userpassword", "passSword")));
+        Attributes.create("userpassword", "passSword")));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -518,7 +518,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
     ASN1OctetString password = new ASN1OctetString("passSword");
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("userpassword", "passSword")));
+        Attributes.create("userpassword", "passSword")));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -585,7 +585,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
     ASN1OctetString password = new ASN1OctetString("aaaaaaaa");
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("userpassword", "aaaaaaaa")));
+        Attributes.create("userpassword", "aaaaaaaa")));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -653,7 +653,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
     ASN1OctetString password = new ASN1OctetString("aaaaaaaa");
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("userpassword", "aaaaaaaa")));
+        Attributes.create("userpassword", "aaaaaaaa")));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();

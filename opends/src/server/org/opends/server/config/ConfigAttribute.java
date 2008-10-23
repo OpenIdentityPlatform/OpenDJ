@@ -266,7 +266,7 @@ public abstract class ConfigAttribute
    *
    * @return  The attribute syntax for this configuration attribute.
    */
-  public abstract AttributeSyntax getSyntax();
+  public abstract AttributeSyntax<?> getSyntax();
 
 
 

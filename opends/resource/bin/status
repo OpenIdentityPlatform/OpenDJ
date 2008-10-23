@@ -27,7 +27,7 @@
 
 
 # This script may be used to display the status panel.
-OPENDS_INVOKE_CLASS="org.opends.guitools.statuspanel.StatusCli"
+OPENDS_INVOKE_CLASS="org.opends.server.tools.status.StatusCli"
 export OPENDS_INVOKE_CLASS
 
 SCRIPT_NAME="status"

@@ -29,7 +29,6 @@ package org.opends.server.plugins;
 
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -44,8 +43,10 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DebugLogLevel;
@@ -176,36 +177,31 @@ public final class LastModPlugin
                doPreOperation(PreOperationAddOperation addOperation)
   {
     // Create the attribute list for the creatorsName attribute, if appropriate.
+    AttributeBuilder builder = new AttributeBuilder(creatorsNameType,
+        OP_ATTR_CREATORS_NAME);
     DN creatorDN = addOperation.getAuthorizationDN();
-    LinkedHashSet<AttributeValue> nameValues =
-         new LinkedHashSet<AttributeValue>(1);
     if (creatorDN == null)
     {
-      // This must mean that the operation was performed anonymously.  Even so,
-      // we still need to update the creatorsName attribute.
-      nameValues.add(new AttributeValue(creatorsNameType,
-                                        ByteStringFactory.create()));
+      // This must mean that the operation was performed anonymously.
+      // Even so, we still need to update the creatorsName attribute.
+      builder.add(new AttributeValue(creatorsNameType, ByteStringFactory
+          .create()));
     }
     else
     {
-      nameValues.add(new AttributeValue(creatorsNameType,
-           ByteStringFactory.create(creatorDN.toString())));
+      builder.add(new AttributeValue(creatorsNameType, ByteStringFactory
+          .create(creatorDN.toString())));
     }
-    Attribute nameAttr = new Attribute(creatorsNameType, OP_ATTR_CREATORS_NAME,
-                                       nameValues);
+    Attribute nameAttr = builder.toAttribute();
     ArrayList<Attribute> nameList = new ArrayList<Attribute>(1);
     nameList.add(nameAttr);
     addOperation.setAttribute(creatorsNameType, nameList);
 
 
     //  Create the attribute list for the createTimestamp attribute.
-    LinkedHashSet<AttributeValue> timeValues =
-         new LinkedHashSet<AttributeValue>(1);
-    timeValues.add(new AttributeValue(createTimestampType,
-                                      ByteStringFactory.create(getGMTTime())));
-
-    Attribute timeAttr = new Attribute(createTimestampType,
-                                       OP_ATTR_CREATE_TIMESTAMP, timeValues);
+    Attribute timeAttr = Attributes.create(createTimestampType,
+        OP_ATTR_CREATE_TIMESTAMP, new AttributeValue(createTimestampType,
+            ByteStringFactory.create(getGMTTime())));
     ArrayList<Attribute> timeList = new ArrayList<Attribute>(1);
     timeList.add(timeAttr);
     addOperation.setAttribute(createTimestampType, timeList);
@@ -225,23 +221,22 @@ public final class LastModPlugin
        doPreOperation(PreOperationModifyOperation modifyOperation)
   {
     // Create the modifiersName attribute.
+    AttributeBuilder builder = new AttributeBuilder(modifiersNameType,
+        OP_ATTR_MODIFIERS_NAME);
     DN modifierDN = modifyOperation.getAuthorizationDN();
-    LinkedHashSet<AttributeValue> nameValues =
-         new LinkedHashSet<AttributeValue>(1);
     if (modifierDN == null)
     {
-      // This must mean that the operation was performed anonymously.  Even so,
-      // we still need to update the modifiersName attribute.
-      nameValues.add(new AttributeValue(modifiersNameType,
-                                        ByteStringFactory.create()));
+      // This must mean that the operation was performed anonymously.
+      // Even so, we still need to update the modifiersName attribute.
+      builder.add(new AttributeValue(modifiersNameType, ByteStringFactory
+          .create()));
     }
     else
     {
-      nameValues.add(new AttributeValue(modifiersNameType,
-           ByteStringFactory.create(modifierDN.toString())));
+      builder.add(new AttributeValue(modifiersNameType, ByteStringFactory
+          .create(modifierDN.toString())));
     }
-    Attribute nameAttr = new Attribute(modifiersNameType,
-                                       OP_ATTR_MODIFIERS_NAME, nameValues);
+    Attribute nameAttr = builder.toAttribute();
     try
     {
       modifyOperation.addModification(new Modification(ModificationType.REPLACE,
@@ -261,13 +256,9 @@ public final class LastModPlugin
 
 
     //  Create the modifyTimestamp attribute.
-    LinkedHashSet<AttributeValue> timeValues =
-         new LinkedHashSet<AttributeValue>(1);
-    timeValues.add(new AttributeValue(modifyTimestampType,
-                                      ByteStringFactory.create(getGMTTime())));
-
-    Attribute timeAttr = new Attribute(modifyTimestampType,
-                                       OP_ATTR_MODIFY_TIMESTAMP, timeValues);
+    Attribute timeAttr = Attributes.create(modifyTimestampType,
+        OP_ATTR_MODIFY_TIMESTAMP, new AttributeValue(modifyTimestampType,
+            ByteStringFactory.create(getGMTTime())));
     try
     {
       modifyOperation.addModification(new Modification(ModificationType.REPLACE,
@@ -300,37 +291,32 @@ public final class LastModPlugin
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
     // Create the modifiersName attribute.
+    AttributeBuilder builder = new AttributeBuilder(modifiersNameType,
+        OP_ATTR_MODIFIERS_NAME);
     DN modifierDN = modifyDNOperation.getAuthorizationDN();
-    LinkedHashSet<AttributeValue> nameValues =
-         new LinkedHashSet<AttributeValue>(1);
     if (modifierDN == null)
     {
-      // This must mean that the operation was performed anonymously.  Even so,
-      // we still need to update the modifiersName attribute.
-      nameValues.add(new AttributeValue(modifiersNameType,
-                                        ByteStringFactory.create()));
+      // This must mean that the operation was performed anonymously.
+      // Even so, we still need to update the modifiersName attribute.
+      builder.add(new AttributeValue(modifiersNameType, ByteStringFactory
+          .create()));
     }
     else
     {
-      nameValues.add(new AttributeValue(modifiersNameType,
-           ByteStringFactory.create(modifierDN.toString())));
+      builder.add(new AttributeValue(modifiersNameType, ByteStringFactory
+          .create(modifierDN.toString())));
     }
-    Attribute nameAttr = new Attribute(modifiersNameType,
-                                       OP_ATTR_MODIFIERS_NAME, nameValues);
-    modifyDNOperation.addModification(new Modification(ModificationType.REPLACE,
-                                                       nameAttr, true));
+    Attribute nameAttr = builder.toAttribute();
+    modifyDNOperation.addModification(new Modification(
+        ModificationType.REPLACE, nameAttr, true));
 
 
-    //  Create the modifyTimestamp attribute.
-    LinkedHashSet<AttributeValue> timeValues =
-         new LinkedHashSet<AttributeValue>(1);
-    timeValues.add(new AttributeValue(modifyTimestampType,
-                                      ByteStringFactory.create(getGMTTime())));
-
-    Attribute timeAttr = new Attribute(modifyTimestampType,
-                                       OP_ATTR_MODIFY_TIMESTAMP, timeValues);
-    modifyDNOperation.addModification(new Modification(ModificationType.REPLACE,
-                                                       timeAttr, true));
+    // Create the modifyTimestamp attribute.
+    Attribute timeAttr = Attributes.create(modifyTimestampType,
+        OP_ATTR_MODIFY_TIMESTAMP, new AttributeValue(modifyTimestampType,
+            ByteStringFactory.create(getGMTTime())));
+    modifyDNOperation.addModification(new Modification(
+        ModificationType.REPLACE, timeAttr, true));
 
 
     // We shouldn't ever need to return a non-success result.

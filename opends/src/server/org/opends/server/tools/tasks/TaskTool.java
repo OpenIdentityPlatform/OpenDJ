@@ -48,6 +48,7 @@ import org.opends.server.backends.task.TaskState;
 import org.opends.server.backends.task.FailedDependencyAction;
 import org.opends.messages.Message;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.TaskMessages.*;
 
 import java.io.PrintStream;
 import java.text.ParseException;
@@ -59,6 +60,7 @@ import java.util.LinkedList;
 import java.util.EnumSet;
 import java.util.Collections;
 import java.io.IOException;
+import javax.net.ssl.SSLException;
 
 /**
  * Base class for tools that are capable of operating either by running
@@ -105,6 +107,9 @@ public abstract class TaskTool implements TaskScheduleInformation {
   // mode.
   BooleanArgument testIfOfflineArg;
 
+  // This CLI is always using the administration connector with SSL
+  private final boolean alwaysSSL = true;
+
   /**
    * Called when this utility should perform its actions locally in this
    * JVM.
@@ -134,7 +139,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
             INFO_DESCRIPTION_TASK_LDAP_ARGS.get(), 1001);
 
     argParser = new LDAPConnectionArgumentParser(className,
-            toolDescription, false, ldapGroup);
+            toolDescription, false, ldapGroup, alwaysSSL);
 
     ArgumentGroup taskGroup = new ArgumentGroup(
             INFO_DESCRIPTION_TASK_TASK_ARGS.get(), 1000);
@@ -456,7 +461,15 @@ public abstract class TaskTool implements TaskScheduleInformation {
         }
         ret = 0;
       } catch (LDAPConnectionException e) {
-        Message message = ERR_TASK_TOOL_START_TIME_NO_LDAP.get(e.getMessage());
+        Message message = null;
+        if ((e.getCause() != null) && (e.getCause().getCause() != null) &&
+          e.getCause().getCause() instanceof SSLException) {
+          message = ERR_TASK_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(
+            argParser.getArguments().getHostName(),
+            argParser.getArguments().getPort());
+        } else {
+          message = ERR_TASK_TOOL_START_TIME_NO_LDAP.get(e.getMessage());
+        }
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;
       } catch (IOException ioe) {

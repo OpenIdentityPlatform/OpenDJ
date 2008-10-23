@@ -1618,6 +1618,39 @@ ds-cfg-plugin-type: postSynchronizationModifyDN
 ds-cfg-type: uid
 ds-cfg-invoke-for-internal-operations: true
 
+dn: cn=Network Group,cn=Plugins,cn=config
+objectClass: top
+objectClass: ds-cfg-plugin
+objectClass: ds-cfg-network-group-plugin
+cn: Network Group
+ds-cfg-java-class: org.opends.server.plugins.NetworkGroupPlugin
+ds-cfg-enabled: true
+ds-cfg-invoke-for-internal-operations: false
+ds-cfg-plugin-type: postConnect
+ds-cfg-plugin-type: preParseAdd
+ds-cfg-plugin-type: preParseBind
+ds-cfg-plugin-type: preParseCompare
+ds-cfg-plugin-type: preParseDelete
+ds-cfg-plugin-type: preParseExtended
+ds-cfg-plugin-type: preParseModify
+ds-cfg-plugin-type: preParseModifyDn
+ds-cfg-plugin-type: preParseSearch
+ds-cfg-plugin-type: preParseUnbind
+ds-cfg-plugin-type: postResponseBind
+ds-cfg-plugin-type: postResponseExtended
+
+dn: cn=Change Number Control,cn=Plugins,cn=config
+objectClass: top
+objectClass: ds-cfg-plugin
+objectClass: ds-cfg-change-number-control-plugin
+cn: Change Number Control
+ds-cfg-enabled: true
+ds-cfg-plugin-type: postOperationAdd
+ds-cfg-plugin-type: postOperationDelete
+ds-cfg-plugin-type: postOperationModify
+ds-cfg-plugin-type: postOperationModifyDn
+ds-cfg-java-class: org.opends.server.plugins.ChangeNumberControlPlugin
+
 dn: cn=Root DNs,cn=config
 objectClass: top
 objectClass: ds-cfg-root-dn
@@ -2219,6 +2252,37 @@ cn: Work Queue
 ds-cfg-java-class: org.opends.server.extensions.TraditionalWorkQueue
 ds-cfg-num-worker-threads: 24
 ds-cfg-max-work-queue-capacity: 0
+
+dn: cn=Administration Connector,cn=config
+objectClass: top
+objectClass: ds-cfg-administration-connector
+cn: Administration Connector
+ds-cfg-listen-address: 0.0.0.0
+ds-cfg-listen-port: 4444
+ds-cfg-ssl-cert-nickname: admin-cert
+ds-cfg-key-manager-provider: cn=Administration,cn=Key Manager Providers,cn=config
+ds-cfg-trust-manager-provider: cn=Administration,cn=Trust Manager Providers,cn=config
+
+dn: cn=Administration,cn=Key Manager Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-key-manager-provider
+objectClass: ds-cfg-file-based-key-manager-provider
+cn: Administration
+ds-cfg-java-class: org.opends.server.extensions.FileBasedKeyManagerProvider
+ds-cfg-enabled: true
+ds-cfg-key-store-type: JKS
+ds-cfg-key-store-file: config/admin-keystore
+ds-cfg-key-store-pin-file: config/admin-keystore.pin
+
+dn: cn=Administration,cn=Trust Manager Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-trust-manager-provider
+objectClass: ds-cfg-file-based-trust-manager-provider
+cn: Administration
+ds-cfg-java-class: org.opends.server.extensions.FileBasedTrustManagerProvider
+ds-cfg-enabled: true
+ds-cfg-trust-store-type: JKS
+ds-cfg-trust-store-file: config/admin-truststore
 
 dn: cn=Extensions,cn=config
 objectClass: top

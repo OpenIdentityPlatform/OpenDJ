@@ -283,7 +283,6 @@
           <message>'----  Configure SSL  and TLS----'</message>
           <call function="'configureSSL_TLS'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'keystorePin'    : SERVER_STOREPASS,

@@ -227,5 +227,15 @@ public class SupportedAlgorithmSyntax
     // All values will be acceptable for the supported algorithm syntax.
     return true;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return true;
+  }
 }
 

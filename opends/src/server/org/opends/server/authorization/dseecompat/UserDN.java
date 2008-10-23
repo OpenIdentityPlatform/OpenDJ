@@ -359,8 +359,7 @@ public class UserDN implements KeywordBindRule {
                                            AttributeType attrType) {
         EnumEvalResult matched= EnumEvalResult.FALSE;
         List<Attribute> attrs =  e.getAttribute(attrType);
-        LinkedHashSet<AttributeValue> vals = attrs.get(0).getValues();
-        for(AttributeValue v : vals) {
+        for(AttributeValue v : attrs.get(0)) {
             try {
                 DN dn=DN.decode(v.getStringValue());
                 if(dn.equals(clientDN)) {

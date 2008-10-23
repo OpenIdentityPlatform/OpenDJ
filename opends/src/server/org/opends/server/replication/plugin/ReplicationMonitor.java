@@ -27,14 +27,15 @@
 package org.opends.server.replication.plugin;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 
 /**
  * Class used to generate monitoring information for the replication.
@@ -88,11 +89,13 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
 
     /* get the base dn */
-    Attribute attr = new Attribute("base-dn", domain.getBaseDN().toString());
+    Attribute attr = Attributes.create("base-dn", domain.getBaseDN()
+        .toString());
     attributes.add(attr);
 
     /* get the base dn */
-    attr = new Attribute("connected-to", domain.getReplicationServer());
+    attr = Attributes.create("connected-to", domain
+        .getReplicationServer());
     attributes.add(attr);
 
     /* get number of lost connections */
@@ -146,18 +149,17 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
     final String ATTR_SERVER_STATE = "server-state";
     AttributeType type =
       DirectoryServer.getDefaultAttributeType(ATTR_SERVER_STATE);
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
+    AttributeBuilder builder = new AttributeBuilder(type, ATTR_SERVER_STATE);
     for (String str : domain.getServerState().toStringSet())
     {
-      values.add(new AttributeValue(type,str));
+      builder.add(new AttributeValue(type,str));
     }
-    attr = new Attribute(type, ATTR_SERVER_STATE, values);
-    attributes.add(attr);
+    attributes.add(builder.toAttribute());
 
-    attributes.add(new Attribute("ssl-encryption",
+    attributes.add(Attributes.create("ssl-encryption",
         String.valueOf(domain.isSessionEncrypted())));
 
-    attributes.add(new Attribute("generation-id",
+    attributes.add(Attributes.create("generation-id",
         String.valueOf(domain.getGenerationId())));
 
     return attributes;
@@ -172,17 +174,12 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
    * @param name the name of the attribute to add.
    * @param value The integer value of he attribute to add.
    */
-  private void addMonitorData(ArrayList<Attribute> attributes,
-       String name, int value)
+  private void addMonitorData(ArrayList<Attribute> attributes, String name,
+      int value)
   {
-    Attribute attr;
-    AttributeType type;
-    LinkedHashSet<AttributeValue> values;
-    type =  DirectoryServer.getDefaultAttributeType(name);
-    values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(type, String.valueOf(value)));
-    attr = new Attribute(type, name, values);
-    attributes.add(attr);
+    AttributeType type = DirectoryServer.getDefaultAttributeType(name);
+    attributes.add(Attributes.create(type, new AttributeValue(type,
+        String.valueOf(value))));
   }
 
   /**

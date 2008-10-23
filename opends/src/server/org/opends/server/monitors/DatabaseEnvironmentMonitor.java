@@ -26,21 +26,25 @@
  */
 package org.opends.server.monitors;
 
+
+
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MonitorProvider;
+import org.opends.server.backends.jeb.RootContainer;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
-import org.opends.server.backends.jeb.RootContainer;
 
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.EnvironmentStats;
@@ -49,9 +53,7 @@ import com.sleepycat.je.LockStats;
 import com.sleepycat.je.StatsConfig;
 import com.sleepycat.je.TransactionStats;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.lang.reflect.Method;
+
 
 /**
  * A monitor provider for a Berkeley DB JE environment.
@@ -155,7 +157,7 @@ public class DatabaseEnvironmentMonitor
   private void addAttributesForStatsObject(ArrayList<Attribute> monitorAttrs,
                                            Object stats, String attrPrefix)
   {
-    Class c = stats.getClass();
+    Class<?> c = stats.getClass();
     Method[] methods = c.getMethods();
 
     // Iterate through all the statistic class methods.
@@ -167,7 +169,7 @@ public class DatabaseEnvironmentMonitor
         Class<?> returnType = method.getReturnType();
         if (returnType.equals(int.class) || returnType.equals(long.class))
         {
-          AttributeSyntax integerSyntax =
+          AttributeSyntax<?> integerSyntax =
                DirectoryServer.getDefaultIntegerSyntax();
 
           // Remove the 'get' from the method name and add the prefix.
@@ -182,12 +184,8 @@ public class DatabaseEnvironmentMonitor
             AttributeType attrType =
                  DirectoryServer.getDefaultAttributeType(attrName,
                                                          integerSyntax);
-            ASN1OctetString valueString =
-                 new ASN1OctetString(String.valueOf(statValue));
-            LinkedHashSet<AttributeValue> values =
-                 new LinkedHashSet<AttributeValue>();
-            values.add(new AttributeValue(valueString, valueString));
-            monitorAttrs.add(new Attribute(attrType, attrName, values));
+            monitorAttrs.add(Attributes.create(attrType, String
+                .valueOf(statValue)));
 
           } catch (Exception e)
           {
@@ -236,9 +234,7 @@ public class DatabaseEnvironmentMonitor
     String jeVersion = JEVersion.CURRENT_VERSION.getVersionString();
     AttributeType versionType =
          DirectoryServer.getDefaultAttributeType("JEVersion");
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(versionType, jeVersion));
-    monitorAttrs.add(new Attribute(versionType, "JEVersion", values));
+    monitorAttrs.add(Attributes.create(versionType, jeVersion));
 
     addAttributesForStatsObject(monitorAttrs, environmentStats, "Environment");
     addAttributesForStatsObject(monitorAttrs, lockStats, "Lock");

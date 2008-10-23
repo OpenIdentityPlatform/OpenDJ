@@ -99,7 +99,7 @@ public class HeartbeatThread extends DirectoryThread
         TRACER.debugInfo("Heartbeat thread is starting, interval is %d",
                   heartbeatInterval);
       }
-      HeartbeatMessage heartbeatMessage = new HeartbeatMessage();
+      HeartbeatMsg heartbeatMessage = new HeartbeatMsg();
 
       while (!shutdown)
       {

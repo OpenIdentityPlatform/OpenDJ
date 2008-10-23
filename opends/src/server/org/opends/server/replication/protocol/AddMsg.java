@@ -35,17 +35,19 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.LDAPException;
+import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.operation.PostOperationAddOperation;
 
@@ -56,9 +58,8 @@ import static org.opends.server.util.StaticUtils.toLowerCase;
  * This class is used to exchange Add operation between LDAP servers
  * and replication servers.
  */
-public class AddMsg extends UpdateMessage
+public class AddMsg extends UpdateMsg
 {
-  private static final long serialVersionUID = -4905520652801395185L;
   private byte[] encodedAttributes;
   private String parentUniqueId;
 
@@ -74,44 +75,83 @@ public class AddMsg extends UpdateMessage
     AddContext ctx = (AddContext) op.getAttachment(SYNCHROCONTEXT);
     this.parentUniqueId = ctx.getParentUid();
 
-    // Encode the object classes (SET OF LDAPString).
-    LinkedHashSet<AttributeValue> ocValues =
-      new LinkedHashSet<AttributeValue>(op.getObjectClasses().size());
-    for (String s : op.getObjectClasses().values())
+    this.encodedAttributes =
+      encodeAttributes(op.getObjectClasses(),
+          op.getUserAttributes(),
+          op.getOperationalAttributes());
+  }
+
+  private byte[] encodeAttributes(
+      Map<ObjectClass, String> objectClasses,
+      Map<AttributeType, List<Attribute>> userAttributes,
+      Map<AttributeType, List<Attribute>> operationalAttributes)
+  {
+    //  Encode the object classes (SET OF LDAPString).
+    AttributeBuilder builder = new AttributeBuilder(
+        DirectoryServer.getObjectClassAttributeType());
+    builder.setInitialCapacity(objectClasses.size());
+    for (String s : objectClasses.values())
     {
-      ocValues.add(new AttributeValue(new ASN1OctetString(s),
+      builder.add(new AttributeValue(new ASN1OctetString(s),
                          new ASN1OctetString(toLowerCase(s))));
     }
-
-    Attribute attr = new Attribute(
-                 DirectoryServer.getObjectClassAttributeType(),
-                 "objectClass", ocValues);
+    Attribute attr = builder.toAttribute();
 
     ArrayList<ASN1Element> elems = new ArrayList<ASN1Element>();
 
     elems.add(new LDAPAttribute(attr).encode());
 
     // Encode the user attributes (AttributeList).
-    for (List<Attribute> list : op.getUserAttributes().values())
+    for (List<Attribute> list : userAttributes.values())
     {
       for (Attribute a : list)
       {
-        elems.add(new LDAPAttribute(a).encode());
+        if (!a.isVirtual())
+          elems.add(new LDAPAttribute(a).encode());
       }
     }
 
     // Encode the operational attributes (AttributeList).
-    for (List<Attribute> list : op.getOperationalAttributes().values())
+    for (List<Attribute> list : operationalAttributes.values())
     {
       for (Attribute a : list)
       {
-        elems.add(new LDAPAttribute(a).encode());
+        if (!a.isVirtual())
+          elems.add(new LDAPAttribute(a).encode());
       }
     }
 
     // Encode the sequence.
-    encodedAttributes = ASN1Element.encodeValue(elems);
+    return ASN1Element.encodeValue(elems);
   }
+
+  /**
+   * Creates a new AddMessage.
+   *
+   * @param cn                    ChangeNumber of the add.
+   * @param dn                    DN of the added entry.
+   * @param uniqueId              The Unique identifier of the added entry.
+   * @param parentId              The unique Id of the parent of the added
+   *                              entry.
+   * @param objectClasses           objectclass of the added entry.
+   * @param userAttributes        user attributes of the added entry.
+   * @param operationalAttributes operational attributes of the added entry.
+   */
+  public AddMsg(ChangeNumber cn,
+                String dn,
+                String uniqueId,
+                String parentId,
+                Map<ObjectClass, String> objectClasses,
+                Map<AttributeType,List<Attribute>> userAttributes,
+                Map<AttributeType,List<Attribute>> operationalAttributes)
+  {
+    super (cn, uniqueId, dn);
+    this.parentUniqueId = parentId;
+
+    encodedAttributes = encodeAttributes(objectClasses,
+                                        userAttributes, operationalAttributes);
+  }
+
 
   /**
    * Creates a new AddMessage.
@@ -132,7 +172,7 @@ public class AddMsg extends UpdateMessage
                 Collection<Attribute> userAttributes,
                 Collection<Attribute> operationalAttributes)
   {
-    super (new AddContext(cn, uniqueId, parentId), dn);
+    super (cn, uniqueId, dn);
     this.parentUniqueId = parentId;
 
     ArrayList<ASN1Element> elems = new ArrayList<ASN1Element>();
@@ -158,9 +198,10 @@ public class AddMsg extends UpdateMessage
   public AddMsg(byte[] in) throws DataFormatException,
                                   UnsupportedEncodingException
   {
-    super(in);
-
-    int  pos = decodeHeader(MSG_TYPE_ADD_REQUEST, in);
+    byte[] allowedPduTypes = new byte[2];
+    allowedPduTypes[0] = MSG_TYPE_ADD;
+    allowedPduTypes[1] = MSG_TYPE_ADD_V1;
+    int pos = decodeHeader(allowedPduTypes, in);
 
     // read the parent unique Id
     int length = getNextLength(in, pos);
@@ -188,7 +229,7 @@ public class AddMsg extends UpdateMessage
    * {@inheritDoc}
    */
   @Override
-  public AbstractOperation createOperation(
+  public AddOperationBasis createOperation(
          InternalClientConnection connection, String newDn)
          throws LDAPException, ASN1Exception
   {
@@ -212,12 +253,7 @@ public class AddMsg extends UpdateMessage
   }
 
   /**
-   * Get the byte[] representation of this Message.
-   *
-   * @return the byte array representation of this Message.
-   *
-   * @throws UnsupportedEncodingException When the encoding of the message
-   *         failed because the UTF-8 encoding is not supported.
+   * {@inheritDoc}
    */
   @Override
   public byte[] getBytes() throws UnsupportedEncodingException
@@ -235,7 +271,7 @@ public class AddMsg extends UpdateMessage
     }
 
     /* encode the header in a byte[] large enough to also contain the mods */
-    byte [] resultByteArray = encodeHeader(MSG_TYPE_ADD_REQUEST, length);
+    byte [] resultByteArray = encodeHeader(MSG_TYPE_ADD, length);
 
     int pos = resultByteArray.length - length;
 
@@ -258,7 +294,27 @@ public class AddMsg extends UpdateMessage
   @Override
   public String toString()
   {
-    return ("ADD DN=(" + getDn() + ") CN=(" + getChangeNumber() + ")");
+    if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
+    {
+      return "AddMsg content: " +
+        "\nprotocolVersion: " + protocolVersion +
+        "\ndn: " + dn +
+        "\nchangeNumber: " + changeNumber +
+        "\nuniqueId: " + uniqueId +
+        "\nassuredFlag: " + assuredFlag;
+    }
+    if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V2)
+    {
+      return "AddMsg content: " +
+        "\nprotocolVersion: " + protocolVersion +
+        "\ndn: " + dn +
+        "\nchangeNumber: " + changeNumber +
+        "\nuniqueId: " + uniqueId +
+        "\nassuredFlag: " + assuredFlag +
+        "\nassuredMode: " + assuredMode +
+        "\nsafeDataLevel: " + safeDataLevel;
+    }
+    return "!!! Unknown version: " + protocolVersion + "!!!";
   }
 
   /**
@@ -305,5 +361,40 @@ public class AddMsg extends UpdateMessage
   public int size()
   {
     return encodedAttributes.length + 40;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public byte[] getBytes_V1() throws UnsupportedEncodingException
+  {
+    int length = encodedAttributes.length;
+    byte[] byteParentId = null;
+    if (parentUniqueId != null)
+    {
+      byteParentId = parentUniqueId.getBytes("UTF-8");
+      length += byteParentId.length + 1;
+    }
+    else
+    {
+      length += 1;
+    }
+
+    /* encode the header in a byte[] large enough to also contain the mods */
+    byte [] resultByteArray = encodeHeader_V1(MSG_TYPE_ADD_V1, length);
+
+    int pos = resultByteArray.length - length;
+
+    if (byteParentId != null)
+      pos = addByteArray(byteParentId, resultByteArray, pos);
+    else
+      resultByteArray[pos++] = 0;
+
+    /* put the attributes */
+    for (int i=0; i<encodedAttributes.length; i++,pos++)
+    {
+      resultByteArray[pos] = encodedAttributes[i];
+    }
+    return resultByteArray;
   }
 }

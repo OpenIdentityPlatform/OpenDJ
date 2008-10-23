@@ -233,7 +233,8 @@ public class WorkflowElementConfigManager
 
 
     WorkflowElement workflowElement =
-            DirectoryServer.getWorkflowElement(configuration.dn().toString());
+            DirectoryServer.getWorkflowElement(
+            configuration.getWorkflowElementId());
     if (workflowElement != null)
     {
       DirectoryServer.deregisterWorkflowElement(workflowElement);
@@ -291,7 +292,8 @@ public class WorkflowElementConfigManager
 
     // Get the existing workflow element if it's already enabled.
     WorkflowElement existingWorkflowElement =
-            DirectoryServer.getWorkflowElement(configuration.dn().toString());
+            DirectoryServer.getWorkflowElement(
+            configuration.getWorkflowElementId());
 
     // If the new configuration has the workflow element disabled,
     // then disable it if it is enabled, or do nothing if it's already disabled.

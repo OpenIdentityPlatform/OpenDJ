@@ -46,8 +46,10 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.BackupInfo;
@@ -213,14 +215,10 @@ public class BackupBackend
     int numAVAs = rdn.getNumValues();
     for (int i=0; i < numAVAs; i++)
     {
-      LinkedHashSet<AttributeValue> valueSet =
-           new LinkedHashSet<AttributeValue>(1);
-      valueSet.add(rdn.getAttributeValue(i));
-
       AttributeType attrType = rdn.getAttributeType(i);
       ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(new Attribute(attrType, attrType.getNameOrOID(),
-                                 valueSet));
+      attrList.add(Attributes.create(attrType, rdn
+          .getAttributeValue(i)));
 
       userAttrs.put(attrType, attrList);
     }
@@ -442,7 +440,7 @@ public class BackupBackend
       List<Attribute> attrList = backupDirEntry.getAttribute(t);
       if ((attrList != null) && (! attrList.isEmpty()))
       {
-        for (AttributeValue v : attrList.get(0).getValues())
+        for (AttributeValue v : attrList.get(0))
         {
           try
           {
@@ -598,23 +596,15 @@ public class BackupBackend
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
          new LinkedHashMap<AttributeType,List<Attribute>>(3);
 
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(1);
-    valueSet.add(v);
-
     ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-    attrList.add(new Attribute(t, t.getNameOrOID(), valueSet));
+    attrList.add(Attributes.create(t, v));
     userAttrs.put(t, attrList);
-
 
     t = DirectoryServer.getAttributeType(ATTR_BACKUP_BACKEND_DN, true);
-    valueSet = new LinkedHashSet<AttributeValue>(1);
-    valueSet.add(new AttributeValue(t,
-                          backupDirectory.getConfigEntryDN().toString()));
     attrList = new ArrayList<Attribute>(1);
-    attrList.add(new Attribute(t, t.getNameOrOID(), valueSet));
+    attrList.add(Attributes.create(t, new AttributeValue(t,
+        backupDirectory.getConfigEntryDN().toString())));
     userAttrs.put(t, attrList);
-
 
     Entry e = new Entry(entryDN, ocMap, userAttrs, opAttrs);
     e.processVirtualAttributes();
@@ -640,81 +630,66 @@ public class BackupBackend
   {
     // First, get the backup ID from the entry DN.
     AttributeType idType = DirectoryServer.getAttributeType(ATTR_BACKUP_ID,
-                                                            true);
+        true);
     AttributeValue idValue = entryDN.getRDN().getAttributeValue(idType);
-    if (idValue == null)
-    {
-      Message message =
-          ERR_BACKUP_NO_BACKUP_ID_IN_DN.get(String.valueOf(entryDN));
+    if (idValue == null) {
+      Message message = ERR_BACKUP_NO_BACKUP_ID_IN_DN.get(String
+          .valueOf(entryDN));
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
     String backupID = idValue.getStringValue();
 
-
     // Next, get the backup directory from the parent DN.
     DN parentDN = entryDN.getParentDNInSuffix();
-    if (parentDN == null)
-    {
-      Message message =
-          ERR_BACKUP_NO_BACKUP_PARENT_DN.get(String.valueOf(entryDN));
+    if (parentDN == null) {
+      Message message = ERR_BACKUP_NO_BACKUP_PARENT_DN.get(String
+          .valueOf(entryDN));
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
-    AttributeType t =
-         DirectoryServer.getAttributeType(ATTR_BACKUP_DIRECTORY_PATH, true);
+    AttributeType t = DirectoryServer.getAttributeType(
+        ATTR_BACKUP_DIRECTORY_PATH, true);
     AttributeValue v = parentDN.getRDN().getAttributeValue(t);
-    if (v == null)
-    {
-      Message message =
-          ERR_BACKUP_NO_BACKUP_DIR_IN_DN.get(String.valueOf(entryDN));
+    if (v == null) {
+      Message message = ERR_BACKUP_NO_BACKUP_DIR_IN_DN.get(String
+          .valueOf(entryDN));
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
-
 
     BackupDirectory backupDirectory;
-    try
-    {
-      backupDirectory =
-           BackupDirectory.readBackupDirectoryDescriptor(v.getStringValue());
-    }
-    catch (ConfigException ce)
-    {
-      if (debugEnabled())
-      {
+    try {
+      backupDirectory = BackupDirectory.readBackupDirectoryDescriptor(v
+          .getStringValue());
+    } catch (ConfigException ce) {
+      if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, ce);
       }
 
-      Message message =
-          ERR_BACKUP_INVALID_BACKUP_DIRECTORY.get(
-                  String.valueOf(entryDN), ce.getMessageObject());
+      Message message = ERR_BACKUP_INVALID_BACKUP_DIRECTORY.get(String
+          .valueOf(entryDN), ce.getMessageObject());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
+    } catch (Exception e) {
+      if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message =
-          ERR_BACKUP_ERROR_GETTING_BACKUP_DIRECTORY.get(getExceptionMessage(e));
+      Message message = ERR_BACKUP_ERROR_GETTING_BACKUP_DIRECTORY
+          .get(getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
+          message);
     }
 
     BackupInfo backupInfo = backupDirectory.getBackupInfo(backupID);
-    if (backupInfo == null)
-    {
-      Message message =
-          ERR_BACKUP_NO_SUCH_BACKUP.get(backupID, backupDirectory.getPath());
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-              message, parentDN, null);
+    if (backupInfo == null) {
+      Message message = ERR_BACKUP_NO_SUCH_BACKUP.get(backupID, backupDirectory
+          .getPath());
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
+          parentDN, null);
     }
 
-
     // Construct the backup entry to return.
-    LinkedHashMap<ObjectClass,String> ocMap =
-        new LinkedHashMap<ObjectClass,String>(3);
+    LinkedHashMap<ObjectClass, String> ocMap =
+      new LinkedHashMap<ObjectClass, String>(3);
     ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
 
     ObjectClass oc = DirectoryServer.getObjectClass(OC_BACKUP_INFO, true);
@@ -723,118 +698,87 @@ public class BackupBackend
     oc = DirectoryServer.getObjectClass(OC_EXTENSIBLE_OBJECT_LC, true);
     ocMap.put(oc, OC_EXTENSIBLE_OBJECT);
 
-    LinkedHashMap<AttributeType,List<Attribute>> opAttrs =
-         new LinkedHashMap<AttributeType,List<Attribute>>(0);
-    LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
-         new LinkedHashMap<AttributeType,List<Attribute>>();
-
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(1);
-    valueSet.add(idValue);
+    LinkedHashMap<AttributeType, List<Attribute>> opAttrs =
+      new LinkedHashMap<AttributeType, List<Attribute>>(0);
+    LinkedHashMap<AttributeType, List<Attribute>> userAttrs =
+      new LinkedHashMap<AttributeType, List<Attribute>>();
 
     ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-    attrList.add(new Attribute(idType, idType.getNameOrOID(), valueSet));
+    attrList.add(Attributes.create(idType, idValue));
     userAttrs.put(idType, attrList);
 
-
     backupInfo.getBackupDirectory();
-    valueSet = new LinkedHashSet<AttributeValue>(1);
-    valueSet.add(v);
     attrList = new ArrayList<Attribute>(1);
-    attrList.add(new Attribute(t, t.getNameOrOID(), valueSet));
+    attrList.add(Attributes.create(t, v));
     userAttrs.put(t, attrList);
-
 
     Date backupDate = backupInfo.getBackupDate();
-    if (backupDate != null)
-    {
+    if (backupDate != null) {
       t = DirectoryServer.getAttributeType(ATTR_BACKUP_DATE, true);
-      valueSet = new LinkedHashSet<AttributeValue>(1);
-      valueSet.add(new AttributeValue(t,
-                            GeneralizedTimeSyntax.format(backupDate)));
       attrList = new ArrayList<Attribute>(1);
-      attrList.add(new Attribute(t, t.getNameOrOID(), valueSet));
+      attrList.add(Attributes.create(t, new AttributeValue(t,
+          GeneralizedTimeSyntax.format(backupDate))));
       userAttrs.put(t, attrList);
     }
-
 
     t = DirectoryServer.getAttributeType(ATTR_BACKUP_COMPRESSED, true);
-    valueSet = new LinkedHashSet<AttributeValue>(1);
-    valueSet.add(BooleanSyntax.createBooleanValue(backupInfo.isCompressed()));
     attrList = new ArrayList<Attribute>(1);
-    attrList.add(new Attribute(t, t.getNameOrOID(), valueSet));
+    attrList.add(Attributes.create(t, BooleanSyntax
+        .createBooleanValue(backupInfo.isCompressed())));
     userAttrs.put(t, attrList);
-
 
     t = DirectoryServer.getAttributeType(ATTR_BACKUP_ENCRYPTED, true);
-    valueSet = new LinkedHashSet<AttributeValue>(1);
-    valueSet.add(BooleanSyntax.createBooleanValue(backupInfo.isEncrypted()));
     attrList = new ArrayList<Attribute>(1);
-    attrList.add(new Attribute(t, t.getNameOrOID(), valueSet));
+    attrList.add(Attributes.create(t, BooleanSyntax
+        .createBooleanValue(backupInfo.isEncrypted())));
     userAttrs.put(t, attrList);
-
 
     t = DirectoryServer.getAttributeType(ATTR_BACKUP_INCREMENTAL, true);
-    valueSet = new LinkedHashSet<AttributeValue>(1);
-    valueSet.add(BooleanSyntax.createBooleanValue(backupInfo.isIncremental()));
     attrList = new ArrayList<Attribute>(1);
-    attrList.add(new Attribute(t, t.getNameOrOID(), valueSet));
+    attrList.add(Attributes.create(t, BooleanSyntax
+        .createBooleanValue(backupInfo.isIncremental())));
     userAttrs.put(t, attrList);
 
-
     HashSet<String> dependencies = backupInfo.getDependencies();
-    if ((dependencies != null) && (! dependencies.isEmpty()))
-    {
+    if ((dependencies != null) && (!dependencies.isEmpty())) {
       t = DirectoryServer.getAttributeType(ATTR_BACKUP_DEPENDENCY, true);
-      valueSet = new LinkedHashSet<AttributeValue>(dependencies.size());
-      for (String s : dependencies)
-      {
-        valueSet.add(new AttributeValue(t, s));
+      AttributeBuilder builder = new AttributeBuilder(t);
+      for (String s : dependencies) {
+        builder.add(new AttributeValue(t, s));
       }
       attrList = new ArrayList<Attribute>(1);
-      attrList.add(new Attribute(t, t.getNameOrOID(), valueSet));
+      attrList.add(builder.toAttribute());
       userAttrs.put(t, attrList);
     }
-
 
     byte[] signedHash = backupInfo.getSignedHash();
-    if (signedHash != null)
-    {
+    if (signedHash != null) {
       t = DirectoryServer.getAttributeType(ATTR_BACKUP_SIGNED_HASH, true);
-      valueSet = new LinkedHashSet<AttributeValue>(1);
-      valueSet.add(new AttributeValue(t, new ASN1OctetString(signedHash)));
       attrList = new ArrayList<Attribute>(1);
-      attrList.add(new Attribute(t, t.getNameOrOID(), valueSet));
+      attrList.add(Attributes.create(t, new AttributeValue(t,
+          new ASN1OctetString(signedHash))));
       userAttrs.put(t, attrList);
     }
-
 
     byte[] unsignedHash = backupInfo.getUnsignedHash();
-    if (unsignedHash != null)
-    {
+    if (unsignedHash != null) {
       t = DirectoryServer.getAttributeType(ATTR_BACKUP_UNSIGNED_HASH, true);
-      valueSet = new LinkedHashSet<AttributeValue>(1);
-      valueSet.add(new AttributeValue(t, new ASN1OctetString(unsignedHash)));
       attrList = new ArrayList<Attribute>(1);
-      attrList.add(new Attribute(t, t.getNameOrOID(), valueSet));
+      attrList.add(Attributes.create(t, new AttributeValue(t,
+          new ASN1OctetString(unsignedHash))));
       userAttrs.put(t, attrList);
     }
 
-
-    HashMap<String,String> properties = backupInfo.getBackupProperties();
-    if ((properties != null) && (! properties.isEmpty()))
-    {
-      for (Map.Entry<String,String> e : properties.entrySet())
-      {
+    HashMap<String, String> properties = backupInfo.getBackupProperties();
+    if ((properties != null) && (!properties.isEmpty())) {
+      for (Map.Entry<String, String> e : properties.entrySet()) {
         t = DirectoryServer.getAttributeType(toLowerCase(e.getKey()), true);
-        valueSet = new LinkedHashSet<AttributeValue>(1);
-        valueSet.add(new AttributeValue(t, e.getValue()));
         attrList = new ArrayList<Attribute>(1);
-        attrList.add(new Attribute(t, t.getNameOrOID(), valueSet));
+        attrList.add(Attributes.create(t, new AttributeValue(
+            t, e.getValue())));
         userAttrs.put(t, attrList);
       }
     }
-
 
     Entry e = new Entry(entryDN, ocMap, userAttrs, opAttrs);
     e.processVirtualAttributes();
@@ -873,8 +817,8 @@ public class BackupBackend
    * {@inheritDoc}
    */
   @Override()
-  public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
-         throws DirectoryException
+  public void replaceEntry(Entry oldEntry, Entry newEntry,
+      ModifyOperation modifyOperation) throws DirectoryException
   {
     Message message = ERR_BACKUP_MODIFY_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
@@ -969,7 +913,7 @@ public class BackupBackend
                  backupDirEntry.getAttribute(backupPathType);
             if ((attrList != null) && (! attrList.isEmpty()))
             {
-              for (AttributeValue v : attrList.get(0).getValues())
+              for (AttributeValue v : attrList.get(0))
               {
                 try
                 {
@@ -1026,7 +970,7 @@ public class BackupBackend
         List<Attribute> attrList = backupDirEntry.getAttribute(t);
         if ((attrList != null) && (! attrList.isEmpty()))
         {
-          for (AttributeValue v : attrList.get(0).getValues())
+          for (AttributeValue v : attrList.get(0))
           {
             try
             {

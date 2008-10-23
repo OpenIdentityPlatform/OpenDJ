@@ -225,7 +225,6 @@
        
     <call function="'dsconfig'">
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
         'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
         'subcommand'           : 'set-plugin-prop' ,
@@ -264,7 +263,6 @@
        
     <call function="'dsconfig'">
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
         'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
         'subcommand'           : 'set-plugin-prop' ,
@@ -276,7 +274,6 @@
 
     <call function="'dsconfigGet'">
       { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-          'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
           'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
           'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
           'objectName'     : 'plugin',
@@ -355,7 +352,6 @@
        
     <call function="'dsconfig'">
       { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'       : DIRECTORY_INSTANCE_DN ,
         'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,
         'subcommand'         : 'set-plugin-prop' ,
@@ -458,7 +454,6 @@
        
     <call function="'dsconfig'">
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
         'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
         'subcommand'           : 'set-plugin-prop' ,
@@ -510,7 +505,6 @@
        
     <call function="'dsconfig'">
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
         'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
         'subcommand'          : 'set-plugin-prop' ,
@@ -551,7 +545,6 @@
        
     <call function="'dsconfig'">
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
         'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
         'subcommand'           : 'set-plugin-prop' ,
@@ -563,12 +556,12 @@
 
     <!-- plugin-type attribute is not dynamic. Need to restart the server -->
     <call function="'StopDsWithScript'">
-      { 'location'  : STAF_REMOTE_HOSTNAME,
-        'dsHost'    : DIRECTORY_INSTANCE_HOST,
-        'dsPort'    : DIRECTORY_INSTANCE_PORT,
-        'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-	'dsBindPwd' : DIRECTORY_INSTANCE_PSWD,
-        'dsRestart' : ' ' }
+      { 'location'    : STAF_REMOTE_HOSTNAME,
+        'dsHost'      : DIRECTORY_INSTANCE_HOST,
+        'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+        'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+        'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD,
+        'dsRestart'   : ' ' }
     </call>
   
     <!--- Check that DS started -->
@@ -621,7 +614,6 @@
        
     <call function="'dsconfig'">
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
         'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
         'subcommand'          : 'set-plugin-prop' ,
@@ -661,7 +653,6 @@
        
     <call function="'dsconfig'">
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
         'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
         'subcommand'           : 'set-plugin-prop' ,
@@ -676,7 +667,6 @@
        
     <call function="'dsconfig'">
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
         'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
         'subcommand'           : 'set-plugin-prop' ,

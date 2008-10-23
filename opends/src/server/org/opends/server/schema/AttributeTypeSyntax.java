@@ -1471,5 +1471,13 @@ public class AttributeTypeSyntax
     return stripMinimumUpperBound;
   }
 
-}
 
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
+}

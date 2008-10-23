@@ -718,5 +718,15 @@ private static int parseExtension(String valueStr, int startPos)
       }
       return pos;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

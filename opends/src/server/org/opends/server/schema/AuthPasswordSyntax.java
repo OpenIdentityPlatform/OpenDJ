@@ -493,5 +493,15 @@ readAuthValue:
       return false;
     }
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

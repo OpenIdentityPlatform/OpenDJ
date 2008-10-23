@@ -46,7 +46,6 @@ import org.opends.server.api.plugin.PluginType;
 import java.util.List;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.LinkedHashSet;
 
 
 /**
@@ -216,7 +215,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
     List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
     for (Attribute a : attrList){
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
         pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
     }
     UniqueAttributePluginCfg configuration =
@@ -334,7 +333,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
     for (Attribute a : attrList)
     {
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
         pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
     }
     UniqueAttributePluginCfg configuration =
@@ -739,47 +738,24 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     for(String attrTypeString : attrTypeStrings) {
      AttributeType attrType = getAttrType(attrTypeString);
      mods.add(new Modification(ModificationType.DELETE,
-              new Attribute(attrType)));
+         Attributes.empty(attrType)));
     }
     InternalClientConnection conn =
             InternalClientConnection.getRootConnection();
     conn.processModify(dn, mods);
   }
 
-  /**
-   * Attempt to add an attribute of attribute type string to the entry
-   * specified by the dn argument. The values to use in the attribute creation
-   * is specified by the variable argument list.
-   *
-   * @param dn  The dn of the entry to add the attribute.
-   * @param attrTypeString  The attribute type string.
-   * @param attrValStrings  The values of the attribute.
-   */
-  private void
-  addAttrToEntry(DN dn, String attrTypeString, String... attrValStrings) {
-    LinkedList<Modification> mods = new LinkedList<Modification>();
-    LinkedHashSet<AttributeValue> attrValues =
-                                            new LinkedHashSet<AttributeValue>();
-    AttributeType attrType = getAttrType(attrTypeString);
-    for(String valString : attrValStrings)
-      attrValues.add(new AttributeValue(attrType, valString));
-    Attribute attr = new Attribute(attrType, attrTypeString, attrValues);
-    mods.add(new Modification(ModificationType.ADD, attr));
-    InternalClientConnection conn =
-            InternalClientConnection.getRootConnection();
-    conn.processModify(dn, mods);
-  }
+  
 
   private void
   replaceAttrInEntry(DN dn, String attrTypeString, String... attrValStrings) {
     LinkedList<Modification> mods = new LinkedList<Modification>();
-    LinkedHashSet<AttributeValue> attrValues =
-                                            new LinkedHashSet<AttributeValue>();
     AttributeType attrType = getAttrType(attrTypeString);
-    for(String valString : attrValStrings)
-      attrValues.add(new AttributeValue(attrType, valString));
-    Attribute attr = new Attribute(attrType, attrTypeString, attrValues);
-    mods.add(new Modification(ModificationType.REPLACE, attr));
+    AttributeBuilder builder = new AttributeBuilder(attrType, attrTypeString);
+    for(String valString : attrValStrings) {
+      builder.add(new AttributeValue(attrType, valString));
+    }
+    mods.add(new Modification(ModificationType.REPLACE, builder.toAttribute()));
     InternalClientConnection conn =
             InternalClientConnection.getRootConnection();
     conn.processModify(dn, mods);
@@ -841,13 +817,12 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
    */
   private void
   addAttribute(Entry entry, String attrTypeString, String... attrValues) {
-    LinkedHashSet<AttributeValue> values=new LinkedHashSet<AttributeValue>();
     AttributeType attrType=getAttrType(attrTypeString);
+    AttributeBuilder builder = new AttributeBuilder(attrType, attrTypeString);
     for(String attrValue : attrValues) {
-      AttributeValue value = new AttributeValue(attrType, attrValue);
-      values.add(value);
+      builder.add(attrValue);
     }
-    entry.addAttribute(new Attribute(attrType, attrTypeString, values), null);
+    entry.addAttribute(builder.toAttribute(), null);
   }
 
   /**
@@ -862,14 +837,13 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
   private void
   addMods(LinkedList<Modification> mods, String attrTypeString,
           ModificationType modificationType, String... attrValues) {
-    LinkedHashSet<AttributeValue> values=new LinkedHashSet<AttributeValue>();
     AttributeType attrType=getAttrType(attrTypeString);
+    AttributeBuilder builder = new AttributeBuilder(attrType, attrTypeString);
     for(String attrValue : attrValues) {
-      AttributeValue value = new AttributeValue(attrType, attrValue);
-      values.add(value);
+      builder.add(attrValue);
     }
     mods.add(new Modification(modificationType,
-             new Attribute(attrType, attrTypeString, values)));
+             builder.toAttribute()));
   }
 
   /**

@@ -422,9 +422,9 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsInstancePort" type="optional">
+      <function-arg-def name="dsInstanceAdminPort" type="optional" default="'%s' % DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
@@ -488,7 +488,7 @@
         { 'location'       : location ,
           'dsPath'         : dsPath ,
           'dsInstanceHost' : dsInstanceHost ,
-          'dsInstancePort' : dsInstancePort ,
+          'dsInstanceAdminPort' : dsInstanceAdminPort ,
           'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
           'subcommand'     : 'create-key-manager-provider' ,
@@ -503,7 +503,7 @@
         { 'location'       : location ,
           'dsPath'         : dsPath ,
           'dsInstanceHost' : dsInstanceHost ,
-          'dsInstancePort' : dsInstancePort ,
+          'dsInstanceAdminPort' : dsInstanceAdminPort ,
           'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
           'subcommand'     : 'set-key-manager-provider-prop' ,
@@ -526,7 +526,7 @@
         { 'location'       : location ,
           'dsPath'         : dsPath ,
           'dsInstanceHost' : dsInstanceHost ,
-          'dsInstancePort' : dsInstancePort ,
+          'dsInstanceAdminPort' : dsInstanceAdminPort ,
           'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
           'subcommand'     : 'create-trust-manager-provider' ,
@@ -541,7 +541,7 @@
         { 'location'       : location ,
           'dsPath'         : dsPath ,
           'dsInstanceHost' : dsInstanceHost ,
-          'dsInstancePort' : dsInstancePort ,
+          'dsInstanceAdminPort' : dsInstanceAdminPort ,
           'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
           'subcommand'     : 'set-trust-manager-provider-prop' ,
@@ -579,7 +579,7 @@
         { 'location'       : location ,
           'dsPath'         : dsPath ,
           'dsInstanceHost' : dsInstanceHost ,
-          'dsInstancePort' : dsInstancePort ,
+          'dsInstanceAdminPort' : dsInstanceAdminPort ,
           'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
           'subcommand'     : 'set-connection-handler-prop',
@@ -619,9 +619,9 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsInstancePort" type="optional">
+      <function-arg-def name="dsInstanceAdminPort" type="optional" default="'%s' % DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
@@ -671,7 +671,7 @@
         { 'location'        : location,
           'dsPath'          : dsPath,
           'dsInstanceHost'  : dsInstanceHost,
-          'dsInstancePort'  : dsInstancePort,
+          'dsInstanceAdminPort'  : dsInstanceAdminPort,
           'dsInstanceDn'    : dsInstanceDn,
           'dsInstancePswd'  : dsInstancePswd,
           'subcommand'      : 'set-key-manager-provider-prop',
@@ -692,7 +692,7 @@
         { 'location'       : location,
           'dsPath'         : dsPath,
           'dsInstanceHost' : dsInstanceHost,
-          'dsInstancePort' : dsInstancePort,
+          'dsInstanceAdminPort' : dsInstanceAdminPort,
           'dsInstanceDn'   : dsInstanceDn,
           'dsInstancePswd' : dsInstancePswd,
           'subcommand'     : 'set-trust-manager-provider-prop',
@@ -720,7 +720,7 @@
       { 'location'       : location,
         'dsPath'         : dsPath,
         'dsInstanceHost' : dsInstanceHost,
-        'dsInstancePort' : dsInstancePort,
+        'dsInstanceAdminPort' : dsInstanceAdminPort,
         'dsInstanceDn'   : dsInstanceDn,
         'dsInstancePswd' : dsInstancePswd,
         'subcommand'     : 'set-connection-handler-prop',
@@ -760,9 +760,9 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsInstancePort" type="optional">
+      <function-arg-def name="dsInstanceAdminPort" type="optional" default="'%s' % DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
@@ -812,10 +812,10 @@
         { 'location'       : location,
           'dsPath'         : dsPath,
           'dsInstanceHost' : dsInstanceHost,
-          'dsInstancePort' : dsInstancePort ,
-          'dsInstanceDn'   :  dsInstanceDn ,
+          'dsInstanceAdminPort'    : dsInstanceAdminPort ,
+          'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
-          'subcommand'     :  'set-key-manager-provider-prop' ,
+          'subcommand'     : 'set-key-manager-provider-prop' ,
           'objectType'     : 'provider-name' ,
           'objectName'     : keystoreType,
           'optionsString'  :  '--set key-store-file:config/keystore --reset key-store-pin-file  --set key-store-pin:%s --set enabled:true' % keystorePin,
@@ -832,10 +832,10 @@
         { 'location'       : location,
           'dsPath'         : dsPath,
           'dsInstanceHost' : dsInstanceHost ,
-          'dsInstancePort' : dsInstancePort ,
-          'dsInstanceDn'   :  dsInstanceDn ,
+          'dsInstanceAdminPort'    : dsInstanceAdminPort ,
+          'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
-          'subcommand'     :  'set-trust-manager-provider-prop' ,
+          'subcommand'     : 'set-trust-manager-provider-prop' ,
           'objectType'     : 'provider-name' ,
           'objectName'     : 'Blind Trust',
           'optionsString'  : '--set enabled:true' ,
@@ -862,10 +862,10 @@
         { 'location'       : location,
           'dsPath'         : dsPath,
           'dsInstanceHost' : dsInstanceHost,
-          'dsInstancePort' : dsInstancePort,
-          'dsInstanceDn'   :  dsInstanceDn,
+          'dsInstanceAdminPort'    : dsInstanceAdminPort,
+          'dsInstanceDn'   : dsInstanceDn,
           'dsInstancePswd' : dsInstancePswd,
-          'subcommand'     :  'set-connection-handler-prop',
+          'subcommand'     : 'set-connection-handler-prop',
           'objectType'     : 'handler-name',
           'objectName'     : 'LDAPS Connection Handler',
           'optionsString'  :  optionsString,
@@ -890,7 +890,7 @@
         { 'location'       : location,
           'dsPath'         : dsPath,
           'dsInstanceHost' : dsInstanceHost,
-          'dsInstancePort' : dsInstancePort,
+          'dsInstanceAdminPort'    : dsInstanceAdminPort,
           'dsInstanceDn'   : dsInstanceDn,
           'dsInstancePswd' : dsInstancePswd,
           'subcommand'     : 'set-connection-handler-prop',
@@ -930,9 +930,9 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsInstancePort" type="optional">
+      <function-arg-def name="dsInstanceAdminPort" type="optional" default="'%s' %DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
@@ -983,7 +983,7 @@
         { 'location'       : location,
           'dsPath'         : dsPath ,
           'dsInstanceHost' : dsInstanceHost,
-          'dsInstancePort' : dsInstancePort ,
+          'dsInstanceAdminPort'    : dsInstanceAdminPort ,
           'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
           'subcommand'     : 'set-connection-handler-prop' ,
@@ -998,7 +998,7 @@
         { 'location'       : location,
           'dsPath'         : dsPath ,
           'dsInstanceHost' : dsInstanceHost,
-          'dsInstancePort' : dsInstancePort ,
+          'dsInstanceAdminPort'    : dsInstanceAdminPort ,
           'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
           'subcommand'     : 'set-connection-handler-prop' ,
@@ -1018,7 +1018,7 @@
         { 'location'       : location ,
           'dsPath'         : dsPath ,
           'dsInstanceHost' : dsInstanceHost ,
-          'dsInstancePort' : dsInstancePort ,
+          'dsInstanceAdminPort'    : dsInstanceAdminPort ,
           'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
           'subcommand'     : 'delete-trust-manager-provider' ,
@@ -1032,7 +1032,7 @@
         { 'location'       : location,
           'dsPath'         : dsPath,
           'dsInstanceHost' : dsInstanceHost,
-          'dsInstancePort' : dsInstancePort,
+          'dsInstanceAdminPort'    : dsInstanceAdminPort,
           'dsInstanceDn'   : dsInstanceDn,
           'dsInstancePswd' : dsInstancePswd,
           'subcommand'     : 'set-trust-manager-provider-prop',
@@ -1055,7 +1055,7 @@
         { 'location'       : location ,
           'dsPath'         : dsPath ,
           'dsInstanceHost' : dsInstanceHost ,
-          'dsInstancePort' : dsInstancePort ,
+          'dsInstanceAdminPort'    : dsInstanceAdminPort ,
           'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
           'subcommand'     : 'delete-key-manager-provider' ,
@@ -1069,7 +1069,7 @@
         { 'location'       : location,
           'dsPath'         : dsPath,
           'dsInstanceHost' : dsInstanceHost ,
-          'dsInstancePort' : dsInstancePort ,
+          'dsInstanceAdminPort'    : dsInstanceAdminPort ,
           'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
           'subcommand'     : 'set-key-manager-provider-prop' ,
@@ -1111,9 +1111,9 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsInstancePort" type="optional">
+      <function-arg-def name="dsInstanceAdminPort" type="optional" default="'%s' %DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
@@ -1152,7 +1152,7 @@
         { 'location'       : location,
           'dsPath'         : dsPath,
           'dsInstanceHost' : dsInstanceHost,
-          'dsInstancePort' : dsInstancePort,
+          'dsInstanceAdminPort'    : dsInstanceAdminPort,
           'dsInstanceDn'   : dsInstanceDn,
           'dsInstancePswd' : dsInstancePswd,
           'subcommand'     : 'set-connection-handler-prop',
@@ -1171,7 +1171,7 @@
         { 'location'       : location,
           'dsPath'         : dsPath,
           'dsInstanceHost' : dsInstanceHost,
-          'dsInstancePort' : dsInstancePort,
+          'dsInstanceAdminPort'    : dsInstanceAdminPort,
           'dsInstanceDn'   : dsInstanceDn,
           'dsInstancePswd' : dsInstancePswd,
           'subcommand'     : 'set-trust-manager-provider-prop',
@@ -1191,13 +1191,13 @@
         { 'location'       : location,
           'dsPath'         : dsPath,
           'dsInstanceHost' : dsInstanceHost,
-          'dsInstancePort' : dsInstancePort,
-          'dsInstanceDn'   :  dsInstanceDn,
+          'dsInstanceAdminPort'    : dsInstanceAdminPort,
+          'dsInstanceDn'   : dsInstanceDn,
           'dsInstancePswd' : dsInstancePswd,
-          'subcommand'     :  'set-key-manager-provider-prop',
+          'subcommand'     : 'set-key-manager-provider-prop',
           'objectType'     : 'provider-name',
           'objectName'     : keystoreType,
-          'optionsString'  :  '--set enabled:false',
+          'optionsString'  : '--set enabled:false',
           'expectedRC'     : 0 
         }
       </call>
@@ -1231,9 +1231,9 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsInstancePort" type="optional">
+      <function-arg-def name="dsInstanceAdminPort" type="optional" default="'%s' %DIRECTORY_INSTANCE_ADMIN_PORT">
         <function-arg-description>
-          Directory server port number
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
@@ -1272,7 +1272,7 @@
         { 'location'       : location,
           'dsPath'         : dsPath,
           'dsInstanceHost' : dsInstanceHost,
-          'dsInstancePort' : dsInstancePort,
+          'dsInstanceAdminPort'    : dsInstanceAdminPort,
           'dsInstanceDn'   : dsInstanceDn,
           'dsInstancePswd' : dsInstancePswd,
           'subcommand'     : 'set-connection-handler-prop',
@@ -1291,7 +1291,7 @@
         { 'location'       : location ,
           'dsPath'         : dsPath ,
           'dsInstanceHost' : dsInstanceHost ,
-          'dsInstancePort' : dsInstancePort ,
+          'dsInstanceAdminPort'    : dsInstanceAdminPort ,
           'dsInstanceDn'   :  dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
           'subcommand'     :  'set-connection-handler-prop' ,
@@ -1311,7 +1311,7 @@
         { 'location'       : location,
           'dsPath'         : dsPath,
           'dsInstanceHost' : dsInstanceHost,
-          'dsInstancePort' : dsInstancePort,
+          'dsInstanceAdminPort'    : dsInstanceAdminPort,
           'dsInstanceDn'   : dsInstanceDn,
           'dsInstancePswd' : dsInstancePswd ,
           'subcommand'     : 'set-trust-manager-provider-prop' ,
@@ -1331,7 +1331,7 @@
         { 'location'       : location,
           'dsPath'         : dsPath,
           'dsInstanceHost' : dsInstanceHost,
-          'dsInstancePort' : dsInstancePort,
+          'dsInstanceAdminPort'    : dsInstanceAdminPort,
           'dsInstanceDn'   : dsInstanceDn,
           'dsInstancePswd' : dsInstancePswd,
           'subcommand'     : 'set-key-manager-provider-prop',

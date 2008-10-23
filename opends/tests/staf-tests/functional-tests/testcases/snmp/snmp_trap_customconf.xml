@@ -83,7 +83,6 @@
               <call function="'dsconfig'">
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'subcommand'       : 'set-connection-handler-prop' ,
@@ -101,7 +100,6 @@
               <call function="'restartSNMPConnectionHandler'">
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
                 }
@@ -268,7 +266,6 @@
               <call function="'dsconfig'">
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'subcommand'       : 'set-connection-handler-prop' ,
@@ -286,7 +283,6 @@
               <call function="'restartSNMPConnectionHandler'">
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
                 }
@@ -328,7 +324,6 @@
               <call function="'dsconfig'">
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'subcommand'       : 'set-connection-handler-prop' ,
@@ -346,7 +341,6 @@
               <call function="'restartSNMPConnectionHandler'">
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
                 }
@@ -436,7 +430,6 @@
               <call function="'dsconfig'">
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'subcommand'       : 'set-connection-handler-prop' ,
@@ -453,7 +446,6 @@
               <call function="'restartSNMPConnectionHandler'">
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
                 }
@@ -495,7 +487,6 @@
               <call function="'dsconfig'">
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'subcommand'       : 'set-connection-handler-prop' ,
@@ -513,7 +504,6 @@
               <call function="'restartSNMPConnectionHandler'">
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
                 }
@@ -565,11 +555,11 @@
                       </message>
                       <call function="'StopDsWithScript'">
                         {
-                        'location'  : STAF_REMOTE_HOSTNAME ,
-                        'dsHost'    : DIRECTORY_INSTANCE_HOST ,
-                        'dsPort'    : DIRECTORY_INSTANCE_PORT ,
-                        'dsBindDN'  : DIRECTORY_INSTANCE_DN ,
-                        'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+                        'location'    : STAF_REMOTE_HOSTNAME ,
+                        'dsHost'      : DIRECTORY_INSTANCE_HOST ,
+                        'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT ,
+                        'dsBindDN'    : DIRECTORY_INSTANCE_DN ,
+                        'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD
                         }
                       </call>
                       
@@ -648,7 +638,6 @@
               <call function="'dsconfig'">
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'subcommand'       : 'set-connection-handler-prop' ,
@@ -665,7 +654,6 @@
               <call function="'restartSNMPConnectionHandler'">
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
                 }
@@ -701,7 +689,6 @@
               <call function="'dsconfig'">
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'subcommand'       : 'set-connection-handler-prop' ,
@@ -714,7 +701,6 @@
               <call function="'dsconfig'">
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'subcommand'       : 'set-connection-handler-prop' ,
@@ -732,7 +718,6 @@
               <call function="'restartSNMPConnectionHandler'">
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
                 }
@@ -784,11 +769,11 @@
                       </message>
                       <call function="'StopDsWithScript'">
                         {
-                        'location'  : STAF_REMOTE_HOSTNAME ,
-                        'dsHost'    : DIRECTORY_INSTANCE_HOST ,
-                        'dsPort'    : DIRECTORY_INSTANCE_PORT ,
-                        'dsBindDN'  : DIRECTORY_INSTANCE_DN ,
-                        'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+                        'location'    : STAF_REMOTE_HOSTNAME ,
+                        'dsHost'      : DIRECTORY_INSTANCE_HOST ,
+                        'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT ,
+                        'dsBindDN'    : DIRECTORY_INSTANCE_DN ,
+                        'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD
                         }
                       </call>
                       <call function="'StartDsWithScript'">
@@ -854,7 +839,6 @@
               <call function="'dsconfig'">
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'subcommand'       : 'set-connection-handler-prop' ,
@@ -871,7 +855,6 @@
               <call function="'restartSNMPConnectionHandler'">
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
                 }
@@ -913,7 +896,6 @@
               <call function="'dsconfig'">
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'subcommand'       : 'set-connection-handler-prop' ,

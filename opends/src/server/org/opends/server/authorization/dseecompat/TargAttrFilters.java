@@ -31,6 +31,7 @@ import org.opends.messages.Message;
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
 import org.opends.server.types.*;
+
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.*;
@@ -385,7 +386,7 @@ public class TargAttrFilters {
                                                AttributeType attrType,
                                                SearchFilter filter) {
         boolean filterMatch=true;
-        Iterator<AttributeValue> valIterator = a.getValues().iterator();
+        Iterator<AttributeValue> valIterator = a.iterator();
         //Iterate through each value and apply the filter against it.
         for(; valIterator.hasNext() && filterMatch;) {
             AttributeValue value=valIterator.next();
@@ -408,11 +409,7 @@ public class TargAttrFilters {
                                               AttributeValue value,
                                               SearchFilter filter) {
         boolean filterMatch;
-        LinkedHashSet<AttributeValue> values =
-                new LinkedHashSet<AttributeValue>();
-        values.add(new AttributeValue(attrType, value.getValue()));
-        Attribute attr =
-                new Attribute(attrType, attrType.toString(), values);
+        Attribute attr = Attributes.create(attrType, value);
         Entry e = new Entry(DN.nullDN(), null, null, null);
         e.addAttribute(attr, new ArrayList<AttributeValue>());
         try {

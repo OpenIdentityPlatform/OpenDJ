@@ -67,6 +67,9 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
 
   private StringArgument referencedHostNameArg;
 
+  // This CLI is always using the administration connector with SSL
+  private final boolean alwaysSSL = true;
+
   /**
    * Creates a new instance of this argument parser with no arguments.
    *
@@ -181,7 +184,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
     }
 
     ArrayList<Argument> defaultArgs =
-      new ArrayList<Argument>(createGlobalArguments(outStream));
+      new ArrayList<Argument>(createGlobalArguments(outStream, alwaysSSL));
     int index = defaultArgs.indexOf(secureArgsList.bindDnArg);
     if (index != -1)
     {

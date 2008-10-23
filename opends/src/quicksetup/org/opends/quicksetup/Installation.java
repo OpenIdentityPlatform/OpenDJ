@@ -208,14 +208,15 @@ public class Installation {
   public static final String WINDOWS_STOP_FILE_NAME = "stop-ds.bat";
 
   /**
-   * The UNIX status panel script file name.
+   * The UNIX control panel script file name.
    */
-  public static final String UNIX_STATUSPANEL_FILE_NAME = "status-panel";
+  public static final String UNIX_CONTROLPANEL_FILE_NAME = "control-panel";
 
   /**
-   * The Windows status panel batch file name.
+   * The Windows control panel batch file name.
    */
-  public static final String WINDOWS_STATUSPANEL_FILE_NAME = "status-panel.bat";
+  public static final String WINDOWS_CONTROLPANEL_FILE_NAME =
+    "control-panel.bat";
 
   /**
    * The MacOS X Java application stub name.
@@ -223,9 +224,9 @@ public class Installation {
   public static final String MAC_JAVA_APP_STUB_NAME = "JavaApplicationStub";
 
   /**
-   * The MacOS X status panel application bundle name.
+   * The MacOS X control panel application bundle name.
    */
-  public static final String MAC_STATUSPANEL_FILE_NAME = "StatusPanel.app";
+  public static final String MAC_CONTROLPANEL_FILE_NAME = "ControlPanel.app";
 
   /**
    * The UNIX status command line script file name.
@@ -903,24 +904,24 @@ public class Installation {
   }
 
   /**
-   * Gets the status panel command file appropriate for the current operating
+   * Gets the control panel command file appropriate for the current operating
    * system.
-   * @return File object representing the status panel command
+   * @return File object representing the control panel command
    */
-  public File getStatusPanelCommandFile() {
-    File statusPanelCommandFile;
+  public File getControlPanelCommandFile() {
+    File controlPanelCommandFile;
     if (Utils.isWindows()) {
-      statusPanelCommandFile = new File(getBinariesDirectory(),
-              WINDOWS_STATUSPANEL_FILE_NAME);
+      controlPanelCommandFile = new File(getBinariesDirectory(),
+              WINDOWS_CONTROLPANEL_FILE_NAME);
     } else if (Utils.isMacOS()) {
-      statusPanelCommandFile = new File(getRootDirectory() +
+      controlPanelCommandFile = new File(getRootDirectory() +
         File.separator + MAC_APPLICATIONS_PATH_RELATIVE,
-        MAC_STATUSPANEL_FILE_NAME);
+        MAC_CONTROLPANEL_FILE_NAME);
     } else {
-      statusPanelCommandFile = new File(getBinariesDirectory(),
-              UNIX_STATUSPANEL_FILE_NAME);
+      controlPanelCommandFile = new File(getBinariesDirectory(),
+              UNIX_CONTROLPANEL_FILE_NAME);
     }
-    return statusPanelCommandFile;
+    return controlPanelCommandFile;
   }
 
   /**

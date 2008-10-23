@@ -25,19 +25,25 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins;
-import org.opends.messages.Message;
 
 
+
+import static org.opends.messages.PluginMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.extensions.ExtensionsConstants.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.PasswordPolicyImportPluginCfg;
@@ -46,8 +52,8 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
-import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicy;
@@ -55,24 +61,17 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ResultCode;
-
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.messages.PluginMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -106,13 +105,13 @@ public final class PasswordPolicyImportPlugin
 
   // The set of password storage schemes to use for the various password
   // policies defined in the server.
-  private HashMap<DN,PasswordStorageScheme[]> schemesByPolicy;
+  private HashMap<DN,PasswordStorageScheme<?>[]> schemesByPolicy;
 
   // The default password storage schemes for auth password attributes.
-  private PasswordStorageScheme[] defaultAuthPasswordSchemes;
+  private PasswordStorageScheme<?>[] defaultAuthPasswordSchemes;
 
   // The default password storage schemes for user password attributes.
-  private PasswordStorageScheme[] defaultUserPasswordSchemes;
+  private PasswordStorageScheme<?>[] defaultUserPasswordSchemes;
 
 
 
@@ -170,7 +169,7 @@ public final class PasswordPolicyImportPlugin
     {
       if (defaultPolicy.usesAuthPasswordSyntax())
       {
-        CopyOnWriteArrayList<PasswordStorageScheme> schemeList =
+        CopyOnWriteArrayList<PasswordStorageScheme<?>> schemeList =
              defaultPolicy.getDefaultStorageSchemes();
         defaultAuthPasswordSchemes =
              new PasswordStorageScheme[schemeList.size()];
@@ -226,7 +225,7 @@ public final class PasswordPolicyImportPlugin
     {
       if (! defaultPolicy.usesAuthPasswordSyntax())
       {
-        CopyOnWriteArrayList<PasswordStorageScheme> schemeList =
+        CopyOnWriteArrayList<PasswordStorageScheme<?>> schemeList =
              defaultPolicy.getDefaultStorageSchemes();
         defaultUserPasswordSchemes =
              new PasswordStorageScheme[schemeList.size()];
@@ -295,13 +294,13 @@ public final class PasswordPolicyImportPlugin
 
     // Get the set of password policies defined in the server and get the
     // attribute types associated with them.
-    HashMap<DN,PasswordStorageScheme[]> schemeMap =
-         new HashMap<DN,PasswordStorageScheme[]>();
+    HashMap<DN,PasswordStorageScheme<?>[]> schemeMap =
+         new HashMap<DN,PasswordStorageScheme<?>[]>();
     for (PasswordPolicy p : DirectoryServer.getPasswordPolicies())
     {
-      CopyOnWriteArrayList<PasswordStorageScheme> schemeList =
+      CopyOnWriteArrayList<PasswordStorageScheme<?>> schemeList =
            p.getDefaultStorageSchemes();
-      PasswordStorageScheme[] schemeArray =
+      PasswordStorageScheme<?>[] schemeArray =
            new PasswordStorageScheme[schemeList.size()];
       schemeList.toArray(schemeArray);
       schemeMap.put(p.getConfigEntryDN(), schemeArray);
@@ -338,12 +337,8 @@ public final class PasswordPolicyImportPlugin
   public final PluginResult.ImportLDIF
                doLDIFImport(LDIFImportConfig importConfig, Entry entry)
   {
-    // Create a list that we will use to hold new encoded values.
-    ArrayList<ByteString> encodedValueList = new ArrayList<ByteString>();
-
-
     // See if the entry explicitly states the password policy that it should
-    //  use.  If so, then only use it to perform the encoding.
+    // use.  If so, then only use it to perform the encoding.
     List<Attribute> attrList = entry.getAttribute(customPolicyAttribute);
     if (attrList != null)
     {
@@ -352,7 +347,7 @@ public final class PasswordPolicyImportPlugin
 policyLoop:
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           try
           {
@@ -378,7 +373,7 @@ policyLoop:
 
       if (policy != null)
       {
-        PasswordStorageScheme[] schemes = schemesByPolicy.get(policyDN);
+        PasswordStorageScheme<?>[] schemes = schemesByPolicy.get(policyDN);
         if (schemes != null)
         {
           attrList = entry.getAttribute(policy.getPasswordAttribute());
@@ -389,27 +384,25 @@ policyLoop:
 
           for (Attribute a : attrList)
           {
-            encodedValueList.clear();
+            AttributeBuilder builder = new AttributeBuilder(a, true);
+            boolean gotError = false;
 
-            LinkedHashSet<AttributeValue> values = a.getValues();
-            Iterator<AttributeValue> iterator = values.iterator();
-            while (iterator.hasNext())
+            for (AttributeValue v : a)
             {
-              AttributeValue v = iterator.next();
               ByteString value = v.getValue();
 
               if (policy.usesAuthPasswordSyntax())
               {
-                if (! AuthPasswordSyntax.isEncoded(value))
+                if (!AuthPasswordSyntax.isEncoded(value))
                 {
                   try
                   {
-                    for (PasswordStorageScheme s : schemes)
+                    for (PasswordStorageScheme<?> s : schemes)
                     {
-                      encodedValueList.add(s.encodeAuthPassword(value));
+                      ByteString nv = s.encodeAuthPassword(value);
+                      builder.add(new AttributeValue(policy
+                          .getPasswordAttribute(), nv));
                     }
-
-                    iterator.remove();
                   }
                   catch (Exception e)
                   {
@@ -419,29 +412,32 @@ policyLoop:
                     }
 
                     Message message =
-                      ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD.
-                          get(policy.getPasswordAttribute().getNameOrOID(),
-                              String.valueOf(entry.getDN()),
-                              stackTraceToSingleLineString(e));
+                      ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
+                        .get(policy.getPasswordAttribute().getNameOrOID(),
+                            String.valueOf(entry.getDN()),
+                            stackTraceToSingleLineString(e));
                     logError(message);
-
-                    encodedValueList.clear();
+                    gotError = true;
                     break;
                   }
+                }
+                else
+                {
+                  builder.add(v);
                 }
               }
               else
               {
-                if (! UserPasswordSyntax.isEncoded(value))
+                if (!UserPasswordSyntax.isEncoded(value))
                 {
                   try
                   {
-                    for (PasswordStorageScheme s : schemes)
+                    for (PasswordStorageScheme<?> s : schemes)
                     {
-                      encodedValueList.add(s.encodePasswordWithScheme(value));
+                      ByteString nv = s.encodePasswordWithScheme(value);
+                      builder.add(new AttributeValue(policy
+                          .getPasswordAttribute(), nv));
                     }
-
-                    iterator.remove();
                   }
                   catch (Exception e)
                   {
@@ -451,22 +447,25 @@ policyLoop:
                     }
 
                     Message message =
-                      ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD.
-                          get(policy.getPasswordAttribute().getNameOrOID(),
-                              String.valueOf(entry.getDN()),
-                              stackTraceToSingleLineString(e));
+                      ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
+                        .get(policy.getPasswordAttribute().getNameOrOID(),
+                            String.valueOf(entry.getDN()),
+                            stackTraceToSingleLineString(e));
                     logError(message);
-
-                    encodedValueList.clear();
+                    gotError = true;
                     break;
                   }
+                }
+                else
+                {
+                  builder.add(v);
                 }
               }
             }
 
-            for (ByteString s : encodedValueList)
+            if (!gotError)
             {
-              values.add(new AttributeValue(policy.getPasswordAttribute(), s));
+              entry.replaceAttribute(builder.toAttribute());
             }
           }
 
@@ -489,24 +488,21 @@ policyLoop:
 
       for (Attribute a : attrList)
       {
-        encodedValueList.clear();
+        AttributeBuilder builder = new AttributeBuilder(a, true);
+        boolean gotError = false;
 
-        LinkedHashSet<AttributeValue> values = a.getValues();
-        Iterator<AttributeValue> iterator = values.iterator();
-        while (iterator.hasNext())
+        for (AttributeValue v : a)
         {
-          AttributeValue v = iterator.next();
           ByteString value = v.getValue();
-          if (! AuthPasswordSyntax.isEncoded(value))
+          if (!AuthPasswordSyntax.isEncoded(value))
           {
             try
             {
-              for (PasswordStorageScheme s : defaultAuthPasswordSchemes)
+              for (PasswordStorageScheme<?> s : defaultAuthPasswordSchemes)
               {
-                encodedValueList.add(s.encodeAuthPassword(value));
+                ByteString nv = s.encodeAuthPassword(value);
+                builder.add(new AttributeValue(t, nv));
               }
-
-              iterator.remove();
             }
             catch (Exception e)
             {
@@ -515,20 +511,23 @@ policyLoop:
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              Message message = ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD.
-                  get(t.getNameOrOID(), String.valueOf(entry.getDN()),
+              Message message = ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
+                  .get(t.getNameOrOID(), String.valueOf(entry.getDN()),
                       stackTraceToSingleLineString(e));
               logError(message);
-
-              encodedValueList.clear();
+              gotError = true;
               break;
             }
           }
+          else
+          {
+            builder.add(v);
+          }
         }
 
-        for (ByteString s : encodedValueList)
+        if (!gotError)
         {
-          values.add(new AttributeValue(t, s));
+          entry.replaceAttribute(builder.toAttribute());
         }
       }
     }
@@ -547,24 +546,21 @@ policyLoop:
 
       for (Attribute a : attrList)
       {
-        encodedValueList.clear();
+        AttributeBuilder builder = new AttributeBuilder(a, true);
+        boolean gotError = false;
 
-        LinkedHashSet<AttributeValue> values = a.getValues();
-        Iterator<AttributeValue> iterator = values.iterator();
-        while (iterator.hasNext())
+        for (AttributeValue v : a)
         {
-          AttributeValue v = iterator.next();
           ByteString value = v.getValue();
-          if (! UserPasswordSyntax.isEncoded(value))
+          if (!UserPasswordSyntax.isEncoded(value))
           {
             try
             {
-              for (PasswordStorageScheme s : defaultUserPasswordSchemes)
+              for (PasswordStorageScheme<?> s : defaultUserPasswordSchemes)
               {
-                encodedValueList.add(s.encodePasswordWithScheme(value));
+                ByteString nv = s.encodePasswordWithScheme(value);
+                builder.add(new AttributeValue(t, nv));
               }
-
-              iterator.remove();
             }
             catch (Exception e)
             {
@@ -573,20 +569,23 @@ policyLoop:
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              Message message = ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD.
-                  get(t.getNameOrOID(), String.valueOf(entry.getDN()),
+              Message message = ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD
+                  .get(t.getNameOrOID(), String.valueOf(entry.getDN()),
                       stackTraceToSingleLineString(e));
               logError(message);
-
-              encodedValueList.clear();
+              gotError = true;
               break;
             }
           }
+          else
+          {
+            builder.add(v);
+          }
         }
 
-        for (ByteString s : encodedValueList)
+        if (!gotError)
         {
-          values.add(new AttributeValue(t, s));
+          entry.replaceAttribute(builder.toAttribute());
         }
       }
     }
@@ -645,7 +644,8 @@ policyLoop:
          configuration.getDefaultAuthPasswordStorageSchemeDNs();
     if (authSchemeDNs.isEmpty())
     {
-      PasswordStorageScheme[] defaultAuthSchemes = new PasswordStorageScheme[1];
+      PasswordStorageScheme<?>[] defaultAuthSchemes =
+        new PasswordStorageScheme[1];
       defaultAuthSchemes[0] =
            DirectoryServer.getAuthPasswordStorageScheme(
                 AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_1);
@@ -659,7 +659,7 @@ policyLoop:
     }
     else
     {
-      PasswordStorageScheme[] defaultAuthSchemes =
+      PasswordStorageScheme<?>[] defaultAuthSchemes =
            new PasswordStorageScheme[authSchemeDNs.size()];
       int i=0;
       for (DN schemeDN : authSchemeDNs)
@@ -693,7 +693,8 @@ policyLoop:
          configuration.getDefaultUserPasswordStorageSchemeDNs();
     if (userSchemeDNs.isEmpty())
     {
-      PasswordStorageScheme[] defaultUserSchemes = new PasswordStorageScheme[1];
+      PasswordStorageScheme<?>[] defaultUserSchemes =
+        new PasswordStorageScheme[1];
       defaultUserSchemes[0] =
            DirectoryServer.getPasswordStorageScheme(
                 toLowerCase(STORAGE_SCHEME_NAME_SALTED_SHA_1));
@@ -707,7 +708,7 @@ policyLoop:
     }
     else
     {
-      PasswordStorageScheme[] defaultUserSchemes =
+      PasswordStorageScheme<?>[] defaultUserSchemes =
            new PasswordStorageScheme[userSchemeDNs.size()];
       int i=0;
       for (DN schemeDN : userSchemeDNs)
@@ -745,14 +746,14 @@ policyLoop:
     // Get the set of default password storage schemes for auth password
     // attributes.
     PasswordPolicy defaultPolicy = DirectoryServer.getDefaultPasswordPolicy();
-    PasswordStorageScheme[] defaultAuthSchemes;
+    PasswordStorageScheme<?>[] defaultAuthSchemes;
     Set<DN> authSchemeDNs =
          configuration.getDefaultAuthPasswordStorageSchemeDNs();
     if (authSchemeDNs.isEmpty())
     {
       if (defaultPolicy.usesAuthPasswordSyntax())
       {
-        CopyOnWriteArrayList<PasswordStorageScheme> schemeList =
+        CopyOnWriteArrayList<PasswordStorageScheme<?>> schemeList =
              defaultPolicy.getDefaultStorageSchemes();
         defaultAuthSchemes =
              new PasswordStorageScheme[schemeList.size()];
@@ -804,14 +805,14 @@ policyLoop:
 
     // Get the set of default password storage schemes for user password
     // attributes.
-    PasswordStorageScheme[] defaultUserSchemes;
+    PasswordStorageScheme<?>[] defaultUserSchemes;
     Set<DN> userSchemeDNs =
          configuration.getDefaultUserPasswordStorageSchemeDNs();
     if (userSchemeDNs.isEmpty())
     {
       if (! defaultPolicy.usesAuthPasswordSyntax())
       {
-        CopyOnWriteArrayList<PasswordStorageScheme> schemeList =
+        CopyOnWriteArrayList<PasswordStorageScheme<?>> schemeList =
              defaultPolicy.getDefaultStorageSchemes();
         defaultUserSchemes =
              new PasswordStorageScheme[schemeList.size()];

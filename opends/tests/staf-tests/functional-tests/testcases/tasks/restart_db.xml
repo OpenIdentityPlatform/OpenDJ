@@ -65,12 +65,12 @@
             
             <call function="'StopDsWithScript'">
               { 'location'  : STAF_REMOTE_HOSTNAME,
-              'dsHost'    : DIRECTORY_INSTANCE_HOST,
-              'dsPort'    : DIRECTORY_INSTANCE_PORT,
-              'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-              'dsBindPwd' : DIRECTORY_INSTANCE_PSWD,
-              'dsRestart' : ' ',
-              'dsStopTime' : '20061212000000' }
+              'dsHost'      : DIRECTORY_INSTANCE_HOST,
+              'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+              'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+              'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD,
+              'dsRestart'   : ' ',
+              'dsStopTime'  : '20061212000000' }
             </call>
             
             <call function="'Sleep'">
@@ -112,11 +112,11 @@
             
             <call function="'StopDsWithScript'">
               { 'location'  : STAF_REMOTE_HOSTNAME,
-              'dsHost'    : DIRECTORY_INSTANCE_HOST,
-              'dsPort'    : DIRECTORY_INSTANCE_PORT,
-              'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-              'dsBindPwd' : DIRECTORY_INSTANCE_PSWD,
-              'dsStopTime' : '20061212000000' }
+              'dsHost'      : DIRECTORY_INSTANCE_HOST,
+              'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+              'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+              'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD,
+              'dsStopTime'  : '20061212000000' }
             </call>
             
             <call function="'SearchObject'">

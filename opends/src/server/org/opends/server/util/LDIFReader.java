@@ -44,7 +44,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -55,6 +54,7 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DirectoryException;
@@ -852,10 +852,9 @@ public final class LDIFReader
     // Parse the attribute type description.
     int colonPos = parseColonPosition(lines, line);
     String attrDescr = line.substring(0, colonPos);
-    Attribute attribute = parseAttrDescription(attrDescr);
-    String attrName = attribute.getName();
-    String lowerName = toLowerCase(attrName);
-    LinkedHashSet<String> options = attribute.getOptions();
+    final Attribute attribute = parseAttrDescription(attrDescr);
+    final String attrName = attribute.getName();
+    final String lowerName = toLowerCase(attrName);
 
     // Now parse the attribute value.
     ASN1OctetString value = parseSingleValue(lines, line, entryDN,
@@ -913,6 +912,17 @@ public final class LDIFReader
         return;
       }
 
+       //The attribute is not being ignored so check for binary option.
+      if(!attrType.isBinary())
+      {
+       if(attribute.hasOption("binary"))
+        {
+          Message message = ERR_LDIF_INVALID_ATTR_OPTION.get(
+            String.valueOf(entryDN),lastEntryLineNumber, attrName);
+          logToRejectWriter(lines, message);
+          throw new LDIFException(message, lastEntryLineNumber,true);
+        }
+      }
       if (checkSchema &&
           (DirectoryServer.getSyntaxEnforcementPolicy() !=
                AcceptRejectWarn.ACCEPT))
@@ -945,12 +955,10 @@ public final class LDIFReader
         attrList = operationalAttributes.get(attrType);
         if (attrList == null)
         {
-          LinkedHashSet<AttributeValue> valueSet =
-               new LinkedHashSet<AttributeValue>();
-          valueSet.add(attributeValue);
-
+          AttributeBuilder builder = new AttributeBuilder(attribute, true);
+          builder.add(attributeValue);
           attrList = new ArrayList<Attribute>();
-          attrList.add(new Attribute(attrType, attrName, options, valueSet));
+          attrList.add(builder.toAttribute());
           operationalAttributes.put(attrType, attrList);
           return;
         }
@@ -960,12 +968,10 @@ public final class LDIFReader
         attrList = userAttributes.get(attrType);
         if (attrList == null)
         {
-          LinkedHashSet<AttributeValue> valueSet =
-               new LinkedHashSet<AttributeValue>();
-          valueSet.add(attributeValue);
-
+          AttributeBuilder builder = new AttributeBuilder(attribute, true);
+          builder.add(attributeValue);
           attrList = new ArrayList<Attribute>();
-          attrList.add(new Attribute(attrType, attrName, options, valueSet));
+          attrList.add(builder.toAttribute());
           userAttributes.put(attrType, attrList);
           return;
         }
@@ -974,12 +980,12 @@ public final class LDIFReader
 
       // Check to see if any of the attributes in the list have the same set of
       // options.  If so, then try to add a value to that attribute.
-      for (Attribute a : attrList)
-      {
-        if (a.optionsEqual(options))
+      for (int i = 0; i < attrList.size(); i++) {
+        Attribute a = attrList.get(i);
+
+        if (a.optionsEqual(attribute.getOptions()))
         {
-          LinkedHashSet<AttributeValue> valueSet = a.getValues();
-          if (valueSet.contains(attributeValue))
+          if (a.contains(attributeValue))
           {
             if (! checkSchema)
             {
@@ -988,7 +994,7 @@ public final class LDIFReader
               // values differ in capitalization.  Only reject the proposed
               // value if we find another value that is exactly the same as the
               // one that was provided.
-              for (AttributeValue v : valueSet)
+              for (AttributeValue v : a)
               {
                 if (v.getValue().equals(attributeValue.getValue()))
                 {
@@ -1014,7 +1020,7 @@ public final class LDIFReader
             }
           }
 
-          if (attrType.isSingleValue() && (! valueSet.isEmpty()) && checkSchema)
+          if (attrType.isSingleValue() && !a.isEmpty() && checkSchema)
           {
             Message message = ERR_LDIF_MULTIPLE_VALUES_FOR_SINGLE_VALUED_ATTR
                     .get(String.valueOf(entryDN),
@@ -1023,18 +1029,19 @@ public final class LDIFReader
             throw new LDIFException(message, lastEntryLineNumber, true);
           }
 
-          valueSet.add(attributeValue);
+          AttributeBuilder builder = new AttributeBuilder(a);
+          builder.add(attributeValue);
+          attrList.set(i, builder.toAttribute());
           return;
         }
       }
 
 
-      // No set of matching options was found, so create a new one and add it to
-      // the list.
-      LinkedHashSet<AttributeValue> valueSet =
-           new LinkedHashSet<AttributeValue>();
-      valueSet.add(attributeValue);
-      attrList.add(new Attribute(attrType, attrName, options, valueSet));
+      // No set of matching options was found, so create a new one and
+      // add it to the list.
+      AttributeBuilder builder = new AttributeBuilder(attribute, true);
+      builder.add(attributeValue);
+      attrList.add(builder.toAttribute());
       return;
     }
   }
@@ -1084,11 +1091,11 @@ public final class LDIFReader
     ASN1OctetString value = parseSingleValue(lines, line, entryDN,
         colonPos, attrName);
 
+    AttributeBuilder builder = new AttributeBuilder(attribute, true);
     AttributeType attrType = attribute.getAttributeType();
-    AttributeValue attributeValue = new AttributeValue(attrType, value);
-    attribute.getValues().add(attributeValue);
+    builder.add(new AttributeValue(attrType, value));
 
-    return attribute;
+    return builder.toAttribute();
   }
 
 
@@ -1168,53 +1175,51 @@ public final class LDIFReader
 
 
   /**
-   * Parse an AttributeDescription (an attribute type name and its options).
-   * @param attrDescr The attribute description to be parsed.
-   * @return A new attribute with no values, representing the attribute type
-   * and its options.
+   * Parse an AttributeDescription (an attribute type name and its
+   * options).
+   *
+   * @param attrDescr
+   *          The attribute description to be parsed.
+   * @return A new attribute with no values, representing the
+   *         attribute type and its options.
    */
   private static Attribute parseAttrDescription(String attrDescr)
   {
-    String attrName;
-    String lowerName;
-    LinkedHashSet<String> options;
+    AttributeBuilder builder;
     int semicolonPos = attrDescr.indexOf(';');
     if (semicolonPos > 0)
     {
-      attrName = attrDescr.substring(0, semicolonPos);
-      options = new LinkedHashSet<String>();
-      int nextPos = attrDescr.indexOf(';', semicolonPos+1);
+      builder = new AttributeBuilder(attrDescr.substring(0, semicolonPos));
+      int nextPos = attrDescr.indexOf(';', semicolonPos + 1);
       while (nextPos > 0)
       {
-        String option = attrDescr.substring(semicolonPos+1, nextPos);
+        String option = attrDescr.substring(semicolonPos + 1, nextPos);
         if (option.length() > 0)
         {
-          options.add(option);
+          builder.setOption(option);
           semicolonPos = nextPos;
-          nextPos = attrDescr.indexOf(';', semicolonPos+1);
+          nextPos = attrDescr.indexOf(';', semicolonPos + 1);
         }
       }
 
-      String option = attrDescr.substring(semicolonPos+1);
+      String option = attrDescr.substring(semicolonPos + 1);
       if (option.length() > 0)
       {
-        options.add(option);
+        builder.setOption(option);
       }
     }
     else
     {
-      attrName  = attrDescr;
-      options   = null;
+      builder = new AttributeBuilder(attrDescr);
     }
 
-    lowerName = toLowerCase(attrName);
-    AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
-    if (attrType == null)
+    if(builder.getAttributeType().isBinary())
     {
-      attrType = DirectoryServer.getDefaultAttributeType(attrName);
+      //resetting doesn't hurt and returns false.
+      builder.setOption("binary");
     }
 
-    return new Attribute(attrType, attrName, options, null);
+    return builder.toAttribute();
   }
 
 
@@ -1401,11 +1406,7 @@ public final class LDIFReader
   {
     Attribute attr =
       readSingleValueAttribute(lines, line, entryDN, attributeName);
-    LinkedHashSet<AttributeValue> values = attr.getValues();
-
-    // Get the attribute value
-    Object[] vals = values.toArray();
-    return (((AttributeValue)vals[0]).getStringValue());
+    return attr.iterator().next().getStringValue();
   }
 
 
@@ -1433,35 +1434,39 @@ public final class LDIFReader
       Attribute attr =
         readSingleValueAttribute(lines, line, entryDN, null);
       String name = attr.getName();
-      LinkedHashSet<AttributeValue> values = attr.getValues();
 
       // Get the attribute description
-      String attrDescr = values.iterator().next().getStringValue();
+      String attrDescr = attr.iterator().next().getStringValue();
 
       String lowerName = toLowerCase(name);
-      if(lowerName.equals("add"))
+      if (lowerName.equals("add"))
       {
         modType = ModificationType.ADD;
-      } else if(lowerName.equals("delete"))
+      }
+      else if (lowerName.equals("delete"))
       {
         modType = ModificationType.DELETE;
-      } else if(lowerName.equals("replace"))
+      }
+      else if (lowerName.equals("replace"))
       {
         modType = ModificationType.REPLACE;
-      } else if(lowerName.equals("increment"))
+      }
+      else if (lowerName.equals("increment"))
       {
         modType = ModificationType.INCREMENT;
-      } else
+      }
+      else
       {
         // Invalid attribute name.
-        Message message = ERR_LDIF_INVALID_MODIFY_ATTRIBUTE.get(
-            name, "add, delete, replace, increment");
+        Message message = ERR_LDIF_INVALID_MODIFY_ATTRIBUTE.get(name,
+            "add, delete, replace, increment");
         throw new LDIFException(message, lineNumber, true);
       }
 
       // Now go through the rest of the attributes till the "-" line is
       // reached.
       Attribute modAttr = LDIFReader.parseAttrDescription(attrDescr);
+      AttributeBuilder builder = new AttributeBuilder(modAttr, true);
       while (! lines.isEmpty())
       {
         line = lines.remove();
@@ -1469,12 +1474,11 @@ public final class LDIFReader
         {
           break;
         }
-        Attribute a =
-          readSingleValueAttribute(lines, line, entryDN, attrDescr);
-        modAttr.getValues().addAll(a.getValues());
+        Attribute a = readSingleValueAttribute(lines, line, entryDN, attrDescr);
+        builder.addAll(a);
       }
 
-      LDAPAttribute ldapAttr = new LDAPAttribute(modAttr);
+      LDAPAttribute ldapAttr = new LDAPAttribute(builder.toAttribute());
       LDAPModification mod = new LDAPModification(modType, ldapAttr);
       modifications.add(mod);
     }
@@ -1535,15 +1539,13 @@ public final class LDIFReader
 
     // Reconstruct the object class attribute.
     AttributeType ocType = DirectoryServer.getObjectClassAttributeType();
-    LinkedHashSet<AttributeValue> ocValues =
-      new LinkedHashSet<AttributeValue>(objectClasses.size());
+    AttributeBuilder builder = new AttributeBuilder(ocType, "objectClass");
     for (String value : objectClasses.values()) {
       AttributeValue av = new AttributeValue(ocType, value);
-      ocValues.add(av);
+      builder.add(av);
     }
-    Attribute ocAttr = new Attribute(ocType, "objectClass", ocValues);
     List<Attribute> ocAttrList = new ArrayList<Attribute>(1);
-    ocAttrList.add(ocAttr);
+    ocAttrList.add(builder.toAttribute());
     attributes.put(ocType, ocAttrList);
 
     return new AddChangeRecordEntry(entryDN, attributes);

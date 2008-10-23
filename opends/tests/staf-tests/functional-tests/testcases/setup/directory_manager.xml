@@ -64,6 +64,14 @@
       <call function="'getFreePort'">
         {
           'host'  : STAF_REMOTE_HOSTNAME,
+          'port'  : 5444,
+        }
+      </call>
+      <script>DM_I1_ADMIN_PORT = STAXResult</script>
+
+      <call function="'getFreePort'">
+        {
+          'host'  : STAF_REMOTE_HOSTNAME,
           'port'  : 6000,
         }
       </call>
@@ -72,10 +80,26 @@
       <call function="'getFreePort'">
         {
           'host'  : STAF_REMOTE_HOSTNAME,
+          'port'  : 6444,
+        }
+      </call>
+      <script>DM_I2_ADMIN_PORT = STAXResult</script>
+
+      <call function="'getFreePort'">
+        {
+          'host'  : STAF_REMOTE_HOSTNAME,
           'port'  : 6500,
         }
       </call>
       <script>DM_I3_PORT = STAXResult</script>
+
+      <call function="'getFreePort'">
+        {
+          'host'  : STAF_REMOTE_HOSTNAME,
+          'port'  : 6544,
+        }
+      </call>
+      <script>DM_I3_ADMIN_PORT = STAXResult</script>
 
       <call function="'getFreePort'">
         {
@@ -94,9 +118,10 @@
       <script>DM_I2_REPLICATION_PORT = STAXResult</script>
 
       <message>
-        'Got these free ports: %s, %s, %s, %s and %s' % \
-        (DM_I1_PORT, DM_I2_PORT, DM_I3_PORT, DM_I1_REPLICATION_PORT, \
-          DM_I2_REPLICATION_PORT)
+        'Got these free ports: %s, %s, %s, %s, %s, %s, %s and %s' % \
+        (DM_I1_PORT, DM_I1_ADMIN_PORT, DM_I2_PORT, DM_I2_ADMIN_PORT, \
+         DM_I3_PORT, DM_I3_ADMIN_PORT, DM_I1_REPLICATION_PORT, \
+         DM_I2_REPLICATION_PORT)
       </message>
       
 
@@ -172,6 +197,7 @@
             c = '%s/setup%s' % (DM_I1_ROOT, fileExt)
             p = []
             p.append('--cli --no-prompt --ldapPort %s' % (DM_I1_PORT))
+            p.append('--adminConnectorPort %s' % DM_I1_ADMIN_PORT)
             p.append('--rootUserPassword "kangourou"')
             p = ' '.join(p)
           </script>
@@ -229,6 +255,7 @@
             c = '%s/setup%s' % (DM_I2_ROOT, fileExt)
             p = []
             p.append('--cli --no-prompt --ldapPort %s' % (DM_I2_PORT))
+            p.append('--adminConnectorPort %s' % DM_I2_ADMIN_PORT)
             p.append('--rootUserDN "cn=DM" --rootUserPassword "kangourou"')
             p = ' '.join(p)
           </script>
@@ -255,7 +282,8 @@
             c = '%s/%s/dsconfig%s' % (DM_I1_ROOT, fileFolder, fileExt)
             p = []
             p.append('create-backend --bindDN "cn=directory manager"')
-            p.append('--bindPassword kangourou --port %s' % (DM_I1_PORT))
+            p.append('--bindPassword kangourou')
+            p.append('--trustAll --port %s' % DM_I1_ADMIN_PORT)
             p.append('--backend-name o1 --type local-db --no-prompt')
             p.append('--set enabled:true --set writability-mode:enabled')
             p.append('--set base-dn:"o=o1"')
@@ -278,7 +306,8 @@
             c = '%s/%s/dsconfig%s' % (DM_I2_ROOT, fileFolder, fileExt)
             p = []
             p.append('create-backend --bindDN "cn=DM" --bindPassword kangourou')
-            p.append('--port %s --backend-name o1' % DM_I2_PORT)
+            p.append('--trustAll --port %s' % DM_I2_ADMIN_PORT)
+            p.append('--backend-name o1')
             p.append('--type local-db --no-prompt --set enabled:true')
             p.append('--set writability-mode:enabled --set base-dn:"o=o1"')
             p.append('')
@@ -303,7 +332,7 @@
             c = '%s/%s/import-ldif%s' % (DM_I1_ROOT, fileFolder, fileExt)
             p = []
             p.append('--bindDN "cn=directory manager" --bindPassword kangourou')
-            p.append('--port %s --backendID o1' % DM_I1_PORT)
+            p.append('--trustAll --port %s --backendID o1' % DM_I1_ADMIN_PORT)
             p.append('--ldifFile %s' % DM_O1_LDIF)
             p = ' '.join(p)
           </script>
@@ -323,14 +352,14 @@
           <script>
             c = '%s/%s/dsreplication%s' % (DM_I1_ROOT, fileFolder, fileExt)
             p = []
-            p.append('enable --host1 %s' % STAF_REMOTE_HOSTNAME)
+            p.append('enable --trustAll --host1 %s' % STAF_REMOTE_HOSTNAME)
             p.append('--bindDN1 "cn=directory manager"')
             p.append('--bindPassword1 kangourou')
-            p.append('--port1 %s' % DM_I1_PORT)
+            p.append('--port1 %s' % DM_I1_ADMIN_PORT)
             p.append('--replicationPort1 %s' % DM_I1_REPLICATION_PORT)
             p.append('--host2 %s --bindDN2 "cn=DM"' % STAF_REMOTE_HOSTNAME)
             p.append('--bindPassword2 kangourou')
-            p.append('--port2 %s' % (DM_I2_PORT))
+            p.append('--port2 %s' % DM_I2_ADMIN_PORT)
             p.append('--replicationPort2 %s' % DM_I2_REPLICATION_PORT)
             p.append('-I admin -w secret12')
             p.append('--baseDN "o=o1" --no-prompt')
@@ -354,10 +383,10 @@
             p = []
             p.append('initialize -I admin -w secret12 --baseDN "o=o1"')
             p.append('--hostSource %s' % STAF_REMOTE_HOSTNAME)
-            p.append('--portSource %s' % DM_I1_PORT)
+            p.append('--portSource %s' % DM_I1_ADMIN_PORT)
             p.append('--hostDestination %s' % STAF_REMOTE_HOSTNAME)
-            p.append('--portDestination %s' %  DM_I2_PORT)
-            p.append('--no-prompt')
+            p.append('--portDestination %s' %  DM_I2_ADMIN_PORT)
+            p.append('--no-prompt --trustAll')
             p = ' '.join(p)
           </script>
 
@@ -379,7 +408,7 @@
           <script>
             c = '%s/%s/backup%s' % (DM_I1_ROOT, fileFolder, fileExt)
             p = []
-            p.append('--backendID o1 --port %s' % DM_I1_PORT)
+            p.append('--trustAll --backendID o1 --port %s' % DM_I1_ADMIN_PORT)
             p.append('--bindDN "cn=directory manager"')
             p.append('--bindPassword "kangourou"')
             p.append('--backupDirectory %s/bak' % DM_I1_ROOT)
@@ -401,7 +430,7 @@
           <script>
             c = '%s/%s/backup%s' % (DM_I2_ROOT, fileFolder, fileExt)
             p = []
-            p.append('--backendID o1 --port %s' % DM_I2_PORT)
+            p.append('--trustAll --backendID o1 --port %s' % DM_I2_ADMIN_PORT)
             p.append('--bindDN "cn=DM" --bindPassword "kangourou"')
             p.append('--backupDirectory %s/bak' % DM_I2_ROOT)
             p = ' '.join(p)
@@ -467,7 +496,7 @@
           <script>
             c = '%s/uninstall%s' % (DM_I1_ROOT, fileExt)
             p = []
-            p.append('--cli --no-prompt')
+            p.append('--cli --no-prompt --trustAll')
             p.append('--adminUID admin --bindPassword secret12')
             p.append('--configuration-files')
             p.append('--databases')
@@ -494,7 +523,7 @@
           <script>
             c = '%s/uninstall%s' % (DM_I2_ROOT, fileExt)
             p = []
-            p.append('--cli --no-prompt')
+            p.append('--cli --no-prompt --trustAll')
             p.append('--remove-all')
             p = ' '.join(p)
           </script>
@@ -517,7 +546,7 @@
           <script>
             c = '%s/uninstall%s' % (DM_I2_ROOT, fileExt)
             p = []
-            p.append('--cli --no-prompt')
+            p.append('--cli --no-prompt --trustAll')
             p.append('--adminUID admin --bindPassword secret12')
             p.append('--backup-files')
             p.append('--ldif-files')
@@ -651,6 +680,7 @@
             c = '%s/setup%s' % (DM_I3_ROOT, fileExt)
             p = []
             p.append('--cli --no-prompt --rootUserDN "cn=DM"')
+            p.append('--adminConnectorPort %s' % DM_I3_ADMIN_PORT)
             p.append('--rootUserPasswordFile %s/does-not-exist.txt' % OUT_GROUP)
             p = ' '.join(p)
           </script>
@@ -717,7 +747,7 @@
           <script>
             c = '%s/uninstall%s' % (DM_I3_ROOT, fileExt)
             p = []
-            p.append('--cli --no-prompt')
+            p.append('--cli --no-prompt --trustAll')
             p.append('--remove-all')
             p.append('--referencedHostName %s' % STAF_REMOTE_HOSTNAME)
             p = ' '.join(p)

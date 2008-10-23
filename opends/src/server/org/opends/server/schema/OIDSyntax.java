@@ -217,5 +217,15 @@ public class OIDSyntax
     return isValidSchemaElement(lowerValue, 0, lowerValue.length(),
             invalidReason);
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

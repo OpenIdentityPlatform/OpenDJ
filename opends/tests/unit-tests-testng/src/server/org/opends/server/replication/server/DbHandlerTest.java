@@ -37,6 +37,7 @@ import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.types.DN;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
+import static org.opends.server.TestCaseUtils.*;
 
 /**
  * Test the dbHandler class
@@ -46,77 +47,89 @@ public class DbHandlerTest extends ReplicationTestCase
   @Test()
   void testDbHandlerTrim() throws Exception
   {
-    TestCaseUtils.startServer();
-
-    //  find  a free port for the replicationServer
-    ServerSocket socket = TestCaseUtils.bindFreePort();
-    int changelogPort = socket.getLocalPort();
-    socket.close();
-
-    // configure a ReplicationServer.
-    ReplServerFakeConfiguration conf =
-      new ReplServerFakeConfiguration(changelogPort, null, 0,
-                                     2, 0, 100, null);
-    ReplicationServer replicationServer = new ReplicationServer(conf);
-
-    // create or clean a directory for the dbHandler
-    String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-    String path = buildRoot + File.separator + "build" + File.separator +
-                  "unit-tests" + File.separator + "dbHandler";
-    File testRoot = new File(path);
-    if (testRoot.exists())
+    File testRoot = null;
+    ReplicationServer replicationServer = null;
+    ReplicationDbEnv dbEnv = null;
+    DbHandler handler = null;
+    try
     {
-      TestCaseUtils.deleteDirectory(testRoot);
-    }
-    testRoot.mkdirs();
+      TestCaseUtils.startServer();
 
-    ReplicationDbEnv dbEnv = new ReplicationDbEnv(path, replicationServer);
+      //  find  a free port for the replicationServer
+      ServerSocket socket = TestCaseUtils.bindFreePort();
+      int changelogPort = socket.getLocalPort();
+      socket.close();
 
-    DbHandler handler =
-      new DbHandler(
-          (short) 1, DN.decode("o=test"), replicationServer, dbEnv, 5000);
+      // configure a ReplicationServer.
+      ReplServerFakeConfiguration conf =
+        new ReplServerFakeConfiguration(changelogPort, null, 0,
+        2, 0, 100, null);
+      replicationServer = new ReplicationServer(conf);
 
-    ChangeNumberGenerator gen = new ChangeNumberGenerator((short)1, 0);
-    ChangeNumber changeNumber1 = gen.newChangeNumber();
-    ChangeNumber changeNumber2 = gen.newChangeNumber();
-    ChangeNumber changeNumber3 = gen.newChangeNumber();
+      // create or clean a directory for the dbHandler
+      String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
+      String path = buildRoot + File.separator + "build" + File.separator +
+        "unit-tests" + File.separator + "dbHandler";
+      testRoot = new File(path);
+      if (testRoot.exists())
+      {
+        TestCaseUtils.deleteDirectory(testRoot);
+      }
+      testRoot.mkdirs();
 
-    DeleteMsg update1 = new DeleteMsg("o=test", changeNumber1, "uid");
-    DeleteMsg update2 = new DeleteMsg("o=test", changeNumber2, "uid");
-    DeleteMsg update3 = new DeleteMsg("o=test", changeNumber3, "uid");
+      dbEnv = new ReplicationDbEnv(path, replicationServer);
 
-    handler.add(update1);
-    handler.add(update2);
-    handler.add(update3);
+      handler = new DbHandler((short) 1, DN.decode(TEST_ROOT_DN_STRING),
+        replicationServer, dbEnv, 5000);
 
-    // The ChangeNumber should not get purged
-    assertEquals(changeNumber1, handler.getFirstChange());
-    assertEquals(changeNumber3, handler.getLastChange());
+      ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 1, 0);
+      ChangeNumber changeNumber1 = gen.newChangeNumber();
+      ChangeNumber changeNumber2 = gen.newChangeNumber();
+      ChangeNumber changeNumber3 = gen.newChangeNumber();
 
-    handler.setPurgeDelay(1);
+      DeleteMsg update1 = new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber1,
+        "uid");
+      DeleteMsg update2 = new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber2,
+        "uid");
+      DeleteMsg update3 = new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber3,
+        "uid");
 
-    boolean purged = false;
-    int count = 300;  // wait at most 60 seconds
-    while (!purged && (count>0))
-    {
-      ChangeNumber firstChange = handler.getFirstChange();
-      ChangeNumber lastChange = handler.getLastChange();
-      if ((!firstChange.equals(changeNumber3) ||
+      handler.add(update1);
+      handler.add(update2);
+      handler.add(update3);
+
+      // The ChangeNumber should not get purged
+      assertEquals(changeNumber1, handler.getFirstChange());
+      assertEquals(changeNumber3, handler.getLastChange());
+
+      handler.setPurgeDelay(1);
+
+      boolean purged = false;
+      int count = 300;  // wait at most 60 seconds
+      while (!purged && (count > 0))
+      {
+        ChangeNumber firstChange = handler.getFirstChange();
+        ChangeNumber lastChange = handler.getLastChange();
+        if ((!firstChange.equals(changeNumber3) ||
           (!lastChange.equals(changeNumber3))))
-      {
-        TestCaseUtils.sleep(100);
+        {
+          TestCaseUtils.sleep(100);
+        } else
+        {
+          purged = true;
+        }
       }
-      else
-      {
-        purged = true;
-      }
+    } finally
+    {
+      if (handler != null)
+        handler.shutdown();
+      if (dbEnv != null)
+        dbEnv.shutdown();
+      if (replicationServer != null)
+      replicationServer.remove();
+      if (testRoot != null)
+        TestCaseUtils.deleteDirectory(testRoot);
     }
-
-    handler.shutdown();
-    dbEnv.shutdown();
-    replicationServer.shutdown();
-
-    TestCaseUtils.deleteDirectory(testRoot);
   }
 
   /*
@@ -127,68 +140,81 @@ public class DbHandlerTest extends ReplicationTestCase
   @Test()
   void testDbHandlerClear() throws Exception
   {
-    TestCaseUtils.startServer();
-
-    //  find  a free port for the replicationServer
-    ServerSocket socket = TestCaseUtils.bindFreePort();
-    int changelogPort = socket.getLocalPort();
-    socket.close();
-
-    // configure a ReplicationServer.
-    ReplServerFakeConfiguration conf =
-      new ReplServerFakeConfiguration(changelogPort, null, 0,
-                                     2, 0, 100, null);
-    ReplicationServer replicationServer = new ReplicationServer(conf);
-
-    // create or clean a directory for the dbHandler
-    String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-    String path = buildRoot + File.separator + "build" + File.separator +
-                  "unit-tests" + File.separator + "dbHandler";
-    File testRoot = new File(path);
-    if (testRoot.exists())
+    File testRoot = null;
+    ReplicationServer replicationServer = null;
+    ReplicationDbEnv dbEnv = null;
+    DbHandler handler = null;
+    try
     {
-      TestCaseUtils.deleteDirectory(testRoot);
+      TestCaseUtils.startServer();
+
+      //  find  a free port for the replicationServer
+      ServerSocket socket = TestCaseUtils.bindFreePort();
+      int changelogPort = socket.getLocalPort();
+      socket.close();
+
+      // configure a ReplicationServer.
+      ReplServerFakeConfiguration conf =
+        new ReplServerFakeConfiguration(changelogPort, null, 0,
+        2, 0, 100, null);
+      replicationServer = new ReplicationServer(conf);
+
+      // create or clean a directory for the dbHandler
+      String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
+      String path = buildRoot + File.separator + "build" + File.separator +
+        "unit-tests" + File.separator + "dbHandler";
+      testRoot = new File(path);
+      if (testRoot.exists())
+      {
+        TestCaseUtils.deleteDirectory(testRoot);
+      }
+      testRoot.mkdirs();
+
+      dbEnv = new ReplicationDbEnv(path, replicationServer);
+
+      handler =
+        new DbHandler((short) 1, DN.decode(TEST_ROOT_DN_STRING),
+        replicationServer, dbEnv, 5000);
+
+      // Creates changes added to the dbHandler
+      ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 1, 0);
+      ChangeNumber changeNumber1 = gen.newChangeNumber();
+      ChangeNumber changeNumber2 = gen.newChangeNumber();
+      ChangeNumber changeNumber3 = gen.newChangeNumber();
+
+      DeleteMsg update1 = new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber1,
+        "uid");
+      DeleteMsg update2 = new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber2,
+        "uid");
+      DeleteMsg update3 = new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber3,
+        "uid");
+
+      // Add the changes
+      handler.add(update1);
+      handler.add(update2);
+      handler.add(update3);
+
+      // Check they are here
+      assertEquals(changeNumber1, handler.getFirstChange());
+      assertEquals(changeNumber3, handler.getLastChange());
+
+      // Clear ...
+      handler.clear();
+
+      // Check the db is cleared.
+      assertEquals(null, handler.getFirstChange());
+      assertEquals(null, handler.getLastChange());
+
+    } finally
+    {
+      if (handler != null)
+        handler.shutdown();
+      if (dbEnv != null)
+        dbEnv.shutdown();
+      if (replicationServer != null)
+        replicationServer.remove();
+      if (testRoot != null)
+        TestCaseUtils.deleteDirectory(testRoot);
     }
-    testRoot.mkdirs();
-
-    ReplicationDbEnv dbEnv = new ReplicationDbEnv(path, replicationServer);
-
-    DbHandler handler =
-      new DbHandler(
-          (short) 1, DN.decode("o=test"), replicationServer, dbEnv, 5000);
-
-    // Creates changes added to the dbHandler
-    ChangeNumberGenerator gen = new ChangeNumberGenerator((short)1, 0);
-    ChangeNumber changeNumber1 = gen.newChangeNumber();
-    ChangeNumber changeNumber2 = gen.newChangeNumber();
-    ChangeNumber changeNumber3 = gen.newChangeNumber();
-
-    DeleteMsg update1 = new DeleteMsg("o=test", changeNumber1, "uid");
-    DeleteMsg update2 = new DeleteMsg("o=test", changeNumber2, "uid");
-    DeleteMsg update3 = new DeleteMsg("o=test", changeNumber3, "uid");
-
-    // Add the changes
-    handler.add(update1);
-    handler.add(update2);
-    handler.add(update3);
-
-    // Check they are here
-    assertEquals(changeNumber1, handler.getFirstChange());
-    assertEquals(changeNumber3, handler.getLastChange());
-
-    // Clear ...
-    handler.clear();
-
-    // Check the db is cleared.
-    assertEquals(null, handler.getFirstChange());
-    assertEquals(null, handler.getLastChange());
-
-    handler.shutdown();
-    dbEnv.shutdown();
-    replicationServer.shutdown();
-
-    TestCaseUtils.deleteDirectory(testRoot);
   }
-
-
 }

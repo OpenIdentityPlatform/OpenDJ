@@ -62,6 +62,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AuthenticationInfo;
@@ -114,7 +115,7 @@ public class PasswordModifyExtendedOperation
   private DN identityMapperDN;
 
   // The reference to the identity mapper.
-  private IdentityMapper identityMapper;
+  private IdentityMapper<?> identityMapper;
 
   // The default set of supported control OIDs for this extended
   private Set<String> supportedControlOIDs = new HashSet<String>(0);
@@ -1047,8 +1048,7 @@ public class PasswordModifyExtendedOperation
       if (oldPassword != null)
       {
         // Remove all existing encoded values that match the old password.
-        LinkedHashSet<AttributeValue> existingValues =
-             pwPolicyState.getPasswordValues();
+        Set<AttributeValue> existingValues = pwPolicyState.getPasswordValues();
         LinkedHashSet<AttributeValue> deleteValues =
              new LinkedHashSet<AttributeValue>(existingValues.size());
         if (pwPolicyState.getPolicy().usesAuthPasswordSyntax())
@@ -1059,7 +1059,7 @@ public class PasswordModifyExtendedOperation
             {
               StringBuilder[] components =
                    AuthPasswordSyntax.decodeAuthPassword(v.getStringValue());
-              PasswordStorageScheme scheme =
+              PasswordStorageScheme<?> scheme =
                    DirectoryServer.getAuthPasswordStorageScheme(
                         components[0].toString());
               if (scheme == null)
@@ -1099,7 +1099,7 @@ public class PasswordModifyExtendedOperation
             {
               String[] components =
                    UserPasswordSyntax.decodeUserPassword(v.getStringValue());
-              PasswordStorageScheme scheme =
+              PasswordStorageScheme<?> scheme =
                    DirectoryServer.getPasswordStorageScheme(
                         toLowerCase(components[0]));
               if (scheme == null)
@@ -1131,8 +1131,9 @@ public class PasswordModifyExtendedOperation
           }
         }
 
-        Attribute deleteAttr = new Attribute(attrType, attrType.getNameOrOID(),
-                                             deleteValues);
+        AttributeBuilder builder = new AttributeBuilder(attrType);
+        builder.addAll(deleteValues);
+        Attribute deleteAttr = builder.toAttribute();
         modList.add(new Modification(ModificationType.DELETE, deleteAttr));
 
 
@@ -1144,8 +1145,9 @@ public class PasswordModifyExtendedOperation
           addValues.add(new AttributeValue(attrType, s));
         }
 
-        Attribute addAttr = new Attribute(attrType, attrType.getNameOrOID(),
-                                          addValues);
+        builder = new AttributeBuilder(attrType);
+        builder.addAll(addValues);
+        Attribute addAttr = builder.toAttribute();
         modList.add(new Modification(ModificationType.ADD, addAttr));
       }
       else
@@ -1157,8 +1159,9 @@ public class PasswordModifyExtendedOperation
           replaceValues.add(new AttributeValue(attrType, s));
         }
 
-        Attribute addAttr = new Attribute(attrType, attrType.getNameOrOID(),
-                                          replaceValues);
+        AttributeBuilder builder = new AttributeBuilder(attrType);
+        builder.addAll(replaceValues);
+        Attribute addAttr = builder.toAttribute();
         modList.add(new Modification(ModificationType.REPLACE, addAttr));
       }
 
@@ -1414,7 +1417,7 @@ public class PasswordModifyExtendedOperation
     try
     {
       DN mapperDN = config.getIdentityMapperDN();
-      IdentityMapper mapper = DirectoryServer.getIdentityMapper(mapperDN);
+      IdentityMapper<?> mapper = DirectoryServer.getIdentityMapper(mapperDN);
       if (mapper == null)
       {
         Message message = ERR_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER.get(
@@ -1469,7 +1472,7 @@ public class PasswordModifyExtendedOperation
 
     // Make sure that the specified identity mapper is OK.
     DN             mapperDN = null;
-    IdentityMapper mapper   = null;
+    IdentityMapper<?> mapper   = null;
     try
     {
       mapperDN = config.getIdentityMapperDN();

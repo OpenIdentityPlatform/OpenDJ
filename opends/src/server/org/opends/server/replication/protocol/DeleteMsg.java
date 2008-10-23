@@ -41,10 +41,8 @@ import org.opends.server.types.operation.PostOperationDeleteOperation;
 /**
  * Object used when sending delete information to replication servers.
  */
-public class DeleteMsg extends UpdateMessage
+public class DeleteMsg extends UpdateMsg
 {
-  private static final long serialVersionUID = -4905520652801395185L;
-
   /**
    * Creates a new delete message.
    *
@@ -73,14 +71,16 @@ public class DeleteMsg extends UpdateMessage
    * Creates a new Add message from a byte[].
    *
    * @param in The byte[] from which the operation must be read.
-   * @throws DataFormatException The input byte[] is not a valid AddMsg
+   * @throws DataFormatException The input byte[] is not a valid DeleteMsg
    * @throws UnsupportedEncodingException  If UTF8 is not supported by the jvm
    */
   public DeleteMsg(byte[] in) throws DataFormatException,
                                      UnsupportedEncodingException
   {
-    super(in);
-    decodeHeader(MSG_TYPE_DELETE_REQUEST, in);
+    byte[] allowedPduTypes = new byte[2];
+    allowedPduTypes[0] = MSG_TYPE_DELETE;
+    allowedPduTypes[1] = MSG_TYPE_DELETE_V1;
+    decodeHeader(allowedPduTypes, in);
   }
 
 
@@ -101,17 +101,12 @@ public class DeleteMsg extends UpdateMessage
   }
 
   /**
-   * Get the byte array representation of this Message.
-   *
-   * @return The byte array representation of this Message.
-   *
-   * @throws UnsupportedEncodingException When the encoding of the message
-   *         failed because the UTF-8 encoding is not supported.
+   * {@inheritDoc}
    */
   @Override
   public byte[] getBytes() throws UnsupportedEncodingException
   {
-    return encodeHeader(MSG_TYPE_DELETE_REQUEST, 0);
+    return encodeHeader(MSG_TYPE_DELETE, 0);
   }
 
   /**
@@ -120,7 +115,27 @@ public class DeleteMsg extends UpdateMessage
   @Override
   public String toString()
   {
-    return ("DEL " + getDn() + " " + getChangeNumber());
+    if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
+    {
+      return "DeleteMsg content: " +
+        "\nprotocolVersion: " + protocolVersion +
+        "\ndn: " + dn +
+        "\nchangeNumber: " + changeNumber +
+        "\nuniqueId: " + uniqueId +
+        "\nassuredFlag: " + assuredFlag;
+    }
+    if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V2)
+    {
+      return "DeleteMsg content: " +
+        "\nprotocolVersion: " + protocolVersion +
+        "\ndn: " + dn +
+        "\nchangeNumber: " + changeNumber +
+        "\nuniqueId: " + uniqueId +
+        "\nassuredFlag: " + assuredFlag +
+        "\nassuredMode: " + assuredMode +
+        "\nsafeDataLevel: " + safeDataLevel;
+    }
+    return "!!! Unknown version: " + protocolVersion + "!!!";
   }
 
   /**
@@ -132,5 +147,13 @@ public class DeleteMsg extends UpdateMessage
     // The DeleteMsg size is mostly dependent on the DN and should never
     // grow very large. It is therefore safe to assume an average of 40 bytes.
     return 40;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public byte[] getBytes_V1() throws UnsupportedEncodingException
+  {
+    return encodeHeader_V1(MSG_TYPE_DELETE_V1, 0);
   }
 }

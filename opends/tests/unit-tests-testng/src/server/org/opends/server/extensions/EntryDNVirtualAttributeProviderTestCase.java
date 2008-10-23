@@ -144,9 +144,9 @@ public class EntryDNVirtualAttributeProviderTestCase
     assertFalse(attrList.isEmpty());
     for (Attribute a : attrList)
     {
-      assertTrue(a.hasValue());
-      assertEquals(a.getValues().size(), 1);
-      assertTrue(a.hasValue(new AttributeValue(entryDNType,
+      assertTrue(!a.isEmpty());
+      assertEquals(a.size(), 1);
+      assertTrue(a.contains(new AttributeValue(entryDNType,
                                                entryDN.toNormalizedString())));
     }
   }

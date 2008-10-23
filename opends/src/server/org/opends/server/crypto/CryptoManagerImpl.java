@@ -105,8 +105,6 @@ import org.opends.server.types.*;
  cryptographic operations.
  <p>
  Other components of CryptoManager:
- @see "src/admin/defn/org/opends/server/admin/std\
-                                      /CryptoManagerConfiguration.xml"
  @see org.opends.server.crypto.CryptoManagerSync
  @see org.opends.server.crypto.GetSymmetricKeyExtendedOperation
  */
@@ -674,31 +672,20 @@ public class CryptoManagerImpl
         final Entry entry = new Entry(entryDN, null, null, null);
         entry.addObjectClass(DirectoryServer.getTopObjectClass());
         entry.addObjectClass(ocInstanceKey);
+
         // Add the key ID attribute.
-        final LinkedHashSet<AttributeValue> keyIDValueSet =
-                new LinkedHashSet<AttributeValue>(1);
-        keyIDValueSet.add(distinguishedValue);
-        final Attribute keyIDAttr = new Attribute(
-                attrKeyID,
-                attrKeyID.getNameOrOID(),
-                keyIDValueSet);
-        entry.addAttribute(keyIDAttr,
-                new ArrayList<AttributeValue>(0));
+        final Attribute keyIDAttr = Attributes.create(attrKeyID,
+            distinguishedValue);
+        entry.addAttribute(keyIDAttr, new ArrayList<AttributeValue>(0));
+
         // Add the public key certificate attribute.
-        final LinkedHashSet<AttributeValue> certificateValueSet =
-                new LinkedHashSet<AttributeValue>(1);
-        final AttributeValue certificateValue = new AttributeValue(
-                attrPublicKeyCertificate,
-                ByteStringFactory.create(instanceKeyCertificate));
-        certificateValueSet.add(certificateValue);
-        final LinkedHashSet<String> certificateOptions =
-                new LinkedHashSet<String>(1);
-        certificateOptions.add("binary");
-        final Attribute certificateAttr = new Attribute(
-                attrPublicKeyCertificate,
-                attrPublicKeyCertificate.getNameOrOID(),
-                certificateOptions,
-                certificateValueSet);
+        AttributeBuilder builder = new AttributeBuilder(
+            attrPublicKeyCertificate);
+        builder.setOption("binary");
+        builder.add(new AttributeValue(
+            attrPublicKeyCertificate,
+            ByteStringFactory.create(instanceKeyCertificate)));
+        final Attribute certificateAttr = builder.toAttribute();
         entry.addAttribute(certificateAttr,
                 new ArrayList<AttributeValue>(0));
 
@@ -1225,9 +1212,8 @@ public class CryptoManagerImpl
               InternalClientConnection.getRootConnection();
       List<Modification> modifications =
               new ArrayList<Modification>(1);
-      Attribute attribute =
-              new Attribute(ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY,
-                      symmetricKey);
+      Attribute attribute = Attributes.create(
+          ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY, symmetricKey);
       modifications.add(
               new Modification(ModificationType.ADD, attribute,
                       false));
@@ -1324,9 +1310,8 @@ public class CryptoManagerImpl
              InternalClientConnection.getRootConnection();
         List<Modification> modifications =
              new ArrayList<Modification>(1);
-        Attribute attribute =
-             new Attribute(ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY,
-                           symmetricKey);
+        Attribute attribute = Attributes.create(
+            ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY, symmetricKey);
         modifications.add(
              new Modification(ModificationType.ADD, attribute,
                               false));
@@ -1434,7 +1419,7 @@ public class CryptoManagerImpl
      * Returns the compact {@code byte[]} representation of this
      * {@code KeyEntryID}.
      * @return The compact {@code byte[]} representation of this
-     * {@code KeyEntryID
+     * {@code KeyEntryID}.
      */
     public byte[] getByteValue(){
       final byte[] uuidBytes = new byte[16];
@@ -1743,53 +1728,28 @@ public class CryptoManagerImpl
            new LinkedHashMap<AttributeType,List<Attribute>>();
 
       // Add the key ID attribute.
-      LinkedHashSet<AttributeValue> valueSet =
-           new LinkedHashSet<AttributeValue>(1);
-      valueSet.add(distinguishedValue);
-
       ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(new Attribute(attrKeyID,
-                                 attrKeyID.getNameOrOID(),
-                                 valueSet));
+      attrList.add(Attributes.create(attrKeyID, distinguishedValue));
       userAttrs.put(attrKeyID, attrList);
 
       // Add the transformation name attribute.
-      valueSet = new LinkedHashSet<AttributeValue>(1);
-      valueSet.add(new AttributeValue(attrTransformation,
-                                      keyEntry.getType()));
-
       attrList = new ArrayList<Attribute>(1);
-      attrList.add(
-           new Attribute(attrTransformation,
-                         attrTransformation.getNameOrOID(),
-                         valueSet));
+      attrList.add(Attributes.create(attrTransformation,
+          new AttributeValue(attrTransformation, keyEntry.getType())));
       userAttrs.put(attrTransformation, attrList);
 
-
       // Add the init vector length attribute.
-      valueSet = new LinkedHashSet<AttributeValue>(1);
-      valueSet.add(new AttributeValue(
-           attrInitVectorLength,
-           String.valueOf(keyEntry.getIVLengthBits())));
-
       attrList = new ArrayList<Attribute>(1);
-      attrList.add(
-           new Attribute(attrInitVectorLength,
-                         attrInitVectorLength.getNameOrOID(),
-                         valueSet));
+      attrList.add(Attributes.create(attrInitVectorLength,
+          new AttributeValue(attrInitVectorLength, String.valueOf(keyEntry
+              .getIVLengthBits()))));
       userAttrs.put(attrInitVectorLength, attrList);
 
 
       // Add the key length attribute.
-      valueSet = new LinkedHashSet<AttributeValue>(1);
-      valueSet.add(new AttributeValue(attrKeyLength,
-              String.valueOf(keyEntry.getKeyLengthBits())));
-
       attrList = new ArrayList<Attribute>(1);
-      attrList.add(
-           new Attribute(attrKeyLength,
-                         attrKeyLength.getNameOrOID(),
-                         valueSet));
+      attrList.add(Attributes.create(attrKeyLength, new AttributeValue(
+          attrKeyLength, String.valueOf(keyEntry.getKeyLengthBits()))));
       userAttrs.put(attrKeyLength, attrList);
 
 
@@ -1804,27 +1764,17 @@ public class CryptoManagerImpl
                        instanceKeyCertificate);
 
       // Add the symmetric key attribute.
-      LinkedHashSet<AttributeValue> symmetricKeyValues =
-           new LinkedHashSet<AttributeValue>(trustedCerts.size());
-
-      for (Map.Entry<String, byte[]> mapEntry :
-           trustedCerts.entrySet())
+      AttributeBuilder builder = new AttributeBuilder(attrSymmetricKey);
+      for (Map.Entry<String, byte[]> mapEntry : trustedCerts.entrySet())
       {
-        String symmetricKey =
-             cryptoManager.encodeSymmetricKeyAttribute(
-                  mapEntry.getKey(),
-                  mapEntry.getValue(),
-                  keyEntry.getSecretKey());
+        String symmetricKey = cryptoManager.encodeSymmetricKeyAttribute(
+            mapEntry.getKey(), mapEntry.getValue(), keyEntry.getSecretKey());
 
-        symmetricKeyValues.add(
-             new AttributeValue(attrSymmetricKey, symmetricKey));
-
-        attrList = new ArrayList<Attribute>(1);
-        attrList.add(new Attribute(attrSymmetricKey,
-                                   attrSymmetricKey.getNameOrOID(),
-                                   symmetricKeyValues));
-        userAttrs.put(attrSymmetricKey, attrList);
+        builder.add(new AttributeValue(attrSymmetricKey, symmetricKey));
       }
+      attrList = new ArrayList<Attribute>(1);
+      attrList.add(builder.toAttribute());
+      userAttrs.put(attrSymmetricKey, attrList);
 
       // Create the entry.
       Entry entry = new Entry(entryDN, ocMap, userAttrs, opAttrs);
@@ -1994,8 +1944,7 @@ public class CryptoManagerImpl
      * {@code null} if no such entry exists.
      *
      * @see CryptoManagerImpl.MacKeyEntry
-     *  #getKeyEntry(org.opends.server.types.CryptoManager,
-     *               java.lang.String, int)
+     *  #getKeyEntry(CryptoManagerImpl, String, int)
      */
     public static CipherKeyEntry getKeyEntry(
             CryptoManagerImpl cryptoManager,
@@ -2324,39 +2273,22 @@ public class CryptoManagerImpl
            new LinkedHashMap<AttributeType,List<Attribute>>();
 
       // Add the key ID attribute.
-      LinkedHashSet<AttributeValue> valueSet =
-           new LinkedHashSet<AttributeValue>(1);
-      valueSet.add(distinguishedValue);
-
       ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(new Attribute(attrKeyID,
-                                 attrKeyID.getNameOrOID(),
-                                 valueSet));
+      attrList.add(Attributes.create(attrKeyID,
+                                 distinguishedValue));
       userAttrs.put(attrKeyID, attrList);
 
       // Add the mac algorithm name attribute.
-      valueSet = new LinkedHashSet<AttributeValue>(1);
-      valueSet.add(new AttributeValue(attrMacAlgorithm,
-                                      keyEntry.getType()));
-
       attrList = new ArrayList<Attribute>(1);
-      attrList.add(
-           new Attribute(attrMacAlgorithm,
-                         attrMacAlgorithm.getNameOrOID(),
-                         valueSet));
+      attrList.add(Attributes.create(attrMacAlgorithm,
+          new AttributeValue(attrMacAlgorithm, keyEntry.getType())));
       userAttrs.put(attrMacAlgorithm, attrList);
 
 
       // Add the key length attribute.
-      valueSet = new LinkedHashSet<AttributeValue>(1);
-      valueSet.add(new AttributeValue(
-              attrKeyLength, String.valueOf(keyEntry.getKeyLengthBits())));
-
       attrList = new ArrayList<Attribute>(1);
-      attrList.add(
-           new Attribute(attrKeyLength,
-                         attrKeyLength.getNameOrOID(),
-                         valueSet));
+      attrList.add(Attributes.create(attrKeyLength, new AttributeValue(
+          attrKeyLength, String.valueOf(keyEntry.getKeyLengthBits()))));
       userAttrs.put(attrKeyLength, attrList);
 
 
@@ -2371,9 +2303,7 @@ public class CryptoManagerImpl
                        instanceKeyCertificate);
 
       // Add the symmetric key attribute.
-      LinkedHashSet<AttributeValue> symmetricKeyValues =
-           new LinkedHashSet<AttributeValue>(trustedCerts.size());
-
+      AttributeBuilder builder = new AttributeBuilder(attrSymmetricKey);
       for (Map.Entry<String, byte[]> mapEntry :
            trustedCerts.entrySet())
       {
@@ -2383,15 +2313,13 @@ public class CryptoManagerImpl
                   mapEntry.getValue(),
                   keyEntry.getSecretKey());
 
-        symmetricKeyValues.add(
+        builder.add(
              new AttributeValue(attrSymmetricKey, symmetricKey));
-
-        attrList = new ArrayList<Attribute>(1);
-        attrList.add(new Attribute(attrSymmetricKey,
-                                   attrSymmetricKey.getNameOrOID(),
-                                   symmetricKeyValues));
-        userAttrs.put(attrSymmetricKey, attrList);
       }
+
+      attrList = new ArrayList<Attribute>(1);
+      attrList.add(builder.toAttribute());
+      userAttrs.put(attrSymmetricKey, attrList);
 
       // Create the entry.
       Entry entry = new Entry(entryDN, ocMap, userAttrs, opAttrs);
@@ -2547,8 +2475,7 @@ public class CryptoManagerImpl
      * {@code null} if no such entry exists.
      *
      * @see CryptoManagerImpl.CipherKeyEntry
-     *     #getKeyEntry(org.opends.server.types.CryptoManager,
-     *                  java.lang.String, int)
+     *     #getKeyEntry(CryptoManagerImpl, String, int)
      */
     public static MacKeyEntry getKeyEntry(
             final CryptoManagerImpl cryptoManager,

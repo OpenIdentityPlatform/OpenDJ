@@ -2110,7 +2110,7 @@ public final class SearchFilter
       }
       else
       {
-        MatchingRule mr = DirectoryServer.getMatchingRule(
+        MatchingRule<?> mr = DirectoryServer.getMatchingRule(
                                toLowerCase(matchingRuleID));
         if (mr == null)
         {
@@ -2766,7 +2766,7 @@ public final class SearchFilter
     // match.
     for (Attribute a : attrs)
     {
-      if (a.hasValue(assertionValue))
+      if (a.contains(assertionValue))
       {
         if (debugEnabled())
         {
@@ -3307,7 +3307,7 @@ public final class SearchFilter
 
 
     // We must have a matching rule to use in the determination.
-    MatchingRule matchingRule = null;
+    MatchingRule<?> matchingRule = null;
     if (matchingRuleID != null)
     {
       matchingRule =
@@ -3410,7 +3410,7 @@ public final class SearchFilter
       {
         for (Attribute a : attrList)
         {
-          for (AttributeValue v : a.getValues())
+          for (AttributeValue v : a)
           {
             try
             {
@@ -3458,7 +3458,7 @@ public final class SearchFilter
       {
         for (Attribute a : attrList)
         {
-          for (AttributeValue v : a.getValues())
+          for (AttributeValue v : a)
           {
             try
             {
@@ -3502,7 +3502,7 @@ public final class SearchFilter
       }
 
       Attribute a = entry.getObjectClassAttribute();
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
       {
         try
         {
@@ -3548,7 +3548,7 @@ public final class SearchFilter
       {
         for (Attribute a : attrList)
         {
-          for (AttributeValue v : a.getValues())
+          for (AttributeValue v : a)
           {
             try
             {
@@ -3895,7 +3895,7 @@ outerComponentLoop:
           }
           else
           {
-            MatchingRule mr =
+            MatchingRule<?> mr =
                  DirectoryServer.getMatchingRule(
                       toLowerCase(matchingRuleID));
             if (mr == null)

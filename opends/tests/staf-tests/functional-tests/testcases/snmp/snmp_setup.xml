@@ -211,7 +211,6 @@
                   <call function="'GetDSConfigProperties'">
                     {
                     'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'  : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'    : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
                     'subcommand'      : 'get-connection-handler-prop' ,
@@ -298,7 +297,6 @@
                   <call function="'dsconfig'">
                     {
                     'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'subcommand'       : 'set-connection-handler-prop' ,
@@ -395,7 +393,6 @@
                   <call function="'GetDSConfigProperties'">
                     {
                     'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'  : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'    : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
                     'subcommand'      : 'get-connection-handler-prop' ,

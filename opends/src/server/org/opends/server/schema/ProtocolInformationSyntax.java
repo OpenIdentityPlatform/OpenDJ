@@ -236,5 +236,15 @@ public class ProtocolInformationSyntax
     // We will accept any value for this syntax.
     return true;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

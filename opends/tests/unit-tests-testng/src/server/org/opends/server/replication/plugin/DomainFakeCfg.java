@@ -28,9 +28,11 @@ package org.opends.server.replication.plugin;
 
 import java.util.SortedSet;
 
+import java.util.TreeSet;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagedObject;
+import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.types.DN;
@@ -47,15 +49,67 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   private SortedSet<String> replicationServers;
   private long heartbeatInterval = 1000;
   private IsolationPolicy policy = IsolationPolicy.REJECT_ALL_UPDATES;
+  
+  // Is assured mode enabled or not ?
+  private boolean assured = false;
+  // Assured sub mode (used when assured is true)
+  private AssuredType assuredType = AssuredType.NOT_ASSURED;
+  // Safe Data level (used when assuredType is safe data)
+  private int assuredSdLevel = 1;
+  // Timeout (in milliseconds) when waiting for acknowledgments
+  private long assuredTimeout = 1000;
+  // Group id
+  private int groupId = 1;
+  // Referrals urls to be published to other servers of the topology
+  SortedSet<String> refUrls = new TreeSet<String>();
 
   /**
    * Creates a new Domain with the provided information
+   * (assured mode disabled, default group id)
    */
   public DomainFakeCfg(DN baseDn, int serverId, SortedSet<String> replServers)
   {
     this.baseDn = baseDn;
     this.serverId = serverId;
     this.replicationServers = replServers;
+  }
+  
+  /**
+   * Creates a new Domain with the provided information
+   * (assured mode disabled, group id provided)
+   */
+  public DomainFakeCfg(DN baseDn, int serverId, SortedSet<String> replServers,
+    int groupId)
+  {
+    this(baseDn, serverId, replServers);
+    this.groupId = groupId;
+  }
+  
+  /**
+   * Creates a new Domain with the provided information
+   * (assured mode info provided as well as group id)
+   */
+  public DomainFakeCfg(DN baseDn, int serverId, SortedSet<String> replServers,
+    AssuredType assuredType, int assuredSdLevel, int groupId,
+    long assuredTimeout, SortedSet<String> refUrls)
+  {
+    this(baseDn, serverId, replServers);
+    switch(assuredType)
+    {
+      case NOT_ASSURED:
+        assured = false;
+        break;
+      case SAFE_DATA:
+      case SAFE_READ:
+        assured = true;
+        this.assuredType = assuredType;
+        break;
+    }
+    this.assuredSdLevel = assuredSdLevel;
+    this.groupId = groupId;
+    this.assuredTimeout = assuredTimeout;
+    if (refUrls != null)
+      this.refUrls = refUrls;
   }
 
   /**
@@ -202,5 +256,35 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   public void setIsolationPolicy(IsolationPolicy policy)
   {
     this.policy = policy;
+  }
+
+  public int getAssuredSdLevel()
+  {
+    return assuredSdLevel;
+  }
+
+  public int getGroupId()
+  {
+    return groupId;
+  }
+
+  public long getAssuredTimeout()
+  {
+    return assuredTimeout;
+  }
+
+  public AssuredType getAssuredType()
+  {
+    return assuredType;
+  }
+  
+  public boolean isAssured()
+  {
+    return assured;
+  }
+
+  public SortedSet<String> getReferralsUrl()
+  {
+    return refUrls;
   }
 }

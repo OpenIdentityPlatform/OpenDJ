@@ -28,17 +28,13 @@ package org.opends.server.replication.plugin;
 
 import static org.testng.Assert.assertEquals;
 
-import org.opends.server.TestCaseUtils;
-import org.opends.server.core.AddOperationBasis;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import static org.opends.server.TestCaseUtils.*;
 
 /**
  * Test the PersistentServerState class.
@@ -46,39 +42,12 @@ import org.testng.annotations.Test;
 public class PersistentServerStateTest extends ReplicationTestCase
 {
   /**
-   * Set up the environment for performing the tests in this suite.
-   *
-   * @throws Exception
-   *         If the environment could not be set up.
-   */
-  @BeforeClass
-  public void setUp() throws Exception
-  {
-    /*
-     * start the server and create the dc=exmaple,dc=xom entry if it does not
-     * exist yet.
-     */
-    TestCaseUtils.startServer();
-    String topEntry = "dn: dc=example,dc=com\n" + "objectClass: top\n"
-    + "objectClass: domain\n";
-
-    connection = InternalClientConnection.getRootConnection();
-    Entry entry = TestCaseUtils.entryFromLdifString(topEntry);
-    AddOperationBasis addOp = new AddOperationBasis(connection,
-        InternalClientConnection.nextOperationID(), InternalClientConnection
-        .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
-        entry.getUserAttributes(), entry.getOperationalAttributes());
-    addOp.setInternalOperation(true);
-    addOp.run();
-  }
-
-  /**
    * The suffix for which we want to test the PersistentServerState class.
    */
   @DataProvider(name = "suffix")
   public Object[][] suffixData() {
     return new Object[][] {
-       {"dc=example,dc=com"},
+       {TEST_ROOT_DN_STRING},
        {"cn=schema"}
     };
   }
@@ -120,7 +89,7 @@ public class PersistentServerStateTest extends ReplicationTestCase
         "cn1 has not been saved or loaded correctly for " + dn);
     assertEquals(cn2Saved, cn2,
         "cn2 has not been saved or loaded correctly for " + dn);
-    
+
     state.clear();
     stateSaved = new PersistentServerState(baseDn, (short) 1);
     cn1Saved = stateSaved.getMaxChangeNumber((short) 1);

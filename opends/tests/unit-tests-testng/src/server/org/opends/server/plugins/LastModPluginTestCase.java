@@ -40,7 +40,6 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.LastModPluginCfgDefn;
 import org.opends.server.admin.std.server.LastModPluginCfg;
-import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
@@ -51,8 +50,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.Control;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -161,7 +159,7 @@ public class LastModPluginTestCase
     List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
     for (Attribute a : attrList)
     {
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
       {
         pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
       }
@@ -210,7 +208,7 @@ public class LastModPluginTestCase
     List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
     for (Attribute a : attrList)
     {
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
       {
         pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
       }
@@ -293,7 +291,7 @@ public class LastModPluginTestCase
     List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
     for (Attribute a : attrList)
     {
-      for (AttributeValue v : a.getValues())
+      for (AttributeValue v : a)
       {
         pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
       }
@@ -355,7 +353,7 @@ public class LastModPluginTestCase
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("description", "foo")));
+                              Attributes.create("description", "foo")));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();

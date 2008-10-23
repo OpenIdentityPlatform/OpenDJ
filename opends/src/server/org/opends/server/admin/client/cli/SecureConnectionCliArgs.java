@@ -43,6 +43,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.InetAddress;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -186,11 +187,20 @@ public final class SecureConnectionCliArgs
   static private final Logger LOG =
     Logger.getLogger(SecureConnectionCliArgs.class.getName());
 
+  // Defines if the CLI always use the SSL connection type.
+  private boolean alwaysSSL = false;
+
   /**
    * Creates a new instance of secure arguments.
+   *
+   * @param alwaysSSL If true, always use the SSL connection type. In this case,
+   * the arguments useSSL and startTLS are not present.
    */
-  public SecureConnectionCliArgs()
+  public SecureConnectionCliArgs(boolean alwaysSSL)
   {
+      if (alwaysSSL) {
+        this.alwaysSSL = true;
+      }
   }
 
   /**
@@ -423,26 +433,45 @@ public final class SecureConnectionCliArgs
     argList = new LinkedHashSet<Argument>();
 
     useSSLArg = new BooleanArgument("useSSL", OPTION_SHORT_USE_SSL,
-        OPTION_LONG_USE_SSL, INFO_DESCRIPTION_USE_SSL.get());
+      OPTION_LONG_USE_SSL, INFO_DESCRIPTION_USE_SSL.get());
     useSSLArg.setPropertyName(OPTION_LONG_USE_SSL);
-    argList.add(useSSLArg);
+    if (!alwaysSSL) {
+      argList.add(useSSLArg);
+    } else {
+      // simulate that the useSSL arg has been given in the CLI
+      useSSLArg.setPresent(true);
+    }
 
     useStartTLSArg = new BooleanArgument("startTLS", OPTION_SHORT_START_TLS,
-        OPTION_LONG_START_TLS,
-        INFO_DESCRIPTION_START_TLS.get());
+      OPTION_LONG_START_TLS,
+      INFO_DESCRIPTION_START_TLS.get());
     useStartTLSArg.setPropertyName(OPTION_LONG_START_TLS);
-    argList.add(useStartTLSArg);
+    if (!alwaysSSL) {
+      argList.add(useStartTLSArg);
+    }
 
+    String defaultHostName;
+    try {
+      defaultHostName = InetAddress.getLocalHost().getHostName();
+    } catch (Exception e) {
+       defaultHostName="Unknown (" + e + ")";
+    }
     hostNameArg = new StringArgument("host", OPTION_SHORT_HOST,
         OPTION_LONG_HOST, false, false, true, INFO_HOST_PLACEHOLDER.get(),
-        "localhost",
+        defaultHostName,
         null, INFO_DESCRIPTION_HOST.get());
     hostNameArg.setPropertyName(OPTION_LONG_HOST);
     argList.add(hostNameArg);
 
+
+    Message portDescription = INFO_DESCRIPTION_PORT.get();
+    if (alwaysSSL) {
+      portDescription = INFO_DESCRIPTION_ADMIN_PORT.get();
+    }
+
     portArg = new IntegerArgument("port", OPTION_SHORT_PORT, OPTION_LONG_PORT,
         false, false, true, INFO_PORT_PLACEHOLDER.get(), 389, null,
-        INFO_DESCRIPTION_PORT.get());
+        portDescription);
     portArg.setPropertyName(OPTION_LONG_PORT);
     argList.add(portArg);
 
@@ -650,15 +679,15 @@ public final class SecureConnectionCliArgs
       }
     }
 
-    // Couldn't have at the same time startTLSArg and
-    // useSSLArg
+      // Couldn't have at the same time startTLSArg and
+      // useSSLArg
     if (useStartTLSArg.isPresent()
             && useSSLArg.isPresent()) {
-      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+        Message message = ERR_TOOL_CONFLICTING_ARGS.get(
               useStartTLSArg
                       .getLongIdentifier(), useSSLArg.getLongIdentifier());
-      errors.add(message);
-    }
+        errors.add(message);
+      }
     if (errors.size() > 0)
     {
       for (Message error : errors)
@@ -724,6 +753,16 @@ public final class SecureConnectionCliArgs
     {
       return false ;
     }
+  }
+
+  /**
+   * Indicate if the SSL mode is always used.
+   *
+   * @return True if SSL mode is always used.
+   */
+  public boolean alwaysSSL()
+  {
+    return alwaysSSL;
   }
 
   /**

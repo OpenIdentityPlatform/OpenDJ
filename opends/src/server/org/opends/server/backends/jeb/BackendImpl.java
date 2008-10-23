@@ -63,6 +63,7 @@ import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
+
 import static org.opends.server.util.ServerConstants.*;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
@@ -834,12 +835,13 @@ public class BackendImpl
    * {@inheritDoc}
    */
   @Override()
-  public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
-      throws DirectoryException, CanceledOperationException
+  public void replaceEntry(Entry oldEntry, Entry newEntry,
+      ModifyOperation modifyOperation) throws DirectoryException,
+      CanceledOperationException
   {
     writerBegin();
 
-    DN entryDN = entry.getDN();
+    DN entryDN = newEntry.getDN();
     EntryContainer ec;
     if (rootContainer != null)
     {
@@ -856,7 +858,7 @@ public class BackendImpl
 
     try
     {
-      ec.replaceEntry(entry, modifyOperation);
+      ec.replaceEntry(oldEntry, newEntry, modifyOperation);
     }
     catch (DatabaseException e)
     {

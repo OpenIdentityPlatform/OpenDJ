@@ -26,9 +26,12 @@
  */
 package org.opends.server.monitors;
 
-import java.util.ArrayList;
-import org.opends.messages.Message;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 
+import java.util.ArrayList;
+
+import org.opends.messages.Message;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.admin.std.server.EntryCacheMonitorProviderCfg;
 import org.opends.server.api.EntryCache;
@@ -37,10 +40,6 @@ import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.messages.ConfigMessages.*;
 
 /**
  * This class defines a Directory Server monitor provider that can be used to
@@ -69,8 +68,7 @@ public class EntryCacheMonitorProvider
   {
     super("Entry Caches Monitor Provider");
     this.entryCacheName = "Entry Caches";
-    this.entryCache = (EntryCache<? extends EntryCacheCfg>)
-      DirectoryServer.getEntryCache();
+    this.entryCache = (EntryCache<?>) DirectoryServer.getEntryCache();
   }
 
   /**

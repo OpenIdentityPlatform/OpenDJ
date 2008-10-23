@@ -29,7 +29,6 @@ package org.opends.server.monitors;
 
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.AttributeSyntax;
@@ -37,10 +36,9 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.TraditionalWorkQueue;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
 
 
@@ -209,60 +207,42 @@ public class TraditionalWorkQueueMonitor
 
     long averageBacklog = (long) (1.0 * totalBacklog / numPolls);
 
-    long opsSubmitted      = workQueue.getOpsSubmitted();
+    long opsSubmitted = workQueue.getOpsSubmitted();
     long rejectedQueueFull = workQueue.getOpsRejectedDueToQueueFull();
 
     ArrayList<Attribute> monitorAttrs = new ArrayList<Attribute>();
-    AttributeSyntax integerSyntax = DirectoryServer.getDefaultIntegerSyntax();
-
+    AttributeSyntax<?> integerSyntax = DirectoryServer
+        .getDefaultIntegerSyntax();
 
     // The current backlog.
-    AttributeType attrType =
-         DirectoryServer.getDefaultAttributeType(ATTR_CURRENT_BACKLOG,
-                                                 integerSyntax);
-    ASN1OctetString valueString = new ASN1OctetString(String.valueOf(backlog));
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(valueString, valueString));
-    monitorAttrs.add(new Attribute(attrType, ATTR_CURRENT_BACKLOG, values));
-
+    AttributeType attrType = DirectoryServer.getDefaultAttributeType(
+        ATTR_CURRENT_BACKLOG, integerSyntax);
+    monitorAttrs
+        .add(Attributes.create(attrType, String.valueOf(backlog)));
 
     // The average backlog.
     attrType = DirectoryServer.getDefaultAttributeType(ATTR_AVERAGE_BACKLOG,
-                                                       integerSyntax);
-    valueString = new ASN1OctetString(String.valueOf(averageBacklog));
-    values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(valueString, valueString));
-    monitorAttrs.add(new Attribute(attrType, ATTR_AVERAGE_BACKLOG, values));
-
+        integerSyntax);
+    monitorAttrs.add(Attributes.create(attrType, String
+        .valueOf(averageBacklog)));
 
     // The maximum backlog.
     attrType = DirectoryServer.getDefaultAttributeType(ATTR_MAX_BACKLOG,
-                                                       integerSyntax);
-    valueString = new ASN1OctetString(String.valueOf(maxBacklog));
-    values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(valueString, valueString));
-    monitorAttrs.add(new Attribute(attrType, ATTR_MAX_BACKLOG, values));
-
+        integerSyntax);
+    monitorAttrs.add(Attributes.create(attrType, String
+        .valueOf(maxBacklog)));
 
     // The total number of operations submitted.
     attrType = DirectoryServer.getDefaultAttributeType(ATTR_OPS_SUBMITTED,
-                                                       integerSyntax);
-    valueString = new ASN1OctetString(String.valueOf(opsSubmitted));
-    values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(valueString, valueString));
-    monitorAttrs.add(new Attribute(attrType, ATTR_OPS_SUBMITTED, values));
-
+        integerSyntax);
+    monitorAttrs.add(Attributes.create(attrType, String
+        .valueOf(opsSubmitted)));
 
     // The total number of operations rejected due to a full work queue.
-    attrType =
-         DirectoryServer.getDefaultAttributeType(ATTR_OPS_REJECTED_QUEUE_FULL,
-                                                 integerSyntax);
-    valueString = new ASN1OctetString(String.valueOf(rejectedQueueFull));
-    values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(valueString, valueString));
-    monitorAttrs.add(new Attribute(attrType, ATTR_OPS_REJECTED_QUEUE_FULL,
-                                   values));
-
+    attrType = DirectoryServer.getDefaultAttributeType(
+        ATTR_OPS_REJECTED_QUEUE_FULL, integerSyntax);
+    monitorAttrs.add(Attributes.create(attrType, String
+        .valueOf(rejectedQueueFull)));
 
     return monitorAttrs;
   }

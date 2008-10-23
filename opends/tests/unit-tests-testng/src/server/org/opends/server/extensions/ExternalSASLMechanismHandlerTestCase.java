@@ -28,6 +28,8 @@ package org.opends.server.extensions;
 
 
 
+import static org.testng.Assert.*;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.Socket;
@@ -35,17 +37,10 @@ import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.
-            ExternalSASLMechanismHandlerCfgDefn;
-import org.opends.server.admin.std.server.
-            ExternalSASLMechanismHandlerCfg;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.meta.ExternalSASLMechanismHandlerCfgDefn;
+import org.opends.server.admin.std.server.ExternalSASLMechanismHandlerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
@@ -58,7 +53,7 @@ import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -66,8 +61,9 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.Base64;
-
-import static org.testng.Assert.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 
 
@@ -404,7 +400,7 @@ public class ExternalSASLMechanismHandlerTestCase
     String attrName = "ds-cfg-certificate-validation-policy";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attrName, "always")));
+        Attributes.create(attrName, "always")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -433,7 +429,7 @@ public class ExternalSASLMechanismHandlerTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attrName, "ifpresent")));
+        Attributes.create(attrName, "ifpresent")));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -604,7 +600,7 @@ public class ExternalSASLMechanismHandlerTestCase
     String attrName = "ds-cfg-certificate-validation-policy";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attrName, "always")));
+        Attributes.create(attrName, "always")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -630,7 +626,7 @@ public class ExternalSASLMechanismHandlerTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attrName, "ifpresent")));
+        Attributes.create(attrName, "ifpresent")));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -674,7 +670,7 @@ public class ExternalSASLMechanismHandlerTestCase
     String attrName = "ds-cfg-certificate-validation-policy";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attrName, "always")));
+        Attributes.create(attrName, "always")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -703,7 +699,7 @@ public class ExternalSASLMechanismHandlerTestCase
 
     mods.clear();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute(attrName, "ifpresent")));
+        Attributes.create(attrName, "ifpresent")));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }

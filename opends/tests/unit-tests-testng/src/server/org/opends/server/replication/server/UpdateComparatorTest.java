@@ -40,12 +40,13 @@ import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.DeleteContext;
 import org.opends.server.replication.protocol.DeleteMsg;
-import org.opends.server.replication.protocol.UpdateMessage;
+import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.UpdateComparator;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
+import static org.opends.server.TestCaseUtils.*;
 
 
 
@@ -66,14 +67,14 @@ public class UpdateComparatorTest extends ReplicationTestCase
                                        (short) 123, (short) 45);
 
     //
-    // Create the update messgae
+    // Create the update message
     InternalClientConnection connection =
         InternalClientConnection.getRootConnection();
     LocalBackendDeleteOperation op = null;
     try
     {
       DeleteOperation opBasis =
-        new DeleteOperationBasis(connection, 1, 1,null, DN.decode("dc=com"));
+        new DeleteOperationBasis(connection, 1, 1,null, DN.decode(TEST_ROOT_DN_STRING));
       op = new LocalBackendDeleteOperation(opBasis);
     }
     catch (DirectoryException e)
@@ -100,7 +101,7 @@ public class UpdateComparatorTest extends ReplicationTestCase
    */
   @Test(dataProvider = "updateMessageData")
   public void updateMessageTest(
-      UpdateMessage msg1, UpdateMessage msg2, int expected) throws Exception
+      UpdateMsg msg1, UpdateMsg msg2, int expected) throws Exception
   {
     assertEquals(UpdateComparator.comparator.compare(msg1, msg2), expected);
   }

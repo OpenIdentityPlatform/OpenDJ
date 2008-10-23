@@ -29,12 +29,12 @@ package org.opends.server.replication.server;
 import java.util.Comparator;
 
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.protocol.UpdateMessage;
+import org.opends.server.replication.protocol.UpdateMsg;
 
 /**
  * Class to use for establishing an order within UpdateMessages.
  */
-public class UpdateComparator implements Comparator<UpdateMessage>
+public class UpdateComparator implements Comparator<UpdateMsg>
 {
   /**
    * The UpdateComparator Singleton.
@@ -52,13 +52,13 @@ public class UpdateComparator implements Comparator<UpdateMessage>
   /**
    * Compares two UpdateMessages.
    *
-   * @param msg1 first UpdateMessage to compare
-   * @param msg2 second UpdateMessage to compare
+   * @param msg1 first UpdateMsg to compare
+   * @param msg2 second UpdateMsg to compare
    * @return -1 if msg1 < msg2
    *          0 if msg1 == msg2
    *          1 if msg1 > msg2
    */
-  public int compare(UpdateMessage msg1, UpdateMessage msg2)
+  public int compare(UpdateMsg msg1, UpdateMsg msg2)
   {
     return ChangeNumber.compare(msg1.getChangeNumber(), msg2.getChangeNumber());
   }

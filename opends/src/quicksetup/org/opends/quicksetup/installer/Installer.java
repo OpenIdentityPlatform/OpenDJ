@@ -27,12 +27,8 @@
 package org.opends.quicksetup.installer;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.security.KeyStoreException;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateEncodingException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -830,6 +826,8 @@ public abstract class Installer extends GuiApplication {
     argList.add(getConfigurationFile());
     argList.add("-p");
     argList.add(String.valueOf(getUserData().getServerPort()));
+    argList.add("--adminConnectorPort");
+    argList.add(String.valueOf(getUserData().getAdminConnectorPort()));
 
     SecurityOptions sec = getUserData().getSecurityOptions();
     // TODO: even if the user does not configure SSL maybe we should choose
@@ -1025,7 +1023,7 @@ public abstract class Installer extends GuiApplication {
         certManager.generateSelfSignedCertificate(SELF_SIGNED_CERT_ALIAS,
             getSelfSignedCertificateSubjectDN(),
             getSelfSignedCertificateValidity());
-        exportCertificate(certManager, SELF_SIGNED_CERT_ALIAS,
+        SetupUtils.exportCertificate(certManager, SELF_SIGNED_CERT_ALIAS,
             getTemporaryCertificatePath());
 
         trustManager = new CertificateManager(
@@ -1044,7 +1042,7 @@ public abstract class Installer extends GuiApplication {
             sec.getKeystorePath(),
             CertificateManager.KEY_STORE_TYPE_JKS,
             sec.getKeystorePassword());
-        exportCertificate(certManager, sec.getAliasToUse(),
+        SetupUtils.exportCertificate(certManager, sec.getAliasToUse(),
             getTemporaryCertificatePath());
 
         trustManager = new CertificateManager(
@@ -1062,7 +1060,7 @@ public abstract class Installer extends GuiApplication {
             sec.getKeystorePath(),
             CertificateManager.KEY_STORE_TYPE_JCEKS,
             sec.getKeystorePassword());
-        exportCertificate(certManager, sec.getAliasToUse(),
+        SetupUtils.exportCertificate(certManager, sec.getAliasToUse(),
             getTemporaryCertificatePath());
 
         trustManager = new CertificateManager(
@@ -1080,7 +1078,7 @@ public abstract class Installer extends GuiApplication {
             sec.getKeystorePath(),
             CertificateManager.KEY_STORE_TYPE_PKCS12,
             sec.getKeystorePassword());
-        exportCertificate(certManager, sec.getAliasToUse(),
+        SetupUtils.exportCertificate(certManager, sec.getAliasToUse(),
             getTemporaryCertificatePath());
 
         trustManager = new CertificateManager(
@@ -1098,7 +1096,7 @@ public abstract class Installer extends GuiApplication {
             CertificateManager.KEY_STORE_PATH_PKCS11,
             CertificateManager.KEY_STORE_TYPE_PKCS11,
             sec.getKeystorePassword());
-        exportCertificate(certManager, sec.getAliasToUse(),
+        SetupUtils.exportCertificate(certManager, sec.getAliasToUse(),
             getTemporaryCertificatePath());
 
         trustManager = new CertificateManager(
@@ -1919,7 +1917,7 @@ public abstract class Installer extends GuiApplication {
         getFormattedSummary(INFO_SUMMARY_CANCELING.get()));
 
     Installation installation = getInstallation();
-    String cmd = getPath(installation.getStatusPanelCommandFile());
+    String cmd = getPath(installation.getControlPanelCommandFile());
     cmd = UIFactory.applyFontToHtml(cmd, UIFactory.INSTRUCTIONS_MONOSPACE_FONT);
     hmSummary.put(InstallProgressStep.FINISHED_SUCCESSFULLY,
             getFormattedSuccess(
@@ -1944,7 +1942,7 @@ public abstract class Installer extends GuiApplication {
       Map<InstallProgressStep, Message> hmSummary)
   {
    Installation installation = getInstallation();
-   String cmd = getPath(installation.getStatusPanelCommandFile());
+   String cmd = getPath(installation.getControlPanelCommandFile());
    cmd = UIFactory.applyFontToHtml(cmd, UIFactory.INSTRUCTIONS_MONOSPACE_FONT);
    Message status;
    if (installation.getStatus().isServerRunning())
@@ -2922,6 +2920,45 @@ public abstract class Installer extends GuiApplication {
       qs.displayFieldInvalid(FieldName.SERVER_PORT, true);
     }
 
+    //  Check the admin connector port
+    sPort = qs.getFieldStringValue(FieldName.ADMIN_CONNECTOR_PORT);
+    int adminConnectorPort = -1;
+    try
+    {
+      adminConnectorPort = Integer.parseInt(sPort);
+      if ((adminConnectorPort < MIN_PORT_VALUE) ||
+          (adminConnectorPort > MAX_PORT_VALUE))
+      {
+        errorMsgs.add(INFO_INVALID_PORT_VALUE_RANGE.get(
+                String.valueOf(MIN_PORT_VALUE),
+                String.valueOf(MAX_PORT_VALUE)));
+        qs.displayFieldInvalid(FieldName.ADMIN_CONNECTOR_PORT, true);
+      } else if (!canUseAsPort(adminConnectorPort))
+      {
+        if (isPriviledgedPort(adminConnectorPort))
+        {
+          errorMsgs.add(INFO_CANNOT_BIND_PRIVILEDGED_PORT.get(
+            String.valueOf(adminConnectorPort)));
+        } else
+        {
+          errorMsgs.add(INFO_CANNOT_BIND_PORT.get(
+              String.valueOf(adminConnectorPort)));
+        }
+        qs.displayFieldInvalid(FieldName.ADMIN_CONNECTOR_PORT, true);
+
+      } else
+      {
+        getUserData().setAdminConnectorPort(adminConnectorPort);
+        qs.displayFieldInvalid(FieldName.ADMIN_CONNECTOR_PORT, false);
+      }
+
+    } catch (NumberFormatException nfe)
+    {
+      errorMsgs.add(INFO_INVALID_PORT_VALUE_RANGE.get(
+              String.valueOf(MIN_PORT_VALUE), String.valueOf(MAX_PORT_VALUE)));
+      qs.displayFieldInvalid(FieldName.ADMIN_CONNECTOR_PORT, true);
+    }
+
     // Check the secure port
     SecurityOptions sec =
       (SecurityOptions)qs.getFieldValue(FieldName.SECURITY_OPTIONS);
@@ -3061,8 +3098,6 @@ public abstract class Installer extends GuiApplication {
     Integer port = null;
     String dn = null;
     String pwd = null;
-    boolean isSecure = Boolean.TRUE.equals(qs.getFieldValue(
-        FieldName.REMOTE_SERVER_IS_SECURE_PORT));
     ArrayList<Message> errorMsgs = new ArrayList<Message>();
 
     DataReplicationOptions.Type type = (DataReplicationOptions.Type)
@@ -3140,7 +3175,7 @@ public abstract class Installer extends GuiApplication {
       }
       auth.setDn(dn);
       auth.setPwd(pwd);
-      auth.setUseSecureConnection(isSecure);
+      auth.setUseSecureConnection(true);
 
       DataReplicationOptions repl;
       switch (type)
@@ -3290,18 +3325,8 @@ public abstract class Installer extends GuiApplication {
       boolean[] hasGlobalAdministrators,
       String[] effectiveDn) throws UserDataException
   {
-    String ldapUrl;
     host = getHostNameForLdapUrl(host);
-    boolean isSecure = Boolean.TRUE.equals(qs.getFieldValue(
-        FieldName.REMOTE_SERVER_IS_SECURE_PORT));
-    if (isSecure)
-    {
-      ldapUrl = "ldaps://"+host+":"+port;
-    }
-    else
-    {
-      ldapUrl = "ldap://"+host+":"+port;
-    }
+    String ldapUrl = "ldaps://"+host+":"+port;
     InitialLdapContext ctx = null;
 
     ApplicationTrustManager trustManager = getTrustManager();
@@ -3312,16 +3337,8 @@ public abstract class Installer extends GuiApplication {
       effectiveDn[0] = dn;
       try
       {
-        if (isSecure)
-        {
-          ctx = createLdapsContext(ldapUrl, dn, pwd,
+        ctx = createLdapsContext(ldapUrl, dn, pwd,
               getDefaultLDAPTimeout(), null, trustManager);
-        }
-        else
-        {
-          ctx = createLdapContext(ldapUrl, dn, pwd,
-              getDefaultLDAPTimeout(), null);
-        }
       }
       catch (Throwable t)
       {
@@ -3330,16 +3347,8 @@ public abstract class Installer extends GuiApplication {
           // Try using a global administrator
           dn = ADSContext.getAdministratorDN(dn);
           effectiveDn[0] = dn;
-          if (isSecure)
-          {
-            ctx = createLdapsContext(ldapUrl, dn, pwd,
+          ctx = createLdapsContext(ldapUrl, dn, pwd,
                 getDefaultLDAPTimeout(), null, trustManager);
-          }
-          else
-          {
-            ctx = createLdapContext(ldapUrl, dn, pwd,
-                getDefaultLDAPTimeout(), null);
-          }
         }
         else
         {
@@ -4072,81 +4081,9 @@ public abstract class Installer extends GuiApplication {
   protected String getSelfSignedCertificatePwd()
   {
     if (selfSignedCertPw == null) {
-      selfSignedCertPw = createSelfSignedCertificatePwd();
+      selfSignedCertPw = SetupUtils.createSelfSignedCertificatePwd();
     }
     return new String(selfSignedCertPw);
-  }
-
-  /**
-   * Returns a randomly generated password for the self-signed certificate
-   * keystore.
-   * @return a randomly generated password for the self-signed certificate
-   * keystore.
-   */
-  private char[] createSelfSignedCertificatePwd() {
-    int pwdLength = 50;
-    char[] pwd = new char[pwdLength];
-    Random random = new Random();
-    for (int pos=0; pos < pwdLength; pos++) {
-        int type = getRandomInt(random,3);
-        char nextChar = getRandomChar(random,type);
-        pwd[pos] = nextChar;
-    }
-    return pwd;
-  }
-
-  private void exportCertificate(CertificateManager certManager, String alias,
-      String path) throws CertificateEncodingException, IOException,
-      KeyStoreException
-  {
-    Certificate certificate = certManager.getCertificate(alias);
-
-    byte[] certificateBytes = certificate.getEncoded();
-
-    FileOutputStream outputStream = new FileOutputStream(path, false);
-    outputStream.write(certificateBytes);
-    outputStream.close();
-  }
-
-  /* The next two methods are used to generate the random password for the
-   * self-signed certificate. */
-  private char getRandomChar(Random random, int type)
-  {
-    char generatedChar;
-    int next = random.nextInt();
-    int d;
-
-    switch (type)
-    {
-    case 0:
-      // Will return a digit
-      d = next % 10;
-      if (d < 0)
-      {
-        d = d * (-1);
-      }
-      generatedChar = (char) (d+48);
-      break;
-    case 1:
-      // Will return a lower case letter
-      d = next % 26;
-      if (d < 0)
-      {
-        d = d * (-1);
-      }
-      generatedChar =  (char) (d + 97);
-      break;
-    default:
-      // Will return a capital letter
-      d = (next % 26);
-      if (d < 0)
-      {
-        d = d * (-1);
-      }
-      generatedChar = (char) (d + 65) ;
-    }
-
-    return generatedChar;
   }
 
   private Map<ServerDescriptor, AuthenticationData>
@@ -4165,6 +4102,7 @@ public abstract class Installer extends GuiApplication {
             ServerDescriptor.ServerProperty.IS_REPLICATION_SERVER);
         if (!Boolean.TRUE.equals(v))
         {
+
           AuthenticationData authData = new AuthenticationData();
           authData.setPort(Constants.DEFAULT_REPLICATION_PORT);
           authData.setUseSecureConnection(false);
@@ -4177,13 +4115,13 @@ public abstract class Installer extends GuiApplication {
 
   private InitialLdapContext createLocalContext() throws NamingException
   {
-    String ldapUrl = "ldap://"+
+    String ldapUrl = "ldaps://"+
     getHostNameForLdapUrl(getUserData().getHostName())+":"+
-    getUserData().getServerPort();
+    getUserData().getAdminConnectorPort();
     String dn = getUserData().getDirectoryManagerDn();
     String pwd = getUserData().getDirectoryManagerPwd();
-    return createLdapContext(ldapUrl, dn, pwd,
-        getDefaultLDAPTimeout(), null);
+    return createLdapsContext(ldapUrl, dn, pwd,
+        getDefaultLDAPTimeout(), null, null);
   }
 
   /**
@@ -4564,11 +4502,6 @@ public abstract class Installer extends GuiApplication {
   private String getLocalHostPort()
   {
     return getUserData().getHostName()+":"+getUserData().getServerPort();
-  }
-
-  private static int getRandomInt(Random random,int modulo)
-  {
-    return (random.nextInt() & modulo);
   }
 
   private void resetGenerationId(InitialLdapContext ctx,

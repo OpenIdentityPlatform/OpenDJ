@@ -27,7 +27,7 @@
 package org.opends.server.replication.server;
 
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.protocol.UpdateMessage;
+import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplicationDB.ReplServerDBCursor;
 
 import com.sleepycat.je.DatabaseException;
@@ -38,7 +38,7 @@ import com.sleepycat.je.DatabaseException;
  */
 public class ReplicationIterator
 {
-  private UpdateMessage currentChange = null;
+  private UpdateMsg currentChange = null;
   private ReplServerDBCursor cursor = null;
 
   /**
@@ -71,10 +71,10 @@ public class ReplicationIterator
   }
 
   /**
-   * Get the UpdateMessage where the iterator is currently set.
-   * @return The UpdateMessage where the iterator is currently set.
+   * Get the UpdateMsg where the iterator is currently set.
+   * @return The UpdateMsg where the iterator is currently set.
    */
-  public UpdateMessage getChange()
+  public UpdateMsg getChange()
   {
     return currentChange;
   }

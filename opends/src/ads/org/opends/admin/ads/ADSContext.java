@@ -125,6 +125,10 @@ public class ADSContext
      */
     LDAPS_PORT("ldapsport",ADSPropertySyntax.INTEGER),
     /**
+     * The administration connector port of the server.
+     */
+    ADMIN_PORT("adminport",ADSPropertySyntax.INTEGER),
+    /**
      * The certificate used by the server.
      */
     CERTIFICATE("certificate",ADSPropertySyntax.STRING),
@@ -148,6 +152,10 @@ public class ADSContext
      * Whether LDAPS is enabled or not.
      */
     LDAPS_ENABLED("ldapsEnabled",ADSPropertySyntax.BOOLEAN),
+    /**
+     * Whether ADMIN is enabled or not.
+     */
+    ADMIN_ENABLED("adminEnabled",ADSPropertySyntax.BOOLEAN),
     /**
      * Whether StartTLS is enabled or not.
      */

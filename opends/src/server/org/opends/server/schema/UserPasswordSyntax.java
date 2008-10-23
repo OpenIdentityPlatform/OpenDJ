@@ -336,5 +336,15 @@ public class UserPasswordSyntax
     // If we've gotten here, then it looks to be encoded.
     return true;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

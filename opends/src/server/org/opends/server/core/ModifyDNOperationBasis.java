@@ -33,6 +33,7 @@ import java.util.Iterator;
 import java.util.List;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 import org.opends.server.types.operation.PreParseModifyDNOperation;

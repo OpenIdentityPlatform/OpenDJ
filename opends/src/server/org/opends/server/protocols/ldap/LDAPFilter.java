@@ -54,8 +54,6 @@ import org.opends.server.types.SearchFilter;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -2095,7 +2093,7 @@ public class LDAPFilter
       }
       else
       {
-        MatchingRule mr =
+        MatchingRule<?> mr =
              DirectoryServer.getMatchingRule(toLowerCase(matchingRuleID));
         if (mr == null)
         {

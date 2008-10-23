@@ -387,7 +387,7 @@
               <call function="'StopDsWithScript'">
                 { 'location'  : STAF_REMOTE_HOSTNAME,
                 'dsPath'      : '%s/%s' % (ODS_UNZIPPED, OPENDSNAME),
-                'dsPort'      : 1,
+                'dsAdminPort' : 1,
                 'dsBindDN'    : 'cn=Directory Manager' ,
                 'dsBindPwd'   : 'kangourou' ,
                 'expectedRC'  : 'noCheck'

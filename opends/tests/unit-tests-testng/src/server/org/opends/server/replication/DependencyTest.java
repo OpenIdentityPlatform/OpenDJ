@@ -28,19 +28,16 @@ package org.opends.server.replication;
 
 import static org.testng.Assert.*;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.util.LinkedList;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.UUID;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.SynchronizationProvider;
+import org.opends.server.backends.MemoryBackend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.plugin.DomainFakeCfg;
@@ -53,12 +50,13 @@ import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.testng.annotations.*;
+import static org.opends.server.TestCaseUtils.*;
 
 /**
  * Test that the dependencies are computed correctly when replaying
@@ -67,18 +65,16 @@ import org.testng.annotations.*;
  */
 public class DependencyTest extends ReplicationTestCase
 {
-  private static final String BASEDN_STRING = "dc=example,dc=com";
-
   /**
    * Check that a sequence of dependents adds and mods is correctly ordered:
    * Using a deep dit :
-   * dc=example,dc=com
+   *    TEST_ROOT_DN_STRING
    *       |
    *    dc=dependency1
    *       |
    *    dc=dependency2
    *       |
-   *    dc=dependency2
+   *    dc=dependency3
    *       |
    *
    *       |
@@ -95,11 +91,11 @@ public class DependencyTest extends ReplicationTestCase
   {
     ReplicationServer replServer = null;
     ReplicationDomain domain = null;
-    DN baseDn = DN.decode(BASEDN_STRING);
+    DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
     SynchronizationProvider replicationPlugin = null;
     short brokerId = 2;
     short serverId = 1;
-    short replServerId = 1;
+    short replServerId = 81;
     int AddSequenceLength = 30;
 
 
@@ -118,9 +114,9 @@ public class DependencyTest extends ReplicationTestCase
        */
 
       String entryldif =
-        "dn:" + BASEDN_STRING + "\n"
+        "dn:" + TEST_ROOT_DN_STRING + "\n"
          + "objectClass: top\n"
-         + "objectClass: domain\n"
+         + "objectClass: organization\n"
          + "entryuuid: " + stringUID(1) + "\n";
       Entry entry = TestCaseUtils.entryFromLdifString(entryldif);
       AttributeType uidType =
@@ -134,26 +130,26 @@ public class DependencyTest extends ReplicationTestCase
       replicationPlugin = new MultimasterReplication();
       DirectoryServer.registerSynchronizationProvider(replicationPlugin);
       ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(replServerPort, "addModDeldependency",
+        new ReplServerFakeConfiguration(replServerPort, "dependencyTestAddModDelDependencyTestDb",
                                         0, replServerId, 0,
                                         AddSequenceLength*5+100, null);
       replServer = new ReplicationServer(conf);
 
       ReplicationBroker broker =
         openReplicationSession(baseDn, brokerId, 1000, replServerPort, 1000,
-                               false);
+                               false, CLEAN_DB_GENERATION_ID);
 
       Thread.sleep(2000);
       // send a sequence of add operation
 
-      String addDn = BASEDN_STRING;
+      String addDn = TEST_ROOT_DN_STRING;
       ChangeNumberGenerator gen = new ChangeNumberGenerator(brokerId, 0L);
 
       int sequence;
       for (sequence = 1; sequence<=AddSequenceLength; sequence ++)
       {
         entry.removeAttribute(uidType);
-        entry.addAttribute(new Attribute("entryuuid", stringUID(sequence+1)),
+        entry.addAttribute(Attributes.create("entryuuid", stringUID(sequence+1)),
                            new LinkedList<AttributeValue>());
         addDn = "dc=dependency" + sequence + "," + addDn;
         AddMsg addMsg =
@@ -170,7 +166,7 @@ public class DependencyTest extends ReplicationTestCase
         broker.publish(modifyMsg);
       }
 
-      // configure and start replication of dc=example,dc=com on the server
+      // configure and start replication of TEST_ROOT_DN_STRING on the server
       SortedSet<String> replServers = new TreeSet<String>();
       replServers.add("localhost:"+replServerPort);
       DomainFakeCfg domainConf =
@@ -187,7 +183,7 @@ public class DependencyTest extends ReplicationTestCase
 
       // Check that all the modify have been replayed
       // (all the entries should have a description).
-      addDn = BASEDN_STRING;
+      addDn = TEST_ROOT_DN_STRING;
       for (sequence = 1; sequence<=AddSequenceLength; sequence ++)
       {
         addDn = "dc=dependency" + sequence + "," + addDn;
@@ -231,7 +227,7 @@ public class DependencyTest extends ReplicationTestCase
       // check that entry just below the base entry was deleted.
       // (we can't delete the base entry because some other tests might
       // have added other children)
-      DN node1 = DN.decode("dc=dependency1," + BASEDN_STRING);
+      DN node1 = DN.decode("dc=dependency1," + TEST_ROOT_DN_STRING);
       Entry baseEntry = getEntry(node1, 30000, false);
       assertNull(baseEntry,
                  "The last entry of the DEL sequence was not deleted.");
@@ -239,7 +235,7 @@ public class DependencyTest extends ReplicationTestCase
     finally
     {
       if (replServer != null)
-        replServer.shutdown();
+        replServer.remove();
 
       if (domain != null)
         MultimasterReplication.deleteDomain(baseDn);
@@ -260,11 +256,11 @@ public class DependencyTest extends ReplicationTestCase
   {
     ReplicationServer replServer = null;
     ReplicationDomain domain = null;
-    DN baseDn = DN.decode(BASEDN_STRING);
+    DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
     SynchronizationProvider replicationPlugin = null;
     short brokerId = 2;
     short serverId = 1;
-    short replServerId = 1;
+    short replServerId = 82;
 
     cleanDB();
 
@@ -273,10 +269,10 @@ public class DependencyTest extends ReplicationTestCase
       //
       // Create replication server, replication domain and broker.
       //
-      
-      String entryldif = "dn:" + BASEDN_STRING + "\n"
+
+      String entryldif = "dn:" + TEST_ROOT_DN_STRING + "\n"
       + "objectClass: top\n"
-      + "objectClass: domain\n";
+      + "objectClass: organization\n";
       Entry entry = TestCaseUtils.entryFromLdifString(entryldif);
       AttributeType uidType =
         DirectoryServer.getSchema().getAttributeType("entryuuid");
@@ -291,12 +287,12 @@ public class DependencyTest extends ReplicationTestCase
       replicationPlugin = new MultimasterReplication();
       DirectoryServer.registerSynchronizationProvider(replicationPlugin);
       ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(replServerPort, "addModDeldependency",
+        new ReplServerFakeConfiguration(replServerPort, "dependencyTestModdnDelDependencyTestDb",
                                         0, replServerId, 0,
                                         200, null);
       replServer = new ReplicationServer(conf);
 
-      // configure and start replication of dc=example,dc=com on the server
+      // configure and start replication of TEST_ROOT_DN_STRING on the server
       SortedSet<String> replServers = new TreeSet<String>();
       replServers.add("localhost:"+replServerPort);
       DomainFakeCfg domainConf =
@@ -309,14 +305,14 @@ public class DependencyTest extends ReplicationTestCase
       
       ReplicationBroker broker =
         openReplicationSession(baseDn, brokerId, 1000, replServerPort, 1000,
-                               false);
-      
+                               false, CLEAN_DB_GENERATION_ID);
+
       // add an entry to play with.
       entry.removeAttribute(uidType);
-      entry.addAttribute(new Attribute("entryuuid",
+      entry.addAttribute(Attributes.create("entryuuid",
                          stringUID(renamedEntryUuid)),
                          new LinkedList<AttributeValue>());
-      String addDn = "dc=moddndel" + "," + BASEDN_STRING;
+      String addDn = "dc=moddndel" + "," + TEST_ROOT_DN_STRING;
       AddMsg addMsg =
         new AddMsg(gen.newChangeNumber(), addDn, stringUID(renamedEntryUuid),
                    stringUID(1),
@@ -324,20 +320,20 @@ public class DependencyTest extends ReplicationTestCase
                    entry.getAttributes(), null );
 
       broker.publish(addMsg);
-      
+
       // check that the entry was correctly added
       boolean found =
         checkEntryHasAttribute(DN.decode(addDn), "entryuuid",
                                stringUID(renamedEntryUuid),
                                30000, true);
-      
+
       assertTrue(found, "The initial entry add failed");
-      
-    
+
+
       // disable the domain to make sure that the messages are 
       // all sent in a row.
       domain.disable();
-      
+
       // rename and delete the entry.
       ModifyDNMsg moddnMsg =
         new ModifyDNMsg(addDn, gen.newChangeNumber(),
@@ -345,26 +341,26 @@ public class DependencyTest extends ReplicationTestCase
                         stringUID(1), true, null, "dc=new_name");
       broker.publish(moddnMsg);
       DeleteMsg delMsg =
-        new DeleteMsg("dc=new_name" + "," + BASEDN_STRING,
+        new DeleteMsg("dc=new_name" + "," + TEST_ROOT_DN_STRING,
                       gen.newChangeNumber(), stringUID(renamedEntryUuid));
       broker.publish(delMsg);
-      
+
       // enable back the domain to trigger message replay.
       domain.enable();
-      
+
       // check that entry does not exist anymore.
       Thread.sleep(10000);
-      found = checkEntryHasAttribute(DN.decode("dc=new_name" + "," + BASEDN_STRING),
+      found = checkEntryHasAttribute(DN.decode("dc=new_name" + "," + TEST_ROOT_DN_STRING),
                                      "entryuuid",
                                      stringUID(renamedEntryUuid),
                                      30000, false);
-      
+
       assertFalse(found, "The delete dependencies was not correctly enforced");
     }
     finally
     {
       if (replServer != null)
-        replServer.shutdown();
+        replServer.remove();
 
       if (domain != null)
         MultimasterReplication.deleteDomain(baseDn);
@@ -372,10 +368,11 @@ public class DependencyTest extends ReplicationTestCase
       if (replicationPlugin != null)
         DirectoryServer.deregisterSynchronizationProvider(replicationPlugin);
     }
-  
+
   }
-  
-  
+
+
+  private final long CLEAN_DB_GENERATION_ID =  7933L;
   /**
    * Clean the database and replace with a single entry.
    *
@@ -385,32 +382,22 @@ public class DependencyTest extends ReplicationTestCase
    */
   private void cleanDB() throws FileNotFoundException, IOException, Exception
   {
+    // Clear backend
+    TestCaseUtils.initializeTestBackend(false);
+
+    // Create top entry with uuid
     String baseentryldif =
-      "dn:" + BASEDN_STRING + "\n"
+      "dn:" + TEST_ROOT_DN_STRING + "\n"
        + "objectClass: top\n"
-       + "objectClass: domain\n"
-       + "dc: example\n"
+       + "objectClass: organization\n"
+       + "o: test\n"
        + "entryuuid: " + stringUID(1) + "\n";
+    Entry topEntry = TestCaseUtils.entryFromLdifString(baseentryldif);
 
+    MemoryBackend memoryBackend =
+      (MemoryBackend) DirectoryServer.getBackend(TEST_BACKEND_ID);
+    memoryBackend.addEntry(topEntry, null);
 
-      // Initialization :
-      // Load the database with a single entry :
-      String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-      String path = buildRoot + File.separator + "build" + File.separator
-        + "unit-tests" + File.separator + "package-instance" + File.separator
-        + "addModDelDependencyTest";
-      OutputStream out = new FileOutputStream(new File(path));
-      out.write(baseentryldif.getBytes());
-
-      task("dn: ds-task-id=" + UUID.randomUUID()
-          + ",cn=Scheduled Tasks,cn=Tasks\n"
-          + "objectclass: top\n"
-          + "objectclass: ds-task\n"
-          + "objectclass: ds-task-import\n"
-          + "ds-task-class-name: org.opends.server.tasks.ImportTask\n"
-          + "ds-task-import-backend-id: userRoot\n"
-          + "ds-task-import-ldif-file: " + path + "\n"
-          + "ds-task-import-reject-file: " + path + "reject\n");
   }
 
 
@@ -422,25 +409,25 @@ public class DependencyTest extends ReplicationTestCase
    * To increase the risks of failures a loop of add/del/add is done.
    */
   @SuppressWarnings("unchecked")
-  @Test(enabled=false, groups="slow")
+  @Test(enabled=true, groups="slow")
   public void addDelAddDependencyTest() throws Exception
   {
     ReplicationServer replServer = null;
     ReplicationDomain domain = null;
-    DN baseDn = DN.decode(BASEDN_STRING);
+    DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
     SynchronizationProvider replicationPlugin = null;
     short brokerId = 2;
     short serverId = 1;
-    short replServerId = 1;
+    short replServerId = 83;
     int AddSequenceLength = 30;
 
     cleanDB();
 
     try
     {
-      String entryldif = "dn:" + BASEDN_STRING + "\n"
+      String entryldif = "dn:" + TEST_ROOT_DN_STRING + "\n"
       + "objectClass: top\n"
-      + "objectClass: domain\n";
+      + "objectClass: organization\n";
       Entry entry = TestCaseUtils.entryFromLdifString(entryldif);
       AttributeType uidType =
         DirectoryServer.getSchema().getAttributeType("entryuuid");
@@ -453,14 +440,14 @@ public class DependencyTest extends ReplicationTestCase
       replicationPlugin = new MultimasterReplication();
       DirectoryServer.registerSynchronizationProvider(replicationPlugin);
       ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(replServerPort, "addDelAdddependency", 0,
+        new ReplServerFakeConfiguration(replServerPort, "dependencyTestAddDelAddDependencyTestDb", 0,
                                         replServerId,
                                         0, 5*AddSequenceLength+100, null);
       replServer = new ReplicationServer(conf);
 
       ReplicationBroker broker =
         openReplicationSession(baseDn, brokerId, 100, replServerPort, 1000,
-                               false);
+                               false, CLEAN_DB_GENERATION_ID);
 
       // send a sequence of add/del/add operations
       ChangeNumberGenerator gen = new ChangeNumberGenerator(brokerId, 0L);
@@ -470,9 +457,9 @@ public class DependencyTest extends ReplicationTestCase
       {
         // add the entry a first time
         entry.removeAttribute(uidType);
-        entry.addAttribute(new Attribute("entryuuid", stringUID(sequence+1)),
+        entry.addAttribute(Attributes.create("entryuuid", stringUID(sequence+1)),
                            new LinkedList<AttributeValue>());
-        String addDn = "dc=dependency" + sequence + "," + BASEDN_STRING;
+        String addDn = "dc=dependency" + sequence + "," + TEST_ROOT_DN_STRING;
         AddMsg addMsg =
           new AddMsg(gen.newChangeNumber(), addDn, stringUID(sequence+1),
                      stringUID(1),
@@ -487,7 +474,7 @@ public class DependencyTest extends ReplicationTestCase
 
         // add again the entry with a new entryuuid.
         entry.removeAttribute(uidType);
-        entry.addAttribute(new Attribute("entryuuid", stringUID(sequence+1025)),
+        entry.addAttribute(Attributes.create("entryuuid", stringUID(sequence+1025)),
                            new LinkedList<AttributeValue>());
         addMsg =
           new AddMsg(gen.newChangeNumber(), addDn, stringUID(sequence+1025),
@@ -497,7 +484,7 @@ public class DependencyTest extends ReplicationTestCase
         broker.publish(addMsg);
       }
 
-      // configure and start replication of dc=example,dc=com on the server
+      // configure and start replication of TEST_ROOT_DN_STRING on the server
       SortedSet<String> replServers = new TreeSet<String>();
       replServers.add("localhost:"+replServerPort);
       DomainFakeCfg domainConf =
@@ -510,7 +497,7 @@ public class DependencyTest extends ReplicationTestCase
       // again by checking that they do have the correct entryuuid
       for (sequence = 1; sequence<=AddSequenceLength; sequence ++)
       {
-        String addDn = "dc=dependency" + sequence + "," + BASEDN_STRING;
+        String addDn = "dc=dependency" + sequence + "," + TEST_ROOT_DN_STRING;
 
         boolean found =
           checkEntryHasAttribute(DN.decode(addDn), "entryuuid",
@@ -524,7 +511,7 @@ public class DependencyTest extends ReplicationTestCase
 
       for (sequence = 1; sequence<=AddSequenceLength; sequence ++)
       {
-        String deleteDN = "dc=dependency" + sequence + "," + BASEDN_STRING;
+        String deleteDN = "dc=dependency" + sequence + "," + TEST_ROOT_DN_STRING;
         DeleteMsg delMsg = new DeleteMsg(deleteDN,
                                          gen.newChangeNumber(),
                                          stringUID(sequence + 1025));
@@ -532,7 +519,7 @@ public class DependencyTest extends ReplicationTestCase
       }
 
       // check that the database was cleaned successfully
-      DN node1 = DN.decode("dc=dependency1," + BASEDN_STRING);
+      DN node1 = DN.decode("dc=dependency1," + TEST_ROOT_DN_STRING);
       Entry baseEntry = getEntry(node1, 30000, false);
       assertNull(baseEntry,
         "The entry were not removed succesfully after test completion.");
@@ -540,7 +527,7 @@ public class DependencyTest extends ReplicationTestCase
     finally
     {
       if (replServer != null)
-        replServer.shutdown();
+        replServer.remove();
 
       if (domain != null)
         MultimasterReplication.deleteDomain(baseDn);
@@ -555,25 +542,26 @@ public class DependencyTest extends ReplicationTestCase
    * issuing a set of Add operation followed by a modrdn of the added entry.
    */
   @SuppressWarnings("unchecked")
-  @Test(enabled=false, groups="slow")
+  @Test(enabled=true, groups="slow")
   public void addModdnDependencyTest() throws Exception
   {
     ReplicationServer replServer = null;
     ReplicationDomain domain = null;
-    DN baseDn = DN.decode(BASEDN_STRING);
+    DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
     SynchronizationProvider replicationPlugin = null;
     short brokerId = 2;
     short serverId = 1;
-    short replServerId = 1;
+    short replServerId = 84;
     int AddSequenceLength = 30;
 
     cleanDB();
+    
 
     try
     {
-      String entryldif = "dn:" + BASEDN_STRING + "\n"
+      String entryldif = "dn:" + TEST_ROOT_DN_STRING + "\n"
       + "objectClass: top\n"
-      + "objectClass: domain\n";
+      + "objectClass: organization\n";
       Entry entry = TestCaseUtils.entryFromLdifString(entryldif);
       AttributeType uidType =
         DirectoryServer.getSchema().getAttributeType("entryuuid");
@@ -586,17 +574,17 @@ public class DependencyTest extends ReplicationTestCase
       replicationPlugin = new MultimasterReplication();
       DirectoryServer.registerSynchronizationProvider(replicationPlugin);
       ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(replServerPort, "addModdndependency", 0,
+        new ReplServerFakeConfiguration(replServerPort, "dependencyTestAddModdnDependencyTestDb", 0,
                                         replServerId,
                                         0, 5*AddSequenceLength+100, null);
       replServer = new ReplicationServer(conf);
 
       ReplicationBroker broker =
         openReplicationSession(baseDn, brokerId, 100, replServerPort, 1000,
-                               false);
+                               false, CLEAN_DB_GENERATION_ID);
 
 
-      String addDn = BASEDN_STRING;
+      String addDn = TEST_ROOT_DN_STRING;
       ChangeNumberGenerator gen = new ChangeNumberGenerator(brokerId, 0L);
 
       // send a sequence of add/modrdn operations
@@ -605,9 +593,9 @@ public class DependencyTest extends ReplicationTestCase
       {
         // add the entry
         entry.removeAttribute(uidType);
-        entry.addAttribute(new Attribute("entryuuid", stringUID(sequence+1)),
+        entry.addAttribute(Attributes.create("entryuuid", stringUID(sequence+1)),
                            new LinkedList<AttributeValue>());
-        addDn = "dc=dependency" + sequence + "," + BASEDN_STRING;
+        addDn = "dc=dependency" + sequence + "," + TEST_ROOT_DN_STRING;
         AddMsg addMsg =
           new AddMsg(gen.newChangeNumber(), addDn, stringUID(sequence+1),
                      stringUID(1),
@@ -622,7 +610,7 @@ public class DependencyTest extends ReplicationTestCase
         broker.publish(moddnMsg);
       }
 
-      // configure and start replication of dc=example,dc=com on the server
+      // configure and start replication of TEST_ROOT_DN_STRING on the server
       SortedSet<String> replServers = new TreeSet<String>();
       replServers.add("localhost:"+replServerPort);
       DomainFakeCfg domainConf =
@@ -634,7 +622,7 @@ public class DependencyTest extends ReplicationTestCase
       // check that all entries have been renamed
       for (sequence = 1; sequence<=AddSequenceLength; sequence ++)
       {
-        addDn = "dc=new_dep" + sequence + "," + BASEDN_STRING;
+        addDn = "dc=new_dep" + sequence + "," + TEST_ROOT_DN_STRING;
 
         Entry baseEntry = getEntry(DN.decode(addDn), 30000, true);
         assertNotNull(baseEntry,
@@ -644,7 +632,7 @@ public class DependencyTest extends ReplicationTestCase
       // delete the entries to clean the database.
       for (sequence = 1; sequence<=AddSequenceLength; sequence ++)
       {
-        addDn = "dc=new_dep" + sequence + "," + BASEDN_STRING;
+        addDn = "dc=new_dep" + sequence + "," + TEST_ROOT_DN_STRING;
         DeleteMsg delMsg = new DeleteMsg(addDn.toString(),
                                          gen.newChangeNumber(),
                                          stringUID(sequence + 1));
@@ -654,7 +642,7 @@ public class DependencyTest extends ReplicationTestCase
     finally
     {
       if (replServer != null)
-        replServer.shutdown();
+        replServer.remove();
 
       if (domain != null)
         MultimasterReplication.deleteDomain(baseDn);

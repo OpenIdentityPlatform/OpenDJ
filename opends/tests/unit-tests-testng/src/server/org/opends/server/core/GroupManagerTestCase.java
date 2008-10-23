@@ -46,7 +46,7 @@ import org.opends.server.extensions.VirtualStaticGroup;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
@@ -61,7 +61,6 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 
 import static org.testng.Assert.*;
-import static org.testng.Assert.assertTrue;
 
 
 /**
@@ -250,15 +249,15 @@ public class GroupManagerTestCase
     //Switch things around, change groups and members to odd numbered nested
     //groups and odd numbered members via ldap modify.
     LinkedList<Modification> mods = new LinkedList<Modification>();
-    Attribute g1 = new Attribute("member", "cn=group 1,ou=Groups,o=test");
-    Attribute g2 = new Attribute("member", "cn=group 2,ou=Groups,o=test");
-    Attribute g3 = new Attribute("member", "cn=group 3,ou=Groups,o=test");
-    Attribute g4 = new Attribute("member", "cn=group 4,ou=Groups,o=test");
-    Attribute u1 = new Attribute("member", "uid=user.1,ou=People,o=test");
-    Attribute u2 = new Attribute("member", "uid=user.2,ou=People,o=test");
-    Attribute u3 = new Attribute("member", "uid=user.3,ou=People,o=test");
-    Attribute u4 = new Attribute("member", "uid=user.4,ou=People,o=test");
-    Attribute u5 = new Attribute("member", "uid=user.5,ou=People,o=test");
+    Attribute g1 = Attributes.create("member", "cn=group 1,ou=Groups,o=test");
+    Attribute g2 = Attributes.create("member", "cn=group 2,ou=Groups,o=test");
+    Attribute g3 = Attributes.create("member", "cn=group 3,ou=Groups,o=test");
+    Attribute g4 = Attributes.create("member", "cn=group 4,ou=Groups,o=test");
+    Attribute u1 = Attributes.create("member", "uid=user.1,ou=People,o=test");
+    Attribute u2 = Attributes.create("member", "uid=user.2,ou=People,o=test");
+    Attribute u3 = Attributes.create("member", "uid=user.3,ou=People,o=test");
+    Attribute u4 = Attributes.create("member", "uid=user.4,ou=People,o=test");
+    Attribute u5 = Attributes.create("member", "uid=user.5,ou=People,o=test");
     //Delete even groups and users.
     mods.add(new Modification(ModificationType.DELETE, g2));
     mods.add(new Modification(ModificationType.DELETE, g4));
@@ -467,8 +466,8 @@ public class GroupManagerTestCase
     } catch (DirectoryException ex) {}
     //Modify list via ldap modify.
     LinkedList<Modification> mods = new LinkedList<Modification>();
-    Attribute a2 = new Attribute("member", "cn=group 2,ou=Groups,o=test");
-    Attribute a3 = new Attribute("member", "cn=group 1,ou=Groups,o=test");
+    Attribute a2 = Attributes.create("member", "cn=group 2,ou=Groups,o=test");
+    Attribute a3 = Attributes.create("member", "cn=group 1,ou=Groups,o=test");
     mods.add(new Modification(ModificationType.DELETE, a2));
     mods.add(new Modification(ModificationType.ADD, a3));
     InternalClientConnection conn =
@@ -726,8 +725,8 @@ public class GroupManagerTestCase
     // Modify the group and make sure the group manager gets updated
     // accordingly.
     LinkedList<Modification> mods = new LinkedList<Modification>();
-    Attribute a2 = new Attribute("member", "uid=user.2,ou=People,o=test");
-    Attribute a3 = new Attribute("member", "uid=user.3,ou=People,o=test");
+    Attribute a2 = Attributes.create("member", "uid=user.2,ou=People,o=test");
+    Attribute a3 = Attributes.create("member", "uid=user.3,ou=People,o=test");
     mods.add(new Modification(ModificationType.DELETE, a2));
     mods.add(new Modification(ModificationType.ADD, a3));
 
@@ -920,8 +919,8 @@ public class GroupManagerTestCase
     // Modify the group and make sure the group manager gets updated
     // accordingly.
     LinkedList<Modification> mods = new LinkedList<Modification>();
-    Attribute a2 = new Attribute("uniquemember", "uid=user.2,ou=People,o=test");
-    Attribute a3 = new Attribute("uniquemember", "uid=user.3,ou=People,o=test");
+    Attribute a2 = Attributes.create("uniquemember", "uid=user.2,ou=People,o=test");
+    Attribute a3 = Attributes.create("uniquemember", "uid=user.3,ou=People,o=test");
     mods.add(new Modification(ModificationType.DELETE, a2));
     mods.add(new Modification(ModificationType.ADD, a3));
 
@@ -1114,8 +1113,8 @@ public class GroupManagerTestCase
     // Modify the group and make sure the group manager gets updated
     // accordingly.
     LinkedList<Modification> mods = new LinkedList<Modification>();
-    Attribute a2 = new Attribute("member", "uid=user.2,ou=People,o=test");
-    Attribute a3 = new Attribute("member", "uid=user.3,ou=People,o=test");
+    Attribute a2 = Attributes.create("member", "uid=user.2,ou=People,o=test");
+    Attribute a3 = Attributes.create("member", "uid=user.3,ou=People,o=test");
     mods.add(new Modification(ModificationType.DELETE, a2));
     mods.add(new Modification(ModificationType.ADD, a3));
 

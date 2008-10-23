@@ -1600,10 +1600,10 @@ public class ConfigFileHandler
    * {@inheritDoc}
    */
   @Override()
-  public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
-         throws DirectoryException
+  public void replaceEntry(Entry oldEntry, Entry newEntry,
+      ModifyOperation modifyOperation) throws DirectoryException
   {
-    Entry e = entry.duplicate(false);
+    Entry e = newEntry.duplicate(false);
 
     // If there is a modify operation, then make sure that the associated user
     // has both the CONFIG_READ and CONFIG_WRITE privileges.  Also, if the
@@ -1681,7 +1681,7 @@ public class ConfigFileHandler
       // If the structural class is different between the current entry and the
       // new entry, then reject the change.
       if (! currentEntry.getEntry().getStructuralObjectClass().equals(
-                 entry.getStructuralObjectClass()))
+                 newEntry.getStructuralObjectClass()))
       {
         Message message = ERR_CONFIG_FILE_MODIFY_STRUCTURAL_CHANGE_NOT_ALLOWED.
             get(String.valueOf(entryDN));
@@ -1690,7 +1690,7 @@ public class ConfigFileHandler
 
 
       // Create a new config entry to use for the validation testing.
-      ConfigEntry newEntry = new ConfigEntry(e, currentEntry.getParent());
+      ConfigEntry newConfigEntry = new ConfigEntry(e, currentEntry.getParent());
 
 
       // See if there are any config change listeners registered for this entry.
@@ -1700,7 +1700,7 @@ public class ConfigFileHandler
       MessageBuilder unacceptableReason = new MessageBuilder();
       for (ConfigChangeListener l : changeListeners)
       {
-        if (! l.configChangeIsAcceptable(newEntry, unacceptableReason))
+        if (! l.configChangeIsAcceptable(newConfigEntry, unacceptableReason))
         {
           Message message = ERR_CONFIG_FILE_MODIFY_REJECTED_BY_CHANGE_LISTENER.
               get(String.valueOf(entryDN), String.valueOf(unacceptableReason));

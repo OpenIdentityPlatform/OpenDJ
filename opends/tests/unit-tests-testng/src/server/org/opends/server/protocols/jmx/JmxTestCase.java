@@ -37,6 +37,7 @@ import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.Modification;
@@ -127,7 +128,7 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
     InternalClientConnection conn = InternalClientConnection
         .getRootConnection();
     mods.add(new Modification(ModificationType.REPLACE,
-        new org.opends.server.types.Attribute(
+        Attributes.create(
             "ds-cfg-enabled", "true")));
     ModifyOperationBasis op = new ModifyOperationBasis(
         conn,

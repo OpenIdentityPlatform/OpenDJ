@@ -36,7 +36,7 @@ import java.io.UnsupportedEncodingException;
 
 import org.opends.server.types.DN;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.protocol.UpdateMessage;
+import org.opends.server.replication.protocol.UpdateMsg;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.sleepycat.je.Cursor;
@@ -100,7 +100,7 @@ public class ReplicationDB
    *
    * @param changes The list of changes to add to the underlying db.
    */
-  public void addEntries(List<UpdateMessage> changes)
+  public void addEntries(List<UpdateMsg> changes)
   {
     Transaction txn = null;
 
@@ -120,7 +120,7 @@ public class ReplicationDB
         {
           txn = dbenv.beginTransaction();
 
-          for (UpdateMessage change : changes)
+          for (UpdateMsg change : changes)
           {
             DatabaseEntry key = new ReplicationKey(change.getChangeNumber());
             DatabaseEntry data = new ReplicationData(change);
@@ -133,7 +133,8 @@ public class ReplicationDB
         }
         catch (DeadlockException e)
         {
-          txn.abort();
+          if (txn != null)
+            txn.abort();
           txn = null;
         }
         finally
@@ -591,13 +592,13 @@ public class ReplicationDB
     }
 
     /**
-     * Get the next UpdateMessage from this cursor.
+     * Get the next UpdateMsg from this cursor.
      *
-     * @return the next UpdateMessage.
+     * @return the next UpdateMsg.
      */
-    public UpdateMessage next()
+    public UpdateMsg next()
     {
-      UpdateMessage currentChange = null;
+      UpdateMsg currentChange = null;
       while (currentChange == null)
       {
         try

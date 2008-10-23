@@ -241,5 +241,15 @@ public class BinarySyntax
     // All values will be acceptable for the binary syntax.
     return true;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

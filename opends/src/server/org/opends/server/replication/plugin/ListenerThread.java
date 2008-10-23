@@ -37,7 +37,7 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.protocol.UpdateMessage;
+import org.opends.server.replication.protocol.UpdateMsg;
 
 /**
  * Thread that is used to get messages from the Replication servers
@@ -66,9 +66,8 @@ public class ListenerThread extends DirectoryThread
   public ListenerThread(ReplicationDomain repDomain,
     LinkedBlockingQueue<UpdateToReplay> updateToReplayQueue)
   {
-     super("Replication Listener thread " +
-         "serverID=" + repDomain.serverId +
-         " domain=" + repDomain.getName());
+     super("Replication Listener for server id " + repDomain.getServerId() +
+         " and domain " + repDomain.getBaseDN());
      this.repDomain = repDomain;
      this.updateToReplayQueue = updateToReplayQueue;
   }
@@ -87,7 +86,7 @@ public class ListenerThread extends DirectoryThread
   @Override
   public void run()
   {
-    UpdateMessage updateMsg = null;
+    UpdateMsg updateMsg = null;
 
     if (debugEnabled())
     {
@@ -153,9 +152,18 @@ public class ListenerThread extends DirectoryThread
   {
     try
     {
-      while (done == false)
+      int FACTOR = 40; // Wait for 2 seconds before interrupting the thread
+      int n = 0;
+      while ((done == false) && (this.isAlive()))
       {
         Thread.sleep(50);
+        n++;
+        if (n >= FACTOR)
+        {
+          TRACER.debugInfo("Interrupting listener thread for dn " +
+            repDomain.getBaseDN() + " in DS " + repDomain.getServerId());
+          this.interrupt();
+        }
       }
     } catch (InterruptedException e)
     {

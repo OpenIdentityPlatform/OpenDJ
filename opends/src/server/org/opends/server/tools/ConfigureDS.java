@@ -119,6 +119,11 @@ public class ConfigureDS
   private static final String DN_LDAP_CONNECTION_HANDLER =
        "cn=LDAP Connection Handler," + DN_CONNHANDLER_BASE;
 
+  /**
+   * The DN of the configuration entry defining the Administration connector.
+   */
+  private static final String DN_ADMIN_CONNECTOR =
+       "cn=Administration Connector," + DN_CONFIG_ROOT;
 
   /**
    * The DN of the configuration entry defining the LDAPS connection handler.
@@ -179,6 +184,7 @@ public class ConfigureDS
     BooleanArgument   enableStartTLS;
     FileBasedArgument rootPasswordFile;
     IntegerArgument   ldapPort;
+    IntegerArgument   adminConnectorPort;
     IntegerArgument   ldapsPort;
     IntegerArgument   jmxPort;
     StringArgument    baseDNString;
@@ -220,6 +226,14 @@ public class ConfigureDS
                                      true, 65535,
                                      INFO_CONFIGDS_DESCRIPTION_LDAP_PORT.get());
       argParser.addArgument(ldapPort);
+
+      adminConnectorPort = new IntegerArgument(
+          "adminConnectorPort".toLowerCase(), null,
+          "adminConnectorPort", false, false,
+          true, INFO_PORT_PLACEHOLDER.get(), 4444,
+          "adminConnectorPort", true, 1, true, 65535,
+          INFO_INSTALLDS_DESCRIPTION_ADMINCONNECTORPORT.get());
+      argParser.addArgument(adminConnectorPort);
 
       ldapsPort = new IntegerArgument("ldapsPort", 'P', "ldapsPort", false,
           false, true, INFO_LDAPPORT_PLACEHOLDER.get(), 636, null, true, 1,
@@ -372,6 +386,21 @@ public class ConfigureDS
       if (ldapPort.isPresent())
       {
         ports.add(ldapPort.getIntValue());
+      }
+      if (adminConnectorPort.isPresent())
+      {
+        if (ports.contains(adminConnectorPort.getIntValue()))
+        {
+          Message message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
+                  String.valueOf(adminConnectorPort.getIntValue()));
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          System.err.println(argParser.getUsage());
+          return 1;
+        }
+        else
+        {
+          ports.add(adminConnectorPort.getIntValue());
+        }
       }
       if (ldapsPort.isPresent())
       {
@@ -747,6 +776,34 @@ public class ConfigureDS
         catch (Exception e)
         {
           Message message = ERR_CONFIGDS_CANNOT_UPDATE_LDAP_PORT.get(
+                  String.valueOf(e));
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
+        }
+      }
+
+      // If an Admin Connector port was specified, then update the config
+      // accordingly.
+      if (adminConnectorPort.isPresent())
+      {
+        try
+        {
+          DN adminConnectorDN = DN.decode(DN_ADMIN_CONNECTOR);
+          ConfigEntry configEntry =
+               configHandler.getConfigEntry(adminConnectorDN);
+
+
+          IntegerConfigAttribute portAttr =
+               new IntegerConfigAttribute(ATTR_LISTEN_PORT,
+                       INFO_LDAP_CONNHANDLER_DESCRIPTION_LISTEN_PORT.get(),
+                                          true, false, true, true, 1, true,
+                                          65535,
+                                          adminConnectorPort.getIntValue());
+          configEntry.putConfigAttribute(portAttr);
+        }
+        catch (Exception e)
+        {
+          Message message = ERR_CONFIGDS_CANNOT_UPDATE_ADMIN_CONNECTOR_PORT.get(
                   String.valueOf(e));
           System.err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;

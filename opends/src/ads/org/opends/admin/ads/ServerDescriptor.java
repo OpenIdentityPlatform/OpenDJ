@@ -76,6 +76,10 @@ public class ServerDescriptor
      */
     LDAPS_PORT,
     /**
+     * The associated value is an Integer.
+     */
+    ADMIN_PORT,
+    /**
      * The associated value is an ArrayList of Boolean.
      */
     LDAP_ENABLED,
@@ -83,6 +87,10 @@ public class ServerDescriptor
      * The associated value is an ArrayList of Boolean.
      */
     LDAPS_ENABLED,
+    /**
+     * The associated value is an ArrayList of Boolean.
+     */
+    ADMIN_ENABLED,
     /**
      * The associated value is an ArrayList of Boolean.
      */
@@ -375,9 +383,46 @@ public class ServerDescriptor
   }
 
   /**
+   * Returns the URL to access this server using the administration connector.
+   * Returns <CODE>null</CODE> if the server cannot get the administration
+   * connector.
+   * @return the URL to access this server using the administration connector.
+   */
+  public String getAdminConnectorURL()
+  {
+    String adminConnectorUrl = null;
+    String host = getHostName();
+    int port = -1;
+
+    if (!serverProperties.isEmpty())
+    {
+      ArrayList s = (ArrayList)serverProperties.get(
+          ServerProperty.ADMIN_ENABLED);
+      ArrayList p = (ArrayList)serverProperties.get(
+          ServerProperty.ADMIN_PORT);
+      if (s != null)
+      {
+        for (int i=0; i<s.size(); i++)
+        {
+          if (Boolean.TRUE.equals(s.get(i)))
+          {
+            port = (Integer)p.get(i);
+            break;
+          }
+        }
+      }
+    }
+    if (port != -1)
+    {
+      adminConnectorUrl = ConnectionUtils.getLDAPUrl(host, port, true);
+    }
+    return adminConnectorUrl;
+  }
+
+  /**
    * Returns a String of type host-name:port-number for the server.  If
    * the provided securePreferred is set to true the port that will be used
-   * (if LDAPS is enabled) will be the LDAPS port.
+   * will be the administration connector port.
    * @param securePreferred whether to try to use the secure port as part
    * of the returning String or not.
    * @return a String of type host-name:port-number for the server.
@@ -407,8 +452,8 @@ public class ServerDescriptor
       if (securePreferred)
       {
         s = (ArrayList)serverProperties.get(
-            ServerProperty.LDAPS_ENABLED);
-        p = (ArrayList)serverProperties.get(ServerProperty.LDAPS_PORT);
+            ServerProperty.ADMIN_ENABLED);
+        p = (ArrayList)serverProperties.get(ServerProperty.ADMIN_PORT);
         if (s != null)
         {
           for (int i=0; i<s.size(); i++)
@@ -426,14 +471,14 @@ public class ServerDescriptor
     {
       boolean secure;
 
-      Object v = adsProperties.get(ADSContext.ServerProperty.LDAPS_ENABLED);
+      Object v = adsProperties.get(ADSContext.ServerProperty.ADMIN_ENABLED);
       secure = securePreferred && "true".equalsIgnoreCase(String.valueOf(v));
       try
       {
         if (secure)
         {
           port = Integer.parseInt((String)adsProperties.get(
-              ADSContext.ServerProperty.LDAPS_PORT));
+              ADSContext.ServerProperty.ADMIN_PORT));
         }
         else
         {
@@ -462,7 +507,9 @@ public class ServerDescriptor
       ServerProperty [] props =
       {
           ServerProperty.LDAP_PORT, ServerProperty.LDAPS_PORT,
-          ServerProperty.LDAP_ENABLED, ServerProperty.LDAPS_ENABLED
+          ServerProperty.ADMIN_PORT,
+          ServerProperty.LDAP_ENABLED, ServerProperty.LDAPS_ENABLED,
+          ServerProperty.ADMIN_ENABLED
       };
       for (ServerProperty prop : props) {
         ArrayList s = (ArrayList) serverProperties.get(prop);
@@ -478,8 +525,10 @@ public class ServerDescriptor
           ADSContext.ServerProperty.HOST_NAME,
           ADSContext.ServerProperty.LDAP_PORT,
           ADSContext.ServerProperty.LDAPS_PORT,
+          ADSContext.ServerProperty.ADMIN_PORT,
           ADSContext.ServerProperty.LDAP_ENABLED,
-          ADSContext.ServerProperty.LDAPS_ENABLED
+          ADSContext.ServerProperty.LDAPS_ENABLED,
+          ADSContext.ServerProperty.ADMIN_ENABLED
       };
       for (int i=0; i<props.length; i++)
       {
@@ -550,6 +599,7 @@ public class ServerDescriptor
     {
         {ServerProperty.LDAP_ENABLED, ServerProperty.LDAP_PORT},
         {ServerProperty.LDAPS_ENABLED, ServerProperty.LDAPS_PORT},
+        {ServerProperty.ADMIN_ENABLED, ServerProperty.ADMIN_PORT},
         {ServerProperty.JMX_ENABLED, ServerProperty.JMX_PORT},
         {ServerProperty.JMXS_ENABLED, ServerProperty.JMXS_PORT}
     };
@@ -559,6 +609,8 @@ public class ServerDescriptor
           ADSContext.ServerProperty.LDAP_PORT},
         {ADSContext.ServerProperty.LDAPS_ENABLED,
           ADSContext.ServerProperty.LDAPS_PORT},
+        {ADSContext.ServerProperty.ADMIN_ENABLED,
+          ADSContext.ServerProperty.ADMIN_PORT},
         {ADSContext.ServerProperty.JMX_ENABLED,
           ADSContext.ServerProperty.JMX_PORT},
         {ADSContext.ServerProperty.JMXS_ENABLED,
@@ -644,6 +696,7 @@ public class ServerDescriptor
 
 
     updateLdapConfiguration(desc, ctx, filter);
+    updateAdminConnectorConfiguration(desc, ctx, filter);
     updateJmxConfiguration(desc, ctx, filter);
     updateReplicas(desc, ctx, filter);
     updateReplication(desc, ctx, filter);
@@ -713,6 +766,44 @@ public class ServerDescriptor
         startTLSEnabled.add(enabled);
       }
     }
+  }
+
+  private static void updateAdminConnectorConfiguration(ServerDescriptor desc,
+      InitialLdapContext ctx, TopologyCacheFilter cacheFilter)
+  throws NamingException
+  {
+    SearchControls ctls = new SearchControls();
+    ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+    ctls.setReturningAttributes(
+        new String[] {
+            "ds-cfg-listen-port",
+            "objectclass"
+        });
+    String filter = "(objectclass=ds-cfg-administration-connector)";
+
+    LdapName jndiName = new LdapName("cn=config");
+    NamingEnumeration listeners = ctx.search(jndiName, filter, ctls);
+
+    Integer adminConnectorPort = null;
+
+    // we should have a single administration connector
+    if (listeners.hasMore()) {
+      SearchResult sr = (SearchResult) listeners.next();
+      String port = getFirstValue(sr, "ds-cfg-listen-port");
+      adminConnectorPort = new Integer(port);
+    }
+
+    // Even if we have a single port, use an array to be consistent with
+    // other protocols.
+    ArrayList<Integer> adminPorts = new ArrayList<Integer>();
+    ArrayList<Boolean> adminEnabled = new ArrayList<Boolean>();
+    if (adminConnectorPort != null)
+    {
+      adminPorts.add(adminConnectorPort);
+      adminEnabled.add(Boolean.TRUE);
+    }
+    desc.serverProperties.put(ServerProperty.ADMIN_PORT, adminPorts);
+    desc.serverProperties.put(ServerProperty.ADMIN_ENABLED, adminEnabled);
   }
 
   private static void updateJmxConfiguration(ServerDescriptor desc,

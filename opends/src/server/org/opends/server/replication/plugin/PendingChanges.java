@@ -33,18 +33,18 @@ import java.util.TreeMap;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.protocol.UpdateMessage;
+import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.operation.PluginOperation;
 
 /**
- * This class is use to store the list of local operations currently
+ * This class is used to store the list of local operations currently
  * in progress and not yet committed in the database.
  *
  * It is used to make sure that operations are sent to the Replication
  * Server in the order defined by their ChangeNumber.
  * It is also used to update the ServerState at the appropriate time.
  *
- * On object of this class is instanciated for each ReplicationDomain.
+ * On object of this class is instantiated for each ReplicationDomain.
  */
 public class PendingChanges
 {
@@ -61,12 +61,12 @@ public class PendingChanges
   private ChangeNumberGenerator changeNumberGenerator;
 
   /**
-   * The Replicationbroker that will be used to send UpdateMessage.
+   * The Replicationbroker that will be used to send UpdateMsg.
    */
   private ReplicationBroker broker;
 
   /**
-   * The ServerState that will be updated when UpdateMessage are committed.
+   * The ServerState that will be updated when UpdateMsg are committed.
    */
   private ServerState state;
 
@@ -76,8 +76,8 @@ public class PendingChanges
    * @param changeNumberGenerator The ChangeNumberGenerator to use to create
    *                               new unique ChangeNumbers.
    * @param broker  The Replicationbroker that will be used to send
-   *                UpdateMessage.
-   * @param state   The ServerState that will be updated when UpdateMessage
+   *                UpdateMsg.
+   * @param state   The ServerState that will be updated when UpdateMsg
    *                are committed.
    */
   public PendingChanges(
@@ -94,9 +94,9 @@ public class PendingChanges
    *
    * @param changeNumber The ChangeNumber of the update to remove.
    *
-   * @return The UpdateMessage that was just removed.
+   * @return The UpdateMsg that was just removed.
    */
-  public synchronized UpdateMessage remove(ChangeNumber changeNumber)
+  public synchronized UpdateMsg remove(ChangeNumber changeNumber)
   {
     return pendingChanges.remove(changeNumber).getMsg();
   }
@@ -119,7 +119,7 @@ public class PendingChanges
    * @param msg          The message associated to the update.
    */
   public synchronized void commit(ChangeNumber changeNumber,
-      UpdateMessage msg)
+      UpdateMsg msg)
   {
     PendingChange curChange = pendingChanges.get(changeNumber);
     if (curChange == null)
@@ -148,10 +148,10 @@ public class PendingChanges
   }
 
   /**
-   * Add a new UpdateMessage to the pending list from the provided local
+   * Add a new UpdateMsg to the pending list from the provided local
    * operation.
    *
-   * @param operation The local operation for which an UpdateMessage mus
+   * @param operation The local operation for which an UpdateMsg must
    *                  be added in the pending list.
    * @return The ChangeNumber now associated to the operation.
    */

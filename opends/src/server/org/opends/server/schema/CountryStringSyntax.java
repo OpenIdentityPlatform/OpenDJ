@@ -256,5 +256,15 @@ public class CountryStringSyntax
 
     return true;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

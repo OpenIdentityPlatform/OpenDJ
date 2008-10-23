@@ -35,9 +35,8 @@ import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.TopologyCache;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.guitools.statuspanel.ConfigException;
-import org.opends.guitools.statuspanel.ConfigFromFile;
-import org.opends.guitools.statuspanel.ConnectionProtocolPolicy;
+import org.opends.guitools.controlpanel.datamodel.ConnectionProtocolPolicy;
+import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 
@@ -99,7 +98,12 @@ class UninstallCliHelper extends ConsoleApplication {
 
   private LDAPConnectionConsoleInteraction ci = null;
 
-  private ConfigFromFile conf;
+  private ControlPanelInfo info;
+
+  // This CLI is always using the administration connector with SSL
+  private final boolean alwaysSSL = true;
+  private boolean useSSL = true;
+  private boolean useStartTLS = false;
 
   /**
    * Default constructor.
@@ -242,28 +246,24 @@ class UninstallCliHelper extends ConsoleApplication {
       userData.setReplicationServer(
           referencedHostName+":8989");
     }
-    userData.setUseSSL(parser.useSSL());
-    userData.setUseStartTLS(parser.useStartTLS());
-    conf = new ConfigFromFile();
-    conf.readConfiguration();
-    try
-    {
-      String ldapUrl = conf.getURL(
-        ConnectionProtocolPolicy.getConnectionPolicy(parser.useSSL(),
-            parser.useStartTLS()));
-      userData.setLocalServerUrl(ldapUrl);
-    }
-    catch (ConfigException ce)
+    info = ControlPanelInfo.getInstance();
+    info.setTrustManager(userData.getTrustManager());
+    info.regenerateDescriptor();
+    info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
+
+    String adminConnectorUrl = info.getAdminConnectorURL();
+
+    if (adminConnectorUrl == null)
     {
       LOG.log(Level.WARNING,
-          "Error retrieving a valid LDAP URL in conf file: "+ce, ce);
+          "Error retrieving a valid LDAP URL in conf file.");
       if (!parser.isInteractive())
       {
         Message msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
-        throw new ApplicationException(ReturnCode.APPLICATION_ERROR, msg,
-            ce);
+        throw new ApplicationException(ReturnCode.APPLICATION_ERROR, msg, null);
       }
     }
+    userData.setLocalServerUrl(adminConnectorUrl);
     userData.setReferencedHostName(referencedHostName);
 
     /*
@@ -762,13 +762,8 @@ class UninstallCliHelper extends ConsoleApplication {
     boolean accepted = true;
     String uid = userData.getAdminUID();
     String pwd = userData.getAdminPwd();
-    boolean useSSL = userData.useSSL();
-    boolean useStartTLS = userData.useStartTLS();
 
     boolean couldConnect = false;
-
-    boolean canUseSSL = conf.getLDAPSURL() != null;
-    boolean canUseStartTLS = conf.getStartTLSURL() != null;
 
     while (!couldConnect && accepted)
     {
@@ -808,35 +803,6 @@ class UninstallCliHelper extends ConsoleApplication {
         secureArgsList.bindPasswordArg.setPresent(false);
       }
 
-      // We already know if SSL or StartTLS can be used.  If we cannot
-      // use them we will not propose them in the connection parameters
-      // and if none of them can be used we will just not ask for the
-      // protocol to be used.
-      if (!canUseSSL)
-      {
-        if (useSSL)
-        {
-          println();
-          println(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
-          println();
-          secureArgsList.useSSLArg.setPresent(false);
-        }
-        else
-        {
-          secureArgsList.useSSLArg.setValueSetByProperty(true);
-        }
-      }
-      if (!canUseStartTLS)
-      {
-        if (useStartTLS)
-        {
-          println();
-          println(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
-          println();
-          secureArgsList.useStartTLSArg.setPresent(false);
-        }
-        secureArgsList.useStartTLSArg.setValueSetByProperty(true);
-      }
       if (ci == null)
       {
         ci =
@@ -847,20 +813,24 @@ class UninstallCliHelper extends ConsoleApplication {
       InitialLdapContext ctx = null;
       try
       {
-        ci.run(canUseSSL, canUseStartTLS);
-        useSSL = ci.useSSL();
-        useStartTLS = ci.useStartTLS();
+        ci.run(true, false);
         userData.setAdminUID(ci.getAdministratorUID());
         userData.setAdminPwd(ci.getBindPassword());
-        userData.setUseSSL(useSSL);
-        userData.setUseStartTLS(useStartTLS);
 
-        String ldapUrl = conf.getURL(
-            ConnectionProtocolPolicy.getConnectionPolicy(
-                useSSL, useStartTLS));
+        info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
+
+        String adminConnectorUrl = info.getAdminConnectorURL();
+        if (adminConnectorUrl == null)
+        {
+          LOG.log(Level.WARNING,
+         "Error retrieving a valid Administration Connector URL in conf file.");
+          Message msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
+            throw new ApplicationException(ReturnCode.APPLICATION_ERROR, msg,
+                null);
+        }
         try
         {
-          URI uri = new URI(ldapUrl);
+          URI uri = new URI(adminConnectorUrl);
           int port = uri.getPort();
           secureArgsList.portArg.clearValues();
           secureArgsList.portArg.addValue(String.valueOf(port));
@@ -868,16 +838,27 @@ class UninstallCliHelper extends ConsoleApplication {
         }
         catch (Throwable t)
         {
-          LOG.log(Level.SEVERE, "Error parsing url: "+ldapUrl);
+          LOG.log(Level.SEVERE, "Error parsing url: "+adminConnectorUrl);
         }
         LDAPManagementContextFactory factory =
-          new LDAPManagementContextFactory();
+          new LDAPManagementContextFactory(alwaysSSL);
         factory.getManagementContext(this, ci);
         updateTrustManager(userData, ci);
-        ldapUrl = conf.getURL(
-            ConnectionProtocolPolicy.getConnectionPolicy(ci.useSSL(),
-                ci.useStartTLS()));
-        userData.setLocalServerUrl(ldapUrl);
+
+        info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
+
+        adminConnectorUrl = info.getAdminConnectorURL();
+
+        if (adminConnectorUrl == null)
+        {
+          LOG.log(Level.WARNING,
+         "Error retrieving a valid Administration Connector URL in conf file.");
+          Message msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
+          throw new ApplicationException(ReturnCode.APPLICATION_ERROR, msg,
+              null);
+        }
+
+        userData.setLocalServerUrl(adminConnectorUrl);
         couldConnect = true;
       }
       catch (ArgumentException e) {
@@ -887,15 +868,6 @@ class UninstallCliHelper extends ConsoleApplication {
       catch (ClientException e) {
         println(e.getMessageObject());
         println();
-      }
-      catch (ConfigException ce)
-      {
-        // This is unexpected
-        LOG.log(Level.WARNING,
-            "Error retrieving a valid LDAP URL in conf file: "+ce, ce);
-        Message msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
-        throw new ApplicationException(ReturnCode.APPLICATION_ERROR, msg,
-            ce);
       }
       finally
       {
@@ -1141,28 +1113,25 @@ class UninstallCliHelper extends ConsoleApplication {
     InitialLdapContext ctx = null;
     try
     {
-      ConfigFromFile conf = new ConfigFromFile();
-      conf.readConfiguration();
+      info.setTrustManager(userData.getTrustManager());
 
       String host = "localhost";
       int port = 389;
-      boolean useSSL = userData.useSSL();
-      boolean useStartTLS = userData.useStartTLS();
       String adminUid = userData.getAdminUID();
       String pwd = userData.getAdminPwd();
       String dn = ADSContext.getAdministratorDN(adminUid);
 
-      String ldapUrl = conf.getURL(
-          ConnectionProtocolPolicy.getConnectionPolicy(useSSL, useStartTLS));
+      info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
+      String adminConnectorUrl = info.getAdminConnectorURL();
       try
       {
-        URI uri = new URI(ldapUrl);
+        URI uri = new URI(adminConnectorUrl);
         host = uri.getHost();
         port = uri.getPort();
       }
       catch (Throwable t)
       {
-        LOG.log(Level.SEVERE, "Error parsing url: "+ldapUrl);
+        LOG.log(Level.SEVERE, "Error parsing url: "+adminConnectorUrl);
       }
       ctx = createAdministrativeContext(host, port, useSSL, useStartTLS, dn,
           pwd, userData.getTrustManager());
@@ -1185,15 +1154,6 @@ class UninstallCliHelper extends ConsoleApplication {
       accepted = handleTopologyCache(cache, userData);
 
       exceptionOccurred = false;
-    }
-    catch (ConfigException ce)
-    {
-      // This is unexpected, when calling this code this should already been
-      // checked.
-      LOG.log(Level.WARNING,
-          "Error retrieving a valid LDAP URL in conf file: "+ce, ce);
-      Message msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
-      throw new ApplicationException(ReturnCode.APPLICATION_ERROR, msg, ce);
     }
     catch (NamingException ne)
     {

@@ -1137,5 +1137,15 @@ public class MatchingRuleUseSyntax
 
     return startPos;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

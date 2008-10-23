@@ -349,5 +349,15 @@ public class DirectoryStringSyntax
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

@@ -227,5 +227,15 @@ public class CertificatePairSyntax
     // All values will be acceptable for the certificate pair syntax.
     return true;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return true;
+  }
 }
 

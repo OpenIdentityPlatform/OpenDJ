@@ -190,6 +190,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     {
         FieldName.HOST_NAME,
         FieldName.SERVER_PORT,
+        FieldName.ADMIN_CONNECTOR_PORT,
         FieldName.SECURITY_OPTIONS,
         FieldName.DIRECTORY_MANAGER_DN,
         FieldName.DIRECTORY_MANAGER_PWD,
@@ -274,8 +275,11 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
       panel.add(auxPanel, gbc);
 
       boolean isPortField = fieldName == FieldName.SERVER_PORT;
+      boolean isAdminConnectorPortField =
+        fieldName == FieldName.ADMIN_CONNECTOR_PORT;
       gbc.insets = UIFactory.getEmptyInsets();
-      if (isPortField || (isSecurityField && canUpdateSecurity))
+      if (isPortField || isAdminConnectorPortField ||
+          (isSecurityField && canUpdateSecurity))
       {
         gbc.gridwidth = 3;
       }
@@ -309,6 +313,16 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
                 UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
                         getPortHelpMessage(),
                         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+        gbc.gridwidth = GridBagConstraints.RELATIVE;
+        gbc.insets.left = UIFactory.LEFT_INSET_SECONDARY_FIELD;
+        auxPanel.add(l, gbc);
+      }
+      else if (isAdminConnectorPortField)
+      {
+        JLabel l =
+          UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
+              getAdminConnectorPortHelpMessage(),
+              UIFactory.TextStyle.SECONDARY_FIELD_VALID);
         gbc.gridwidth = GridBagConstraints.RELATIVE;
         gbc.insets.left = UIFactory.LEFT_INSET_SECONDARY_FIELD;
         auxPanel.add(l, gbc);
@@ -395,6 +409,17 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
       }
       break;
 
+    case ADMIN_CONNECTOR_PORT:
+      if (defaultUserData.getAdminConnectorPort() > 0)
+      {
+        value = String.valueOf(defaultUserData.getAdminConnectorPort());
+      }
+      else
+      {
+        value = "";
+      }
+      break;
+
     case DIRECTORY_MANAGER_DN:
       value = defaultUserData.getDirectoryManagerDn();
       break;
@@ -437,6 +462,12 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     hm.put(FieldName.SERVER_PORT, new LabelFieldDescriptor(
         INFO_SERVER_PORT_LABEL.get(),
         INFO_SERVER_PORT_TOOLTIP.get(),
+        LabelFieldDescriptor.FieldType.TEXTFIELD,
+        LabelFieldDescriptor.LabelType.PRIMARY, UIFactory.PORT_FIELD_SIZE));
+
+    hm.put(FieldName.ADMIN_CONNECTOR_PORT, new LabelFieldDescriptor(
+        INFO_ADMIN_CONNECTOR_PORT_LABEL.get(),
+        INFO_ADMIN_CONNECTOR_PORT_TOOLTIP.get(),
         LabelFieldDescriptor.FieldType.TEXTFIELD,
         LabelFieldDescriptor.LabelType.PRIMARY, UIFactory.PORT_FIELD_SIZE));
 
@@ -626,6 +657,22 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     {
       lastFocusComponent = getField(FieldName.DIRECTORY_MANAGER_PWD);
     }
+  }
+
+  /**
+   * Returns the port help message that we display when we cannot use the
+   * default admin connector port (4444).
+   * @return the port help message that we display when we cannot use the
+   * default admin connector port (4444).
+   */
+  private Message getAdminConnectorPortHelpMessage()
+  {
+    Message s = Message.EMPTY;
+    if (defaultUserData.getAdminConnectorPort() != 4444)
+    {
+      s = INFO_CANNOT_USE_DEFAULT_ADMIN_CONNECTOR_PORT.get();
+    }
+    return s;
   }
 
   /**

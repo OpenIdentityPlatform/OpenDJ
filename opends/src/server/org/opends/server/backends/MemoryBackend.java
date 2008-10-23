@@ -102,9 +102,6 @@ import static org.opends.server.util.StaticUtils.*;
  * which is a mapping between the DN of an entry and the DNs of any immediate
  * children of that entry.  This is needed to efficiently determine whether an
  * entry has any children (which must not be the case for delete operations).
- * Modify DN operations are not currently allowed, but if such support is added
- * in the future, then this mapping would play an integral role in that process
- * as well.
  */
 public class MemoryBackend
        extends Backend
@@ -553,11 +550,10 @@ public class MemoryBackend
    * {@inheritDoc}
    */
   @Override()
-  public synchronized void replaceEntry(Entry entry,
-                                        ModifyOperation modifyOperation)
-         throws DirectoryException
+  public synchronized void replaceEntry(Entry oldEntry, Entry newEntry,
+      ModifyOperation modifyOperation) throws DirectoryException
   {
-    Entry e = entry.duplicate(false);
+    Entry e = newEntry.duplicate(false);
 
     // Make sure the entry exists.  If not, then throw an exception.
     DN entryDN = e.getDN();
@@ -617,7 +613,7 @@ public class MemoryBackend
     {
       Message message =
           ERR_MEMORYBACKEND_ENTRY_ALREADY_EXISTS.get(String.valueOf(e.getDN()));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
+      throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
     }
 
 
@@ -646,7 +642,7 @@ public class MemoryBackend
     {
       Message message = ERR_MEMORYBACKEND_RENAME_PARENT_DOESNT_EXIST.get(
           String.valueOf(currentDN), String.valueOf(parentDN));
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
 
 

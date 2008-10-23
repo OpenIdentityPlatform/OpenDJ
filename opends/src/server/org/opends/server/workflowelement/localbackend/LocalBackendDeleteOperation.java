@@ -241,38 +241,8 @@ deleteProcessing:
           break deleteProcessing;
         }
 
-
-        // Invoke any conflict resolution processing that might be needed by the
-        // synchronization provider.
-        for (SynchronizationProvider provider :
-             DirectoryServer.getSynchronizationProviders())
-        {
-          try
-          {
-            SynchronizationProviderResult result =
-                 provider.handleConflictResolution(this);
-            if (! result.continueProcessing())
-            {
-              setResultCode(result.getResultCode());
-              appendErrorMessage(result.getErrorMessage());
-              setMatchedDN(result.getMatchedDN());
-              setReferralURLs(result.getReferralURLs());
-              break deleteProcessing;
-            }
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            logError(ERR_DELETE_SYNCH_CONFLICT_RESOLUTION_FAILED.get(
-                          getConnectionID(), getOperationID(),
-                          getExceptionMessage(de)));
-            setResponseData(de);
+        if(!handleConflictResolution()) {
             break deleteProcessing;
-          }
         }
 
         // Check to see if the client has permission to perform the
@@ -418,37 +388,10 @@ deleteProcessing:
           }
           else
           {
-            for (SynchronizationProvider provider :
-                 DirectoryServer.getSynchronizationProviders())
-            {
-              try
-              {
-                SynchronizationProviderResult result =
-                    provider.doPreOperation(this);
-                if (! result.continueProcessing())
-                {
-                  setResultCode(result.getResultCode());
-                  appendErrorMessage(result.getErrorMessage());
-                  setMatchedDN(result.getMatchedDN());
-                  setReferralURLs(result.getReferralURLs());
+              if(!processPreOperation()) {
                   break deleteProcessing;
-                }
               }
-              catch (DirectoryException de)
-              {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
-
-                logError(ERR_DELETE_SYNCH_PREOP_FAILED.get(getConnectionID(),
-                              getOperationID(), getExceptionMessage(de)));
-                setResponseData(de);
-                break deleteProcessing;
-              }
-            }
-
-            backend.deleteEntry(entryDN, this);
+              backend.deleteEntry(entryDN, this);
           }
 
 
@@ -473,27 +416,7 @@ deleteProcessing:
       }
       finally
       {
-        for (SynchronizationProvider provider :
-          DirectoryServer.getSynchronizationProviders())
-        {
-          try
-          {
-            provider.doPostOperation(this);
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            logError(ERR_DELETE_SYNCH_POSTOP_FAILED.get(getConnectionID(),
-                getOperationID(), getExceptionMessage(de)));
-            setResponseData(de);
-            break;
-          }
-        }
-
+        processPostOperation();
         LockManager.unlock(entryDN, entryLock);
       }
     }
@@ -827,6 +750,87 @@ deleteProcessing:
                                           searchEntry);
       addResponseControl(responseControl);
     }
+  }
+
+  private boolean handleConflictResolution() {
+      boolean returnVal = true;
+
+      for (SynchronizationProvider<?> provider :
+          DirectoryServer.getSynchronizationProviders()) {
+          try {
+              SynchronizationProviderResult result =
+                  provider.handleConflictResolution(this);
+              if (! result.continueProcessing()) {
+                  setResultCode(result.getResultCode());
+                  appendErrorMessage(result.getErrorMessage());
+                  setMatchedDN(result.getMatchedDN());
+                  setReferralURLs(result.getReferralURLs());
+                  returnVal = false;
+                  break;
+              }
+          } catch (DirectoryException de) {
+              if (debugEnabled()) {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+              }
+              logError(ERR_DELETE_SYNCH_CONFLICT_RESOLUTION_FAILED.get(
+                      getConnectionID(), getOperationID(),
+                      getExceptionMessage(de)));
+              setResponseData(de);
+              returnVal = false;
+              break;
+          }
+      }
+      return returnVal;
+  }
+
+  private void processPostOperation() {
+
+      for (SynchronizationProvider<?> provider :
+          DirectoryServer.getSynchronizationProviders()) {
+          try {
+              provider.doPostOperation(this);
+          } catch (DirectoryException de) {
+              if (debugEnabled())
+              {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+              }
+              logError(ERR_DELETE_SYNCH_POSTOP_FAILED.get(getConnectionID(),
+                      getOperationID(), getExceptionMessage(de)));
+              setResponseData(de);
+              break;
+          }
+      }
+  }
+
+  private boolean processPreOperation() {
+      boolean returnVal = true;
+
+      for (SynchronizationProvider<?> provider :
+          DirectoryServer.getSynchronizationProviders()) {
+          try {
+              SynchronizationProviderResult result =
+                  provider.doPreOperation(this);
+              if (! result.continueProcessing()) {
+                  setResultCode(result.getResultCode());
+                  appendErrorMessage(result.getErrorMessage());
+                  setMatchedDN(result.getMatchedDN());
+                  setReferralURLs(result.getReferralURLs());
+                  returnVal = false;
+                  break;
+              }
+          } catch (DirectoryException de) {
+              if (debugEnabled())
+              {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+              }
+              logError(ERR_DELETE_SYNCH_PREOP_FAILED.get(getConnectionID(),
+                      getOperationID(), getExceptionMessage(de)));
+              setResponseData(de);
+              returnVal = false;
+              break;
+          }
+      }
+      return returnVal;
   }
 }
 

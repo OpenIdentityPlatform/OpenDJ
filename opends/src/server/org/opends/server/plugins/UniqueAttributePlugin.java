@@ -211,7 +211,7 @@ public class UniqueAttributePlugin
       {
         for (Attribute a : attrList)
         {
-          for (AttributeValue v : a.getValues())
+          for (AttributeValue v : a)
           {
             try
             {
@@ -281,7 +281,7 @@ public class UniqueAttributePlugin
       {
         case ADD:
         case REPLACE:
-          for (AttributeValue v : a.getValues())
+          for (AttributeValue v : a)
           {
             try
             {
@@ -328,7 +328,7 @@ public class UniqueAttributePlugin
                 continue;
               }
 
-              for (AttributeValue v : updatedAttr.getValues())
+              for (AttributeValue v : updatedAttr)
               {
                 try
                 {
@@ -460,7 +460,7 @@ public class UniqueAttributePlugin
       {
         for (Attribute a : attrList)
         {
-          for (AttributeValue v : a.getValues())
+          for (AttributeValue v : a)
           {
             try
             {
@@ -534,7 +534,7 @@ public class UniqueAttributePlugin
       {
         case ADD:
         case REPLACE:
-          for (AttributeValue v : a.getValues())
+          for (AttributeValue v : a)
           {
             try
             {
@@ -588,7 +588,7 @@ public class UniqueAttributePlugin
                 continue;
               }
 
-              for (AttributeValue v : updatedAttr.getValues())
+              for (AttributeValue v : updatedAttr)
               {
                 try
                 {

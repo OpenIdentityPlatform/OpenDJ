@@ -28,7 +28,8 @@ package org.opends.server.monitors;
 
 
 
-import java.util.LinkedHashSet;
+import static org.opends.server.util.ServerConstants.*;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -38,14 +39,13 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteStringFactory;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.ObjectClass;
-
-import static org.opends.server.util.ServerConstants.*;
 
 
 
@@ -175,49 +175,38 @@ public class ConnectionHandlerMonitor
     LinkedList<Attribute> attrs = new LinkedList<Attribute>();
 
     int numConnections = 0;
-    LinkedList<ClientConnection> conns =
-         new LinkedList<ClientConnection>(
-                  connectionHandler.getClientConnections());
-    LinkedList<HostPort> listeners =
-         new LinkedList<HostPort>(connectionHandler.getListeners());
+    LinkedList<ClientConnection> conns = new LinkedList<ClientConnection>(
+        connectionHandler.getClientConnections());
+    LinkedList<HostPort> listeners = new LinkedList<HostPort>(connectionHandler
+        .getListeners());
 
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(protocolType,
-         ByteStringFactory.create(connectionHandler.getProtocol())));
-    attrs.add(new Attribute(protocolType, ATTR_MONITOR_CONNHANDLER_PROTOCOL,
-                            values));
+    attrs.add(Attributes.create(protocolType, connectionHandler
+        .getProtocol()));
 
-
-    if (! listeners.isEmpty())
+    if (!listeners.isEmpty())
     {
-      values = new LinkedHashSet<AttributeValue>();
+      AttributeBuilder builder = new AttributeBuilder(listenerType);
       for (HostPort hp : listeners)
       {
-        values.add(new AttributeValue(listenerType,
-                                      ByteStringFactory.create(hp.toString())));
+        builder.add(new AttributeValue(listenerType, hp.toString()));
       }
-      attrs.add(new Attribute(listenerType, ATTR_MONITOR_CONNHANDLER_LISTENER,
-                              values));
+      attrs.add(builder.toAttribute());
     }
 
-    if (! conns.isEmpty())
+    if (!conns.isEmpty())
     {
-      values = new LinkedHashSet<AttributeValue>();
+      AttributeBuilder builder = new AttributeBuilder(connectionsType);
       for (ClientConnection c : conns)
       {
         numConnections++;
-        values.add(new AttributeValue(connectionsType,
-             ByteStringFactory.create(c.getMonitorSummary())));
+        builder.add(new AttributeValue(connectionsType, c
+            .getMonitorSummary()));
       }
-      attrs.add(new Attribute(connectionsType,
-                              ATTR_MONITOR_CONNHANDLER_CONNECTION, values));
+      attrs.add(builder.toAttribute());
     }
 
-    values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(numConnectionsType,
-         ByteStringFactory.create(String.valueOf(numConnections))));
-    attrs.add(new Attribute(numConnectionsType,
-                            ATTR_MONITOR_CONNHANDLER_NUMCONNECTIONS, values));
+    attrs.add(Attributes.create(numConnectionsType, String
+        .valueOf(numConnections)));
 
     return attrs;
   }

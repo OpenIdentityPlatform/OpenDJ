@@ -26,6 +26,7 @@
  */
 package org.opends.server.replication;
 
+import java.io.File;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
@@ -37,7 +38,6 @@ import static org.testng.Assert.fail;
 
 import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -48,7 +48,6 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.Severity;
 import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
@@ -63,14 +62,15 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.PersistentServerState;
 import org.opends.server.replication.plugin.ReplicationBroker;
 import org.opends.server.replication.plugin.ReplicationDomain;
-import org.opends.server.replication.protocol.ErrorMessage;
+import org.opends.server.replication.protocol.ErrorMsg;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
-import org.opends.server.replication.protocol.ReplicationMessage;
+import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -84,6 +84,9 @@ import org.opends.server.types.SearchScope;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.replication.plugin.MultimasterReplication;
 
 /**
  * An abstract class that all Replication unit test should extend.
@@ -94,6 +97,18 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
   // The tracer object for the debug logger
   private static final DebugTracer TRACER = getTracer();
+
+  // This is the generation id matching the memory test backend
+  // with its initial root entry o=test created.
+  // This matches the backend obtained calling:
+  // TestCaseUtils.initializeTestBackend(true).
+  // (using the default TestCaseUtils.TEST_ROOT_DN_STRING suffix)
+  protected static final long TEST_DN_WITH_ROOT_ENTRY_GENID = 5095L;
+  
+  /**
+   * Generation id for a fully empty domain.
+   */
+  public static final long EMPTY_DN_GENID = 48L;
 
   /**
   * The internal connection used for operation
@@ -122,10 +137,27 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected boolean schemaCheck;
 
+  // Call the paranoiaCheck at test cleanup or not.
+  // Must not been touched except if sub class has its own clean up code,
+  // for instance: 
+  // @AfterClass  
+  // public void classCleanUp() throws Exception
+  // {
+  //   callParanoiaCheck = false;
+  //   super.classCleanUp();
+  //
+  //  // Clear my own stuff that I have setup (in my own setup() method for instance)
+  //  myReplServerInstantiatedWithConstructor.remove(); // This removes the replication changes backend
+  //
+  //  // Now call paramoiaCheck myself
+  //  paranoiaCheck();
+  // }
+  protected boolean callParanoiaCheck = true;
+
   /**
    * The replication plugin entry
    */
-  protected String synchroPluginStringDN =
+  protected final String SYNCHRO_PLUGIN_DN =
     "cn=Multimaster Synchronization, cn=Synchronization Providers,cn=config";
 
   /**
@@ -138,10 +170,21 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   public void setUp() throws Exception
   {
     // This test suite depends on having the schema available.
-    TestCaseUtils.restartServer();
+    TestCaseUtils.startServer();
+
+    // After start of server because not seen if server not started
+    // after server started once, TestCaseUtils.startServer() does nothing.
+    logError(Message.raw(Category.SYNC, Severity.NOTICE,
+        " ##### Calling ReplicationTestCase.setUp ##### "));
+
+    // Initialize the test backend (TestCaseUtils.TEST_ROOT_DN_STRING)
+    // (in case previous (non replication?) tests were run before...)
+    TestCaseUtils.initializeTestBackend(true);
 
     // Create an internal connection
     connection = InternalClientConnection.getRootConnection();
+
+    callParanoiaCheck = true;
   }
 
   /**
@@ -155,8 +198,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   static protected long getGenerationId(DN baseDn)
   {
     // This is the value of the generationId computed by the server when the
-    // suffix is empty.
-    long genId = 3276850;
+    // test suffix (o=test) has only the root entry created.
+    long genId = TEST_DN_WITH_ROOT_ENTRY_GENID;
     try
     {
       ReplicationDomain replDomain = ReplicationDomain.retrievesReplicationDomain(baseDn);
@@ -196,16 +239,16 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     else
        state = new ServerState();
 
-    ReplicationBroker broker = new ReplicationBroker(
+    ReplicationBroker broker = new ReplicationBroker(null,
         state, baseDn, serverId, 0, 0, 0, 0,
-        window_size, 0, generationId, getReplSessionSecurity());
+        window_size, 0, generationId, getReplSessionSecurity(), (byte)1);
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
     broker.start(servers);
     if (timeout != 0)
       broker.setSoTimeout(timeout);
-    TestCaseUtils.sleep(100); // give some time to the broker to connect
-                              // to the replicationServer.
+    checkConnection(30, broker, port); // give some time to the broker to connect
+                                       // to the replicationServer.
     if (emptyOldChanges)
     {
       /*
@@ -216,10 +259,10 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       {
         while (true)
         {
-          ReplicationMessage rMsg = broker.receive();
-          if (rMsg instanceof ErrorMessage)
+          ReplicationMsg rMsg = broker.receive();
+          if (rMsg instanceof ErrorMsg)
           {
-            ErrorMessage eMsg = (ErrorMessage)rMsg;
+            ErrorMsg eMsg = (ErrorMsg)rMsg;
             logError(new MessageBuilder(
                 "ReplicationTestCase/openReplicationSession ").append(
                 " received ErrorMessage when emptying old changes ").append(
@@ -230,11 +273,54 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       catch (Exception e)
       {
         logError(new MessageBuilder(
-            "ReplicationTestCase/openChangelogSession ").append(e.getMessage())
+            "ReplicationTestCase/openReplicationSession ").append(e.getMessage())
             .append(" when emptying old changes").toMessage());
       }
     }
     return broker;
+  }
+
+   /**
+   * Check connection of the provided ds to the
+   * replication server. Waits for connection to be ok up to secTimeout seconds
+   * before failing.
+   */
+  protected void checkConnection(int secTimeout, ReplicationBroker rb, int rsPort)
+  {
+    int nSec = 0;
+
+    // Go out of the loop only if connection is verified or if timeout occurs
+    while (true)
+    {
+      // Test connection
+      boolean connected = rb.isConnected();
+
+      if (connected)
+      {
+        // Connection verified
+        TRACER.debugInfo("checkConnection: connection of broker "
+          + rb.getServerId() + " to RS " + rb.getRsGroupId()
+          + " obtained after " + nSec + " seconds.");
+        return;
+      }
+
+      // Sleep 1 second
+      try
+      {
+        Thread.sleep(1000);
+      } catch (InterruptedException ex)
+      {
+        fail("Error sleeping " + stackTraceToSingleLineString(ex));
+      }
+      nSec++;
+
+      if (nSec > secTimeout)
+      {
+        // Timeout reached, end with error
+        fail("checkConnection: DS " + rb.getServerId() + " is not connected to "
+          + "the RS port " + rsPort + " after " + secTimeout + " seconds.");
+      }
+    }
   }
 
   /**
@@ -260,9 +346,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       int port, int timeout, ServerState state, long generationId)
           throws Exception, SocketException
   {
-    ReplicationBroker broker = new ReplicationBroker(
+    ReplicationBroker broker = new ReplicationBroker(null,
         state, baseDn, serverId, 0, 0, 0, 0, window_size, 0, generationId,
-        getReplSessionSecurity());
+        getReplSessionSecurity(), (byte)1);
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
     broker.start(servers);
@@ -300,10 +386,10 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     else
        state = new ServerState();
 
-    ReplicationBroker broker = new ReplicationBroker(
+    ReplicationBroker broker = new ReplicationBroker(null,
         state, baseDn, serverId, maxRcvQueue, 0,
         maxSendQueue, 0, window_size, 0, generationId,
-        getReplSessionSecurity());
+        getReplSessionSecurity(), (byte)1);
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
     broker.start(servers);
@@ -319,10 +405,10 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       {
         while (true)
         {
-          ReplicationMessage rMsg = broker.receive();
-          if (rMsg instanceof ErrorMessage)
+          ReplicationMsg rMsg = broker.receive();
+          if (rMsg instanceof ErrorMsg)
           {
-            ErrorMessage eMsg = (ErrorMessage)rMsg;
+            ErrorMsg eMsg = (ErrorMsg)rMsg;
             logError(new MessageBuilder(
                 "ReplicationTestCase/openReplicationSession ").append(
                 " received ErrorMessage when emptying old changes ").append(
@@ -362,10 +448,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         if ((op.getResultCode() != ResultCode.SUCCESS) &&
             (op.getResultCode() != ResultCode.NO_SUCH_OBJECT))
         {
-          logError(Message.raw(Category.SYNC, Severity.NOTICE,
-                   "ReplicationTestCase/Cleaning config entries" +
-                   "DEL " + dn +
-                   " failed " + op.getResultCode().getResultCodeName()));
+          fail("ReplicationTestCase/Cleaning config entries DEL " + dn +
+                   " failed: " + op.getResultCode().getResultCodeName());
         }
       }
     }
@@ -373,6 +457,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       // done
     }
     synchroServerEntry = null;
+    replServerEntry = null;
   }
 
   /**
@@ -417,20 +502,120 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   /**
    * Clean up the environment. return null;
    *
-   * @throws Exception
-   *           If the environment could not be set up.
+   * @throws Exception If the environment could not be set up.
    */
   @AfterClass
   public void classCleanUp() throws Exception
   {
-    cleanConfigEntries();
-    cleanRealEntries();
+    logError(Message.raw(Category.SYNC, Severity.NOTICE,
+      " ##### Calling ReplicationTestCase.classCleanUp ##### "));
 
-    entryList = null;
+    cleanConfigEntries();
     configEntryList = null;
 
-    // In-core restart to cleanup.
-    TestCaseUtils.restartServer();
+    cleanRealEntries();
+    entryList = null;
+
+    // Clear the test backend (TestCaseUtils.TEST_ROOT_DN_STRING)
+    // (in case our test created some emtries in it)
+    TestCaseUtils.initializeTestBackend(true);
+
+    // Clean the default DB dir for replication server
+    String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
+    String rsDbDirPath = buildRoot + File.separator + "build" +
+                  File.separator + "unit-tests" + File.separator +
+                  "package-instance"+ File.separator + "changelogDb";
+
+    File rsDbDir = new File(rsDbDirPath);
+    if (rsDbDir != null)
+    {
+      File[] dbFiles = rsDbDir.listFiles();
+      if (dbFiles != null)
+      {
+        for (File dbFile : dbFiles)
+        {
+          if (dbFile != null)
+            TRACER.debugInfo("ReplicationTestCase: classCleanUp: deleting " + dbFile);
+            dbFile.delete();
+        }
+      }
+      TRACER.debugInfo("ReplicationTestCase: classCleanUp: deleting " + rsDbDir);
+      rsDbDir.delete();
+    }
+
+    // Check for unexpected replication config/objects left
+    if (callParanoiaCheck)
+      paranoiaCheck();
+  }
+
+  /**
+   * After having run, each replication test should not leave any of the following:
+   * - config entry for replication server
+   * - config entry for a replication domain
+   * - replication domain object
+   * - config entry for a replication changes backend
+   * - replication changes backend object
+   * This method checks for existence of anything of that type.
+   */
+  protected void paranoiaCheck()
+  {
+    logError(Message.raw(Category.SYNC, Severity.NOTICE,
+      "Performing paranoia check"));
+
+    // Check for config entries for replication server
+    assertNoConfigEntriesWithFilter("(objectclass=ds-cfg-replication-server)",
+      "Found unexpected replication server config left");
+
+    // Check for config entries for replication domain
+    assertNoConfigEntriesWithFilter("(objectclass=ds-cfg-replication-domain)",
+      "Found unexpected replication domain config left");
+
+    // Check for config entries for replication changes backend
+    assertNoConfigEntriesWithFilter(
+      "(ds-cfg-java-class=org.opends.server.replication.server.ReplicationBackend)",
+      "Found unexpected replication changes backend config left");
+
+    // Check for left domain object
+    assertEquals(MultimasterReplication.getNumberOfDomains(), 0, "Some replication domain objects left");
+
+    // Check for left replication changes backend object
+    assertEquals(DirectoryServer.getBackend("replicationChanges"), null, "Replication changes backend object has been left");
+  }
+
+  /**
+   * Performs a search on the config backend with the specified filter.
+   * Fails if a config entry is found.
+   * @param filter The filter to apply for the search
+   * @param errorMsg The error message to display if a config entry is found
+   */
+  private void assertNoConfigEntriesWithFilter(String filter, String errorMsg)
+  {
+    try
+    {
+      // Search for matching entries in config backend
+      InternalSearchOperation op = connection.processSearch(
+        new ASN1OctetString("cn=config"),
+        SearchScope.WHOLE_SUBTREE,
+        LDAPFilter.decode(filter));
+
+      assertEquals(op.getResultCode(), ResultCode.SUCCESS,
+        op.getErrorMessage().toString());
+
+      // Check that no entries have been found
+      LinkedList<SearchResultEntry> entries = op.getSearchEntries();
+      assertTrue(entries != null);
+      StringBuffer sb = new StringBuffer();
+      for (SearchResultEntry entry : entries)
+      {
+        sb.append(entry.toLDIFString());
+        sb.append(' ');
+      }
+      assertEquals(entries.size(), 0, errorMsg + ":\n" + sb);
+    } catch (Exception e)
+    {
+      fail("assertNoConfigEntriesWithFilter: could not search config backend" +
+        "with filter: " + filter + ": " + e.getMessage());
+    }
   }
 
   /**
@@ -534,7 +719,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
             AttributeType attrType =
               DirectoryServer.getAttributeType(attrTypeStr, true);
-            found = tmpAttr.hasValue(new AttributeValue(attrType, valueString));
+            found = tmpAttr.contains(new AttributeValue(attrType, valueString));
           }
         }
 
@@ -641,11 +826,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected List<Modification> generatemods(String attrName, String attrValue)
   {
-    AttributeType attrType =
-      DirectoryServer.getAttributeType(attrName.toLowerCase(), true);
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(attrType, attrValue));
-    Attribute attr = new Attribute(attrType, attrName, values);
+    Attribute attr = Attributes.create(attrName, attrValue);
     List<Modification> mods = new ArrayList<Modification>();
     Modification mod = new Modification(ModificationType.REPLACE, attr);
     mods.add(mod);
@@ -924,13 +1105,11 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
           TRACER.debugInfo(entry.getDN() +
               " added " + addOp.getResultCode());
         }
-        // They will be removed at the end of the test
-        entryList.addLast(entry.getDN());
       }
     }
     catch(Exception e)
     {
       fail("addEntries Exception:"+ e.getMessage() + " " + stackTraceToSingleLineString(e));
     }
-  }
+  }  
 }

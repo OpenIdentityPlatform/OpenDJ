@@ -25,49 +25,56 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
-import org.opends.messages.Message;
 
+
+
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.types.ResultCode.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
-import org.opends.server.admin.std.server.AccessLogPublisherCfg;
+import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.api.*;
+import org.opends.server.admin.std.server.AccessLogPublisherCfg;
+import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
+import org.opends.server.api.AccessLogPublisher;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AbandonOperation;
 import org.opends.server.core.AddOperation;
-import org.opends.server.core.BindOperation;
-import org.opends.server.core.CompareOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.SearchOperation;
-import org.opends.server.core.UnbindOperation;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.FilePermission;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
+import org.opends.server.types.ResultCode;
 import org.opends.server.util.Base64;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 
-import static org.opends.messages.ConfigMessages.*;
-
-import static org.opends.server.types.ResultCode.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 /**
  * This class provides the implementation of the audit logger used by
  * the directory server.
  */
-public class TextAuditLogPublisher
-    extends AccessLogPublisher<FileBasedAccessLogPublisherCfg>
-    implements ConfigurationChangeListener<FileBasedAccessLogPublisherCfg>
+public class TextAuditLogPublisher extends
+    AccessLogPublisher<FileBasedAccessLogPublisherCfg> implements
+    ConfigurationChangeListener<FileBasedAccessLogPublisherCfg>
 {
+
   private boolean suppressInternalOperations = true;
 
   private boolean suppressSynchronizationOperations = false;
@@ -76,129 +83,7 @@ public class TextAuditLogPublisher
 
   private FileBasedAccessLogPublisherCfg currentConfig;
 
-  /**
-   * {@inheritDoc}
-   */
-  public boolean isConfigurationAcceptable(AccessLogPublisherCfg configuration,
-                                           List<Message> unacceptableReasons)
-  {
-    FileBasedAccessLogPublisherCfg config =
-        (FileBasedAccessLogPublisherCfg) configuration;
-    return isConfigurationChangeAcceptable(config, unacceptableReasons);
-  }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void initializeAccessLogPublisher(
-      FileBasedAccessLogPublisherCfg config)
-      throws ConfigException, InitializationException
-  {
-    File logFile = getFileForPath(config.getLogFile());
-    FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
-
-    try
-    {
-      FilePermission perm =
-          FilePermission.decodeUNIXMode(config.getLogFilePermissions());
-
-      LogPublisherErrorHandler errorHandler =
-          new LogPublisherErrorHandler(config.dn());
-
-      boolean writerAutoFlush =
-          config.isAutoFlush() && !config.isAsynchronous();
-
-      MultifileTextWriter writer =
-          new MultifileTextWriter("Multifile Text Writer for " +
-              config.dn().toNormalizedString(),
-              config.getTimeInterval(),
-              fnPolicy,
-              perm,
-              errorHandler,
-              "UTF-8",
-              writerAutoFlush,
-              config.isAppend(),
-              (int)config.getBufferSize());
-
-      // Validate retention and rotation policies.
-      for(DN dn : config.getRotationPolicyDNs())
-      {
-        writer.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
-      }
-
-      for(DN dn: config.getRetentionPolicyDNs())
-      {
-        writer.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
-      }
-
-      if(config.isAsynchronous())
-      {
-        this.writer = new AsyncronousTextWriter("Asyncronous Text Writer for " +
-            config.dn().toNormalizedString(), config.getQueueSize(),
-            config.isAutoFlush(),
-            writer);
-      }
-      else
-      {
-        this.writer = writer;
-      }
-    }
-    catch(DirectoryException e)
-    {
-      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
-          config.dn().toString(), String.valueOf(e));
-      throw new InitializationException(message, e);
-
-    }
-    catch(IOException e)
-    {
-      Message message = ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(
-          logFile.toString(), config.dn().toString(), String.valueOf(e));
-      throw new InitializationException(message, e);
-
-    }
-
-    suppressInternalOperations = config.isSuppressInternalOperations();
-    suppressSynchronizationOperations =
-        config.isSuppressSynchronizationOperations();
-
-    currentConfig = config;
-
-    config.addFileBasedAccessChangeListener(this);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean isConfigurationChangeAcceptable(
-      FileBasedAccessLogPublisherCfg config, List<Message> unacceptableReasons)
-  {
-    // Make sure the permission is valid.
-    try
-    {
-      FilePermission filePerm =
-          FilePermission.decodeUNIXMode(config.getLogFilePermissions());
-      if(!filePerm.isOwnerWritable())
-      {
-        Message message = ERR_CONFIG_LOGGING_INSANE_MODE.get(
-            config.getLogFilePermissions());
-        unacceptableReasons.add(message);
-        return false;
-      }
-    }
-    catch(DirectoryException e)
-    {
-      Message message = ERR_CONFIG_LOGGING_MODE_INVALID.get(
-          config.getLogFilePermissions(), String.valueOf(e));
-      unacceptableReasons.add(message);
-      return false;
-    }
-
-    return true;
-  }
 
   /**
    * {@inheritDoc}
@@ -212,78 +97,77 @@ public class TextAuditLogPublisher
     ArrayList<Message> messages = new ArrayList<Message>();
 
     suppressInternalOperations = config.isSuppressInternalOperations();
-    suppressSynchronizationOperations =
-        config.isSuppressSynchronizationOperations();
+    suppressSynchronizationOperations = config
+        .isSuppressSynchronizationOperations();
 
     File logFile = getFileForPath(config.getLogFile());
     FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
 
     try
     {
-      FilePermission perm =
-          FilePermission.decodeUNIXMode(config.getLogFilePermissions());
+      FilePermission perm = FilePermission.decodeUNIXMode(config
+          .getLogFilePermissions());
 
-      boolean writerAutoFlush =
-          config.isAutoFlush() && !config.isAsynchronous();
+      boolean writerAutoFlush = config.isAutoFlush()
+          && !config.isAsynchronous();
 
       TextWriter currentWriter;
-      // Determine the writer we are using. If we were writing asyncronously,
+      // Determine the writer we are using. If we were writing
+      // asyncronously,
       // we need to modify the underlaying writer.
-      if(writer instanceof AsyncronousTextWriter)
+      if (writer instanceof AsyncronousTextWriter)
       {
-        currentWriter = ((AsyncronousTextWriter)writer).getWrappedWriter();
+        currentWriter = ((AsyncronousTextWriter) writer).getWrappedWriter();
       }
       else
       {
         currentWriter = writer;
       }
 
-      if(currentWriter instanceof MultifileTextWriter)
+      if (currentWriter instanceof MultifileTextWriter)
       {
-        MultifileTextWriter mfWriter = (MultifileTextWriter)currentWriter;
+        MultifileTextWriter mfWriter = (MultifileTextWriter) currentWriter;
 
         mfWriter.setNamingPolicy(fnPolicy);
         mfWriter.setFilePermissions(perm);
         mfWriter.setAppend(config.isAppend());
         mfWriter.setAutoFlush(writerAutoFlush);
-        mfWriter.setBufferSize((int)config.getBufferSize());
+        mfWriter.setBufferSize((int) config.getBufferSize());
         mfWriter.setInterval(config.getTimeInterval());
 
         mfWriter.removeAllRetentionPolicies();
         mfWriter.removeAllRotationPolicies();
 
-        for(DN dn : config.getRotationPolicyDNs())
+        for (DN dn : config.getRotationPolicyDNs())
         {
           mfWriter.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
         }
 
-        for(DN dn: config.getRetentionPolicyDNs())
+        for (DN dn : config.getRetentionPolicyDNs())
         {
           mfWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
         }
 
-        if(writer instanceof AsyncronousTextWriter && !config.isAsynchronous())
+        if (writer instanceof AsyncronousTextWriter && !config.isAsynchronous())
         {
           // The asynronous setting is being turned off.
-          AsyncronousTextWriter asyncWriter = ((AsyncronousTextWriter)writer);
+          AsyncronousTextWriter asyncWriter = ((AsyncronousTextWriter) writer);
           writer = mfWriter;
           asyncWriter.shutdown(false);
         }
 
-        if(!(writer instanceof AsyncronousTextWriter) &&
-            config.isAsynchronous())
+        if (!(writer instanceof AsyncronousTextWriter)
+            && config.isAsynchronous())
         {
           // The asynronous setting is being turned on.
-          AsyncronousTextWriter asyncWriter =
-              new AsyncronousTextWriter("Asyncronous Text Writer for " +
-                  config.dn().toNormalizedString(), config.getQueueSize(),
-                  config.isAutoFlush(),
-                  mfWriter);
+          AsyncronousTextWriter asyncWriter = new AsyncronousTextWriter(
+              "Asyncronous Text Writer for " + config.dn().toNormalizedString(),
+              config.getQueueSize(), config.isAutoFlush(), mfWriter);
           writer = asyncWriter;
         }
 
-        if((currentConfig.isAsynchronous() && config.isAsynchronous()) &&
-            (currentConfig.getQueueSize() != config.getQueueSize()))
+        if ((currentConfig.isAsynchronous() && config.isAsynchronous())
+            && (currentConfig.getQueueSize() != config.getQueueSize()))
         {
           adminActionRequired = true;
         }
@@ -291,11 +175,10 @@ public class TextAuditLogPublisher
         currentConfig = config;
       }
     }
-    catch(Exception e)
+    catch (Exception e)
     {
-      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
-          config.dn().toString(),
-          stackTraceToSingleLineString(e));
+      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(config.dn()
+          .toString(), stackTraceToSingleLineString(e));
       resultCode = DirectoryServer.getServerErrorResultCode();
       messages.add(message);
 
@@ -321,9 +204,17 @@ public class TextAuditLogPublisher
   /**
    * {@inheritDoc}
    */
-  @Override()
-  public void logConnect(ClientConnection clientConnection)
+  @Override
+  public DN getDN()
   {
+    if (currentConfig != null)
+    {
+      return currentConfig.dn();
+    }
+    else
+    {
+      return null;
+    }
   }
 
 
@@ -332,10 +223,73 @@ public class TextAuditLogPublisher
    * {@inheritDoc}
    */
   @Override()
-  public void logDisconnect(ClientConnection clientConnection,
-                            DisconnectReason disconnectReason,
-                            Message message)
+  public void initializeAccessLogPublisher(
+      FileBasedAccessLogPublisherCfg config)
+      throws ConfigException, InitializationException
   {
+    File logFile = getFileForPath(config.getLogFile());
+    FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
+
+    try
+    {
+      FilePermission perm = FilePermission.decodeUNIXMode(config
+          .getLogFilePermissions());
+
+      LogPublisherErrorHandler errorHandler = new LogPublisherErrorHandler(
+          config.dn());
+
+      boolean writerAutoFlush = config.isAutoFlush()
+          && !config.isAsynchronous();
+
+      MultifileTextWriter writer = new MultifileTextWriter(
+          "Multifile Text Writer for " + config.dn().toNormalizedString(),
+          config.getTimeInterval(), fnPolicy, perm, errorHandler, "UTF-8",
+          writerAutoFlush, config.isAppend(), (int) config.getBufferSize());
+
+      // Validate retention and rotation policies.
+      for (DN dn : config.getRotationPolicyDNs())
+      {
+        writer.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
+      }
+
+      for (DN dn : config.getRetentionPolicyDNs())
+      {
+        writer.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
+      }
+
+      if (config.isAsynchronous())
+      {
+        this.writer = new AsyncronousTextWriter("Asyncronous Text Writer for "
+            + config.dn().toNormalizedString(), config.getQueueSize(), config
+            .isAutoFlush(), writer);
+      }
+      else
+      {
+        this.writer = writer;
+      }
+    }
+    catch (DirectoryException e)
+    {
+      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(config.dn()
+          .toString(), String.valueOf(e));
+      throw new InitializationException(message, e);
+
+    }
+    catch (IOException e)
+    {
+      Message message = ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(logFile
+          .toString(), config.dn().toString(), String.valueOf(e));
+      throw new InitializationException(message, e);
+
+    }
+
+    suppressInternalOperations = config.isSuppressInternalOperations();
+    suppressSynchronizationOperations = config
+        .isSuppressSynchronizationOperations();
+
+    currentConfig = config;
+
+    config.addFileBasedAccessChangeListener(this);
   }
 
 
@@ -343,9 +297,13 @@ public class TextAuditLogPublisher
   /**
    * {@inheritDoc}
    */
-  @Override()
-  public void logAbandonRequest(AbandonOperation abandonOperation)
+  @Override
+  public boolean isConfigurationAcceptable(AccessLogPublisherCfg configuration,
+      List<Message> unacceptableReasons)
   {
+    FileBasedAccessLogPublisherCfg config =
+      (FileBasedAccessLogPublisherCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
 
@@ -353,19 +311,31 @@ public class TextAuditLogPublisher
   /**
    * {@inheritDoc}
    */
-  @Override()
-  public void logAbandonResult(AbandonOperation abandonOperation)
+  public boolean isConfigurationChangeAcceptable(
+      FileBasedAccessLogPublisherCfg config, List<Message> unacceptableReasons)
   {
-  }
+    // Make sure the permission is valid.
+    try
+    {
+      FilePermission filePerm = FilePermission.decodeUNIXMode(config
+          .getLogFilePermissions());
+      if (!filePerm.isOwnerWritable())
+      {
+        Message message = ERR_CONFIG_LOGGING_INSANE_MODE.get(config
+            .getLogFilePermissions());
+        unacceptableReasons.add(message);
+        return false;
+      }
+    }
+    catch (DirectoryException e)
+    {
+      Message message = ERR_CONFIG_LOGGING_MODE_INVALID.get(config
+          .getLogFilePermissions(), String.valueOf(e));
+      unacceptableReasons.add(message);
+      return false;
+    }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void logAddRequest(AddOperation addOperation)
-  {
+    return true;
   }
 
 
@@ -376,133 +346,58 @@ public class TextAuditLogPublisher
   @Override()
   public void logAddResponse(AddOperation addOperation)
   {
-    long connectionID = addOperation.getConnectionID();
-    if (connectionID < 0)
+    if (!isLoggable(addOperation))
     {
-      // This is an internal operation.
-      if (addOperation.isSynchronizationOperation())
+      return;
+    }
+
+    StringBuilder buffer = new StringBuilder(50);
+    appendHeader(addOperation, buffer);
+
+    buffer.append("dn:");
+    encodeValue(addOperation.getEntryDN().toString(), buffer);
+    buffer.append(EOL);
+
+    buffer.append("changetype: add");
+    buffer.append(EOL);
+
+    for (String ocName : addOperation.getObjectClasses().values())
+    {
+      buffer.append("objectClass: ");
+      buffer.append(ocName);
+      buffer.append(EOL);
+    }
+
+    for (List<Attribute> attrList : addOperation.getUserAttributes().values())
+    {
+      for (Attribute a : attrList)
       {
-        if (suppressSynchronizationOperations)
+        for (AttributeValue v : a)
         {
-          return;
-        }
-      }
-      else
-      {
-        if (suppressInternalOperations)
-        {
-          return;
+          buffer.append(a.getName());
+          buffer.append(":");
+          encodeValue(v.getValue(), buffer);
+          buffer.append(EOL);
         }
       }
     }
-    ResultCode code = addOperation.getResultCode();
 
-    if(code == SUCCESS)
+    for (List<Attribute> attrList : addOperation.getOperationalAttributes()
+        .values())
     {
-      StringBuilder buffer = new StringBuilder(50);
-      buffer.append("# ");
-      buffer.append(TimeThread.getLocalTime());
-      buffer.append("; conn=");
-      buffer.append(addOperation.getConnectionID());
-      buffer.append("; op=");
-      buffer.append(addOperation.getOperationID());
-      buffer.append(EOL);
-
-      buffer.append("dn:");
-      encodeValue(addOperation.getEntryDN().toString(), buffer);
-      buffer.append(EOL);
-
-      buffer.append("changetype: add");
-      buffer.append(EOL);
-
-      for (String ocName : addOperation.getObjectClasses().values())
+      for (Attribute a : attrList)
       {
-        buffer.append("objectClass: ");
-        buffer.append(ocName);
-        buffer.append(EOL);
-      }
-
-      for (List<Attribute> attrList : addOperation.getUserAttributes().values())
-      {
-        for (Attribute a : attrList)
+        for (AttributeValue v : a)
         {
-          for (AttributeValue v : a.getValues())
-          {
-            buffer.append(a.getName());
-            buffer.append(":");
-            encodeValue(v.getValue(), buffer);
-            buffer.append(EOL);
-          }
+          buffer.append(a.getName());
+          buffer.append(":");
+          encodeValue(v.getValue(), buffer);
+          buffer.append(EOL);
         }
       }
-
-      for (List<Attribute> attrList :
-          addOperation.getOperationalAttributes().values())
-      {
-        for (Attribute a : attrList)
-        {
-          for (AttributeValue v : a.getValues())
-          {
-            buffer.append(a.getName());
-            buffer.append(":");
-            encodeValue(v.getValue(), buffer);
-            buffer.append(EOL);
-          }
-        }
-      }
-
-      writer.writeRecord(buffer.toString());
     }
-  }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void logBindRequest(BindOperation bindOperation)
-  {
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void logBindResponse(BindOperation bindOperation)
-  {
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void logCompareRequest(CompareOperation compareOperation)
-  {
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void logCompareResponse(CompareOperation compareOperation)
-  {
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void logDeleteRequest(DeleteOperation deleteOperation)
-  {
+    writer.writeRecord(buffer.toString());
   }
 
 
@@ -513,183 +408,22 @@ public class TextAuditLogPublisher
   @Override()
   public void logDeleteResponse(DeleteOperation deleteOperation)
   {
-    long connectionID = deleteOperation.getConnectionID();
-    if (connectionID < 0)
+    if (!isLoggable(deleteOperation))
     {
-      // This is an internal operation.
-      if (deleteOperation.isSynchronizationOperation())
-      {
-        if (suppressSynchronizationOperations)
-        {
-          return;
-        }
-      }
-      else
-      {
-        if (suppressInternalOperations)
-        {
-          return;
-        }
-      }
-    }
-    ResultCode code = deleteOperation.getResultCode();
-
-    if(code == SUCCESS)
-    {
-      StringBuilder buffer = new StringBuilder(50);
-      buffer.append("# ");
-      buffer.append(TimeThread.getLocalTime());
-      buffer.append("; conn=");
-      buffer.append(deleteOperation.getConnectionID());
-      buffer.append("; op=");
-      buffer.append(deleteOperation.getOperationID());
-      buffer.append(EOL);
-
-      buffer.append("dn:");
-      encodeValue(deleteOperation.getEntryDN().toString(), buffer);
-      buffer.append(EOL);
-
-      buffer.append("changetype: delete");
-      buffer.append(EOL);
-
-      writer.writeRecord(buffer.toString());
+      return;
     }
 
-  }
+    StringBuilder buffer = new StringBuilder(50);
+    appendHeader(deleteOperation, buffer);
 
+    buffer.append("dn:");
+    encodeValue(deleteOperation.getEntryDN().toString(), buffer);
+    buffer.append(EOL);
 
+    buffer.append("changetype: delete");
+    buffer.append(EOL);
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void logExtendedRequest(ExtendedOperation extendedOperation)
-  {
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void logExtendedResponse(ExtendedOperation extendedOperation)
-  {
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void logModifyRequest(ModifyOperation modifyOperation)
-  {
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void logModifyResponse(ModifyOperation modifyOperation)
-  {
-    long connectionID = modifyOperation.getConnectionID();
-    if (connectionID < 0)
-    {
-      // This is an internal operation.
-      if (modifyOperation.isSynchronizationOperation())
-      {
-        if (suppressSynchronizationOperations)
-        {
-          return;
-        }
-      }
-      else
-      {
-        if (suppressInternalOperations)
-        {
-          return;
-        }
-      }
-    }
-    ResultCode code = modifyOperation.getResultCode();
-
-    if(code == SUCCESS)
-    {
-      StringBuilder buffer = new StringBuilder(50);
-      buffer.append("# ");
-      buffer.append(TimeThread.getLocalTime());
-      buffer.append("; conn=");
-      buffer.append(modifyOperation.getConnectionID());
-      buffer.append("; op=");
-      buffer.append(modifyOperation.getOperationID());
-      buffer.append(EOL);
-
-      buffer.append("dn:");
-      encodeValue(modifyOperation.getEntryDN().toString(), buffer);
-      buffer.append(EOL);
-
-      buffer.append("changetype: modify");
-      buffer.append(EOL);
-
-      boolean first = true;
-      for (Modification mod : modifyOperation.getModifications())
-      {
-        if (first)
-        {
-          first = false;
-        }
-        else
-        {
-          buffer.append("-");
-          buffer.append(EOL);
-        }
-
-        switch (mod.getModificationType())
-        {
-          case ADD:
-            buffer.append("add: ");
-            break;
-          case DELETE:
-            buffer.append("delete: ");
-            break;
-          case REPLACE:
-            buffer.append("replace: ");
-            break;
-          case INCREMENT:
-            buffer.append("increment: ");
-            break;
-          default:
-            continue;
-        }
-
-        Attribute a = mod.getAttribute();
-        buffer.append(a.getName());
-        buffer.append(EOL);
-
-        for (AttributeValue v : a.getValues())
-        {
-          buffer.append(a.getName());
-          buffer.append(":");
-          encodeValue(v.getValue(), buffer);
-          buffer.append(EOL);
-        }
-      }
-
-      writer.writeRecord(buffer.toString());
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void logModifyDNRequest(ModifyDNOperation modifyDNOperation)
-  {
+    writer.writeRecord(buffer.toString());
   }
 
 
@@ -700,140 +434,151 @@ public class TextAuditLogPublisher
   @Override()
   public void logModifyDNResponse(ModifyDNOperation modifyDNOperation)
   {
-    long connectionID = modifyDNOperation.getConnectionID();
-    if (connectionID < 0)
+    if (!isLoggable(modifyDNOperation))
     {
-      // This is an internal operation.
-      if (modifyDNOperation.isSynchronizationOperation())
-      {
-        if (suppressSynchronizationOperations)
-        {
-          return;
-        }
-      }
-      else
-      {
-        if (suppressInternalOperations)
-        {
-          return;
-        }
-      }
+      return;
     }
-    ResultCode code = modifyDNOperation.getResultCode();
 
-    if(code == SUCCESS)
+    StringBuilder buffer = new StringBuilder(50);
+    appendHeader(modifyDNOperation, buffer);
+
+    buffer.append("dn:");
+    encodeValue(modifyDNOperation.getEntryDN().toString(), buffer);
+    buffer.append(EOL);
+
+    buffer.append("changetype: moddn");
+    buffer.append(EOL);
+
+    buffer.append("newrdn:");
+    encodeValue(modifyDNOperation.getNewRDN().toString(), buffer);
+    buffer.append(EOL);
+
+    buffer.append("deleteoldrdn: ");
+    if (modifyDNOperation.deleteOldRDN())
     {
-      StringBuilder buffer = new StringBuilder(50);
-      buffer.append("# ");
-      buffer.append(TimeThread.getLocalTime());
-      buffer.append("; conn=");
-      buffer.append(modifyDNOperation.getConnectionID());
-      buffer.append("; op=");
-      buffer.append(modifyDNOperation.getOperationID());
-      buffer.append(EOL);
+      buffer.append("1");
+    }
+    else
+    {
+      buffer.append("0");
+    }
+    buffer.append(EOL);
 
-      buffer.append("dn:");
-      encodeValue(modifyDNOperation.getEntryDN().toString(), buffer);
+    DN newSuperior = modifyDNOperation.getNewSuperior();
+    if (newSuperior != null)
+    {
+      buffer.append("newsuperior:");
+      encodeValue(newSuperior.toString(), buffer);
       buffer.append(EOL);
+    }
 
-      buffer.append("changetype: moddn");
-      buffer.append(EOL);
+    writer.writeRecord(buffer.toString());
+  }
 
-      buffer.append("newrdn:");
-      encodeValue(modifyDNOperation.getNewRDN().toString(), buffer);
-      buffer.append(EOL);
 
-      buffer.append("deleteoldrdn: ");
-      if (modifyDNOperation.deleteOldRDN())
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public void logModifyResponse(ModifyOperation modifyOperation)
+  {
+    if (!isLoggable(modifyOperation))
+    {
+      return;
+    }
+
+    StringBuilder buffer = new StringBuilder(50);
+    appendHeader(modifyOperation, buffer);
+
+    buffer.append("dn:");
+    encodeValue(modifyOperation.getEntryDN().toString(), buffer);
+    buffer.append(EOL);
+
+    buffer.append("changetype: modify");
+    buffer.append(EOL);
+
+    boolean first = true;
+    for (Modification mod : modifyOperation.getModifications())
+    {
+      if (first)
       {
-        buffer.append("1");
+        first = false;
       }
       else
       {
-        buffer.append("0");
-      }
-      buffer.append(EOL);
-
-      DN newSuperior = modifyDNOperation.getNewSuperior();
-      if (newSuperior != null)
-      {
-        buffer.append("newsuperior:");
-        encodeValue(newSuperior.toString(), buffer);
+        buffer.append("-");
         buffer.append(EOL);
       }
 
-      writer.writeRecord(buffer.toString());
+      switch (mod.getModificationType())
+      {
+      case ADD:
+        buffer.append("add: ");
+        break;
+      case DELETE:
+        buffer.append("delete: ");
+        break;
+      case REPLACE:
+        buffer.append("replace: ");
+        break;
+      case INCREMENT:
+        buffer.append("increment: ");
+        break;
+      default:
+        continue;
+      }
+
+      Attribute a = mod.getAttribute();
+      buffer.append(a.getName());
+      buffer.append(EOL);
+
+      for (AttributeValue v : a)
+      {
+        buffer.append(a.getName());
+        buffer.append(":");
+        encodeValue(v.getValue(), buffer);
+        buffer.append(EOL);
+      }
     }
+
+    writer.writeRecord(buffer.toString());
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void logSearchRequest(SearchOperation searchOperation)
+  // Appends the common log header information to the provided buffer.
+  private void appendHeader(Operation operation, StringBuilder buffer)
   {
+    buffer.append("# ");
+    buffer.append(TimeThread.getLocalTime());
+    buffer.append("; conn=");
+    buffer.append(operation.getConnectionID());
+    buffer.append("; op=");
+    buffer.append(operation.getOperationID());
+    buffer.append(EOL);
   }
 
 
 
   /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void logSearchResultEntry(SearchOperation searchOperation,
-                                   SearchResultEntry searchEntry)
-  {
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void logSearchResultReference(SearchOperation searchOperation,
-                                       SearchResultReference searchReference)
-  {
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void logSearchResultDone(SearchOperation searchOperation)
-  {
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void logUnbind(UnbindOperation unbindOperation)
-  {
-  }
-
-
-
-  /**
-   * Appends the appropriately-encoded attribute value to the provided buffer.
+   * Appends the appropriately-encoded attribute value to the provided
+   * buffer.
    *
-   * @param  str     The ASN.1 octet string containing the value to append.
-   * @param  buffer  The buffer to which to append the value.
+   * @param str
+   *          The ASN.1 octet string containing the value to append.
+   * @param buffer
+   *          The buffer to which to append the value.
    */
   private void encodeValue(ByteString str, StringBuilder buffer)
   {
     byte[] byteVal = str.value();
-    if(StaticUtils.needsBase64Encoding(byteVal))
+    if (StaticUtils.needsBase64Encoding(byteVal))
     {
       buffer.append(": ");
       buffer.append(Base64.encode(byteVal));
-    } else
+    }
+    else
     {
       buffer.append(" ");
       str.toString(buffer);
@@ -843,37 +588,58 @@ public class TextAuditLogPublisher
 
 
   /**
-   * Appends the appropriately-encoded attribute value to the provided buffer.
+   * Appends the appropriately-encoded attribute value to the provided
+   * buffer.
    *
-   * @param  str     The string containing the value to append.
-   * @param  buffer  The buffer to which to append the value.
+   * @param str
+   *          The string containing the value to append.
+   * @param buffer
+   *          The buffer to which to append the value.
    */
   private void encodeValue(String str, StringBuilder buffer)
   {
-    if(StaticUtils.needsBase64Encoding(str))
+    if (StaticUtils.needsBase64Encoding(str))
     {
       buffer.append(": ");
       buffer.append(Base64.encode(getBytes(str)));
-    } else
+    }
+    else
     {
       buffer.append(" ");
       buffer.append(str);
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  public DN getDN()
+
+
+  // Determines whether the provided operation should be logged.
+  private boolean isLoggable(Operation operation)
   {
-    if(currentConfig != null)
+    long connectionID = operation.getConnectionID();
+    if (connectionID < 0)
     {
-      return currentConfig.dn();
+      // This is an internal operation.
+      if (operation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return false;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return false;
+        }
+      }
     }
-    else
+
+    if (operation.getResultCode() != SUCCESS)
     {
-      return null;
+      return false;
     }
+
+    return true;
   }
 }
-

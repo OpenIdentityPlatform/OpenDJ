@@ -30,7 +30,6 @@ package org.opends.server.plugins;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,6 +46,7 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeUsage;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryConfig;
@@ -187,12 +187,10 @@ public final class EntryUUIDPlugin
     byte[] dnBytes = getBytes(entry.getDN().toNormalizedString());
     UUID uuid = UUID.nameUUIDFromBytes(dnBytes);
 
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-    values.add(new AttributeValue(entryUUIDType,
-                                  ByteStringFactory.create(uuid.toString())));
-
+    Attribute uuidAttr = Attributes.create(entryUUIDType,
+        new AttributeValue(entryUUIDType, ByteStringFactory.create(uuid
+            .toString())));
     uuidList = new ArrayList<Attribute>(1);
-    Attribute uuidAttr = new Attribute(entryUUIDType, "entryUUID", values);
     uuidList.add(uuidAttr);
     entry.putAttribute(entryUUIDType, uuidList);
 
@@ -224,13 +222,10 @@ public final class EntryUUIDPlugin
 
     // Construct a new random UUID.
     UUID uuid = UUID.randomUUID();
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-    values.add(new AttributeValue(entryUUIDType,
-                                  ByteStringFactory.create(uuid.toString())));
-
+    Attribute uuidAttr = Attributes.create(entryUUIDType,
+        new AttributeValue(entryUUIDType, ByteStringFactory.create(uuid
+            .toString())));
     uuidList = new ArrayList<Attribute>(1);
-    Attribute uuidAttr = new Attribute(entryUUIDType, "entryUUID", values);
     uuidList.add(uuidAttr);
 
 

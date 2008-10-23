@@ -27,18 +27,16 @@
 package org.opends.server.replication.plugin;
 
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.protocol.ReplicationMessage;
-import org.opends.server.types.Modification;
+import org.opends.server.replication.protocol.ReplicationMsg;
 
 
 /**
  * This class if used to build fake Operation from the historical
  * information that stay in the entry in the database.
  *
- * This is usefull when a LDAP server can't find a LDAP server that
+ * This is useful when a LDAP server can't find a LDAP server that
  * has already seen all its changes and therefore need to retransmit them
  *
- * @author Gilles Bellaton
  */
 public abstract class FakeOperation
 {
@@ -65,22 +63,12 @@ public abstract class FakeOperation
   }
 
   /**
-   * Generate a ReplicationMessage from this fake operation.
-   * The ReplicationMessage is used to send the informations about
+   * Generate a ReplicationMsg from this fake operation.
+   * The ReplicationMsg is used to send the informations about
    * this operation to the other servers.
    *
-   * @return A ReplicationMessage that can be used to send information
+   * @return A ReplicationMsg that can be used to send information
    *         about this operation to remote servers.
    */
-  abstract public ReplicationMessage generateMessage();
-
-  /**
-   * Add a modification to the list of modification included
-   * in this fake operation.
-   *
-   * @param mod A modification that must be adde to the list of modifications
-   *            included in this fake operation.
-   */
-  abstract public void addModification(Modification mod);
-
+  abstract public ReplicationMsg generateMessage();
 }

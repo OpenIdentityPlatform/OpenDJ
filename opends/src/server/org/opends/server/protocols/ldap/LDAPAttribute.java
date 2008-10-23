@@ -25,30 +25,24 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
 
 
+
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 
-import org.opends.server.core.DirectoryServer;
+import org.opends.messages.Message;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.RawAttribute;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 
 
 
@@ -60,11 +54,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class LDAPAttribute
        extends RawAttribute
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
   // The set of values for this attribute.
   private ArrayList<ASN1OctetString> values;
 
@@ -190,15 +179,14 @@ public class LDAPAttribute
       this.attributeType = attribute.getName();
     }
 
-    LinkedHashSet<AttributeValue> attrValues = attribute.getValues();
-    if ((attrValues == null) || attrValues.isEmpty())
+    if (attribute.isEmpty())
     {
       values = new ArrayList<ASN1OctetString>(0);
       return;
     }
 
-    values = new ArrayList<ASN1OctetString>(attrValues.size());
-    for (AttributeValue v : attrValues)
+    values = new ArrayList<ASN1OctetString>(attribute.size());
+    for (AttributeValue v : attribute)
     {
       values.add(v.getValue().toASN1OctetString());
     }
@@ -256,21 +244,18 @@ public class LDAPAttribute
   public Attribute toAttribute()
          throws LDAPException
   {
-    String baseName;
-    String lowerBaseName;
-    int    semicolonPos = attributeType.indexOf(';');
-    LinkedHashSet<String> options;
+    AttributeBuilder builder;
+    int semicolonPos = attributeType.indexOf(';');
     if (semicolonPos > 0)
     {
-      baseName = attributeType.substring(0, semicolonPos);
-      options = new LinkedHashSet<String>();
+      builder = new AttributeBuilder(attributeType.substring(0, semicolonPos));
       int nextPos = attributeType.indexOf(';', semicolonPos+1);
       while (nextPos > 0)
       {
         String option = attributeType.substring(semicolonPos+1, nextPos);
         if (option.length() > 0)
         {
-          options.add(option);
+          builder.setOption(option);
         }
 
         semicolonPos = nextPos;
@@ -280,28 +265,18 @@ public class LDAPAttribute
       String option = attributeType.substring(semicolonPos+1);
       if (option.length() > 0)
       {
-        options.add(option);
+        builder.setOption(option);
       }
     }
     else
     {
-      baseName = attributeType;
-      options = new LinkedHashSet<String>(0);
-    }
-    lowerBaseName = toLowerCase(baseName);
-
-    AttributeType attrType = DirectoryServer.getAttributeType(lowerBaseName);
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType(lowerBaseName);
+      builder = new AttributeBuilder(attributeType);
     }
 
-
-    LinkedHashSet<AttributeValue> attributeValues =
-         new LinkedHashSet<AttributeValue>(values.size());
+    AttributeType attrType = builder.getAttributeType();
     for (ASN1OctetString value : values)
     {
-      if (! attributeValues.add(new AttributeValue(attrType, value)))
+      if (!builder.add(new AttributeValue(attrType, value)))
       {
         Message message =
             ERR_LDAP_ATTRIBUTE_DUPLICATE_VALUES.get(attributeType);
@@ -310,8 +285,7 @@ public class LDAPAttribute
       }
     }
 
-
-    return new Attribute(attrType, baseName, options, attributeValues);
+    return builder.toAttribute();
   }
 
 

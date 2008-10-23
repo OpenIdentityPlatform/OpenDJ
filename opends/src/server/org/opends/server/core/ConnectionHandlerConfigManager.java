@@ -41,16 +41,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.*;
+import org.opends.server.admin.std.server.AdministrationConnectorCfg;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.config.ConfigException;
+import org.opends.server.protocols.ldap.LDAPConnectionHandler;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
@@ -77,7 +80,8 @@ public class ConnectionHandlerConfigManager implements
 
   // The mapping between configuration entry DNs and their
   // corresponding connection handler implementations.
-  private ConcurrentHashMap<DN, ConnectionHandler> connectionHandlers;
+  private ConcurrentHashMap<DN, ConnectionHandler> connectionHandlers =
+        new ConcurrentHashMap<DN, ConnectionHandler>();
 
 
 
@@ -322,6 +326,40 @@ public class ConnectionHandlerConfigManager implements
     }
   }
 
+
+
+  /**
+   * Initializes the configuration associated with the Directory
+   * Server administration connector. This should only be called at
+   * Directory Server startup.
+   *
+   * @throws ConfigException
+   *           If a critical configuration problem prevents the
+   *           administration connector initialization from succeeding.
+   * @throws InitializationException
+   *           If a problem occurs while initializing the administration
+   *           connector that is not related to the server
+   *           configuration.
+   */
+  public void initializeAdministrationConnectorConfig()
+    throws ConfigException, InitializationException {
+
+    RootCfg root =
+      ServerManagementContext.getInstance().getRootConfiguration();
+    AdministrationConnectorCfg administrationConnectorCfg =
+      root.getAdministrationConnector();
+
+    AdministrationConnector ac = new AdministrationConnector();
+    ac.initializeAdministrationConnector(administrationConnectorCfg);
+
+    // Put this connection handler in the hash so that we will be
+    // able to find it if it is altered.
+    LDAPConnectionHandler connectionHandler = ac.getConnectionHandler();
+    connectionHandlers.put(administrationConnectorCfg.dn(), connectionHandler);
+
+    // Register the connection handler with the Directory Server.
+    DirectoryServer.registerConnectionHandler(connectionHandler);
+  }
 
 
   /**

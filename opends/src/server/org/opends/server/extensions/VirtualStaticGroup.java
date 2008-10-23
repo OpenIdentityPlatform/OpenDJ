@@ -147,7 +147,7 @@ public class VirtualStaticGroup
     {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           if (targetDN != null)
           {

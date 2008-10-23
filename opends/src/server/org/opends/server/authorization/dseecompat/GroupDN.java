@@ -37,7 +37,6 @@ import org.opends.server.core.DirectoryServer;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.LinkedHashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -121,7 +120,7 @@ public class GroupDN implements KeywordBindRule {
        Iterator<DN> it=groupDNs.iterator();
         for(; it.hasNext() && matched != EnumEvalResult.TRUE;) {
             DN  groupDN=it.next();
-            Group group = getGroupManager().getGroupInstance(groupDN);
+            Group<?> group = getGroupManager().getGroupInstance(groupDN);
             if((group != null) && (evalCtx.isMemberOf(group)))
                matched = EnumEvalResult.TRUE;
         }
@@ -147,14 +146,13 @@ public class GroupDN implements KeywordBindRule {
                                            DN suffixDN) {
         EnumEvalResult matched= EnumEvalResult.FALSE;
         List<Attribute> attrs = e.getAttribute(attributeType);
-        LinkedHashSet<AttributeValue> vals = attrs.get(0).getValues();
-        for(AttributeValue v : vals) {
+        for(AttributeValue v : attrs.get(0)) {
             try {
                 DN groupDN=DN.decode(v.getStringValue());
                 if(suffixDN != null &&
                    !groupDN.isDescendantOf(suffixDN))
                         continue;
-                Group group = getGroupManager().getGroupInstance(groupDN);
+                Group<?> group = getGroupManager().getGroupInstance(groupDN);
                 if((group != null) && (evalCtx.isMemberOf(group))) {
                     matched=EnumEvalResult.TRUE;
                     break;

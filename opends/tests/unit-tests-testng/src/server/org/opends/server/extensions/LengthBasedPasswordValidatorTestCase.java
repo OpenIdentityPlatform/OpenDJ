@@ -28,28 +28,22 @@ package org.opends.server.extensions;
 
 
 
+import static org.testng.Assert.*;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
-import org.opends.server.TestCaseUtils;
 import org.opends.messages.MessageBuilder;
-import org.opends.server.admin.std.meta.
-            LengthBasedPasswordValidatorCfgDefn;
-import org.opends.server.admin.std.server.
-            LengthBasedPasswordValidatorCfg;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.meta.LengthBasedPasswordValidatorCfgDefn;
+import org.opends.server.admin.std.server.LengthBasedPasswordValidatorCfg;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
@@ -57,8 +51,9 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
-
-import static org.testng.Assert.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 
 
@@ -370,7 +365,7 @@ public class LengthBasedPasswordValidatorTestCase
 
       ArrayList<Modification> mods = new ArrayList<Modification>();
       mods.add(new Modification(ModificationType.REPLACE,
-                                new Attribute("userpassword",
+          Attributes.create("userpassword",
                                               buffer.toString())));
 
       InternalClientConnection conn =
@@ -443,7 +438,7 @@ public class LengthBasedPasswordValidatorTestCase
 
       ArrayList<Modification> mods = new ArrayList<Modification>();
       mods.add(new Modification(ModificationType.REPLACE,
-                                new Attribute("userpassword",
+          Attributes.create("userpassword",
                                               buffer.toString())));
 
       InternalClientConnection conn =
@@ -518,7 +513,7 @@ public class LengthBasedPasswordValidatorTestCase
 
       ArrayList<Modification> mods = new ArrayList<Modification>();
       mods.add(new Modification(ModificationType.REPLACE,
-                                new Attribute("userpassword",
+          Attributes.create("userpassword",
                                               buffer.toString())));
 
       InternalClientConnection conn =
@@ -593,7 +588,7 @@ public class LengthBasedPasswordValidatorTestCase
 
       ArrayList<Modification> mods = new ArrayList<Modification>();
       mods.add(new Modification(ModificationType.REPLACE,
-                                new Attribute("userpassword",
+          Attributes.create("userpassword",
                                               buffer.toString())));
 
       InternalClientConnection conn =

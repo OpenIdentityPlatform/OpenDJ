@@ -37,6 +37,7 @@ import java.util.LinkedList;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.net.ssl.SSLException;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
@@ -829,8 +830,6 @@ public class ManageAccount
 
     BooleanArgument   showUsage;
     BooleanArgument   trustAll;
-    BooleanArgument   useSSL;
-    BooleanArgument   useStartTLS;
     FileBasedArgument bindPWFile;
     FileBasedArgument keyStorePWFile;
     FileBasedArgument trustStorePWFile;
@@ -860,17 +859,6 @@ public class ManageAccount
               INFO_PORT_PLACEHOLDER.get(), 389, null, true, 1,
               true, 65535, INFO_PWPSTATE_DESCRIPTION_PORT.get());
       argParser.addGlobalArgument(port);
-
-      useSSL = new BooleanArgument("usessl", OPTION_SHORT_USE_SSL,
-                                   OPTION_LONG_USE_SSL,
-                                   INFO_PWPSTATE_DESCRIPTION_USESSL.get());
-      argParser.addGlobalArgument(useSSL);
-
-      useStartTLS = new BooleanArgument(
-              "usestarttls", OPTION_SHORT_START_TLS,
-              OPTION_LONG_START_TLS,
-              INFO_PWPSTATE_DESCRIPTION_USESTARTTLS.get());
-      argParser.addGlobalArgument(useStartTLS);
 
       bindDN = new StringArgument("binddn", OPTION_SHORT_BINDDN,
                                   OPTION_LONG_BINDDN, false, false, true,
@@ -1278,60 +1266,29 @@ public class ManageAccount
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
 
-    // See if we should use SSL or StartTLS when establishing the connection.
-    // If so, then make sure only one of them was specified.
-    if (useSSL.isPresent())
-    {
-      if (useStartTLS.isPresent())
-      {
-        Message message = ERR_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
-                useSSL.getLongIdentifier(),
-                                    useStartTLS.getLongIdentifier());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
-      }
-      else
-      {
-        connectionOptions.setUseSSL(true);
-      }
-    }
-    else if (useStartTLS.isPresent())
-    {
-      connectionOptions.setStartTLS(true);
-    }
-
 
     // If we should blindly trust any certificate, then install the appropriate
     // SSL connection factory.
-    if (useSSL.isPresent() || useStartTLS.isPresent())
-    {
-      try
-      {
-        String clientAlias;
-        if (certNickname.isPresent())
-        {
-          clientAlias = certNickname.getValue();
-        }
-        else
-        {
-          clientAlias = null;
-        }
-
-        SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
-        sslConnectionFactory.init(trustAll.isPresent(), keyStoreFile.getValue(),
-                                  keyStorePW.getValue(), clientAlias,
-                                  trustStoreFile.getValue(),
-                                  trustStorePW.getValue());
-
-        connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
+    try {
+      String clientAlias;
+      if (certNickname.isPresent()) {
+        clientAlias = certNickname.getValue();
+      } else {
+        clientAlias = null;
       }
-      catch (SSLConnectionException sce)
-      {
-        Message message = ERR_PWPSTATE_CANNOT_INITIALIZE_SSL.get(
-                sce.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
-      }
+
+      SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
+      sslConnectionFactory.init(trustAll.isPresent(), keyStoreFile.getValue(),
+        keyStorePW.getValue(), clientAlias,
+        trustStoreFile.getValue(),
+        trustStorePW.getValue());
+
+      connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
+    } catch (SSLConnectionException sce) {
+      Message message = ERR_PWPSTATE_CANNOT_INITIALIZE_SSL.get(
+        sce.getMessage());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
     }
 
 
@@ -1402,9 +1359,16 @@ public class ManageAccount
     }
     catch (LDAPConnectionException lce)
     {
-      String hostPort = host.getValue() + ":" + port.getValue();
-      Message message = ERR_PWPSTATE_CANNOT_CONNECT.get(hostPort,
+      Message message = null;
+      if ((lce.getCause() != null) && (lce.getCause().getCause() != null) &&
+        lce.getCause().getCause() instanceof SSLException) {
+        message = ERR_PWPSTATE_CANNOT_CONNECT_SSL.get(host.getValue(),
+          port.getValue());
+      } else {
+        String hostPort = host.getValue() + ":" + port.getValue();
+        message = ERR_PWPSTATE_CANNOT_CONNECT.get(hostPort,
           lce.getMessage());
+      }
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR;
     }

@@ -29,13 +29,13 @@ package org.opends.server.replication.protocol;
 import org.opends.server.replication.common.ChangeNumber;
 
 /**
- * This class describe the contexte that is attached to
+ * This class describes the context that is attached to
  * Add Operation.
  */
 public class AddContext extends OperationContext
 {
   /**
-   * The Unique Id of the parent entry od the added entry.
+   * The Unique Id of the parent entry of the added entry.
    */
   private String parentUid;
 

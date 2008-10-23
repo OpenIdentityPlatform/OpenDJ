@@ -29,9 +29,7 @@ package org.opends.server.monitors;
 
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import org.opends.server.admin.std.server.StackTraceMonitorProviderCfg;
@@ -39,6 +37,7 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.InitializationException;
@@ -147,8 +146,7 @@ public class StackTraceMonitorProvider
 
     AttributeType attrType =
          DirectoryServer.getDefaultAttributeType("jvmThread");
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-
+    AttributeBuilder builder = new AttributeBuilder(attrType);
     for (Map.Entry<Thread,StackTraceElement[]> e : orderedStacks.values())
     {
       Thread t                          = e.getKey();
@@ -162,7 +160,7 @@ public class StackTraceMonitorProvider
       buffer.append(" ---------- ");
       buffer.append(t.getName());
       buffer.append(" ----------");
-      values.add(new AttributeValue(attrType, buffer.toString()));
+      builder.add(new AttributeValue(attrType, buffer.toString()));
 
       // Create an attribute for the stack trace.
       if (stackElements != null)
@@ -192,13 +190,13 @@ public class StackTraceMonitorProvider
           }
           buffer.append(")");
 
-          values.add(new AttributeValue(attrType, buffer.toString()));
+          builder.add(new AttributeValue(attrType, buffer.toString()));
         }
       }
     }
 
     ArrayList<Attribute> attrs = new ArrayList<Attribute>();
-    attrs.add(new Attribute(attrType, "jvmThread", values));
+    attrs.add(builder.toAttribute());
 
     return attrs;
   }

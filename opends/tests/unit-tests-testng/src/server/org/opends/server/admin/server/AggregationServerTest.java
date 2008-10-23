@@ -976,8 +976,8 @@ public final class AggregationServerTest extends AdminTestCase {
   // Gets the JNDI connection for the test server instance.
   private synchronized JNDIDirContextAdaptor getAdaptor() throws Exception {
     if (adaptor == null) {
-      adaptor = JNDIDirContextAdaptor.simpleBind("127.0.0.1", TestCaseUtils
-          .getServerLdapPort(), "cn=directory manager", "password");
+      adaptor = JNDIDirContextAdaptor.simpleSSLBind("127.0.0.1", TestCaseUtils
+          .getServerAdminPort(), "cn=directory manager", "password");
     }
     return adaptor;
   }

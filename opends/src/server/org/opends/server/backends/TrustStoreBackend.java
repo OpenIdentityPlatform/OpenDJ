@@ -28,14 +28,20 @@ package org.opends.server.backends;
 
 
 
-import java.io.File;
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.PrintWriter;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.UnknownHostException;
 import java.security.Key;
 import java.security.KeyStore;
@@ -43,11 +49,12 @@ import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.SortedSet;
+
 import javax.naming.ldap.Rdn;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -63,23 +70,25 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.IndexType;
@@ -95,12 +104,6 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.Validator;
-
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -376,15 +379,9 @@ public class TrustStoreBackend
     int numAVAs = rdn.getNumValues();
     for (int i=0; i < numAVAs; i++)
     {
-      LinkedHashSet<AttributeValue> valueSet =
-           new LinkedHashSet<AttributeValue>(1);
-      valueSet.add(rdn.getAttributeValue(i));
-
       AttributeType attrType = rdn.getAttributeType(i);
       ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(new Attribute(attrType, attrType.getNameOrOID(),
-                                 valueSet));
-
+      attrList.add(Attributes.create(attrType, rdn.getAttributeValue(i)));
       userAttrs.put(attrType, attrList);
     }
 
@@ -623,24 +620,19 @@ public class TrustStoreBackend
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
          new LinkedHashMap<AttributeType,List<Attribute>>(3);
 
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(1);
-    valueSet.add(v);
 
     ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-    attrList.add(new Attribute(t, t.getNameOrOID(), valueSet));
+    attrList.add(Attributes.create(t, v));
     userAttrs.put(t, attrList);
 
 
-    t = DirectoryServer.getAttributeType(
-         ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE, true);
-    valueSet = new LinkedHashSet<AttributeValue>(1);
-    valueSet.add(new AttributeValue(t,
-                          certValue));
+    t = DirectoryServer.getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE,
+        true);
+    AttributeBuilder builder = new AttributeBuilder(t);
+    builder.setOption("binary");
+    builder.add(new AttributeValue(t, certValue));
     attrList = new ArrayList<Attribute>(1);
-    LinkedHashSet<String> options = new LinkedHashSet<String>(1);
-    options.add("binary");
-    attrList.add(new Attribute(t, t.getNameOrOID(), options, valueSet));
+    attrList.add(builder.toAttribute());
     userAttrs.put(t, attrList);
 
 
@@ -721,8 +713,8 @@ public class TrustStoreBackend
    * {@inheritDoc}
    */
   @Override()
-  public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
-         throws DirectoryException
+  public void replaceEntry(Entry oldEntry, Entry newEntry,
+      ModifyOperation modifyOperation) throws DirectoryException
   {
     Message message = ERR_TRUSTSTORE_MODIFY_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
@@ -1637,8 +1629,10 @@ public class TrustStoreBackend
                DirectoryServer.getServerErrorResultCode(), message);
         }
 
-        LinkedHashSet<AttributeValue> certValues = certAttrs.get(0).getValues();
-        if (certValues == null)
+        Attribute certAttr = certAttrs.get(0);
+        Iterator<AttributeValue> i = certAttr.iterator();
+
+        if (!i.hasNext())
         {
           Message message =
                ERR_TRUSTSTORE_ENTRY_MISSING_CERT_VALUE.get(
@@ -1647,7 +1641,10 @@ public class TrustStoreBackend
           throw new DirectoryException(
                DirectoryServer.getServerErrorResultCode(), message);
         }
-        if (certValues.size() != 1)
+
+        byte[] certBytes = i.next().getValueBytes();
+
+        if (i.hasNext())
         {
           Message message =
                ERR_TRUSTSTORE_ENTRY_HAS_MULTIPLE_CERT_VALUES.get(
@@ -1657,7 +1654,6 @@ public class TrustStoreBackend
                DirectoryServer.getServerErrorResultCode(), message);
         }
 
-        byte[] certBytes = certValues.iterator().next().getValueBytes();
         try
         {
           File tempDir = getFileForPath("config");

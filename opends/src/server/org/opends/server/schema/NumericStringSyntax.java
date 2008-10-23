@@ -253,5 +253,15 @@ public class NumericStringSyntax
 
     return true;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

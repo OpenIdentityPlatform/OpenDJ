@@ -68,6 +68,14 @@
         }
       </call>
       <script>SEC_I1_SPORT = STAXResult</script>
+
+      <call function="'getFreePort'">
+        {
+          'host'  : STAF_REMOTE_HOSTNAME,
+          'port'  : 8524,
+        }
+      </call>
+      <script>SEC_I1_ADMIN_PORT = STAXResult</script>
       
       <call function="'getFreePort'">
         {
@@ -92,6 +100,14 @@
         }
       </call>
       <script>SEC_I2_SPORT = STAXResult</script>
+
+      <call function="'getFreePort'">
+        {
+          'host'  : STAF_REMOTE_HOSTNAME,
+          'port'  : 8624,
+        }
+      </call>
+      <script>SEC_I2_ADMIN_PORT = STAXResult</script>
       
       <call function="'getFreePort'">
         {
@@ -102,10 +118,10 @@
       <script>SEC_I2_REPL_PORT = STAXResult</script>
 
       <message>
-        'Got these free ports for I1: %s, %s, %s' % (SEC_I1_PORT, \
-          SEC_I1_SPORT, SEC_I1_REPL_PORT)
-        'Got these free ports for I2: %s, %s, %s' % (SEC_I2_PORT, \
-          SEC_I2_SPORT, SEC_I2_REPL_PORT)
+        'Got these free ports for I1: %s, %s, %s, %s' % (SEC_I1_PORT, \
+          SEC_I1_SPORT, SEC_I1_ADMIN_PORT, SEC_I1_REPL_PORT)
+        'Got these free ports for I2: %s, %s, %s, %s' % (SEC_I2_PORT, \
+          SEC_I2_SPORT, SEC_I2_ADMIN_PORT, SEC_I2_REPL_PORT)
       </message>
       
       
@@ -192,6 +208,7 @@
             p = []
             p.append('--cli --no-prompt --ldapPort %s' % (SEC_I1_PORT))
             p.append('--ldapsPort %s' % SEC_I1_SPORT)
+            p.append('--adminConnectorPort %s' % SEC_I1_ADMIN_PORT)  
             p.append('--rootUserDN "%s"' % DM_DN)
             p.append('--rootUserPassword "%s"' % DM_PW)
             p.append('--generateSelfSignedCertificate')
@@ -215,7 +232,7 @@
           <script>
             c = '%s/%s/status%s' % (SEC_I1_ROOT, fileFolder, fileExt)
             p = []
-            p.append('--no-prompt')
+            p.append('--no-prompt --trustAll')
             p.append('--bindDN "%s" --bindPassword "%s"' % (DM_DN, DM_PW))
             p = ' '.join(p)
           </script>
@@ -239,15 +256,15 @@
           <call function="'grep'">
             { 'location'  : STAF_REMOTE_HOSTNAME,
               'filename'  : grepFile,
-              'testString': 'Server Run Status:    Started',
+              'testString': 'Server Run Status:        Started',
               'expectedRC': 0,
             }
           </call>
           
-          <!-- 1.3. Check config/keystore -->
-          <message>'++ Check file config/keystore exists'</message> 
+          <!-- 1.3. Check config/admin-keystore -->
+          <message>'++ Check file config/admin-keystore exists'</message>
           <script>
-            ks = '%s/config/keystore' % SEC_I1_ROOT
+            ks = '%s/config/admin-keystore' % SEC_I1_ROOT
           </script>
 
           <call function="'checkFileExists'">
@@ -326,6 +343,7 @@
             p = []
             p.append('--cli --no-prompt --ldapPort %s' % (SEC_I2_PORT))
             p.append('--ldapsPort %s' % SEC_I2_SPORT)
+            p.append('--adminConnectorPort %s' % SEC_I2_ADMIN_PORT)  
             p.append('--rootUserDN "%s"' % DM_DN)
             p.append('--rootUserPassword "%s"' % DM_PW)
             p.append('--generateSelfSignedCertificate --enableStartTLS')
@@ -349,7 +367,7 @@
           <script>
             c = '%s/%s/status%s' % (SEC_I2_ROOT, fileFolder, fileExt)
             p = []
-            p.append('--no-prompt')
+            p.append('--no-prompt --trustAll')
             p.append('--bindDN "%s" --bindPassword "%s"' % (DM_DN, DM_PW))
             p = ' '.join(p)
           </script>
@@ -373,15 +391,15 @@
           <call function="'grep'">
             { 'location'  : STAF_REMOTE_HOSTNAME,
               'filename'  : grepFile,
-              'testString': 'Server Run Status:    Started',
+              'testString': 'Server Run Status:        Started',
               'expectedRC': 0,
             }
           </call>
 
-          <!-- 2.3. Check config/keystore -->
-          <message>'++ Check file config/keystore exists'</message> 
+          <!-- 2.3. Check config/admin-keystore -->
+          <message>'++ Check file config/admin-keystore exists'</message>
           <script>
-            ks = '%s/config/keystore' % SEC_I2_ROOT
+            ks = '%s/config/admin-keystore' % SEC_I2_ROOT
           </script>
 
           <call function="'checkFileExists'">
@@ -425,7 +443,8 @@
             c = '%s/%s/dsconfig%s' % (SEC_I1_ROOT, fileFolder, fileExt)
             p = []
             p.append('create-backend --bindDN "%s"' % DM_DN)
-            p.append('--bindPassword "%s" --port %s' % (DM_PW, SEC_I1_PORT))
+            p.append('--bindPassword "%s"' % DM_PW)
+            p.append('--trustAll --port %s' % SEC_I1_ADMIN_PORT)
             p.append('--backend-name o1 --type local-db --no-prompt')
             p.append('--set enabled:true --set writability-mode:enabled')
             p.append('--set base-dn:"o=o1"')
@@ -450,7 +469,8 @@
             c = '%s/%s/dsconfig%s' % (SEC_I2_ROOT, fileFolder, fileExt)
             p = []
             p.append('create-backend --bindDN "%s"' % DM_DN)
-            p.append('--bindPassword "%s" --port %s' % (DM_PW, SEC_I2_PORT))
+            p.append('--bindPassword "%s"' % DM_PW)
+            p.append('--trustAll --port %s' % SEC_I2_ADMIN_PORT)
             p.append('--backend-name o1 --type local-db --no-prompt')
             p.append('--set enabled:true --set writability-mode:enabled')
             p.append('--set base-dn:"o=o1"')
@@ -475,7 +495,7 @@
             c = '%s/%s/import-ldif%s' % (SEC_I1_ROOT, fileFolder, fileExt)
             p = []
             p.append('--bindDN "%s" --bindPassword "%s"' % (DM_DN, DM_PW))
-            p.append('--port %s --backendID o1' % SEC_I1_PORT)
+            p.append('--trustAll --port %s --backendID o1' % SEC_I1_ADMIN_PORT)
             p.append('--ldifFile %s' % SEC_O1_LDIF)
             p = ' '.join(p)
           </script>
@@ -497,14 +517,14 @@
           <script>
             c = '%s/%s/dsreplication%s' % (SEC_I1_ROOT, fileFolder, fileExt)
             p = []
-            p.append('enable --host1 %s' % STAF_REMOTE_HOSTNAME)
+            p.append('enable --trustAll --host1 %s' % STAF_REMOTE_HOSTNAME)
             p.append('--bindDN1 "%s"' % DM_DN)
             p.append('--bindPassword1 "%s"' % DM_PW)
-            p.append('--port1 %s' % SEC_I1_PORT)
+            p.append('--port1 %s' % SEC_I1_ADMIN_PORT)
             p.append('--replicationPort1 %s' % SEC_I1_REPL_PORT)
             p.append('--host2 %s --bindDN2 "%s"' % (STAF_REMOTE_HOSTNAME, DM_DN))
             p.append('--bindPassword2 "%s"' % DM_PW)
-            p.append('--port2 %s' % (SEC_I2_PORT))
+            p.append('--port2 %s' % SEC_I2_ADMIN_PORT)
             p.append('--replicationPort2 %s' % SEC_I2_REPL_PORT)
             p.append('-I admin -w secret12')
             p.append('--baseDN "o=o1" --no-prompt')
@@ -528,11 +548,12 @@
           <script>
             c = '%s/%s/dsreplication%s' % (SEC_I1_ROOT, fileFolder, fileExt)
             p = []
-            p.append('initialize -I admin -w secret12 --baseDN "o=o1"')
+            p.append('initialize --trustAll')
+            p.append('-I admin -w secret12 --baseDN "o=o1"')
             p.append('--hostSource %s' % STAF_REMOTE_HOSTNAME)
-            p.append('--portSource %s' % SEC_I1_PORT)
+            p.append('--portSource %s' % SEC_I1_ADMIN_PORT)
             p.append('--hostDestination %s' % STAF_REMOTE_HOSTNAME)
-            p.append('--portDestination %s' %  SEC_I2_PORT)
+            p.append('--portDestination %s' %  SEC_I2_ADMIN_PORT)
             p.append('--no-prompt')
             p = ' '.join(p)
           </script>
@@ -689,8 +710,8 @@
           <message>'++ Export server cert I1'</message> 
           <script>
             CERT1_FILE = '%s/cert1' % OUT_GROUP
-            KEYSTORE1_FILE = '%s/config/keystore' % SEC_I1_ROOT
-            KEYSTORE1_PIN_FILE = '%s/config/keystore.pin' % SEC_I1_ROOT
+            KEYSTORE1_FILE = '%s/config/admin-keystore' % SEC_I1_ROOT
+            KEYSTORE1_PIN_FILE = '%s/config/admin-keystore.pin' % SEC_I1_ROOT
           </script>
 
           <call function="'runSTAFCommand'">
@@ -718,7 +739,7 @@
             p = []
             p.append('-export -keystore %s' % KEYSTORE1_FILE)
             p.append('-storepass "%s"' % KEYSTORE1_PIN)
-            p.append('-alias server-cert -file %s' % CERT1_FILE)
+            p.append('-alias admin-cert -file %s' % CERT1_FILE)
             p = ' '.join(p)
           </script>
 
@@ -738,8 +759,8 @@
           <message>'++ Export server cert I2'</message> 
           <script>
             CERT2_FILE = '%s/cert2' % OUT_GROUP
-            KEYSTORE2_FILE = '%s/config/keystore' % SEC_I2_ROOT
-            KEYSTORE2_PIN_FILE = '%s/config/keystore.pin' % SEC_I2_ROOT
+            KEYSTORE2_FILE = '%s/config/admin-keystore' % SEC_I2_ROOT
+            KEYSTORE2_PIN_FILE = '%s/config/admin-keystore.pin' % SEC_I2_ROOT
           </script>
 
           <call function="'runSTAFCommand'">
@@ -767,7 +788,7 @@
             p = []
             p.append('-export -keystore %s' % KEYSTORE2_FILE)
             p.append('-storepass "%s"' % KEYSTORE2_PIN)
-            p.append('-alias server-cert -file %s' % CERT2_FILE)
+            p.append('-alias admin-cert -file %s' % CERT2_FILE)
             p = ' '.join(p)
           </script>
 
@@ -790,7 +811,7 @@
             p = []
             p.append('-import -storetype JKS -keystore %s' % MY_KEYSTORE)
             p.append('-file %s' % CERT1_FILE)
-            p.append('-storepass secret12 -alias server-cert1')
+            p.append('-storepass secret12 -alias admin-cert1')
             p.append('-noprompt')
             p = ' '.join(p)
           </script>
@@ -814,7 +835,7 @@
             p = []
             p.append('-import -storetype JKS -keystore %s' % MY_KEYSTORE)
             p.append('-file %s' % CERT2_FILE)
-            p.append('-storepass secret12 -alias server-cert2')
+            p.append('-storepass secret12 -alias admin-cert2')
             p.append('-noprompt')
             p = ' '.join(p)
           </script>
@@ -838,7 +859,7 @@
             p = []
             p.append('--cli --no-prompt')
             p.append('--adminUID admin --bindPassword %s' % DM_PW)
-            p.append('--useSSL --useStartTLS --remove-all')
+            p.append('--remove-all')
             p.append('--trustStorePath %s' % MY_KEYSTORE)
             p.append('--trustStorePassword secret12')
             p = ' '.join(p)
@@ -864,7 +885,7 @@
             p = []
             p.append('--cli --no-prompt')
             p.append('--adminUID admin --bindPassword %s' % DM_PW)
-            p.append('--useSSL --remove-all')
+            p.append('--remove-all')
             p.append('--trustStorePath %s' % MY_KEYSTORE)
             p.append('--trustStorePassword secret12')
             p = ' '.join(p)
@@ -894,7 +915,7 @@
               <call function="'StopDsWithScript'">
                 { 'location'  : STAF_REMOTE_HOSTNAME,
                 'dsPath'      : SEC_I1_ROOT,
-                'dsPort'      : SEC_I1_PORT,
+                'dsAdminPort' : SEC_I1_ADMIN_PORT,
                 'dsBindDN'    : DM_DN ,
                 'dsBindPwd'   : DM_PW ,
                 'expectedRC'  : 'noCheck'
@@ -910,8 +931,7 @@
             p = []
             p.append('--cli --no-prompt')
             p.append('--adminUID admin --bindPasswordFile %s' % DM_PW_FILE)
-            p.append('--useStartTLS --remove-all')
-            p.append('--trustAll')
+            p.append('--remove-all')
             p = ' '.join(p)
           </script>
 
@@ -939,7 +959,7 @@
               <call function="'StopDsWithScript'">
                 { 'location'  : STAF_REMOTE_HOSTNAME,
                 'dsPath'      : SEC_I2_ROOT,
-                'dsPort'      : SEC_I2_PORT,
+                'dsAdminPort' : SEC_I2_ADMIN_PORT,
                 'dsBindDN'    : DM_DN ,
                 'dsBindPwd'   : DM_PW ,
                 'expectedRC'  : 'noCheck'

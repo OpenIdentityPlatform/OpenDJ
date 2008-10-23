@@ -140,7 +140,8 @@ public class LockdownModeTaskTestCase
     args = new String[]
     {
       "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-Z", "-X",
       "-D", "cn=Admin,o=test",
       "-w", "password",
       "--noPropertiesFile",
@@ -156,7 +157,8 @@ public class LockdownModeTaskTestCase
       args = new String[]
       {
         "-h", localIP,
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+        "-Z", "-X",
         "-D", "cn=Directory Manager",
         "-w", "password",
       "--noPropertiesFile",
@@ -171,7 +173,8 @@ public class LockdownModeTaskTestCase
     args = new String[]
     {
       "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-Z", "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--noPropertiesFile",
@@ -267,7 +270,8 @@ public class LockdownModeTaskTestCase
     args = new String[]
     {
       "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-Z", "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--noPropertiesFile",

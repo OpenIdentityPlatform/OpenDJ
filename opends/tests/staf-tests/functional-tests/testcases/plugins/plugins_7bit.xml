@@ -62,7 +62,6 @@
     <message>'-- Enable the plugin 7-Bit Clean --'</message>   
     <call function="'dsconfig'">
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-      'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
       'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
       'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
       'subcommand'           : 'set-plugin-prop' ,
@@ -143,7 +142,6 @@
     <message>'-- configure a new attribute-type for the plugin 7-Bit --'</message>   
     <call function="'dsconfig'">
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-      'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
       'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
       'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
       'subcommand'           : 'set-plugin-prop' ,
@@ -205,7 +203,6 @@
     <message>'-- disable the plugin 7-Bit Clean --'</message>   
     <call function="'dsconfig'">
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-      'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
       'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
       'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
       'subcommand'           : 'set-plugin-prop' ,

@@ -34,7 +34,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.net.ServerSocket;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
@@ -49,11 +48,11 @@ import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.plugin.ReplicationBroker;
+import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
-import org.opends.server.replication.protocol.ReplicationMessage;
+import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
@@ -82,8 +81,9 @@ public class SchemaReplicationTest extends ReplicationTestCase
   @BeforeClass
   public void setUp() throws Exception
   {
+    super.setUp();
+
     // This test suite depends on having the schema available.
-    TestCaseUtils.startServer();
 
     // find  a free port for the replicationServer
     ServerSocket socket = TestCaseUtils.bindFreePort();
@@ -93,29 +93,24 @@ public class SchemaReplicationTest extends ReplicationTestCase
     // Create an internal connection
     connection = InternalClientConnection.getRootConnection();
 
-    // top level synchro provider
-    String synchroStringDN = "cn=Synchronization Providers,cn=config";
-
-    // Multimaster Synchro plugin
-    synchroPluginStringDN = "cn=Multimaster Synchronization, "
-        + synchroStringDN;
-
     // Change log
     String replServerLdif =
-      "dn: " + "cn=Replication Server, " + synchroPluginStringDN + "\n"
+      "dn: " + "cn=Replication Server, " + SYNCHRO_PLUGIN_DN + "\n"
         + "objectClass: top\n"
         + "objectClass: ds-cfg-replication-server\n"
         + "cn: Replication Server\n"
         + "ds-cfg-replication-port: " + replServerPort + "\n"
-        + "ds-cfg-replication-server-id: 1\n";
+        + "ds-cfg-replication-db-directory: SchemaReplicationTest\n"    
+        + "ds-cfg-replication-server-id: 105\n";
     replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
     // suffix synchronized
+    String testName = "schemaReplicationTest";
     String domainLdif =
-      "dn: cn=example, cn=domains, " + synchroPluginStringDN + "\n"
+      "dn: cn=" + testName + ", cn=domains, " + SYNCHRO_PLUGIN_DN + "\n"
         + "objectClass: top\n"
         + "objectClass: ds-cfg-replication-domain\n"
-        + "cn: example\n"
+        + "cn: " + testName + "\n"
         + "ds-cfg-base-dn: cn=schema\n"
         + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
         + "ds-cfg-server-id: 1\n";
@@ -142,11 +137,8 @@ public class SchemaReplicationTest extends ReplicationTestCase
     try
     {
       // Modify the schema
-      AttributeType attrType =
-        DirectoryServer.getAttributeType("attributetypes", true);
-      LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-      values.add(new AttributeValue(attrType, "( 2.5.44.77.33 NAME 'dummy' )"));
-      Attribute attr = new Attribute(attrType, "attributetypes", values);
+      Attribute attr = Attributes.create("attributetypes",
+          "( 2.5.44.77.33 NAME 'dummy' )");
       List<Modification> mods = new ArrayList<Modification>();
       Modification mod = new Modification(ModificationType.ADD, attr);
       mods.add(mod);
@@ -161,7 +153,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
                  "The original operation failed: " + code.getResultCodeName());
 
       // See if the client has received the msg
-      ReplicationMessage msg = broker.receive();
+      ReplicationMsg msg = broker.receive();
 
       assertTrue(msg instanceof ModifyMsg,
                  "The received replication message is not a MODIFY msg");
@@ -201,7 +193,13 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
       code = modOp.getResultCode();
       assertTrue(code.equals(ResultCode.SUCCESS),
-                 "The original operation failed");
+                 "The original operation failed" + code.getResultCodeName());
+
+      // See if the client has received the msg
+      msg = broker.receive();
+
+      assertTrue(msg instanceof ModifyMsg,
+                 "The received replication message is not a MODIFY msg");
     }
     finally
     {
@@ -224,18 +222,25 @@ public class SchemaReplicationTest extends ReplicationTestCase
     ReplicationBroker broker =
       openReplicationSession(baseDn, (short) 2, 100, replServerPort, 5000, true);
 
-    ChangeNumberGenerator gen = new ChangeNumberGenerator((short)2, 0);
+    try
+    {
+      ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 2, 0);
 
-    ModifyMsg modMsg = new ModifyMsg(gen.newChangeNumber(),
-                                     baseDn, rcvdMods, "cn=schema");
-    broker.publish(modMsg);
+      ModifyMsg modMsg = new ModifyMsg(gen.newChangeNumber(),
+        baseDn, rcvdMods, "cn=schema");
+      broker.publish(modMsg);
 
-    boolean found = checkEntryHasAttribute(baseDn, "attributetypes",
-                                           "( 2.5.44.77.33 NAME 'dummy' )",
-                                           10000, true);
+      boolean found = checkEntryHasAttribute(baseDn, "attributetypes",
+        "( 2.5.44.77.33 NAME 'dummy' )",
+        10000, true);
 
-    if (found == false)
-      fail("The modification has not been correctly replayed.");
+      if (found == false)
+        fail("The modification has not been correctly replayed.");
+    }
+    finally
+    {
+      broker.stop();
+    }
   }
 
   /**
@@ -256,89 +261,89 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
     ReplicationBroker broker =
       openReplicationSession(baseDn, (short) 3, 100, replServerPort, 5000, true);
-
-    // create a schema change Notification
-    AttributeType attrType =
-      DirectoryServer.getAttributeType("attributetypes", true);
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(attrType, "( 2.5.44.76.35 NAME 'push' )"));
-    Attribute attr = new Attribute(attrType, "attributetypes", values);
-    List<Modification> mods = new ArrayList<Modification>();
-    Modification mod = new Modification(ModificationType.ADD, attr);
-    mods.add(mod);
-
-    for (SynchronizationProvider<SynchronizationProviderCfg> provider :
-         DirectoryServer.getSynchronizationProviders())
+    
+    try
     {
-      provider.processSchemaChange(mods);
-    }
+      // create a schema change Notification
+      Attribute attr = Attributes.create("attributetypes",
+        "( 2.5.44.76.35 NAME 'push' )");
+      List<Modification> mods = new ArrayList<Modification>();
+      Modification mod = new Modification(ModificationType.ADD, attr);
+      mods.add(mod);
 
-    // receive the message on the broker side.
-    ReplicationMessage msg = broker.receive();
-
-    assertTrue(msg instanceof ModifyMsg,
-               "The received replication message is not a MODIFY msg");
-    ModifyMsg modMsg = (ModifyMsg) msg;
-
-    Operation receivedOp = modMsg.createOperation(connection);
-    assertTrue(DN.decode(modMsg.getDn()).compareTo(baseDn) == 0,
-               "The received message is not for cn=schema");
-
-    assertTrue(receivedOp instanceof ModifyOperation,
-               "The received replication message is not a MODIFY msg");
-    ModifyOperation receivedModifyOperation = (ModifyOperation) receivedOp;
-
-    List<RawModification> rcvdRawMods =
-      receivedModifyOperation.getRawModifications();
-
-    this.rcvdMods = new ArrayList<Modification>();
-    for (RawModification m : rcvdRawMods)
-    {
-      this.rcvdMods.add(m.toModification());
-    }
-
-    assertTrue(this.rcvdMods.contains(mod),
-               "The received mod does not contain the original change");
-
-    // check that the schema files were updated with the new ServerState.
-    // by checking that the ChangeNUmber of msg we just received has been
-    // added to the user schema file.
-
-    // build the string to find in the schema file
-    String stateStr = modMsg.getChangeNumber().toString();
-
-    // open the schema file
-    String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-    String path = buildRoot + File.separator + "build" + File.separator +
-                  "unit-tests" + File.separator + "package-instance" +
-                  File.separator +
-                  "config" + File.separator + "schema" + File.separator +
-                  "99-user.ldif";
-
-    // it is necessary to loop on this check because the state is not
-    // written immediately but only every so often.
-    int count = 0;
-    while (true)
-    {
-      File file = new File(path);
-      FileInputStream input = new FileInputStream(file);
-      byte[] bytes = new byte[input.available()];
-      input.read(bytes);
-      String fileStr = new String(bytes);
-      if (fileStr.indexOf(stateStr) != -1)
+      for (SynchronizationProvider<SynchronizationProviderCfg> provider : DirectoryServer.
+        getSynchronizationProviders())
       {
-        break;
+        provider.processSchemaChange(mods);
       }
-      else
+
+      // receive the message on the broker side.
+      ReplicationMsg msg = broker.receive();
+
+      assertTrue(msg instanceof ModifyMsg,
+        "The received replication message is not a MODIFY msg");
+      ModifyMsg modMsg = (ModifyMsg) msg;
+
+      Operation receivedOp = modMsg.createOperation(connection);
+      assertTrue(DN.decode(modMsg.getDn()).compareTo(baseDn) == 0,
+        "The received message is not for cn=schema");
+
+      assertTrue(receivedOp instanceof ModifyOperation,
+        "The received replication message is not a MODIFY msg");
+      ModifyOperation receivedModifyOperation = (ModifyOperation) receivedOp;
+
+      List<RawModification> rcvdRawMods =
+        receivedModifyOperation.getRawModifications();
+
+      this.rcvdMods = new ArrayList<Modification>();
+      for (RawModification m : rcvdRawMods)
       {
-        if (count++ > 50)
+        this.rcvdMods.add(m.toModification());
+      }
+
+      assertTrue(this.rcvdMods.contains(mod),
+        "The received mod does not contain the original change");
+
+      // check that the schema files were updated with the new ServerState.
+      // by checking that the ChangeNUmber of msg we just received has been
+      // added to the user schema file.
+
+      // build the string to find in the schema file
+      String stateStr = modMsg.getChangeNumber().toString();
+
+      // open the schema file
+      String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
+      String path = buildRoot + File.separator + "build" + File.separator +
+        "unit-tests" + File.separator + "package-instance" + File.separator +
+        "config" + File.separator + "schema" + File.separator +
+        "99-user.ldif";
+
+      // it is necessary to loop on this check because the state is not
+      // written immediately but only every so often.
+      int count = 0;
+      while (true)
+      {
+        File file = new File(path);
+        FileInputStream input = new FileInputStream(file);
+        byte[] bytes = new byte[input.available()];
+        input.read(bytes);
+        String fileStr = new String(bytes);
+        if (fileStr.indexOf(stateStr) != -1)
         {
-          fail("The Schema persistentState (changenumber:"
-             + stateStr + ") has not been saved to " + path + " : " + fileStr);
+          break;
+        } else
+        {
+          if (count++ > 50)
+          {
+            fail("The Schema persistentState (changenumber:" + stateStr +
+              ") has not been saved to " + path + " : " + fileStr);
+          } else
+            TestCaseUtils.sleep(100);
         }
-        else
-          TestCaseUtils.sleep(100);
       }
+    } finally
+    {
+      broker.stop();
     }
   }
 }

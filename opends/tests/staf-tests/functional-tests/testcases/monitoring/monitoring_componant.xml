@@ -77,7 +77,6 @@
             <message>'-- Disable the LDIF Connection Handler --'</message>   
             <call function="'dsconfig'">
               { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'           : 'set-connection-handler-prop' ,
@@ -103,7 +102,6 @@
             <message>'-- Enabled the LDIF Connection Handler --'</message>   
             <call function="'dsconfig'">
               { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'           : 'set-connection-handler-prop' ,
@@ -135,7 +133,6 @@
             <message>'-- Create a new  LDIF Connection Handler --'</message>   
             <call function="'dsconfig'">
               { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'           : 'create-connection-handler' ,
@@ -160,7 +157,6 @@
             <message>'-- Delete the new  LDIF Connection Handler --'</message>   
             <call function="'dsconfig'">
               { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'           : 'delete-connection-handler' ,

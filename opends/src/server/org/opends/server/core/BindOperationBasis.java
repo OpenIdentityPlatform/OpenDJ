@@ -29,6 +29,7 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 
 
+import static org.opends.server.config.ConfigConstants.DN_CONFIG_ROOT;
 import static org.opends.server.core.CoreConstants.LOG_ELEMENT_AUTH_TYPE;
 import static org.opends.server.core.CoreConstants.LOG_ELEMENT_BIND_DN;
 import static org.opends.server.core.CoreConstants.LOG_ELEMENT_ERROR_MESSAGE;
@@ -48,6 +49,7 @@ import java.util.List;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -790,10 +792,30 @@ public class BindOperationBasis
       }
 
 
-      // Retrieve the network group attached to the client connection
-      // and get a workflow to process the operation.
-      NetworkGroup ng = getClientConnection().getNetworkGroup();
-      Workflow workflow = ng.getWorkflowCandidate(bindDN);
+      // Special case to manage RootDNs
+      // RootDNs are stored in cn=config but this workflow is not
+      // available through non-admin network groups.
+      // So if the bind DN is in cn=config, we directly retrieve
+      // the workflow handling cn=config
+      // FIXME: it would be better to store RootDNs in a separate backend.
+      // Issue #3502 has been logged to track this request.
+      boolean isInConfig;
+      try {
+        isInConfig = bindDN.isDescendantOf(DN.decode(DN_CONFIG_ROOT));
+      } catch (DirectoryException ex) {
+        // can not happen
+        isInConfig = false;
+      }
+
+      Workflow workflow;
+      if (isInConfig) {
+        workflow = WorkflowImpl.getWorkflow("__config.ldif__#cn=config");
+      } else {
+        // Retrieve the network group attached to the client connection
+        // and get a workflow to process the operation.
+        NetworkGroup ng = getClientConnection().getNetworkGroup();
+        workflow = ng.getWorkflowCandidate(bindDN);
+      }
       if (workflow == null)
       {
         // We have found no workflow for the requested base DN, just return

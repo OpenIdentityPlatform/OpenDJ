@@ -547,5 +547,15 @@ public class GuideSyntax
       }
     }
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

@@ -77,6 +77,9 @@ public class DsFrameworkCliParser extends SecureConnectionCliParser
   public HashSet<DsFrameworkCliSubCommandGroup> cliGroup;
 
 
+  // This CLI is always using the administration connector with SSL
+  private final boolean alwaysSSL = true;
+
 
   /**
    * Creates a new instance of this subcommand argument parser with no
@@ -114,7 +117,7 @@ public class DsFrameworkCliParser extends SecureConnectionCliParser
       throws ArgumentException
   {
     // Global parameters
-    initializeGlobalArguments(createGlobalArguments(outStream));
+    initializeGlobalArguments(createGlobalArguments(outStream, alwaysSSL));
 
     // ads  Group cli
     cliGroup.add(new DsFrameworkCliAds());

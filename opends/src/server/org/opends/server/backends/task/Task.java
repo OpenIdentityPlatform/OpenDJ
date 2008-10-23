@@ -25,12 +25,18 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.task;
-import org.opends.messages.Message;
 
 
+
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -38,37 +44,30 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
-import java.util.Collections;
 import java.util.concurrent.locks.Lock;
+
 import javax.mail.MessagingException;
 
+import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
-
-
-import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;
 import org.opends.server.util.EMailMessage;
-import org.opends.server.util.TimeThread;
 import org.opends.server.util.StaticUtils;
-
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.messages.BackendMessages.*;
-
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.util.TimeThread;
 
 
 
@@ -418,7 +417,7 @@ public abstract class Task
       throw new InitializationException(message);
     }
 
-    Iterator<AttributeValue> iterator = attrList.get(0).getValues().iterator();
+    Iterator<AttributeValue> iterator = attrList.get(0).iterator();
     if (! iterator.hasNext())
     {
       if (isRequired)
@@ -478,7 +477,7 @@ public abstract class Task
       throw new InitializationException(message);
     }
 
-    Iterator<AttributeValue> iterator = attrList.get(0).getValues().iterator();
+    Iterator<AttributeValue> iterator = attrList.get(0).iterator();
     while (iterator.hasNext())
     {
       valueStrings.add(iterator.next().getStringValue());
@@ -615,22 +614,11 @@ public abstract class Task
     try
     {
       this.taskState = taskState;
-
-      AttributeType type =
-           DirectoryServer.getAttributeType(ATTR_TASK_STATE.toLowerCase());
-      if (type == null)
-      {
-        type = DirectoryServer.getDefaultAttributeType(ATTR_TASK_STATE);
-      }
-
-      LinkedHashSet<AttributeValue> values =
-           new LinkedHashSet<AttributeValue>();
-      values.add(new AttributeValue(type,
-                                    new ASN1OctetString(taskState.toString())));
-
+      Attribute attr = Attributes.create(ATTR_TASK_STATE,
+          taskState.toString());
       ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(new Attribute(type, ATTR_TASK_STATE, values));
-      taskEntry.putAttribute(type, attrList);
+      attrList.add(attr);
+      taskEntry.putAttribute(attr.getAttributeType(), attrList);
     }
     finally
     {
@@ -721,7 +709,7 @@ public abstract class Task
 
       ArrayList<Modification> modifications = new ArrayList<Modification>();
       modifications.add(new Modification(ModificationType.REPLACE,
-          new Attribute(name, value)));
+          Attributes.create(name, value)));
 
       taskEntry.applyModifications(modifications);
     }
@@ -787,26 +775,13 @@ public abstract class Task
     try
     {
       this.actualStartTime = actualStartTime;
-
-      AttributeType type = DirectoryServer.getAttributeType(
-                                ATTR_TASK_ACTUAL_START_TIME.toLowerCase());
-      if (type == null)
-      {
-        type = DirectoryServer.getDefaultAttributeType(
-                    ATTR_TASK_ACTUAL_START_TIME);
-      }
-
       Date d = new Date(actualStartTime);
       String startTimeStr = StaticUtils.formatDateTimeString(d);
-      ASN1OctetString s = new ASN1OctetString(startTimeStr);
-
-      LinkedHashSet<AttributeValue> values =
-           new LinkedHashSet<AttributeValue>();
-      values.add(new AttributeValue(type, s));
-
+      Attribute attr = Attributes.create(ATTR_TASK_ACTUAL_START_TIME,
+          startTimeStr);
       ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(new Attribute(type, ATTR_TASK_ACTUAL_START_TIME, values));
-      taskEntry.putAttribute(type, attrList);
+      attrList.add(attr);
+      taskEntry.putAttribute(attr.getAttributeType(), attrList);
     }
     finally
     {
@@ -857,26 +832,14 @@ public abstract class Task
     {
       this.completionTime = completionTime;
 
-      AttributeType type = DirectoryServer.getAttributeType(
-                                ATTR_TASK_COMPLETION_TIME.toLowerCase());
-      if (type == null)
-      {
-        type =
-             DirectoryServer.getDefaultAttributeType(ATTR_TASK_COMPLETION_TIME);
-      }
-
       SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
       dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
       Date d = new Date(completionTime);
-      ASN1OctetString s = new ASN1OctetString(dateFormat.format(d));
-
-      LinkedHashSet<AttributeValue> values =
-           new LinkedHashSet<AttributeValue>();
-      values.add(new AttributeValue(type, s));
-
+      Attribute attr = Attributes.create(ATTR_TASK_COMPLETION_TIME,
+          dateFormat.format(d));
       ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(new Attribute(type, ATTR_TASK_COMPLETION_TIME, values));
-      taskEntry.putAttribute(type, attrList);
+      attrList.add(attr);
+      taskEntry.putAttribute(attr.getAttributeType(), attrList);
     }
     finally
     {
@@ -1031,25 +994,23 @@ public abstract class Task
       }
 
       List<Attribute> attrList = taskEntry.getAttribute(type);
-      LinkedHashSet<AttributeValue> values;
+      AttributeValue value = new AttributeValue(type, messageString);
       if (attrList == null)
       {
         attrList = new ArrayList<Attribute>();
-        values = new LinkedHashSet<AttributeValue>();
-        attrList.add(new Attribute(type, ATTR_TASK_LOG_MESSAGES, values));
+        attrList.add(Attributes.create(type, value));
         taskEntry.putAttribute(type, attrList);
       }
       else if (attrList.isEmpty())
       {
-        values = new LinkedHashSet<AttributeValue>();
-        attrList.add(new Attribute(type, ATTR_TASK_LOG_MESSAGES, values));
+        attrList.add(Attributes.create(type, value));
       }
       else
       {
-        Attribute attr = attrList.get(0);
-        values = attr.getValues();
+        AttributeBuilder builder = new AttributeBuilder(attrList.get(0));
+        builder.add(value);
+        attrList.set(0, builder.toAttribute());
       }
-      values.add(new AttributeValue(type, new ASN1OctetString(messageString)));
     }
     finally
     {

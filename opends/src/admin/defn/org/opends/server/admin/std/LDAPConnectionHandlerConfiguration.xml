@@ -414,7 +414,7 @@
   </adm:property>
   <adm:property name="max-request-size" advanced="true">
     <adm:synopsis>
-      Specifies the size of the largest LDAP request message that will
+      Specifies the size in bytes of the largest LDAP request message that will
       be allowed by this LDAP Connection handler.      
     </adm:synopsis>
     <adm:description>

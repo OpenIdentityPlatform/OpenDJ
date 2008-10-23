@@ -47,7 +47,9 @@ import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
+import org.opends.admin.ads.util.BlindTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.TrustedSocketFactory;
 import org.opends.server.admin.client.AuthenticationException;
 import org.opends.server.admin.client.AuthenticationNotSupportedException;
 import org.opends.server.admin.client.CommunicationException;
@@ -123,6 +125,63 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
 
     return new JNDIDirContextAdaptor(ctx);
   }
+
+  /**
+   * Creates a new JNDI connection adaptor by performing a simple bind
+   * operation to the specified LDAP server.
+   *
+   * @param host
+   *          The host.
+   * @param port
+   *          The port.
+   * @param name
+   *          The LDAP bind DN.
+   * @param password
+   *          The LDAP bind password.
+   * @return Returns a new JNDI connection adaptor.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
+   * @throws AuthenticationNotSupportedException
+   *           If the server does not support simple authentication.
+   * @throws AuthenticationException
+   *           If authentication failed for some reason, usually due
+   *           to invalid credentials.
+   */
+  public static JNDIDirContextAdaptor simpleSSLBind(String host, int port,
+      String name, String password) throws CommunicationException,
+      AuthenticationNotSupportedException, AuthenticationException {
+    Hashtable<String, Object> env = new Hashtable<String, Object>();
+    env.put(Context.INITIAL_CONTEXT_FACTORY,
+            "com.sun.jndi.ldap.LdapCtxFactory");
+    String hostname = ConnectionUtils.getHostNameForLdapUrl(host) ;
+    env.put(Context.PROVIDER_URL, "ldaps://" + hostname + ":" + port);
+    env.put(Context.SECURITY_PRINCIPAL, name);
+    env.put(Context.SECURITY_CREDENTIALS, password);
+    env.put(Context.SECURITY_AUTHENTICATION, "simple");
+    // Specify SSL
+    env.put(Context.SECURITY_PROTOCOL, "ssl");
+    env.put("java.naming.ldap.factory.socket",
+        org.opends.admin.ads.util.TrustedSocketFactory.class.getName());
+    TrustedSocketFactory.setCurrentThreadTrustManager(new BlindTrustManager(),
+              null);
+    DirContext ctx;
+    try {
+      ctx = new InitialLdapContext(env, null);
+    } catch (javax.naming.CommunicationException e) {
+      throw new CommunicationException(e);
+    } catch (javax.naming.AuthenticationException e) {
+      throw new AuthenticationException(e);
+    } catch (javax.naming.AuthenticationNotSupportedException e) {
+      throw new AuthenticationNotSupportedException(e);
+    } catch (NamingException e) {
+      // Assume some kind of communication problem.
+      throw new CommunicationException(e);
+    }
+
+    return new JNDIDirContextAdaptor(ctx);
+  }
+
 
   // The JNDI connection context.
   private final DirContext dirContext;

@@ -44,6 +44,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -55,7 +56,6 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import org.opends.messages.Message;
-import org.opends.messages.Severity;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPConnection;
@@ -129,11 +129,19 @@ public final class TestCaseUtils {
   
   /**
    * The name of the system property that specifies the ldap port.
-   * Set this prtoperty when running the server if you want to use a given
-   * port number, otherwise a port is choosed randomly at test startup time.
+   * Set this property when running the server if you want to use a given
+   * port number, otherwise a port is chosen randomly at test startup time.
    */
   public static final String PROPERTY_LDAP_PORT =
        "org.opends.server.LdapPort";
+
+  /**
+   * The name of the system property that specifies the admin port.
+   * Set this prtoperty when running the server if you want to use a given
+   * port number, otherwise a port is choosed randomly at test startup time.
+   */
+  public static final String PROPERTY_ADMIN_PORT =
+       "org.opends.server.AdminPort";
 
   /**
    * If this System property is set to true, then the classes/ directory
@@ -151,6 +159,11 @@ public final class TestCaseUtils {
    */
   public static final String TEST_ROOT_DN_STRING = "o=test";
   
+  /**
+   * The backend if for the test backend
+   */
+  public static final String TEST_BACKEND_ID = "test";
+
   /**
    * The string representation of the OpenDMK jar file location
    * that will be used as base to determine if snmp is included or not
@@ -184,14 +197,14 @@ public final class TestCaseUtils {
   public static boolean SERVER_STARTED = false;
 
   /**
-   * The memory-based backend configured for use in the server.
-   */
-  private static MemoryBackend memoryBackend = null;
-
-  /**
    * The LDAP port the server is bound to on start.
    */
   private static int serverLdapPort;
+
+  /**
+   * The Administration port the server is bound to on start.
+   */
+  private static int serverAdminPort;
 
   /**
    * The JMX port the server is bound to on start.
@@ -383,9 +396,11 @@ public final class TestCaseUtils {
           } catch (Exception e) {}
         }
       }
+
       // Find some free ports for the listeners and write them to the
       // config-chamges.ldif file.
       ServerSocket serverLdapSocket  = null;
+      ServerSocket serverAdminSocket  = null;
       ServerSocket serverJmxSocket   = null;
       ServerSocket serverLdapsSocket = null;
 
@@ -399,6 +414,18 @@ public final class TestCaseUtils {
       {
         serverLdapPort = Integer.valueOf(ldapPort);
         serverLdapSocket = bindPort(serverLdapPort);
+      }
+
+      String adminPort = System.getProperty(PROPERTY_ADMIN_PORT);
+      if (adminPort == null)
+      {
+        serverAdminSocket = bindFreePort();
+        serverAdminPort = serverAdminSocket.getLocalPort();
+      }
+      else
+      {
+        serverAdminPort = Integer.valueOf(adminPort);
+        serverAdminSocket = bindPort(serverAdminPort);
       }
 
       serverJmxSocket = bindFreePort();
@@ -422,6 +449,7 @@ public final class TestCaseUtils {
       while(line != null)
       {
         line = line.replaceAll("#ldapport#", String.valueOf(serverLdapPort));
+        line = line.replaceAll("#adminport#", String.valueOf(serverAdminPort));
         line = line.replaceAll("#jmxport#", String.valueOf(serverJmxPort));
         line = line.replaceAll("#ldapsport#", String.valueOf(serverLdapsPort));
 
@@ -434,6 +462,7 @@ public final class TestCaseUtils {
       reader.close();
 
       serverLdapSocket.close();
+      serverAdminSocket.close();
       serverJmxSocket.close();
       serverLdapsSocket.close();
 
@@ -518,7 +547,14 @@ public final class TestCaseUtils {
 
       clearJEBackends();
       restoreServerConfigLdif();
-      memoryBackend = null;  // We need it to be recreated and reregistered
+      // We need it to be recreated and reregistered
+      MemoryBackend memoryBackend =
+        (MemoryBackend) DirectoryServer.getBackend(TEST_BACKEND_ID);
+      if (memoryBackend != null)
+      {
+        memoryBackend.finalizeBackend();
+        DirectoryServer.deregisterBackend(memoryBackend);
+      }
 
       EmbeddedUtils.restartServer(null, null, DirectoryServer.getEnvironmentConfig());
       initializeTestBackend(true);
@@ -563,7 +599,10 @@ public final class TestCaseUtils {
   public static void clearDataBackends() throws Exception
   {
     clearJEBackends();
-    memoryBackend.clearMemoryBackend();
+    MemoryBackend memoryBackend =
+      (MemoryBackend) DirectoryServer.getBackend(TEST_BACKEND_ID);
+    if (memoryBackend != null)
+      memoryBackend.clearMemoryBackend();
   }
 
   private static File getTestConfigDir()
@@ -708,11 +747,21 @@ public final class TestCaseUtils {
     startServer();
 
     DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
+
+    // Retrieve backend. Warning: it is important to perform this each time,
+    // because a test may have disabled then enabled the backend (i.e a test
+    // performing an import task). As it is a memory backend, when the backend
+    // is re-enabled, a new backend object is in fact created and old reference
+    // to memory backend must be invalidated. So to prevent this problem, we
+    // retrieve the memory backend reference each time before cleaning it.
+    MemoryBackend memoryBackend =
+        (MemoryBackend)DirectoryServer.getBackend(TEST_BACKEND_ID);
+
     if (memoryBackend == null)
     {
       memoryBackend = new MemoryBackend();
-      memoryBackend.setBackendID("test");
-      memoryBackend.setBaseDNs(new DN[] { baseDN });
+      memoryBackend.setBackendID(TEST_BACKEND_ID);
+      memoryBackend.setBaseDNs(new DN[] {baseDN});
       memoryBackend.initializeBackend();
       DirectoryServer.registerBackend(memoryBackend);
     }
@@ -915,6 +964,17 @@ public final class TestCaseUtils {
   }
 
   /**
+   * Get the Admin port the test environment Directory Server instance is
+   * running on.
+   *
+   * @return The port number.
+   */
+  public static int getServerAdminPort()
+  {
+    return serverAdminPort;
+  }
+
+  /**
    * Get the JMX port the test environment Directory Server instance is
    * running on.
    *
@@ -1060,7 +1120,7 @@ public final class TestCaseUtils {
   }
 
   /**
-   * This is a convience method that constructs an Entry from the specified
+   * This is a convenience method that constructs an Entry from the specified
    * lines of LDIF.  Here's a sample usage
    *
    <pre>
@@ -1078,7 +1138,7 @@ public final class TestCaseUtils {
   }
 
   /**
-   * This is a convience method that constructs an List of EntryS from the
+   * This is a convenience method that constructs an List of EntryS from the
    * specified lines of LDIF.  Here's a sample usage
    *
    <pre>
@@ -1127,7 +1187,7 @@ public final class TestCaseUtils {
 
 
   /**
-   * Deletess the provided entry from the Directory Server using an
+   * Deletes the provided entry from the Directory Server using an
    * internal operation.
    *
    * @param  entry  The entry to be added.
@@ -1259,7 +1319,7 @@ public final class TestCaseUtils {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public static int applyModifications(String... lines)
+  public static int applyModifications(boolean useAdminPort, String... lines)
          throws Exception
   {
     if (! SERVER_STARTED)
@@ -1278,8 +1338,23 @@ public final class TestCaseUtils {
       "-a",
       "-f", path
     };
-
-    return LDAPModify.mainModify(args, false, null, null);
+    String[] adminArgs =
+    {
+      "--noPropertiesFile",
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(serverAdminPort),
+      "-Z", "-X",
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-a",
+      "-f", path
+    };
+    
+    if (useAdminPort) {
+      return LDAPModify.mainModify(adminArgs, false, null, null);
+    } else {
+      return LDAPModify.mainModify(args, false, null, null);
+    }
   }
 
 
@@ -1630,19 +1705,27 @@ public final class TestCaseUtils {
    */
   public static void dsconfig(String... args)
   {
-    String[] fullArgs = new String[args.length + 10];
+    String hostName;
+    try {
+      hostName = InetAddress.getLocalHost().getHostName();
+    } catch (Exception e) {
+       hostName="Unknown (" + e + ")";
+    }
+    
+    String[] fullArgs = new String[args.length + 11];
     fullArgs[0] = "-h";
-    fullArgs[1] = "127.0.0.1";
+    fullArgs[1] = hostName;
     fullArgs[2] = "-p";
-    fullArgs[3] = String.valueOf(serverLdapPort);
+    fullArgs[3] = String.valueOf(serverAdminPort);
     fullArgs[4] = "-D";
     fullArgs[5] = "cn=Directory Manager";
     fullArgs[6] = "-w";
     fullArgs[7] = "password";
     fullArgs[8] = "-n";
     fullArgs[9] = "--noPropertiesFile";
+    fullArgs[10] = "-X";
 
-    System.arraycopy(args, 0, fullArgs, 10, args.length);
+    System.arraycopy(args, 0, fullArgs, 11, args.length);
 
     assertEquals(DSConfig.main(fullArgs, false, System.out, System.err), 0);
   }
@@ -1667,9 +1750,9 @@ public final class TestCaseUtils {
    */
   public static RootCfgClient getRootConfiguration() throws Exception
   {
-    LDAPConnection connection = JNDIDirContextAdaptor.simpleBind(
+    LDAPConnection connection = JNDIDirContextAdaptor.simpleSSLBind(
         "127.0.0.1",
-        serverLdapPort,
+        serverAdminPort,
         "cn=Directory Manager",
         "password");
 

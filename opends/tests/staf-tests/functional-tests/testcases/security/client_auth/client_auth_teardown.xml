@@ -72,7 +72,6 @@
 
            <call function="'unconfigureSSL_TLS'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD  }
            </call>
@@ -114,7 +113,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'        :  DIRECTORY_INSTANCE_SFX ,
-        'dsScope'           :  'base',
+                'dsScope'           :  'base',
                 'dsFilter'             : 'objectclass=*' ,
                 'expectedRC'           :  0 }        
             </call>

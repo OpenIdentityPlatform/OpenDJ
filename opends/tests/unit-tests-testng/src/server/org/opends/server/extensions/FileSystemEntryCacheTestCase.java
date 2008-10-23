@@ -38,6 +38,7 @@ import org.opends.server.admin.std.server.FileSystemEntryCacheCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.util.ServerConstants;
@@ -105,7 +106,7 @@ public class FileSystemEntryCacheTestCase
     // Configure this cache as LRU.
     Entry newCacheConfigEntry = cacheConfigEntry.duplicate(true);
     Attribute cacheConfigTypeAttr =
-      new Attribute("ds-cfg-cache-type", "LRU");
+      Attributes.create("ds-cfg-cache-type", "LRU");
     newCacheConfigEntry.addAttribute(cacheConfigTypeAttr, null);
     super.configuration = AdminTestCaseUtils.getConfiguration(
       EntryCacheCfgDefn.getInstance(), newCacheConfigEntry);
@@ -146,10 +147,10 @@ public class FileSystemEntryCacheTestCase
     // unlimited number of entries.
     Entry newCacheConfigEntry = cacheConfigEntry.duplicate(true);
     Attribute cacheConfigPersistAttr =
-      new Attribute("ds-cfg-persistent-cache", "true");
+      Attributes.create("ds-cfg-persistent-cache", "true");
     newCacheConfigEntry.addAttribute(cacheConfigPersistAttr, null);
     Attribute cacheConfigMaxAttr =
-      new Attribute("ds-cfg-max-entries", Integer.toString(super.MAXENTRIES));
+      Attributes.create("ds-cfg-max-entries", Integer.toString(super.MAXENTRIES));
     newCacheConfigEntry.removeAttribute(cacheConfigMaxAttr, null);
     super.configuration = AdminTestCaseUtils.getConfiguration(
       EntryCacheCfgDefn.getInstance(), newCacheConfigEntry);

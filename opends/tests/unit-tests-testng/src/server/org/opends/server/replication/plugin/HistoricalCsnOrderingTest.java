@@ -32,7 +32,6 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import java.net.ServerSocket;
-import java.util.Iterator;
 import java.util.List;
 
 import org.opends.messages.Category;
@@ -56,6 +55,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import static org.opends.server.TestCaseUtils.*;
 
 /**
  * Test the usage of the historical data of the replication.
@@ -79,26 +79,14 @@ extends ReplicationTestCase
   @Override
   public void setUp() throws Exception
   {
-    super.setUp(); 
+    super.setUp();
 
-    // Create backend top level entries
-    String[] topEntries = new String[2];
-    topEntries[0] = "dn: dc=example,dc=com\n" + "objectClass: top\n"
-    + "objectClass: domain\n";
-    topEntries[1] = "dn: ou=People,dc=example,dc=com\n" + "objectClass: top\n"
-    + "objectClass: organizationalUnit\n"
-    + "entryUUID: 11111111-1111-1111-1111-111111111111\n";
-    for (String entryStr : topEntries)
-    {
-      addEntry(TestCaseUtils.entryFromLdifString(entryStr));
-    }
-
-    // top level synchro provider
-    String synchroStringDN = "cn=Synchronization Providers,cn=config";
-
-    // Multimaster Synchro plugin
-    synchroPluginStringDN = "cn=Multimaster Synchronization, "
-      + synchroStringDN;
+    // Create necessary backend top level entry
+    String topEntry = "dn: ou=People," + TEST_ROOT_DN_STRING + "\n"
+        + "objectClass: top\n"
+        + "objectClass: organizationalUnit\n"
+        + "entryUUID: 11111111-1111-1111-1111-111111111111\n";
+    addEntry(TestCaseUtils.entryFromLdifString(topEntry));
 
     // find  a free port for the replicationServer
     ServerSocket socket = TestCaseUtils.bindFreePort();
@@ -107,27 +95,28 @@ extends ReplicationTestCase
 
     // replication server
     String replServerLdif =
-      "dn: cn=Replication Server, " + synchroPluginStringDN + "\n"
+      "dn: cn=Replication Server, " + SYNCHRO_PLUGIN_DN + "\n"
       + "objectClass: top\n"
       + "objectClass: ds-cfg-replication-server\n"
       + "cn: Replication Server\n"
       + "ds-cfg-replication-port: " + replServerPort + "\n"
       + "ds-cfg-replication-db-directory: HistoricalCsnOrderingTestDb\n"
-      + "ds-cfg-replication-server-id: 1\n";
+      + "ds-cfg-replication-server-id: 101\n";
     replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
     // suffix synchronized
+    String testName = "historicalCsnOrderingTest";
     String synchroServerLdif =
-      "dn: cn=example, cn=domains, " + synchroPluginStringDN + "\n"
+      "dn: cn=" + testName + ", cn=domains, " + SYNCHRO_PLUGIN_DN + "\n"
       + "objectClass: top\n"
       + "objectClass: ds-cfg-replication-domain\n"
-      + "cn: example\n"
-      + "ds-cfg-base-dn: ou=People,dc=example,dc=com\n"
+      + "cn: " + testName + "\n"
+      + "ds-cfg-base-dn: ou=People," + TEST_ROOT_DN_STRING + "\n"
       + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
       + "ds-cfg-server-id: 1\n" + "ds-cfg-receive-status: true\n";
     synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
 
-    String personLdif = "dn: uid=user.1,ou=People,dc=example,dc=com\n"
+    String personLdif = "dn: uid=user.1,ou=People," + TEST_ROOT_DN_STRING + "\n"
       + "objectClass: top\n" + "objectClass: person\n"
       + "objectClass: organizationalPerson\n"
       + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
@@ -147,7 +136,7 @@ extends ReplicationTestCase
   }
 
   /**
-   * Add an entry in the datatbase
+   * Add an entry in the database
    *
    */
   private void addEntry(Entry entry) throws Exception
@@ -197,7 +186,7 @@ extends ReplicationTestCase
   public void changesCmpTest()
   throws Exception
   {
-    final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
+    final DN baseDn = DN.decode("ou=People," + TEST_ROOT_DN_STRING);
     final DN dn1 = DN.decode("cn=test1," + baseDn.toString());
     final AttributeType histType =
       DirectoryServer.getAttributeType(Historical.HISTORICALATTRIBUTENAME);
@@ -218,7 +207,7 @@ extends ReplicationTestCase
     );
 
     // Perform a first modification to update the historical attribute
-    int resultCode = TestCaseUtils.applyModifications(
+    int resultCode = TestCaseUtils.applyModifications(false,
         "dn: cn=test1," + baseDn.toString(),
         "changetype: modify",
         "add: description",
@@ -233,14 +222,14 @@ extends ReplicationTestCase
     assertTrue(attrs1.isEmpty() != true);
 
     String histValue =
-      attrs1.get(0).getValues().iterator().next().getStringValue();
+      attrs1.get(0).iterator().next().getStringValue();
 
     logError(Message.raw(Category.SYNC, Severity.INFORMATION,
         "First historical value:" + histValue));
 
     // Perform a 2nd modification to update the hist attribute with 
     // a second value
-    resultCode = TestCaseUtils.applyModifications(
+    resultCode = TestCaseUtils.applyModifications(false,
         "dn: cn=test1," + baseDn.toString(),
         "changetype: modify",
         "add: description",
@@ -253,18 +242,9 @@ extends ReplicationTestCase
     assertTrue(attrs2 != null);
     assertTrue(attrs2.isEmpty() != true);
 
-    Iterator<AttributeValue> iav = attrs2.get(0).getValues().iterator();
-    try
-    {
-      while (true)
-      {
-        AttributeValue av = iav.next();
-        logError(Message.raw(Category.SYNC, Severity.INFORMATION,
-            "Secnd historical value:" + av.getNormalizedStringValue()));
-      }
-    }
-    catch(Exception e)
-    {
+    for (AttributeValue av : attrs2.get(0)) {
+      logError(Message.raw(Category.SYNC, Severity.INFORMATION,
+          "Second historical value:" + av.getStringValue()));
     }
 
     // Build a change number from the first modification
@@ -283,7 +263,7 @@ extends ReplicationTestCase
     assertEquals(op.getSearchEntries().size(), 1);
 
     // From the historical of this entry, rebuild operations
-    // Since there have been 2 modifications, there should be 2
+    // Since there have been 2 modifications and 1 add, there should be 3
     // operations rebuild from this state.
     int updatesCnt = 0;
     for (SearchResultEntry searchEntry : op.getSearchEntries())
@@ -299,6 +279,6 @@ extends ReplicationTestCase
         updatesCnt++;
       }
     }
-    assertTrue(updatesCnt == 2);    
+    assertTrue(updatesCnt == 3);    
   }
 }

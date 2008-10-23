@@ -40,6 +40,7 @@ import org.opends.messages.Message;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFExportConfig;
@@ -316,7 +317,7 @@ public final class TestLDIFWriter extends UtilTestCase {
         if (atype.equals("objectclass")) {
           entry.addObjectClass(DirectoryServer.getObjectClass(avalue));
         } else {
-          Attribute attr = new Attribute(atype, avalue);
+          Attribute attr = Attributes.create(atype, avalue);
 
           // Assume that there will be no duplicates.
           entry.addAttribute(attr, null);

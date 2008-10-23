@@ -130,7 +130,7 @@ public abstract class
   /**
    * Performs any necessary finalization for this synchronization
    * provider.  This will be called just after the provider has been
-   * deregistered with the server but before it has been unloaded.
+   * unregistered with the server but before it has been unloaded.
    */
   public void finalizeSynchronizationProvider()
   {

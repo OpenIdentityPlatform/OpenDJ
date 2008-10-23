@@ -30,37 +30,37 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.protocol.UpdateMessage;
+import org.opends.server.replication.protocol.UpdateMsg;
 
 /**
- * This class is used to build ordered lists of UpdateMessage.
- * The order is defined by the order of the ChangeNumber of the UpdateMessage.
+ * This class is used to build ordered lists of UpdateMsg.
+ * The order is defined by the order of the ChangeNumber of the UpdateMsg.
  */
 
 public class MsgQueue
 {
-  private SortedMap<ChangeNumber, UpdateMessage>  map =
-    new TreeMap<ChangeNumber, UpdateMessage>();
+  private SortedMap<ChangeNumber, UpdateMsg>  map =
+    new TreeMap<ChangeNumber, UpdateMsg>();
 
   // The total number of bytes for all the message in the queue.
   private int bytesCount = 0;
 
   /**
-   * Return the first UpdateMessage in the MsgQueue.
+   * Return the first UpdateMsg in the MsgQueue.
    *
-   * @return The first UpdateMessage in the MsgQueue.
+   * @return The first UpdateMsg in the MsgQueue.
    */
-  public UpdateMessage first()
+  public UpdateMsg first()
   {
     return map.get(map.firstKey());
   }
 
   /**
-   * Return the last UpdateMessage in the MsgQueue.
+   * Return the last UpdateMsg in the MsgQueue.
    *
-   * @return The last UpdateMessage in the MsgQueue.
+   * @return The last UpdateMsg in the MsgQueue.
    */
-  public UpdateMessage last()
+  public UpdateMsg last()
   {
     return map.get(map.lastKey());
   }
@@ -86,9 +86,9 @@ public class MsgQueue
   }
 
   /**
-   * Returns <tt>true</tt> if this MsgQueue contains no UpdateMessage.
+   * Returns <tt>true</tt> if this MsgQueue contains no UpdateMsg.
    *
-   * @return <tt>true</tt> if this MsgQueue contains no UpdateMessage.
+   * @return <tt>true</tt> if this MsgQueue contains no UpdateMsg.
    */
   public boolean isEmpty()
   {
@@ -97,46 +97,46 @@ public class MsgQueue
 
 
   /**
-   * Add an UpdateMessage to this MessageQueue.
+   * Add an UpdateMsg to this MessageQueue.
    *
-   * @param update The UpdateMessage to add to this MessageQueue.
+   * @param update The UpdateMsg to add to this MessageQueue.
    */
-  public void add(UpdateMessage update)
+  public void add(UpdateMsg update)
   {
     map.put(update.getChangeNumber(), update);
     bytesCount += update.size();
   }
 
   /**
-   * Get and remove the first UpdateMessage in this MessageQueue.
+   * Get and remove the first UpdateMsg in this MessageQueue.
    *
-   * @return The first UpdateMessage in this MessageQueue.
+   * @return The first UpdateMsg in this MessageQueue.
    */
-  public UpdateMessage removeFirst()
+  public UpdateMsg removeFirst()
   {
-    UpdateMessage msg = map.get(map.firstKey());
+    UpdateMsg msg = map.get(map.firstKey());
     map.remove(msg.getChangeNumber());
     bytesCount -= msg.size();
     return msg;
   }
 
   /**
-   * Returns <tt>true</tt> if this map contains an UpdateMessage
-   * with the same ChangeNumber as the given UpdateMessage.
+   * Returns <tt>true</tt> if this map contains an UpdateMsg
+   * with the same ChangeNumber as the given UpdateMsg.
    *
-   * @param msg UpdateMessage whose presence in this queue is to be tested.
+   * @param msg UpdateMsg whose presence in this queue is to be tested.
    *
-   * @return <tt>true</tt> if this map contains an UpdateMessage
-   *         with the same ChangeNumber as the given UpdateMessage.
+   * @return <tt>true</tt> if this map contains an UpdateMsg
+   *         with the same ChangeNumber as the given UpdateMsg.
    *
    */
-  public boolean contains(UpdateMessage msg)
+  public boolean contains(UpdateMsg msg)
   {
     return map.containsKey(msg.getChangeNumber());
   }
 
   /**
-   * Removes all UpdateMessage form this queue.
+   * Removes all UpdateMsg form this queue.
    */
   public void clear()
   {

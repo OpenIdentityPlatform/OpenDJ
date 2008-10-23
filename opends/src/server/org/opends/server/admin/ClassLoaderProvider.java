@@ -29,16 +29,20 @@ package org.opends.server.admin;
 
 
 import static org.opends.messages.AdminMessages.*;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.ServerConstants.EOL;
 
+import java.io.ByteArrayOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -48,8 +52,10 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.std.meta.RootCfgDefn;
@@ -147,6 +153,15 @@ public final class ClassLoaderProvider {
   // The singleton instance.
   private static final ClassLoaderProvider INSTANCE = new ClassLoaderProvider();
 
+  // Attribute name in jar's MANIFEST corresponding to the revision number.
+  private static final String REVISION_NUMBER = "Revision-Number";
+
+  // The attribute names for build information is name, version and revision
+  // number
+  private static final String[] BUILD_INFORMATION_ATTRIBUTE_NAMES =
+                 new String[]{Attributes.Name.EXTENSION_NAME.toString(),
+                              Attributes.Name.IMPLEMENTATION_VERSION.toString(),
+                              REVISION_NUMBER};
 
 
   /**
@@ -385,6 +400,112 @@ public final class ClassLoaderProvider {
 
 
   /**
+   * Prints out all information about extensions.
+   *
+   * @return a String instance representing all information about extensions;
+   *         <code>null</code> if there is no information available.
+   */
+  public String printExtensionInformation() {
+    File extensionsPath =
+            new File(new StringBuilder(DirectoryServer.getServerRoot()).
+                                append(File.separator).
+                                append(LIB_DIR).
+                                append(File.separator).
+                                append(EXTENSIONS_DIR).
+                                toString());
+
+    if (!extensionsPath.exists() || !extensionsPath.isDirectory()) {
+      // no extensions' directory
+      return null;
+    }
+
+    File[] extensions = extensionsPath.listFiles(new FileFilter(){
+      public boolean accept(File pathname) {
+        // only files with names ending with ".jar"
+        return pathname.isFile() && pathname.getName().endsWith(".jar");
+      }
+    });
+
+    if ( extensions.length == 0 ) {
+      return null;
+    }
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintStream ps = new PrintStream(baos);
+    // prints:
+    // --
+    //            Name                 Build number         Revision number
+    ps.printf("--%s           %-20s %-20s %-20s%s",
+              EOL,
+              "Name",
+              "Build number",
+              "Revision number",
+              EOL);
+
+    for(File extension : extensions) {
+      // retrieve MANIFEST entry and display name, build number and revision
+      // number
+      try {
+        String[] information = getBuildInformation(new JarFile(extension));
+
+        ps.append("Extension: ");
+        boolean addBlank = false;
+        for(String name : information) {
+          if ( addBlank ) {
+            ps.append(addBlank ? " " : ""); // add blank if not first append
+          } else {
+            addBlank = true;
+          }
+
+          ps.printf("%-20s", name);
+        }
+        ps.append(EOL);
+      } catch(Exception e) {
+        // ignore extra information for this extension
+      }
+    }
+
+    return baos.toString();
+  }
+
+
+
+  /**
+   * Returns a String array with the following information :
+   * <br>index 0: the name of the extension.
+   * <br>index 1: the build number of the extension.
+   * <br>index 2: the revision number of the extension.
+   *
+   * @param extension the jar file of the extension
+   * @return a String array containing the name, the build number and the
+   *         revision number of the extension given in argument
+   * @throws java.io.IOException thrown if the jar file has been closed.
+   */
+  private String[] getBuildInformation(JarFile extension) throws IOException {
+    String[] result = new String[3];
+
+    // retrieve MANIFEST entry and display name, version and revision
+    Manifest manifest = extension.getManifest();
+
+    if ( manifest != null ) {
+      Attributes attributes = manifest.getMainAttributes();
+
+      int index = 0;
+      for(String name : BUILD_INFORMATION_ATTRIBUTE_NAMES) {
+        String value = attributes.getValue(name);
+        if ( value == null ) {
+          value = "<unknown>";
+        }
+        result[index++] = value;
+      }
+    }
+
+    return result;
+  }
+
+
+
+  /**
    * Put extensions jars into the class loader and load all
    * configuration definition classes in that they contain.
    *
@@ -528,6 +649,18 @@ public final class ClassLoaderProvider {
         Message message = ERR_CLASS_LOADER_CANNOT_LOAD_EXTENSION.get(jarFile
             .getName(), EXTENSION_MANIFEST, stackTraceToSingleLineString(e));
         throw new InitializationException(message);
+      }
+      try {
+        // Log build information of extensions in the error log
+        String[] information = getBuildInformation(jarFile);
+        logError(
+          INFO_LOG_EXTENSION_INFORMATION.
+            get(jarFile.getName().replace(DirectoryServer.getServerRoot(),
+                                          "$SERVER_ROOT"),
+                information[1],
+                information[2]));
+      } catch(Exception e) {
+        // Do not log information for that extension
       }
     }
   }

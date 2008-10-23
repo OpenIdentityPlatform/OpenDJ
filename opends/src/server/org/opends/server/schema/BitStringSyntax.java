@@ -243,5 +243,15 @@ public class BitStringSyntax
     // If we've gotten here, then everything is fine.
     return true;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

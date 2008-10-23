@@ -142,7 +142,7 @@ public class PasswordPolicy
        DEFAULT_PWPOLICY_SKIP_ADMIN_VALIDATION;
 
   // The set of account status notification handlers for this password policy.
-  private ConcurrentHashMap<DN, AccountStatusNotificationHandler>
+  private ConcurrentHashMap<DN, AccountStatusNotificationHandler<?>>
     notificationHandlers;
 
   // The set of password validators that will be used with this
@@ -151,10 +151,10 @@ public class PasswordPolicy
 
   // The set of default password storage schemes for this password
   // policy.
-  private CopyOnWriteArrayList<PasswordStorageScheme> defaultStorageSchemes =
-       new CopyOnWriteArrayList<PasswordStorageScheme>();
+  private CopyOnWriteArrayList<PasswordStorageScheme<?>> defaultStorageSchemes =
+    new CopyOnWriteArrayList<PasswordStorageScheme<?>>();
   {
-    PasswordStorageScheme defaultScheme =
+    PasswordStorageScheme<?> defaultScheme =
       DirectoryServer.getPasswordStorageScheme(DEFAULT_PASSWORD_STORAGE_SCHEME);
     if (defaultScheme != null) defaultStorageSchemes.add(defaultScheme);
   }
@@ -168,7 +168,7 @@ public class PasswordPolicy
   private DN passwordGeneratorDN = null;
 
   // The password generator for use with this password policy.
-  private PasswordGenerator passwordGenerator = null;
+  private PasswordGenerator<?> passwordGenerator = null;
 
   // The number of grace logins that a user may have.
   private int graceLoginCount = DEFAULT_PWPOLICY_GRACE_LOGIN_COUNT;
@@ -294,11 +294,11 @@ public class PasswordPolicy
       configuration.getDefaultPasswordStorageSchemeDNs();
     try
     {
-      LinkedList<PasswordStorageScheme> schemes =
-        new LinkedList<PasswordStorageScheme>();
+      LinkedList<PasswordStorageScheme<?>> schemes =
+        new LinkedList<PasswordStorageScheme<?>>();
       for (DN configEntryDN : storageSchemeDNs)
       {
-        PasswordStorageScheme scheme =
+        PasswordStorageScheme<?> scheme =
           DirectoryServer.getPasswordStorageScheme(configEntryDN);
 
         if (this.authPasswordSyntax &&
@@ -314,7 +314,7 @@ public class PasswordPolicy
       }
 
       this.defaultStorageSchemes =
-        new CopyOnWriteArrayList<PasswordStorageScheme>(schemes);
+        new CopyOnWriteArrayList<PasswordStorageScheme<?>>(schemes);
     }
     catch (ConfigException ce)
     {
@@ -342,7 +342,7 @@ public class PasswordPolicy
         new LinkedHashSet<String>();
       for (DN schemeDN : deprecatedStorageSchemeDNs)
       {
-        PasswordStorageScheme scheme =
+        PasswordStorageScheme<?> scheme =
           DirectoryServer.getPasswordStorageScheme(schemeDN);
         if (this.authPasswordSyntax)
         {
@@ -398,11 +398,11 @@ public class PasswordPolicy
     // Get the status notification handlers.
     SortedSet<DN> statusNotificationHandlers =
       configuration.getAccountStatusNotificationHandlerDNs();
-    ConcurrentHashMap<DN,AccountStatusNotificationHandler> handlers =
-      new ConcurrentHashMap<DN,AccountStatusNotificationHandler>();
+    ConcurrentHashMap<DN,AccountStatusNotificationHandler<?>> handlers =
+      new ConcurrentHashMap<DN,AccountStatusNotificationHandler<?>>();
     for (DN handlerDN : statusNotificationHandlers)
     {
-      AccountStatusNotificationHandler handler =
+      AccountStatusNotificationHandler<?> handler =
         DirectoryServer.getAccountStatusNotificationHandler(handlerDN);
       handlers.put(handlerDN, handler);
     }
@@ -746,7 +746,8 @@ public class PasswordPolicy
    * @return  The default set of password storage schemes that will be used for
    *          this password policy.
    */
-  public CopyOnWriteArrayList<PasswordStorageScheme> getDefaultStorageSchemes()
+  public CopyOnWriteArrayList<PasswordStorageScheme<?>>
+  getDefaultStorageSchemes()
   {
     return defaultStorageSchemes;
   }
@@ -765,14 +766,14 @@ public class PasswordPolicy
    */
   public boolean isDefaultStorageScheme(String name)
   {
-    CopyOnWriteArrayList<PasswordStorageScheme> defaultSchemes =
+    CopyOnWriteArrayList<PasswordStorageScheme<?>> defaultSchemes =
          getDefaultStorageSchemes();
     if (defaultSchemes == null)
     {
       return false;
     }
 
-    for (PasswordStorageScheme s : defaultSchemes)
+    for (PasswordStorageScheme<?> s : defaultSchemes)
     {
       if (authPasswordSyntax)
       {
@@ -867,7 +868,7 @@ public class PasswordPolicy
    * @return  The set of account status notification handlers that should be
    *          used with this password policy.
    */
-  public ConcurrentHashMap<DN,AccountStatusNotificationHandler>
+  public ConcurrentHashMap<DN,AccountStatusNotificationHandler<?>>
               getAccountStatusNotificationHandlers()
   {
     return notificationHandlers;
@@ -969,7 +970,7 @@ public class PasswordPolicy
    * @return  The password generator that will be used with this password
    *          policy, or <CODE>null</CODE> if there is none.
    */
-  public PasswordGenerator getPasswordGenerator()
+  public PasswordGenerator<?> getPasswordGenerator()
   {
     return passwordGenerator;
   }
@@ -1395,7 +1396,7 @@ public class PasswordPolicy
     }
     else
     {
-      Iterator<PasswordStorageScheme> iterator =
+      Iterator<PasswordStorageScheme<?>> iterator =
            defaultStorageSchemes.iterator();
       buffer.append(iterator.next().getStorageSchemeName());
       buffer.append(EOL);

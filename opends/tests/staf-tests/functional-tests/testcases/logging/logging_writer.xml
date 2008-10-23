@@ -76,7 +76,6 @@
           <message>'------  set properties --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'     : 'set-log-publisher-prop',
@@ -89,7 +88,6 @@
           
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'subcommand'     : 'set-log-rotation-policy-prop',
@@ -130,7 +128,6 @@
               
               <call function="'dsconfigGet'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'objectName'     : 'log-publisher',
@@ -241,7 +238,6 @@
           <message>'------  Enabled Debug logger --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'subcommand'     : 'set-log-publisher-prop',
@@ -253,10 +249,10 @@
           </call>
           
           <call function="'RestartDs'">
-            { 'dsHost'    : DIRECTORY_INSTANCE_HOST,
-              'dsPort'    : DIRECTORY_INSTANCE_PORT,
-              'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-              'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+            { 'dsHost'      : DIRECTORY_INSTANCE_HOST,
+              'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+              'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+              'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD
             }
           </call>
           <message>'--- Check log files ---'</message>  
@@ -308,7 +304,6 @@
           <message>'------  Disable Debug logger --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'subcommand'     : 'set-log-publisher-prop',

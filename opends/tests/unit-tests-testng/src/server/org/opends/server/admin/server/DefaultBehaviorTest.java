@@ -457,7 +457,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
           "ds-cfg-group-dn: dc=new value 3,dc=com",
           "ds-cfg-group-dn: dc=new value 4,dc=com"
       };
-      TestCaseUtils.applyModifications(changes);
+      TestCaseUtils.applyModifications(true, changes);
 
       // Make sure that the change listener was notified and the
       // modified child contains the correct values.
@@ -506,7 +506,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
           "ds-cfg-base-dn: dc=new value 1,dc=com",
           "ds-cfg-base-dn: dc=new value 2,dc=com"
       };
-      TestCaseUtils.applyModifications(changes);
+      TestCaseUtils.applyModifications(true, changes);
 
       // Make sure that the change listener was notified and the
       // modified child contains the correct values.
@@ -554,7 +554,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
           "ds-cfg-group-dn: dc=new value 1,dc=com",
           "ds-cfg-group-dn: dc=new value 2,dc=com"
       };
-      TestCaseUtils.applyModifications(changes);
+      TestCaseUtils.applyModifications(true, changes);
 
       // Make sure that the change listener was notified and the
       // modified child contains the correct values.
@@ -603,7 +603,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
           "ds-cfg-base-dn: dc=new value 1,dc=com",
           "ds-cfg-base-dn: dc=new value 2,dc=com"
       };
-      TestCaseUtils.applyModifications(changes);
+      TestCaseUtils.applyModifications(true, changes);
 
       // Make sure that the change listener was notified and the
       // modified child contains the correct values.
@@ -626,7 +626,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
           "changetype: modify",
           "delete: ds-cfg-base-dn"
       };
-      TestCaseUtils.applyModifications(changes);
+      TestCaseUtils.applyModifications(true, changes);
     }
   }
 
@@ -835,8 +835,8 @@ public final class DefaultBehaviorTest extends AdminTestCase {
   // Gets the JNDI connection for the test server instance.
   private synchronized JNDIDirContextAdaptor getAdaptor() throws Exception {
     if (adaptor == null) {
-      adaptor = JNDIDirContextAdaptor.simpleBind("127.0.0.1", TestCaseUtils
-          .getServerLdapPort(), "cn=directory manager", "password");
+      adaptor = JNDIDirContextAdaptor.simpleSSLBind("127.0.0.1", TestCaseUtils
+          .getServerAdminPort(), "cn=directory manager", "password");
     }
     return adaptor;
   }

@@ -48,6 +48,7 @@ import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.types.DN;
 import org.opends.server.types.ResultCode;
 import org.testng.annotations.Test;
+import static org.opends.server.TestCaseUtils.*;
 
 /**
  * Test behavior of an LDAP server that is not able to connect
@@ -55,8 +56,6 @@ import org.testng.annotations.Test;
  */
 public class IsolationTest extends ReplicationTestCase
 {
-  private static final String BASEDN_STRING = "dc=example,dc=com";
-
   /**
    * Check that the server correctly accept or reject updates when
    * the replication is configured but could not connect to
@@ -67,15 +66,13 @@ public class IsolationTest extends ReplicationTestCase
   public void noUpdateIsolationPolicyTest() throws Exception
   {
     ReplicationDomain domain = null;
-    DN baseDn = DN.decode(BASEDN_STRING);
+    DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
     SynchronizationProvider replicationPlugin = null;
     short serverId = 1;
 
-    cleanDB();
-
     try
     {
-      // configure and start replication of dc=example,dc=com on the server
+      // configure and start replication of TEST_ROOT_DN_STRING on the server
       // using a replication server that is not started
       replicationPlugin = new MultimasterReplication();
       DirectoryServer.registerSynchronizationProvider(replicationPlugin);
@@ -91,7 +88,7 @@ public class IsolationTest extends ReplicationTestCase
       domainConf.setHeartbeatInterval(100000);
       domain = MultimasterReplication.createNewDomain(domainConf);
 
-      // check that the udates fail with the unwilling to perform error.
+      // check that the updates fail with the unwilling to perform error.
       InternalClientConnection conn =
         InternalClientConnection.getRootConnection();
       ModifyOperation op =
@@ -108,7 +105,7 @@ public class IsolationTest extends ReplicationTestCase
       // try a new modify operation on the base entry.
       op = conn.processModify(baseDn, generatemods("description", "test"));
 
-      // check that the operation was successfull.
+      // check that the operation was successful.
       assertEquals(op.getResultCode(), ResultCode.SUCCESS, 
           op.getAdditionalLogMessage().toString());
     }
@@ -124,55 +121,4 @@ public class IsolationTest extends ReplicationTestCase
       }
     }
   }
-
-  /**
-   * Clean the database and replace with a single entry.
-   *
-   * @throws FileNotFoundException
-   * @throws IOException
-   * @throws Exception
-   */
-  private void cleanDB() throws FileNotFoundException, IOException, Exception
-  {
-    String baseentryldif =
-      "dn:" + BASEDN_STRING + "\n"
-       + "objectClass: top\n"
-       + "objectClass: domain\n"
-       + "dc: example\n"
-       + "entryuuid: " + stringUID(1) + "\n";
-
-
-      // Initialization :
-      // Load the database with a single entry :
-      String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-      String path = buildRoot + File.separator + "build" +
-                    File.separator + "unit-tests" + File.separator +
-                    "package-instance" + File.separator +
-                    "addModDelDependencyTest";
-      OutputStream out = new FileOutputStream(new File(path));
-      out.write(baseentryldif.getBytes());
-
-      task("dn: ds-task-id=" + UUID.randomUUID()
-          + ",cn=Scheduled Tasks,cn=Tasks\n"
-          + "objectclass: top\n"
-          + "objectclass: ds-task\n"
-          + "objectclass: ds-task-import\n"
-          + "ds-task-class-name: org.opends.server.tasks.ImportTask\n"
-          + "ds-task-import-backend-id: userRoot\n"
-          + "ds-task-import-ldif-file: " + path + "\n"
-          + "ds-task-import-reject-file: " + path + "reject\n");
-  }
-
-
-  /**
-   * Builds and return a uuid from an integer.
-   * This methods assume that unique integers are used and does not make any
-   * unicity checks. It is only responsible for generating a uid with a
-   * correct syntax.
-   */
-  private String stringUID(int i)
-  {
-    return String.format("11111111-1111-1111-1111-%012x", i);
-  }
-
 }

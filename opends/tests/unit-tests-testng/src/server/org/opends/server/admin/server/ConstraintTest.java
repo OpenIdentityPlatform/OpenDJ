@@ -474,7 +474,7 @@ public final class ConstraintTest extends AdminTestCase {
           "ds-cfg-group-dn: dc=new value 4,dc=com"
       };
 
-      int result = TestCaseUtils.applyModifications(changes);
+      int result = TestCaseUtils.applyModifications(true, changes);
       Assert.assertEquals(result, ResultCode.SUCCESS.getIntValue());
     } finally {
       TestCfg.removeConstraint(constraint);
@@ -521,7 +521,7 @@ public final class ConstraintTest extends AdminTestCase {
           "ds-cfg-group-dn: dc=new value 4,dc=com"
       };
 
-      int result = TestCaseUtils.applyModifications(changes);
+      int result = TestCaseUtils.applyModifications(true, changes);
       Assert
           .assertEquals(result, ResultCode.UNWILLING_TO_PERFORM.getIntValue());
     } finally {
@@ -562,8 +562,8 @@ public final class ConstraintTest extends AdminTestCase {
   // Gets the JNDI connection for the test server instance.
   private synchronized JNDIDirContextAdaptor getAdaptor() throws Exception {
     if (adaptor == null) {
-      adaptor = JNDIDirContextAdaptor.simpleBind("127.0.0.1", TestCaseUtils
-          .getServerLdapPort(), "cn=directory manager", "password");
+      adaptor = JNDIDirContextAdaptor.simpleSSLBind("127.0.0.1", TestCaseUtils
+          .getServerAdminPort(), "cn=directory manager", "password");
     }
     return adaptor;
   }

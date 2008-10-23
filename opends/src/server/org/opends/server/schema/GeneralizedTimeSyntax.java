@@ -1589,5 +1589,15 @@ outerLoop:
     // time zone by using "GMT" followed by the offset.
     return TimeZone.getTimeZone("GMT" + offSetStr);
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 

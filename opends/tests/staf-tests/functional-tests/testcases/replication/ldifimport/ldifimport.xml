@@ -97,14 +97,14 @@
                 initialization'
               </message>
               <call function="'preInitializeReplication'">
-                { 'location'          : clientHost,
-                  'dsPath'            : clientPath,
-                  'dsInstanceHost'    : masterHost,
-                  'dsInstancePort'    : master.getPort(),
-                  'localOnly'         : False,
-                  'replicationDnList' : [synchroSuffix],
-                  'adminUID'          : adminUID,
-                  'adminPswd'         : adminPswd
+                { 'location'            : clientHost,
+                  'dsPath'              : clientPath,
+                  'dsInstanceHost'      : masterHost,
+                  'dsInstanceAdminPort' : master.getAdminPort(),
+                  'localOnly'           : False,
+                  'replicationDnList'   : [synchroSuffix],
+                  'adminUID'            : adminUID,
+                  'adminPswd'           : adminPswd
                 }
               </call>                           
                               
@@ -181,6 +181,7 @@
                   'dsPath'          : clientPath,                
                   'dsHost'          : masterHost,
                   'dsPort'          : master.getPort(),
+                  'dsAdminPort'     : master.getAdminPort(),
                   'dsDn'            : master.getRootDn(),
                   'dsPswd'          : master.getRootPwd(),
                   'expectedEntries' : ['uid=scarter,ou=People,o=example',
@@ -195,13 +196,13 @@
                 '+++++ ldif import off-line: end external server initialization'
               </message>
               <call function="'postInitializeReplication'">
-                { 'location'          : clientHost,
-                  'dsPath'            : clientPath,
-                  'dsInstanceHost'    : masterHost,
-                  'dsInstancePort'    : master.getPort(),
-                  'replicationDnList' : [synchroSuffix],
-                  'adminUID'          : adminUID,
-                  'adminPswd'         : adminPswd
+                { 'location'            : clientHost,
+                  'dsPath'              : clientPath,
+                  'dsInstanceHost'      : masterHost,
+                  'dsInstanceAdminPort' : master.getAdminPort(),
+                  'replicationDnList'   : [synchroSuffix],
+                  'adminUID'            : adminUID,
+                  'adminPswd'           : adminPswd
                 }
               </call>
                 
@@ -268,14 +269,14 @@
                 initialization'
               </message>
               <call function="'preInitializeReplication'">
-                { 'location'          : clientHost,
-                  'dsPath'            : clientPath,
-                  'dsInstanceHost'    : masterHost,
-                  'dsInstancePort'    : master.getPort(),
-                  'localOnly'         : False,
-                  'replicationDnList' : [synchroSuffix],
-                  'adminUID'          : adminUID,
-                  'adminPswd'         : adminPswd
+                { 'location'            : clientHost,
+                  'dsPath'              : clientPath,
+                  'dsInstanceHost'      : masterHost,
+                  'dsInstanceAdminPort' : master.getAdminPort(),
+                  'localOnly'           : False,
+                  'replicationDnList'   : [synchroSuffix],
+                  'adminUID'            : adminUID,
+                  'adminPswd'           : adminPswd
                  }
               </call>         
                                                                  
@@ -303,6 +304,7 @@
                   'dsPath'          : clientPath,
                   'dsHost'          : masterHost,
                   'dsPort'          : master.getPort(),
+                  'dsAdminPort'     : master.getAdminPort(),
                   'dsDn'            : master.getRootDn(),
                   'dsPswd'          : master.getRootPwd(),
                   'expectedEntries' : ['uid=scarter,ou=People,o=example',
@@ -375,13 +377,13 @@
                 '+++++ ldif import on-line: end external server initialization'
               </message>
               <call function="'postInitializeReplication'">
-                { 'location'          : clientHost,
-                  'dsPath'            : clientPath,
-                  'dsInstanceHost'    : masterHost,
-                  'dsInstancePort'    : master.getPort(),
-                  'replicationDnList' : [synchroSuffix],
-                  'adminUID'          : adminUID,
-                  'adminPswd'         : adminPswd
+                { 'location'            : clientHost,
+                  'dsPath'              : clientPath,
+                  'dsInstanceHost'      : masterHost,
+                  'dsInstanceAdminPort' : master.getAdminPort(),
+                  'replicationDnList'   : [synchroSuffix],
+                  'adminUID'            : adminUID,
+                  'adminPswd'           : adminPswd
                 }
               </call>                                    
 

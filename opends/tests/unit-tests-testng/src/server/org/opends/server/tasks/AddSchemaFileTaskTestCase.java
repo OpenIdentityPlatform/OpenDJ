@@ -130,7 +130,7 @@ public class AddSchemaFileTaskTestCase
 
     String taskDNStr =
          "ds-task-id=add-single-valid-file,cn=Scheduled Tasks,cn=Tasks";
-    int resultCode = TestCaseUtils.applyModifications(
+    int resultCode = TestCaseUtils.applyModifications(true,
          "dn: " + taskDNStr,
          "changetype: add",
          "objectClass: top",
@@ -253,7 +253,7 @@ public class AddSchemaFileTaskTestCase
 
     String taskDNStr =
          "ds-task-id=add-multiple-valid-files,cn=Scheduled Tasks,cn=Tasks";
-    int resultCode = TestCaseUtils.applyModifications(
+    int resultCode = TestCaseUtils.applyModifications(true,
          "dn: " + taskDNStr,
          "changetype: add",
          "objectClass: top",
@@ -285,7 +285,7 @@ public class AddSchemaFileTaskTestCase
   {
     String taskDNStr =
          "ds-task-id=add-missing-file-names,cn=Scheduled Tasks,cn=Tasks";
-    int resultCode = TestCaseUtils.applyModifications(
+    int resultCode = TestCaseUtils.applyModifications(true,
          "dn: " + taskDNStr,
          "changetype: add",
          "objectClass: top",
@@ -309,7 +309,7 @@ public class AddSchemaFileTaskTestCase
   {
     String taskDNStr =
          "ds-task-id=add-missing-file,cn=Scheduled Tasks,cn=Tasks";
-    int resultCode = TestCaseUtils.applyModifications(
+    int resultCode = TestCaseUtils.applyModifications(true,
          "dn: " + taskDNStr,
          "changetype: add",
          "objectClass: top",
@@ -348,7 +348,7 @@ public class AddSchemaFileTaskTestCase
     emptyFile.createNewFile();
 
     String taskDNStr = "ds-task-id=add-empty-file,cn=Scheduled Tasks,cn=Tasks";
-    int resultCode = TestCaseUtils.applyModifications(
+    int resultCode = TestCaseUtils.applyModifications(true,
          "dn: " + taskDNStr,
          "changetype: add",
          "objectClass: top",
@@ -386,7 +386,7 @@ public class AddSchemaFileTaskTestCase
 
     String taskDNStr =
          "ds-task-id=add-invalid-file,cn=Scheduled Tasks,cn=Tasks";
-    int resultCode = TestCaseUtils.applyModifications(
+    int resultCode = TestCaseUtils.applyModifications(true,
          "dn: " + taskDNStr,
          "changetype: add",
          "objectClass: top",

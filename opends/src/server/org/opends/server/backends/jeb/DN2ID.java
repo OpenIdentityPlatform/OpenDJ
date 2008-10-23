@@ -60,6 +60,7 @@ public class DN2ID extends DatabaseContainer
    * @param entryContainer The entryContainer of the DN database.
    * @throws DatabaseException If an error occurs in the JE database.
    */
+  @SuppressWarnings("unchecked")
   DN2ID(String name, Environment env, EntryContainer entryContainer)
       throws DatabaseException
   {
@@ -87,7 +88,10 @@ public class DN2ID extends DatabaseContainer
     }
 
     this.dbConfig = dn2idConfig;
-    this.dbConfig.setBtreeComparator(dn2idComparator.getClass());
+    //This line causes an unchecked cast error if the SuppressWarnings
+    //annotation is removed at the beginning of this method.
+    this.dbConfig.setBtreeComparator((Class<? extends Comparator<byte[]>>)
+                                     dn2idComparator.getClass());
   }
 
   /**

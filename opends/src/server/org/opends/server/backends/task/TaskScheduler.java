@@ -25,36 +25,44 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.task;
-import org.opends.messages.Message;
 
 
 
-import java.io.IOException;
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.opends.messages.Message;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
@@ -63,15 +71,6 @@ import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
-
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -1850,14 +1849,13 @@ public class TaskScheduler
     }
 
     Attribute attr = attrList.get(0);
-    LinkedHashSet<AttributeValue> values = attr.getValues();
-    if ((values == null) || values.isEmpty())
+    if (attr.isEmpty())
     {
       Message message = ERR_TASKSCHED_NO_CLASS_VALUES.get(ATTR_TASK_ID);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
-    Iterator<AttributeValue> iterator = values.iterator();
+    Iterator<AttributeValue> iterator = attr.iterator();
     AttributeValue value = iterator.next();
     if (iterator.hasNext())
     {
@@ -1874,7 +1872,7 @@ public class TaskScheduler
 
 
     // Try to load the specified class.
-    Class taskClass;
+    Class<?> taskClass;
     try
     {
       taskClass = DirectoryServer.loadClass(taskClassName);

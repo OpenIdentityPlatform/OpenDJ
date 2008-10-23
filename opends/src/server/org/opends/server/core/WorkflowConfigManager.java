@@ -40,6 +40,7 @@ import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.server.WorkflowCfg;
 import org.opends.server.config.ConfigException;
+import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -293,7 +294,7 @@ public class WorkflowConfigManager
 
     // Create the root workflow element to associate with the workflow
     String rootWorkflowElementID = workflowCfg.getWorkflowElement();
-    WorkflowElement rootWorkflowElement =
+    WorkflowElement<?> rootWorkflowElement =
       DirectoryServer.getWorkflowElement(rootWorkflowElementID);
 
     // Get the base DN targeted by the workflow

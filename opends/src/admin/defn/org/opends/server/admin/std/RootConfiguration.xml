@@ -415,7 +415,7 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
-  <adm:relation name="network-group" hidden="true">
+  <adm:relation name="network-group">
     <adm:one-to-many naming-property="network-group-id" />
     <adm:profile name="ldap">
       <ldap:rdn-sequence>cn=Network Groups,cn=config</ldap:rdn-sequence>
@@ -426,7 +426,7 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
-  <adm:relation name="workflow" hidden="true">
+  <adm:relation name="workflow">
     <adm:one-to-many naming-property="workflow-id" />
     <adm:profile name="ldap">
       <ldap:rdn-sequence>cn=Workflows,cn=config</ldap:rdn-sequence>
@@ -437,7 +437,7 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
-  <adm:relation name="workflow-element" hidden="true">
+  <adm:relation name="workflow-element">
     <adm:one-to-many naming-property="workflow-element-id" />
     <adm:profile name="ldap">
       <ldap:rdn-sequence>
@@ -448,6 +448,12 @@
       <cli:relation>
         <cli:default-property name="enabled" />
       </cli:relation>
+    </adm:profile>
+  </adm:relation>
+  <adm:relation name="administration-connector">
+    <adm:one-to-one />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>cn=Administration Connector,cn=config</ldap:rdn-sequence>
     </adm:profile>
   </adm:relation>
   <adm:relation name="extension">

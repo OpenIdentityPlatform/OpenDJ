@@ -119,7 +119,7 @@ public class ExtOpTestCase extends AciTestCase {
   @BeforeClass
   public void setupClass() throws Exception {
     TestCaseUtils.startServer();
-    deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
+    deleteAttrFromAdminEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
     addEntries("o=test");
   }
 
@@ -128,14 +128,14 @@ public class ExtOpTestCase extends AciTestCase {
        String aciLdif=makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN,
                G_READ_ACI, G_SELF_MOD, G_SCHEMA, G_DSE, G_USER_OPS, G_CONTROL,
                E_EXTEND_OP);
-       LDIFModify(aciLdif, DIR_MGR_DN, PWD);
+       LDIFAdminModify(aciLdif, DIR_MGR_DN, PWD);
    }
 
   @BeforeMethod
   public void clearBackend() throws Exception {
     deleteAttrFromEntry(peopleBase, "aci");
     deleteAttrFromEntry(adminBase, "aci");
-    deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
+    deleteAttrFromAdminEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
   }
 
   /**
@@ -221,7 +221,7 @@ public class ExtOpTestCase extends AciTestCase {
     String globalControlAcis=
             makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN,
                     extOpAdmin, extOpPeople);
-    LDIFModify(globalControlAcis, DIR_MGR_DN, PWD);
+    LDIFAdminModify(globalControlAcis, DIR_MGR_DN, PWD);
     String pwdLdifs =
          makeAddLDIF("aci", peopleBase, pwdControls, ALLOW_ALL);
     LDIFModify(pwdLdifs, DIR_MGR_DN, PWD);
@@ -235,7 +235,7 @@ public class ExtOpTestCase extends AciTestCase {
                 LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS);
     deleteAttrFromEntry(peopleBase, "aci");
     deleteAttrFromEntry(adminBase, "aci");
-    deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
+    deleteAttrFromAdminEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
   }
 
 }

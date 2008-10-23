@@ -191,4 +191,78 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="group-id" mandatory="false">
+    <adm:synopsis>
+      The group id for the replication server.
+    </adm:synopsis>
+    <adm:description>
+      This value defines the group id of the replication server. The replication
+      system of a LDAP server uses the group id of the replicated domain and
+      tries to connect, if possible, to a replication with the same group id.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>1</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="1" upper-limit="127"></adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-group-id</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="assured-timeout" mandatory="false">
+    <adm:synopsis>
+      The timeout value when waiting for assured mode acknowledgements.
+    </adm:synopsis>
+    <adm:description>
+      Defines the amount of milliseconds the replication server will wait for
+      assured acknowledgements (in either Safe Data or Safe Read assured sub
+      modes) before forgetting them and answer to the entity that sent an update
+      and is waiting for acknowledgment.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>1000ms</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="ms" lower-limit="1" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-assured-timeout</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="degraded-status-threshold" mandatory="false">
+    <adm:synopsis>
+      The number of pending changes as threshold value for putting a directory
+      server in degraded status.
+    </adm:synopsis>
+    <adm:description>
+      This value represents a number of pending changes a replication server has
+      in queue for sending to a directory server. Once this value is crossed,
+      the matching directory server goes in degraded status. When number of
+      pending changes goes back under this value, the directory server is put
+      back in normal status. 0 means status analyzer is disabled and directory
+      servers are never put in degraded status.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>5000</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="0"></adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-degraded-status-threshold</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>

@@ -173,6 +173,16 @@ public final class JmxConnectionHandler extends
       }
     }
 
+    // If the port number has changed then update the JMX port information
+    // stored in the system properties.
+    if (portChanged)
+    {
+      String key = protocol + "_port";
+      String value = String.valueOf(config.getListenPort());
+      System.clearProperty(key);
+      System.setProperty(key, value);
+    }
+
     // Return configuration result.
     return new ConfigChangeResult(resultCode, false, messages);
   }
@@ -360,6 +370,11 @@ public final class JmxConnectionHandler extends
     listeners.clear();
     listeners.add(new HostPort("0.0.0.0", config.getListenPort()));
     connectionHandlerName = "JMX Connection Handler " + config.getListenPort();
+
+    // Create a system property to store the JMX port the server is
+    // listening to. This information can be displayed with jinfo.
+    System.setProperty(
+      protocol + "_port", String.valueOf(config.getListenPort()));
 
     // Create the associated RMI Connector.
     rmiConnector = new RmiConnector(DirectoryServer.getJMXMBeanServer(), this);

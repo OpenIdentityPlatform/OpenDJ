@@ -55,7 +55,7 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.AbstractOperation;
-import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
@@ -693,7 +693,7 @@ public class InternalClientConnectionTestCase
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("description", "This is a test")));
+        Attributes.create("description", "This is a test")));
 
     ModifyOperation modifyOperation =
          conn.processModify(DN.decode("cn=test,o=test"), mods);

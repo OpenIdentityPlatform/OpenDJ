@@ -82,7 +82,7 @@ public class ReferencesTestCase extends AciTestCase{
   @BeforeClass
   public void setupClass() throws Exception {
     TestCaseUtils.restartServer();
-    deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
+    deleteAttrFromAdminEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
     TestCaseUtils.clearJEBackend(true,"userRoot", suffix);
     addEntries(suffix);
   }
@@ -92,14 +92,14 @@ public class ReferencesTestCase extends AciTestCase{
     String aciLdif=makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN,
             G_READ_ACI, G_SELF_MOD, G_SCHEMA, G_DSE, G_USER_OPS, G_CONTROL,
             E_EXTEND_OP);
-    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
+    LDIFAdminModify(aciLdif, DIR_MGR_DN, PWD);
     TestCaseUtils.clearJEBackend(false,"userRoot", suffix);
   }
 
   @BeforeMethod
   public void clearBackend() throws Exception {
     deleteAttrFromEntry(adminBase, "aci");
-    deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
+    deleteAttrFromAdminEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
   }
 
   /**
@@ -151,7 +151,7 @@ public class ReferencesTestCase extends AciTestCase{
   public void testGlobalTargetAci() throws Exception {
     String pwdLdifs =
             makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN, ALLOW_PEOPLE);
-    LDIFModify(pwdLdifs, DIR_MGR_DN, PWD);
+    LDIFAdminModify(pwdLdifs, DIR_MGR_DN, PWD);
     //Fail, ACI only allows people references
     String userResults =
             LDAPSearchParams(level5User, PWD, null,null, null,
@@ -176,7 +176,7 @@ public class ReferencesTestCase extends AciTestCase{
   public void testGlobalAci() throws Exception {
     String pwdLdifs =
            makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN, ALLOW_OC_PLUS);
-    LDIFModify(pwdLdifs, DIR_MGR_DN, PWD);
+    LDIFAdminModify(pwdLdifs, DIR_MGR_DN, PWD);
     String userResults =
             LDAPSearchParams(level5User, PWD, null,null, null,
                     adminBase, filter, null);

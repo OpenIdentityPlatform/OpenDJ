@@ -40,7 +40,6 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -88,7 +87,7 @@ public class GenericSchemaTestCase
     TreeSet<String> invalidOIDs = new TreeSet<String>();
 
     Schema schema = DirectoryServer.getSchema();
-    for (AttributeSyntax as : schema.getSyntaxes().values())
+    for (AttributeSyntax<?> as : schema.getSyntaxes().values())
     {
       if (! isNumericOID(as.getOID()))
       {
@@ -126,7 +125,7 @@ public class GenericSchemaTestCase
     TreeSet<String> invalidOIDs = new TreeSet<String>();
 
     Schema schema = DirectoryServer.getSchema();
-    for (MatchingRule mr : schema.getMatchingRules().values())
+    for (MatchingRule<?> mr : schema.getMatchingRules().values())
     {
       if (! isNumericOID(mr.getOID()))
       {
@@ -199,7 +198,7 @@ public class GenericSchemaTestCase
 
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           AttributeType at = AttributeTypeSyntax.decodeAttributeType(
                                   v.getValue(), DirectoryServer.getSchema(),
@@ -277,7 +276,7 @@ public class GenericSchemaTestCase
 
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           ObjectClass oc = ObjectClassSyntax.decodeObjectClass(
                                 v.getValue(), DirectoryServer.getSchema(),
@@ -354,7 +353,7 @@ public class GenericSchemaTestCase
 
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a.getValues())
+        for (AttributeValue v : a)
         {
           NameForm nf = NameFormSyntax.decodeNameForm(v.getValue(),
                              DirectoryServer.getSchema(), true);

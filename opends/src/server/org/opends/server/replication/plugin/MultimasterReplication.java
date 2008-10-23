@@ -182,7 +182,7 @@ public class MultimasterReplication
    * Creates a new domain from its configEntry, do the
    * necessary initialization and starts it so that it is
    * fully operational when this method returns.
-   * @param configuration The entry whith the configuration of this domain.
+   * @param configuration The entry with the configuration of this domain.
    * @return The domain created.
    * @throws ConfigException When the configuration is not valid.
    */
@@ -484,6 +484,25 @@ public class MultimasterReplication
          PreOperationModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
+    DN operationDN = modifyDNOperation.getEntryDN();
+    ReplicationDomain domain = findDomain(operationDN, modifyDNOperation);
+
+    if ((domain == null) || (!domain.solveConflict()))
+      return new SynchronizationProviderResult.ContinueProcessing();
+
+    Historical historicalInformation = (Historical)
+    modifyDNOperation.getAttachment(
+        Historical.HISTORICAL);
+    if (historicalInformation == null)
+    {
+      Entry entry = modifyDNOperation.getUpdatedEntry();
+      historicalInformation = Historical.load(entry);
+      modifyDNOperation.setAttachment(Historical.HISTORICAL,
+          historicalInformation);
+    }
+
+    historicalInformation.generateState(modifyDNOperation);
+
     return new SynchronizationProviderResult.ContinueProcessing();
   }
 
@@ -751,5 +770,14 @@ public class MultimasterReplication
     {
       domain.start();
     }
+  }
+
+  /**
+   * Gets the number of handled domain objects.
+   * @return The number of handled domain objects
+   */
+  public static int getNumberOfDomains()
+  {
+    return domains.size();
   }
 }

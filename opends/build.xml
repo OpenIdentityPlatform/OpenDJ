@@ -175,11 +175,21 @@
 
   <!-- The build target that should be used for nightly builds. -->
   <target name="nightly"
-       depends="checkstyle,dsml,srczip,javadoc,docgen,coverage,testallwithcoverage"
+       depends="nightlybuild,nightlytests"
        description="Perform all processing needed for nightly builds.">
   </target>
 
+  <!-- The build target that should be used for build part of nightly builds. -->
+  <target name="nightlybuild"
+       depends="checkstyle,dsml,srczip,javadoc,docgen"
+       description="Perform all processing related to build  for nightly builds.">
+  </target>
 
+  <!-- The build target that should be used for test part of nightly builds. -->
+  <target name="nightlytests"
+       depends="coverage,testallwithcoverage"
+       description="Perform all processing related to unit tests for nightly builds.">
+  </target>
 
 
   <!-- The build target that should be used for weekly builds. -->
@@ -271,11 +281,14 @@
     <genmsg sourceProps="${msg.prop.dir}/runtime_information.properties"
             destJava="${msg.javagen.dir}/org/opends/messages/RuntimeMessages.java">
     </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/servicetag.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/ServiceTagMessages.java">
+    </genmsg>
   </target>
 
 
   <!-- Remove all dynamically-generated build files. -->
-  <target name="clean" depends="cleanadmin,cleanmessages,cleansnmp"
+  <target name="clean" depends="init,cleanadmin,cleanmessages,cleansnmp"
        description="Clean up any files generated during the build process">
 
     <delete dir="${build.dir}" />
@@ -382,6 +395,14 @@
        <available file="${ext.dir}/jdmktk.jar"/>
      </and>
      </or>
+    </condition>
+
+    <condition property="isadmingendirpresent">
+      <available file="${admin.src.dir}" type="dir" />
+    </condition>
+
+    <condition property="ismsggendirpresent">
+      <available file="${msg.javagen.dir}" type="dir" />
     </condition>
 
   </target>
@@ -865,6 +886,7 @@
     <mkdir dir="${pdir}/config/messages"                             />
     <mkdir dir="${pdir}/config/MakeLDIF"                             />
     <mkdir dir="${pdir}/config/snmp/security"                        />
+    <mkdir dir="${pdir}/config/servicetag"                           />
     <mkdir dir="${pdir}/db"                                          />
     <mkdir dir="${pdir}/import-tmp"                                  />
     <mkdir dir="${pdir}/changelogDb"                                 />
@@ -874,11 +896,11 @@
     <mkdir dir="${pdir}/lib/extensions"                              />
     <mkdir dir="${pdir}/locks"                                       />
     <mkdir dir="${pdir}/logs"                                        />
-    <mkdir dir="${pdir}/bin/StatusPanel.app"                         />
-    <mkdir dir="${pdir}/bin/StatusPanel.app/Contents"                />
-    <mkdir dir="${pdir}/bin/StatusPanel.app/Contents/MacOS"          />
-    <mkdir dir="${pdir}/bin/StatusPanel.app/Contents/Resources"      />
-    <mkdir dir="${pdir}/bin/StatusPanel.app/Contents/Resources/Java" />
+    <mkdir dir="${pdir}/bin/ControlPanel.app"                         />
+    <mkdir dir="${pdir}/bin/ControlPanel.app/Contents"                />
+    <mkdir dir="${pdir}/bin/ControlPanel.app/Contents/MacOS"          />
+    <mkdir dir="${pdir}/bin/ControlPanel.app/Contents/Resources"      />
+    <mkdir dir="${pdir}/bin/ControlPanel.app/Contents/Resources/Java" />
     <mkdir dir="${pdir}/QuickSetup.app"                              />
     <mkdir dir="${pdir}/QuickSetup.app/Contents"                     />
     <mkdir dir="${pdir}/QuickSetup.app/Contents/MacOS"               />
@@ -950,6 +972,10 @@
     <copy todir="${pdir}/config/schema">
       <fileset dir="${resource.dir}/schema" />
     </copy>
+    
+    <copy todir="${pdir}/config/servicetag">
+      <fileset dir="${resource.dir}/servicetag" />
+    </copy>
 
     <copy todir="${pdir}/config/messages">
       <fileset dir="${resource.dir}/messages" />
@@ -1004,12 +1030,12 @@
         <include name="Uninstall.app/Contents/MacOS/JavaApplicationStub" />
       </fileset>
     </chmod>
-    <copy todir="${pdir}/bin/StatusPanel.app">
-      <fileset dir="${resource.dir}/mac/StatusPanel.app" />
+    <copy todir="${pdir}/bin/ControlPanel.app">
+      <fileset dir="${resource.dir}/mac/ControlPanel.app" />
     </copy>
     <chmod perm="755">
       <fileset dir="${pdir}/bin">
-        <include name="StatusPanel.app/Contents/MacOS/JavaApplicationStub" />
+        <include name="ControlPanel.app/Contents/MacOS/JavaApplicationStub" />
       </fileset>
     </chmod>
 
@@ -1033,7 +1059,7 @@
       <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}"
            filemode="644" dirmode="700" />
       <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/**/*"
-           excludes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/*,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_client-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_script-util.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_server-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_mixed-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/setup,${SHORT_NAME}-${VERSION_NUMBER_STRING}/uninstall,${SHORT_NAME}-${VERSION_NUMBER_STRING}/upgrade,${SHORT_NAME}-${VERSION_NUMBER_STRING}/QuickSetup.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/Uninstall.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/StatusPanel.app/Contents/MacOS/JavaApplicationStub"
+           excludes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/*,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_client-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_script-util.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_server-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_mixed-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/setup,${SHORT_NAME}-${VERSION_NUMBER_STRING}/uninstall,${SHORT_NAME}-${VERSION_NUMBER_STRING}/upgrade,${SHORT_NAME}-${VERSION_NUMBER_STRING}/QuickSetup.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/Uninstall.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/ControlPanel.app/Contents/MacOS/JavaApplicationStub"
            filemode="644" dirmode="755" />
       <zipfileset dir="${package.dir}"
            includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_client-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_script-util.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_server-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_mixed-script.sh"
@@ -1043,7 +1069,7 @@
            filemode="755" dirmode="755" />
       <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/README_WINDOWS.txt"
            filemode="644" dirmode="755" />
-      <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/setup,${SHORT_NAME}-${VERSION_NUMBER_STRING}/uninstall,${SHORT_NAME}-${VERSION_NUMBER_STRING}/upgrade,${SHORT_NAME}-${VERSION_NUMBER_STRING}/QuickSetup.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/Uninstall.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/StatusPanel.app/Contents/MacOS/JavaApplicationStub"
+      <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/setup,${SHORT_NAME}-${VERSION_NUMBER_STRING}/uninstall,${SHORT_NAME}-${VERSION_NUMBER_STRING}/upgrade,${SHORT_NAME}-${VERSION_NUMBER_STRING}/QuickSetup.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/Uninstall.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/ControlPanel.app/Contents/MacOS/JavaApplicationStub"
            filemode="755" dirmode="755" />
     </zip>
     <property name="package.built" value="true"/>
@@ -1268,7 +1294,7 @@
         <include name="*.jar"/>
       </fileset>
       <dirset dir="${classes.dir}"/>
-    </path>
+   </path>
     <nbjpdastart addressproperty="jpda.address" name="Directory Server" transport="dt_socket">
       <classpath refid="cp"/>
     </nbjpdastart>
@@ -1353,6 +1379,7 @@
       <jvmarg  value="-Dorg.opends.server.scriptName=dsconfig" />
     </java>
   </target>
+
 
   <!-- Internal target to prepare to generate a code coverage report. -->
   <target name="coverage">
@@ -2176,7 +2203,7 @@
 
 
   <!-- Remove all dynamically-generated build files. -->
-  <target name="cleanadmin" description="Clean up any generated source files for admin">
+  <target name="cleanadmin" if="isadmingendirpresent" description="Clean up any generated source files for admin">
     <delete includeemptydirs="true">
       <fileset dir="${admin.src.dir}" includes="**/*" />
     </delete>
@@ -2193,7 +2220,7 @@
   </target>
 
   <!-- Remove all dynamically-generated build files. -->
-  <target name="cleanmessages" description="Clean up any generated source files for messages">
+  <target name="cleanmessages" if="ismsggendirpresent" description="Clean up any generated source files for messages">
     <delete includeemptydirs="true">
       <fileset dir="${msg.javagen.dir}" includes="**/*" />
     </delete>
@@ -2355,7 +2382,13 @@
     <jar jarfile="${pdir}/lib/extensions/snmp-mib2605.jar"
          basedir="${classes.dir}"
          includes="org/opends/server/snmp/**"
-         compress="true" index="true" />
+         compress="true" index="true" >
+      <manifest>
+        <attribute name="Extension-Name" value="snmp-mib2605"/>
+        <attribute name="Implementation-Version" value="${VERSION_NUMBER_STRING}"/>
+        <attribute name="Revision-Number" value="${REVISION_NUMBER}"/>
+      </manifest>
+    </jar>
     <echo message="SNMP Extension is built"/>
     <echo message="${pdir}/lib/extensions/snmp-mib2605.jar"/>
   </target>

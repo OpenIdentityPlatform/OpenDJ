@@ -132,7 +132,7 @@ public class SearchOperationTestCase extends OperationTestCase
     ldapAttrCount = 1; // For the objectclass attribute.
     for (Attribute a : testEntry.getAttributes())
     {
-      ldapAttrCount += a.getValues().size();
+      ldapAttrCount += a.size();
     }
 
     // The add operation changes the attributes, so let's duplicate the entry.

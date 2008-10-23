@@ -30,13 +30,18 @@ package org.opends.server.util;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.KeyStoreException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.util.LinkedList;
 
+import java.util.Random;
 import org.opends.server.types.OperatingSystem;
 
 
@@ -409,5 +414,98 @@ public class SetupUtils
     }
     return s;
   }
+
+  /**
+   * Returns a randomly generated password for a self-signed certificate
+   * keystore.
+   * @return a randomly generated password for a self-signed certificate
+   * keystore.
+   */
+  public static char[] createSelfSignedCertificatePwd() {
+    int pwdLength = 50;
+    char[] pwd = new char[pwdLength];
+    Random random = new Random();
+    for (int pos=0; pos < pwdLength; pos++) {
+        int type = getRandomInt(random,3);
+        char nextChar = getRandomChar(random,type);
+        pwd[pos] = nextChar;
+    }
+    return pwd;
+  }
+
+
+  /**
+   * Export a certificate in a file.
+   *
+   * @param certManager Certificate manager to use.
+   * @param alias Certificate alias to export.
+   * @param path Path of the output file.
+   *
+   * @throws CertificateEncodingException If the certificate manager cannot
+   * encode the certificate.
+   * @throws IOException If a problem occurs while creating or writing in the
+   * output file.
+   * @throws KeyStoreException If the certificate manager cannot retrieve the
+   * certificate to be exported.
+   */
+  public static void exportCertificate(
+    CertificateManager certManager, String alias, String path)
+    throws CertificateEncodingException, IOException, KeyStoreException
+  {
+    Certificate certificate = certManager.getCertificate(alias);
+
+    byte[] certificateBytes = certificate.getEncoded();
+
+    FileOutputStream outputStream = new FileOutputStream(path, false);
+    outputStream.write(certificateBytes);
+    outputStream.close();
+  }
+
+  /* The next two methods are used to generate the random password for the
+   * self-signed certificate. */
+  private static char getRandomChar(Random random, int type)
+  {
+    char generatedChar;
+    int next = random.nextInt();
+    int d;
+
+    switch (type)
+    {
+    case 0:
+      // Will return a digit
+      d = next % 10;
+      if (d < 0)
+      {
+        d = d * (-1);
+      }
+      generatedChar = (char) (d+48);
+      break;
+    case 1:
+      // Will return a lower case letter
+      d = next % 26;
+      if (d < 0)
+      {
+        d = d * (-1);
+      }
+      generatedChar =  (char) (d + 97);
+      break;
+    default:
+      // Will return a capital letter
+      d = (next % 26);
+      if (d < 0)
+      {
+        d = d * (-1);
+      }
+      generatedChar = (char) (d + 65) ;
+    }
+
+    return generatedChar;
+  }
+
+  private static int getRandomInt(Random random,int modulo)
+  {
+    return (random.nextInt() & modulo);
+  }
+
 }
 

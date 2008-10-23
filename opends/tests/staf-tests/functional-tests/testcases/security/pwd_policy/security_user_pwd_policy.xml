@@ -267,7 +267,6 @@
 
             <call function="'modifyPwdPolicy'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
@@ -295,7 +294,6 @@
 
           <call function="'manageAccountWithScript'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'subcommand'       : 'get-password-is-reset' ,
@@ -343,7 +341,6 @@
 
             <call function="'modifyPwdPolicy'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
@@ -371,7 +368,6 @@
 
             <call function="'manageAccountWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'subcommand'       : 'get-password-is-reset' ,
@@ -393,7 +389,6 @@
 
             <call function="'manageAccountWithScript'">
                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                  'subcommand'       : 'get-password-changed-time' ,

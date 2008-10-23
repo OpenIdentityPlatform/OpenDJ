@@ -74,7 +74,6 @@ public class DataReplicationPanel extends QuickSetupStepPanel
   private JRadioButton rbReplicated;
   private JCheckBox cbSecureReplication;
   private JCheckBox cbTopologyExists;
-  private JCheckBox cbRemoteServerPortSecure;
   private HashMap<FieldName, JLabel> hmLabels =
     new HashMap<FieldName, JLabel>();
   private HashMap<FieldName, JTextComponent> hmFields =
@@ -116,17 +115,6 @@ public class DataReplicationPanel extends QuickSetupStepPanel
       else
       {
         value = DataReplicationOptions.Type.FIRST_IN_TOPOLOGY;
-      }
-    }
-    else if (fieldName == FieldName.REMOTE_SERVER_IS_SECURE_PORT)
-    {
-      if (cbRemoteServerPortSecure.isSelected())
-      {
-        value = Boolean.TRUE;
-      }
-      else
-      {
-        value = Boolean.FALSE;
       }
     }
     else if (fieldName == FieldName.REPLICATION_SECURE)
@@ -268,12 +256,6 @@ public class DataReplicationPanel extends QuickSetupStepPanel
       gbc.fill = GridBagConstraints.HORIZONTAL;
       gbc.weightx = 0.0;
       aux2Panel.add(getField(fields[i]), gbc);
-
-      if (fields[i] == FieldName.REMOTE_SERVER_PORT)
-      {
-        gbc.gridwidth = GridBagConstraints.RELATIVE;
-        aux2Panel.add(cbRemoteServerPortSecure, gbc);
-      }
 
       gbc.gridwidth = GridBagConstraints.REMAINDER;
       gbc.insets.left = 0;
@@ -507,10 +489,6 @@ public class DataReplicationPanel extends QuickSetupStepPanel
         defaultUserData.getReplicationOptions().useSecureReplication());
     cbTopologyExists.setSelected(type ==
       DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY);
-    cbRemoteServerPortSecure = UIFactory.makeJCheckBox(
-        INFO_REMOTE_SERVER_PORT_IS_SECURE_LABEL.get(),
-        INFO_REMOTE_SERVER_PORT_IS_SECURE_TOOLTIP.get(),
-        UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     checkEnablingState();
   }
 
@@ -644,7 +622,6 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     getLabel(FieldName.REPLICATION_PORT).setEnabled(rbReplicated.isSelected());
     getField(FieldName.REPLICATION_PORT).setEnabled(rbReplicated.isSelected());
     cbSecureReplication.setEnabled(rbReplicated.isSelected());
-    cbRemoteServerPortSecure.setEnabled(enableFields);
   }
 
   /**

@@ -190,8 +190,8 @@ public final class AttributeValueIterable implements
       while (attributeIterator.hasNext()) {
         Attribute attribute = attributeIterator.next();
 
-        if (attribute.hasOptions(options)) {
-          valueIterator = attribute.getValues().iterator();
+        if (attribute.hasAllOptions(options)) {
+          valueIterator = attribute.iterator();
           if (valueIterator.hasNext()) {
             return true;
           }

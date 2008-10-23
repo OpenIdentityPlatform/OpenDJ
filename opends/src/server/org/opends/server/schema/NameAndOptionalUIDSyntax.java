@@ -288,5 +288,15 @@ public class NameAndOptionalUIDSyntax
     // If we've gotten here, then the value is acceptable.
     return true;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isBinary()
+  {
+    return false;
+  }
 }
 
