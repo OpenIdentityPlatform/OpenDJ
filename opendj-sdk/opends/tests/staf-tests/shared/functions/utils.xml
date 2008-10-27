@@ -904,13 +904,13 @@
         FormattedTestsuite=FormattedTestcase.suite(ThisSuiteName)
              
         TestLogDir= '%s/%s' % (logs.tests,FormattedTestgroup)
-        TestLogFile='%s/%s' % (TestLogDir,FormattedTestsuite) 
+        TestLogFile='%s/%s' % (TestLogDir,FormattedTestsuite)
       </script>
                   
       <call function="'WriteLogsForTestCase'">
         { 'starttime' : TestSuiteStartTime,
           'endtime'   : TestSuiteEndTime,
-          'tofile'    : TestLogFile }
+          'logFile' : TestLogFile }
       </call>
 
       <script>
@@ -1052,7 +1052,7 @@
     </sequence>
   </function>
   
-  <function name="WriteLogsForTestCase">
+  <function name="WriteLogsForTestCase" scope="local">
 
     <function-prolog>
       Queries the staf logs for the test case and write to file as text
@@ -1070,7 +1070,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="timestamp"/>
       </function-arg-def>
-      <function-arg-def name="tofile" type="required">
+      <function-arg-def name="logFile" type="required">
         <function-arg-description>
           name of file to write the logs
         </function-arg-description>
@@ -1080,6 +1080,13 @@
 
     <sequence>
 
+      <script>
+        xmlFile   = '%s.xml' % logFile
+        htmlFile  = '%s.html' % logFile
+        xslFile   = '%s/xsl/gen-logs.xsl' % TESTS_SHARED_DIR
+      </script>
+        
+      <!-- Query STAF to obtain the logs for the test case -->
       <call function="'queryLogs'">
         { 'location'  : STAXServiceMachine,
           'logname'   : 'STAX_Job_%s_User' % STAXJobID, 
@@ -1087,16 +1094,24 @@
           'endat'     : endtime }
       </call>
 
-      <call function="'WriteLogs'">
+      <!-- Write out the logs into an XML file -->
+      <call function="'WriteXmlLogs'">
         { 'queryresult' : STAFResult, 
-          'logfile'     : tofile }
+          'output'      : xmlFile }
+      </call>
+
+      <!-- Transform the XML file into an HTML file -->
+      <call function="'WriteHtmlLogs'">
+        { 'input'       : xmlFile,
+          'stylesheet'  : xslFile, 
+          'output'      : htmlFile }
       </call>
 
     </sequence>
 
   </function>
 
-  <function name="WriteLogs">
+  <function name="WriteXmlLogs" scope="local">
 
     <function-prolog>
       Process staf log query results and write them to a file
@@ -1108,9 +1123,9 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>   
-      <function-arg-def name="logfile" type="required">
+      <function-arg-def name="output" type="required">
         <function-arg-description>
-          name of the log file to where results are written
+          name of the XML file to where results are written
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>          
@@ -1118,19 +1133,40 @@
     
     <sequence>
 
-      <message>'Creating test log %s' % logfile</message>
-     
       <script>
-        NewLogDir=os.path.dirname(logfile)
+        logFile=output
+        NewLogDir=os.path.dirname(logFile)
       </script>
-      
+
+      <message>'Creating XML log file %s' % logFile</message>
+           
       <call function="'createFolder'">
         { 'location'   : STAXServiceMachine, 
           'foldername' : NewLogDir }
       </call>
 
       <script>
-        testlogfh=open(logfile,'w')
+        from xml.dom.minidom import Document
+        doc = Document()
+
+        # Create the qa base element
+        qa = doc.createElement("qa")
+        doc.appendChild(qa)
+        
+        # Create the base element
+        logs = doc.createElement("logs")
+        qa.appendChild(logs)
+
+        # Pass only the pretty print of the test suite name
+        __main,__group,__suite=CurrentTestPath['suite'].split('.')
+
+        # Create the log element
+        log = doc.createElement("log")
+        log.setAttribute("group", "%s" % CurrentTestPath['group'])
+        log.setAttribute("suite", "%s" % __suite)
+        log.setAttribute("jobid", "%s" % STAXJobID)
+        log.setAttribute("parent", "%s" % STAXParentID)
+        logs.appendChild(log)
       </script>
       
       <if expr="queryresult == '[]'">
@@ -1153,20 +1189,93 @@
             level=element['level'] 
             message=element['message']
             timestamp=element['timestamp']
-            
-            testlogfh.write('%s %s %s\n' % (timestamp,level,message))
+
+            line = doc.createElement("line")
+            line.setAttribute("timestamp", "%s" % timestamp)
+            line.setAttribute("level", "%s" % level)
+            line.setAttribute("message", "%s" % message)
+            log.appendChild(line)
           </script>
         </iterate>
       </else>
       </if>
       
-      <script>testlogfh.close()</script>
-      
+      <script>
+        _message='Generated XML test case report.'
+        testlogfh=open('%s' % logFile,'w')
+        try:
+          testlogfh.writelines(doc.toprettyxml(indent="  "))
+        except AttributeError,details:
+          _message='Unable to generate XML test case report %s.' % details
+        except:
+          _message='Unable to generate XML test case report !!!'
+        testlogfh.close()
+      </script>
+
+      <message>_message</message>
+            
     </sequence>
 
   </function>
   
-  
+  <function name="WriteHtmlLogs" scope="local">
+
+    <function-prolog>
+      Process XML file and transform that to an HTML file
+    </function-prolog>
+    <function-map-args>   
+      <function-arg-def name="input" type="required">
+        <function-arg-description>
+          name of the XML file to where results are obtained
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+      <function-arg-def name="output" type="required">
+        <function-arg-description>
+          name of the HTML file to where results are written
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="stylesheet" type="required">
+        <function-arg-description>
+          name of the XSL stylesheet used to transform results
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+
+      <script>
+        xmlFile=input
+        htmlFile=output
+        xslFile=stylesheet
+      </script>
+
+      <message>'Inputting XML file %s' % xmlFile</message>
+      <message>'Transform XSL file %s' % xslFile</message>
+      <message>'Creating HTML file %s' % htmlFile</message>
+
+      <script>     
+        _message='Generated test case report.'
+        testCaseReport=report_generation()
+        stringParamsDict={}
+        
+        try:
+          testCaseReport.transformReport(xslFile,xmlFile,htmlFile,stringParamsDict)
+        except java.io.FileNotFoundException,details:
+          _message='Unable to generate test case report %s.' % details
+        except IOError,details:
+          _message='Unable to generate test case report %s.' % details
+        except:
+          _message='Unable to generate test case report !!!'
+      </script>
+
+      <message>'%s' % _message</message>
+
+    </sequence>
+
+  </function>  
    
   <function name="CheckMatches">
     <function-prolog>

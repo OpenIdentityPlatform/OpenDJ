@@ -256,6 +256,9 @@ class directory_server:
   def port(self,port):
     return port
 
+  def adminport(self,port):
+    return adminport
+
   def dn(self,dn):
     return dn
 
