@@ -432,7 +432,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
               </xsl:attribute>
               <xsl:element name="a">
                 <xsl:attribute name="href">
-                  <xsl:value-of select="concat($url,$tests-dir,'/testlogs/',$groupdir,'/',$suitename)"/>
+                  <xsl:value-of select="concat($url,$tests-dir,'/testlogs/',$groupdir,'/',$suitename,'.html')"/>
                 </xsl:attribute>
                 <xsl:value-of select="@name"/>
               </xsl:element>

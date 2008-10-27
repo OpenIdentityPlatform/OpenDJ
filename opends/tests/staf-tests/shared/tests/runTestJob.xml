@@ -636,12 +636,12 @@
           
           # Create the testcase element
           case = doc.createElement("testcase")
-          case.setAttribute("group", "%s" %tcgroup)
-          case.setAttribute("suite", "%s" %tcsuite)
-          case.setAttribute("name", "%s" %tcname)
-          case.setAttribute("result", "%s" %tcresult)
-          case.setAttribute("start", "%s" %tcstart)
-          case.setAttribute("stop", "%s" %tcstop)
+          case.setAttribute("group", "%s" % tcgroup)
+          case.setAttribute("suite", "%s" % tcsuite)
+          case.setAttribute("name", "%s" % tcname)
+          case.setAttribute("result", "%s" % tcresult)
+          case.setAttribute("start", "%s" % tcstart)
+          case.setAttribute("stop", "%s" % tcstop)
           case.setAttribute("duration", "%s" % tcdurationsecs)
           suite.appendChild(case)
 
