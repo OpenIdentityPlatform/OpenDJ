@@ -479,7 +479,7 @@
           #@TestPostamble       delete the cos
           #@TestResult          
           -->
-          <testcase name="getTestCaseName('cos: enable/disable')">
+          <testcase name="getTestCaseName('cos enable/disable')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               
@@ -603,7 +603,7 @@
           #@TestPostamble       delete the cos
           #@TestResult          
           -->
-          <testcase name="getTestCaseName('cos: virtual-overrides-real')">
+          <testcase name="getTestCaseName('cos virtual-overrides-real')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               
@@ -703,7 +703,7 @@
           #@TestPostamble       delete the cos
           #@TestResult          
           -->
-          <testcase name="getTestCaseName('cos: real-overrides-virtual')">
+          <testcase name="getTestCaseName('cos real-overrides-virtual')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               
@@ -802,7 +802,7 @@
           #@TestPostamble       delete the cos
           #@TestResult          
           -->
-          <testcase name="getTestCaseName('cos: merge-real-and-virtual')">
+          <testcase name="getTestCaseName('cos merge-real-and-virtual')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               
@@ -903,7 +903,7 @@
           #@TestPostamble       delete the cos
           #@TestResult          
           -->
-          <testcase name="getTestCaseName('cos: filter')">
+          <testcase name="getTestCaseName('cos filter')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               

@@ -1081,8 +1081,8 @@
     <sequence>
 
       <script>
-        xmlFile   = '%s.xml' % logFile
-        htmlFile  = '%s.html' % logFile
+        xmlFile   = '%s-log.xml' % logFile
+        htmlFile  = '%s-log.html' % logFile
         xslFile   = '%s/xsl/gen-logs.xsl' % TESTS_SHARED_DIR
       </script>
         
@@ -1158,12 +1158,12 @@
         qa.appendChild(logs)
 
         # Pass only the pretty print of the test suite name
-        __main,__group,__suite=CurrentTestPath['suite'].split('.')
+        suite=CurrentTestPath['suite'].split('.')[2].strip()
 
         # Create the log element
         log = doc.createElement("log")
         log.setAttribute("group", "%s" % CurrentTestPath['group'])
-        log.setAttribute("suite", "%s" % __suite)
+        log.setAttribute("suite", "%s" % suite)
         log.setAttribute("jobid", "%s" % STAXJobID)
         log.setAttribute("parent", "%s" % STAXParentID)
         logs.appendChild(log)
@@ -1194,6 +1194,9 @@
             line.setAttribute("timestamp", "%s" % timestamp)
             line.setAttribute("level", "%s" % level)
             line.setAttribute("message", "%s" % message)
+            if level == 'Start':
+              tag=message.split(":")[3].strip()
+              line.setAttribute("tag", "%s" % tag.lower())
             log.appendChild(line)
           </script>
         </iterate>
@@ -1221,7 +1224,7 @@
   <function name="WriteHtmlLogs" scope="local">
 
     <function-prolog>
-      Process XML file and transform that to an HTML file
+      Process XML file and transform that to an HTML log file
     </function-prolog>
     <function-map-args>   
       <function-arg-def name="input" type="required">
@@ -1257,25 +1260,25 @@
       <message>'Creating HTML file %s' % htmlFile</message>
 
       <script>     
-        _message='Generated test case report.'
-        testCaseReport=report_generation()
+        _message='Generated test case logs.'
+        testCaseLogs=report_generation()
         stringParamsDict={}
         
         try:
-          testCaseReport.transformReport(xslFile,xmlFile,htmlFile,stringParamsDict)
+          testCaseLogs.transformReport(xslFile,xmlFile,htmlFile,stringParamsDict)
         except java.io.FileNotFoundException,details:
-          _message='Unable to generate test case report %s.' % details
+          _message='Unable to generate test case logs %s.' % details
         except IOError,details:
-          _message='Unable to generate test case report %s.' % details
+          _message='Unable to generate test case logs %s.' % details
         except:
-          _message='Unable to generate test case report !!!'
+          _message='Unable to generate test case logs !!!'
       </script>
 
       <message>'%s' % _message</message>
 
     </sequence>
 
-  </function>  
+  </function>
    
   <function name="CheckMatches">
     <function-prolog>

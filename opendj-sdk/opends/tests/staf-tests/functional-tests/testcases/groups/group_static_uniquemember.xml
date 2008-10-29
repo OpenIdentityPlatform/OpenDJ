@@ -78,7 +78,7 @@
           
           <!--- Test Case information
           #@TestMarker          Static Group Tests
-          #@TestName            Group: Static: uniquemember: add a static group entry
+          #@TestName            Group: Static: uniquemember add a static group entry
           #@TestID              
           #@TestPurpose         
           #@TestPreamble
@@ -86,7 +86,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="getTestCaseName('uniquemember: add a static group entry')">
+          <testcase name="getTestCaseName('uniquemember add a static group entry')">
             <sequence>
               <call function="'testCase_Preamble'"/>
 
@@ -144,7 +144,7 @@
           
           <!--- Test Case information
           #@TestMarker          Static Group Tests
-          #@TestName            Group: Static: uniquemember: delete a static group entry
+          #@TestName            Group: Static: uniquemember delete a static group entry
           #@TestID              
           #@TestPurpose         
           #@TestPreamble
@@ -152,7 +152,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="getTestCaseName('uniquemember: delete a static group entry')">
+          <testcase name="getTestCaseName('uniquemember delete a static group entry')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -192,7 +192,7 @@
 
           <!--- Test Case information
           #@TestMarker          Static Group Tests
-          #@TestName            Group: Static: uniquemember: ldapsearch out of the group
+          #@TestName            Group: Static: uniquemember ldapsearch out of the group
           #@TestID              search in group
           #@TestPurpose         user of group search members of its group
           #@TestPreamble
@@ -200,7 +200,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="getTestCaseName('uniquemember: ldapsearch out of the group')">
+          <testcase name="getTestCaseName('uniquemember ldapsearch out of the group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -229,7 +229,7 @@
           
           <!--- Test Case information
           #@TestMarker          Static Group Tests
-          #@TestName            Group: Static: uniquemember: ldapsearch through group
+          #@TestName            Group: Static: uniquemember ldapsearch through group
           #@TestID              search in group
           #@TestPurpose         user of group search members of its group
           #@TestPreamble
@@ -237,7 +237,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="getTestCaseName('uniquemember: ldapsearch through group')">
+          <testcase name="getTestCaseName('uniquemember ldapsearch through group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -275,7 +275,7 @@
           
           <!--- Test Case information
           #@TestMarker          Group StaticGroup Tests
-          #@TestName            Group: Static: uniquemember: application search in group
+          #@TestName            Group: Static: uniquemember application search in group
           #@TestID              
           #@TestPurpose         
           #@TestPreamble
@@ -283,7 +283,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="getTestCaseName('uniquemember: application search in group')">
+          <testcase name="getTestCaseName('uniquemember application search in group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -319,7 +319,7 @@
           
           <!--- Test Case information
           #@TestMarker          Group StaticGroup Tests
-          #@TestName            Group: Static: uniquemember: application add user in group
+          #@TestName            Group: Static: uniquemember application add user in group
           #@TestID              
           #@TestPurpose         
           #@TestPreamble
@@ -327,7 +327,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="getTestCaseName('uniquemember: application add user in group')">
+          <testcase name="getTestCaseName('uniquemember application add user in group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -409,7 +409,7 @@
           
           <!--- Test Case information
           #@TestMarker          Static Group Tests
-          #@TestName            Group: Static: uniquemember: delete user entry belonging to the group
+          #@TestName            Group: Static: uniquemember delete user entry belonging to the group
           #@TestID              
           #@TestPurpose         
           #@TestPreamble        previous testcase must be run before this one
@@ -417,7 +417,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="getTestCaseName('uniquemember: delete user entry belonging to the group')">
+          <testcase name="getTestCaseName('uniquemember delete user entry belonging to the group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <!-- ******************** -->
@@ -508,7 +508,7 @@
           
           <!--- Test Case information
           #@TestMarker          Group StaticGroup Tests
-          #@TestName            Group: Static: uniquemember: application delete user from group
+          #@TestName            Group: Static: uniquemember application delete user from group
           #@TestID              
           #@TestPurpose         
           #@TestPreamble
@@ -516,7 +516,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="getTestCaseName('uniquemember: application delete user from group')">
+          <testcase name="getTestCaseName('uniquemember application delete user from group')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -597,7 +597,7 @@
           
           <!--- Test Case information
           #@TestMarker          Static Group Tests
-          #@TestName            Group: Static: uniquemember: delete all attributes in a static group entry
+          #@TestName            Group: Static: uniquemember delete all attributes in a static group entry
           #@TestID              
           #@TestPurpose         
           #@TestPreamble
@@ -605,7 +605,7 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="getTestCaseName('uniquemember: delete all attributes in a static group entry')">
+          <testcase name="getTestCaseName('uniquemember delete all attributes in a static group entry')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <!-- ******************** -->
@@ -708,7 +708,7 @@
           
           <!--- Test Case information
           #@TestMarker          Group StaticGroup Tests
-          #@TestName            Group: Static: uniquemember: enable referential integrity plugin
+          #@TestName            Group: Static: uniquemember enable referential integrity plugin
           #@TestID              
           #@TestPurpose         
           #@TestPreamble
@@ -717,7 +717,7 @@
           #@TestResult
           -->
           <!--
-          <testcase name="getTestCaseName('uniquemember: enable referential integrity plugin')">
+          <testcase name="getTestCaseName('uniquemember enable referential integrity plugin')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>

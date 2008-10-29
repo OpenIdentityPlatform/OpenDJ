@@ -39,7 +39,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <!-- Tests log XML document -->
   <xsl:variable name="tests-log-doc"             select="document($tests-log)"/>
     
-  <!--- Test Report Header Variables -->
+  <!--- Test Suites Report Header Variables -->
   <xsl:variable name="ft"             select="qa/functional-tests"/>
   <xsl:variable name="id"             select="$ft/identification"/>
   <xsl:variable name="sut"            select="$id/sut"/>
@@ -76,7 +76,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <link rel="stylesheet" href="https://opends.dev.java.net/public/css/opends.css" type="text/css" />
 
     <xsl:element name="title">
-      <xsl:value-of select="concat('Test Report for OpenDS ',$version)"/>
+      <xsl:value-of select="concat('Test Suites Report for OpenDS ',$version)"/>
     </xsl:element>
   
   </xsl:element>
@@ -84,7 +84,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <table class="tertmasttable" width="100%" cellspacing="0">
     <tbody>
       <tr>
-        <td><div class="collectionheader"><xsl:value-of select="concat('Test Report for OpenDS ',$version)"/></div></td>
+        <td><div class="collectionheader"><xsl:value-of select="concat('Test Suites Report for OpenDS ',$version)"/></div></td>
         <td width="10%"><a href="https://opends.dev.java.net/"><img src="https://opends.dev.java.net/public/images/opends_logo_sm.png" alt="OpenDS Logo" width="104" height="33" border="0" align="middle" /></a> </td>
       </tr>
     </tbody>
@@ -393,7 +393,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:variable name="test-kfail" select="count($tests-log-doc/qa/functional-tests/results/test[suite=$suite and result='known'])"/>
           <xsl:variable name="test-percent" select="round((($test-pass div $test-num) * 100) - 0.5)"/>
           <xsl:variable name="suitename" select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')"/>
-          
+
           <xsl:variable name="end-time">
             <xsl:for-each select="$all-tests/@stop">
 
@@ -409,7 +409,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
               <xsl:with-param name="testList" select="$all-tests"/>
             </xsl:call-template>
           </xsl:variable>
-
+            
           <xsl:element name="tr">
             <xsl:attribute name="bgcolor">
               <xsl:choose>
@@ -432,7 +432,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
               </xsl:attribute>
               <xsl:element name="a">
                 <xsl:attribute name="href">
-                  <xsl:value-of select="concat($url,$tests-dir,'/testlogs/',$groupdir,'/',$suitename,'.html')"/>
+                  <xsl:value-of select="concat($url,$tests-dir,'/testlogs/',$groupdir,'/',@shortname,'-report.html')"/>
                 </xsl:attribute>
                 <xsl:value-of select="@name"/>
               </xsl:element>

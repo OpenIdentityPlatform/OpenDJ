@@ -128,7 +128,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       <xsl:element name="table">
       <xsl:attribute name="border">
         <xsl:value-of select="'1'"/>
-      </xsl:attribute> 
+      </xsl:attribute>
 
       <xsl:element name="tr">
         <xsl:element name="th">
@@ -151,7 +151,19 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
             <xsl:value-of select="@timestamp"/>
           </xsl:element>
           <xsl:element name="td">
-            <xsl:value-of select="@level"/>
+            <xsl:choose>
+              <xsl:when test="@level = 'Start'">              
+                <xsl:element name="a">
+                  <xsl:attribute name="name">
+                    <xsl:value-of select="@tag"/>
+                  </xsl:attribute>
+                  <xsl:value-of select="@level"/>
+                </xsl:element>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:value-of select="@level"/>
+              </xsl:otherwise>
+            </xsl:choose>
           </xsl:element>
           <xsl:element name="td">
             <xsl:value-of select="@message"/>
