@@ -27,7 +27,6 @@
 
 package org.opends.guitools.controlpanel.datamodel;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -43,7 +42,7 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
   private DN baseDN;
   private Scope scope;
   private String filter;
-  private List<VLVSortOrder> sortOrder = new ArrayList<VLVSortOrder>();
+  private List<VLVSortOrder> sortOrder = Collections.emptyList();
   private int maxBlockSize;
   private int hashCode;
 
@@ -65,7 +64,7 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
     this.baseDN = baseDN;
     this.scope = scope;
     this.filter = filter;
-    this.sortOrder.addAll(sortOrder);
+    this.sortOrder = Collections.unmodifiableList(sortOrder);
     this.maxBlockSize = maxBlockSize;
 
     recalculateHashCode();
@@ -126,7 +125,7 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
    */
   public List<VLVSortOrder> getSortOrder()
   {
-    return Collections.unmodifiableList(sortOrder);
+    return sortOrder;
   }
 
   /**

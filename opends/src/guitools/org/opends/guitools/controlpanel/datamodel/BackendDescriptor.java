@@ -28,9 +28,7 @@
 package org.opends.guitools.controlpanel.datamodel;
 
 import java.util.Collections;
-import java.util.Set;
 import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.opends.admin.ads.ADSContext;
 
@@ -41,10 +39,9 @@ import org.opends.admin.ads.ADSContext;
 public class BackendDescriptor
 {
   private String backendID;
-  private SortedSet<BaseDNDescriptor> baseDns = new TreeSet<BaseDNDescriptor>();
-  private SortedSet<IndexDescriptor> indexes = new TreeSet<IndexDescriptor>();
-  private SortedSet<VLVIndexDescriptor> vlvIndexes =
-    new TreeSet<VLVIndexDescriptor>();
+  private SortedSet<BaseDNDescriptor> baseDns;
+  private SortedSet<IndexDescriptor> indexes;
+  private SortedSet<VLVIndexDescriptor> vlvIndexes;
   private int entries;
   private boolean isConfigBackend;
   private boolean isEnabled;
@@ -97,15 +94,15 @@ public class BackendDescriptor
    * @param type the type of the backend.
    */
   public BackendDescriptor(String backendID,
-      Set<BaseDNDescriptor> baseDns,
-      Set<IndexDescriptor> indexes,
-      Set<VLVIndexDescriptor> vlvIndexes,
+      SortedSet<BaseDNDescriptor> baseDns,
+      SortedSet<IndexDescriptor> indexes,
+      SortedSet<VLVIndexDescriptor> vlvIndexes,
       int entries, boolean isEnabled, Type type)
   {
     this.backendID = backendID;
-    this.baseDns.addAll(baseDns);
-    this.indexes.addAll(indexes);
-    this.vlvIndexes.addAll(vlvIndexes);
+    this.baseDns = Collections.unmodifiableSortedSet(baseDns);
+    this.indexes = Collections.unmodifiableSortedSet(indexes);
+    this.vlvIndexes = Collections.unmodifiableSortedSet(vlvIndexes);
     this.entries = entries;
     isConfigBackend = isConfigBackend(backendID);
     this.type = type;
@@ -129,7 +126,7 @@ public class BackendDescriptor
    */
   public SortedSet<BaseDNDescriptor> getBaseDns()
   {
-    return Collections.unmodifiableSortedSet(baseDns);
+    return baseDns;
   }
 
   /**
@@ -138,7 +135,7 @@ public class BackendDescriptor
    */
   public SortedSet<VLVIndexDescriptor> getVLVIndexes()
   {
-    return Collections.unmodifiableSortedSet(vlvIndexes);
+    return vlvIndexes;
   }
 
 
@@ -148,7 +145,7 @@ public class BackendDescriptor
    */
   public SortedSet<IndexDescriptor> getIndexes()
   {
-    return Collections.unmodifiableSortedSet(indexes);
+    return indexes;
   }
 
   /**

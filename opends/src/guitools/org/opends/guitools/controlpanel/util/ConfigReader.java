@@ -32,7 +32,6 @@ import static org.opends.messages.AdminToolMessages.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -102,8 +101,7 @@ public abstract class ConfigReader
   /**
    * The exceptions that occurred reading the configuration.
    */
-  protected ArrayList<OpenDsException> exceptions =
-    new ArrayList<OpenDsException>();
+  protected List<OpenDsException> exceptions = Collections.emptyList();
 
   /**
    * Whether the configuration has already been read or not.
@@ -113,8 +111,7 @@ public abstract class ConfigReader
   /**
    * The set of connection listeners.
    */
-  protected HashSet<ConnectionHandlerDescriptor> listeners =
-    new HashSet<ConnectionHandlerDescriptor>();
+  protected Set<ConnectionHandlerDescriptor> listeners = Collections.emptySet();
 
   /**
    * The administration connector.
@@ -124,13 +121,12 @@ public abstract class ConfigReader
   /**
    * The set of backend descriptors.
    */
-  protected HashSet<BackendDescriptor> backends =
-    new HashSet<BackendDescriptor>();
+  protected Set<BackendDescriptor> backends = Collections.emptySet();
 
   /**
    * The set of administrative users.
    */
-  protected HashSet<DN> administrativeUsers = new HashSet<DN>();
+  protected Set<DN> administrativeUsers = Collections.emptySet();
 
   /**
    * The replication serve port (-1 if the replication server port is not
@@ -159,30 +155,33 @@ public abstract class ConfigReader
   protected Schema schema;
 
   /**
-   * Returns the Administrative User DNs found in the config.ldif.
+   * Returns the Administrative User DNs found in the config.ldif.  The set
+   * must be unmodifiable (the inheriting classes must take care of this).
    * @return the Administrative User DNs found in the config.ldif.
    */
   public Set<DN> getAdministrativeUsers()
   {
-    return Collections.unmodifiableSet(administrativeUsers);
+    return administrativeUsers;
   }
 
   /**
-   * Returns the backend descriptors found in the config.ldif.
+   * Returns the backend descriptors found in the config.ldif.  The set
+   * must be unmodifiable (the inheriting classes must take care of this).
    * @return the backend descriptors found in the config.ldif.
    */
   public Set<BackendDescriptor> getBackends()
   {
-    return Collections.unmodifiableSet(backends);
+    return backends;
   }
 
   /**
-   * Returns the listener descriptors found in the config.ldif.
+   * Returns the listener descriptors found in the config.ldif.  The set
+   * must be unmodifiable (the inheriting classes must take care of this).
    * @return the listeners descriptors found in the config.ldif.
    */
   public Set<ConnectionHandlerDescriptor> getConnectionHandlers()
   {
-    return Collections.unmodifiableSet(listeners);
+    return listeners;
   }
 
   /**
@@ -196,13 +195,14 @@ public abstract class ConfigReader
 
   /**
    * Returns the list of exceptions that were encountered reading the
-   * configuration.
+   * configuration.  The list must be unmodifiable (the inheriting classes must
+   * take care of this).
    * @return the list of exceptions that were encountered reading the
    * configuration.
    */
   public List<OpenDsException> getExceptions()
   {
-    return Collections.unmodifiableList(exceptions);
+    return exceptions;
   }
 
   /**

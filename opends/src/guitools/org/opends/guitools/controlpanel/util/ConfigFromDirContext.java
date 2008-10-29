@@ -30,6 +30,8 @@ package org.opends.guitools.controlpanel.util;
 import static org.opends.messages.AdminToolMessages.*;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -79,7 +81,11 @@ public class ConfigFromDirContext extends ConfigReader
    */
   public void readConfiguration(InitialLdapContext ctx)
   {
-    exceptions.clear();
+    List<OpenDsException> ex = new ArrayList<OpenDsException>();
+    Set<ConnectionHandlerDescriptor> ls =
+      new HashSet<ConnectionHandlerDescriptor>();
+    Set<BackendDescriptor> bs = new HashSet<BackendDescriptor>();
+    Set<DN> as = new HashSet<DN>();
 
     try
     {
@@ -88,7 +94,6 @@ public class ConfigFromDirContext extends ConfigReader
           JNDIDirContextAdaptor.adapt(ctx));
       RootCfgClient root = mCtx.getRootConfiguration();
 
-      listeners.clear();
       try
       {
         AdministrationConnectorCfgClient adminConnector =
@@ -97,7 +102,7 @@ public class ConfigFromDirContext extends ConfigReader
       }
       catch (OpenDsException oe)
       {
-        exceptions.add(oe);
+        ex.add(oe);
       }
       String[] connectionHandlers = root.listConnectionHandlers();
       for (int i=0; i<connectionHandlers.length; i++)
@@ -106,17 +111,16 @@ public class ConfigFromDirContext extends ConfigReader
         {
           ConnectionHandlerCfgClient connectionHandler =
             root.getConnectionHandler(connectionHandlers[i]);
-          listeners.add(getConnectionHandler(connectionHandler,
+          ls.add(getConnectionHandler(connectionHandler,
               connectionHandlers[i]));
         }
         catch (OpenDsException oe)
         {
-          exceptions.add(oe);
+          ex.add(oe);
         }
       }
       isSchemaEnabled = root.getGlobalConfiguration().isCheckSchema();
 
-      backends.clear();
       String[] backendNames = root.listBackends();
       for (int i=0; i<backendNames.length; i++)
       {
@@ -152,7 +156,7 @@ public class ConfigFromDirContext extends ConfigReader
             }
             catch (OpenDsException oe)
             {
-              exceptions.add(oe);
+              ex.add(oe);
             }
             indexes.add(
                 new IndexDescriptor("dn2id", null, null,
@@ -180,7 +184,7 @@ public class ConfigFromDirContext extends ConfigReader
             }
             catch (OpenDsException oe)
             {
-              exceptions.add(oe);
+              ex.add(oe);
             }
           }
           else if (backend instanceof LDIFBackendCfgClient)
@@ -221,11 +225,11 @@ public class ConfigFromDirContext extends ConfigReader
           {
             baseDN.setBackend(desc);
           }
-          backends.add(desc);
+          bs.add(desc);
         }
         catch (OpenDsException oe)
         {
-          exceptions.add(oe);
+          ex.add(oe);
         }
       }
 
@@ -237,7 +241,7 @@ public class ConfigFromDirContext extends ConfigReader
       }
       catch (OpenDsException oe)
       {
-        exceptions.add(oe);
+        ex.add(oe);
       }
 
 
@@ -274,7 +278,7 @@ public class ConfigFromDirContext extends ConfigReader
                     protocol,
                     ConnectionHandlerDescriptor.State.ENABLED,
                     "Multimaster Synchronization");
-              listeners.add(connHandler);
+              ls.add(connHandler);
             }
           }
           String[] domains = sync.listReplicationDomains();
@@ -285,7 +289,7 @@ public class ConfigFromDirContext extends ConfigReader
               ReplicationDomainCfgClient domain =
                 sync.getReplicationDomain(domains[i]);
               DN dn = domain.getBaseDN();
-              for (BackendDescriptor backend : backends)
+              for (BackendDescriptor backend : bs)
               {
                 for (BaseDNDescriptor baseDN : backend.getBaseDns())
                 {
@@ -301,7 +305,7 @@ public class ConfigFromDirContext extends ConfigReader
         }
         catch (OpenDsException oe)
         {
-          exceptions.add(oe);
+          ex.add(oe);
         }
       }
 
@@ -310,22 +314,21 @@ public class ConfigFromDirContext extends ConfigReader
       {
         RootDNCfgClient rootDN = root.getRootDN();
         String[] rootUsers = rootDN.listRootDNUsers();
-        administrativeUsers.clear();
         if (rootUsers != null)
         {
           for (int i=0; i < rootUsers.length; i++)
           {
             RootDNUserCfgClient rootUser = rootDN.getRootDNUser(rootUsers[i]);
-            administrativeUsers.addAll(rootUser.getAlternateBindDN());
+            as.addAll(rootUser.getAlternateBindDN());
           }
         }
       }
       catch (OpenDsException oe)
       {
-        exceptions.add(oe);
+        ex.add(oe);
       }
 
-      updateMonitorInformation(ctx);
+      updateMonitorInformation(ctx, bs, ex);
 
       try
       {
@@ -333,18 +336,28 @@ public class ConfigFromDirContext extends ConfigReader
       }
       catch (OpenDsException oe)
       {
-        exceptions.add(oe);
+        ex.add(oe);
       }
     }
     catch (final Throwable t)
     {
-      OnlineUpdateException ex = new OnlineUpdateException(
+      OnlineUpdateException oupe = new OnlineUpdateException(
           ERR_READING_CONFIG_LDAP.get(t.toString()), t);
-      exceptions.add(ex);
+      ex.add(oupe);
     }
+    for (OpenDsException oe : ex)
+    {
+      LOG.log(Level.WARNING, "Error reading configuration: "+oe, oe);
+    }
+    exceptions = Collections.unmodifiableList(ex);
+    administrativeUsers = Collections.unmodifiableSet(as);
+    listeners = Collections.unmodifiableSet(ls);
+    backends = Collections.unmodifiableSet(bs);
   }
 
-  private void updateMonitorInformation(InitialLdapContext ctx)
+  private void updateMonitorInformation(InitialLdapContext ctx,
+      Set<BackendDescriptor> bs,
+      List<OpenDsException> ex)
   {
     // Read monitoring information: since it is computed, it is faster
     // to get everything in just one request.
@@ -391,7 +404,7 @@ public class ConfigFromDirContext extends ConfigReader
 
         if ((dn != null)  && (replicaId != null))
         {
-          for (BackendDescriptor backend : backends)
+          for (BackendDescriptor backend : bs)
           {
             for (BaseDNDescriptor baseDN : backend.getBaseDns())
             {
@@ -430,7 +443,7 @@ public class ConfigFromDirContext extends ConfigReader
           if ((backendID != null) && ((entryCount != null) ||
               (baseDnEntries != null)))
           {
-            for (BackendDescriptor backend : backends)
+            for (BackendDescriptor backend : bs)
             {
               if (backend.getBackendID().equalsIgnoreCase(backendID))
               {
@@ -475,15 +488,9 @@ public class ConfigFromDirContext extends ConfigReader
     }
     catch (NamingException ne)
     {
-      OnlineUpdateException ex = new OnlineUpdateException(
+      OnlineUpdateException oue = new OnlineUpdateException(
           ERR_READING_CONFIG_LDAP.get(ne.getMessage().toString()), ne);
-      exceptions.add(ex);
-    }
-
-
-    for (OpenDsException oe : exceptions)
-    {
-      LOG.log(Level.WARNING, "Error reading configuration: "+oe, oe);
+      ex.add(oue);
     }
   }
 
