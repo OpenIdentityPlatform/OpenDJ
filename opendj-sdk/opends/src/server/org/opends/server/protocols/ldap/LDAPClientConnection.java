@@ -59,6 +59,7 @@ import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.SearchOperationBasis;
 import org.opends.server.core.UnbindOperationBasis;
+import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.extensions.NullConnectionSecurityProvider;
 import org.opends.server.extensions.TLSCapableConnection;
 import org.opends.server.extensions.TLSConnectionSecurityProvider;
@@ -236,6 +237,9 @@ public class LDAPClientConnection
 
 
     this.connectionHandler     = connectionHandler;
+    if (connectionHandler.isAdminConnectionHandler()) {
+      setNetworkGroup(NetworkGroup.getAdminNetworkGroup());
+    }
     this.clientChannel         = clientChannel;
     this.securityProvider      = null;
     this.clearSecurityProvider = null;

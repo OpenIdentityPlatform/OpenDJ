@@ -284,7 +284,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
 
   
   /**
-   * Creates a workflow to handle a local backend. The default network
+   * Creates a workflow to handle a local backend. The internal network
    * group is used.
    *
    * @param baseDN     the base DN of the workflow
@@ -310,8 +310,8 @@ public class WorkflowConfigurationTest extends UtilTestCase
         workflowID, DN.decode(baseDN), workflowElement);
     workflowImpl.register();
     
-    // Register the workflow with the default network group
-    NetworkGroup.getDefaultNetworkGroup().registerWorkflow(workflowImpl);
+    // Register the workflow with the internal network group
+    NetworkGroup.getInternalNetworkGroup().registerWorkflow(workflowImpl);
     
     return workflowImpl;
   }
@@ -329,8 +329,8 @@ public class WorkflowConfigurationTest extends UtilTestCase
     // Elaborate the workflow ID
     String workflowID = baseDN + "#" + backendID;
 
-    // Deregister the workflow with the default network group
-    NetworkGroup.getDefaultNetworkGroup().deregisterWorkflow(workflowID);
+    // Deregister the workflow with the internal network group
+    NetworkGroup.getInternalNetworkGroup().deregisterWorkflow(workflowID);
 
     // Deregister the workflow with the server
     Workflow workflow = WorkflowImpl.getWorkflow(workflowID);
@@ -666,7 +666,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
     // Move to the manual mode
     setModeManual();
     
-    // Create a route for o=test suffix in the default network group.
+    // Create a route for o=test suffix in the internal network group.
     // Search on o=test should succeed.
     WorkflowImpl workflowImpl = createWorkflow(baseDN, backendID);
     InternalSearchOperation searchOperation =
@@ -688,9 +688,9 @@ public class WorkflowConfigurationTest extends UtilTestCase
     searchOperation.run();
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     
-    // Put back the default network group in the client conenction
+    // Put back the internal network group in the client conenction
     // and check that searches are still working.
-    clientConnection.setNetworkGroup(NetworkGroup.getDefaultNetworkGroup());
+    clientConnection.setNetworkGroup(NetworkGroup.getInternalNetworkGroup());
     searchOperation.run();
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     

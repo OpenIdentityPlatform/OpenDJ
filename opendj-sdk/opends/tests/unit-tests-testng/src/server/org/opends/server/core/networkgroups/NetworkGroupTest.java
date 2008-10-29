@@ -145,6 +145,11 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
    * - one baseDN
    * - one subordinateDN
    * - a boolean telling whether we expect to find a workflow for the baseDN
+   *   in the default network group
+   * - a boolean telling whether we expect to find a workflow for the baseDN
+   *   in the admin network group
+   * - a boolean telling whether we expect to find a workflow for the baseDN
+   *   in the internal network group
    *
    * @return set of DNs
    * @throws Exception  when DN.decode fails
@@ -192,13 +197,13 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     // Sets of DNs
     Object[][] myData =
     {
-        { dnRootDSE,  null,                 true  },
-        { dnConfig,   dnSubordinateConfig,  true  },
-        { dnMonitor,  dnSubordinateMonitor, true  },
-        { dnTasks,    dnSubordinateTasks,   true  },
-        { dnSchema,   null,                 true  },
-        { dnBackups,  null,                 true  },
-        { dnDummy,    null,                 false },
+        { dnRootDSE,  null,                 true,  true,  true },
+        { dnConfig,   dnSubordinateConfig,  true,  true,  true },
+        { dnMonitor,  dnSubordinateMonitor, true,  true,  true },
+        { dnTasks,    dnSubordinateTasks,   true,  true,  true },
+        { dnSchema,   null,                 true,  true,  true },
+        { dnBackups,  null,                 true,  true,  true },
+        { dnDummy,    null,                 false, false, false },
     };
 
     return myData;
@@ -521,7 +526,9 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   public void checkDefaultNetworkGroup(
       DN      dnToSearch,
       DN      dnSubordinate,
-      boolean exists
+      boolean existsInDefault,
+      boolean existsInAdmin,
+      boolean existsInInternal
       )
   {
     // let's get the default network group -- it should always exist
@@ -529,10 +536,34 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     assertNotNull(defaultNG);
 
     // let's check the routing through the network group
-    doCheckNetworkGroup(defaultNG, dnToSearch, dnSubordinate, null, exists);
+    doCheckNetworkGroup(defaultNG, dnToSearch, dnSubordinate, null,
+            existsInDefault);
 
     // Dump the default network group
     dump(defaultNG, "defaultNetworkGroup> ");
+
+    // let's get the admin network group -- it should always exist
+
+    NetworkGroup adminNG = NetworkGroup.getAdminNetworkGroup();
+    assertNotNull(adminNG);
+
+    // let's check the routing through the network group
+    doCheckNetworkGroup(adminNG, dnToSearch, dnSubordinate, null,
+            existsInAdmin);
+
+    // Dump the default network group
+    dump(adminNG, "adminNetworkGroup> ");
+    
+    // let's get the internal network group -- it should always exist
+    NetworkGroup internalNG = NetworkGroup.getInternalNetworkGroup();
+    assertNotNull(internalNG);
+
+    // let's check the routing through the network group
+    doCheckNetworkGroup(internalNG, dnToSearch, dnSubordinate, null,
+            existsInInternal);
+
+    // Dump the default network group
+    dump(internalNG, "internalNetworkGroup> ");
   }
 
 

@@ -74,6 +74,7 @@ import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.backends.RootDSEBackend;
+import static org.opends.server.config.ConfigConstants.DN_CONFIG_ROOT;
 import static org.opends.server.config.ConfigConstants.DN_MONITOR_ROOT;
 import static org.opends.server.config.ConfigConstants.ENV_VAR_INSTALL_ROOT;
 import org.opends.server.config.ConfigEntry;
@@ -2613,8 +2614,7 @@ public class DirectoryServer
 
 
   /**
-   * Deregisters a workflow with the default network group and
-   * deregisters the workflow with the server. This method is
+   * Deregisters a workflow with the default network group. This method is
    * intended to be called when workflow configuration mode is
    * auto.
    *
@@ -2628,17 +2628,54 @@ public class DirectoryServer
     // being configured for the backend (there is one worklfow per
     // backend base DN).
     NetworkGroup defaultNetworkGroup = NetworkGroup.getDefaultNetworkGroup();
-    Workflow workflow = defaultNetworkGroup.deregisterWorkflow(baseDN);
-    WorkflowImpl workflowImpl = (WorkflowImpl) workflow;
-    workflowImpl.deregister();
+    defaultNetworkGroup.deregisterWorkflow(baseDN);
   }
 
 
   /**
+   * Deregisters a workflow with the admin network group. This method is
+   * intended to be called when workflow configuration mode is
+   * auto.
+   *
+   * @param baseDN  the DN of the workflow to deregister
+   */
+  private static void deregisterWorkflowWithAdminNetworkGroup(
+      DN baseDN
+      )
+  {
+    // Get the admin network group and deregister all the workflows
+    // being configured for the backend (there is one worklfow per
+    // backend base DN).
+    NetworkGroup adminNetworkGroup = NetworkGroup.getAdminNetworkGroup();
+    adminNetworkGroup.deregisterWorkflow(baseDN);
+  }
+
+  /**
+   * Deregisters a workflow with the internal network group and
+   * deregisters the workflow with the server. This method is
+   * intended to be called when workflow configuration mode is
+   * auto.
+   *
+   * @param baseDN  the DN of the workflow to deregister
+   */
+  private static void deregisterWorkflowWithInternalNetworkGroup(
+      DN baseDN
+      )
+  {
+    // Get the internal network group and deregister all the workflows
+    // being configured for the backend (there is one workflow per
+    // backend base DN).
+    NetworkGroup internalNetworkGroup = NetworkGroup.getInternalNetworkGroup();
+    Workflow workflow = internalNetworkGroup.deregisterWorkflow(baseDN);
+    WorkflowImpl workflowImpl = (WorkflowImpl) workflow;
+    workflowImpl.deregister();
+  }
+
+  /**
    * Creates a set of workflows for a given backend and registers the
-   * workflows with the default network group. There are as many workflows
-   * as base DNs defined in the backend. This method is intended
-   * to be called when workflow configuration mode is auto.
+   * workflows with the default network group, the internal network group
+   * and he admin network group. There are as many workflows
+   * as base DNs defined in the backend.
    *
    * @param backend  the backend handled by the workflow
    *
@@ -2650,12 +2687,19 @@ public class DirectoryServer
       Backend backend
       ) throws DirectoryException
   {
-    // Create a worklfow for each backend base DN and register the workflow
-    // with the default network group.
+    // Create a workflow for each backend base DN and register the workflow
+    // with the default/internal/admin network group.
     for (DN curBaseDN: backend.getBaseDNs())
     {
       WorkflowImpl workflowImpl = createWorkflow(curBaseDN, backend);
-      registerWorkflowWithDefaultNetworkGroup(workflowImpl);
+      registerWorkflowWithAdminNetworkGroup(workflowImpl);
+      registerWorkflowWithInternalNetworkGroup(workflowImpl);
+      // Special case for cn=config
+      // it must not be added to the default ng except in auto mode
+      if (!curBaseDN.equals(DN.decode(DN_CONFIG_ROOT))
+          || workflowConfigurationModeIsAuto()) {
+        registerWorkflowWithDefaultNetworkGroup(workflowImpl);
+      }
     }
   }
 
@@ -2721,6 +2765,44 @@ public class DirectoryServer
 
 
   /**
+   * Registers a workflow with the admin network group. This method
+   * is intended to be called when workflow configuration mode is auto.
+   *
+   * @param workflowImpl  The workflow to register with the
+   *                      admin network group
+   *
+   * @throws  DirectoryException  If the workflow is already registered with
+   *                              the admin network group
+   */
+  private static void registerWorkflowWithAdminNetworkGroup(
+      WorkflowImpl workflowImpl
+      ) throws DirectoryException
+  {
+    NetworkGroup adminNetworkGroup = NetworkGroup.getAdminNetworkGroup();
+    adminNetworkGroup.registerWorkflow(workflowImpl);
+  }
+
+
+  /**
+   * Registers a workflow with the internal network group. This method
+   * is intended to be called when workflow configuration mode is auto.
+   *
+   * @param workflowImpl  The workflow to register with the
+   *                      internal network group
+   *
+   * @throws  DirectoryException  If the workflow is already registered with
+   *                              the internal network group
+   */
+  private static void registerWorkflowWithInternalNetworkGroup(
+      WorkflowImpl workflowImpl
+      ) throws DirectoryException
+  {
+    NetworkGroup internalNetworkGroup = NetworkGroup.getInternalNetworkGroup();
+    internalNetworkGroup.registerWorkflow(workflowImpl);
+  }
+
+
+  /**
    * Creates the missing workflows, one for the config backend and one for
    * the rootDSE backend.
    *
@@ -2765,14 +2847,15 @@ public class DirectoryServer
       // move to manual mode
       try
       {
-        directoryServer.configureWorkflowsManual();
         setWorkflowConfigurationMode(newMode);
+        directoryServer.configureWorkflowsManual();
       }
       catch (Exception e)
       {
         // rollback to auto mode
         try
         {
+           setWorkflowConfigurationMode(oldMode);
            directoryServer.configureWorkflowsAuto();
         }
         catch (Exception ee)
@@ -2791,14 +2874,15 @@ public class DirectoryServer
       // move to auto mode
       try
       {
-        directoryServer.configureWorkflowsAuto();
         setWorkflowConfigurationMode(newMode);
+        directoryServer.configureWorkflowsAuto();
       }
       catch (Exception e)
       {
         // rollback to manual mode
         try
         {
+           setWorkflowConfigurationMode(oldMode);
            directoryServer.configureWorkflowsManual();
         }
         catch (Exception ee)
@@ -2875,6 +2959,8 @@ public class DirectoryServer
         try
         {
           workflowImpl = createWorkflow(baseDN, backend);
+          registerWorkflowWithInternalNetworkGroup(workflowImpl);
+          registerWorkflowWithAdminNetworkGroup(workflowImpl);
           registerWorkflowWithDefaultNetworkGroup(workflowImpl);
         }
         catch (DirectoryException e)
@@ -6642,6 +6728,8 @@ public class DirectoryServer
         if (! baseDN.equals(DN.decode("cn=config")))
         {
           WorkflowImpl workflowImpl = createWorkflow(baseDN, backend);
+          registerWorkflowWithInternalNetworkGroup(workflowImpl);
+          registerWorkflowWithAdminNetworkGroup(workflowImpl);
           registerWorkflowWithDefaultNetworkGroup(workflowImpl);
         }
       }
@@ -6683,7 +6771,9 @@ public class DirectoryServer
       // by the workflow config manager.
       if (workflowConfigurationModeIsAuto())
       {
+        deregisterWorkflowWithAdminNetworkGroup(baseDN);
         deregisterWorkflowWithDefaultNetworkGroup(baseDN);
+        deregisterWorkflowWithInternalNetworkGroup(baseDN);
       }
     }
   }

@@ -60,6 +60,9 @@ public abstract class ConnectionHandler
   // The monitor associated with this connection handler.
   private ConnectionHandlerMonitor monitor;
 
+  // Is this handler the admin connection handler
+  private boolean isAdminConnectionHandler = false;
+
 
 
   /**
@@ -236,6 +239,25 @@ public abstract class ConnectionHandler
     this.monitor = monitor;
   }
 
+
+
+  /**
+   * Sets this connection handler as the admin connection handler.
+   */
+  public void setAdminConnectionHandler() {
+    isAdminConnectionHandler = true;
+  }
+
+
+  /**
+   * Returns whether this connection handler is the admin
+   * connection handler.
+   * @return boolean True if this connection handler is the admin
+   *                 connection handler, false otherwise
+   */
+  public boolean isAdminConnectionHandler() {
+    return isAdminConnectionHandler;
+  }
 
 
   /**

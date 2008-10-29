@@ -59,9 +59,11 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
+import org.opends.server.types.operation.PreParseOperation;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.CoreMessages.*;
@@ -541,9 +543,29 @@ public abstract class ClientConnection
   /**
    * Indicates whether the network group must be evaluated for
    * the next connection.
+   * @param operation The operation going to be performed. Bind
+   *                  operations imply a network group evaluation.
    * @return boolean indicating if the network group must be evaluated
    */
-  public boolean mustEvaluateNetworkGroup() {
+  public boolean mustEvaluateNetworkGroup(
+          PreParseOperation operation) {
+    //  Connections inside the internal network group MUST NOT
+    // change network group
+    if (this.networkGroup == NetworkGroup.getInternalNetworkGroup()) {
+      return false;
+    }
+    // Connections inside the admin network group MUST NOT
+    // change network group
+    if (this.networkGroup == NetworkGroup.getAdminNetworkGroup()) {
+      return false;
+    }
+
+    // If the operation is a BIND, the network group MUST be evaluated
+    if (operation != null
+        && operation.getOperationType() == OperationType.BIND) {
+      return true;
+    }
+
     return mustEvaluateNetworkGroup;
   }
 

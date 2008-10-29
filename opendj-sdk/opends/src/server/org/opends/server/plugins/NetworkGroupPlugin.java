@@ -177,7 +177,7 @@ public final class NetworkGroupPlugin
           ArrayList<Message> messages)
   {
     boolean fullCheck = false;
-    if (connection.mustEvaluateNetworkGroup()) {
+    if (connection.mustEvaluateNetworkGroup(operation)) {
         NetworkGroup ng = NetworkGroup.findMatchingNetworkGroup(connection);
         if (ng != connection.getNetworkGroup()) {
           connection.setNetworkGroup(ng);
@@ -230,24 +230,26 @@ public final class NetworkGroupPlugin
     ArrayList<Message> messages = new ArrayList<Message>();
     ClientConnection connection = bindOperation.getClientConnection();
     boolean fullCheck = false;
-    DN dn;
-    try {
-      dn = DN.decode(bindOperation.getRawBindDN());
-    } catch (DirectoryException ex) {
-      return PluginResult.PreParse.stopProcessing(ResultCode.OPERATIONS_ERROR,
-              ex.getMessageObject());
+
+    if (connection.mustEvaluateNetworkGroup(bindOperation)) {
+      DN dn;
+      try {
+        dn = DN.decode(bindOperation.getRawBindDN());
+      } catch (DirectoryException ex) {
+        return PluginResult.PreParse.stopProcessing(ResultCode.OPERATIONS_ERROR,
+                ex.getMessageObject());
+      }
+      AuthenticationType authType = bindOperation.getAuthenticationType();
+
+      NetworkGroup ng = NetworkGroup.findBindMatchingNetworkGroup(connection,
+            dn, authType, connection.isSecure());
+
+      if (ng != connection.getNetworkGroup()) {
+        connection.setNetworkGroup(ng);
+        fullCheck = true;
+      }
+      connection.mustEvaluateNetworkGroup(false);
     }
-    AuthenticationType authType = bindOperation.getAuthenticationType();
-
-    NetworkGroup ng = NetworkGroup.findBindMatchingNetworkGroup(connection, dn,
-            authType, connection.isSecure());
-
-    if (ng != connection.getNetworkGroup()) {
-      connection.setNetworkGroup(ng);
-      fullCheck = true;
-    }
-    connection.mustEvaluateNetworkGroup(false);
-
     if (!checkNetworkGroup(connection, bindOperation, fullCheck, messages)) {
       return PluginResult.PreParse.stopProcessing(
               ResultCode.ADMIN_LIMIT_EXCEEDED, messages.get(0));
