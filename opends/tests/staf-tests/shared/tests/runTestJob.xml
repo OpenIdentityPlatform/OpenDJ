@@ -46,6 +46,7 @@
       <!-- Load in the local shared python objects -->
       <script>
         import sys,os
+        import java.io.FileNotFoundException
         sys.path.append("%s/shared/python" % TESTS_ROOT )
         from common import *
       </script>
@@ -330,6 +331,7 @@
       <script>
         testDict={}
         testCaseList=[]
+        tcshortname=''
         try:
           txtfh=open(textfile,'r')
 
@@ -581,11 +583,16 @@
               tcgroup=tcnamesplit[0].strip()
               if tcnamesplit[1]:
                 tcsuite=tcnamesplit[1].strip()
+                tcsuiteshort=tcsuite.split(".")[2].strip()
               else:
                 tcsuite=tcgroup
+              if tcnamesplit[2]:
+                tcshortname=tcnamesplit[2].strip()
             else:
               tcgroup=tcname
               tcsuite=tcname
+              tcshortname=tcname
+              tcsuiteshort=tcname
 
             if testDict[tcname].has_key('pass'):
               tcpass=testDict[tcname]['pass']
@@ -626,19 +633,21 @@
 
           # Create the testgroup element
           group = doc.createElement("testgroup")
-          group.setAttribute("name", tcgroup)
+          group.setAttribute("name", tcgroup.lower())
           results.appendChild(group)
           
           # Create the testsuite element
           suite = doc.createElement("testsuite")
-          suite.setAttribute("name", tcsuite)
+          suite.setAttribute("name", tcsuite.lower())
+          suite.setAttribute("shortname", tcsuiteshort.lower())
           group.appendChild(suite)
           
           # Create the testcase element
           case = doc.createElement("testcase")
-          case.setAttribute("group", "%s" % tcgroup)
-          case.setAttribute("suite", "%s" % tcsuite)
-          case.setAttribute("name", "%s" % tcname)
+          case.setAttribute("group", "%s" % tcgroup.lower())
+          case.setAttribute("suite", "%s" % tcsuite.lower())
+          case.setAttribute("name", "%s" % tcname.lower())
+          case.setAttribute("shortname", "%s" % tcshortname.lower())
           case.setAttribute("result", "%s" % tcresult)
           case.setAttribute("start", "%s" % tcstart)
           case.setAttribute("stop", "%s" % tcstop)
@@ -669,6 +678,8 @@
 
         try:
           standardReport.transformReport(xslfile,xmlfile,htmlfile,stringParamsDict)
+        except java.io.FileNotFoundException,details:
+          _message='Unable to generate standard test report %s.' % details
         except IOError,details:
           _message='Unable to generate standard test report %s.' % details
         except:
@@ -687,6 +698,8 @@
 
         try:
           groupsReport.transformReport(xslfile,xmlfile,htmlfile,stringParamsDict)
+        except java.io.FileNotFoundException,details:
+          _message='Unable to generate groups test report %s.' % details
         except IOError,details:
           _message='Unable to generate groups test report %s.' % details
         except:
@@ -714,10 +727,56 @@
 
             try:
               suitesReport.transformReport(xslfile,xmlfile,htmlfile,stringParamsDict)
+            except java.io.FileNotFoundException,details:
+              _message='Unable to generate suites test report %s.' % details
             except IOError,details:
               _message='Unable to generate suites test report %s.' % details
             except:
               _message='Unable to generate suites test report %s !!!' % groupDir
+      </script>
+      <message>_message</message>
+
+      <!-- Generate the test case report by test suites -->
+      <script>
+        _message='Generated cases test reports.'
+
+        testGroupDirsList=os.listdir(logsTestsDir)
+        for testGroupName in testGroupDirsList:
+
+          print 'group= %s' % testGroupName
+
+          groupDir='%s/%s' % (logsTestsDir,testGroupName)
+
+          if os.path.isdir(groupDir):
+
+            import glob
+            testSuiteFilesList=glob.glob('%s/*.xml' % groupDir)
+
+            xmlfile='%s/results.xml' % logsReportDir
+            xslfile= '%s/xsl/gen-tests-report.xsl' % TESTS_SHARED_DIR
+
+            for testSuiteFile in testSuiteFilesList:
+
+              if os.path.isfile(testSuiteFile):            
+                testSuiteName=os.path.basename(testSuiteFile.replace('-log.xml',''))
+                testSuiteShortName=testSuiteName.split('.')[2]
+
+                print 'suite= %s' %  testSuiteName
+                
+                htmlfile='%s/%s-report.html' % (groupDir,testSuiteShortName)
+
+                stringParamsDict={ 'group' : testGroupName, 'suite' : testSuiteName, 'tests-log' : testslog }
+
+                casesReport=report_generation()
+    
+                try:
+                  casesReport.transformReport(xslfile,xmlfile,htmlfile,stringParamsDict)
+                except java.io.FileNotFoundException,details:
+                  _message='Unable to generate test case report %s.' % details
+                except IOError,details:
+                  _message='Unable to generate test case report %s.' % details
+                except:
+                  _message='Unable to generate test case report %s !!!' % groupDir
       </script>
       <message>_message</message>
 
@@ -733,10 +792,12 @@
 
         try:
           idReport.transformReport(xslfile,xmlfile,htmlfile,stringParamsDict)
+        except java.io.FileNotFoundException,details:
+          _message='Unable to generate product id test report %s.' % details
         except IOError,details:
-          _message='Unable to generate product identification test report %s.' % details
+          _message='Unable to generate product id test report %s.' % details
         except:
-          _message='Unable to generate product identification test report !!!'
+          _message='Unable to generate product id test report !!!'
       </script>
       <message>_message</message>
 

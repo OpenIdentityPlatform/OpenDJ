@@ -96,6 +96,11 @@
         import sys
       </script>
 
+      <!-- Load in any additional Java classes -->
+      <script>
+        import java.io.FileNotFoundException
+      </script>
+
       <!-- Load in any standard python functions -->
       <script>
         from time import localtime,strftime
