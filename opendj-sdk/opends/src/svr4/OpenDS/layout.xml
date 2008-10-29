@@ -1,0 +1,167 @@
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Copyright 2006-2008 Sun Microsystems, Inc.
+ ! -->
+
+<project name="OpenDS SVR4 layout" basedir=".">
+  <description>
+    This is a build script that extends the OpenDS build script by adding
+    SVR4 packaging functions.
+  </description>
+  
+
+  <target name="pkgversion"
+	     description="Set pkg.version property" >
+  <!-- Construct the version number string -->
+  <taskdef name="getversionnumber"
+             classname="org.opends.build.tools.CreateVersionString">
+  <classpath>
+    <fileset dir="${build.dir}/build-tools">
+       <include name="*.jar" />
+       </fileset>
+    </classpath>
+  </taskdef>
+
+  <getversionnumber property="pkg.version" />
+  </target>
+
+  <property name="resource.dir"      location="src/resource" />
+
+  <!-- Construct layout -->
+  <target name="layout" if="isSunOS" 
+		description="Create layout based on zip layout" >
+    <!-- Get the revision number of the current Subversion workspace -->
+    <taskdef name="getsvnrevision"
+             classname="org.opends.build.tools.GetSubversionRevision">
+      <classpath>
+        <fileset dir="${build.dir}/build-tools">
+          <include name="*.jar" />
+        </fileset>
+        <fileset dir="${svnkit.dir}">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </taskdef>
+
+<!--    <getsvnrevision property="REVISION_NUMBER" /> 
+  <tstamp>
+    <format property="REVISION_NUMBER" pattern="MMddhhmm"/>
+  </tstamp>
+-->
+
+
+
+
+
+        <property name="zip.dir"           location="${pkg.dir}/${product}-${pkg.version}" />
+	<echo message="Building layout for ${pkg.name} pkg based on ${zip.dir}" />
+	<!-- copy ZIP layout. Use exec instead of copy task to preserve file permissions -->
+	<mkdir dir="${svr4.layout.dir}"/>
+	<exec executable="cp">
+	    <arg value="-R"/>
+	    <arg value="${zip.dir}"/>
+	    <arg value="${svr4.layout.pkg.dir}"/>
+	</exec>
+	<!-- Remove Windows specific files -->
+	<delete includeemptydirs="true">
+	   <fileset dir="${svr4.layout.pkg.dir}" includes="**/*.exe"/>
+	   <fileset dir="${svr4.layout.pkg.dir}" includes="**/*.bat"/>
+	   <fileset dir="${svr4.layout.pkg.dir}" includes="**/bat/"/>
+	   <fileset dir="${svr4.layout.pkg.dir}" includes="**/README_WINDOWS.txt"/>
+	</delete>
+	<!-- Remove MacOS specific files  -->
+	<delete includeemptydirs="true">
+	  <fileset dir="${svr4.layout.pkg.dir}" includes="**/*.app/" />
+	</delete>
+	<!-- Remove instance.loc file -->
+	<delete file="${svr4.layout.pkg.dir}/instance.loc" />
+	<!-- Remove uninstall file -->
+	<delete file="${svr4.layout.pkg.dir}/uninstall" />
+        <!-- Remove ldaptools -->
+        <delete file="${svr4.layout.pkg.dir}/bin/ldapcompare" />
+        <delete file="${svr4.layout.pkg.dir}/bin/ldapdelete" />
+        <delete file="${svr4.layout.pkg.dir}/bin/ldapmodify" />
+        <delete file="${svr4.layout.pkg.dir}/bin/ldapsearch" />
+	<!-- Remove ZIP README / install files -->
+	<delete file="${svr4.layout.pkg.dir}/README" />
+	<delete file="${svr4.layout.pkg.dir}/install.txt" />
+	<delete file="${svr4.layout.pkg.dir}/install.html" />
+	<!-- Add SVR4 README / install files -->
+	<copy file="${svr4.src.dir}/README" tofile="${svr4.layout.pkg.dir}/README" />
+	<copy file="${svr4.src.dir}/install.txt" tofile="${svr4.layout.pkg.dir}/install.txt" />
+	<copy file="${svr4.src.dir}/install.html" tofile="${svr4.layout.pkg.dir}/install.html" />
+	<!-- Add configure script -->
+	<copy file="${resource.dir}/configure" tofile="${svr4.layout.pkg.dir}/configure" />
+	<chmod file="${svr4.layout.pkg.dir}/configure" perm="744" />
+	<!-- Replace zip upgrade script by svr4 upgrade script -->
+	<delete file="${svr4.layout.pkg.dir}/upgrade" />
+	<copy file="${resource.dir}/upgrade_svr4" tofile="${svr4.layout.pkg.dir}/upgrade" />
+	<chmod file="${svr4.layout.pkg.dir}/upgrade" perm="755" />
+	<!-- Move instance files in ${svr4.layout.pkg.dir}/tmpl_instance  -->
+	<mkdir dir="${svr4.layout.pkg.dir}/tmpl_instance"/>
+	<chmod dir="${svr4.layout.pkg.dir}/tmpl_instance" perm="755"/>
+        <mkdir dir="${svr4.layout.pkg.dir}/tmpl_instance/lib"/>
+        <chmod dir="${svr4.layout.pkg.dir}/tmpl_instance/lib" perm="755"/>
+        <mkdir dir="${svr4.layout.pkg.dir}/tmpl_instance/lib/extensions"/>
+        <chmod dir="${svr4.layout.pkg.dir}/tmpl_instance/lib/extensions" perm="755"/>
+	<move todir="${svr4.layout.pkg.dir}/tmpl_instance/bak">
+	  <fileset dir="${svr4.layout.pkg.dir}/bak"/>
+	</move>
+	<move todir="${svr4.layout.pkg.dir}/tmpl_instance/changelogDb">
+	  <fileset dir="${svr4.layout.pkg.dir}/changelogDb"/>
+	</move>
+	<move todir="${svr4.layout.pkg.dir}/tmpl_instance/classes">
+	  <fileset dir="${svr4.layout.pkg.dir}/classes"/>
+	</move>
+	<move todir="${svr4.layout.pkg.dir}/tmpl_instance/config">
+	  <fileset dir="${svr4.layout.pkg.dir}/config"/>
+	</move>
+        <mkdir dir="${svr4.layout.pkg.dir}/config"/>
+        <chmod dir="${svr4.layout.pkg.dir}/config" perm="755"/>
+	<move todir="${svr4.layout.pkg.dir}/config/schema">
+	  <fileset dir="${svr4.layout.pkg.dir}/tmpl_instance/config/schema"/>
+	</move>
+        <mkdir dir="${svr4.layout.pkg.dir}/tmpl_instance/config/schema"/>
+        <chmod dir="${svr4.layout.pkg.dir}/tmpl_instance/config/schema" perm="755"/>
+	<move todir="${svr4.layout.pkg.dir}/tmpl_instance/db">
+	  <fileset dir="${svr4.layout.pkg.dir}/db"/>
+	</move>
+	<move todir="${svr4.layout.pkg.dir}/tmpl_instance/import-tmp">
+	  <fileset dir="${svr4.layout.pkg.dir}/import-tmp"/>
+	</move>
+	<move todir="${svr4.layout.pkg.dir}/tmpl_instance/ldif">
+	  <fileset dir="${svr4.layout.pkg.dir}/ldif"/>
+	</move>
+	<move todir="${svr4.layout.pkg.dir}/tmpl_instance/locks">
+	  <fileset dir="${svr4.layout.pkg.dir}/locks"/>
+	</move>
+	<move todir="${svr4.layout.pkg.dir}/tmpl_instance/logs">
+	  <fileset dir="${svr4.layout.pkg.dir}/logs"/>
+	</move>
+        <!-- Create buildinfo file -->
+	<echo message="${pkg.version}.${REVISION_NUMBER}" file="${svr4.layout.pkg.dir}/tmpl_instance/config/buildinfo" />
+  </target>
+
+</project>

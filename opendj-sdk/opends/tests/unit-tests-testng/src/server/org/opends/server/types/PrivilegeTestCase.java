@@ -850,7 +850,7 @@ public class PrivilegeTestCase
                  hasPrivilege);
 
 
-    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
+    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath(true);
 
     String identifier;
     Entry authNEntry = conn.getAuthenticationInfo().getAuthenticationEntry();

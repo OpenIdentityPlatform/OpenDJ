@@ -26,31 +26,41 @@
 #      Copyright 2006-2008 Sun Microsystems, Inc.
 
 
-# This script may be used to generate LDIF data based on a provided template.
-OPENDS_INVOKE_CLASS="org.opends.server.tools.makeldif.MakeLDIF"
-export OPENDS_INVOKE_CLASS
-
-SCRIPT_NAME="make-ldif"
-export SCRIPT_NAME
-
+# Capture the current working directory so that we can change to it later.
+# Then capture the location of this script and the Directory Server instance
+# root so that we can use them to create appropriate paths.
 WORKING_DIR=`pwd`
 
 cd "`dirname "${0}"`"
 SCRIPT_DIR=`pwd`
 
-cd ..
-INSTALL_ROOT=`pwd`
+INSTALL_ROOT=${SCRIPT_DIR}
 export INSTALL_ROOT
+
+SCRIPT_NAME=configure
+export SCRIPT_NAME
 
 cd "${WORKING_DIR}"
 
 # Set environment variables
+SCRIPT_UTIL_CMD=set-full-environment-and-test-java
+export SCRIPT_UTIL_CMD
 .  "${INSTALL_ROOT}/lib/_script-util.sh"
 RETURN_CODE=$?
 if test ${RETURN_CODE} -ne 0
 then
-        exit ${RETURN_CODE}
+  exit ${RETURN_CODE}
 fi
 
-"${SCRIPT_DIR}/../lib/_server-script.sh" \
-     --resourcePath "${INSTANCE_ROOT}/config/MakeLDIF" "${@}"
+# Launch the configure process.
+"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.quicksetup.configurator.Configurator "${@}"
+
+# return part
+RETURN_CODE=$?
+if test ${RETURN_CODE} -eq 50
+then
+  # Version info was on requested
+  exit 0
+else
+  exit ${RETURN_CODE}
+fi

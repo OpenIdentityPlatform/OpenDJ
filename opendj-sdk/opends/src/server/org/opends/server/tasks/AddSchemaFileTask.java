@@ -127,7 +127,10 @@ public class AddSchemaFileTask
 
     // Get the name(s) of the schema files to add and make sure they exist in
     // the schema directory.
-    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
+    String schemaInstallDirectory  =
+      SchemaConfigManager.getSchemaDirectoryPath(false);
+    String schemaInstanceDirectory =
+      SchemaConfigManager.getSchemaDirectoryPath(true);
     filesToAdd = new TreeSet<String>();
     for (Attribute a : attrList)
     {
@@ -138,14 +141,19 @@ public class AddSchemaFileTask
 
         try
         {
-          File schemaFile = new File(schemaDirectory, filename);
+          File schemaFile = new File(schemaInstallDirectory, filename);
           if ((! schemaFile.exists()) ||
-              (! schemaFile.getParent().equals(schemaDirectory)))
+              (! schemaFile.getParent().equals(schemaInstallDirectory)))
           {
+            // try in the instance
+            schemaFile = new File(schemaInstanceDirectory, filename);
+            if (! schemaFile.exists())
+            {
             Message message = ERR_TASK_ADDSCHEMAFILE_NO_SUCH_FILE.get(
-                filename, schemaDirectory);
+                filename, schemaInstallDirectory, schemaInstanceDirectory);
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                          message);
+            }
           }
         }
         catch (Exception e)
@@ -156,7 +164,8 @@ public class AddSchemaFileTask
           }
 
           Message message = ERR_TASK_ADDSCHEMAFILE_ERROR_CHECKING_FOR_FILE.get(
-              filename, schemaDirectory, getExceptionMessage(e));
+              filename, schemaInstallDirectory, schemaInstanceDirectory,
+              getExceptionMessage(e));
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                        message, e);
         }

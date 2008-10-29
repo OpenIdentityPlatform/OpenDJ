@@ -371,8 +371,14 @@ public class DeleteSchemaElementsTask extends Task
     if (!f.isAbsolute())
     {
       f = new File(
-        DirectoryServer.getEnvironmentConfig().getSchemaDirectory(),
+        DirectoryServer.getEnvironmentConfig().getSchemaDirectory(false),
         schemaFile);
+      if (f == null || ! f.exists() || f.isDirectory())
+      {
+        f = new File(
+            DirectoryServer.getEnvironmentConfig().getSchemaDirectory(true),
+            schemaFile);
+      }
     }
     schemaFile = f.getAbsolutePath();
     return schemaFile;

@@ -77,6 +77,11 @@ public class Installation {
     SetupUtils.LIBRARIES_PATH_RELATIVE;
 
   /**
+   * The relative path where customer classes are.
+   */
+  public static final String CLASSES_PATH_RELATIVE = "classes";
+
+  /**
    * The relative path where the database files are.
    */
   public static final String DATABASES_PATH_RELATIVE = "db";
@@ -143,10 +148,32 @@ public class Installation {
     CONFIG_PATH_RELATIVE+File.separator+"tools.properties";
 
   /**
+   * The path to the default instance.
+   */
+  public static final String DEFAULT_INSTANCE_PATH = "/var/opt/opends";
+
+  /**
    * The relative path to the instance.loc file.
    */
   public static final String INSTANCE_LOCATION_PATH_RELATIVE =
     "instance.loc";
+
+  /**
+   * The path to the instance.loc file.
+   */
+  public static final String INSTANCE_LOCATION_PATH = "/etc/opt/opends/" +
+    INSTANCE_LOCATION_PATH_RELATIVE;
+
+  /**
+   * The relative path to tmpl_instance.
+   */
+  public static final String TMPL_INSTANCE_RELATIVE_PATH = "tmpl_instance";
+
+  /**
+   * The relative path to buildinfo file.
+   */
+  public static final String BUILDINFO_RELATIVE_PATH = "buildinfo";
+
   /**
    * The UNIX setup script file name.
    */
@@ -176,6 +203,11 @@ public class Installation {
    * The Windows upgrade batch file name.
    */
   public static final String WINDOWS_UPGRADE_FILE_NAME = "upgrade.bat";
+
+  /**
+   * The UNIX configure script file name.
+   */
+  public static final String UNIX_CONFIGURE_FILE_NAME = "configure";
 
   /**
    * Newly upgraded Windows upgrade batch file name.  When the upgrade
@@ -402,6 +434,8 @@ public class Installation {
 
   private BuildInformation buildInformation;
 
+  private BuildInformation instanceInformation;
+
   /**
    * Indicates if the install and instance are in the same directory.
    * @return true if the install and instance are in the same directory.
@@ -466,6 +500,21 @@ public class Installation {
    */
   public File getInstanceDirectory() {
     return this.instanceDirectory;
+  }
+
+  /**
+   * Gets the directory of the OpenDS template instance.
+   *
+   * @return File object representing the top level directory of
+   *         and OpenDS installation
+   */
+  public File getTmplInstanceDirectory() {
+    File f = new File(getRootDirectory().getAbsolutePath() +
+             File.separator + TMPL_INSTANCE_RELATIVE_PATH );
+    if (f.exists())
+        return f;
+    else
+        return getInstanceDirectory();
   }
 
   /**
@@ -605,7 +654,7 @@ public class Installation {
    * @return the path to the tools properties file.
    */
   public File getToolsPropertiesFile() {
-    return new File(getRootDirectory(), TOOLS_PROPERTIES);
+    return new File(getTmplInstanceDirectory(), TOOLS_PROPERTIES);
   }
 
   /**
@@ -614,7 +663,8 @@ public class Installation {
    * @return the path to the set-java-home file.
    */
   public File getSetJavaHomeFile() {
-    return new File(getLibrariesDirectory(),
+    return new File(getInstanceDirectory().getAbsolutePath() + File.separator +
+            LIBRARIES_PATH_RELATIVE,
         Utils.isWindows()?SET_JAVA_PROPERTIES_FILE_WINDOWS :
           SET_JAVA_PROPERTIES_FILE_UNIX);
   }
@@ -642,7 +692,39 @@ public class Installation {
    */
   public File getBaseSchemaFile() throws ApplicationException {
     return new File(getConfigurationUpgradeDirectory(),
+                  "schema.ldif." + getInstanceSvnRev().toString());
+  }
+
+  /**
+   * Creates a File object representing
+   * tmpl_instance/config/upgrade/schema.ldif.current.
+   *
+   * @return File object representing
+   *  tmpl_instance/config/upgrade/schema.ldif.current
+   * @throws ApplicationException if there was a problem determining the
+   *                             svn revision number
+   */
+  public File getTemplSchemaFile() throws ApplicationException {
+    return new File(getTmplInstanceDirectory().getAbsolutePath() +
+                  File.separator + CONFIG_PATH_RELATIVE +
+                  File.separator + UPGRADE_PATH,
                   "schema.ldif." + getSvnRev().toString());
+  }
+
+  /**
+   * Creates a File object representing
+   * tmpl_instance/config/upgrade/config.ldif.current.
+   *
+   * @return File object representing
+   *  tmpl_instance/config/upgrade/config.ldif.current
+   * @throws ApplicationException if there was a problem determining the
+   *                             svn revision number
+   */
+  public File getTemplConfigFile() throws ApplicationException {
+    return new File(getTmplInstanceDirectory().getAbsolutePath() +
+                  File.separator + CONFIG_PATH_RELATIVE +
+                  File.separator + UPGRADE_PATH,
+                  BASE_CONFIG_FILE_PREFIX + getSvnRev().toString());
   }
 
   /**
@@ -656,7 +738,7 @@ public class Installation {
    */
   public File getBaseConfigurationFile() throws ApplicationException {
     return new File(getConfigurationUpgradeDirectory(),
-            BASE_CONFIG_FILE_PREFIX + getSvnRev().toString());
+            BASE_CONFIG_FILE_PREFIX + getInstanceSvnRev().toString());
   }
 
   /**
@@ -668,6 +750,18 @@ public class Installation {
    */
   public Integer getSvnRev() throws ApplicationException {
     BuildInformation bi = getBuildInformation();
+    return bi.getRevisionNumber();
+  }
+
+  /**
+   * Gets the SVN revision number of the instance.
+   *
+   * @return Integer representing the svn number
+   * @throws ApplicationException if for some reason the number could not
+   *                             be determined
+   */
+  public Integer getInstanceSvnRev() throws ApplicationException {
+    BuildInformation bi = getInstanceBuildInformation();
     return bi.getRevisionNumber();
   }
 
@@ -688,7 +782,7 @@ public class Installation {
    * @return the path of the ADS file of the directory server.
    */
   public File getADSBackendFile() {
-    return new File(getRootDirectory(), ADSContext.getAdminLDIFFile());
+    return new File(getTmplInstanceDirectory(), ADSContext.getAdminLDIFFile());
   }
 
   /**
@@ -734,6 +828,15 @@ public class Installation {
    */
   public File getConfigurationDirectory() {
     return new File(getInstanceDirectory(), CONFIG_PATH_RELATIVE);
+  }
+
+  /**
+   * Returns the path to the config files under the instance path.
+   *
+   * @return the path to the config files under the instance path.
+   */
+  public File getInstallConfigurationDirectory() {
+    return new File(getRootDirectory(), CONFIG_PATH_RELATIVE);
   }
 
   /**
@@ -986,11 +1089,54 @@ public class Installation {
   }
 
   /**
-   * {@inheritDoc}
+   * Gets information about the build that was used to produce the
+   * instance.
+   * @return BuildInformation object describing this instance
    */
-  @Override
-  public String toString() {
-    return Utils.getPath(rootDirectory);
+  public BuildInformation getInstanceBuildInformation() {
+    return getInstanceBuildInformation(true);
   }
 
-}
+  /**
+   * Gets information about the build that was used to produce the
+   * instance.
+   * @param useCachedVersion where true indicates that a potentially cached
+   * version of the build information is acceptable for use; false indicates
+   * the build information will be created from scratch which is potentially
+   * time consuming
+   * @return BuildInformation object describing this instance
+   */
+  public BuildInformation
+          getInstanceBuildInformation(boolean useCachedVersion) {
+    if (instanceInformation == null || !useCachedVersion) {
+      try {
+        File bif = new File(getConfigurationDirectory(),
+          BUILDINFO_RELATIVE_PATH);
+
+        if (bif.exists()) {
+          BufferedReader reader = new BufferedReader(new FileReader(bif));
+
+          // Read the first line and close the file.
+          String line;
+          try {
+            line = reader.readLine();
+            instanceInformation = BuildInformation.fromBuildString(line);
+          } finally {
+            try {
+              reader.close();
+            } catch (Exception e) {
+            }
+          }
+        } else {
+          return getBuildInformation();
+        }
+      } catch (Exception e) {
+        LOG.log(Level.SEVERE, "error getting build information for " +
+                "current instance", e);
+      }
+    }
+    return instanceInformation;
+
+  }
+
+  }

@@ -25,7 +25,6 @@
 #
 #      Copyright 2006-2008 Sun Microsystems, Inc.
 
-
 # Capture the current working directory so that we can change to it later.
 # Then capture the location of this script and the Directory Server instance
 # root so that we can use them to create appropriate paths.
@@ -37,13 +36,13 @@ SCRIPT_DIR=`pwd`
 INSTALL_ROOT=${SCRIPT_DIR}
 export INSTALL_ROOT
 
-SCRIPT_NAME=setup
+SCRIPT_NAME=upgrade
 export SCRIPT_NAME
 
 cd "${WORKING_DIR}"
 
-# Set environment variables
-SCRIPT_UTIL_CMD=set-full-environment-and-test-java
+# Set java home
+SCRIPT_UTIL_CMD=set-java-home-and-args
 export SCRIPT_UTIL_CMD
 .  "${INSTALL_ROOT}/lib/_script-util.sh"
 RETURN_CODE=$?
@@ -52,15 +51,42 @@ then
   exit ${RETURN_CODE}
 fi
 
-# Launch the setup process.
-"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} org.opends.quicksetup.installer.SetupLauncher "${@}"
-
-# return part
+# Set environment variables
+SCRIPT_UTIL_CMD=set-environment-vars
+export SCRIPT_UTIL_CMD
+.  "${INSTALL_ROOT}/lib/_script-util.sh"
 RETURN_CODE=$?
-if test ${RETURN_CODE} -eq 50
+if test ${RETURN_CODE} -ne 0
 then
-  # Version info was on requested
-  exit 0
-else
   exit ${RETURN_CODE}
 fi
+
+# Configure the appropriate CLASSPATH to test.
+#for JAR in ${INSTANCE_ROOT}/tmp/upgrade/lib/*.jar
+#do
+#  CLASSPATH=${CLASSPATH}:${JAR}
+#done
+CLASSPATH=${CLASSPATH}:${INSTANCE_ROOT}/classes
+for JAR in ${INSTALL_ROOT}/lib/*.jar
+do
+  CLASSPATH=${CLASSPATH}:${JAR}
+done
+export CLASSPATH
+
+# Test the java installation
+SCRIPT_UTIL_CMD=test-java
+export SCRIPT_UTIL_CMD
+.  "${INSTALL_ROOT}/lib/_script-util.sh"
+RETURN_CODE=$?
+if test ${RETURN_CODE} -ne 0
+then
+  exit ${RETURN_CODE}
+fi
+
+if [ -r "${INSTANCE_ROOT}/tmp/upgrade" ]
+then
+  rm -fr "${INSTANCE_ROOT}/tmp/upgrade"
+fi
+
+# Launch the upgrade process.
+"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.quicksetup.upgrader.UpgradeSvr4Launcher "${@}"

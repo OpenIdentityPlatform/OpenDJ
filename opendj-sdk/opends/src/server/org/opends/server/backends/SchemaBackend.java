@@ -3612,13 +3612,23 @@ public class SchemaBackend
     ArrayList<File> tempFileList      = new ArrayList<File>();
     ArrayList<File> origFileList      = new ArrayList<File>();
 
-    File schemaDir = new File(SchemaConfigManager.getSchemaDirectoryPath());
+    File schemaInstallDir  =
+      new File(SchemaConfigManager.getSchemaDirectoryPath(false));
+    File schemaInstanceDir =
+      new File(SchemaConfigManager.getSchemaDirectoryPath(true));
 
     for (String name : tempSchemaFiles.keySet())
     {
-      installedFileList.add(new File(schemaDir, name));
+      File installFile = new File(schemaInstallDir, name);
+      if (installFile.exists())
+      {
+        installedFileList.add(installFile);
+      } else
+      {
+        installedFileList.add(new File(schemaInstanceDir, name));
+      }
       tempFileList.add(tempSchemaFiles.get(name));
-      origFileList.add(new File(schemaDir, name + ".orig"));
+      origFileList.add(new File(schemaInstanceDir, name + ".orig"));
     }
 
 
@@ -4643,12 +4653,15 @@ public class SchemaBackend
 
     // Get the path to the directory in which the schema files reside and
     // then get a list of all the files in that directory.
-    String schemaDirPath = SchemaConfigManager.getSchemaDirectoryPath();
-    File[] schemaFiles;
+    String schemaInstallDirPath =
+      SchemaConfigManager.getSchemaDirectoryPath(false);
+    String schemaInstanceDirPath =
+      SchemaConfigManager.getSchemaDirectoryPath(true);
+    File[][] schemaFiles = new File[2][];
     try
     {
-      File schemaDir = new File(schemaDirPath);
-      schemaFiles = schemaDir.listFiles();
+      File schemaDir = new File(schemaInstallDirPath);
+      schemaFiles[0] = schemaDir.listFiles();
     }
     catch (Exception e)
     {
@@ -4658,100 +4671,114 @@ public class SchemaBackend
       }
 
       message = ERR_SCHEMA_BACKUP_CANNOT_LIST_SCHEMA_FILES.get(
-          schemaDirPath, getExceptionMessage(e));
+          schemaInstallDirPath, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
     }
 
+    try
+    {
+      File schemaDir = new File(schemaInstanceDirPath);
+      schemaFiles[1] = schemaDir.listFiles();
+    }
+    catch (Exception e)
+    {
+      schemaFiles[1] = new File[0] ;
+    }
 
     // Iterate through the schema files and write them to the zip stream.  If
     // we're using a hash or MAC, then calculate that as well.
     byte[] buffer = new byte[8192];
-    for (File schemaFile : schemaFiles)
+    String parent = ".install";
+    for (int i=0 ; i < 2 ; i++)
     {
-      if (backupConfig.isCancelled())
+      for (File schemaFile : schemaFiles[i])
       {
-        break;
-      }
-
-      if (! schemaFile.isFile())
-      {
-        // If there are any non-file items in the directory (e.g., one or more
-        // subdirectories), then we'll skip them.
-        continue;
-      }
-
-      String baseName = schemaFile.getName();
-
-
-      // We'll put the name in the hash, too.
-      if (hash)
-      {
-        if (signHash)
+        if (backupConfig.isCancelled())
         {
-          mac.update(getBytes(baseName));
+          break;
         }
-        else
+
+        if (!schemaFile.isFile())
         {
-          digest.update(getBytes(baseName));
+          // If there are any non-file items in the directory (e.g., one or more
+          // subdirectories), then we'll skip them.
+          continue;
         }
-      }
 
-      InputStream inputStream = null;
-      try
-      {
-        ZipEntry zipEntry = new ZipEntry(baseName);
-        zipStream.putNextEntry(zipEntry);
+        String baseName = schemaFile.getName();
 
-        inputStream = new FileInputStream(schemaFile);
-        while (true)
+        // We'll put the name in the hash, too.
+        if (hash)
         {
-          int bytesRead = inputStream.read(buffer);
-          if (bytesRead < 0 || backupConfig.isCancelled())
+          if (signHash)
           {
-            break;
-          }
-
-          if (hash)
+            mac.update(getBytes(baseName));
+          } else
           {
-            if (signHash)
-            {
-              mac.update(buffer, 0, bytesRead);
-            }
-            else
-            {
-              digest.update(buffer, 0, bytesRead);
-            }
+            digest.update(getBytes(baseName));
           }
-
-          zipStream.write(buffer, 0, bytesRead);
         }
 
-        zipStream.closeEntry();
-        inputStream.close();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
+        InputStream inputStream = null;
         try
         {
+          ZipEntry zipEntry = new ZipEntry(baseName + parent);
+          zipStream.putNextEntry(zipEntry);
+
+          inputStream = new FileInputStream(schemaFile);
+          while (true)
+          {
+            int bytesRead = inputStream.read(buffer);
+            if (bytesRead < 0 || backupConfig.isCancelled())
+            {
+              break;
+            }
+
+            if (hash)
+            {
+              if (signHash)
+              {
+                mac.update(buffer, 0, bytesRead);
+              } else
+              {
+                digest.update(buffer, 0, bytesRead);
+              }
+            }
+
+            zipStream.write(buffer, 0, bytesRead);
+          }
+
+          zipStream.closeEntry();
           inputStream.close();
-        } catch (Exception e2) {}
-
-        try
+        } catch (Exception e)
         {
-          zipStream.close();
-        } catch (Exception e2) {}
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
 
-        message = ERR_SCHEMA_BACKUP_CANNOT_BACKUP_SCHEMA_FILE.get(
-            baseName, stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
+          try
+          {
+            inputStream.close();
+          } catch (Exception e2)
+          {
+          }
+
+          try
+          {
+            zipStream.close();
+          } catch (Exception e2)
+          {
+          }
+
+          message = ERR_SCHEMA_BACKUP_CANNOT_BACKUP_SCHEMA_FILE.get(baseName,
+              stackTraceToSingleLineString(e));
+          throw new DirectoryException(DirectoryServer
+              .getServerErrorResultCode(), message, e);
+        }
       }
+      parent = ".instance";
     }
 
 
@@ -5005,29 +5032,38 @@ public class SchemaBackend
     // try to verify the archive.  If we are not going to verify only, then
     // move the current schema directory out of the way so we can keep it around
     // to restore if a problem occurs.
-    String schemaDirPath   = SchemaConfigManager.getSchemaDirectoryPath();
-    File   schemaDir       = new File(schemaDirPath);
-    String backupDirPath   = null;
-    File   schemaBackupDir = null;
+    String schemaInstallDirPath    =
+      SchemaConfigManager.getSchemaDirectoryPath(false);
+    String schemaInstanceDirPath   =
+      SchemaConfigManager.getSchemaDirectoryPath(true);
+
+    File   schemaInstallDir        = new File(schemaInstallDirPath);
+    File   schemaInstanceDir       = new File(schemaInstanceDirPath);
+
+    String backupInstallDirPath   = null;
+    File   schemaBackupInstallDir = null;
+
+    String backupInstanceDirPath   = null;
+    File   schemaBackupInstanceDir = null;
     boolean verifyOnly = restoreConfig.verifyOnly();
     if (! verifyOnly)
     {
       // Rename the current schema directory if it exists.
       try
       {
-        if (schemaDir.exists())
+        if (schemaInstallDir.exists())
         {
-          String schemaBackupDirPath = schemaDirPath + ".save";
-          backupDirPath = schemaBackupDirPath;
-          schemaBackupDir = new File(backupDirPath);
-          if (schemaBackupDir.exists())
+          String schemaBackupInstallDirPath = schemaInstallDirPath + ".save";
+          backupInstallDirPath = schemaBackupInstallDirPath;
+          schemaBackupInstallDir = new File(backupInstallDirPath);
+          if (schemaBackupInstallDir.exists())
           {
             int i=2;
             while (true)
             {
-              backupDirPath = schemaBackupDirPath + i;
-              schemaBackupDir = new File(backupDirPath);
-              if (schemaBackupDir.exists())
+              backupInstallDirPath = schemaBackupInstallDirPath + i;
+              schemaBackupInstallDir = new File(backupInstallDirPath);
+              if (schemaBackupInstallDir.exists())
               {
                 i++;
               }
@@ -5038,13 +5074,51 @@ public class SchemaBackend
             }
           }
 
-          schemaDir.renameTo(schemaBackupDir);
+          schemaInstallDir.renameTo(schemaBackupInstallDir);
         }
       }
       catch (Exception e)
       {
         Message message = ERR_SCHEMA_RESTORE_CANNOT_RENAME_CURRENT_DIRECTORY.
-            get(backupID, schemaDirPath, String.valueOf(backupDirPath),
+            get(backupID, schemaInstallDirPath,
+                String.valueOf(backupInstallDirPath),
+                stackTraceToSingleLineString(e));
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                     message, e);
+      }
+      try
+      {
+        if (schemaInstanceDir.exists())
+        {
+          String schemaBackupInstanceDirPath = schemaInstanceDirPath + ".save";
+          backupInstanceDirPath = schemaBackupInstanceDirPath;
+          schemaBackupInstanceDir = new File(backupInstanceDirPath);
+          if (schemaBackupInstanceDir.exists())
+          {
+            int i=2;
+            while (true)
+            {
+              backupInstanceDirPath = schemaBackupInstanceDirPath + i;
+              schemaBackupInstanceDir = new File(backupInstanceDirPath);
+              if (schemaBackupInstanceDir.exists())
+              {
+                i++;
+              }
+              else
+              {
+                break;
+              }
+            }
+          }
+
+          schemaInstanceDir.renameTo(schemaBackupInstanceDir);
+        }
+      }
+      catch (Exception e)
+      {
+        Message message = ERR_SCHEMA_RESTORE_CANNOT_RENAME_CURRENT_DIRECTORY.
+            get(backupID, schemaInstanceDirPath,
+                String.valueOf(backupInstanceDirPath),
                 stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
@@ -5054,32 +5128,52 @@ public class SchemaBackend
       // Create a new directory to hold the restored schema files.
       try
       {
-        schemaDir.mkdirs();
+        schemaInstallDir.mkdirs();
+        schemaInstanceDir.mkdirs();
       }
       catch (Exception e)
       {
         // Try to restore the previous schema directory if possible.  This will
         // probably fail in this case, but try anyway.
-        if (schemaBackupDir != null)
+        if (schemaBackupInstallDir != null)
         {
           try
           {
-            schemaBackupDir.renameTo(schemaDir);
+            schemaBackupInstallDir.renameTo(schemaInstallDir);
             Message message =
-                NOTE_SCHEMA_RESTORE_RESTORED_OLD_SCHEMA.get(schemaDirPath);
+                NOTE_SCHEMA_RESTORE_RESTORED_OLD_SCHEMA.get(
+                    schemaInstallDirPath);
             logError(message);
           }
           catch (Exception e2)
           {
             Message message = ERR_SCHEMA_RESTORE_CANNOT_RESTORE_OLD_SCHEMA.get(
-                schemaBackupDir.getPath());
+                schemaBackupInstallDir.getPath());
+            logError(message);
+          }
+        }
+        if (schemaBackupInstanceDir != null)
+        {
+          try
+          {
+            schemaBackupInstanceDir.renameTo(schemaInstanceDir);
+            Message message =
+                NOTE_SCHEMA_RESTORE_RESTORED_OLD_SCHEMA.get(
+                    schemaInstanceDirPath);
+            logError(message);
+          }
+          catch (Exception e2)
+          {
+            Message message = ERR_SCHEMA_RESTORE_CANNOT_RESTORE_OLD_SCHEMA.get(
+                schemaBackupInstanceDir.getPath());
             logError(message);
           }
         }
 
 
         Message message = ERR_SCHEMA_RESTORE_CANNOT_CREATE_SCHEMA_DIRECTORY.get(
-            backupID, schemaDirPath, stackTraceToSingleLineString(e));
+            backupID, schemaInstallDirPath,schemaInstanceDirPath,
+            stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
@@ -5100,10 +5194,16 @@ public class SchemaBackend
       catch (Exception e)
       {
         // Tell the user where the previous schema was archived.
-        if (schemaBackupDir != null)
+        if (schemaBackupInstallDir != null)
         {
           Message message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
-              schemaBackupDir.getPath());
+              schemaBackupInstallDir.getPath());
+          logError(message);
+        }
+        if (schemaBackupInstanceDir != null)
+        {
+          Message message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
+              schemaBackupInstanceDir.getPath());
           logError(message);
         }
 
@@ -5131,13 +5231,25 @@ public class SchemaBackend
         mac.update(getBytes(fileName));
       }
 
+      String baseDirPath ;
+      if (fileName.endsWith(".install"))
+      {
+        fileName = fileName.substring(fileName.lastIndexOf(".install"));
+        baseDirPath = schemaInstallDirPath;
+      }
+      else
+      {
+        fileName = fileName.substring(fileName.lastIndexOf(".instance"));
+        baseDirPath = schemaInstanceDirPath;
+      }
+
 
       // If we're doing the restore, then create the output stream to write the
       // file.
       OutputStream outputStream = null;
       if (! verifyOnly)
       {
-        String filePath = schemaDirPath + File.separator + fileName;
+        String filePath = baseDirPath + File.separator + fileName;
         try
         {
           outputStream = new FileOutputStream(filePath);
@@ -5145,10 +5257,16 @@ public class SchemaBackend
         catch (Exception e)
         {
           // Tell the user where the previous schema was archived.
-          if (schemaBackupDir != null)
+          if (schemaBackupInstallDir != null)
           {
             Message message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
-                schemaBackupDir.getPath());
+                schemaBackupInstallDir.getPath());
+            logError(message);
+          }
+          if (schemaBackupInstanceDir != null)
+          {
+            Message message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
+                schemaBackupInstanceDir.getPath());
             logError(message);
           }
 
@@ -5206,10 +5324,16 @@ public class SchemaBackend
       catch (Exception e)
       {
         // Tell the user where the previous schema was archived.
-        if (schemaBackupDir != null)
+        if (schemaBackupInstallDir != null)
         {
           Message message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
-              schemaBackupDir.getPath());
+              schemaBackupInstallDir.getPath());
+          logError(message);
+        }
+        if (schemaBackupInstanceDir != null)
+        {
+          Message message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
+              schemaBackupInstanceDir.getPath());
           logError(message);
         }
 
@@ -5249,10 +5373,17 @@ public class SchemaBackend
       else
       {
         // Tell the user where the previous schema was archived.
-        if (schemaBackupDir != null)
+        if (schemaBackupInstallDir != null)
         {
           Message message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
-              schemaBackupDir.getPath());
+              schemaBackupInstallDir.getPath());
+          logError(message);
+        }
+        // Tell the user where the previous schema was archived.
+        if (schemaBackupInstanceDir != null)
+        {
+          Message message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
+              schemaBackupInstanceDir.getPath());
           logError(message);
         }
 
@@ -5274,10 +5405,16 @@ public class SchemaBackend
       else
       {
         // Tell the user where the previous schema was archived.
-        if (schemaBackupDir != null)
+        if (schemaBackupInstallDir != null)
         {
           Message message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
-              schemaBackupDir.getPath());
+              schemaBackupInstallDir.getPath());
+          logError(message);
+        }
+        if (schemaBackupInstanceDir != null)
+        {
+          Message message = ERR_SCHEMA_RESTORE_OLD_SCHEMA_SAVED.get(
+              schemaBackupInstanceDir.getPath());
           logError(message);
         }
 
@@ -5301,9 +5438,13 @@ public class SchemaBackend
     // If we've gotten here, then the archive was restored successfully.  Get
     // rid of the temporary copy we made of the previous schema directory and
     // exit.
-    if (schemaBackupDir != null)
+    if (schemaBackupInstallDir != null)
     {
-      recursiveDelete(schemaBackupDir);
+      recursiveDelete(schemaBackupInstallDir);
+    }
+    if (schemaBackupInstanceDir != null)
+    {
+      recursiveDelete(schemaBackupInstanceDir);
     }
 
     Message message = NOTE_SCHEMA_RESTORE_SUCCESSFUL.get(backupID, backupPath);

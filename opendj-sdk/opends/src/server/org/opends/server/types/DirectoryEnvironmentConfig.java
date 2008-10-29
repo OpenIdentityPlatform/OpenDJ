@@ -28,9 +28,7 @@ package org.opends.server.types;
 
 
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +37,7 @@ import java.util.Properties;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
+import org.opends.quicksetup.util.Utils;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.messages.CoreMessages.*;
@@ -225,56 +224,8 @@ public final class DirectoryEnvironmentConfig
    */
   public static File getInstanceRootFromServerRoot(File serverRoot)
   {
-    String instancePathFileName = serverRoot.getAbsolutePath() +
-      File.separator + "instance.loc";
-
-    // look for <installPath>/instance.loc
-    File f = new File(instancePathFileName);
-
-    if (! f.exists())
-    {
-      return serverRoot;
-    }
-
-    BufferedReader reader;
-    try
-    {
-      reader = new BufferedReader(
-          new FileReader(instancePathFileName));
-    }
-    catch (Exception e)
-    {
-      return null;
-    }
-
-
-    // Read the first line and close the file.
-    String line;
-    try
-    {
-      line = reader.readLine();
-      File instanceLoc = new File(line);
-      if (instanceLoc.isAbsolute())
-      {
-        return instanceLoc;
-      }
-      else
-      {
-        return new File(serverRoot.getAbsolutePath()  + File.separator
-            + instanceLoc.getPath());
-      }
-    }
-    catch (Exception e)
-    {
-      return null;
-    }
-    finally
-    {
-      try
-      {
-        reader.close();
-      } catch (Exception e) {}
-    }
+    return new File(Utils.getInstancePathFromClasspath(
+                                serverRoot.getAbsolutePath()));
   }
 
 
@@ -806,10 +757,13 @@ public final class DirectoryEnvironmentConfig
    * directory of "config/schema" exists below the server root, then
    * that will be returned.
    *
+   * @param userSchema indicates if we need to retrieve user schema or
+   * "unmodified" schema.
+   *
    * @return  The directory that contains the server schema
    *          configuration files, or {@code null} if none is defined.
    */
-  public File getSchemaDirectory()
+  public File getSchemaDirectory(boolean userSchema)
   {
     String schemaDirectoryPath =
          getProperty(PROPERTY_SCHEMA_DIRECTORY);
@@ -818,9 +772,19 @@ public final class DirectoryEnvironmentConfig
       File serverRoot = getServerRoot();
       if (serverRoot != null)
       {
-        File instanceRoot = getInstanceRootFromServerRoot(serverRoot);
-        File schemaDir = new File(instanceRoot.getAbsolutePath() +
-                                  File.separator + PATH_SCHEMA_DIR);
+        String schemaPath = null ;
+        if (userSchema)
+        {
+          File instanceRoot =
+            getInstanceRootFromServerRoot(serverRoot);
+          schemaPath = instanceRoot.getAbsolutePath();
+        }
+        else
+        {
+          schemaPath = serverRoot.getAbsolutePath();
+        }
+        File schemaDir = new File(schemaPath
+            + File.separator + PATH_SCHEMA_DIR);
         if (schemaDir.exists() && schemaDir.isDirectory())
         {
           return schemaDir;

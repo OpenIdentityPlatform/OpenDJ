@@ -1174,13 +1174,20 @@ public class Utils
    */
   public static String getInstancePathFromClasspath(String installPath)
   {
-    String instancePathFileName = installPath + File.separator + "instance.loc";
+    String instancePathFileName = Installation.INSTANCE_LOCATION_PATH;
+    File configureScriptPath = new File(installPath + File.separator +
+      Installation.UNIX_CONFIGURE_FILE_NAME);
 
-    // look for <installPath>/instance.loc
+    // look for /etc/opt/opends/instance.loc
     File f = new File(instancePathFileName);
-    if (! f.exists())
-    {
-      return installPath;
+    if (!configureScriptPath.exists() || !f.exists()) {
+      // look for <installPath>/instance.loc
+      instancePathFileName = installPath + File.separator +
+              Installation.INSTANCE_LOCATION_PATH_RELATIVE;
+      f = new File(instancePathFileName);
+      if (!f.exists()) {
+        return installPath;
+      }
     }
 
     BufferedReader reader;

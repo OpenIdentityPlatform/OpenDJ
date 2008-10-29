@@ -1,0 +1,25 @@
+How To Install OpenDS
+=====================
+
+If you are reading this page, you have already installed the OpenDS package.
+
+Before You Configure
+------------------
+A Java SE 5.0 (version 1.5.0_08) or higher runtime environment must be installed. It is 
+recommended that your system have at least 100MB of disk space and 256MB of free memory to run 
+OpenDS for evaluation purposes. Note that you can configure OpenDS in such a way that it requires 
+substantially less, or more, disk space. For more information, see the OpenDS System Requirements 
+at https://www.opends.org/wiki/page/OpenDSSystemRequirements.
+
+To Configure OpenDS
+--------------------------------------
+  1. As root, type the following command:
+     $BASEDIR/opends/configure --instancePath {instancePath} [ --userName {userName} [ --groupName {groupName} ] ] 
+  2. As {userName}, type the following command:
+     $BASEDIR/opends/setup 
+
+See Also
+--------
+ * Installing the OpenDS Directory Server 
+   (https://www.opends.org/wiki/page/InstallingTheOpenDSDirectoryServer)
+ * setup (https://www.opends.org/wiki/page/Setup)

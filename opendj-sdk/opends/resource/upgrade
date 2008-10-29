@@ -36,15 +36,6 @@ SCRIPT_DIR=`pwd`
 INSTALL_ROOT=${SCRIPT_DIR}
 export INSTALL_ROOT
 
-if cat ${INSTALL_ROOT}/instance.loc | grep '^/' > /dev/null
-then
-  INSTANCE_ROOT=`cat ${INSTALL_ROOT}/instance.loc`
-  export INSTANCE_ROOT
-else
-  INSTANCE_ROOT=${INSTALL_ROOT}/`cat ${INSTALL_ROOT}/instance.loc`
-  export INSTANCE_ROOT
-fi
-
 SCRIPT_NAME=upgrade
 export SCRIPT_NAME
 

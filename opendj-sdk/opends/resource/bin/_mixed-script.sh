@@ -48,16 +48,6 @@ cd ..
 INSTALL_ROOT=`pwd`
 export INSTALL_ROOT
 
-if cat ${INSTALL_ROOT}/instance.loc | grep '^/' > /dev/null
-then
-  INSTANCE_ROOT=`cat ${INSTALL_ROOT}/instance.loc`
-  export INSTANCE_ROOT
-else
-  INSTANCE_ROOT=${INSTALL_ROOT}/`cat ${INSTALL_ROOT}/instance.loc`
-  export INSTANCE_ROOT
-fi
-
-
 cd "${WORKING_DIR}"
 
 OLD_SCRIPT_NAME=${SCRIPT_NAME}

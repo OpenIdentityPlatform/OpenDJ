@@ -60,10 +60,10 @@ public class SchemaLoader
     schema = DirectoryServer.getSchema().duplicate();
   }
 
-  private static String getSchemaDirectoryPath()
+  private static String getSchemaDirectoryPath(boolean userSchema)
   {
     File schemaDir =
-      DirectoryServer.getEnvironmentConfig().getSchemaDirectory();
+      DirectoryServer.getEnvironmentConfig().getSchemaDirectory(userSchema);
     if (schemaDir != null) {
       return schemaDir.getAbsolutePath();
     } else {
@@ -79,8 +79,6 @@ public class SchemaLoader
    */
   public void readSchema() throws ConfigException, InitializationException
   {
-    String schemaDirPath= getSchemaDirectoryPath();
-    File schemaDir = new File(schemaDirPath);
     String[] attrsToKeep = {
         ConfigConstants.ATTR_ATTRIBUTE_TYPES_LC,
         ConfigConstants.ATTR_OBJECTCLASSES_LC,
@@ -126,6 +124,14 @@ public class SchemaLoader
     String[] fileNames = null;
     try
     {
+      String installPath  =
+        new File(DirectoryServer.getServerRoot()).getCanonicalPath();
+      String instancePath =
+        new File(DirectoryServer.getInstanceRoot()).getCanonicalPath();
+
+      // Load install directory schema
+      String schemaDirPath= getSchemaDirectoryPath(false);
+      File schemaDir = new File(schemaDirPath);
       if (schemaDirPath == null || ! schemaDir.exists())
       {
         Message message = ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR.get(schemaDirPath);
@@ -137,14 +143,42 @@ public class SchemaLoader
           ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY.get(schemaDirPath);
         throw new InitializationException(message);
       }
+      File[] schemaInstallDirFiles = schemaDir.listFiles();
+      File[] schemaInstanceDirFiles = null ;
+      int size = schemaInstallDirFiles.length;
 
-      File[] schemaDirFiles = schemaDir.listFiles();
-      ArrayList<String> fileList = new ArrayList<String>(schemaDirFiles.length);
-      for (File f : schemaDirFiles)
+      if (! installPath.equals(instancePath))
+      {
+        schemaDirPath= getSchemaDirectoryPath(true);
+        schemaDir = new File(schemaDirPath);
+        if (schemaDirPath != null
+            &&
+            schemaDir.exists()
+            &&
+            schemaDir.isDirectory())
+        {
+          schemaInstanceDirFiles = schemaDir.listFiles();
+          size += schemaInstanceDirFiles.length;
+        }
+      }
+
+      ArrayList<String> fileList = new ArrayList<String>(size);
+      for (File f : schemaInstallDirFiles)
       {
         if (f.isFile())
         {
           fileList.add(f.getName());
+        }
+      }
+
+      if (schemaInstanceDirFiles != null)
+      {
+        for (File f : schemaInstanceDirFiles)
+        {
+          if (f.isFile())
+          {
+            fileList.add(f.getName());
+          }
         }
       }
 

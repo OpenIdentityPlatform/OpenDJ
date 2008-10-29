@@ -3125,28 +3125,37 @@ public final class Schema
   {
     // Get a sorted list of the files in the schema directory.
     String schemaDirectory =
-                SchemaConfigManager.getSchemaDirectoryPath();
-    TreeSet<String> schemaFileNames = new TreeSet<String>();
+                SchemaConfigManager.getSchemaDirectoryPath(false);
+    TreeSet<File> schemaFiles = new TreeSet<File>();
     for (File f : new File(schemaDirectory).listFiles())
     {
       if (f.isFile())
       {
-        schemaFileNames.add(f.getName());
+        schemaFiles.add(f);
+      }
+    }
+
+    schemaDirectory =
+      SchemaConfigManager.getSchemaDirectoryPath(true);
+    for (File f : new File(schemaDirectory).listFiles())
+    {
+      if (f.isFile())
+      {
+        schemaFiles.add(f);
       }
     }
 
 
     // Open each of the files in order and read the elements that they
     // contain, appending them to the appropriate lists.
-    for (String name : schemaFileNames)
+    for (File f : schemaFiles)
     {
       // Read the contents of the file into a list with one schema
       // element per list element.
       LinkedList<StringBuilder> lines =
            new LinkedList<StringBuilder>();
       BufferedReader reader =
-           new BufferedReader(new FileReader(
-                    new File(schemaDirectory, name)));
+           new BufferedReader(new FileReader(f));
 
       while (true)
       {
@@ -3187,12 +3196,12 @@ public final class Schema
         if (line.endsWith(" )"))
         {
          line = line.substring(0, line.length()-1) +
-                SCHEMA_PROPERTY_FILENAME + " '" + name + "' )";
+                SCHEMA_PROPERTY_FILENAME + " '" + f.getName() + "' )";
         }
         else if (line.endsWith(")"))
         {
          line = line.substring(0, line.length()-1) + " " +
-                SCHEMA_PROPERTY_FILENAME + " '" + name + "' )";
+                SCHEMA_PROPERTY_FILENAME + " '" + f.getName() + "' )";
         }
         else
         {

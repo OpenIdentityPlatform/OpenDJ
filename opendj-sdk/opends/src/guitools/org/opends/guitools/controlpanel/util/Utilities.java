@@ -38,9 +38,7 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.CharacterIterator;
@@ -1536,59 +1534,8 @@ public class Utilities
   {
     if (instanceRootDirectory == null)
     {
-      String instancePathFileName = installPath + File.separator +
-        "instance.loc";
-
-      File f = new File(instancePathFileName);
-      // look for <installPath>/instance.loc
-      if (! f.exists())
-      {
-        instanceRootDirectory = new File(installPath);
-        return instanceRootDirectory;
-      }
-
-      BufferedReader reader;
-      try
-      {
-        reader = new BufferedReader(new FileReader(instancePathFileName));
-      }
-      catch (Exception e)
-      {
-        instanceRootDirectory = new File(installPath);
-        return instanceRootDirectory;
-      }
-
-
-      // Read the first line and close the file.
-      String line;
-      try
-      {
-        line = reader.readLine();
-        File instanceLoc =  new File (line);
-        if (instanceLoc.isAbsolute())
-        {
-          instanceRootDirectory = instanceLoc ;
-          return instanceRootDirectory;
-        }
-        else
-        {
-          instanceRootDirectory =
-            new File(installPath + File.separator + instanceLoc.getPath());
-          return instanceRootDirectory;
-        }
-      }
-      catch (Exception e)
-      {
-        instanceRootDirectory = new File(installPath);
-        return instanceRootDirectory;
-      }
-      finally
-      {
-        try
-        {
-          reader.close();
-        } catch (Exception e) {}
-      }
+      instanceRootDirectory = new File(
+        Utils.getInstancePathFromClasspath(installPath));
     }
     return instanceRootDirectory;
   }

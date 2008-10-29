@@ -761,11 +761,11 @@ public class JavaPropertiesPanel extends StatusGenericPanel
    */
   private String getPropertiesFile()
   {
-    String configDir = Utils.getPath(
-        getInfo().getServerDescriptor().getInstallPath().getAbsolutePath(),
-        Installation.CONFIG_PATH_RELATIVE);
-    String propertiesFile = Utils.getPath(
-        configDir, Installation.DEFAULT_JAVA_PROPERTIES_FILE);
+    String installPath = getInfo().getServerDescriptor().
+      getInstallPath().getAbsolutePath();
+    String propertiesFile =  Utils.getPath(
+      Utilities.getInstanceRootDirectory(installPath).getAbsolutePath(),
+      Installation.RELATIVE_JAVA_PROPERTIES_FILE);
     return propertiesFile;
   }
 

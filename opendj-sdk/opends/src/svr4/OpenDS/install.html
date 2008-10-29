@@ -1,0 +1,68 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>How To Install Open DS</title>
+<style type="text/css">
+<!--
+body                     { font-family: Arial, Helvetica, sans-serif;
+                           font-size: 12px;
+                           color: #333; background-color: #fff; }
+h1                       { font-size: 2.0em; font-weight: normal;
+                                 margin-top: 0em; margin-bottom: 0em; }
+h2                       { font-size: 1.7em; font-weight: normal;
+                           margin: 1.2em 0em .8em 0em;
+                                 border-bottom: 1px #D9D9D9 solid; }
+h3                       { font-size: 1.4em; font-weight: bold;
+                           margin: 1.2em 0em .8em 0em; }
+
+a:link                  {color:#069;text-decoration:none;}
+a:visited               {color:#069;text-decoration:none;}
+a:active, a:hover       {color:#069;text-decoration:underline;}
+
+-->
+</style>
+</head>
+
+<body>
+
+<img src="images/opends_logo.png" alt="OpenDS logo" border="0" align=right>
+
+<br>
+
+<h2>How To Configure OpenDS</h2>
+<p>If you are reading this page, you have already installed the OpenDS package.
+
+<h3>Before You Configure</h3>
+A Java SE 5.0 (version 1.5.0_08) or higher runtime environment must be installed.
+It is recommended that your system have at least 100MB of disk space and
+256MB of free memory to run OpenDS for evaluation purposes. Note that
+you can configure OpenDS in such a way that it requires substantially
+less, or more, disk space. For more information, see the 
+<a href="https://www.opends.org/wiki/page/OpenDSSystemRequirements">OpenDS System Requirements</a>.
+
+<h3>To Configure OpenDS</h3>
+<ol>
+  <li>As root, type the following command:
+  <br>
+  <span style="font-family: monospace; white-space: pre;">
+$BASEDIR/opends/configure --instancePath {instancePath} [ --userName {userName} [ --groupName {groupName} ] ]
+  </span>
+  </li>
+  <li>As {userName}, type the following command:
+  <br>
+  <span style="font-family: monospace; white-space: pre;">
+     $BASEDIR/opends/setup
+  </span>
+  </li>
+</ol>
+
+<h3>See Also</h3>
+<ul>
+  <li><a href="https://www.opends.org/wiki/page/InstallingTheOpenDSDirectoryServer">Installing the OpenDS Directory Server</a>
+  <br>
+  </li>
+  <li> <a href="https://www.opends.org/wiki/page/Setup">setup</a>
+  </li>
+</ul>
+</body>
+</html>

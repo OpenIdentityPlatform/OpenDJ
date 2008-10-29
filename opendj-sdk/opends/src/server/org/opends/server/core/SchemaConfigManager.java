@@ -105,12 +105,16 @@ public class SchemaConfigManager
   /**
    * Retrieves the path to the directory containing the server schema files.
    *
+   * @param userSchema indicates if we need to retrieve user schema or
+   * "unmodified" schema.
+   *
    * @return  The path to the directory containing the server schema files.
    */
-  public static String getSchemaDirectoryPath()
+  public static String getSchemaDirectoryPath(boolean userSchema)
   {
     File schemaDir =
-              DirectoryServer.getEnvironmentConfig().getSchemaDirectory();
+              DirectoryServer.getEnvironmentConfig().
+                getSchemaDirectory(userSchema);
     if (schemaDir != null) {
       return schemaDir.getAbsolutePath();
     } else {
@@ -202,29 +206,62 @@ public class SchemaConfigManager
     // Construct the path to the directory that should contain the schema files
     // and make sure that it exists and is a directory.  Get a list of the files
     // in that directory sorted in alphabetic order.
-    String schemaDirPath          = getSchemaDirectoryPath();
-    File schemaDir                = new File(schemaDirPath);
+    String schemaInstallDirPath   = getSchemaDirectoryPath(false);
+    String schemaInstanceDirPath  = getSchemaDirectoryPath(true);
+    File schemaInstallDir         = new File(schemaInstallDirPath);
+    File schemaInstanceDir        = null;
+
+    try
+    {
+      if (schemaInstanceDirPath != null)
+      {
+        schemaInstanceDir = new File(schemaInstanceDirPath);
+        if (schemaInstallDir.getCanonicalPath().equals(
+            schemaInstanceDir.getCanonicalPath()))
+        {
+          schemaInstanceDir = null;
+        }
+      }
+    } catch (Exception e)
+    {
+      schemaInstanceDir = null;
+    }
     long oldestModificationTime   = -1L;
     long youngestModificationTime = -1L;
     String[] fileNames;
 
     try
     {
-      if (schemaDirPath == null || ! schemaDir.exists())
-      {
-        Message message = ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR.get(schemaDirPath);
-        throw new InitializationException(message);
-      }
-      else if (! schemaDir.isDirectory())
+      if (schemaInstallDir == null || ! schemaInstallDir.exists())
       {
         Message message =
-            ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY.get(schemaDirPath);
+          ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR.get(schemaInstallDirPath);
+        throw new InitializationException(message);
+      }
+      if (! schemaInstallDir.isDirectory())
+      {
+        Message message =
+            ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY.get(schemaInstallDirPath);
         throw new InitializationException(message);
       }
 
-      File[] schemaDirFiles = schemaDir.listFiles();
-      ArrayList<String> fileList = new ArrayList<String>(schemaDirFiles.length);
-      for (File f : schemaDirFiles)
+      if ((schemaInstanceDir == null) || (!schemaInstanceDir.exists())
+          || (! schemaInstanceDir.isDirectory()))
+      {
+        schemaInstanceDir = null;
+      }
+
+      File[] schemaInstallDirFiles  = schemaInstallDir.listFiles() ;
+      int fileNumber = schemaInstallDirFiles.length;
+      File[] schemaInstanceDirFiles = null ;
+      if (schemaInstanceDir != null)
+      {
+        schemaInstanceDirFiles = schemaInstanceDir.listFiles();
+        fileNumber =+ schemaInstanceDirFiles.length ;
+      }
+
+      ArrayList<String> fileList = new ArrayList<String>(fileNumber);
+      for (File f : schemaInstallDirFiles)
       {
         if (f.isFile())
         {
@@ -242,6 +279,29 @@ public class SchemaConfigManager
             (modificationTime > youngestModificationTime))
         {
           youngestModificationTime = modificationTime;
+        }
+      }
+      if (schemaInstanceDirFiles != null)
+      {
+        for (File f : schemaInstanceDirFiles)
+        {
+          if (f.isFile())
+          {
+            fileList.add(f.getName());
+          }
+
+          long modificationTime = f.lastModified();
+          if ((oldestModificationTime <= 0L)
+              || (modificationTime < oldestModificationTime))
+          {
+            oldestModificationTime = modificationTime;
+          }
+
+          if ((youngestModificationTime <= 0)
+              || (modificationTime > youngestModificationTime))
+          {
+            youngestModificationTime = modificationTime;
+          }
         }
       }
 
@@ -266,7 +326,7 @@ public class SchemaConfigManager
       }
 
       Message message = ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES.get(
-          schemaDirPath, getExceptionMessage(e));
+          schemaInstallDirPath, schemaInstanceDirPath, getExceptionMessage(e));
       throw new InitializationException(message, e);
     }
 
@@ -356,11 +416,18 @@ public class SchemaConfigManager
          throws ConfigException, InitializationException
   {
     // Create an LDIF reader to use when reading the files.
-    String schemaDirPath = getSchemaDirectoryPath();
+    String schemaDirPath = null;
+
+    schemaDirPath = getSchemaDirectoryPath(true);
+    File f = new File(schemaDirPath, schemaFile);
+    if (!f.exists())
+    {
+      schemaDirPath = getSchemaDirectoryPath(false);
+      f = new File(schemaDirPath, schemaFile);
+    }
     LDIFReader reader;
     try
     {
-      File f = new File(schemaDirPath, schemaFile);
       reader = new LDIFReader(new LDIFImportConfig(f.getAbsolutePath()));
     }
     catch (Exception e)

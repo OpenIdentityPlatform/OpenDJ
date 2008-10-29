@@ -304,12 +304,16 @@ public final class TestCaseUtils {
         testInstallRoot.mkdirs();
         testInstanceRoot.mkdirs();
       }
+      
+      File testInstanceSchema =
+        new File (testInstanceRoot, "config" + File.separator + "schema");
+      testInstanceSchema.mkdirs();
 
       //db_verify is second jeb backend used by the jeb verify test cases
       //db_rebuild is the third jeb backend used by the jeb rebuild test cases
       //db_unindexed is the forth backend used by the unindexed search privilege
       //test cases
-      String[] installSubDirectories = { "bin", "lib", "bat"};
+      String[] installSubDirectories = { "bin", "lib", "bat", "config"};
       String[] instanceSubDirectories = { "bak", "changelogDb", "classes",
           "config", "db", "import-tmp", "db_verify",
           "ldif", "locks", "logs", "db_rebuild",
@@ -333,6 +337,7 @@ public final class TestCaseUtils {
       File testResourceDir  = new File(testSrcRoot, "resource");
       // Set the class variable
       testConfigDir    = new File(testInstanceRoot, "config");
+      File testSchemaDir    = new File(testInstallRoot, "config");
       File testClassesDir   = new File(testInstanceRoot, "classes");
       File testLibDir       = new File(testInstallRoot, "lib");
       File testBinDir       = new File(testInstallRoot, "bin");
@@ -371,7 +376,7 @@ public final class TestCaseUtils {
         copyDirectory(new File(resourceDir, "bin"), testBinDir);
         copyDirectory(new File(resourceDir, "config"), testConfigDir);
         copyDirectory(new File(resourceDir, "schema"),
-            new File(testConfigDir, "schema"));
+            new File(testSchemaDir, "schema"));
         copyDirectory(new File(resourceDir, "MakeLDIF"),
             new File(testConfigDir, "MakeLDIF"));
         copyDirectory(new File(snmpResourceDir, "security"),
