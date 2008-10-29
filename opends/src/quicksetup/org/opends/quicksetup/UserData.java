@@ -113,17 +113,17 @@ public class UserData
     setNewSuffixOptions(defaultNewSuffixOptions);
 
     // See what we can propose as port
-    int defaultPort = getDefaultPort();
-    if (defaultPort != -1)
+    int defaultLdapPort = getDefaultPort();
+    if (defaultLdapPort != -1)
     {
-      setServerPort(defaultPort);
+      setServerPort(defaultLdapPort);
     }
 
 //  See what we can propose as port
-    defaultPort = getDefaultAdminConnectorPort();
-    if (defaultPort != -1)
+    int defaultAdminPort = getDefaultAdminConnectorPort();
+    if (defaultAdminPort != -1)
     {
-      setAdminConnectorPort(defaultPort);
+      setAdminConnectorPort(defaultAdminPort);
     }
 
     setHostName(getDefaultHostName());
@@ -142,7 +142,7 @@ public class UserData
           new HashSet<SuffixDescriptor>());
     setSuffixesToReplicateOptions(suffixes);
     SecurityOptions sec = SecurityOptions.createNoCertificateOptions();
-    sec.setSslPort(getDefaultSslPort(defaultPort));
+    sec.setSslPort(getDefaultSslPort(defaultLdapPort));
     setSecurityOptions(sec);
 
     remoteWithNoReplicationPort =

@@ -240,28 +240,28 @@ public class InstallDSArgumentParser extends ArgumentParser
         INFO_INSTALLDS_DESCRIPTION_SAMPLE_DATA.get());
     addArgument(sampleDataArg);
 
-    int defaultPort = UserData.getDefaultPort();
-    if (defaultPort == -1)
+    int defaultLdapPort = UserData.getDefaultPort();
+    if (defaultLdapPort == -1)
     {
-      defaultPort = 389;
+      defaultLdapPort = 389;
     }
     ldapPortArg = new IntegerArgument(
         "ldapPort".toLowerCase(), OPTION_SHORT_PORT,
         "ldapPort", false, false,
-        true, INFO_PORT_PLACEHOLDER.get(), defaultPort,
+        true, INFO_PORT_PLACEHOLDER.get(), defaultLdapPort,
         "ldapPort", true, 1, true, 65535,
         INFO_INSTALLDS_DESCRIPTION_LDAPPORT.get());
     addArgument(ldapPortArg);
 
-    defaultPort = UserData.getDefaultAdminConnectorPort();
-    if (defaultPort == -1)
+    int defaultAdminPort = UserData.getDefaultAdminConnectorPort();
+    if (defaultAdminPort == -1)
     {
-      defaultPort = 4444;
+      defaultAdminPort = 4444;
     }
     adminConnectorPortArg = new IntegerArgument(
         "adminConnectorPort".toLowerCase(), null,
         "adminConnectorPort", false, false,
-        true, INFO_PORT_PLACEHOLDER.get(), defaultPort,
+        true, INFO_PORT_PLACEHOLDER.get(), defaultAdminPort,
         "adminConnectorPort", true, 1, true, 65535,
         INFO_INSTALLDS_DESCRIPTION_ADMINCONNECTORPORT.get());
     addArgument(adminConnectorPortArg);
@@ -329,7 +329,7 @@ public class InstallDSArgumentParser extends ArgumentParser
     enableStartTLSArg.setPropertyName("enableStartTLS");
     addArgument(enableStartTLSArg);
 
-    int defaultSecurePort = UserData.getDefaultSslPort(defaultPort);
+    int defaultSecurePort = UserData.getDefaultSslPort(defaultLdapPort);
     if (defaultSecurePort == -1)
     {
       defaultSecurePort = 636;
