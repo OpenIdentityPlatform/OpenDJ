@@ -1846,7 +1846,7 @@ implements ConfigChangeListener
    * @return the login dialog that is displayed when the method authenticate
    * is called.
    */
-  GenericDialog getLoginDialog()
+  protected GenericDialog getLoginDialog()
   {
     if (loginDialog == null)
     {

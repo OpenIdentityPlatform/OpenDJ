@@ -30,8 +30,11 @@ package org.opends.guitools.controlpanel.util;
 import static org.opends.messages.AdminToolMessages.*;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Level;
@@ -98,15 +101,17 @@ public class ConfigFromFile extends ConfigReader
    */
   public void readConfiguration()
   {
-    exceptions.clear();
-
+    List<OpenDsException> ex = new ArrayList<OpenDsException>();
+    Set<ConnectionHandlerDescriptor> ls =
+      new HashSet<ConnectionHandlerDescriptor>();
+    Set<BackendDescriptor> bs = new HashSet<BackendDescriptor>();
+    Set<DN> as = new HashSet<DN>();
     try
     {
       DirectoryServer.getInstance().initializeConfiguration();
       // Get the Directory Server configuration handler and use it.ad
       RootCfg root =
         ServerManagementContext.getInstance().getRootConfiguration();
-      listeners.clear();
       try
       {
         AdministrationConnectorCfg adminConnector =
@@ -115,7 +120,7 @@ public class ConfigFromFile extends ConfigReader
       }
       catch (ConfigException ce)
       {
-        exceptions.add(ce);
+        ex.add(ce);
       }
       String[] connectionHandlers = root.listConnectionHandlers();
       for (int i=0; i<connectionHandlers.length; i++)
@@ -124,17 +129,16 @@ public class ConfigFromFile extends ConfigReader
         {
           ConnectionHandlerCfg connectionHandler =
             root.getConnectionHandler(connectionHandlers[i]);
-          listeners.add(getConnectionHandler(connectionHandler,
+          ls.add(getConnectionHandler(connectionHandler,
               connectionHandlers[i]));
         }
         catch (OpenDsException oe)
         {
-          exceptions.add(oe);
+          ex.add(oe);
         }
       }
       isSchemaEnabled = root.getGlobalConfiguration().isCheckSchema();
 
-      backends.clear();
       String[] backendNames = root.listBackends();
       for (int i=0; i<backendNames.length; i++)
       {
@@ -170,7 +174,7 @@ public class ConfigFromFile extends ConfigReader
             }
             catch (OpenDsException oe)
             {
-              exceptions.add(oe);
+              ex.add(oe);
             }
             indexes.add(new IndexDescriptor("dn2id", null, null,
                 new TreeSet<IndexType>(), -1));
@@ -195,7 +199,7 @@ public class ConfigFromFile extends ConfigReader
             }
             catch (OpenDsException oe)
             {
-              exceptions.add(oe);
+              ex.add(oe);
             }
           }
           else if (backend instanceof LDIFBackendCfg)
@@ -234,11 +238,11 @@ public class ConfigFromFile extends ConfigReader
             index.setBackend(desc);
           }
 
-          backends.add(desc);
+          bs.add(desc);
         }
         catch (OpenDsException oe)
         {
-          exceptions.add(oe);
+          ex.add(oe);
         }
       }
 
@@ -250,7 +254,7 @@ public class ConfigFromFile extends ConfigReader
       }
       catch (OpenDsException oe)
       {
-        exceptions.add(oe);
+        ex.add(oe);
       }
 
 
@@ -287,7 +291,7 @@ public class ConfigFromFile extends ConfigReader
                     protocol,
                     ConnectionHandlerDescriptor.State.ENABLED,
                     "Multimaster Synchronization");
-              listeners.add(connHandler);
+              ls.add(connHandler);
             }
           }
           String[] domains = sync.listReplicationDomains();
@@ -298,7 +302,7 @@ public class ConfigFromFile extends ConfigReader
               ReplicationDomainCfg domain =
                 sync.getReplicationDomain(domains[i]);
               DN dn = domain.getBaseDN();
-              for (BackendDescriptor backend : backends)
+              for (BackendDescriptor backend : bs)
               {
                 for (BaseDNDescriptor baseDN : backend.getBaseDns())
                 {
@@ -313,7 +317,7 @@ public class ConfigFromFile extends ConfigReader
         }
         catch (OpenDsException oe)
         {
-          exceptions.add(oe);
+          ex.add(oe);
         }
       }
 
@@ -322,19 +326,19 @@ public class ConfigFromFile extends ConfigReader
       {
         RootDNCfg rootDN = root.getRootDN();
         String[] rootUsers = rootDN.listRootDNUsers();
-        administrativeUsers.clear();
+        as.clear();
         if (rootUsers != null)
         {
           for (int i=0; i < rootUsers.length; i++)
           {
             RootDNUserCfg rootUser = rootDN.getRootDNUser(rootUsers[i]);
-            administrativeUsers.addAll(rootUser.getAlternateBindDN());
+            as.addAll(rootUser.getAlternateBindDN());
           }
         }
       }
       catch (OpenDsException oe)
       {
-        exceptions.add(oe);
+        ex.add(oe);
       }
 
       try
@@ -343,33 +347,37 @@ public class ConfigFromFile extends ConfigReader
       }
       catch (OpenDsException oe)
       {
-        exceptions.add(oe);
+        ex.add(oe);
       }
     }
     catch (OpenDsException oe)
     {
-      exceptions.add(oe);
+      ex.add(oe);
     }
     catch (final Throwable t)
     {
       LOG.log(Level.WARNING, "Error reading configuration: "+t, t);
-      OfflineUpdateException ex = new OfflineUpdateException(
+      OfflineUpdateException oue = new OfflineUpdateException(
           ERR_READING_CONFIG_LDAP.get(t.getMessage().toString()), t);
-      exceptions.add(ex);
+      ex.add(oue);
     }
 
-    if (exceptions.size() > 0)
+    if (ex.size() > 0)
     {
       if (environmentSettingException != null)
       {
-        exceptions.add(0, environmentSettingException);
+        ex.add(0, environmentSettingException);
       }
     }
 
-    for (OpenDsException oe : exceptions)
+    for (OpenDsException oe : ex)
     {
       LOG.log(Level.WARNING, "Error reading configuration: "+oe, oe);
     }
+    exceptions = Collections.unmodifiableList(ex);
+    administrativeUsers = Collections.unmodifiableSet(as);
+    listeners = Collections.unmodifiableSet(ls);
+    backends = Collections.unmodifiableSet(bs);
   }
 
   private ConnectionHandlerDescriptor getConnectionHandler(

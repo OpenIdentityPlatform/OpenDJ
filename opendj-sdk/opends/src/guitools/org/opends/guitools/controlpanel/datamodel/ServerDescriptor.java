@@ -119,7 +119,7 @@ public class ServerDescriptor
    */
   public Set<DN> getAdministrativeUsers()
   {
-    return Collections.unmodifiableSet(administrativeUsers);
+    return administrativeUsers;
   }
 
   /**
@@ -128,8 +128,7 @@ public class ServerDescriptor
    */
   public void setAdministrativeUsers(Set<DN> administrativeUsers)
   {
-    this.administrativeUsers.clear();
-    this.administrativeUsers.addAll(administrativeUsers);
+    this.administrativeUsers = Collections.unmodifiableSet(administrativeUsers);
   }
 
   /**
@@ -377,7 +376,7 @@ public class ServerDescriptor
    */
   public Set<BackendDescriptor> getBackends()
   {
-    return Collections.unmodifiableSet(backends);
+    return backends;
   }
 
   /**
@@ -386,8 +385,7 @@ public class ServerDescriptor
    */
   public void setBackends(Set<BackendDescriptor> backends)
   {
-    this.backends.clear();
-    this.backends.addAll(backends);
+    this.backends = Collections.unmodifiableSet(backends);
   }
 
   /**
@@ -396,7 +394,7 @@ public class ServerDescriptor
    */
   public Set<ConnectionHandlerDescriptor> getConnectionHandlers()
   {
-    return Collections.unmodifiableSet(listeners);
+    return listeners;
   }
 
   /**
@@ -405,8 +403,7 @@ public class ServerDescriptor
    */
   public void setConnectionHandlers(Set<ConnectionHandlerDescriptor> listeners)
   {
-    this.listeners.clear();
-    this.listeners.addAll(listeners);
+    this.listeners = Collections.unmodifiableSet(listeners);
   }
 
   /**

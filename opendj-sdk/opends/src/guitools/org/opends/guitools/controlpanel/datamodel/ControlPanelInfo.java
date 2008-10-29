@@ -110,7 +110,11 @@ public class ControlPanelInfo
 
   private static ControlPanelInfo instance;
 
-  private ControlPanelInfo()
+  /**
+   * Default constructor.
+   *
+   */
+  protected ControlPanelInfo()
   {
   }
 
@@ -370,12 +374,55 @@ public class ControlPanelInfo
   }
 
   /**
+   * Returns an empty new server descriptor instance.
+   * @return an empty new server descriptor instance.
+   */
+  protected ServerDescriptor createNewServerDescriptorInstance()
+  {
+    return new ServerDescriptor();
+  }
+
+  /**
+   * Returns a reader that will read the configuration from a file.
+   * @return a reader that will read the configuration from a file.
+   */
+  protected ConfigFromFile createNewConfigFromFileReader()
+  {
+    return new ConfigFromFile();
+  }
+
+  /**
+   * Returns a reader that will read the configuration from a dir context.
+   * @return a reader that will read the configuration from a dir context.
+   */
+  protected ConfigFromDirContext createNewConfigFromDirContextReader()
+  {
+    return new ConfigFromDirContext();
+  }
+
+  /**
+   * Updates the contents of the server descriptor with the provider reader.
+   * @param reader the configuration reader.
+   * @param desc the server descriptor.
+   */
+  protected void updateServerDescriptor(ConfigReader reader,
+      ServerDescriptor desc)
+  {
+    desc.setExceptions(reader.getExceptions());
+    desc.setAdministrativeUsers(reader.getAdministrativeUsers());
+    desc.setBackends(reader.getBackends());
+    desc.setConnectionHandlers(reader.getConnectionHandlers());
+    desc.setAdminConnector(reader.getAdminConnector());
+    desc.setSchema(reader.getSchema());
+    desc.setSchemaEnabled(reader.isSchemaEnabled());
+  }
+  /**
    * Regenerates the last found ServerDescriptor object.
    *
    */
   public synchronized void regenerateDescriptor()
   {
-    ServerDescriptor desc = new ServerDescriptor();
+    ServerDescriptor desc = createNewServerDescriptorInstance();
     InitialLdapContext ctx = getDirContext();
     desc.setInstallPath(Utilities.getServerRootDirectory());
     boolean windowsServiceEnabled = false;
@@ -442,7 +489,7 @@ public class ControlPanelInfo
           userDataCtx = null;
         }
       }
-      reader = new ConfigFromFile();
+      reader = createNewConfigFromFileReader();
       ((ConfigFromFile)reader).readConfiguration();
       desc.setAuthenticated(false);
     }
@@ -453,12 +500,12 @@ public class ControlPanelInfo
       desc.setStatus(ServerDescriptor.ServerStatus.STARTED);
       if (ctx == null)
       {
-        reader = new ConfigFromFile();
+        reader = createNewConfigFromFileReader();
         ((ConfigFromFile)reader).readConfiguration();
       }
       else
       {
-        reader = new ConfigFromDirContext();
+        reader = createNewConfigFromDirContextReader();
         ((ConfigFromDirContext)reader).readConfiguration(ctx);
         if (reader.getExceptions().size() > 0)
         {
@@ -479,7 +526,7 @@ public class ControlPanelInfo
           if (!connectionWorks)
           {
             // Try with offline info
-            reader = new ConfigFromFile();
+            reader = createNewConfigFromFileReader();
             ((ConfigFromFile)reader).readConfiguration();
             try
             {
@@ -518,16 +565,10 @@ public class ControlPanelInfo
     {
       desc.setStatus(ServerDescriptor.ServerStatus.STOPPED);
       desc.setAuthenticated(false);
-      reader = new ConfigFromFile();
+      reader = createNewConfigFromFileReader();
       ((ConfigFromFile)reader).readConfiguration();
     }
-    desc.setExceptions(reader.getExceptions());
-    desc.setAdministrativeUsers(reader.getAdministrativeUsers());
-    desc.setBackends(reader.getBackends());
-    desc.setConnectionHandlers(reader.getConnectionHandlers());
-    desc.setAdminConnector(reader.getAdminConnector());
-    desc.setSchema(reader.getSchema());
-    desc.setSchemaEnabled(reader.isSchemaEnabled());
+    updateServerDescriptor(reader, desc);
 
     if ((serverDesc == null) || !serverDesc.equals(desc))
     {
