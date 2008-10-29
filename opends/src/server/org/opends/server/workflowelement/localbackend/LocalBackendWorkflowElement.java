@@ -237,6 +237,10 @@ public class LocalBackendWorkflowElement extends
         super.initialize(
           configuration.getWorkflowElementId(), BACKEND_WORKFLOW_ELEMENT);
         backend = newBackend;
+        if (backend != null)
+        {
+          setPrivate(backend.isPrivateBackend());
+        }
       }
     }
 

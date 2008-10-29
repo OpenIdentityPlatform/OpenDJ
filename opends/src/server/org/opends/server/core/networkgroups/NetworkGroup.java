@@ -84,6 +84,20 @@ public class NetworkGroup
       new NetworkGroup ("default");
 
 
+  // The admin network group (singleton).
+  // The admin network group has no criterion, no policy, and gives
+  // access to all the workflows.
+  private static NetworkGroup adminNetworkGroup =
+      new NetworkGroup ("admin");
+
+  // The internal network group (singleton).
+  // The internal network group has no criterion, no policy, and gives
+  // access to all the workflows. The purpose of the internal network
+  // group is to allow internal connections to perform operations.
+  private static NetworkGroup internalNetworkGroup =
+      new NetworkGroup("internal");
+
+
   // The list of all network groups that are registered with the server.
   // The defaultNetworkGroup is not in the list of registered network groups.
   private static TreeMap<String, NetworkGroup> registeredNetworkGroups =
@@ -410,13 +424,6 @@ public class NetworkGroup
 
       // Rebuild the list of naming context handled by the network group
       rebuildNamingContextList();
-    }
-
-    // If the workflow has been deregistered then deregister it with
-    // the default network group as well
-    if (deregistered && (this != defaultNetworkGroup))
-    {
-      defaultNetworkGroup.deregisterWorkflow(workflow);
     }
   }
 
@@ -771,6 +778,26 @@ public class NetworkGroup
 
 
   /**
+   * Returns the admin network group.
+   * @return the admin network group
+   */
+  public static NetworkGroup getAdminNetworkGroup()
+  {
+    return adminNetworkGroup;
+  }
+
+
+  /**
+   * Returns the internal network group.
+   * @return the internal network group
+   */
+  public static NetworkGroup getInternalNetworkGroup()
+  {
+    return internalNetworkGroup;
+  }
+
+
+  /**
    * Rebuilds the list of naming contexts handled by the network group.
    * This operation should be performed whenever a workflow topology
    * has been updated (workflow registration or de-registration).
@@ -853,9 +880,14 @@ public class NetworkGroup
         networkGroup.invalidate();
       }
       defaultNetworkGroup.invalidate();
+      adminNetworkGroup.invalidate();
+      internalNetworkGroup.invalidate();
 
       registeredNetworkGroups = new TreeMap<String,NetworkGroup>();
+      orderedNetworkGroups = new ArrayList<NetworkGroup>();
       defaultNetworkGroup = new NetworkGroup ("default");
+      adminNetworkGroup = new NetworkGroup ("admin");
+      internalNetworkGroup = new NetworkGroup("internal");
     }
   }
 
@@ -915,11 +947,14 @@ public class NetworkGroup
   {
     // Reset the default network group
     defaultNetworkGroup.reset();
+    adminNetworkGroup.reset();
+    internalNetworkGroup.reset();
 
     // Reset all the registered network group
     synchronized (registeredNetworkGroupsLock)
     {
       registeredNetworkGroups = new TreeMap<String, NetworkGroup>();
+      orderedNetworkGroups = new ArrayList<NetworkGroup>();
     }
   }
 

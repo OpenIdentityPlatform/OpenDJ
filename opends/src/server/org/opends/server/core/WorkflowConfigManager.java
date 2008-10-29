@@ -306,8 +306,11 @@ public class WorkflowConfigManager
     workflows.put(workflowCfg.dn(), workflowImpl);
     workflowImpl.register();
 
-    // Register the workflow with the default network group
-    NetworkGroup.getDefaultNetworkGroup().registerWorkflow(workflowImpl);
+    // Register the workflow with the internal network group
+    NetworkGroup.getInternalNetworkGroup().registerWorkflow(workflowImpl);
+
+    // Register the workflow with the admin network group
+    NetworkGroup.getAdminNetworkGroup().registerWorkflow(workflowImpl);
   }
 
 }

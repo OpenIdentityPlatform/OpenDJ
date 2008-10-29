@@ -129,6 +129,7 @@ public class ResourceLimits
       searchSizeLimit = resourcesCfg.getSearchSizeLimit();
       searchTimeLimit = (int) resourcesCfg.getSearchTimeLimit();
       minSearchSubstringLength = resourcesCfg.getMinSubstringLength();
+      connectionsPerIpMap = new HashMap<String, Integer>();
 
       resourcesCfg.addChangeListener(this);
       isConfigured = true;

@@ -74,6 +74,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.ProtocolMessages.*;
 
 import org.opends.messages.MessageBuilder;
+import org.opends.server.core.networkgroups.NetworkGroup;
 
 
 /**
@@ -134,6 +135,7 @@ public class JmxClientConnection
   {
     super();
 
+    this.setNetworkGroup(NetworkGroup.getAdminNetworkGroup());
 
     nextMessageID    = new AtomicInteger(1);
     nextOperationID  = new AtomicLong(0);

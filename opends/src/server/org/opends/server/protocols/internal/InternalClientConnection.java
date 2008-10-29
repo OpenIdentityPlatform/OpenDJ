@@ -45,6 +45,7 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.core.*;
+import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.extensions.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -166,6 +167,8 @@ public final class InternalClientConnection
     super();
 
 
+    this.setNetworkGroup(NetworkGroup.getInternalNetworkGroup());
+
     // This connection will be authenticated as a root user so that no
     // access control will be enforced.
     String commonName    = "Internal Client";
@@ -284,6 +287,8 @@ public final class InternalClientConnection
   {
     super();
 
+
+    this.setNetworkGroup(NetworkGroup.getInternalNetworkGroup());
 
     this.authenticationInfo = authInfo;
     super.setAuthenticationInfo(authInfo);

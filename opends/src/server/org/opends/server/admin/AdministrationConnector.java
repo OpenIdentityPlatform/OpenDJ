@@ -157,6 +157,7 @@ public final class AdministrationConnector
       new LDAPConnectionHandler(new SynchronousStrategy(), FRIENDLY_NAME);
     adminConnectionHandler.
       initializeConnectionHandler(ldapConnectionHandlerCfg);
+    adminConnectionHandler.setAdminConnectionHandler();
 
     // Register this as a change listener.
     config.addChangeListener(this);
