@@ -408,6 +408,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
     //Ensure that the entry exists.
     String args[] = new String []
     {
+        "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
         "-b", "o=test",

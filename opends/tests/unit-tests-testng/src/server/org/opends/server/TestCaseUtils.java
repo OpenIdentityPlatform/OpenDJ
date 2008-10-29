@@ -126,7 +126,17 @@ public final class TestCaseUtils {
    */
   public static final String PROPERTY_CONFIG_CHANGE_FILE =
       "org.opends.server.ConfigChangeFile";
-  
+
+  /**
+   * The name of the system property that specifies if the test instance
+   * direcotry needs to be wiped out before starting the setup or not.
+   * This will let the caller the possibility to copy some files
+   * (ie extensions) inside the test instance directory before the server
+   * starts up.
+   */
+  public static final String PROPERTY_CLEANUP_REQUIRED =
+      "org.opends.server.CleanupDirectories";
+
   /**
    * The name of the system property that specifies the ldap port.
    * Set this property when running the server if you want to use a given
@@ -222,6 +232,11 @@ public final class TestCaseUtils {
   private static int serverRestarts = 0;
 
   /**
+   * The config directory in the test environment.
+   */
+  private static File testConfigDir;
+
+  /**
    * Starts the Directory Server so that it will be available for use while
    * running the unit tests.  This will only actually start the server once, so
    * subsequent attempts to start it will be ignored because it will already be
@@ -248,31 +263,48 @@ public final class TestCaseUtils {
 
       InvocationCounterPlugin.resetStartupCalled();
 
+      // Retrieves the location of a typical installation directory to use as a
+      // source to build our test instance.
+      String installedRoot = System.getProperty(PROPERTY_INSTALLED_ROOT);
+
       // Get the build root and use it to create a test package directory.
       String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
       File   buildDir  = new File(buildRoot, "build");
       File   unitRoot  = new File(buildDir, "unit-tests");
-      File   testInstallRoot  =  new File(unitRoot, "package-install");
-      File   testInstanceRoot  = new File(unitRoot, "package-instance");
+      File   testInstallRoot  = null;
+      File   testInstanceRoot  = null;
+      if (installedRoot == null) {
+         testInstallRoot = new File(unitRoot, "package-install");
+         testInstanceRoot = new File(unitRoot, "package-instance");
+      } else {
+         testInstallRoot = new File(unitRoot, "package");
+         testInstanceRoot = testInstallRoot;
+      }
+
       File   testSrcRoot = new File(buildRoot + File.separator + "tests" +
                                     File.separator + "unit-tests-testng");
 
-      if (testInstallRoot.exists())
+      boolean cleanupRequired = true;
+      String cleanupRequiredString =
+              System.getProperty(PROPERTY_CLEANUP_REQUIRED, "true");
+      if (cleanupRequiredString.equalsIgnoreCase("false"))
       {
-        deleteDirectory(testInstallRoot);
+        cleanupRequired = false;
       }
-      if (testInstanceRoot.exists())
-      {
-        deleteDirectory(testInstanceRoot);
-      }
-      testInstallRoot.mkdirs();
-      testInstanceRoot.mkdirs();
 
-      // Retrieves the location of a typical installation directory to use as a
-      // source to build our test instance.
-      String installedRoot = System.getProperty(PROPERTY_INSTALLED_ROOT);
- 
-      
+      if (cleanupRequired) {
+        if (testInstallRoot.exists())
+        {
+          deleteDirectory(testInstallRoot);
+        }
+        if (testInstanceRoot.exists())
+        {
+          deleteDirectory(testInstanceRoot);
+        }
+        testInstallRoot.mkdirs();
+        testInstanceRoot.mkdirs();
+      }
+
       //db_verify is second jeb backend used by the jeb verify test cases
       //db_rebuild is the third jeb backend used by the jeb rebuild test cases
       //db_unindexed is the forth backend used by the unindexed search privilege
@@ -299,7 +331,8 @@ public final class TestCaseUtils {
       File libDir           = new File(buildRoot, "lib");
       File resourceDir      = new File(buildRoot, "resource");
       File testResourceDir  = new File(testSrcRoot, "resource");
-      File testConfigDir    = new File(testInstanceRoot, "config");
+      // Set the class variable
+      testConfigDir    = new File(testInstanceRoot, "config");
       File testClassesDir   = new File(testInstanceRoot, "classes");
       File testLibDir       = new File(testInstallRoot, "lib");
       File testBinDir       = new File(testInstallRoot, "bin");
@@ -607,11 +640,11 @@ public final class TestCaseUtils {
 
   private static File getTestConfigDir()
   {
-    String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
-    File   buildDir  = new File(buildRoot, "build");
-    File   unitRoot  = new File(buildDir, "unit-tests");
-    File   testRoot  = new File(unitRoot, "package-instance");
-    return new File(testRoot, "config");
+    if (testConfigDir == null) {
+      throw new RuntimeException("The testConfigDir variable is not set yet!");
+    }
+    
+    return (testConfigDir);
   }
 
   public static File getBuildRoot()
