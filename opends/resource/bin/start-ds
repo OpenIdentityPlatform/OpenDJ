@@ -38,23 +38,7 @@ cd ..
 INSTALL_ROOT=`pwd`
 export INSTALL_ROOT
 
-if cat ${INSTALL_ROOT}/instance.loc | grep '^/' > /dev/null
-then
-  INSTANCE_ROOT=`cat ${INSTALL_ROOT}/instance.loc`
-  export INSTANCE_ROOT
-else
-  INSTANCE_ROOT=${INSTALL_ROOT}/`cat ${INSTALL_ROOT}/instance.loc`
-  export INSTANCE_ROOT
-fi
-
 cd "${WORKING_DIR}"
-
-# Specify the locations of important files that may be used when the server
-# is starting.
-CONFIG_FILE=${INSTANCE_ROOT}/config/config.ldif
-PID_FILE=${INSTANCE_ROOT}/logs/server.pid
-LOG_FILE=${INSTANCE_ROOT}/logs/server.out
-STARTING_FILE=${INSTANCE_ROOT}/logs/server.starting
 
 
 # Specify the script name so that it may be provided in command-line usage.
@@ -64,12 +48,21 @@ export SCRIPT_NAME
 # Set environment variables
 SCRIPT_UTIL_CMD=set-full-environment-and-test-java
 export SCRIPT_UTIL_CMD
+CHECK_VERSION=yes
+export CHECK_VERSION
 .  "${INSTALL_ROOT}/lib/_script-util.sh"
 RETURN_CODE=$?
 if test ${RETURN_CODE} -ne 0
 then
 	exit ${RETURN_CODE}
 fi
+
+# Specify the locations of important files that may be used when the server
+# is starting.
+CONFIG_FILE=${INSTANCE_ROOT}/config/config.ldif
+PID_FILE=${INSTANCE_ROOT}/logs/server.pid
+LOG_FILE=${INSTANCE_ROOT}/logs/server.out
+STARTING_FILE=${INSTANCE_ROOT}/logs/server.starting
 
 
 # See if the provided set of arguments were sufficient for us to be able to

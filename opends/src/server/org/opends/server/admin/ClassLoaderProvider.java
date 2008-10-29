@@ -315,7 +315,18 @@ public final class ClassLoaderProvider {
 
     // Put extensions jars into the class loader and load all
     // configuration definition classes in that they contain.
-    initializeAllExtensions();
+    // First load the extension from the install directory, then
+    // from the instance directory.
+    File libDir ;
+    File extensionsPath ;
+
+    libDir = new File(DirectoryServer.getServerRoot(),LIB_DIR);
+    extensionsPath = new File(libDir, EXTENSIONS_DIR);
+    initializeAllExtensions(extensionsPath);
+
+    libDir = new File(DirectoryServer.getInstanceRoot(),LIB_DIR);
+    extensionsPath = new File(libDir, EXTENSIONS_DIR);
+    initializeAllExtensions(extensionsPath);
   }
 
 
@@ -508,6 +519,7 @@ public final class ClassLoaderProvider {
   /**
    * Put extensions jars into the class loader and load all
    * configuration definition classes in that they contain.
+   * @param extensionsPath Indicates where extensions are located.
    *
    * @throws InitializationException
    *           If the extensions folder could not be accessed or if a
@@ -515,10 +527,8 @@ public final class ClassLoaderProvider {
    *           the configuration definition classes could not be
    *           initialized.
    */
-  private void initializeAllExtensions()
+  private void initializeAllExtensions(File extensionsPath)
       throws InitializationException {
-    File libPath = new File(DirectoryServer.getInstanceRoot(), LIB_DIR);
-    File extensionsPath = new File(libPath, EXTENSIONS_DIR);
 
     try {
       if (!extensionsPath.exists()) {

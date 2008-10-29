@@ -2421,4 +2421,6 @@
     </javac>
   </target>
 
+  <import file="build-svr4.xml"/>
+
 </project>

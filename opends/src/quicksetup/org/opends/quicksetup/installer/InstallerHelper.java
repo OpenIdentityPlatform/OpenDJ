@@ -806,7 +806,8 @@ public class InstallerHelper {
       writer.close();
     }
     String destinationFile;
-    String libDir = Utils.getPath(installPath,
+    String libDir = Utils.getPath(Utils.
+            getInstancePathFromClasspath(installPath),
         Installation.LIBRARIES_PATH_RELATIVE);
     if (Utils.isWindows())
     {

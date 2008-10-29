@@ -95,7 +95,7 @@ public class AddSchemaFileTaskTestCase
     DirectoryServer.registerMatchingRule(matchingRule, false);
 
 
-    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
+    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath(true);
 
     String[] fileLines =
     {
@@ -168,7 +168,7 @@ public class AddSchemaFileTaskTestCase
     Thread.sleep(2);
 
 
-    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
+    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath(true);
 
 
     SchemaTestMatchingRule matchingRule1 =
@@ -342,7 +342,7 @@ public class AddSchemaFileTaskTestCase
     Thread.sleep(2);
 
 
-    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
+    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath(true);
 
     File emptyFile = new File(schemaDirectory, "05-empty.ldif");
     emptyFile.createNewFile();
@@ -377,7 +377,7 @@ public class AddSchemaFileTaskTestCase
   public void testAddInvalidSchemaFile()
          throws Exception
   {
-    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
+    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath(true);
 
     File invalidFile = new File(schemaDirectory, "05-invalid.ldif");
     BufferedWriter writer = new BufferedWriter(new FileWriter(invalidFile));

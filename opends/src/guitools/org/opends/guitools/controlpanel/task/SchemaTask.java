@@ -77,15 +77,17 @@ public abstract class SchemaTask extends Task
     backendSet = new HashSet<String>();
     CommonSchemaElements element = getSchemaElement();
     schemaFile = element.getSchemaFile();
+    boolean userSchema = false ;
     if (schemaFile == null)
     {
       schemaFile = ConfigConstants.FILE_USER_SCHEMA_ELEMENTS;
+      userSchema = true;
     }
     File f = new File(schemaFile);
     if (!f.isAbsolute())
     {
       f = new File(
-        DirectoryServer.getEnvironmentConfig().getSchemaDirectory(),
+        DirectoryServer.getEnvironmentConfig().getSchemaDirectory(userSchema),
         schemaFile);
     }
     schemaFile = f.getAbsolutePath();

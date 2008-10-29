@@ -706,7 +706,7 @@ public class SchemaBackendTestCase
     String attrName = "testaddattributetypetoaltschemafile";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(),
+    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(true),
                                "98-schema-test-attrtype.ldif");
     assertFalse(schemaFile.exists());
 
@@ -802,7 +802,7 @@ public class SchemaBackendTestCase
     String attrName = "testreplaceattributetypeinaltschemafile";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(),
+    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(true),
                                "98-schema-test-replaceattrtype.ldif");
     assertFalse(schemaFile.exists());
 
@@ -1676,7 +1676,7 @@ public class SchemaBackendTestCase
     String ocName = "testaddobjectclasstoaltschemafile";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(),
+    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(true),
                                "98-schema-test-oc.ldif");
     assertFalse(schemaFile.exists());
 
@@ -2476,7 +2476,7 @@ public class SchemaBackendTestCase
     String nameFormName = "testaddnameformtoaltschemafile";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(),
+    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(true),
                                "98-schema-test-nameform.ldif");
     assertFalse(schemaFile.exists());
 
@@ -3229,7 +3229,7 @@ public class SchemaBackendTestCase
     String ocName = "testadddcrtoaltschemafileoc";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(),
+    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(true),
                                "98-schema-test-dcr.ldif");
     assertFalse(schemaFile.exists());
 
@@ -4286,7 +4286,7 @@ public class SchemaBackendTestCase
     int ruleID = 999010;
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
 
-    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(),
+    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(true),
                                "98-schema-test-dsr.ldif");
     assertFalse(schemaFile.exists());
 
@@ -4777,7 +4777,7 @@ public class SchemaBackendTestCase
       "-f", path
     };
 
-    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(),
+    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(true),
                                "98-schema-test-mru.ldif");
     assertFalse(schemaFile.exists());
 

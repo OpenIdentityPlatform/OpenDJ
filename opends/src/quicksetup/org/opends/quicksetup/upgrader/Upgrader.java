@@ -72,11 +72,9 @@ import org.opends.quicksetup.upgrader.ui.WelcomePanel;
 import org.opends.server.tools.JavaPropertiesTool;
 
 import java.awt.event.WindowEvent;
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -154,6 +152,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
     "bin",
     "lib",
     "bat",
+    "config" + File.separator + "schema",
     "setup",
     "setup.bat",
     "uninstall",
@@ -203,12 +202,22 @@ public class Upgrader extends GuiApplication implements CliApplication {
   /**
    * Information on the current build.
    */
-  private BuildInformation currentVersion = null;
+  protected BuildInformation currentVersion = null;
+
+  /**
+   * Information on the current instance.
+   */
+  protected BuildInformation currentInstanceVersion = null;
 
   /**
    * Information on the staged build.
    */
   private BuildInformation stagedVersion = null;
+
+  /**
+   * Information on the staged instance.
+   */
+  private BuildInformation stagedInstanceVersion = null;
 
   /**
    * New OpenDS bits.
@@ -390,50 +399,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       return null;
     }
 
-    String instancePathFileName = installPath + File.separator + "instance.loc";
-
-    // look for <installPath>/instance.loc
-    File f = new File(instancePathFileName);
-    if (!f.exists())
-    {
-      return installPath;
-    }
-
-    BufferedReader reader;
-    try
-    {
-      reader = new BufferedReader(new FileReader(instancePathFileName));
-    } catch (Exception e)
-    {
-      return installPath;
-    }
-
-    // Read the first line and close the file.
-    String line;
-    try
-    {
-      line = reader.readLine();
-      File instanceLoc = new File(line);
-      if (instanceLoc.isAbsolute())
-      {
-        return instanceLoc.getAbsolutePath();
-      } else
-      {
-        return new File(installPath + File.separator
-            + line).getAbsolutePath();
-      }
-    } catch (Exception e)
-    {
-      return installPath;
-    } finally
-    {
-      try
-      {
-        reader.close();
-      } catch (Exception e)
-      {
-      }
-    }
+    return Utils.getInstancePathFromClasspath(installPath);
   }
 
   /**
@@ -898,6 +864,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 UpgradeProgressStep.UPGRADING_COMPONENTS);
         upgradeComponents();
         updateConfigDirectory();
+        updateExtensionsDirectory();
         notifyListeners(getFormattedDoneWithLineBreak());
         LOG.log(Level.INFO, "component upgrade finished");
       } catch (ApplicationException e) {
@@ -1515,14 +1482,25 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
   }
 
-  private Stage getStage() throws IOException, ApplicationException {
+  /**
+   * Returns the directory used to stage files for upgrade or reversion.
+   * @return the directory used to stage files for upgrade or reversion
+   * @throws IOException if errors occurs while accessing stage files
+   * @throws org.opends.quicksetup.ApplicationException
+   *     if retrieval of stage files path fails
+   */
+  protected Stage getStage() throws IOException, ApplicationException {
     if (this.stage == null) {
       this.stage = new Stage(getStageDirectory());
     }
     return this.stage;
   }
 
-  private void upgradeComponents() throws ApplicationException {
+  /**
+   * Upgrade components.
+   * @throws ApplicationException if upgrade fails
+   */
+  protected void upgradeComponents() throws ApplicationException {
     try {
       Stage stage = getStage();
       Installation installation = getInstallation();
@@ -1530,19 +1508,19 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
       if (instanceAndInstallInSameDir())
       {
-        stage.move(root, new UpgradeFileFilter(getStageDirectory()));
+       stage.move(root, new UpgradeFileFilter(getStageDirectory()));
       }
       else
       {
-        stage.move(root, new UpgradeFileFilter(getStageDirectory(),true));
-
+         stage.move(root, new UpgradeFileFilter(getStageDirectory(),true));
         root = installation.getInstanceDirectory();
         stage.move(root, new UpgradeFileFilter(getStageDirectory(),false));
       }
 
       // Check if instance.loc exits
       File instanceFile = new File
-         (installation.getRootDirectory(), "instance.loc");
+         (installation.getRootDirectory(),
+            Installation.INSTANCE_LOCATION_PATH_RELATIVE);
       if (! instanceFile.exists())
       {
         BufferedWriter instanceLoc =
@@ -1569,28 +1547,77 @@ public class Upgrader extends GuiApplication implements CliApplication {
   {
     // The config directory may contain files that are needed
     // by the new installation (e.g. SSL config files and tasks)
-    File oldConfigDir =
+    File oldInstallConfigDir =
+            new File(getFilesInstallBackupDirectory(),
+                     Installation.CONFIG_PATH_RELATIVE);
+    File oldInstanceConfigDir =
             new File(getFilesInstanceBackupDirectory(),
                      Installation.CONFIG_PATH_RELATIVE);
-    File newConfigDir =
-            getInstallation().getConfigurationDirectory();
+    File newInstallConfigDir =
+            getInstallation().getInstallConfigurationDirectory();
+    File newInstanceConfigDir =
+      getInstallation().getConfigurationDirectory();
     FileManager fm = new FileManager();
 
     // Define a filter for files that we don't want to copy over
     // from the old config directory.
-    final File oldConfigUpgradeDir = new File(oldConfigDir, "upgrade");
-    final File oldConfigSchemaDir = new File(oldConfigDir, "schema");
-    FileFilter filter = new FileFilter() {
-      public boolean accept(File f) {
-        return !Utils.isDescendant(f, oldConfigUpgradeDir) &&
-                !Utils.isDescendant(f, oldConfigSchemaDir);
-      }
-    };
+    {
+      final File oldConfigUpgradeDir = new File(oldInstallConfigDir, "upgrade");
+      final File oldConfigSchemaDir = new File(oldInstallConfigDir, "schema");
+      FileFilter filter = new FileFilter()
+      {
+        public boolean accept(File f)
+        {
+          return !Utils.isDescendant(f, oldConfigUpgradeDir)
+              && !Utils.isDescendant(f, oldConfigSchemaDir);
+        }
+      };
 
-    fm.synchronize(oldConfigDir, newConfigDir, filter);
+      fm.synchronize(oldInstallConfigDir, newInstallConfigDir, filter);
+    }
+
+    {
+      final File oldConfigUpgradeDir =
+        new File(oldInstanceConfigDir, "upgrade");
+      FileFilter filter = new FileFilter()
+      {
+        public boolean accept(File f)
+        {
+          return !Utils.isDescendant(f, oldConfigUpgradeDir);
+        }
+      };
+
+      fm.synchronize(oldInstanceConfigDir, newInstanceConfigDir, filter);
+    }
   }
 
-  private void backupFilesystem() throws ApplicationException {
+  private void updateExtensionsDirectory()
+          throws IOException,ApplicationException
+  {
+    // Get extensions back
+    File savedDir =
+            new File(getFilesInstanceBackupDirectory(),
+                     Installation.LIBRARIES_PATH_RELATIVE);
+    File destDir = getInstallation().getInstanceDirectory();
+
+    FileManager fm = new FileManager();
+    fm.copyRecursively(savedDir, destDir);
+
+    // Get classes back
+    savedDir =
+            new File(getFilesInstanceBackupDirectory(),
+                     Installation.CLASSES_PATH_RELATIVE);
+    destDir = getInstallation().getInstanceDirectory();
+
+    fm.copyRecursively(savedDir, destDir);
+
+  }
+
+  /**
+   * Backup files to be able to revert if upgrdae fails.
+   * @throws ApplicationException if backup fails
+   */
+  protected void backupFilesystem() throws ApplicationException {
     try {
       // Backup first install (potentially everything if install and instance
       //  are in the same dir
@@ -1693,7 +1720,12 @@ public class Upgrader extends GuiApplication implements CliApplication {
     }
   }
 
-  private void cleanup() throws ApplicationException {
+  /**
+   * Cleanup to done executed once upgrade is done.
+   * @throws org.opends.quicksetup.ApplicationException
+   *    if cleanup fails
+   */
+  protected void cleanup() throws ApplicationException {
     deleteStagingDirectory();
   }
 
@@ -1719,15 +1751,19 @@ public class Upgrader extends GuiApplication implements CliApplication {
     }
   }
 
-  private void initialize() throws ApplicationException {
+  /**
+   * Implements the initialization phase of the upgrade.
+   * @throws ApplicationException if upgrade is not possible
+   */
+  protected void initialize() throws ApplicationException {
     try {
-      BuildInformation fromVersion = getCurrentBuildInformation();
+      BuildInformation fromVersion = getCurrentInstanceBuildInformation();
       BuildInformation toVersion = getStagedBuildInformation();
       if (fromVersion.equals(toVersion))
       {
         throw new ApplicationException(ReturnCode.APPLICATION_ERROR,
             INFO_UPGRADE_ORACLE_SAME_VERSION.get(
-                fromVersion.toString()), null);
+                toVersion.toString()), null);
       }
       if (getInstallation().getStatus().isServerRunning()) {
         new ServerController(getInstallation()).stopServer(true);
@@ -1755,16 +1791,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
    *         cannot be insured.
    */
   private void insureUpgradability() throws ApplicationException {
-    BuildInformation currentVersion;
     BuildInformation newVersion;
-    try {
-      currentVersion = getInstallation().getBuildInformation();
-    } catch (ApplicationException e) {
-      LOG.log(Level.INFO, "error getting build information for " +
-              "current installation", e);
-      throw ApplicationException.createFileSystemException(
-              INFO_ERROR_DETERMINING_CURRENT_BUILD.get(), e);
-    }
+    currentVersion = getCurrentInstanceBuildInformation();
 
     try {
       newVersion = getStagedInstallation().getBuildInformation();
@@ -1789,7 +1817,15 @@ public class Upgrader extends GuiApplication implements CliApplication {
     }
   }
 
-  private Installation getStagedInstallation()
+  /**
+   * Returns the path of the new OpenDS bits.
+   * @return the path of the new OpenDS bits.
+   * @throws java.io.IOException if an error occurs while accessing the
+   *         new bits
+   * @throws org.opends.quicksetup.ApplicationException if upgradability
+   *         cannot be insured.
+   */
+  protected Installation getStagedInstallation()
           throws IOException, ApplicationException {
     if (stagedInstallation == null) {
       File stageDir = getStageDirectory();
@@ -1913,7 +1949,14 @@ public class Upgrader extends GuiApplication implements CliApplication {
     return txt;
   }
 
-  private File getStageDirectory()
+  /**
+   * Returns the path of the new OpenDS bits.
+   * @return the path of the new OpenDS bits.
+   * @throws org.opends.quicksetup.ApplicationException
+   *         if retrieval of stage files path fails
+   * @throws java.io.IOException if errors occurs while accessing stage files
+   */
+  protected File getStageDirectory()
           throws ApplicationException, IOException {
     return getInstallation().getTemporaryUpgradeDirectory();
   }
@@ -1930,7 +1973,12 @@ public class Upgrader extends GuiApplication implements CliApplication {
     return installDir.getAbsolutePath().equals(instanceDir.getAbsolutePath());
   }
 
-  private File getFilesInstanceBackupDirectory() throws IOException
+  /**
+   * Returns the path where to backup instance files.
+   * @return the path where to backup instance files.
+   * @throws java.io.IOException if retrieval of backup files fails
+   */
+  protected File getFilesInstanceBackupDirectory() throws IOException
   {
     if (instanceAndInstallInSameDir())
     {
@@ -1995,6 +2043,10 @@ public class Upgrader extends GuiApplication implements CliApplication {
     return backupDirectory;
   }
 
+  /**
+   * Returns the BuildInformation of the current OpenDS bits.
+   * @return the BuildInformation of the current OpenDS bits.
+   */
   private BuildInformation getCurrentBuildInformation() {
     if (this.currentVersion == null) {
       try {
@@ -2006,10 +2058,23 @@ public class Upgrader extends GuiApplication implements CliApplication {
     return currentVersion;
   }
 
+ /**
+   * Returns the BuildInformation of the OpenDS instance.
+   * @return the BuildInformation of the OpenDS instance.
+   */
+  private BuildInformation getCurrentInstanceBuildInformation() {
+    if (this.currentInstanceVersion == null) {
+      currentInstanceVersion = getInstallation().getInstanceBuildInformation();
+    }
+
+    return currentInstanceVersion;
+  }
+
+
   private BuildInformation getStagedBuildInformation() {
     if (stagedVersion == null) {
       try {
-        stagedVersion = getStagedInstallation().getBuildInformation();
+          stagedVersion = getStagedInstallation().getBuildInformation();
       } catch (Exception e) {
         LOG.log(Level.INFO, "error getting build info for staged installation",
                 e);
@@ -2018,4 +2083,4 @@ public class Upgrader extends GuiApplication implements CliApplication {
     return stagedVersion;
   }
 
-}
+  }

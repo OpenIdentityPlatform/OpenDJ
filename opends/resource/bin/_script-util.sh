@@ -170,15 +170,59 @@ then
   cd "`dirname "${0}"`"
   cd ..
   INSTALL_ROOT=`pwd`
-  if cat ${INSTALL_ROOT}/instance.loc | grep '^/' > /dev/null
-  then
-    INSTANCE_ROOT=`cat ${INSTALL_ROOT}/instance.loc`
-    export INSTANCE_ROOT
-  else
-    INSTANCE_ROOT=${INSTALL_ROOT}/`cat ${INSTALL_ROOT}/instance.loc`
-    export INSTANCE_ROOT
-  fi
   cd "${WORKING_DIR}"
+fi
+
+if test "${INSTANCE_ROOT}" = ""
+then
+  for opt in `echo $*`
+  do
+	if [ $opt = "-V" ] || [ $opt = "--version" ] || 
+		[ $opt = "-H" ] || [ $opt = "--help" ] 
+	then
+		INSTANCE_ROOT="not_needed"
+	fi
+  done
+fi
+
+if test "${INSTANCE_ROOT}" = ""
+then
+  if [ -f ${INSTALL_ROOT}/configure ]
+  then
+    if [ -f /etc/opt/opends/instance.loc ]
+    then 
+      if [ "${SCRIPT_NAME}" = "configure" ]
+      then
+        echo "${INSTALL_ROOT}/configure has already be run. Exiting."
+        exit 0
+      fi	
+      INSTANCE_ROOT=`cat /etc/opt/opends/instance.loc`
+    else
+      if [ "${SCRIPT_NAME}" != "configure" ]
+      then
+        echo "No instance found. Run ${INSTALL_ROOT}/configure to create it."
+        exit 1
+      fi
+    fi
+  else
+    if [ -f ${INSTALL_ROOT}/instance.loc ]
+    then
+      if cat ${INSTALL_ROOT}/instance.loc | grep '^/' > /dev/null
+      then
+         INSTANCE_ROOT=`cat ${INSTALL_ROOT}/instance.loc`
+      else
+         INSTANCE_ROOT=${INSTALL_ROOT}/`cat ${INSTALL_ROOT}/instance.loc`
+      fi
+    else
+         INSTANCE_ROOT=${INSTALL_ROOT}
+    fi
+  fi
+  if [ -d "${INSTANCE_ROOT}" ]
+  then
+      cd ${INSTANCE_ROOT}
+      INSTANCE_ROOT=`pwd`
+      export INSTANCE_ROOT
+  fi
 fi
 
 if test "${SCRIPT_UTIL_CMD}" = "set-full-environment-and-test-java"
@@ -204,4 +248,49 @@ then
 elif test "${SCRIPT_UTIL_CMD}" = "test-java"
 then
   test_java
+fi
+
+current_user()
+{
+USER=`id`
+CURRENT_IFS=${IFS}
+IFS="()"
+set -- ${USER}
+echo $2
+IFS=${CURRENT_IFS}
+}
+
+if [ "${SCRIPT_NAME}" != "configure" ]
+then 
+  NO_CHECK=0
+  for opt in `echo $*`
+  do
+    # No check for --version or --help option
+	if [ $opt = "-V" ] || [ $opt = "--version" ] || 
+		[ $opt = "-H" ] || [ $opt = "--help" ]  ||
+		[ $opt = "-F" ] || [ $opt = "--fullversion" ] 
+	then
+		NO_CHECK=1
+	fi
+  done
+  if [ ${NO_CHECK} -eq 0 ]
+  then
+    set_classpath
+  # Check instance
+      CURRENT_USER="`current_user`"
+      if [ "${CHECK_VERSION}" = "yes" ]
+      then
+	  OPT_CHECK_VERSION="--checkVersion"
+      else
+	  OPT_CHECK_VERSION=""
+      fi
+  # Launch the CheckInstance process.
+      "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} -DINSTALL_ROOT=${INSTALL_ROOT} -DINSTANCE_ROOT=${INSTANCE_ROOT} org.opends.quicksetup.configurator.CheckInstance --currentUser ${CURRENT_USER} ${OPT_CHECK_VERSION}
+  # return part
+      RETURN_CODE=$?
+      if [ ${RETURN_CODE} -ne 0 ]
+      then
+	  exit ${RETURN_CODE}
+      fi
+  fi
 fi
