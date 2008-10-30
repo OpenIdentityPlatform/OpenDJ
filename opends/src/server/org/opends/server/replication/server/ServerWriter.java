@@ -191,14 +191,7 @@ public class ServerWriter extends DirectoryThread
 
         // Publish the update to the remote server using a protocol version he
         // it supports
-        short pduProtocolVersion = update.getVersion();
-        if (protocolVersion < pduProtocolVersion)
-        { // The remote server wants a lower protocol version than the PDU one,
-          // send it the PDU, serializing it with the supported older version
-          session.publish(update, protocolVersion);
-        } else {
-          session.publish(update);
-        }
+        session.publish(update, protocolVersion);
       }
     }
     catch (NoSuchElementException e)

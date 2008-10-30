@@ -728,7 +728,7 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
                   // if the 2 RS have different generationID
                   if (replicationServerDomain.getGenerationIdSavedStatus())
                   {
-                    // it the present RS has received changes regarding its
+                    // if the present RS has received changes regarding its
                     //     gen ID and so won't change without a reset
                     // then  we are just degrading the peer.
                     Message message = NOTE_BAD_GENERATION_ID_FROM_RS.get(
@@ -925,6 +925,97 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
             replicationServerDomain.release();
           return;
         }
+      } else
+      {
+        // Terminate connection from a V1 RS
+
+        // if the remote RS and the local RS have the same genID
+        // then it's ok and nothing else to do
+        if (generationId == localGenerationId)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugInfo("In " +
+              replicationServerDomain.getReplicationServer().
+              getMonitorInstanceName() + " RS V1 with serverID=" + serverId +
+              " is connected with the right generation ID");
+          }
+        } else
+        {
+          if (localGenerationId > 0)
+          {
+            // if the local RS is initialized
+            if (generationId > 0)
+            {
+              // if the remote RS is initialized
+              if (generationId != localGenerationId)
+              {
+                // if the 2 RS have different generationID
+                if (replicationServerDomain.getGenerationIdSavedStatus())
+                {
+                  // if the present RS has received changes regarding its
+                  //     gen ID and so won't change without a reset
+                  // then  we are just degrading the peer.
+                  Message message = NOTE_BAD_GENERATION_ID_FROM_RS.get(
+                    this.baseDn.toNormalizedString(),
+                    Short.toString(serverId),
+                    Long.toString(generationId),
+                    Long.toString(localGenerationId));
+                  logError(message);
+                } else
+                {
+                  // The present RS has never received changes regarding its
+                  // gen ID.
+                  //
+                  // Example case:
+                  // - we are in RS1
+                  // - RS2 has genId2 from LS2 (genId2 <=> no data in LS2)
+                  // - RS1 has genId1 from LS1 /genId1 comes from data in
+                  //   suffix
+                  // - we are in RS1 and we receive a START msg from RS2
+                  // - Each RS keeps its genID / is degraded and when LS2
+                  //   will be populated from LS1 everything will become ok.
+                  //
+                  // Issue:
+                  // FIXME : Would it be a good idea in some cases to just
+                  //         set the gen ID received from the peer RS
+                  //         specially if the peer has a non null state and
+                  //         we have a nul state ?
+                  // replicationServerDomain.
+                  // setGenerationId(generationId, false);
+                  Message message = NOTE_BAD_GENERATION_ID_FROM_RS.get(
+                    this.baseDn.toNormalizedString(),
+                    Short.toString(serverId),
+                    Long.toString(generationId),
+                    Long.toString(localGenerationId));
+                  logError(message);
+                }
+              }
+            } else
+            {
+              // The remote RS has no genId. We don't change anything for the
+              // current RS.
+            }
+          } else
+          {
+            // The local RS is not initialized - take the one received
+            oldGenerationId =
+              replicationServerDomain.setGenerationId(generationId, false);
+          }
+        }
+
+        // Alright, connected with new incoming V1 RS: store handler.
+        Map<Short, ServerHandler> connectedRSs =
+          replicationServerDomain.getConnectedRSs();
+        connectedRSs.put(serverId, this);
+
+        // Note: the supported scenario for V1->V2 upgrade is to upgrade 1 by 1
+        // all the servers of the topology. We prefer not not send a TopologyMsg
+        // for giving partial/false information to the V2 servers as for
+        // instance we don't have the connected DS of the V1 RS...When the V1
+        // RS will be upgraded in his turn, topo info will be sent and accurate.
+        // That way, there is  no risk to have false/incomplete information in
+        // other servers.
       }
 
       /*
