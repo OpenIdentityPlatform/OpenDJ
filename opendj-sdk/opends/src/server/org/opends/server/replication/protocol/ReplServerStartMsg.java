@@ -350,15 +350,13 @@ public class ReplServerStartMsg extends StartMsg
   public byte[] getBytes(short reqProtocolVersion)
     throws UnsupportedEncodingException
   {
-
-    // Using current protocol version should normally not be done as we would
-    // normally call the getBytes() method instead for that. So this check
-    // for security
+    // Of course, always support current protocol version
     if (reqProtocolVersion == ProtocolVersion.getCurrentVersion())
     {
       return getBytes();
     }
 
+    // Supported older protocol versions
     switch (reqProtocolVersion)
     {
       case ProtocolVersion.REPLICATION_PROTOCOL_V1:

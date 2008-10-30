@@ -101,10 +101,7 @@ public abstract class ReplicationMsg
   public byte[] getBytes(short reqProtocolVersion)
     throws UnsupportedEncodingException
   {
-
-    // Using current protocol version should normally not be done as we would
-    // normally call the getBytes() method instead for that. So this check
-    // for security
+    // Of course, always support current protocol version
     if (reqProtocolVersion == ProtocolVersion.getCurrentVersion())
     {
       return getBytes();

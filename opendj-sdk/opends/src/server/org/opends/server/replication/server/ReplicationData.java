@@ -50,6 +50,8 @@ public class ReplicationData extends DatabaseEntry
   public ReplicationData(UpdateMsg change)
          throws UnsupportedEncodingException
   {
+    // Always keep messages in the replication DB with the current protocol
+    // version
     this.setData(change.getBytes());
   }
 

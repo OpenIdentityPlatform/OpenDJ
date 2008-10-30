@@ -33,7 +33,6 @@ import static org.testng.Assert.assertTrue;
 
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -50,10 +49,8 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.ReplicationBroker;
 import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
@@ -350,56 +347,6 @@ public class ProtocolWindowTest extends ReplicationTestCase
       ModifyOperation modOp =
         connection.processModify(personEntry.getDN(), mods);
       assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
-    }
-  }
-
-  @Test(enabled=true)
-  public void protocolVersion() throws Exception
-  {
-    logError(Message.raw(
-        Category.SYNC, Severity.INFORMATION,
-        "Starting Replication ProtocolWindowTest : protocolVersion"));
-
-    ReplicationBroker broker = null;
-
-    try
-    {
-      // Test : Make a broker degrade its version when connecting to an old
-      // replication server.
-      ProtocolVersion.resetCurrentVersion();
-
-      broker = new ReplicationBroker(null,
-        new ServerState(),
-        baseDn,
-        (short) 13, 0, 0, 0, 0, 1000, 0,
-        ReplicationTestCase.getGenerationId(baseDn),
-        getReplSessionSecurity(), (byte)1);
-
-
-      // Check broker hard-coded version
-      short pversion = broker.getProtocolVersion();
-      assertEquals(pversion, ProtocolVersion.getCurrentVersion());
-
-      // Connect the broker to the replication server
-      ProtocolVersion.setCurrentVersion(ProtocolVersion.REPLICATION_PROTOCOL_V1);
-      ArrayList<String> servers = new ArrayList<String>(1);
-      servers.add("localhost:" + replServerPort);
-      broker.start(servers);
-      TestCaseUtils.sleep(3000); // wait for connection established
-
-      // Check broker negociated version
-      pversion = broker.getProtocolVersion();
-      assertEquals(pversion, ProtocolVersion.REPLICATION_PROTOCOL_V1);
-
-      logError(Message.raw(
-        Category.SYNC, Severity.INFORMATION,
-        "Ending Replication ProtocolWindowTest : protocolVersion"));
-    } finally
-    {
-      if (broker != null)
-        broker.stop();
-
-      ProtocolVersion.resetCurrentVersion();
     }
   }
 
