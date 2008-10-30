@@ -425,6 +425,11 @@
         except IOError:
           errorfh.write('Error: Unable to open %s. Reason IOError.' % textfile )
 
+      </script>
+
+      <message>'Starting to create results XML file.'</message>
+      
+      <script>
         # Create the objects
         localstaf =test_env.staf(STAF_LOCAL_HOSTNAME)
         remotestaf=test_env.staf(STAF_REMOTE_HOSTNAME)
@@ -577,13 +582,19 @@
         # Create the results elements and attributes
         for tcname in testCaseList:
 
+          print 'Processing %s' % tcname
+
           if testDict.has_key(tcname):
             tcnamesplit=tcname.split(":")
             if tcnamesplit[0]:
               tcgroup=tcnamesplit[0].strip()
               if tcnamesplit[1]:
                 tcsuite=tcnamesplit[1].strip()
-                tcsuiteshort=tcsuite.split(".")[2].strip()
+                try:
+                  tcsuiteshort=tcsuite.split(".")[2].strip()
+                except:
+                  print 'Default test suite short name to %s.' % tcsuite
+                  tcsuiteshort=tcsuite
               else:
                 tcsuite=tcgroup
               if tcnamesplit[2]:
@@ -759,7 +770,11 @@
 
               if os.path.isfile(testSuiteFile):            
                 testSuiteName=os.path.basename(testSuiteFile.replace('-log.xml',''))
-                testSuiteShortName=testSuiteName.split('.')[2]
+                try:
+                  testSuiteShortName=testSuiteName.split('.')[2]
+                except:
+                  print 'Default test suite short name to %s.' % testSuiteName
+                  testSuiteShortName=testSuiteName
 
                 print 'suite= %s' %  testSuiteName
                 
