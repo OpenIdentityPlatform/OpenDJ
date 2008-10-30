@@ -57,6 +57,7 @@ import org.opends.server.types.operation.PreParseModifyOperation;
 import org.opends.server.types.operation.PreParseOperation;
 import org.opends.server.types.operation.PreParseSearchOperation;
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.ConfigMessages.*;
 
 
 /**
@@ -89,6 +90,8 @@ implements ConfigurationAddListener<NetworkGroupRequestFilteringPolicyCfg>,
   // The list of prohibited subtrees
   Set<DN> prohibitedSubtrees = null;
 
+  // The current configuration
+  NetworkGroupRequestFilteringPolicyCfg config = null;
 
   /**
    * Constructor.
@@ -113,6 +116,10 @@ implements ConfigurationAddListener<NetworkGroupRequestFilteringPolicyCfg>,
     prohibitedSubtrees = Collections.emptySet();
 
     isConfigured = false;
+    if (config != null) {
+      config.removeChangeListener(this);
+    }
+    config = null;
   }
 
   /**
@@ -131,8 +138,10 @@ implements ConfigurationAddListener<NetworkGroupRequestFilteringPolicyCfg>,
       allowedSubtrees = policyCfg.getAllowedSubtrees();
       prohibitedSubtrees = policyCfg.getProhibitedSubtrees();
 
-      policyCfg.addChangeListener(this);
-
+      if (config == null) {
+        policyCfg.addChangeListener(this);
+      }
+      config = policyCfg;
       isConfigured = true;
     } else {
       resetPolicy();
@@ -286,6 +295,11 @@ implements ConfigurationAddListener<NetworkGroupRequestFilteringPolicyCfg>,
         // The attributes specified in prohibitedAttributes are not OK
         result = (!containsProhibitedAttribute(searchOp.getRawFilter()));
       }
+      if (!result) {
+        messages.add(INFO_ERROR_ATTRIBUTE_NOT_ALLOWED.get());
+        return result;
+      }
+
       if (!allowedAttributes.isEmpty()) {
         // Only the attributes specified in allowedAttributes are OK
         result = (containsOnlyAllowedAttributes(searchOp.getRawFilter()));
@@ -327,6 +341,10 @@ implements ConfigurationAddListener<NetworkGroupRequestFilteringPolicyCfg>,
       if (!prohibitedAttributes.isEmpty()) {
         result = (!prohibitedAttributes.contains(
                 compareOp.getRawAttributeType()));
+      }
+      if (!result) {
+        messages.add(INFO_ERROR_ATTRIBUTE_NOT_ALLOWED.get());
+        return result;
       }
       if (!allowedAttributes.isEmpty()) {
         result = (allowedAttributes.contains(compareOp.getRawAttributeType()));
@@ -525,7 +543,11 @@ implements ConfigurationAddListener<NetworkGroupRequestFilteringPolicyCfg>,
   public boolean isConfigurationAddAcceptable(
           NetworkGroupRequestFilteringPolicyCfg configuration,
           List<Message> unacceptableReasons) {
-    return (!isConfigured);
+    if (isConfigured) {
+      return false;
+    }
+    return (isConfigurationChangeAcceptable(configuration,
+        unacceptableReasons));
   }
 
   /**
@@ -575,6 +597,29 @@ implements ConfigurationAddListener<NetworkGroupRequestFilteringPolicyCfg>,
   public boolean isConfigurationChangeAcceptable(
           NetworkGroupRequestFilteringPolicyCfg configuration,
           List<Message> unacceptableReasons) {
+    if (configuration != null) {
+      // Check that allowed-attributes does not contain any attribute
+      // also configured in prohibited-attributes
+      for (String allowedAttr: configuration.getAllowedAttributes()) {
+        if (configuration.getProhibitedAttributes().contains(allowedAttr)) {
+          unacceptableReasons.add(
+              ERR_CONFIG_NETWORKGROUPREQUESTFILTERINGPOLICY_INVALID_ATTRIBUTE
+              .get(allowedAttr, configuration.dn().toString()));
+          return false;
+        }
+      }
+
+      // Check that allowed-subtrees does not contain any subtree also
+      // configured in prohibited-subtrees
+      for (DN allowedSubtree: configuration.getAllowedSubtrees()) {
+        if (configuration.getProhibitedSubtrees().contains(allowedSubtree)) {
+          unacceptableReasons.add(
+              ERR_CONFIG_NETWORKGROUPREQUESTFILTERINGPOLICY_INVALID_SUBTREE.get(
+              allowedSubtree.toString(), configuration.dn().toString()));
+          return false;
+        }
+      }
+    }
     return true;
   }
 
