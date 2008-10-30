@@ -87,6 +87,9 @@ public class ResourceLimits
   // The lock for the counter numConnections and the map connectionsPerIpMap
   Object connMutex = new Object();
 
+  // The current configuration
+  private NetworkGroupResourceLimitsCfg config = null;
+
   /**
    * Constructor.
    *
@@ -111,6 +114,10 @@ public class ResourceLimits
     numConnections = 0;
     connectionsPerIpMap = new HashMap<String, Integer>();
     isConfigured = false;
+    if (config != null) {
+      config.removeChangeListener(this);
+      config = null;
+    }
   }
 
   /**
@@ -131,7 +138,10 @@ public class ResourceLimits
       minSearchSubstringLength = resourcesCfg.getMinSubstringLength();
       connectionsPerIpMap = new HashMap<String, Integer>();
 
-      resourcesCfg.addChangeListener(this);
+      if (config == null) {
+        resourcesCfg.addChangeListener(this);
+      }
+      config = resourcesCfg;
       isConfigured = true;
     } else {
       resetLimits();

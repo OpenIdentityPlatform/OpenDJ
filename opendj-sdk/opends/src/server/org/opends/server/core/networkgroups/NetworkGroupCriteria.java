@@ -70,6 +70,9 @@ public class NetworkGroupCriteria
   private PortCriteria portCriteria;
   private SecurityCriteria securityCriteria;
 
+  // The current config
+  private NetworkGroupCriteriaCfg config;
+
   /**
    * Constructor.
    *
@@ -93,6 +96,10 @@ public class NetworkGroupCriteria
     portCriteria = null;
     securityCriteria = null;
     isConfigured = false;
+    if (config != null) {
+      config.removeChangeListener(this);
+      config = null;
+    }
   }
 
   /**
@@ -142,7 +149,10 @@ public class NetworkGroupCriteria
         securityCriteria = null;
       }
       isConfigured = true;
-      criteriaCfg.addChangeListener(this);
+      if (config == null) {
+        criteriaCfg.addChangeListener(this);
+      }
+      config = criteriaCfg;
     } else {
       resetCriteria();
     }
