@@ -29,22 +29,29 @@ package org.opends.server.replication.protocol;
 import static org.opends.server.replication.protocol.OperationContext.*;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.core.ModifyDNOperationBasis;
+import org.opends.server.protocols.asn1.ASN1Element;
+import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.Modification;
 import org.opends.server.types.RDN;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 
 /**
  * Message used to send Modify DN information.
  */
-public class ModifyDNMsg extends UpdateMsg
+public class ModifyDNMsg extends ModifyCommonMsg
 {
   private String newRDN;
   private String newSuperior;
@@ -61,6 +68,8 @@ public class ModifyDNMsg extends UpdateMsg
     super((OperationContext) operation.getAttachment(SYNCHROCONTEXT),
         operation.getRawEntryDN().stringValue());
 
+    encodedMods = modsToByte(operation.getModifications());
+
     ModifyDnContext ctx =
       (ModifyDnContext) operation.getAttachment(SYNCHROCONTEXT);
     newSuperiorId = ctx.getNewParentId();
@@ -74,17 +83,19 @@ public class ModifyDNMsg extends UpdateMsg
   }
 
   /**
-   * construct a new Modify DN message.
+   * Construct a new Modify DN message (no mods).
+   * Note: Keep this constructor version to support already written tests, not
+   * using mods.
    *
    * @param dn The dn to use for building the message.
    * @param changeNumber The changeNumberto use for building the message.
-   * @param uid The unique id to use for building the message.
+   * @param uid          The unique id to use for building the message.
    * @param newParentUid The new parent unique id to use for building
    *                     the message.
    * @param deleteOldRdn boolean indicating if old rdn must be deleted to use
    *                     for building the message.
-   * @param newSuperior The new Superior entry to use for building the message.
-   * @param newRDN The new Rdn to use for building the message.
+   * @param newSuperior  The new Superior entry to use for building the message.
+   * @param newRDN       The new Rdn to use for building the message.
    */
   public ModifyDNMsg(String dn, ChangeNumber changeNumber, String uid,
                      String newParentUid, boolean deleteOldRdn,
@@ -97,6 +108,29 @@ public class ModifyDNMsg extends UpdateMsg
     this.deleteOldRdn = deleteOldRdn;
     this.newSuperior = newSuperior;
     this.newRDN = newRDN;
+  }
+
+  /**
+   * Construct a new Modify DN message (with mods).
+   *
+   * @param dn The dn to use for building the message.
+   * @param changeNumber The changeNumberto use for building the message.
+   * @param uid The unique id to use for building the message.
+   * @param newParentUid The new parent unique id to use for building
+   *                     the message.
+   * @param deleteOldRdn boolean indicating if old rdn must be deleted to use
+   *                     for building the message.
+   * @param newSuperior  The new Superior entry to use for building the message.
+   * @param newRDN       The new Rdn to use for building the message.
+   * @param mods         The mod of the operation.
+   */
+  public ModifyDNMsg(String dn, ChangeNumber changeNumber, String uid,
+                     String newParentUid, boolean deleteOldRdn,
+                     String newSuperior, String newRDN, List<Modification> mods)
+  {
+    this(dn, changeNumber, uid, newParentUid, deleteOldRdn, newSuperior,
+      newRDN);
+    this.encodedMods = modsToByte(mods);
   }
 
   /**
@@ -145,6 +179,33 @@ public class ModifyDNMsg extends UpdateMsg
       deleteOldRdn = false;
     else
       deleteOldRdn = true;
+    pos++;
+
+    // For easiness (no additional method), simply compare PDU type to
+    // know if we have to read the mods of V2
+    if (in[0] == MSG_TYPE_MODIFYDN)
+    {
+      /* Read the mods : all the remaining bytes but the terminating 0 */
+      length = in.length - pos - 1;
+      if (length > 0) // Otherwise, there is only the trailing 0 byte which we
+        // do not need to read
+      {
+        encodedMods = new byte[length];
+        try
+        {
+          System.arraycopy(in, pos, encodedMods, 0, length);
+        } catch (IndexOutOfBoundsException e)
+        {
+          throw new DataFormatException(e.getMessage());
+        } catch (ArrayStoreException e)
+        {
+          throw new DataFormatException(e.getMessage());
+        } catch (NullPointerException e)
+        {
+          throw new DataFormatException(e.getMessage());
+        }
+      }
+    }
   }
 
   /**
@@ -153,6 +214,7 @@ public class ModifyDNMsg extends UpdateMsg
   @Override
   public AbstractOperation createOperation(
          InternalClientConnection connection, String newDn)
+         throws LDAPException, ASN1Exception
   {
     ModifyDNOperationBasis moddn =  new ModifyDNOperationBasis(connection,
                InternalClientConnection.nextOperationID(),
@@ -160,6 +222,11 @@ public class ModifyDNMsg extends UpdateMsg
                new ASN1OctetString(newDn), new ASN1OctetString(newRDN),
                deleteOldRdn,
                (newSuperior == null ? null : new ASN1OctetString(newSuperior)));
+
+    ArrayList<ASN1Element> mods = ASN1Element.decodeElements(encodedMods);
+    for (ASN1Element elem : mods)
+      moddn.addModification(LDAPModification.decode(elem).toModification());
+
     ModifyDnContext ctx = new ModifyDnContext(getChangeNumber(), getUniqueId(),
                                               newSuperiorId);
     moddn.setAttachment(SYNCHROCONTEXT, ctx);
@@ -194,6 +261,8 @@ public class ModifyDNMsg extends UpdateMsg
     else
       length += 1;
 
+    length += encodedMods.length + 1;
+
     byte[] resultByteArray = encodeHeader(MSG_TYPE_MODIFYDN, length);
     int pos = resultByteArray.length - length;
 
@@ -219,6 +288,15 @@ public class ModifyDNMsg extends UpdateMsg
     /* put the deleteoldrdn flag */
     if (deleteOldRdn)
       resultByteArray[pos++] = 1;
+    else
+      resultByteArray[pos++] = 0;
+
+    /* add the mods */
+    if (encodedMods.length > 0)
+    {
+      pos = resultByteArray.length - (encodedMods.length + 1);
+      addByteArray(encodedMods, resultByteArray, pos);
+    }
     else
       resultByteArray[pos++] = 0;
 
@@ -438,7 +516,7 @@ public class ModifyDNMsg extends UpdateMsg
   {
     // The MODDN message size are mainly dependent on the
     // size of the DN. let's assume that they average on 100 bytes
-    return 100;
+    return encodedMods.length + 100;
   }
 
   /**

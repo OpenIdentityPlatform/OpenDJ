@@ -318,21 +318,54 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
   @DataProvider(name = "createModifyDnData")
   public Object[][] createModifyDnData() {
+
+    AttributeType type = DirectoryServer.getAttributeType("description");
+
+    Attribute attr1 = Attributes.create("description", "new value");
+    Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
+    List<Modification> mods1 = new ArrayList<Modification>();
+    mods1.add(mod1);
+
+    Attribute attr2 = Attributes.empty("description");
+    Modification mod2 = new Modification(ModificationType.DELETE, attr2);
+    List<Modification> mods2 = new ArrayList<Modification>();
+    mods2.add(mod1);
+    mods2.add(mod2);
+
+    AttributeBuilder builder = new AttributeBuilder(type);
+    List<Modification> mods3 = new ArrayList<Modification>();
+    builder.add("string");
+    builder.add("value");
+    builder.add("again");
+    Attribute attr3 = builder.toAttribute();
+    Modification mod3 = new Modification(ModificationType.ADD, attr3);
+    mods3.add(mod3);
+
+    List<Modification> mods4 = new ArrayList<Modification>();
+    for (int i = 0; i < 10; i++)
+    {
+      Attribute attr = Attributes.create("description", "string"
+          + String.valueOf(i));
+      Modification mod = new Modification(ModificationType.ADD, attr);
+      mods4.add(mod);
+    }
+
     return new Object[][] {
-        {"dc=test,dc=com", "dc=new", false, "dc=change", false, AssuredMode.SAFE_DATA_MODE, (byte)0},
-        {"dc=test,dc=com", "dc=new", true, "dc=change", true, AssuredMode.SAFE_READ_MODE, (byte)1},
+        {"dc=test,dc=com", "dc=new", false, "dc=change", mods1, false, AssuredMode.SAFE_DATA_MODE, (byte)0},
+        {"dc=test,dc=com", "dc=new", true, "dc=change", mods2, true, AssuredMode.SAFE_READ_MODE, (byte)1},
         // testNG does not like null argument so use "" for the newSuperior
         // instead of null
-        {"dc=test,dc=com", "dc=new", false, "", true, AssuredMode.SAFE_READ_MODE, (byte)3},
+        {"dc=test,dc=com", "dc=new", false, "", mods3, true, AssuredMode.SAFE_READ_MODE, (byte)3},
         {"dc=delete,dc=an,dc=entry,dc=with,dc=a,dc=long dn",
-                   "dc=new",true, "", true, AssuredMode.SAFE_DATA_MODE, (byte)99},
+                   "dc=new", true, "", mods4, true, AssuredMode.SAFE_DATA_MODE, (byte)99},
         };
   }
 
   @Test(dataProvider = "createModifyDnData")
-  public void modifyDnTest(String rawDN, String newRdn,
+  public void modifyDnMsgTest(String rawDN, String newRdn,
                                    boolean deleteOldRdn, String newSuperior,
-                                   boolean isAssured, AssuredMode assuredMode,
+                                   List<Modification> mods, boolean isAssured,
+                                   AssuredMode assuredMode,
                                byte safeDataLevel)
          throws Exception
   {
@@ -349,6 +382,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
         new ModifyDnContext(cn, "uniqueid", "newparentId"));
     LocalBackendModifyDNOperation localOp =
       new LocalBackendModifyDNOperation(op);
+    for (Modification mod : mods)
+      localOp.addModification(mod);
     ModifyDNMsg msg = new ModifyDNMsg(localOp);
 
     msg.setAssured(isAssured);
@@ -363,14 +398,21 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(generatedMsg.getAssuredMode(), assuredMode);
     assertEquals(generatedMsg.getSafeDataLevel(), safeDataLevel);
 
+    Operation oriOp = msg.createOperation(connection);
     Operation generatedOperation = generatedMsg.createOperation(connection);
-    ModifyDNOperationBasis mod2 = (ModifyDNOperationBasis) generatedOperation;
+
+    assertEquals(oriOp.getClass(), ModifyDNOperationBasis.class);
+    assertEquals(generatedOperation.getClass(), ModifyDNOperationBasis.class);
+
+    ModifyDNOperationBasis moddn1 = (ModifyDNOperationBasis) oriOp;
+    ModifyDNOperationBasis moddn2 = (ModifyDNOperationBasis) generatedOperation;
 
     assertEquals(msg.getChangeNumber(), generatedMsg.getChangeNumber());
-    assertEquals(op.getRawEntryDN(), mod2.getRawEntryDN());
-    assertEquals(op.getRawNewRDN(), mod2.getRawNewRDN());
-    assertEquals(op.deleteOldRDN(), mod2.deleteOldRDN());
-    assertEquals(op.getRawNewSuperior(), mod2.getRawNewSuperior());
+    assertEquals(moddn1.getRawEntryDN(), moddn2.getRawEntryDN());
+    assertEquals(moddn1.getRawNewRDN(), moddn2.getRawNewRDN());
+    assertEquals(moddn1.deleteOldRDN(), moddn2.deleteOldRDN());
+    assertEquals(moddn1.getRawNewSuperior(), moddn2.getRawNewSuperior());
+    assertEquals(moddn1.getModifications(), moddn2.getModifications());
 
     // Create an update message from this op
     ModifyDNMsg updateMsg = (ModifyDNMsg) UpdateMsg.generateMsg(localOp);

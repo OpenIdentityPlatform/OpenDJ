@@ -31,16 +31,11 @@ import static org.opends.server.replication.protocol.OperationContext.*;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.plugin.Historical;
 import org.opends.server.types.AbstractOperation;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeUsage;
 import org.opends.server.types.DN;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
@@ -56,10 +51,8 @@ import java.util.zip.DataFormatException;
 /**
  * Message used to send Modify information.
  */
-public class ModifyMsg extends UpdateMsg
+public class ModifyMsg extends ModifyCommonMsg
 {
-  private byte[] encodedMods = null;
-
   /**
    * Creates a new Modify message from a ModifyOperation.
    *
@@ -170,42 +163,6 @@ public class ModifyMsg extends UpdateMsg
   }
 
   /**
-   * Encode an ArrayList of Modification into a byte[] suitable
-   * for storage in a database or send on the network.
-   *
-   * @param mods the ArrayList of Modification to be encoded.
-   */
-  private byte[] modsToByte(List<Modification> mods)
-  {
-    ArrayList<ASN1Element> modsASN1;
-
-    modsASN1 = new ArrayList<ASN1Element>(mods.size());
-    for (Modification mod : mods)
-    {
-      Attribute attr = mod.getAttribute();
-      AttributeType type = attr.getAttributeType();
-      if (type != null )
-      {
-        if (AttributeUsage.DSA_OPERATION.equals(type.getUsage()))
-        {
-          // Attributes with a dsaOperation usage should not be synchronized.
-          // skip them.
-          continue;
-        }
-      }
-
-      if (!Historical.isHistoricalAttribute(attr))
-      {
-        LDAPModification ldapmod = new LDAPModification(
-          mod.getModificationType(), new LDAPAttribute(mod.getAttribute()));
-        modsASN1.add(ldapmod.encode());
-      }
-    }
-
-    return ASN1Element.encodeValue(modsASN1);
-  }
-
-  /**
    * {@inheritDoc}
    */
   @Override
@@ -232,16 +189,6 @@ public class ModifyMsg extends UpdateMsg
         "\nsafeDataLevel: " + safeDataLevel;
     }
     return "!!! Unknown version: " + protocolVersion + "!!!";
-  }
-
-  /**
-   * Set the Modification associated to the UpdateMsg to the provided value.
-   *
-   * @param mods The new Modification associated to this ModifyMsg.
-   */
-  public void setMods(List<Modification> mods)
-  {
-    encodedMods = modsToByte(mods);
   }
 
   /**
