@@ -156,7 +156,7 @@ public class ReplServerStartMsg extends StartMsg
       sslEncryption = Boolean.valueOf(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
-      // For easiness (no additional method), simpy compare PDU type to
+      // For easiness (no additional method), simply compare PDU type to
       // know if we have to read new parameters of V2
       if (in[0] == MSG_TYPE_REPL_SERVER_START)
       {

@@ -55,6 +55,7 @@ import org.testng.annotations.Test;
 import static org.opends.server.replication.protocol.OperationContext.SYNCHROCONTEXT;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Test the conversions between the various protocol versions.
@@ -505,12 +506,44 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   
   @DataProvider(name = "createModifyDnData")
   public Object[][] createModifyDnData() {
+    
+    AttributeType type = DirectoryServer.getAttributeType("description");
+
+    Attribute attr1 = Attributes.create("description", "new value");
+    Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
+    List<Modification> mods1 = new ArrayList<Modification>();
+    mods1.add(mod1);
+
+    Attribute attr2 = Attributes.empty("description");
+    Modification mod2 = new Modification(ModificationType.DELETE, attr2);
+    List<Modification> mods2 = new ArrayList<Modification>();
+    mods2.add(mod1);
+    mods2.add(mod2);
+
+    AttributeBuilder builder = new AttributeBuilder(type);
+    List<Modification> mods3 = new ArrayList<Modification>();
+    builder.add("string");
+    builder.add("value");
+    builder.add("again");
+    Attribute attr3 = builder.toAttribute();
+    Modification mod3 = new Modification(ModificationType.ADD, attr3);
+    mods3.add(mod3);
+
+    List<Modification> mods4 = new ArrayList<Modification>();
+    for (int i = 0; i < 10; i++)
+    {
+      Attribute attr = Attributes.create("description", "string"
+          + String.valueOf(i));
+      Modification mod = new Modification(ModificationType.ADD, attr);
+      mods4.add(mod);
+    }
+    
     return new Object[][] {
-        {"dc=test,dc=com", "dc=new", "11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222", false, "dc=change", false, AssuredMode.SAFE_DATA_MODE, (byte)0},
-        {"dc=test,dc=com", "dc=new", "33333333-3333-3333-3333-333333333333", "44444444-4444-4444-4444-444444444444", true, "dc=change", true, AssuredMode.SAFE_READ_MODE, (byte)1},
-        {"dc=test,dc=com", "dc=new", "55555555-5555-5555-5555-555555555555", "66666666-6666-6666-6666-666666666666", false, null, true, AssuredMode.SAFE_READ_MODE, (byte)3},
+        {"dc=test,dc=com", "dc=new", "11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222", false, "dc=change", mods1, false, AssuredMode.SAFE_DATA_MODE, (byte)0},
+        {"dc=test,dc=com", "dc=new", "33333333-3333-3333-3333-333333333333", "44444444-4444-4444-4444-444444444444", true, "dc=change", mods2, true, AssuredMode.SAFE_READ_MODE, (byte)1},
+        {"dc=test,dc=com", "dc=new", "55555555-5555-5555-5555-555555555555", "66666666-6666-6666-6666-666666666666", false, null, mods3, true, AssuredMode.SAFE_READ_MODE, (byte)3},
         {"dc=delete,dc=an,dc=entry,dc=with,dc=a,dc=long dn",
-                   "dc=new", "77777777-7777-7777-7777-777777777777", "88888888-8888-8888-8888-888888888888",true, null, true, AssuredMode.SAFE_DATA_MODE, (byte)99},
+                   "dc=new", "77777777-7777-7777-7777-777777777777", "88888888-8888-8888-8888-888888888888",true, null, mods4, true, AssuredMode.SAFE_DATA_MODE, (byte)99},
         };
   }
 
@@ -519,10 +552,10 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
    * using protocol V1 and V2 are working.
    */
   @Test(dataProvider = "createModifyDnData")
-  public void modifyDnTest(String rawDN, String newRdn, String uid, String newParentUid,
+  public void modifyDnMsgTest(String rawDN, String newRdn, String uid, String newParentUid,
                                    boolean deleteOldRdn, String newSuperior,
-                                   boolean isAssured, AssuredMode assuredMode,
-                                   byte safeDataLevel)
+                                   List<Modification> mods, boolean isAssured,
+                                   AssuredMode assuredMode, byte safeDataLevel)
          throws Exception
   {
     // Create V2 message
@@ -530,7 +563,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
                                       (short) 596, (short) 13);
     ModifyDNMsg msg = new ModifyDNMsg(rawDN, cn, uid,
                      newParentUid, deleteOldRdn,
-                     newSuperior, newRdn);
+                     newSuperior, newRdn, mods);
 
     msg.setAssured(isAssured);
     msg.setAssuredMode(assuredMode);
@@ -558,7 +591,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(newMsg.getNewSuperiorId(), msg.getNewSuperiorId());
     assertEquals(newMsg.deleteOldRdn(), msg.deleteOldRdn());
 
-    //        Create a modDn operation from each message to compare mods (kept encoded in messages)
+    //        Create a modDn operation from each message to compare fields)
     Operation op = msg.createOperation(connection);
     Operation generatedOperation = newMsg.createOperation(connection);
 
@@ -570,15 +603,17 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(modDnOpBasis.getRawEntryDN(), genModDnOpBasis.getRawEntryDN());
     assertEquals( modDnOpBasis.getAttachment(SYNCHROCONTEXT),
                   genModDnOpBasis.getAttachment(SYNCHROCONTEXT));
-    assertEquals(modDnOpBasis.getModifications(), genModDnOpBasis.getModifications());
 
     // Check default value for only V2 fields
     assertEquals(newMsg.getAssuredMode(), AssuredMode.SAFE_DATA_MODE);
     assertEquals(newMsg.getSafeDataLevel(), (byte)-1);
+    assertEquals(modDnOpBasis.getModifications(), mods);
+    assertTrue(genModDnOpBasis.getModifications() == null);
 
     // Set again only V2 fields
     newMsg.setAssuredMode(assuredMode);
     newMsg.setSafeDataLevel(safeDataLevel);
+    newMsg.setMods(mods);
 
     // Serialize in V2 msg
     ModifyDNMsg v2Msg = (ModifyDNMsg)ReplicationMsg.generateMsg(newMsg.getBytes());
