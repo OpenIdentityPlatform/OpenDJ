@@ -234,10 +234,10 @@ public class WorkflowConfigManager
       new ConfigChangeResult(resultCode, adminActionRequired, messages);
 
 
-    // Get the existing network group if it's already enabled.
+    // Get the existing workflow if it's already enabled.
     WorkflowImpl existingWorkflow = workflows.get(configuration.dn());
 
-    // If the new configuration has the validator disabled, then disable it if
+    // If the new configuration has the workflow disabled, then disable it if
     // it is enabled, or do nothing if it's already disabled.
     if (! configuration.isEnabled())
     {
@@ -251,7 +251,7 @@ public class WorkflowConfigManager
       return configChangeResult;
     }
 
-    // If the network group is disabled then create and register it.
+    // If the workflow is disabled then create and register it.
     if (existingWorkflow == null)
     {
       try
@@ -267,6 +267,11 @@ public class WorkflowConfigManager
 
         messages.add(de.getMessageObject());
       }
+    }
+    else
+    {
+      // The workflow already exist, just notify the changes to the workflow
+      existingWorkflow.updateConfig(configuration);
     }
 
     return configChangeResult;
@@ -302,7 +307,8 @@ public class WorkflowConfigManager
 
     // Create the workflow and register it with the server
     WorkflowImpl workflowImpl =
-      new WorkflowImpl(workflowId, baseDN, rootWorkflowElement);
+      new WorkflowImpl(
+        workflowId, baseDN, rootWorkflowElementID, rootWorkflowElement);
     workflows.put(workflowCfg.dn(), workflowImpl);
     workflowImpl.register();
 

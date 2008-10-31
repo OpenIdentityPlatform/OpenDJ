@@ -440,7 +440,7 @@ public class WorkflowTopologyTest extends UtilTestCase
     // create a DIT set with the baseDN (no workflow element in the DIT).
     WorkflowElement nullWE = null;
     WorkflowImpl workflow =
-      new WorkflowImpl (baseDN.toString(), baseDN, nullWE);
+      new WorkflowImpl (baseDN.toString(), baseDN, null, nullWE);
 
     // Create a worflow with the dit, no pre/post-workflow element.
     WorkflowTopologyNode workflowNode =
@@ -503,18 +503,20 @@ public class WorkflowTopologyTest extends UtilTestCase
     WorkflowImpl unrelatedWorkflow = null;
     {
       WorkflowElement nullWE = null;
-      workflow = new WorkflowImpl (baseDN.toString(), baseDN, nullWE);
-      subWorkflow = new WorkflowImpl (subordinateDN.toString(), subordinateDN, nullWE);
+      workflow = new WorkflowImpl (baseDN.toString(), baseDN, null, nullWE);
+      subWorkflow = new WorkflowImpl (
+        subordinateDN.toString(), subordinateDN, null, nullWE);
       if (unrelatedDN != null)
       {
-        unrelatedWorkflow = new WorkflowImpl (unrelatedDN.toString(), unrelatedDN, nullWE);
+        unrelatedWorkflow = new WorkflowImpl (
+          unrelatedDN.toString(), unrelatedDN, null, nullWE);
       }
     }
 
     // Create a worflow for each dit, no pre/post-workflow element
-    WorkflowTopologyNode w1    = new WorkflowTopologyNode (workflow, null, null);
-    WorkflowTopologyNode w1bis = new WorkflowTopologyNode (workflow, null, null);
-    WorkflowTopologyNode w2    = new WorkflowTopologyNode (subWorkflow, null, null);
+    WorkflowTopologyNode w1    = new WorkflowTopologyNode(workflow, null, null);
+    WorkflowTopologyNode w1bis = new WorkflowTopologyNode(workflow, null, null);
+    WorkflowTopologyNode w2    = new WorkflowTopologyNode(subWorkflow, null, null);
 
     WorkflowTopologyNode w3 = null;
     if (unrelatedWorkflow != null)
@@ -648,9 +650,9 @@ public class WorkflowTopologyTest extends UtilTestCase
       WorkflowImpl workflow3;
       {
         WorkflowElement nullWE = null;
-        workflow1 = new WorkflowImpl (baseDN1.toString(), baseDN1, nullWE);
-        workflow2 = new WorkflowImpl (baseDN2.toString(), baseDN2, nullWE);
-        workflow3 = new WorkflowImpl (baseDN3.toString(), baseDN3, nullWE);
+        workflow1 = new WorkflowImpl(baseDN1.toString(), baseDN1, null, nullWE);
+        workflow2 = new WorkflowImpl(baseDN2.toString(), baseDN2, null, nullWE);
+        workflow3 = new WorkflowImpl(baseDN3.toString(), baseDN3, null, nullWE);
       }
 
       w1 = new WorkflowTopologyNode (workflow1, null, null);
@@ -830,9 +832,9 @@ public class WorkflowTopologyTest extends UtilTestCase
       {
         WorkflowElement nullWE = null;
 
-        workflow1 = new WorkflowImpl (baseDN1.toString(), baseDN1, nullWE);
-        workflow2 = new WorkflowImpl (baseDN2.toString(), baseDN2, nullWE);
-        workflow3 = new WorkflowImpl (baseDN3.toString(), baseDN3, nullWE);
+        workflow1 = new WorkflowImpl(baseDN1.toString(), baseDN1, null, nullWE);
+        workflow2 = new WorkflowImpl(baseDN2.toString(), baseDN2, null, nullWE);
+        workflow3 = new WorkflowImpl(baseDN3.toString(), baseDN3, null, nullWE);
       }
 
       w1 = new WorkflowTopologyNode (workflow1, null, null);
@@ -957,7 +959,7 @@ public class WorkflowTopologyTest extends UtilTestCase
 
     // Create a workflow to handle the baseDN with no workflow element
     WorkflowImpl workflow = new WorkflowImpl(
-        baseDN.toString(), baseDN, nullWE);
+        baseDN.toString(), baseDN, null, nullWE);
 
     // Register the workflow with the server. Don't catch the
     // DirectoryException that could be thrown by the register() method.

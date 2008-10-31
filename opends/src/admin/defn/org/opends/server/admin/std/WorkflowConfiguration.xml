@@ -107,7 +107,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="base-dn" mandatory="true">
+  <adm:property name="base-dn" mandatory="true" read-only="true">
     <adm:synopsis>
       Specifies the base DN of the data targeted by the
       <adm:user-friendly-name />

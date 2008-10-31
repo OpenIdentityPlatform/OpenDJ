@@ -121,7 +121,7 @@ public class WorkflowElementConfigManager
    * @throws org.opends.server.types.InitializationException Exception while
    *         initializing the workflow element
    */
-  public WorkflowElement loadAndRegisterWorkflowElement(String workflowName)
+  public WorkflowElement<?> loadAndRegisterWorkflowElement(String workflowName)
           throws ConfigException, InitializationException {
     ServerManagementContext managementContext =
          ServerManagementContext.getInstance();
@@ -188,7 +188,11 @@ public class WorkflowElementConfigManager
     {
       try
       {
-        loadAndRegisterWorkflowElement(configuration);
+        WorkflowElement<?> we = loadAndRegisterWorkflowElement(configuration);
+
+        // Notify observers who want to be notify when new workflow elements
+        // are created.
+        WorkflowElement.notifyStateUpdate(we);
       }
       catch (InitializationException de)
       {
@@ -214,7 +218,7 @@ public class WorkflowElementConfigManager
       List<Message> unacceptableReasons)
   {
     // FIXME -- We should try to perform some check to determine whether the
-    // worklfow element is in use.
+    // workflow element is in use.
     return true;
   }
 
@@ -232,11 +236,18 @@ public class WorkflowElementConfigManager
         );
 
 
-    WorkflowElement workflowElement =
+    WorkflowElement<?> workflowElement =
             DirectoryServer.getWorkflowElement(
             configuration.getWorkflowElementId());
     if (workflowElement != null)
     {
+      // Notify to observers that the workflow element is now disabled
+      ObservableWorkflowElementState observableState =
+        workflowElement.getObservableState();
+      observableState.setWorkflowElementEnabled(false);
+      observableState.notifyObservers();
+
+      // Remove the workflow element
       DirectoryServer.deregisterWorkflowElement(workflowElement);
       workflowElement.finalizeWorkflowElement();
     }
@@ -291,9 +302,8 @@ public class WorkflowElementConfigManager
 
 
     // Get the existing workflow element if it's already enabled.
-    WorkflowElement existingWorkflowElement =
-            DirectoryServer.getWorkflowElement(
-            configuration.getWorkflowElementId());
+    WorkflowElement<?> existingWorkflowElement =
+      DirectoryServer.getWorkflowElement(configuration.getWorkflowElementId());
 
     // If the new configuration has the workflow element disabled,
     // then disable it if it is enabled, or do nothing if it's already disabled.
@@ -301,6 +311,13 @@ public class WorkflowElementConfigManager
     {
       if (existingWorkflowElement != null)
       {
+        // Notify to observers that the workflow element is now disabled
+        ObservableWorkflowElementState observableState =
+          existingWorkflowElement.getObservableState();
+        observableState.setWorkflowElementEnabled(false);
+        observableState.notifyObservers();
+
+        // Remove the workflow element
         DirectoryServer.deregisterWorkflowElement(existingWorkflowElement);
         existingWorkflowElement.finalizeWorkflowElement();
       }
@@ -313,7 +330,11 @@ public class WorkflowElementConfigManager
     {
       try
       {
-        loadAndRegisterWorkflowElement(configuration);
+        WorkflowElement<?> we = loadAndRegisterWorkflowElement(configuration);
+
+        // Notify observers who want to be notify when new workflow elements
+        // are created.
+        WorkflowElement.notifyStateUpdate(we);
       }
       catch (InitializationException de)
       {
@@ -343,13 +364,13 @@ public class WorkflowElementConfigManager
    *                            ID of an existing workflow during workflow
    *                            registration.
    */
-  WorkflowElement loadAndRegisterWorkflowElement(
+  WorkflowElement<?> loadAndRegisterWorkflowElement(
       WorkflowElementCfg workflowElementCfg
       ) throws InitializationException
   {
     // Load the workflow element class
     String className = workflowElementCfg.getJavaClass();
-    WorkflowElement workflowElement =
+    WorkflowElement<?> workflowElement =
       loadWorkflowElement(className, workflowElementCfg, true);
 
     try
@@ -381,7 +402,7 @@ public class WorkflowElementConfigManager
    * @throws  InitializationException  If a problem occurred while attempting
    *                                   to initialize the workflow element.
    */
-  private WorkflowElement loadWorkflowElement(
+  private WorkflowElement<?> loadWorkflowElement(
       String className,
       WorkflowElementCfg configuration,
       boolean initialize
@@ -391,15 +412,20 @@ public class WorkflowElementConfigManager
     {
       WorkflowElementCfgDefn              definition;
       ClassPropertyDefinition             propertyDefinition;
+      // I cannot use the parameterized type WorflowElement<?>
+      // because it would break the line WorkflowElement.class below.
+      // Use SuppressWarning because we know the cast is safe.
+      @SuppressWarnings("unchecked")
       Class<? extends WorkflowElement>    workflowElementClass;
-      WorkflowElement<? extends WorkflowElementCfg> workflowElement;
 
       definition = WorkflowElementCfgDefn.getInstance();
       propertyDefinition =
         definition.getJavaClassPropertyDefinition();
       workflowElementClass =
         propertyDefinition.loadClass(className, WorkflowElement.class);
-      workflowElement =
+      // Again, use SuppressWarning because we know the cast is safe
+      @SuppressWarnings("unchecked")
+      WorkflowElement<? extends WorkflowElementCfg> workflowElement =
         (WorkflowElement<? extends WorkflowElementCfg>)
           workflowElementClass.newInstance();
 

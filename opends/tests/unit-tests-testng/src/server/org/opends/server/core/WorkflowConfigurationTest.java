@@ -54,6 +54,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchScope;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.UtilTestCase;
+import org.opends.server.workflowelement.WorkflowElement;
 import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -307,7 +308,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
     // Create a workflow and register it with the server
     String workflowID = baseDN + "#" + backendID;
     WorkflowImpl workflowImpl = new WorkflowImpl(
-        workflowID, DN.decode(baseDN), workflowElement);
+        workflowID, DN.decode(baseDN), workflowElementID, workflowElement);
     workflowImpl.register();
     
     // Register the workflow with the internal network group
@@ -431,6 +432,11 @@ public class WorkflowConfigurationTest extends UtilTestCase
   }
 
   
+  //===========================================================================
+  //                 U T I L S  using  dsconfig
+  //===========================================================================
+
+
   /**
    * Initializes a memory-based backend.
    *
@@ -439,9 +445,10 @@ public class WorkflowConfigurationTest extends UtilTestCase
    * @param  createBaseEntry  indicate whether to automatically create the base
    *                          entry and add it to the backend.
    *
+   * @return the newly created backend
    * @throws  Exception  If an unexpected problem occurs.
    */
-  private static void createBackend(
+  private static Backend dsconfigCreateMemoryBackend(
       String  backendID,
       String  baseDN,
       boolean createBaseEntry
@@ -455,15 +462,16 @@ public class WorkflowConfigurationTest extends UtilTestCase
         "--set", "writability-mode:enabled",
         "--set", "enabled:true");
     
+    Backend backend = DirectoryServer.getBackend(backendID);
     if (createBaseEntry)
     {
-      Backend backend = DirectoryServer.getBackend(backendID);
       Entry e = createEntry(DN.decode(baseDN));
       backend.addEntry(e, null);
     }
+    return backend;
   }
 
-
+  
   /**
    * Remove a backend.
    *
@@ -471,7 +479,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  private static void removeMemoryBackend(
+  private static void dsconfigRemoveMemoryBackend(
       String backendID
       ) throws Exception
   {
@@ -479,7 +487,6 @@ public class WorkflowConfigurationTest extends UtilTestCase
         "delete-backend",
         "--backend-name", backendID);
   }
-
 
 
   //===========================================================================
@@ -536,7 +543,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
 
     // Set the workflow configuration mode to manual. In this mode
     // no there is no workflow by default (but the config and rootDSE
-    // workflows) so seaarches on the test backend should fail.
+    // workflows) so searches on the test backend should fail.
     setModeManual();
     checkBackendIsNotAccessible(testBaseDN);
     
@@ -544,6 +551,10 @@ public class WorkflowConfigurationTest extends UtilTestCase
     // backend is now accessible
     createWorkflow(testBaseDN, testBackendID);
     checkBackendIsAccessible(testBaseDN);
+    
+    // Remove the workflow and check that searches are failing.
+    removeWorkflow(testBaseDN, testBackendID);
+    checkBackendIsNotAccessible(testBaseDN);
     
     // Change workflow configuration mode back to auto and check that
     // test backend is still accessible
@@ -624,11 +635,11 @@ public class WorkflowConfigurationTest extends UtilTestCase
     checkBackendIsNotAccessible(baseDN1);
     
     // Create a backend and check that the base entry is accessible.
-    createBackend(backendID1, baseDN1, true);
+    dsconfigCreateMemoryBackend(backendID1, baseDN1, true);
     checkBackendIsAccessible(baseDN1);
     
     // Remove the backend and check that the suffix is no more accessible.
-    removeMemoryBackend(backendID1);
+    dsconfigRemoveMemoryBackend(backendID1);
     checkBackendIsNotAccessible(baseDN1);
     
     // Now move to the manual mode
@@ -637,21 +648,21 @@ public class WorkflowConfigurationTest extends UtilTestCase
     
     // Create a backend and create a workflow to route operations to that
     // new backend. Then check that the base entry is accessible.
-    createBackend(backendID2, baseDN2, true);
+    dsconfigCreateMemoryBackend(backendID2, baseDN2, true);
     createWorkflow(baseDN2, backendID2);
     checkBackendIsAccessible(baseDN2);
     
     // Remove the workflow and the backend and check that the base entry
     // is no more accessible.
     removeWorkflow(baseDN2, backendID2);
-    removeMemoryBackend(backendID2);
+    dsconfigRemoveMemoryBackend(backendID2);
     checkBackendIsNotAccessible(baseDN2);
 
     // Back to the original configuration mode
     setModeAuto();
   }
-  
-  
+
+
   /**
    * This test checks the creation and utilization of network group
    * in the route process.
@@ -688,7 +699,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
     searchOperation.run();
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     
-    // Put back the internal network group in the client conenction
+    // Put back the internal network group in the client connection
     // and check that searches are still working.
     clientConnection.setNetworkGroup(NetworkGroup.getInternalNetworkGroup());
     searchOperation.run();

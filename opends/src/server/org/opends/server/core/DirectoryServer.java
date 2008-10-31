@@ -2735,10 +2735,13 @@ public class DirectoryServer
     // backendID and baseDN should be ok.
     String workflowID = backend.getBackendID() + "#" + baseDN.toString();
 
-    // Create the worklfow for the base DN and register the workflow with
+    // Create the workflow for the base DN and register the workflow with
     // the server.
     WorkflowImpl workflowImpl = new WorkflowImpl(
-        workflowID, baseDN, (WorkflowElement) rootWE);
+        workflowID,
+        baseDN,
+        rootWE.getWorkflowElementID(),
+        (WorkflowElement) rootWE);
     workflowImpl.register();
 
     return workflowImpl;
