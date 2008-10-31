@@ -27,16 +27,19 @@
 package org.opends.server.core;
 
 import static org.opends.messages.CoreMessages.*;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
-
 import static org.opends.server.util.Validator.ensureNotNull;
 
 import java.util.Collection;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.TreeMap;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import org.opends.server.admin.std.server.WorkflowCfg;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.WorkflowElement;
+import org.opends.server.workflowelement.ObservableWorkflowElementState;
 
 
 /**
@@ -48,16 +51,19 @@ import org.opends.server.workflowelement.WorkflowElement;
  * task in turn will execute its subordinate nodes and synchronizes them
  * as needed.
  */
-public class WorkflowImpl implements Workflow
+public class WorkflowImpl implements Workflow, Observer
 {
   // The workflow identifier used by the configuration.
-  private String workflowID = null;
+  private final String workflowID;
 
   // The root of the workflow task tree.
   private WorkflowElement<?> rootWorkflowElement = null;
 
+  // The root workflow element identifier.
+  private String rootWorkflowElementID = null;
+
   // The base DN of the data handled by the workflow.
-  private DN baseDN = null;
+  private final DN baseDN;
 
   // Flag indicating whether the workflow root node of the task tree is
   // handling a private local backend.
@@ -81,7 +87,7 @@ public class WorkflowImpl implements Workflow
 
 
   /**
-   * Creates a new instance of a workflow implementation. To define a worfklow
+   * Creates a new instance of a workflow implementation. To define a workflow
    * one needs to provide a task tree root node (the rootWorkflowElement) and
    * a base DN to identify the data set upon which the tasks can be applied.
    *
@@ -89,11 +95,13 @@ public class WorkflowImpl implements Workflow
    *
    * @param workflowId          workflow internal identifier
    * @param baseDN              identifies the data handled by the workflow
+   * @param rootWorkflowElementID  the identifier of the root workflow element
    * @param rootWorkflowElement the root node of the workflow task tree
    */
   public WorkflowImpl(
       String             workflowId,
       DN                 baseDN,
+      String             rootWorkflowElementID,
       WorkflowElement<?> rootWorkflowElement
       )
   {
@@ -103,6 +111,20 @@ public class WorkflowImpl implements Workflow
     if (this.rootWorkflowElement != null)
     {
       this.isPrivate = rootWorkflowElement.isPrivate();
+      this.rootWorkflowElementID = rootWorkflowElementID;
+
+      // The workflow wants to be notified when the workflow element state
+      // is changing from enabled to disabled and vice versa.
+      WorkflowElement.registereForStateUpdate(
+        rootWorkflowElement, null, this);
+    }
+    else
+    {
+      // The root workflow element has not been loaded, let's register
+      // the workflow with the list of objects that want to be notify
+      // when the workflow element is created.
+      WorkflowElement.registereForStateUpdate(
+        null, rootWorkflowElementID, this);
     }
   }
 
@@ -198,7 +220,7 @@ public class WorkflowImpl implements Workflow
       if (registeredWorkflows.containsKey(workflowID))
       {
         Message message =
-                ERR_REGISTER_WORKFLOW_ALREADY_EXISTS.get(workflowID);
+            ERR_REGISTER_WORKFLOW_ALREADY_EXISTS.get(workflowID);
         throw new DirectoryException(
             ResultCode.UNWILLING_TO_PERFORM, message);
       }
@@ -218,6 +240,12 @@ public class WorkflowImpl implements Workflow
   {
     ensureNotNull(workflowID);
 
+    // Deregister the workflow with the list of objects to notify when
+    // a workflow element is created or deleted.
+    WorkflowElement.deregistereForStateUpdate(
+      null, rootWorkflowElementID, this);
+
+    // Deregister the workflow with the list of registered workflows.
     synchronized (registeredWorkflowsLock)
     {
       TreeMap<String, Workflow> newWorkflows =
@@ -315,4 +343,127 @@ public class WorkflowImpl implements Workflow
     }
   }
 
+
+  /**
+   * Updates the workflow configuration. This method should be invoked
+   * whenever an existing workflow is modified.
+   *
+   * @param configuration  the new workflow configuration
+   */
+  public void updateConfig(WorkflowCfg configuration)
+  {
+    // The only parameter that can be changed is the root workflow element.
+    String rootWorkflowElementID = configuration.getWorkflowElement();
+    WorkflowElement<?> rootWorkflowElement =
+      DirectoryServer.getWorkflowElement(rootWorkflowElementID);
+
+    // Update the ID of the new root workflow element
+    // and deregister the workflow with the list of objects to notify
+    // when the former root workflow element is created
+    String previousRootWorkflowElement = this.rootWorkflowElementID;
+    WorkflowElement.deregistereForStateUpdate(
+      null, previousRootWorkflowElement, this);
+    this.rootWorkflowElementID = rootWorkflowElementID;
+
+    // Does the new root workflow element exist?
+    if (rootWorkflowElement == null)
+    {
+      // The new root workflow element does not exist yet then do nothing
+      // but register with the list of object to notify when the workflow
+      // element is created (and deregister first in case the workflow
+      // was already registered)
+      WorkflowElement.registereForStateUpdate(
+        null, rootWorkflowElementID, this);
+      rootWorkflowElement = null;
+    }
+    else
+    {
+      // The new root workflow element exists, let's use it and don't forget
+      // to register with the list of objects to notify when the workflow
+      // element is deleted.
+      this.rootWorkflowElement = rootWorkflowElement;
+      WorkflowElement.registereForStateUpdate(
+        rootWorkflowElement, null, this);
+    }
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void update(Observable observable, Object arg)
+  {
+    if (observable instanceof ObservableWorkflowElementState)
+    {
+      ObservableWorkflowElementState weState =
+        (ObservableWorkflowElementState) observable;
+      updateRootWorkflowElementState(weState);
+    }
+  }
+
+
+  /**
+   * Display the workflow object.
+   * @return a string identifying the workflow.
+   */
+  public String toString()
+  {
+    String id = "Workflow " + workflowID;
+    return id;
+  }
+
+
+  /**
+   * Takes into account an update of the root workflow element.
+   * <p>
+   * This method is called when a workflow element is created or
+   * deleted. If the workflow element is the root workflow element
+   * then the workflow processes it as follow:
+   * <br>
+   * If the workflow element is disabled then the workflow reset
+   * its root workflow element (ie. the workflow has no more workflow
+   * element, hence the workflow cannot process requests anymore).
+   * <br>
+   * If the workflow element is enabled then the workflow adopts the
+   * workflow element as its new root workflow element. The workflow
+   * then can process requests again.
+   *
+   * @param weState  the new state of the root workflow element
+   */
+  private void updateRootWorkflowElementState(
+      ObservableWorkflowElementState weState)
+  {
+    // Check that the workflow element maps the root workflow element.
+    // If not then ignore the workflow element.
+    WorkflowElement<?> we = weState.getObservedWorkflowElement();
+    String newWorkflowElementID = we.getWorkflowElementID();
+    if (! rootWorkflowElementID.equalsIgnoreCase(newWorkflowElementID))
+    {
+      return;
+    }
+
+    // The workflow element maps the root workflow element, let's process it.
+    if (weState.workflowElementIsEnabled())
+    {
+      // The root workflow element is enabled, let's use it
+      // and don't forget to register the workflow with the list
+      // of objects to notify when the root workflow element
+      // is disabled...
+      rootWorkflowElement = weState.getObservedWorkflowElement();
+      WorkflowElement.registereForStateUpdate(
+        rootWorkflowElement, null, this);
+      WorkflowElement.deregistereForStateUpdate(
+        null, rootWorkflowElementID, this);
+    }
+    else
+    {
+      // The root workflow element has been disabled. Reset the current
+      // reference to the root workflow element and register the workflow
+      // with the list of objects to notify when new workflow elements
+      // are created.
+      WorkflowElement.registereForStateUpdate(
+        null, rootWorkflowElement.getWorkflowElementID(), this);
+      rootWorkflowElement = null;
+    }
+  }
 }

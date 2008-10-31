@@ -486,7 +486,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     // of the workflow base DN.
     WorkflowElement nullWE = null;
     WorkflowImpl workflow = new WorkflowImpl(
-        workflowBaseDN.toString(), workflowBaseDN, nullWE);
+        workflowBaseDN.toString(), workflowBaseDN, null, nullWE);
 
     // Register the workflow with the network group.
     networkGroup.registerWorkflow(workflow);
@@ -779,7 +779,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     // of the workflow base DN.
     WorkflowElement nullWE = null;
     WorkflowImpl workflow = new WorkflowImpl(
-        workflowBaseDN.toString(), workflowBaseDN, nullWE);
+        workflowBaseDN.toString(), workflowBaseDN, null, nullWE);
 
     // Register the workflow with the network group.
     networkGroup.registerWorkflow(workflow);
@@ -835,9 +835,9 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     // of the workflow base DN.
     WorkflowElement nullWE = null;
     WorkflowImpl workflow1 = new WorkflowImpl(
-        dn1.toString(), dn1, nullWE);
+        dn1.toString(), dn1, null, nullWE);
     WorkflowImpl workflow2 = new WorkflowImpl(
-        dn2.toString(), dn2, nullWE);
+        dn2.toString(), dn2, null, nullWE);
 
     // Register the workflow with the network group.
     networkGroup1.registerWorkflow(workflow1);
@@ -1210,7 +1210,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     WorkflowElement rootWE = null;
     String workflowId = workflowBaseDN.toString();
     WorkflowImpl workflow = new WorkflowImpl(
-        workflowId, workflowBaseDN, rootWE);
+        workflowId, workflowBaseDN, null, rootWE);
     assertNotNull(workflow);
 
     // Register the workflow with the network group.

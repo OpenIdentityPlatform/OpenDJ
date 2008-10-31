@@ -207,16 +207,7 @@ public class WorkflowResultCode
             errorMessage = new MessageBuilder (newErrorMessage);
             break;
           default:
-            // global resultCode remains the same but append the new
-            // error message into the current error message
-            if (errorMessage == null)
-            {
-              errorMessage =  new MessageBuilder (newErrorMessage);
-            }
-            else
-            {
-              errorMessage.append(newErrorMessage);
-            }
+            // Do nothing (we don't want to override the first error)
             break;
         }
         break;
