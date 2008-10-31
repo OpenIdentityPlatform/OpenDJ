@@ -108,8 +108,8 @@ public class ResourceLimits
     maxOpsPerConnection = 0;
     maxConcurrentOpsPerConnection = 0;
 
-    searchSizeLimit = 0;
-    searchTimeLimit = 0;
+    searchSizeLimit = -1;
+    searchTimeLimit = -1;
     minSearchSubstringLength = 0;
     numConnections = 0;
     connectionsPerIpMap = new HashMap<String, Integer>();
