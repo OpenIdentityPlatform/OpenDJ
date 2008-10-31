@@ -1157,8 +1157,12 @@
         logs = doc.createElement("logs")
         qa.appendChild(logs)
 
-        # Pass only the pretty print of the test suite name
-        suite=CurrentTestPath['suite'].split('.')[2].strip()
+        # Try to pass only the pretty print of the test suite name
+        try:
+          suite=CurrentTestPath['suite'].split('.')[2].strip()
+        except:
+          formattedTestcase  = format_testcase()
+          suite = formattedTestcase.suite(CurrentTestPath['suite'])
 
         # Create the log element
         log = doc.createElement("log")
