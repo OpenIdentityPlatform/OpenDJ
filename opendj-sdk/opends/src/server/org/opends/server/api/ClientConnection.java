@@ -1102,8 +1102,14 @@ public abstract class ClientConnection
   public void setUnauthenticated()
   {
     setAuthenticationInfo(new AuthenticationInfo());
-    this.sizeLimit          = DirectoryServer.getSizeLimit();
-    this.timeLimit          = DirectoryServer.getTimeLimit();
+    this.sizeLimit = networkGroup.getSearchSizeLimit();
+    if (this.sizeLimit == -1) {
+        this.sizeLimit = DirectoryServer.getSizeLimit();
+    }
+    this.timeLimit = networkGroup.getSearchDurationLimit();
+    if (this.timeLimit == -1) {
+      this.timeLimit = DirectoryServer.getTimeLimit();
+    }
   }
 
 
@@ -1796,7 +1802,13 @@ public abstract class ClientConnection
 
       // The client connection inherits the resource limits
       sizeLimit = networkGroup.getSearchSizeLimit();
+      if (sizeLimit == -1) {
+        sizeLimit = DirectoryServer.getSizeLimit();
+      }
       timeLimit = networkGroup.getSearchDurationLimit();
+      if (timeLimit == -1) {
+        timeLimit = DirectoryServer.getTimeLimit();
+      }
     }
   }
 

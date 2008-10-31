@@ -681,7 +681,7 @@ public class NetworkGroup
     if (resourceLimits != null) {
       return resourceLimits.getSizeLimit();
     }
-    return 0;
+    return -1;
   }
 
   /**
@@ -693,7 +693,7 @@ public class NetworkGroup
     if (resourceLimits != null) {
       return resourceLimits.getTimeLimit();
     }
-    return 0;
+    return -1;
   }
 
   /**
