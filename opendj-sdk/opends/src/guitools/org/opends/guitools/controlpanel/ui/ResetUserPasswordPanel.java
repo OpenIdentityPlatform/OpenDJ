@@ -119,7 +119,7 @@ public class ResetUserPasswordPanel extends StatusGenericPanel
       errors.add(ERR_CTRL_PANEL_NEW_PASSWORD_REQUIRED.get());
       setPrimaryInvalid(lPassword);
     }
-    else if (pwd1.equals(pwd2))
+    else if (!pwd1.equals(pwd2))
     {
       errors.add(ERR_CTRL_PANEL_PASSWORD_DO_NOT_MATCH.get());
       setPrimaryInvalid(lPassword);
@@ -200,6 +200,10 @@ public class ResetUserPasswordPanel extends StatusGenericPanel
       if (labels[i] == null)
       {
         labels[i] = Utilities.createPrimaryLabel(strings[i]);
+      }
+      else
+      {
+        labels[i].setText(strings[i].toString());
       }
 
       gbc.gridx = 0;
