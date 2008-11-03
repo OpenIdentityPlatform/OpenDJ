@@ -103,7 +103,11 @@ abstract class GenericMenuBar extends JMenuBar
     return menu;
   }
 
-  private void displayURL(final String url)
+  /**
+   * Tries to display a URL in the systems default WEB browser.
+   * @param url the URL to be displayed.
+   */
+  protected void displayURL(final String url)
   {
     BackgroundTask<Void> worker = new BackgroundTask<Void>()
     {
