@@ -44,6 +44,7 @@ public class ControlPanelLog
     "org.opends"
   };
   static private File logFile = null;
+  static private FileHandler fileHandler;
 
   /**
    * Creates a new file handler for writing log messages to the file indicated
@@ -55,7 +56,7 @@ public class ControlPanelLog
     if (!isInitialized())
     {
       logFile = file;
-      FileHandler fileHandler = new FileHandler(logFile.getCanonicalPath());
+      fileHandler = new FileHandler(logFile.getCanonicalPath());
       fileHandler.setFormatter(new SimpleFormatter());
       for (String packageName : packages)
       {
@@ -76,8 +77,6 @@ public class ControlPanelLog
    * @throws IOException if something goes wrong
    */
   static public void initPackage(String packageName) throws IOException {
-    FileHandler fileHandler = new FileHandler(logFile.getCanonicalPath());
-    fileHandler.setFormatter(new SimpleFormatter());
     Logger logger = Logger.getLogger(packageName);
     logger.setUseParentHandlers(false); // disable logging to console
     logger.addHandler(fileHandler);

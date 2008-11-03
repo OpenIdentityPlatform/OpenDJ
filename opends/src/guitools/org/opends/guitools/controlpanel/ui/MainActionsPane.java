@@ -174,7 +174,11 @@ public class MainActionsPane extends StatusGenericPanel
     return null;
   }
 
-  private ArrayList<Category> createCategories()
+  /**
+   * Creates the categories contained by this panel.
+   * @return the categories contained by this panel.
+   */
+  protected ArrayList<Category> createCategories()
   {
     ArrayList<Category> categories = new ArrayList<Category>();
     Message[][] labels;

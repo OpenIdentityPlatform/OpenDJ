@@ -62,6 +62,20 @@ public class MainMenuBar extends GenericMenuBar
   {
     super(info);
 
+    addMenus();
+
+    if (Utilities.isMacOS())
+    {
+      setMacOSQuitHandler();
+    }
+  }
+
+  /**
+   * Method that can be overwritten to set specific menus.
+   *
+   */
+  protected void addMenus()
+  {
     JMenu menu;
     JMenuItem menuItem;
 
@@ -86,11 +100,6 @@ public class MainMenuBar extends GenericMenuBar
       add(menu);
     }
     add(createHelpMenuBar());
-
-    if (Utilities.isMacOS())
-    {
-      setMacOSQuitHandler();
-    }
   }
 
   /**
