@@ -96,16 +96,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private StringArgument bindPassword1Arg = null;
 
   /**
-   * The 'useSSLArg' argument for the first server.
-   */
-  private BooleanArgument useSSL1Arg = null;
-
-  /**
-   * The 'useStartTLS1Arg' argument for the first server.
-   */
-  private BooleanArgument useStartTLS1Arg = null;
-
-  /**
    * The 'replicationPort' argument for the first server.
    */
   private IntegerArgument replicationPort1Arg = null;
@@ -139,16 +129,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * The 'bindPassword' argument for the second server.
    */
   private StringArgument bindPassword2Arg = null;
-
-  /**
-   * The 'useSSLArg' argument for the second server.
-   */
-  private BooleanArgument useSSL2Arg = null;
-
-  /**
-   * The 'useStartTLS2Arg' argument for the second server.
-   */
-  private BooleanArgument useStartTLS2Arg = null;
 
   /**
    * The 'replicationPort' argument for the second server.
@@ -186,16 +166,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private IntegerArgument portSourceArg = null;
 
   /**
-   * The 'useSSLArg' for the source server.
-   */
-  private BooleanArgument useSSLSourceArg = null;
-
-  /**
-   * The 'useStartTLSSourceArg' for the source server.
-   */
-  private BooleanArgument useStartTLSSourceArg = null;
-
-  /**
    * The 'hostName' argument for the destination server.
    */
   private StringArgument hostNameDestinationArg = null;
@@ -204,16 +174,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * The 'port' argument for the destination server.
    */
   private IntegerArgument portDestinationArg = null;
-
-  /**
-   * The 'useSSLArg' argument for the destination server.
-   */
-  private BooleanArgument useSSLDestinationArg = null;
-
-  /**
-   * The 'useStartTLSDestinationArg' argument for the destination server.
-   */
-  private BooleanArgument useStartTLSDestinationArg = null;
 
   /**
    * The 'suffixes' global argument.
@@ -412,9 +372,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       secureArgsList.portArg,
       secureArgsList.bindDnArg,
       secureArgsList.bindPasswordFileArg,
-      secureArgsList.bindPasswordArg,
-      secureArgsList.useSSLArg,
-      secureArgsList.useStartTLSArg
+      secureArgsList.bindPasswordArg
     };
 
     for (int i=0; i<argsToRemove.length; i++)
@@ -527,13 +485,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE1.get());
 
-    useSSL1Arg = new BooleanArgument("useSSL1", OPTION_SHORT_USE_SSL,
-        "useSSL1", INFO_DESCRIPTION_ENABLE_REPLICATION_USE_SSL1.get());
-
-    useStartTLS1Arg = new BooleanArgument("startTLS1", OPTION_SHORT_START_TLS,
-        "startTLS1",
-        INFO_DESCRIPTION_ENABLE_REPLICATION_STARTTLS1.get());
-
     replicationPort1Arg = new IntegerArgument("replicationPort1", 'r',
         "replicationPort1", false, false, true, INFO_PORT_PLACEHOLDER.get(),
         8989, null,
@@ -567,13 +518,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE2.get());
 
-    useSSL2Arg = new BooleanArgument("useSSL2", 'z',
-        "useSSL2", INFO_DESCRIPTION_ENABLE_REPLICATION_USE_SSL2.get());
-
-    useStartTLS2Arg = new BooleanArgument("startTLS2", null,
-        "startTLS2",
-        INFO_DESCRIPTION_ENABLE_REPLICATION_STARTTLS2.get());
-
     replicationPort2Arg = new IntegerArgument("replicationPort2", 'R',
         "replicationPort2", false, false, true, INFO_PORT_PLACEHOLDER.get(),
         8989, null,
@@ -602,11 +546,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
     Argument[] argsToAdd = {
         hostName1Arg, port1Arg, bindDn1Arg, bindPassword1Arg,
-        bindPasswordFile1Arg, useStartTLS1Arg, useSSL1Arg, replicationPort1Arg,
-        secureReplication1Arg,
+        bindPasswordFile1Arg, replicationPort1Arg, secureReplication1Arg,
         hostName2Arg, port2Arg, bindDn2Arg, bindPassword2Arg,
-        bindPasswordFile2Arg, useStartTLS2Arg, useSSL2Arg, replicationPort2Arg,
-        secureReplication2Arg,
+        bindPasswordFile2Arg, replicationPort2Arg, secureReplication2Arg,
         skipPortCheckArg, noSchemaReplicationArg,
         useSecondServerAsSchemaSourceArg
     };
@@ -620,8 +562,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * Creates the disable replication subcommand and all the specific options
    * for the subcommand.  Note: this method assumes that
-   * initializeGlobalArguments has already been called and that hostNameArg,
-   * portArg, startTLSArg and useSSLArg have been created.
+   * initializeGlobalArguments has already been called and that hostNameArg and
+   * portArg have been created.
    */
   private void createDisableReplicationSubCommand()
   throws ArgumentException
@@ -635,8 +577,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         "cn=Directory Manager", OPTION_LONG_BINDDN,
         INFO_DESCRIPTION_DISABLE_REPLICATION_BINDDN.get());
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
-        secureArgsList.portArg, secureArgsList.useSSLArg,
-        secureArgsList.useStartTLSArg, secureArgsList.bindDnArg };
+        secureArgsList.portArg, secureArgsList.bindDnArg };
     for (int i=0; i<argsToAdd.length; i++)
     {
       disableReplicationSubCmd.addArgument(argsToAdd[i]);
@@ -660,14 +601,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         null,
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_SOURCE.get());
 
-    useSSLSourceArg = new BooleanArgument("useSSLSource", OPTION_SHORT_USE_SSL,
-        "useSSLSource",
-        INFO_DESCRIPTION_INITIALIZE_REPLICATION_USE_SSL_SOURCE.get());
-
-    useStartTLSSourceArg = new BooleanArgument("startTLSSource",
-        OPTION_SHORT_START_TLS, "startTLSSource",
-        INFO_DESCRIPTION_INITIALIZE_REPLICATION_STARTTLS_SOURCE.get());
-
     hostNameDestinationArg = new StringArgument("hostDestination", 'O',
         "hostDestination", false, false, true, INFO_HOST_PLACEHOLDER.get(),
         getDefaultHostValue(), null,
@@ -678,23 +611,14 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         null,
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_DESTINATION.get());
 
-    useSSLDestinationArg = new BooleanArgument("useSSLDestination", 'z',
-        "useSSLDestination",
-        INFO_DESCRIPTION_INITIALIZE_REPLICATION_USE_SSL_DESTINATION.get());
-
-    useStartTLSDestinationArg = new BooleanArgument("startTLSDestination", null,
-        "startTLSDestination",
-        INFO_DESCRIPTION_INITIALIZE_REPLICATION_STARTTLS_DESTINATION.get());
-
     initializeReplicationSubCmd = new SubCommand(this,
         INITIALIZE_REPLICATION_SUBCMD_NAME,
         INFO_DESCRIPTION_SUBCMD_INITIALIZE_REPLICATION.get(
             INITIALIZE_ALL_REPLICATION_SUBCMD_NAME));
 
     Argument[] argsToAdd = {
-        hostNameSourceArg, portSourceArg, useSSLSourceArg, useStartTLSSourceArg,
-        hostNameDestinationArg, portDestinationArg, useSSLDestinationArg,
-        useStartTLSDestinationArg
+        hostNameSourceArg, portSourceArg, hostNameDestinationArg,
+        portDestinationArg
     };
     for (int i=0; i<argsToAdd.length; i++)
     {
@@ -706,8 +630,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * Creates the initialize all replication subcommand and all the specific
    * options for the subcommand.  Note: this method assumes that
-   * initializeGlobalArguments has already been called and that hostNameArg,
-   * portArg, startTLSArg and useSSLArg have been created.
+   * initializeGlobalArguments has already been called and that hostNameArg and
+   * portArg have been created.
    */
   private void createInitializeAllReplicationSubCommand()
   throws ArgumentException
@@ -718,8 +642,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
             INITIALIZE_REPLICATION_SUBCMD_NAME));
     secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
-        secureArgsList.portArg, secureArgsList.useSSLArg,
-        secureArgsList.useStartTLSArg };
+        secureArgsList.portArg };
     for (int i=0; i<argsToAdd.length; i++)
     {
       initializeAllReplicationSubCmd.addArgument(argsToAdd[i]);
@@ -730,8 +653,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * Creates the subcommand that the user must launch before doing an external
    * initialization of the topology ( and all the specific
    * options for the subcommand.  Note: this method assumes that
-   * initializeGlobalArguments has already been called and that hostNameArg,
-   * portArg, startTLSArg and useSSLArg have been created.
+   * initializeGlobalArguments has already been called and that hostNameArg and
+   * portArg have been created.
    */
   private void createPreExternalInitializationSubCommand()
   throws ArgumentException
@@ -749,8 +672,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     externalInitializationLocalOnlyArg.setPropertyName(
         externalInitializationLocalOnlyArg.getLongIdentifier());
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
-        secureArgsList.portArg, secureArgsList.useSSLArg,
-        secureArgsList.useStartTLSArg,
+        secureArgsList.portArg,
         externalInitializationLocalOnlyArg};
 
     for (int i=0; i<argsToAdd.length; i++)
@@ -763,8 +685,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * Creates the subcommand that the user must launch after doing an external
    * initialization of the topology ( and all the specific
    * options for the subcommand.  Note: this method assumes that
-   * initializeGlobalArguments has already been called and that hostNameArg,
-   * portArg, startTLSArg and useSSLArg have been created.
+   * initializeGlobalArguments has already been called and that hostNameArg and
+   * portArg have been created.
    */
   private void createPostExternalInitializationSubCommand()
   throws ArgumentException
@@ -777,8 +699,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     externalInitializationLocalOnlyArg.setPropertyName(
         externalInitializationLocalOnlyArg.getLongIdentifier());
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
-        secureArgsList.portArg, secureArgsList.useSSLArg,
-        secureArgsList.useStartTLSArg};
+        secureArgsList.portArg };
     for (int i=0; i<argsToAdd.length; i++)
     {
       postExternalInitializationSubCmd.addArgument(argsToAdd[i]);
@@ -788,8 +709,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * Creates the status replication subcommand and all the specific options
    * for the subcommand.  Note: this method assumes that
-   * initializeGlobalArguments has already been called and that hostNameArg,
-   * portArg, startTLSArg and useSSLArg have been created.
+   * initializeGlobalArguments has already been called and that hostNameArg and
+   * portArg have been created.
    */
   private void createStatusReplicationSubCommand() throws ArgumentException
   {
@@ -804,8 +725,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     scriptFriendlyArg.setPropertyName(scriptFriendlyArg.getLongIdentifier());
     secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
-        secureArgsList.portArg, secureArgsList.useSSLArg,
-        secureArgsList.useStartTLSArg, scriptFriendlyArg };
+        secureArgsList.portArg, scriptFriendlyArg };
     for (int i=0; i<argsToAdd.length; i++)
     {
       statusReplicationSubCmd.addArgument(argsToAdd[i]);
@@ -952,228 +872,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   {
     return getBindPassword(dn, out, err, secureArgsList.bindPasswordArg,
         secureArgsList.bindPasswordFileArg);
-  }
-
-  /**
-   * Indicate if the SSL mode is required for the first server in the enable
-   * replication subcommand.
-   *
-   * @return <CODE>true</CODE> if SSL mode is required for the first server in
-   * the enable replication subcommand and <CODE>false</CODE> otherwise.
-   */
-  public boolean useSSL1()
-  {
-    return useSSL1Arg.isPresent();
-  }
-
-  /**
-   * Indicate if the startTLS mode is required for the first server in the
-   * enable replication subcommand.
-   *
-   * @return <CODE>true</CODE> if startTLS mode is required for the first server
-   * in the enable replication subcommand and <CODE>false</CODE> otherwise.
-   */
-  public boolean useStartTLS1()
-  {
-    return useStartTLS1Arg.isPresent();
-  }
-
-  /**
-   * Indicate if the SSL mode is required for the second server in the enable
-   * replication subcommand.
-   *
-   * @return <CODE>true</CODE> if SSL mode is required for the second server in
-   * the enable replication subcommand and <CODE>false</CODE> otherwise.
-   */
-  public boolean useSSL2()
-  {
-    return useSSL2Arg.isPresent();
-  }
-
-  /**
-   * Indicate if the startTLS mode is required for the second server in the
-   * enable replication subcommand.
-   *
-   * @return <CODE>true</CODE> if startTLS mode is required for the second
-   * server in the enable replication subcommand and <CODE>false</CODE>
-   * otherwise.
-   */
-  public boolean useStartTLS2()
-  {
-    return useStartTLS2Arg.isPresent();
-  }
-
-  /**
-   * Indicate if the SSL mode is required for the source server in the
-   * initialize replication subcommand.
-   *
-   * @return <CODE>true</CODE> if SSL mode is required for the source server
-   * in the initialize replication subcommand and <CODE>false</CODE> otherwise.
-   */
-  public boolean useSSLSource()
-  {
-    return useSSLSourceArg.isPresent();
-  }
-
-  /**
-   * Indicate if the StartTLS mode is required for the source server in the
-   * initialize replication subcommand.
-   *
-   * @return <CODE>true</CODE> if StartTLS mode is required for the source
-   * server in the initialize replication subcommand and <CODE>false</CODE>
-   * otherwise.
-   */
-  public boolean useStartTLSSource()
-  {
-    return useStartTLSSourceArg.isPresent();
-  }
-
-  /**
-   * Indicate if the SSL mode is required for the destinaton server in the
-   * initialize replication subcommand.
-   *
-   * @return <CODE>true</CODE> if SSL mode is required for the destination
-   * server in the initialize replication subcommand and <CODE>false</CODE>
-   * otherwise.
-   */
-  public boolean useSSLDestination()
-  {
-    return useSSLDestinationArg.isPresent();
-  }
-
-  /**
-   * Indicate if the SSL mode is required for the destination server in the
-   * initialize replication subcommand.
-   *
-   * @return <CODE>true</CODE> if StartTLS mode is required for the destination
-   * server in the initialize replication subcommand and <CODE>false</CODE>
-   * otherwise.
-   */
-  public boolean useStartTLSDestination()
-  {
-    return useStartTLSDestinationArg.isPresent();
-  }
-
-  /**
-   * Indicate if the SSL mode is required for the server in the disable
-   * replication subcommand.
-   *
-   * @return <CODE>true</CODE> if SSL mode is required for the server in the
-   * disable replication subcommand and <CODE>false</CODE> otherwise.
-   */
-  public boolean useSSLToDisable()
-  {
-    return secureArgsList.useSSLArg.isPresent();
-  }
-
-  /**
-   * Indicate if the SSL mode is required for the server in the disable
-   * replication subcommand.
-   *
-   * @return <CODE>true</CODE> if StartTLS mode is required for the server in
-   * the disable replication subcommand and <CODE>false</CODE> otherwise.
-   */
-  public boolean useStartTLSToDisable()
-  {
-    return secureArgsList.useStartTLSArg.isPresent();
-  }
-
-  /**
-   * Indicate if the SSL mode is required for the server in the initialize all
-   * replication subcommand.
-   *
-   * @return <CODE>true</CODE> if SSL mode is required for the server in the
-   * initialize all replication subcommand and <CODE>false</CODE> otherwise.
-   */
-  public boolean useSSLToInitializeAll()
-  {
-    return secureArgsList.useSSLArg.isPresent();
-  }
-
-  /**
-   * Indicate if the SSL mode is required for the server in the initialize all
-   * replication subcommand.
-   *
-   * @return <CODE>true</CODE> if StartTLS mode is required for the server in
-   * the initialize all replication subcommand and <CODE>false</CODE> otherwise.
-   */
-  public boolean useStartTLSToInitializeAll()
-  {
-    return secureArgsList.useStartTLSArg.isPresent();
-  }
-
-  /**
-   * Indicate if the SSL mode is required for the server in the pre external
-   * initialization subcommand.
-   *
-   * @return <CODE>true</CODE> if SSL mode is required for the server in the
-   * pre external initialization subcommand and <CODE>false</CODE> otherwise.
-   */
-  public boolean useSSLToPreExternalInitialization()
-  {
-    return secureArgsList.useSSLArg.isPresent();
-  }
-
-  /**
-   * Indicate if the SSL mode is required for the server in the pre external
-   * initialization subcommand.
-   *
-   * @return <CODE>true</CODE> if StartTLS mode is required for the server in
-   * the pre external initialization subcommand and <CODE>false</CODE>
-   * otherwise.
-   */
-  public boolean useStartTLSToPreExternalInitialization()
-  {
-    return secureArgsList.useStartTLSArg.isPresent();
-  }
-
-  /**
-   * Indicate if the SSL mode is required for the server in the post external
-   * initialization subcommand.
-   *
-   * @return <CODE>true</CODE> if SSL mode is required for the server in the
-   * post external initialization subcommand and <CODE>false</CODE> otherwise.
-   */
-  public boolean useSSLToPostExternalInitialization()
-  {
-    return secureArgsList.useSSLArg.isPresent();
-  }
-
-  /**
-   * Indicate if the SSL mode is required for the server in the post external
-   * initialization subcommand.
-   *
-   * @return <CODE>true</CODE> if StartTLS mode is required for the server in
-   * the post external initialization subcommand and <CODE>false</CODE>
-   * otherwise.
-   */
-  public boolean useStartTLSToPostExternalInitialization()
-  {
-    return secureArgsList.useStartTLSArg.isPresent();
-  }
-
-  /**
-   * Indicate if the SSL mode is required for the server in the status
-   * replication subcommand.
-   *
-   * @return <CODE>true</CODE> if SSL mode is required for the server in the
-   * status replication subcommand and <CODE>false</CODE> otherwise.
-   */
-  public boolean useSSLToStatus()
-  {
-    return secureArgsList.useSSLArg.isPresent();
-  }
-
-  /**
-   * Indicate if the SSL mode is required for the server in the status
-   * replication subcommand.
-   *
-   * @return <CODE>true</CODE> if StartTLS mode is required for the server in
-   * the status replication subcommand and <CODE>false</CODE> otherwise.
-   */
-  public boolean useStartTLSToStatus()
-  {
-    return secureArgsList.useStartTLSArg.isPresent();
   }
 
   /**
@@ -2002,9 +1700,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     Argument[][] conflictingPairs =
     {
         {bindPassword1Arg, bindPasswordFile1Arg},
-        {useStartTLS1Arg, useSSL1Arg},
         {bindPassword2Arg, bindPasswordFile2Arg},
-        {useStartTLS2Arg, useSSL2Arg},
         {noSchemaReplicationArg, useSecondServerAsSchemaSourceArg}
     };
 
@@ -2046,7 +1742,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   {
     Argument[][] conflictingPairs =
     {
-        {secureArgsList.useStartTLSArg, secureArgsList.useSSLArg},
         {secureArgsList.adminUidArg, secureArgsList.bindDnArg}
     };
 
@@ -2075,22 +1770,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   private void validateInitializeAllReplicationOptions(MessageBuilder buf)
   {
-    Argument[][] conflictingPairs =
-    {
-        {secureArgsList.useStartTLSArg, secureArgsList.useSSLArg}
-    };
-
-    for (int i=0; i< conflictingPairs.length; i++)
-    {
-      Argument arg1 = conflictingPairs[i][0];
-      Argument arg2 = conflictingPairs[i][1];
-      if (arg1.isPresent() && arg2.isPresent())
-      {
-        Message message = ERR_TOOL_CONFLICTING_ARGS.get(
-            arg1.getLongIdentifier(), arg2.getLongIdentifier());
-        addMessage(buf, message);
-      }
-    }
   }
 
   /**
@@ -2135,23 +1814,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   private void validateStatusReplicationOptions(MessageBuilder buf)
   {
-    Argument[][] conflictingPairs =
-    {
-        {secureArgsList.useStartTLSArg, secureArgsList.useSSLArg}
-    };
-
-    for (int i=0; i< conflictingPairs.length; i++)
-    {
-      Argument arg1 = conflictingPairs[i][0];
-      Argument arg2 = conflictingPairs[i][1];
-      if (arg1.isPresent() && arg2.isPresent())
-      {
-        Message message = ERR_TOOL_CONFLICTING_ARGS.get(
-            arg1.getLongIdentifier(), arg2.getLongIdentifier());
-        addMessage(buf, message);
-      }
-    }
-
     if (quietArg.isPresent())
     {
       Message message = ERR_REPLICATION_STATUS_QUIET.get(
@@ -2172,8 +1834,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   private void validateInitializeReplicationOptions(MessageBuilder buf)
   {
-    // The startTLS and useSSL arguments are already validated in
-    // SecureConnectionCliParser.validateGlobalOptions.
     if (hostNameSourceArg.getValue().equalsIgnoreCase(
         hostNameDestinationArg.getValue()) && !isInteractive())
     {
