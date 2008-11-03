@@ -87,15 +87,19 @@ public class NetworkGroup
   // The admin network group (singleton).
   // The admin network group has no criterion, no policy, and gives
   // access to all the workflows.
+  private static final String ADMIN_NETWORK_GROUP_NAME = "admin";
   private static NetworkGroup adminNetworkGroup =
-      new NetworkGroup ("admin");
+      new NetworkGroup (ADMIN_NETWORK_GROUP_NAME);
+  private final boolean isAdminNetworkGroup;
 
   // The internal network group (singleton).
   // The internal network group has no criterion, no policy, and gives
   // access to all the workflows. The purpose of the internal network
   // group is to allow internal connections to perform operations.
+  private static final String INTERNAL_NETWORK_GROUP_NAME = "internal";
   private static NetworkGroup internalNetworkGroup =
-      new NetworkGroup("internal");
+      new NetworkGroup(INTERNAL_NETWORK_GROUP_NAME);
+  private boolean isInternalNetworkGroup;
 
 
   // The list of all network groups that are registered with the server.
@@ -136,6 +140,9 @@ public class NetworkGroup
       )
   {
     this.networkGroupID = networkGroupID;
+
+    isInternalNetworkGroup = INTERNAL_NETWORK_GROUP_NAME.equals(networkGroupID);
+    isAdminNetworkGroup = ADMIN_NETWORK_GROUP_NAME.equals(networkGroupID);
   }
 
 
@@ -231,7 +238,7 @@ public class NetworkGroup
       WorkflowImpl workflow
       ) throws DirectoryException
   {
-    // The workflow is rgistered with no pre/post workflow element.
+    // The workflow is registered with no pre/post workflow element.
     registerWorkflow(workflow, null, null);
   }
 
@@ -245,8 +252,9 @@ public class NetworkGroup
    * @param postWorkflowElements  the tasks to execute after the workflow
    *
    * @throws  DirectoryException  If the workflow ID for the provided
-   *                              workflow conflicts with the workflow
-   *                              ID of an existing workflow.
+   *          workflow conflicts with the workflow ID of an existing
+   *          workflow or if the base DN of the workflow is the same
+   *          than the base DN of another workflow already registered
    */
   private void registerWorkflow(
       WorkflowImpl workflow,
@@ -399,8 +407,10 @@ public class NetworkGroup
    * Deregisters a workflow node with the network group.
    *
    * @param workflow  the workflow node to deregister
+   * @return <code>true</code> when the workflow has been successfully
+   *         deregistered
    */
-  private void deregisterWorkflow(Workflow workflow)
+  private boolean deregisterWorkflow(Workflow workflow)
   {
     // true as soon as the workflow has been deregistered
     boolean deregistered = false;
@@ -425,6 +435,8 @@ public class NetworkGroup
       // Rebuild the list of naming context handled by the network group
       rebuildNamingContextList();
     }
+
+    return deregistered;
   }
 
 
@@ -470,6 +482,11 @@ public class NetworkGroup
             ResultCode.UNWILLING_TO_PERFORM, message);
       }
 
+      // The workflow base DN should not be already present in the
+      // network group. Bypass the check for the private workflows...
+      checkWorkflowBaseDN(workflowNode);
+
+      // All is fine, let's register the workflow
       TreeMap<String, WorkflowTopologyNode> newRegisteredWorkflowNodes =
         new TreeMap<String, WorkflowTopologyNode>(registeredWorkflowNodes);
       newRegisteredWorkflowNodes.put(workflowID, workflowNode);
@@ -479,7 +496,60 @@ public class NetworkGroup
 
 
   /**
-   * Deregisters the current worklow (this) with the server.
+   * Checks whether the base DN of a new workflow to register is
+   * present in a workflow already registered with the network group.
+   *
+   * @param workflowNode  the workflow to check
+   *
+   * @throws  DirectoryException  If the base DN of the workflow is already
+   *                              present in the network group
+   */
+  private void checkWorkflowBaseDN(
+      WorkflowTopologyNode workflowNode
+      ) throws DirectoryException
+  {
+    String workflowID = workflowNode.getWorkflowImpl().getWorkflowId();
+    ensureNotNull(workflowID);
+
+    // If the network group is the "internal" network group then bypass
+    // the check because the internal network group may contain duplicates
+    // of base DNs.
+    if (isInternalNetworkGroup)
+    {
+      return;
+    }
+
+    // If the network group is the "admin" network group then bypass
+    // the check because the internal network group may contain duplicates
+    // of base DNs.
+    if (isAdminNetworkGroup)
+    {
+      return;
+    }
+
+    // The workflow base DN should not be already present in the
+    // network group. Bypass the check for the private workflows...
+    for (WorkflowTopologyNode node: registeredWorkflowNodes.values())
+    {
+      DN nodeBaseDN = node.getBaseDN();
+      if (nodeBaseDN.equals(workflowNode.getBaseDN()))
+      {
+        // The base DN is already registered in the network group,
+        // we must reject the registration request
+        Message message = ERR_REGISTER_WORKFLOW_BASE_DN_ALREADY_EXISTS.get(
+          workflowID,
+          networkGroupID,
+          node.getWorkflowImpl().getWorkflowId(),
+          workflowNode.getWorkflowImpl().getBaseDN().toString());
+        throw new DirectoryException(
+            ResultCode.UNWILLING_TO_PERFORM, message);
+      }
+    }
+  }
+
+
+  /**
+   * Deregisters the current workflow (this) with the server.
    *
    * @param workflowNode  the workflow node to deregister
    */
