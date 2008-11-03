@@ -238,7 +238,6 @@ public class NetworkGroupConfigManager
     ConfigChangeResult configChangeResult =
       new ConfigChangeResult(resultCode, adminActionRequired, messages);
 
-
     // Get the existing network group if it's already enabled.
     NetworkGroup existingNetworkGroup = networkGroups.get(configuration.dn());
 
@@ -297,13 +296,16 @@ public class NetworkGroupConfigManager
           } catch (DirectoryException de) {
             if (resultCode == ResultCode.SUCCESS)
             {
-              resultCode = DirectoryServer.getServerErrorResultCode();
+              resultCode = de.getResultCode();
             }
             messages.add(de.getMessageObject());
           }
         }
       }
     }
+
+    configChangeResult =
+      new ConfigChangeResult(resultCode, adminActionRequired, messages);
 
     return configChangeResult;
   }
