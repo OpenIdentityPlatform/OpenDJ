@@ -27,12 +27,12 @@
 package org.opends.server.workflowelement;
 
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.opends.server.admin.std.server.WorkflowElementCfg;
 import org.opends.server.types.Operation;
@@ -141,7 +141,7 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
       if (observers == null)
       {
         // create the list of observers
-        observers = new ArrayList<Observer>();
+        observers = new CopyOnWriteArrayList<Observer>();
         observers.add(observer);
         newWorkflowElementNotificationList.put(weid, observers);
       }
