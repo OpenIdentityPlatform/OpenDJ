@@ -399,7 +399,7 @@ public class LDAPDelete
                                   OPTION_LONG_BINDDN, false, false, true,
                                   INFO_BINDDN_PLACEHOLDER.get(), null, null,
                                   INFO_DESCRIPTION_BINDDN.get());
-      bindDN.setPropertyName(OPTION_LONG_BINDPWD);
+      bindDN.setPropertyName(OPTION_LONG_BINDDN);
       argParser.addArgument(bindDN);
 
       bindPassword = new StringArgument("bindPassword", OPTION_SHORT_BINDPWD,
