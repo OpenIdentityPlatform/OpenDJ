@@ -28,6 +28,9 @@ package org.opends.server.core.networkgroups;
 
 
 
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.ErrorLogger.logError;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
@@ -332,7 +335,18 @@ public class NetworkGroupConfigManager
     {
       WorkflowImpl workflowImpl =
         (WorkflowImpl) WorkflowImpl.getWorkflow(workflowID);
-      networkGroup.registerWorkflow(workflowImpl);
+      if (workflowImpl == null)
+      {
+        // The workflow does not exist, log an error message
+        // and skip the workflow
+        Message message = INFO_ERR_WORKFLOW_DOES_NOT_EXIST.get(
+          workflowID, networkGroupId);
+        logError(message);
+      }
+      else
+      {
+        networkGroup.registerWorkflow(workflowImpl);
+      }
     }
 
     // register the root DSE workflow with the network group

@@ -34,7 +34,6 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.TreeMap;
 
-import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.std.server.WorkflowCfg;
 import org.opends.server.types.*;
@@ -84,6 +83,12 @@ public class WorkflowImpl implements Workflow, Observer
 
   // A lock to protect concurrent access to the registeredWorkflows.
   private static Object registeredWorkflowsLock = new Object();
+
+  // A reference counter used to count the number of workflow nodes that
+  // were registered with a network group. A workflow can be disabled or
+  // deleted only when its reference counter value is 0.
+  private int referenceCounter = 0;
+  private Object referenceCounterLock = new Object();
 
 
   /**
@@ -219,10 +224,9 @@ public class WorkflowImpl implements Workflow, Observer
       // The workflow must not be already registered
       if (registeredWorkflows.containsKey(workflowID))
       {
-        Message message =
-            ERR_REGISTER_WORKFLOW_ALREADY_EXISTS.get(workflowID);
         throw new DirectoryException(
-            ResultCode.UNWILLING_TO_PERFORM, message);
+            ResultCode.UNWILLING_TO_PERFORM,
+            ERR_REGISTER_WORKFLOW_ALREADY_EXISTS.get(workflowID));
       }
 
       TreeMap<String, Workflow> newRegisteredWorkflows =
@@ -465,5 +469,54 @@ public class WorkflowImpl implements Workflow, Observer
         null, rootWorkflowElement.getWorkflowElementID(), this);
       rootWorkflowElement = null;
     }
+  }
+
+
+  /**
+   * Increments the workflow reference counter.
+   * <p>
+   * As long as the counter value is not 0 the workflow cannot be
+   * disabled nor deleted.
+   */
+  public void incrementReferenceCounter()
+  {
+    synchronized (referenceCounterLock)
+    {
+      referenceCounter++;
+    }
+  }
+
+
+  /**
+   * Decrements the workflow reference counter.
+   * <p>
+   * As long as the counter value is not 0 the workflow cannot be
+   * disabled nor deleted.
+   */
+  public void decrementReferenceCounter()
+  {
+    synchronized (referenceCounterLock)
+    {
+      if (referenceCounter == 0)
+      {
+        // the counter value is 0, we should not need to decrement anymore
+        throw new AssertionError(
+          "Reference counter of the workflow " + workflowID
+          + " is already set to 0, cannot decrement it anymore"
+          );
+      }
+      referenceCounter--;
+    }
+  }
+
+
+  /**
+   * Gets the value of the reference counter of the workflow.
+   *
+   * @return the reference counter of the workflow
+   */
+  public int getReferenceCounter()
+  {
+    return referenceCounter;
   }
 }

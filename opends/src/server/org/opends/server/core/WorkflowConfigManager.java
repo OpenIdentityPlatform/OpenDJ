@@ -28,6 +28,8 @@ package org.opends.server.core;
 
 
 
+import static org.opends.messages.CoreMessages.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -143,9 +145,9 @@ public class WorkflowConfigManager
   public ConfigChangeResult applyConfigurationAdd(
       WorkflowCfg configuration)
   {
-    ResultCode         resultCode          = ResultCode.SUCCESS;
-    boolean            adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ResultCode    resultCode          = ResultCode.SUCCESS;
+    boolean       adminActionRequired = false;
+    List<Message> messages            = new ArrayList<Message>();
 
     configuration.addChangeListener(this);
 
@@ -160,7 +162,7 @@ public class WorkflowConfigManager
       {
         if (resultCode == ResultCode.SUCCESS)
         {
-          resultCode = DirectoryServer.getServerErrorResultCode();
+          resultCode = de.getResultCode();
         }
 
         messages.add(de.getMessageObject());
@@ -179,7 +181,16 @@ public class WorkflowConfigManager
       WorkflowCfg   configuration,
       List<Message> unacceptableReasons)
   {
-    return true;
+    boolean acceptable = true;
+    WorkflowImpl existingWorkflow = workflows.get(configuration.dn());
+    if (existingWorkflow != null)
+    {
+      // check whether we can delete the workflow
+      acceptable = checkReferenceCounter(
+        existingWorkflow, unacceptableReasons);
+    }
+
+    return acceptable;
   }
 
 
@@ -190,16 +201,33 @@ public class WorkflowConfigManager
   public ConfigChangeResult applyConfigurationDelete(
       WorkflowCfg configuration)
   {
-    ResultCode         resultCode          = ResultCode.SUCCESS;
-    boolean            adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ResultCode    resultCode          = ResultCode.SUCCESS;
+    boolean       adminActionRequired = false;
+    List<Message> messages            = new ArrayList<Message>();
 
-
+    // check first whether we can remove the workflow
     WorkflowImpl workflow = workflows.remove(configuration.dn());
     if (workflow != null)
     {
-      workflow.deregister();
-      workflow.finalizeWorkflow();
+      boolean acceptable = checkReferenceCounter(workflow, messages);
+      if (acceptable)
+      {
+        // The workflow is not used anymore, we can remove it
+        workflow.deregister();
+        workflow.finalizeWorkflow();
+
+        // Deregister the workflow with the internal network group
+        NetworkGroup.getInternalNetworkGroup().deregisterWorkflow(
+          workflow.getWorkflowId());
+
+        // Deregister the workflow with the admin network group
+        NetworkGroup.getAdminNetworkGroup().deregisterWorkflow(
+          workflow.getWorkflowId());
+      }
+      else
+      {
+        resultCode = ResultCode.UNWILLING_TO_PERFORM;
+      }
     }
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
@@ -214,8 +242,19 @@ public class WorkflowConfigManager
       WorkflowCfg   configuration,
       List<Message> unacceptableReasons)
   {
-    // Nothing to check.
-    return true;
+    // Get the existing workflow if it's already enabled.
+    WorkflowImpl existingWorkflow = workflows.get(configuration.dn());
+
+    // Is this a request to disable the workflow?
+    boolean acceptable = true;
+    if (! configuration.isEnabled() && (existingWorkflow != null))
+    {
+      // check whether we can disable the workflow
+      acceptable = checkReferenceCounter(
+        existingWorkflow, unacceptableReasons);
+    }
+
+    return acceptable;
   }
 
 
@@ -226,13 +265,9 @@ public class WorkflowConfigManager
   public ConfigChangeResult applyConfigurationChange(
       WorkflowCfg configuration)
   {
-    ResultCode         resultCode          = ResultCode.SUCCESS;
-    boolean            adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
-
-    ConfigChangeResult configChangeResult =
-      new ConfigChangeResult(resultCode, adminActionRequired, messages);
-
+    ResultCode    resultCode          = ResultCode.SUCCESS;
+    boolean       adminActionRequired = false;
+    List<Message> messages            = new ArrayList<Message>();
 
     // Get the existing workflow if it's already enabled.
     WorkflowImpl existingWorkflow = workflows.get(configuration.dn());
@@ -243,12 +278,30 @@ public class WorkflowConfigManager
     {
       if (existingWorkflow != null)
       {
-        workflows.remove(configuration.dn());
-        existingWorkflow.deregister();
-        existingWorkflow.finalizeWorkflow();
+        // check whether we can disable the workflow
+        boolean acceptable = checkReferenceCounter(existingWorkflow, messages);
+        if (acceptable)
+        {
+          // The workflow is not used anymore, we can remove it
+          workflows.remove(configuration.dn());
+          existingWorkflow.deregister();
+          existingWorkflow.finalizeWorkflow();
+
+          // Deregister the workflow with the internal network group
+          NetworkGroup.getInternalNetworkGroup().deregisterWorkflow(
+            existingWorkflow.getWorkflowId());
+
+          // Deregister the workflow with the admin network group
+          NetworkGroup.getAdminNetworkGroup().deregisterWorkflow(
+            existingWorkflow.getWorkflowId());
+        }
+        else
+        {
+          resultCode = ResultCode.UNWILLING_TO_PERFORM;
+        }
       }
 
-      return configChangeResult;
+      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
 
     // If the workflow is disabled then create and register it.
@@ -262,7 +315,7 @@ public class WorkflowConfigManager
       {
         if (resultCode == ResultCode.SUCCESS)
         {
-          resultCode = DirectoryServer.getServerErrorResultCode();
+          resultCode = de.getResultCode();
         }
 
         messages.add(de.getMessageObject());
@@ -274,7 +327,7 @@ public class WorkflowConfigManager
       existingWorkflow.updateConfig(configuration);
     }
 
-    return configChangeResult;
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
 
@@ -317,6 +370,35 @@ public class WorkflowConfigManager
 
     // Register the workflow with the admin network group
     NetworkGroup.getAdminNetworkGroup().registerWorkflow(workflowImpl);
+  }
+
+
+  /**
+   * Checks whether a workflow is no more used so that we can delete
+   * or disable it.
+   *
+   * @param workflow  the workflow to check
+   * @param messages  a list of reasons that prevent the workflow to be
+   *                  deleted or disabled
+   * @return <code>true</code> when the workflow can be deleted or disabled
+   */
+  private boolean checkReferenceCounter(
+      WorkflowImpl  workflow,
+      List<Message> messages
+      )
+  {
+    boolean acceptable = true;
+
+    int refCounter = workflow.getReferenceCounter();
+    if (refCounter != 0)
+    {
+      Message message = INFO_ERR_WORKFLOW_IN_USE.get(
+        workflow.getWorkflowId(), workflow.getReferenceCounter());
+      messages.add(message);
+      acceptable = false;
+    }
+
+    return acceptable;
   }
 
 }
