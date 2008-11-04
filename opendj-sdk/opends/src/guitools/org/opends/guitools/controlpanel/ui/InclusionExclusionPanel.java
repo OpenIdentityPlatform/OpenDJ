@@ -479,7 +479,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
               try
               {
                 DN dn = DN.decode(dnArray[i]);
-                if (baseDN.getDn().isDescendantOf(dn))
+                if (dn.isDescendantOf(baseDN.getDn()))
                 {
                   found = true;
                   break;
