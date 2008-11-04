@@ -80,26 +80,28 @@ public class NetworkGroup
   // access to all the workflows. The purpose of the default network
   // group is to allow new clients to perform a first operation before
   // they can be attached to a specific network group.
+  private static final String DEFAULT_NETWORK_GROUP_NAME = "default";
+  private final boolean isDefaultNetworkGroup;
   private static NetworkGroup defaultNetworkGroup =
-      new NetworkGroup ("default");
+      new NetworkGroup (DEFAULT_NETWORK_GROUP_NAME);
 
 
   // The admin network group (singleton).
   // The admin network group has no criterion, no policy, and gives
   // access to all the workflows.
   private static final String ADMIN_NETWORK_GROUP_NAME = "admin";
+  private final boolean isAdminNetworkGroup;
   private static NetworkGroup adminNetworkGroup =
       new NetworkGroup (ADMIN_NETWORK_GROUP_NAME);
-  private final boolean isAdminNetworkGroup;
 
   // The internal network group (singleton).
   // The internal network group has no criterion, no policy, and gives
   // access to all the workflows. The purpose of the internal network
   // group is to allow internal connections to perform operations.
   private static final String INTERNAL_NETWORK_GROUP_NAME = "internal";
+  private boolean isInternalNetworkGroup;
   private static NetworkGroup internalNetworkGroup =
       new NetworkGroup(INTERNAL_NETWORK_GROUP_NAME);
-  private boolean isInternalNetworkGroup;
 
 
   // The list of all network groups that are registered with the server.
@@ -142,7 +144,8 @@ public class NetworkGroup
     this.networkGroupID = networkGroupID;
 
     isInternalNetworkGroup = INTERNAL_NETWORK_GROUP_NAME.equals(networkGroupID);
-    isAdminNetworkGroup = ADMIN_NETWORK_GROUP_NAME.equals(networkGroupID);
+    isAdminNetworkGroup    = ADMIN_NETWORK_GROUP_NAME.equals(networkGroupID);
+    isDefaultNetworkGroup  = DEFAULT_NETWORK_GROUP_NAME.equals(networkGroupID);
   }
 
 
@@ -302,6 +305,17 @@ public class NetworkGroup
 
       // Rebuild the list of naming context handled by the network group
       rebuildNamingContextList();
+
+      // Now that the workflow node has been registered with the network
+      // group, update the reference counter of the workflow, unless
+      // the network group is either default, or administration, or internal
+      // network group.
+      if (!isAdminNetworkGroup
+          && !isInternalNetworkGroup
+          && !isDefaultNetworkGroup)
+      {
+        workflow.incrementReferenceCounter();
+      }
     }
   }
 
@@ -354,6 +368,17 @@ public class NetworkGroup
       }
     }
 
+    // Now that the workflow node has been deregistered with the network
+    // group, update the reference counter of the workflow.
+    if ((workflow != null)
+        && !isAdminNetworkGroup
+        && !isInternalNetworkGroup
+        && !isDefaultNetworkGroup)
+    {
+      WorkflowImpl workflowImpl = (WorkflowImpl) workflow;
+      workflowImpl.decrementReferenceCounter();
+    }
+
     return workflow;
   }
 
@@ -363,11 +388,14 @@ public class NetworkGroup
    * deregister is identified by its workflow ID.
    *
    * @param workflowID the workflow identifier of the workflow to deregister
+   * @return the deregistered workflow
    */
-  public void deregisterWorkflow(
+  public Workflow deregisterWorkflow(
       String workflowID
       )
   {
+    Workflow workflow = null;
+
     String rootDSEWorkflowID = null;
     if (rootDSEWorkflowNode != null)
     {
@@ -378,6 +406,7 @@ public class NetworkGroup
     {
       // deregister the rootDSE
       deregisterWorkflow(rootDSEWorkflowNode);
+      workflow = rootDSEWorkflowNode.getWorkflowImpl();
     }
     else
     {
@@ -392,6 +421,7 @@ public class NetworkGroup
             // Call deregisterWorkflow() instead of deregisterWorkflowNode()
             // because we want the naming context list to be updated as well.
             deregisterWorkflow(node);
+            workflow = node.getWorkflowImpl();
 
             // Only one workflow can match the baseDN, so we can break
             // the loop here.
@@ -400,6 +430,19 @@ public class NetworkGroup
         }
       }
     }
+
+    // Now that the workflow node has been deregistered with the network
+    // group, update the reference counter of the workflow.
+    if ((workflow != null)
+        && !isAdminNetworkGroup
+        && !isInternalNetworkGroup
+        && !isDefaultNetworkGroup)
+    {
+      WorkflowImpl workflowImpl = (WorkflowImpl) workflow;
+      workflowImpl.decrementReferenceCounter();
+    }
+
+    return workflow;
   }
 
 
