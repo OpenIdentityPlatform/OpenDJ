@@ -63,6 +63,8 @@ ORIGINAL_JAVA_BIN=${OPENDS_JAVA_BIN}
 # Set environment variables
 SCRIPT_UTIL_CMD=set-full-environment
 export SCRIPT_UTIL_CMD
+NO_CHECK=1
+export NO_CHECK
 .  "${INSTALL_ROOT}/lib/_script-util.sh"
 RETURN_CODE=$?
 if test ${RETURN_CODE} -ne 0
@@ -92,6 +94,8 @@ then
   # Set the environment to use the offline properties
   SCRIPT_NAME=${OLD_SCRIPT_NAME}.offline
   export SCRIPT_NAME
+  NO_CHECK=0
+  export NO_CHECK
   .  "${INSTALL_ROOT}/lib/_script-util.sh"
   RETURN_CODE=$?
   if test ${RETURN_CODE} -ne 0

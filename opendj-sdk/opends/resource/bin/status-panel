@@ -33,5 +33,8 @@ export OPENDS_INVOKE_CLASS
 SCRIPT_NAME="control-panel"
 export SCRIPT_NAME
 
+NO_CHECK=0
+export NO_CHECK
+
 SCRIPT_DIR=`dirname "${0}"`
 "${SCRIPT_DIR}/../lib/_client-script.sh" "${@}"
