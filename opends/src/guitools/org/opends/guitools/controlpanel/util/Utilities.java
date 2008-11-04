@@ -51,8 +51,6 @@ import javax.naming.InvalidNameException;
 import javax.naming.Name;
 import javax.naming.NamingException;
 import javax.naming.directory.SearchControls;
-import javax.naming.ldap.BasicControl;
-import javax.naming.ldap.Control;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 import javax.swing.BorderFactory;
@@ -2065,31 +2063,6 @@ public class Utilities
   public static final String SUBTREE_CTRL_OID =
     (new SubtreeDeleteControl()).getID();
 
-  /**
-   * Deletes a subtree using the provided connection.
-   * @param ctx the connection to be used to delete the subtree.
-   * @param dnToRemove the DN of the subtree to be deleted.
-   * @throws NamingException if an error occurs deleting the subtree.
-   */
-  public static void deleteSubtree(InitialLdapContext ctx, DN dnToRemove)
-  throws NamingException
-  {
-    Control[] oldCtls = null;
-    try
-    {
-      oldCtls = ctx.getRequestControls();
-      Control[] ctls = {new BasicControl(SUBTREE_CTRL_OID)};
-      ctx.setRequestControls(ctls);
-      ctx.destroySubcontext(Utilities.getJNDIName(dnToRemove.toString()));
-    }
-    finally
-    {
-      if (oldCtls != null)
-      {
-        ctx.setRequestControls(oldCtls);
-      }
-    }
-  }
 
   /**
    * Sets the required icon to the provided label.

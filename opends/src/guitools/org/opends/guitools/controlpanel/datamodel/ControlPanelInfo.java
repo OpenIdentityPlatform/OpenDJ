@@ -89,6 +89,8 @@ public class ControlPanelInfo
   private String startTLSURL;
   private String ldapsURL;
   private String adminConnectorURL;
+  private String lastWorkingBindDN;
+  private String lastWorkingBindPwd;
 
   private static boolean mustDeregisterConfig;
 
@@ -288,6 +290,11 @@ public class ControlPanelInfo
   public void setDirContext(InitialLdapContext ctx)
   {
     this.ctx = ctx;
+    if (ctx != null)
+    {
+      lastWorkingBindDN = ConnectionUtils.getBindDN(ctx);
+      lastWorkingBindPwd = ConnectionUtils.getBindPassword(ctx);
+    }
   }
 
   /**
@@ -498,6 +505,29 @@ public class ControlPanelInfo
             desc.getInstallPath().getAbsolutePath())))
     {
       desc.setStatus(ServerDescriptor.ServerStatus.STARTED);
+
+      if ((ctx == null) && (lastWorkingBindDN != null))
+      {
+        // Try with previous credentials.
+        try
+        {
+          ctx = Utilities.getAdminDirContext(this, lastWorkingBindDN,
+              lastWorkingBindPwd);
+        }
+        catch (ConfigReadException cre)
+        {
+//        Ignore: we will ask the user for credentials.
+        }
+        catch (NamingException ne)
+        {
+          // Ignore: we will ask the user for credentials.
+        }
+        if (ctx != null)
+        {
+          this.ctx = ctx;
+        }
+      }
+
       if (ctx == null)
       {
         reader = createNewConfigFromFileReader();
@@ -521,6 +551,13 @@ public class ControlPanelInfo
             }
             catch (NamingException ne)
             {
+              try
+              {
+                Thread.sleep(400);
+              }
+              catch (Throwable t)
+              {
+              }
             }
           }
           if (!connectionWorks)
