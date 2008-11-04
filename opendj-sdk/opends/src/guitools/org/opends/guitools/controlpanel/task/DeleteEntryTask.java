@@ -32,20 +32,28 @@ import static org.opends.messages.AdminToolMessages.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import javax.naming.NameNotFoundException;
+import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
+import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
+import javax.naming.ldap.BasicControl;
+import javax.naming.ldap.Control;
 import javax.naming.ldap.InitialLdapContext;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
+import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
@@ -67,6 +75,9 @@ public class DeleteEntryTask extends Task
   private int nToDelete = -1;
   private BrowserController controller;
   private TreePath[] paths;
+  private long lastProgressTime;
+  private boolean equivalentCommandWithControlPrinted = false;
+  private boolean equivalentCommandWithoutControlPrinted = false;
 
   /**
    * Constructor of the task.
@@ -88,16 +99,6 @@ public class DeleteEntryTask extends Task
     for (TreePath path : paths)
     {
       BasicNode node = (BasicNode)path.getLastPathComponent();
-      /*
-      if (node.getNumSubOrdinates() != -1)
-      {
-        nToDelete += node.getNumSubOrdinates();
-      }
-      else if (node.isLeaf())
-      {
-        canPrecalculateNumberOfEntries = false;
-      }
-      */
       try
       {
         DN dn = DN.decode(node.getDN());
@@ -182,8 +183,7 @@ public class DeleteEntryTask extends Task
       if (state == State.RUNNING)
       {
         // All the operations are incompatible if they apply to this
-        // backend for safety.  This is a short operation so the limitation
-        // has not a lot of impact.
+        // backend for safety.
         Set<String> backends =
           new TreeSet<String>(taskToBeLaunched.getBackends());
         backends.retainAll(getBackends());
@@ -215,9 +215,7 @@ public class DeleteEntryTask extends Task
     lastException = null;
 
     ArrayList<DN> alreadyDeleted = new ArrayList<DN>();
-    final ArrayList<BrowserNodeInfo> toNotify =
-      new ArrayList<BrowserNodeInfo>();
-    int deletedSinceLastNotify = 0;
+    ArrayList<BrowserNodeInfo> toNotify = new ArrayList<BrowserNodeInfo>();
     try
     {
       for (TreePath path : paths)
@@ -239,21 +237,15 @@ public class DeleteEntryTask extends Task
           {
             InitialLdapContext ctx =
               controller.findConnectionForDisplayedEntry(node);
-            deleteSubtree(ctx, dn);
-            alreadyDeleted.add(dn);
-            toNotify.add(controller.getNodeInfoFromPath(path));
-            deletedSinceLastNotify = nDeleted - deletedSinceLastNotify;
-            if (deletedSinceLastNotify >= 10)
+            if (node.getNumSubOrdinates() > 40)
             {
-              SwingUtilities.invokeAndWait(new Runnable()
-              {
-                public void run()
-                {
-                  notifyEntriesDeleted(toNotify);
-                  toNotify.clear();
-                }
-              });
+              deleteSubtreeWithControl(ctx, dn, path, toNotify);
             }
+            else
+            {
+              deleteSubtreeRecursively(ctx, dn, path, toNotify);
+            }
+            alreadyDeleted.add(dn);
           }
         }
         catch (DirectoryException de)
@@ -264,12 +256,14 @@ public class DeleteEntryTask extends Task
       }
       if (toNotify.size() > 0)
       {
+        final List<BrowserNodeInfo> fToNotify =
+          new ArrayList<BrowserNodeInfo>(toNotify);
+        toNotify.clear();
         SwingUtilities.invokeLater(new Runnable()
         {
           public void run()
           {
-            notifyEntriesDeleted(toNotify);
-            toNotify.clear();
+            notifyEntriesDeleted(fToNotify);
           }
         });
       }
@@ -292,12 +286,12 @@ public class DeleteEntryTask extends Task
    * Notifies that some entries have been deleted.  This will basically update
    * the browser controller so that the tree reflects the changes that have
    * been made.
-   * @param deleteNodes the nodes that have been deleted.
+   * @param deletedNodes the nodes that have been deleted.
    */
-  private void notifyEntriesDeleted(Collection<BrowserNodeInfo> deleteNodes)
+  private void notifyEntriesDeleted(Collection<BrowserNodeInfo> deletedNodes)
   {
     TreePath pathToSelect = null;
-    for (BrowserNodeInfo nodeInfo : deleteNodes)
+    for (BrowserNodeInfo nodeInfo : deletedNodes)
     {
       TreePath parentPath = controller.notifyEntryDeleted(nodeInfo);
       if (pathToSelect != null)
@@ -327,64 +321,48 @@ public class DeleteEntryTask extends Task
     }
   }
 
-  /**
-   * Deletes a subtree.
-   * @param ctx the connection to the server.
-   * @param dnToRemove the DN of the subtree to delete.
-   * @throws NamingException if an error occurs deleting the subtree.
-   */
-  private void deleteSubtree(InitialLdapContext ctx, DN dnToRemove)
-  throws NamingException
-  {
-    lastDn = dnToRemove;
-    try
-    {
-      SwingUtilities.invokeLater(new Runnable()
-      {
-        public void run()
-        {
-          printEquivalentCommandToDelete(lastDn);
-          getProgressDialog().setSummary(
-              Message.raw(
-              Utilities.applyFont(
-                  INFO_CTRL_PANEL_DELETING_ENTRY_SUMMARY.get(
-                      lastDn.toString()).toString(),
-                  ColorAndFontConstants.defaultFont)));
-        }
-      });
-      Utilities.deleteSubtree(ctx, dnToRemove);
-      nDeleted ++;
-      if ((nToDelete > 0) && (nToDelete > nDeleted))
-      {
-        SwingUtilities.invokeLater(new Runnable()
-        {
-          public void run()
-          {
-            getProgressDialog().getProgressBar().setIndeterminate(false);
-            getProgressDialog().getProgressBar().setValue(
-                (100 * nDeleted) / nToDelete);
-          }
-        });
-      }
-    } catch (NameNotFoundException nnfe) {
-      // The entry is not there: it has been removed
-    }
-  }
-
-/*
-  private void deleteSubtree(DirContext ctx, DN dnToRemove)
+  private void deleteSubtreeRecursively(InitialLdapContext ctx, DN dnToRemove,
+      TreePath path, ArrayList<BrowserNodeInfo> toNotify)
   throws NamingException, DirectoryException
   {
     lastDn = dnToRemove;
 
-    try {
+    long t = System.currentTimeMillis();
+    boolean displayProgress =
+      (((nDeleted % 20) == 0) || ((t - lastProgressTime) > 5000))  &&
+      (nToDelete > 0) && (nToDelete > nDeleted);
+
+    if (displayProgress)
+    {
+      // Only display the first entry equivalent command-line.
+      SwingUtilities.invokeLater(new Runnable()
+      {
+        public void run()
+        {
+          if (!equivalentCommandWithoutControlPrinted)
+          {
+            printEquivalentCommandToDelete(lastDn, false);
+            equivalentCommandWithoutControlPrinted = true;
+          }
+          getProgressDialog().setSummary(
+              Message.raw(
+                  Utilities.applyFont(
+                      INFO_CTRL_PANEL_DELETING_ENTRY_SUMMARY.get(
+                          lastDn.toString()).toString(),
+                          ColorAndFontConstants.defaultFont)));
+        }
+      });
+    }
+
+    try
+    {
       SearchControls ctls = new SearchControls();
       ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
       String filter =
-      "(|(objectClass=*)(objectclass=ldapsubentry))";
+        "(|(objectClass=*)(objectclass=ldapsubentry))";
       ctls.setReturningAttributes(new String[] {"dn"});
       NamingEnumeration<SearchResult> entryDNs =
-      ctx.search(Utilities.getJNDIName(dnToRemove.toString()), filter, ctls);
+        ctx.search(Utilities.getJNDIName(dnToRemove.toString()), filter, ctls);
 
       DN entryDNFound = dnToRemove;
       while (entryDNs.hasMore())
@@ -393,9 +371,9 @@ public class DeleteEntryTask extends Task
         if (!sr.getName().equals(""))
         {
           CustomSearchResult res =
-           new CustomSearchResult(sr, dnToRemove.toString());
+            new CustomSearchResult(sr, dnToRemove.toString());
           entryDNFound = DN.decode(res.getDN());
-          deleteSubtree(ctx,entryDNFound);
+          deleteSubtreeRecursively(ctx, entryDNFound, null, toNotify);
         }
       }
 
@@ -405,27 +383,25 @@ public class DeleteEntryTask extends Task
 
     try
     {
-      if (((nDeleted % 10) == 0) || (nDeleted == 0))
-      {
-        SwingUtilities.invokeLater(new Runnable()
-        {
-          public void run()
-          {
-            getProgressDialog().setSummary(
-                Utilities.applyFont("Deleting entry '"+lastDn+"'...",
-                    ColorAndFontConstants.defaultFont));
-            if (nDeleted == 0)
-            {
-              // Just give an example
-              printEquivalentCommandToDelete(lastDn);
-            }
-          }
-        });
-      }
       ctx.destroySubcontext(Utilities.getJNDIName(dnToRemove.toString()));
-      nDeleted ++;
-      if (((nDeleted % 10) == 0) && (nToDelete > 0) && (nToDelete > nDeleted))
+      if (path != null)
       {
+        toNotify.add(controller.getNodeInfoFromPath(path));
+      }
+      nDeleted ++;
+      if (displayProgress)
+      {
+        lastProgressTime = t;
+        final Collection<BrowserNodeInfo> fToNotify;
+        if (toNotify.size() > 0)
+        {
+          fToNotify = new ArrayList<BrowserNodeInfo>(toNotify);
+          toNotify.clear();
+        }
+        else
+        {
+          fToNotify = null;
+        }
         SwingUtilities.invokeLater(new Runnable()
         {
           public void run()
@@ -433,46 +409,114 @@ public class DeleteEntryTask extends Task
             getProgressDialog().getProgressBar().setIndeterminate(false);
             getProgressDialog().getProgressBar().setValue(
                 (100 * nDeleted) / nToDelete);
+            if (fToNotify != null)
+            {
+              notifyEntriesDeleted(fToNotify);
+            }
           }
         });
       }
-    } catch (NameNotFoundException nnfe) {
+    } catch (NameNotFoundException nnfe)
+    {
       // The entry is not there: it has been removed
     }
   }
 
-  private void printEquivalentCommandToDelete(DN dn)
+  private void deleteSubtreeWithControl(InitialLdapContext ctx, DN dn,
+      TreePath path, ArrayList<BrowserNodeInfo> toNotify)
+  throws NamingException
   {
-    ArrayList<String> args = new ArrayList<String>();
-    args.add(getCommandLineName("ldapdelete"));
-    args.addAll(getObfuscatedCommandLineArguments(
-        getConnectionCommandLineArguments()));
-    args.add(dn.toString());
-    StringBuilder sb = new StringBuilder();
-    for (String arg : args)
+    lastDn = dn;
+    long t = System.currentTimeMillis();
+    //  Only display the first entry equivalent command-line.
+    SwingUtilities.invokeLater(new Runnable()
     {
-      sb.append(" "+CommandBuilder.escapeValue(arg));
+      public void run()
+      {
+        if (!equivalentCommandWithControlPrinted)
+        {
+          printEquivalentCommandToDelete(lastDn, true);
+          equivalentCommandWithControlPrinted = true;
+        }
+        getProgressDialog().setSummary(
+            Message.raw(
+                Utilities.applyFont(
+                    INFO_CTRL_PANEL_DELETING_ENTRY_SUMMARY.get(
+                        lastDn.toString()).toString(),
+                        ColorAndFontConstants.defaultFont)));
+      }
+    });
+    //  Use a copy of the dir context since we are using an specific
+    // control to delete the subtree and this can cause
+    // synchronization problems when the tree is refreshed.
+    InitialLdapContext ctx1 = null;
+    try
+    {
+      ctx1 = ConnectionUtils.cloneInitialLdapContext(ctx,
+          ConnectionUtils.getDefaultLDAPTimeout(),
+          getInfo().getTrustManager(), null);
+      Control[] ctls = {new BasicControl(Utilities.SUBTREE_CTRL_OID)};
+      ctx1.setRequestControls(ctls);
+      ctx1.destroySubcontext(Utilities.getJNDIName(dn.toString()));
     }
-
-    getProgressDialog().appendProgressHtml(Utilities.applyFont(
-        "Equivalent command line to delete entry '"+dn+"':<br><b>"+
-        sb.toString()+"</b><br><br>",
-        ColorAndFontConstants.progressFont));
+    finally
+    {
+      try
+      {
+        ctx1.close();
+      }
+      catch (Throwable th)
+      {
+      }
+    }
+    nDeleted ++;
+    lastProgressTime = t;
+    if (path != null)
+    {
+      toNotify.add(controller.getNodeInfoFromPath(path));
+    }
+    final Collection<BrowserNodeInfo> fToNotify;
+    if (toNotify.size() > 0)
+    {
+      fToNotify = new ArrayList<BrowserNodeInfo>(toNotify);
+      toNotify.clear();
+    }
+    else
+    {
+      fToNotify = null;
+    }
+    SwingUtilities.invokeLater(new Runnable()
+    {
+      public void run()
+      {
+        getProgressDialog().getProgressBar().setIndeterminate(false);
+        getProgressDialog().getProgressBar().setValue(
+            (100 * nDeleted) / nToDelete);
+        if (fToNotify != null)
+        {
+          notifyEntriesDeleted(fToNotify);
+        }
+      }
+    });
   }
-*/
+
   /**
    * Prints in the progress dialog the equivalent command-line to delete a
    * subtree.
    * @param dn the DN of the subtree to be deleted.
+   * @param usingControl whether we must include the control or not.
    */
-  private void printEquivalentCommandToDelete(DN dn)
+  private void printEquivalentCommandToDelete(DN dn, boolean usingControl)
   {
     ArrayList<String> args = new ArrayList<String>();
     args.add(getCommandLinePath("ldapdelete"));
     args.addAll(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments()));
-    args.add("-J");
-    args.add(Utilities.SUBTREE_CTRL_OID);
+    if (usingControl)
+    {
+      args.add("-J");
+      args.add(Utilities.SUBTREE_CTRL_OID);
+    }
     args.add(dn.toString());
     StringBuilder sb = new StringBuilder();
     for (String arg : args)

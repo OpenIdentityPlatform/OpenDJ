@@ -100,7 +100,7 @@ public class ControlCenterMainPane extends JSplitPane
         {
           lastStatusStopped = true;
         }
-        else if (lastStatusStopped)
+        else if (lastStatusStopped && !ev.getNewDescriptor().isAuthenticated())
         {
           lastStatusStopped = false;
           SwingUtilities.invokeLater(new Runnable()
