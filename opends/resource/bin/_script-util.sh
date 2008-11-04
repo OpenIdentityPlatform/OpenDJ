@@ -160,6 +160,19 @@ set_classpath() {
   export CLASSPATH
 }
 
+isVersionOrHelp() {
+  for opt in `echo $*`
+  do
+	if [ $opt = "-V" ] || [ $opt = "--version" ] || 
+		[ $opt = "-H" ] || [ $opt = "--help" ] ||
+                [ $opt = "-F" ] || [ $opt = "--fullversion" ]
+	then
+		return 0
+	fi
+  done
+  return 1 
+}
+
 if test "${INSTALL_ROOT}" = ""
 then
   # Capture the current working directory so that we can change to it later.
@@ -171,18 +184,6 @@ then
   cd ..
   INSTALL_ROOT=`pwd`
   cd "${WORKING_DIR}"
-fi
-
-if test "${INSTANCE_ROOT}" = ""
-then
-  for opt in `echo $*`
-  do
-	if [ $opt = "-V" ] || [ $opt = "--version" ] || 
-		[ $opt = "-H" ] || [ $opt = "--help" ] 
-	then
-		INSTANCE_ROOT="not_needed"
-	fi
-  done
 fi
 
 if test "${INSTANCE_ROOT}" = ""
@@ -200,8 +201,12 @@ then
     else
       if [ "${SCRIPT_NAME}" != "configure" ]
       then
-        echo "No instance found. Run ${INSTALL_ROOT}/configure to create it."
-        exit 1
+        isVersionOrHelp $*
+        if [ $? -eq 1 ]
+        then
+          echo "No instance found. Run ${INSTALL_ROOT}/configure to create it."
+          exit 1
+        fi
       fi
     fi
   else
@@ -262,17 +267,20 @@ IFS=${CURRENT_IFS}
 
 if [ "${SCRIPT_NAME}" != "configure" ]
 then 
-  NO_CHECK=0
-  for opt in `echo $*`
-  do
-    # No check for --version or --help option
-	if [ $opt = "-V" ] || [ $opt = "--version" ] || 
-		[ $opt = "-H" ] || [ $opt = "--help" ]  ||
-		[ $opt = "-F" ] || [ $opt = "--fullversion" ] 
-	then
-		NO_CHECK=1
-	fi
-  done
+  # Perform check unless it is specified not to do it
+  if [ -z "$NO_CHECK" ]
+  then
+     NO_CHECK=0
+  fi
+  if [ ${NO_CHECK} -eq 0 ]
+  then
+      # No check for --version or --help option
+      isVersionOrHelp $*
+      if [ $? -eq 0 ]
+      then
+        NO_CHECK=1
+      fi
+  fi
   if [ ${NO_CHECK} -eq 0 ]
   then
     set_classpath

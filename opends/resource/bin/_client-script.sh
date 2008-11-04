@@ -53,6 +53,11 @@ cd "${WORKING_DIR}"
 # Set environment variables
 SCRIPT_UTIL_CMD=set-full-environment
 export SCRIPT_UTIL_CMD
+if [ -z "$NO_CHECK" ]
+then
+  NO_CHECK=1
+  export NO_CHECK
+fi
 .  "${INSTALL_ROOT}/lib/_script-util.sh"
 RETURN_CODE=$?
 if test ${RETURN_CODE} -ne 0
