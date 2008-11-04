@@ -96,6 +96,8 @@ public class BackupPanel extends BackupListPanel
 
   private ChangeListener changeListener;
 
+  private boolean backupIDInitialized = false;
+
   private static final Logger LOG =
     Logger.getLogger(BackupPanel.class.getName());
 
@@ -297,13 +299,6 @@ public class BackupPanel extends BackupListPanel
        */
       public void run()
       {
-        if (!backupDirectoryInitialized)
-        {
-          SimpleDateFormat dateFormat = new SimpleDateFormat(
-              ServerConstants.DATE_FORMAT_COMPACT_LOCAL_TIME);
-          final String id = dateFormat.format(new Date());
-          backupID.setText(id);
-        }
         allBackends.setVisible(backends.getModel().getSize() > 0);
       }
     });
@@ -320,6 +315,7 @@ public class BackupPanel extends BackupListPanel
     setPrimaryValid(lBackend);
     setPrimaryValid(lPath);
     setPrimaryValid(lAvailableBackups);
+    backupIDInitialized = false;
 
     final LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
 
@@ -544,6 +540,34 @@ public class BackupPanel extends BackupListPanel
     setPrimaryValid(lAvailableBackups);
 
     super.cancelClicked();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void toBeDisplayed(boolean visible)
+  {
+    super.toBeDisplayed(visible);
+    if (visible && !backupIDInitialized)
+    {
+      initializeBackupID();
+    }
+    if (!visible)
+    {
+      backupIDInitialized = false;
+    }
+  }
+
+  /**
+   * Initialize the backup ID field with a value.
+   *
+   */
+  private void initializeBackupID()
+  {
+    SimpleDateFormat dateFormat = new SimpleDateFormat(
+        ServerConstants.DATE_FORMAT_COMPACT_LOCAL_TIME);
+    final String id = dateFormat.format(new Date());
+    backupID.setText(id);
   }
 
   /**

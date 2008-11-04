@@ -137,7 +137,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
    * Whether the backup parent directory has been initialized with a value or
    * not.
    */
-  protected boolean backupDirectoryInitialized;
+  private boolean backupDirectoryInitialized;
 
   private static final Logger LOG =
     Logger.getLogger(RestorePanel.class.getName());
