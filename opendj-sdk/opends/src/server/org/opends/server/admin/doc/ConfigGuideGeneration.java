@@ -343,7 +343,10 @@ public class ConfigGuideGeneration {
     for (RelationDefinition rel : list.values()) {
       AbstractManagedObjectDefinition childMo = rel.getChildDefinition();
       AbstractManagedObjectDefinition parentMo = rel.getParentDefinition();
-      relList.put(childMo.getName(), rel);
+      // Does not generate several entry for the same relation
+      if (relList.put(childMo.getName(), rel) != null) {
+       continue; 
+      }
       if (rel.hasOption(RelationOption.HIDDEN)) {
         continue;
       }
