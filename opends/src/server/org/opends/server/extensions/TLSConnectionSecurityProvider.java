@@ -339,6 +339,15 @@ public class TLSConnectionSecurityProvider
   /**
    * {@inheritDoc}
    */
+  @Override
+  public boolean isActive() {
+      //This provider is always active.
+      return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override()
   public ConnectionSecurityProvider newInstance(ClientConnection
                                                       clientConnection,

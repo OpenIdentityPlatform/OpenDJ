@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
 
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -74,7 +75,12 @@ public class LDAPSearchTestCase
          throws Exception
   {
     TestCaseUtils.startServer();
-
+    
+    TestCaseUtils.dsconfig(
+            "set-sasl-mechanism-handler-prop",
+            "--handler-name", "DIGEST-MD5",
+            "--set", "server-fqdn:" + "127.0.0.1");
+    
     File pwFile = File.createTempFile("valid-bind-password-", ".txt");
     pwFile.deleteOnExit();
     FileWriter fileWriter = new FileWriter(pwFile);
@@ -91,6 +97,14 @@ public class LDAPSearchTestCase
   }
 
 
+  @AfterClass
+  public void tearDown() throws Exception {
+   
+    TestCaseUtils.dsconfig(
+            "set-sasl-mechanism-handler-prop",
+            "--handler-name", "DIGEST-MD5",
+            "--remove", "server-fqdn:" + "127.0.0.1");
+  }
 
   /**
    * Retrieves sets of invalid arguments that may not be used to initialize
@@ -1054,7 +1068,6 @@ public class LDAPSearchTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=u:test.user",
       "-o", "authzid=u:test.user",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "",
       "-s", "base",

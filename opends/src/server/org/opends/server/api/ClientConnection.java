@@ -306,7 +306,7 @@ public abstract class ClientConnection
    * @return  The connection handler that accepted this client
    *          connection.
    */
-  public abstract ConnectionHandler getConnectionHandler();
+  public abstract ConnectionHandler<?> getConnectionHandler();
 
 
 
@@ -1113,6 +1113,26 @@ public abstract class ClientConnection
   }
 
 
+  /**
+   * Indicate whether the specified authorization entry parameter
+   * has the specified privilege. The method can be used to perform
+   * a "what-if" scenario.
+   *
+ * @param authorizationEntry The authentication entry to use.
+ * @param privilege The privilege to check for.
+   *
+   * @return  {@code true} if the authentication entry has the
+   *          specified privilege, or {@code false} if not.
+   */
+  public static boolean hasPrivilege(Entry authorizationEntry,
+                                   Privilege privilege) {
+      boolean isRoot =
+          DirectoryServer.isRootDN(authorizationEntry.getDN());
+      return getPrivileges(authorizationEntry,
+              isRoot).contains(privilege) ||
+              DirectoryServer.isDisabled(privilege);
+  }
+
 
   /**
    * Indicates whether the authenticated client has the specified
@@ -1298,7 +1318,7 @@ public abstract class ClientConnection
    *
    * @return  A set of the privileges that should be assigned.
    */
-  private HashSet<Privilege> getPrivileges(Entry entry,
+  private static HashSet<Privilege> getPrivileges(Entry entry,
                                            boolean isRoot)
   {
     if (entry == null)
@@ -1579,7 +1599,7 @@ public abstract class ClientConnection
    * @throws  DirectoryException  If a problem occurs while attempting
    *                             to make the determination.
    */
-  public boolean isMemberOf(Group group, Operation operation)
+  public boolean isMemberOf(Group<?> group, Operation operation)
          throws DirectoryException
   {
     if (operation == null)
@@ -1668,7 +1688,7 @@ public abstract class ClientConnection
    * Retrieves the DN of the key manager provider that should be used
    * for operations requiring access to a key manager.  The default
    * implementation returns {@code null} to indicate that no key
-   * manager provider is avaialble, but subclasses should override
+   * manager provider is available, but subclasses should override
    * this method to return a valid DN if they perform operations which
    * may need access to a key manager.
    *

@@ -143,7 +143,7 @@ public final class AccessControlConfigManager
    *
    * @return   The active access control handler (never {@code null}).
    */
-  public AccessControlHandler getAccessControlHandler()
+  public AccessControlHandler<?> getAccessControlHandler()
   {
     return accessControlHandler.get();
   }

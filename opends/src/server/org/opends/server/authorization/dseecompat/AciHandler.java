@@ -28,8 +28,6 @@
 package org.opends.server.authorization.dseecompat;
 import org.opends.messages.Message;
 
-
-
 import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.config.ConfigConstants.ATTR_AUTHZ_GLOBAL_ACI;
 import static org.opends.server.loggers.ErrorLogger.logError;
@@ -39,12 +37,11 @@ import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_DN_OID;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
-
 import java.util.*;
 import java.util.concurrent.locks.Lock;
-
 import org.opends.server.admin.std.server.DseeCompatAccessControlHandlerCfg;
 import org.opends.server.api.AccessControlHandler;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -532,6 +529,17 @@ public class AciHandler
     private boolean skipAccessCheck(Operation operation) {
         return operation.getClientConnection().
                 hasPrivilege(Privilege.BYPASS_ACL, operation);
+    }
+
+    /**
+     * Check to see if the specified entry has the specified privilege.
+     *
+     * @param e The entry to check privileges on.
+     * @return  {@code true} if the entry has the
+     *          specified privilege, or {@code false} if not.
+     */
+    private boolean skipAccessCheck(Entry e) {
+        return ClientConnection.hasPrivilege(e, Privilege.BYPASS_ACL);
     }
 
     /**
@@ -1235,6 +1243,26 @@ public class AciHandler
       ret=accessAllowed(operationContainer);
     }
     return ret;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean
+  mayProxy(Entry proxyUser, Entry proxiedUser, Operation op) {
+      boolean ret;
+      if(!(ret=skipAccessCheck(proxyUser))) {
+          AuthenticationInfo authInfo =
+              new AuthenticationInfo(proxyUser,
+                     DirectoryServer.isRootDN(proxyUser.getDN()));
+          AciLDAPOperationContainer operationContainer =
+              new AciLDAPOperationContainer(op, proxiedUser,
+                                            authInfo, ACI_PROXY);
+          ret=accessAllowedEntry(operationContainer);
+      }
+      return ret;
   }
 
 

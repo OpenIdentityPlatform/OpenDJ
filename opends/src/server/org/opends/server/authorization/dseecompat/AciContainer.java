@@ -93,9 +93,9 @@ implements AciTargetMatchContext, AciEvalContext {
     private boolean isAddOp=false;
 
     /*
-     * The rights to use in the evaluation of the LDAP operation.
+     * The right mask to use in the evaluation of the LDAP operation.
      */
-    private int rights;
+    private int rightsMask;
 
     /*
      * The entry being evaluated (resource entry).
@@ -246,8 +246,15 @@ implements AciTargetMatchContext, AciEvalContext {
     */
     private String extOpOID;
 
+    /*
+     * AuthenticationInfo class to use.
+     */
+    private AuthenticationInfo authInfo;
+
   /**
-     * This constructor is used by all currently supported LDAP operations.
+     * This constructor is used by all currently supported LDAP operations
+     * except the generic access control check that can be used by
+     * plugins.
      *
      * @param operation The Operation object being evaluated and target
      * matching.
@@ -262,6 +269,7 @@ implements AciTargetMatchContext, AciEvalContext {
       this.clientConnection=operation.getClientConnection();
       if(operation instanceof AddOperationBasis)
           this.isAddOp=true;
+      this.authInfo = clientConnection.getAuthenticationInfo();
 
       //If the proxied authorization control was processed, then the operation
       //will contain an attachment containing the original authorization entry.
@@ -313,9 +321,29 @@ implements AciTargetMatchContext, AciEvalContext {
       //if an access proxy check was performed.
       this.saveAuthorizationEntry=this.authorizationEntry;
       this.saveResourceEntry=this.resourceEntry;
-      this.rights = rights;
+      this.rightsMask = rights;
     }
 
+    /**
+     * This constructor is used by the generic access control check.
+     *
+     * @param operation The operation to use in the access evaluation.
+     * @param e The entry to check access for.
+     * @param authInfo The authentication information to use in the evaluation.
+     * @param rights The rights to check access of.
+     */
+    protected AciContainer(Operation operation, Entry e,
+                            AuthenticationInfo authInfo,
+                            int rights) {
+        this.resourceEntry=e;
+        this.operation=operation;
+        this.clientConnection=operation.getClientConnection();
+        this.authInfo = authInfo;
+        this.authorizationEntry = authInfo.getAuthorizationEntry();
+        this.saveAuthorizationEntry=this.authorizationEntry;
+        this.saveResourceEntry=this.resourceEntry;
+        this.rightsMask = rights;
+    }
   /**
    * Returns true if an entry has already been processed by an access proxy
    * check.
@@ -655,7 +683,7 @@ implements AciTargetMatchContext, AciEvalContext {
     * {@inheritDoc}
     */
     public boolean isAnonymousUser() {
-        return !clientConnection.getAuthenticationInfo().isAuthenticated();
+        return !authInfo.isAuthenticated();
     }
 
    /**
@@ -689,21 +717,21 @@ implements AciTargetMatchContext, AciEvalContext {
     * {@inheritDoc}
     */
     public boolean hasRights(int rights) {
-       return (this.rights & rights) != 0;
+       return (this.rightsMask & rights) != 0;
     }
 
    /**
     * {@inheritDoc}
     */
     public int getRights() {
-        return this.rights;
+        return this.rightsMask;
     }
 
    /**
     * {@inheritDoc}
     */
     public void setRights(int rights) {
-         this.rights=rights;
+         this.rightsMask=rights;
     }
 
    /**
@@ -791,7 +819,6 @@ implements AciTargetMatchContext, AciEvalContext {
         /*
          * Some kind of authentication is required.
          */
-        AuthenticationInfo authInfo=clientConnection.getAuthenticationInfo();
         if(authInfo.isAuthenticated()) {
           if(authMethod==EnumAuthMethod.AUTHMETHOD_SIMPLE) {
             if(authInfo.hasAuthenticationType(AuthenticationType.SIMPLE)) {
@@ -833,7 +860,7 @@ implements AciTargetMatchContext, AciEvalContext {
     /**
      * {@inheritDoc}
      */
-    public boolean isMemberOf(Group group) {
+    public boolean isMemberOf(Group<?> group) {
         boolean ret;
         try {
             if(useAuthzid) {
@@ -884,7 +911,7 @@ implements AciTargetMatchContext, AciEvalContext {
    * {@inheritDoc}
    */
   public  void setEvalUserAttributes(int v) {
-    if(operation instanceof SearchOperation && (rights == ACI_READ)) {
+    if(operation instanceof SearchOperation && (rightsMask == ACI_READ)) {
       if(v == ACI_FOUND_USER_ATTR_RULE) {
         evalAllAttributes |= ACI_FOUND_USER_ATTR_RULE;
         evalAllAttributes &= ~ACI_USER_ATTR_STAR_MATCHED;
@@ -897,7 +924,7 @@ implements AciTargetMatchContext, AciEvalContext {
    * {@inheritDoc}
    */
   public  void setEvalOpAttributes(int v) {
-    if(operation instanceof SearchOperation && (rights == ACI_READ)) {
+    if(operation instanceof SearchOperation && (rightsMask == ACI_READ)) {
       if(v == ACI_FOUND_OP_ATTR_RULE) {
         evalAllAttributes |= ACI_FOUND_OP_ATTR_RULE;
         evalAllAttributes &= ~ACI_OP_ATTR_PLUS_MATCHED;

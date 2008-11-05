@@ -28,7 +28,6 @@
 package org.opends.server.authorization.dseecompat;
 
 import java.util.List;
-
 import org.opends.server.core.*;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.*;
@@ -61,6 +60,23 @@ public class AciLDAPOperationContainer extends AciContainer  {
     {
         super(operation, rights, operation.getEntryToCompare());
     }
+
+
+    /**
+     * Constructor interface for evaluation general purpose Operation, entry and
+     * rights..
+     *
+     * @param operation The operation to use in the evaluation.
+     * @param e The entry for evaluation.
+     * @param authInfo The authentication information to use in the evaluation.
+     * @param rights The rights of the operation.
+     */
+    public AciLDAPOperationContainer(Operation operation, Entry e,
+                                     AuthenticationInfo authInfo,
+                                     int rights) {
+      super(operation, e, authInfo, rights);
+    }
+
 
     /**
      * Constructor interface for evaluation of a control.
@@ -126,7 +142,7 @@ public class AciLDAPOperationContainer extends AciContainer  {
      * Constructor interface for the modify DN operation.
      * @param operation  The modify DN operation.
      * @param rights  The rights of the modify DN operation.
-     * @param entry  The entry to evalauted for this modify DN.
+     * @param entry  The entry to evaluated for this modify DN.
      */
     public AciLDAPOperationContainer(LocalBackendModifyDNOperation operation,
                                      int rights,

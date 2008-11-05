@@ -32,11 +32,21 @@ import org.opends.messages.Message;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
+import javax.security.auth.callback.Callback;
+import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.callback.UnsupportedCallbackException;
+import javax.security.auth.login.LoginContext;
+import javax.security.auth.login.LoginException;
+import javax.security.sasl.Sasl;
+import javax.security.sasl.SaslException;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.meta.GSSAPISASLMechanismHandlerCfgDefn.*;
 import org.opends.server.admin.std.server.GSSAPISASLMechanismHandlerCfg;
 import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
 import org.opends.server.api.ClientConnection;
@@ -45,19 +55,17 @@ import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
-
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.ExtensionMessages.*;
-
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -69,28 +77,30 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class GSSAPISASLMechanismHandler
        extends SASLMechanismHandler<GSSAPISASLMechanismHandlerCfg>
-       implements ConfigurationChangeListener<
-                       GSSAPISASLMechanismHandlerCfg>
-{
-  /**
-   * The tracer object for the debug logger.
-   */
+       implements ConfigurationChangeListener< GSSAPISASLMechanismHandlerCfg>,
+       CallbackHandler {
+
+  //The tracer object for the debug logger.
   private static final DebugTracer TRACER = getTracer();
 
   // The DN of the configuration entry for this SASL mechanism handler.
   private DN configEntryDN;
 
   // The current configuration for this SASL mechanism handler.
-  private GSSAPISASLMechanismHandlerCfg currentConfig;
+  private GSSAPISASLMechanismHandlerCfg configuration;
 
-  // The identity mapper that will be used to map the Kerberos principal to a
-  // directory user.
+  // The identity mapper that will be used to map identities.
   private IdentityMapper<?> identityMapper;
 
-  // The fully-qualified domain name for the server system.
+  //The properties to use when creating a SASL server to process the GSSAPI
+  //authentication.
+  private HashMap<String,String> saslProps;
+
+  //The fully qualified domain name used when creating the SASL server.
   private String serverFQDN;
 
-
+  //The login context used to perform server-side authentication.
+  private LoginContext loginContext;
 
   /**
    * Creates a new instance of this SASL mechanism handler.  No initialization
@@ -103,219 +113,235 @@ public class GSSAPISASLMechanismHandler
   }
 
 
-
   /**
    * {@inheritDoc}
    */
   @Override()
-  public void initializeSASLMechanismHandler(
-                   GSSAPISASLMechanismHandlerCfg configuration)
-         throws ConfigException, InitializationException
-  {
-    configuration.addGSSAPIChangeListener(this);
-
-    currentConfig = configuration;
-    configEntryDN = configuration.dn();
-
-
-    // Get the identity mapper that should be used to find users.
-    DN identityMapperDN = configuration.getIdentityMapperDN();
-    identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
-
-
-    // Determine the fully-qualified hostname for this system.  It may be
-    // provided, but if not, then try to determine it programmatically.
-    serverFQDN = configuration.getServerFqdn();
-    if (serverFQDN == null)
-    {
-      try
-      {
-        serverFQDN = InetAddress.getLocalHost().getCanonicalHostName();
+  public void
+  initializeSASLMechanismHandler(GSSAPISASLMechanismHandlerCfg configuration)
+  throws ConfigException, InitializationException {
+      configuration.addGSSAPIChangeListener(this);
+      this.configuration = configuration;
+      configEntryDN = configuration.dn();
+      try {
+          DN identityMapperDN = configuration.getIdentityMapperDN();
+          identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
+          serverFQDN = getFQDN(configuration);
+          Message msg= INFO_GSSAPI_SERVER_FQDN.get(serverFQDN);
+          logError(msg);
+          saslProps = new HashMap<String,String>();
+          saslProps.put(Sasl.QOP, getQOP(configuration));
+          saslProps.put(Sasl.REUSE, "false");
+          String configFileName=configureLoginConfFile(configuration);
+          System.setProperty(JAAS_PROPERTY_CONFIG_FILE, configFileName);
+          System.setProperty(JAAS_PROPERTY_SUBJECT_CREDS_ONLY, "false");
+          getKdcRealm(configuration);
+          DirectoryServer.registerSASLMechanismHandler(SASL_MECHANISM_GSSAPI,
+                  this);
+          login();
+      } catch (UnknownHostException unhe) {
+          if (debugEnabled()) {
+            TRACER.debugCaught(DebugLogLevel.ERROR, unhe);
+          }
+          Message message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(
+                  String.valueOf(configEntryDN), getExceptionMessage(unhe));
+          throw new InitializationException(message, unhe);
+      } catch(IOException ioe) {
+          if (debugEnabled()) {
+              TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
+            }
+          Message message = ERR_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG.get(
+                                                     getExceptionMessage(ioe));
+          throw new InitializationException(message, ioe);
+      } catch (LoginException le) {
+          if (debugEnabled()) {
+              TRACER.debugCaught(DebugLogLevel.ERROR, le);
+           }
+          Message message = ERR_SASLGSSAPI_CANNOT_CREATE_LOGIN_CONTEXT.get(
+                  getExceptionMessage(le));
+          throw new InitializationException(message, le);
       }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+  }
 
-        Message message = ERR_SASLGSSAPI_CANNOT_GET_SERVER_FQDN.get(
-            String.valueOf(configEntryDN), getExceptionMessage(e));
-        throw new InitializationException(message, e);
+
+  /**
+   * Checks to make sure that the ds-cfg-kdc-address and dc-cfg-realm are
+   * both defined in the configuration. If only one is set, then that is an
+   * error. If both are defined, or, both are null that is fine.
+   *
+   * @param configuration The configuration to use.
+   * @throws InitializationException If the properties violate the requirements.
+   */
+  private void getKdcRealm(GSSAPISASLMechanismHandlerCfg configuration)
+  throws InitializationException {
+      String kdcAddress = configuration.getKdcAddress();
+      String realm = configuration.getRealm();
+      if((kdcAddress != null && realm == null) ||
+         (kdcAddress == null && realm != null)) {
+          Message message = ERR_SASLGSSAPI_KDC_REALM_NOT_DEFINED.get();
+          throw new InitializationException(message);
+      } else if(kdcAddress != null && realm != null) {
+          System.setProperty(KRBV_PROPERTY_KDC, kdcAddress);
+          System.setProperty(KRBV_PROPERTY_REALM, realm);
+
       }
-    }
+  }
 
 
-    // Since we're going to be using JAAS behind the scenes, we need to have a
-    // JAAS configuration.  Rather than always requiring the user to provide it,
-    // we'll write one to a temporary file that will be deleted when the JVM
-    // exits.
-    String configFileName;
-    try
-    {
+  /**
+   * During login, callbacks are usually used to prompt for passwords. All of
+   * the GSSAPI login information is provided in the properties and login.conf
+   * file, so callbacks are ignored.
+   *
+   * @param callbacks An array of callbacks to process.
+   * @throws UnsupportedCallbackException if an error occurs.
+   */
+  public void handle(Callback[] callbacks)
+  throws UnsupportedCallbackException {
+  }
+
+
+  /**
+   * Returns the fully qualified name either defined in the configuration, or,
+   * determined by examining the system configuration.
+   *
+   * @param configuration The configuration to check.
+   * @return The fully qualified hostname of the server.
+   *
+   * @throws UnknownHostException If the name cannot be determined from the
+   *                              system configuration.
+   */
+  private String getFQDN(GSSAPISASLMechanismHandlerCfg configuration)
+  throws UnknownHostException {
+      String serverName = configuration.getServerFqdn();
+      if (serverName == null) {
+              serverName = InetAddress.getLocalHost().getCanonicalHostName();
+      }
+      return serverName;
+  }
+
+
+  /**
+   * Create a login context or login using the principal and keytab information
+   * specified in the configuration.
+   *
+   * @throws LoginException If a login context cannot be created.
+   */
+  private void login() throws LoginException {
+      loginContext =
+          new LoginContext(GSSAPISASLMechanismHandler.class.getName(), this);
+      loginContext.login();
+  }
+
+
+  /**
+   * Logout of the current login context.
+   *
+   */
+  private void logout() {
+      try {
+          loginContext.logout();
+      } catch (LoginException e) {
+          if (debugEnabled()) {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+      }
+  }
+
+
+  /**
+   * Creates an login.conf file from information in the specified configuration.
+   * This file is used during the login phase.
+   *
+   * @param configuration The new configuration to use.
+   * @return The filename of the new configuration file.
+   *
+   * @throws IOException If the configuration file cannot be created.
+   */
+  private String
+  configureLoginConfFile(GSSAPISASLMechanismHandlerCfg configuration)
+  throws IOException {
+      String configFileName;
       File tempFile = File.createTempFile("login", "conf");
       configFileName = tempFile.getAbsolutePath();
       tempFile.deleteOnExit();
       BufferedWriter w = new BufferedWriter(new FileWriter(tempFile, false));
-
       w.write(getClass().getName() + " {");
       w.newLine();
-
       w.write("  com.sun.security.auth.module.Krb5LoginModule required " +
-              "storeKey=true useKeyTab=true ");
-
+      "storeKey=true useKeyTab=true ");
       String keyTabFile = configuration.getKeytab();
-      if (keyTabFile != null)
-      {
-        w.write("keyTab=\"" + keyTabFile + "\" ");
+      if (keyTabFile != null) {
+          w.write("keyTab=\"" + keyTabFile + "\" ");
       }
-
-      // FIXME -- Should we add the ability to include "debug=true"?
-
-      // FIXME -- Can we get away from hard-coding a protocol here?
-      w.write("principal=\"ldap/" + serverFQDN);
-
+      StringBuilder principal= new StringBuilder();
+      String principalName = configuration.getPrincipalName();
       String realm = configuration.getRealm();
-      if (realm != null)
-      {
-        w.write("@" + realm);
+      if(principalName != null) {
+          principal.append("principal=\"" + principalName);
+      } else {
+          principal.append("principal=\"ldap/" + serverFQDN);
       }
+      if (realm != null) {
+          principal.append("@" + realm);
+      }
+      w.write(principal.toString());
+      Message msg =  INFO_GSSAPI_PRINCIPAL_NAME.get(principal.toString());
+      logError(msg);
       w.write("\";");
-
       w.newLine();
-
       w.write("};");
       w.newLine();
-
       w.flush();
       w.close();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG.get(getExceptionMessage(e));
-      throw new InitializationException(message, e);
-    }
-
-    System.setProperty(JAAS_PROPERTY_CONFIG_FILE, configFileName);
-    System.setProperty(JAAS_PROPERTY_SUBJECT_CREDS_ONLY, "false");
-
-
-    DirectoryServer.registerSASLMechanismHandler(SASL_MECHANISM_GSSAPI, this);
+      return configFileName;
   }
-
 
 
   /**
    * {@inheritDoc}
    */
   @Override()
-  public void finalizeSASLMechanismHandler()
-  {
-    currentConfig.removeGSSAPIChangeListener(this);
-    DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_GSSAPI);
+  public void finalizeSASLMechanismHandler() {
+      logout();
+      configuration.removeGSSAPIChangeListener(this);
+      DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_GSSAPI);
   }
-
-
 
 
   /**
    * {@inheritDoc}
    */
   @Override()
-  public void processSASLBind(BindOperation bindOperation)
-  {
-    // GSSAPI binds use multiple stages, so we need to determine whether this is
-    // the first stage or a subsequent one.  To do that, see if we have SASL
-    // state information in the client connection.
-    ClientConnection clientConnection = bindOperation.getClientConnection();
-    if (clientConnection == null)
-    {
-      Message message = ERR_SASLGSSAPI_NO_CLIENT_CONNECTION.get();
-
-      bindOperation.setAuthFailureReason(message);
-      bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-      return;
-    }
-
-    GSSAPIStateInfo stateInfo = null;
-    Object saslBindState = clientConnection.getSASLAuthStateInfo();
-    if ((saslBindState != null) && (saslBindState instanceof GSSAPIStateInfo))
-    {
-      stateInfo = (GSSAPIStateInfo) saslBindState;
-    }
-    else
-    {
-      try
-      {
-        stateInfo = new GSSAPIStateInfo(this, bindOperation, serverFQDN);
+  public void processSASLBind(BindOperation bindOp) {
+      ClientConnection clientConnection = bindOp.getClientConnection();
+      if (clientConnection == null) {
+          Message message = ERR_SASLGSSAPI_NO_CLIENT_CONNECTION.get();
+          bindOp.setAuthFailureReason(message);
+          bindOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
+          return;
       }
-      catch (InitializationException ie)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-        }
-
-        bindOperation.setAuthFailureReason(ie.getMessageObject());
-        bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-        clientConnection.setSASLAuthStateInfo(null);
-        return;
+      ClientConnection clientConn  = bindOp.getClientConnection();
+      SASLContext saslContext = (SASLContext) clientConn.getSASLAuthStateInfo();
+      if(saslContext == null) {
+          try {
+              saslContext = SASLContext.createSASLContext(saslProps, serverFQDN,
+                                        SASL_MECHANISM_GSSAPI, identityMapper);
+          } catch (SaslException ex) {
+              if (debugEnabled()) {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+               }
+              Message msg =
+                  ERR_SASL_CONTEXT_CREATE_ERROR.get(SASL_MECHANISM_GSSAPI,
+                                                    getExceptionMessage(ex));
+              clientConn.setSASLAuthStateInfo(null);
+              bindOp.setAuthFailureReason(msg);
+              bindOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
+              return;
+          }
       }
-    }
-
-    stateInfo.setBindOperation(bindOperation);
-    stateInfo.processAuthenticationStage();
-
-
-    if (bindOperation.getResultCode() == ResultCode.SUCCESS)
-    {
-      // The authentication was successful, so set the proper state information
-      // in the client connection and return success.
-      Entry userEntry = stateInfo.getUserEntry();
-      AuthenticationInfo authInfo =
-           new AuthenticationInfo(userEntry, SASL_MECHANISM_GSSAPI,
-                                  DirectoryServer.isRootDN(userEntry.getDN()));
-      bindOperation.setAuthenticationInfo(authInfo);
-      bindOperation.setResultCode(ResultCode.SUCCESS);
-
-      // FIXME -- If we're using integrity or confidentiality, then we can't do
-      // this.
-      clientConnection.setSASLAuthStateInfo(null);
-
-      try
-      {
-        stateInfo.dispose();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
-    }
-    else if (bindOperation.getResultCode() == ResultCode.SASL_BIND_IN_PROGRESS)
-    {
-      // We need to store the SASL auth state with the client connection so we
-      // can resume authentication the next time around.
-      clientConnection.setSASLAuthStateInfo(stateInfo);
-    }
-    else
-    {
-      // The authentication failed.  We don't want to keep the SASL state
-      // around.
-      // FIXME -- Are there other result codes that we need to check for and
-      //          preserve the auth state?
-      clientConnection.setSASLAuthStateInfo(null);
-    }
+      saslContext.performAuthentication(loginContext, bindOp);
   }
-
 
 
   /**
@@ -328,7 +354,7 @@ public class GSSAPISASLMechanismHandler
    *                        associated user.
    *
    * @return  The user entry for the user with the specified authorization ID,
-   *          or <CODE>null</CODE> if none is identified.
+   *          or {@code null} if none is identified.
    *
    * @throws  DirectoryException  If a problem occurs while searching the
    *                              directory for the associated user, or if
@@ -392,119 +418,41 @@ public class GSSAPISASLMechanismHandler
   }
 
 
-
   /**
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationChange(
-              GSSAPISASLMechanismHandlerCfg configuration)
-  {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
-
-
-    // Get the identity mapper that should be used to find users.
-    DN identityMapperDN = configuration.getIdentityMapperDN();
-    IdentityMapper<?> newIdentityMapper =
-         DirectoryServer.getIdentityMapper(identityMapperDN);
-
-
-    // Determine the fully-qualified hostname for this system.  It may be
-    // provided, but if not, then try to determine it programmatically.
-    String newFQDN = configuration.getServerFqdn();
-    if (newFQDN == null)
-    {
-      try
-      {
-        newFQDN = InetAddress.getLocalHost().getCanonicalHostName();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-        }
-
-
-        messages.add(ERR_SASLGSSAPI_CANNOT_GET_SERVER_FQDN.get(
-                String.valueOf(configEntryDN),
-                getExceptionMessage(e)));
-      }
-    }
-
-
-    if (resultCode == ResultCode.SUCCESS)
-    {
-      String configFileName;
-      try
-      {
-        File tempFile = File.createTempFile("login", "conf");
-        configFileName = tempFile.getAbsolutePath();
-        tempFile.deleteOnExit();
-        BufferedWriter w = new BufferedWriter(new FileWriter(tempFile, false));
-
-        w.write(getClass().getName() + " {");
-        w.newLine();
-
-        w.write("  com.sun.security.auth.module.Krb5LoginModule required " +
-                "storeKey=true useKeyTab=true ");
-
-        String keyTabFile = configuration.getKeytab();
-        if (keyTabFile != null)
-        {
-          w.write("keyTab=\"" + keyTabFile + "\" ");
-        }
-
-        // FIXME -- Should we add the ability to include "debug=true"?
-
-        // FIXME -- Can we get away from hard-coding a protocol here?
-        w.write("principal=\"ldap/" + serverFQDN);
-
-        String realm = configuration.getRealm();
-        if (realm != null)
-        {
-          w.write("@" + realm);
-        }
-        w.write("\";");
-
-        w.newLine();
-
-        w.write("};");
-        w.newLine();
-
-        w.flush();
-        w.close();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        resultCode = DirectoryServer.getServerErrorResultCode();
-
-        messages.add(ERR_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG.get(
-                getExceptionMessage(e)));
-
-       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-      }
-
-      System.setProperty(JAAS_PROPERTY_CONFIG_FILE, configFileName);
-
+          GSSAPISASLMechanismHandlerCfg configuration) {
+      ResultCode        resultCode          = ResultCode.SUCCESS;
+      boolean           adminActionRequired = false;
+      ArrayList<Message> messages            = new ArrayList<Message>();
+      DN identityMapperDN = configuration.getIdentityMapperDN();
+      IdentityMapper<?> newIdentityMapper =
+          DirectoryServer.getIdentityMapper(identityMapperDN);
       identityMapper = newIdentityMapper;
-      serverFQDN     = newFQDN;
-      currentConfig  = configuration;
-    }
+      saslProps = new HashMap<String,String>();
+      saslProps.put(Sasl.QOP, getQOP(configuration));
+      saslProps.put(Sasl.REUSE, "false");
+      this.configuration  = configuration;
+      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
 
 
-   return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  /**
+   * Retrieves the QOP (quality-of-protection) from the specified
+   * configuration.
+   *
+   * @param configuration The new configuration to use.
+   * @return A string representing the quality-of-protection.
+   */
+  private String
+  getQOP(GSSAPISASLMechanismHandlerCfg configuration) {
+      QualityOfProtection QOP = configuration.getQualityOfProtection();
+      if(QOP.equals(QualityOfProtection.CONFIDENTIALITY))
+          return "auth-conf";
+      else if(QOP.equals(QualityOfProtection.INTEGRITY))
+          return "auth-int";
+      else
+          return "auth";
   }
 }
-

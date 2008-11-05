@@ -173,6 +173,15 @@ public class NullConnectionSecurityProvider
   /**
    * {@inheritDoc}
    */
+  @Override
+  public boolean isActive() {
+      //This provider is always active.
+      return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override()
   public ConnectionSecurityProvider newInstance(ClientConnection
                                                       clientConnection,

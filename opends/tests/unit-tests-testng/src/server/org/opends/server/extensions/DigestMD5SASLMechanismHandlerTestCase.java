@@ -31,6 +31,7 @@ package org.opends.server.extensions;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -79,8 +80,24 @@ public class DigestMD5SASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.startServer();
+
+    
+    TestCaseUtils.dsconfig(
+            "set-sasl-mechanism-handler-prop",
+            "--handler-name", "DIGEST-MD5",
+            "--set", "server-fqdn:" + "127.0.0.1");
+    
   }
 
+
+  @AfterClass
+  public void tearDown() throws Exception {
+   
+    TestCaseUtils.dsconfig(
+            "set-sasl-mechanism-handler-prop",
+            "--handler-name", "DIGEST-MD5",
+            "--remove", "server-fqdn:" + "127.0.0.1");
+  }
 
 
   /**
@@ -234,7 +251,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=u:test.user",
       "-o", "authzid=u:test.user",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "",
       "-s", "base",
@@ -286,7 +302,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=dn:uid=test.user,o=test",
       "-o", "authzid=dn:uid=test.user,o=test",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "",
       "-s", "base",
@@ -338,7 +353,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=u:test.user",
       "-o", "authzid=u:test.user",
-      "-o", "realm=o=test",
       "-w", "wrongpassword",
       "-b", "",
       "-s", "base",
@@ -390,7 +404,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=dn:uid=test.user,o=test",
       "-o", "authzid=dn:uid=test.user,o=test",
-      "-o", "realm=o=test",
       "-w", "wrongpassword",
       "-b", "",
       "-s", "base",
@@ -440,7 +453,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=u:test.user",
       "-o", "authzid=u:test.user",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "",
       "-s", "base",
@@ -490,7 +502,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=dn:uid=test.user,o=test",
       "-o", "authzid=dn:uid=test.user,o=test",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "",
       "-s", "base",
@@ -540,7 +551,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=dn:invaliddn",
       "-o", "authzid=dn:invaliddn",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "",
       "-s", "base",
@@ -590,7 +600,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=u:doesntexist",
       "-o", "authzid=u:doesntexist",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "",
       "-s", "base",
@@ -640,7 +649,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=dn:uid=doesntexist,o=test",
       "-o", "authzid=dn:uid=doesntexist,o=test",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "",
       "-s", "base",
@@ -671,7 +679,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=u:",
       "-o", "authzid=u:",
-      "-o", "realm=o=test",
       "-w", "",
       "-b", "",
       "-s", "base",
@@ -702,7 +709,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=dn:",
       "-o", "authzid=dn:",
-      "-o", "realm=o=test",
       "-w", "",
       "-b", "",
       "-s", "base",
@@ -733,7 +739,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=",
       "-o", "authzid=",
-      "-o", "realm=o=test",
       "-w", "",
       "-b", "",
       "-s", "base",
@@ -778,7 +783,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=dn:uid=test.user,o=test",
       "-o", "authzid=",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "",
       "-s", "base",
@@ -808,7 +812,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=dn:cn=Directory Manager",
       "-o", "authzid=dn:cn=Directory Manager",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "",
       "-s", "base",
@@ -860,7 +863,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=dn:cn=Second Root DN",
       "-o", "authzid=dn:cn=Second Root DN",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "",
       "-s", "base",
@@ -909,7 +911,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=dn:uid=test.user,o=test",
       "-o", "authzid=dn:uid=nonexistent,o=test",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "",
       "-s", "base",
@@ -954,7 +955,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=dn:uid=test.user,o=test",
       "-o", "authzid=u:nonexistent",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "",
       "-s", "base",
@@ -999,7 +999,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=dn:uid=test.user,o=test",
       "-o", "authzid=dn:malformed",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "",
       "-s", "base",

@@ -98,6 +98,16 @@ public abstract class ConnectionSecurityProvider
    */
   public abstract boolean isSecure();
 
+ /**
+  * Indicates whether the security provider is active or not. Some
+  * security providers (DIGEST-MD5, GSSAPI) perform
+  * confidentiality/integrity processing of messages and require
+  * several handshakes to setup.
+  *
+  * @return  {@code true} if the security provider is active, or,
+  *          {@code false} if not.
+  */
+  public abstract boolean isActive();
 
 
   /**

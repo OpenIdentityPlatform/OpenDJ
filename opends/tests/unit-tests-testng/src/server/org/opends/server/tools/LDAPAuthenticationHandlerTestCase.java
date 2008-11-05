@@ -29,7 +29,9 @@ package org.opends.server.tools;
 
 
 import java.io.File;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -41,6 +43,7 @@ import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
+import org.opends.server.admin.std.server.DigestMD5SASLMechanismHandlerCfg;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.controls.PasswordPolicyRequestControl;
 import org.opends.server.core.AddOperation;
@@ -63,6 +66,7 @@ import static org.testng.Assert.*;
 public class LDAPAuthenticationHandlerTestCase
        extends ToolsTestCase
 {
+   String hostname;
   /**
    * Ensures that the Directory Server is running.
    *
@@ -73,6 +77,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.startServer();
+    getFQDN();
   }
 
 
@@ -1412,11 +1417,9 @@ public class LDAPAuthenticationHandlerTestCase
     saslProperties.put("authid", propList);
 
     propList = new ArrayList<String>();
-    propList.add("o=test");
-    saslProperties.put("realm", propList);
 
     LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
+         new LDAPAuthenticationHandler(r, w, this.hostname, messageID);
     authHandler.doSASLBind(new ASN1OctetString(),
                            new ASN1OctetString("password"),
                            "DIGEST-MD5", saslProperties, requestControls,
@@ -1476,11 +1479,9 @@ public class LDAPAuthenticationHandlerTestCase
     saslProperties.put("authid", propList);
 
     propList = new ArrayList<String>();
-    propList.add("o=test");
-    saslProperties.put("realm", propList);
-
+ 
     LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
+         new LDAPAuthenticationHandler(r, w, this.hostname, messageID);
     authHandler.doSASLBind(new ASN1OctetString(),
                            new ASN1OctetString("password"),
                            "DIGEST-MD5", saslProperties, requestControls,
@@ -1793,15 +1794,11 @@ public class LDAPAuthenticationHandlerTestCase
     saslProperties.put("authid", propList);
 
     propList = new ArrayList<String>();
-    propList.add("o=test");
-    saslProperties.put("realm", propList);
-
-    propList = new ArrayList<String>();
     propList.add("auth");
     saslProperties.put("qop", propList);
 
     LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
+         new LDAPAuthenticationHandler(r, w, this.hostname, messageID);
     authHandler.doSASLBind(new ASN1OctetString(),
                            new ASN1OctetString("password"),
                            "DIGEST-MD5", saslProperties, requestControls,
@@ -2412,11 +2409,9 @@ public class LDAPAuthenticationHandlerTestCase
     saslProperties.put("authid", propList);
 
     propList = new ArrayList<String>();
-    propList.add("o=test");
-    saslProperties.put("realm", propList);
 
     LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
+         new LDAPAuthenticationHandler(r, w, this.hostname, messageID);
     authHandler.doSASLBind(new ASN1OctetString(),
                            new ASN1OctetString("password"),
                            "DIGEST-MD5", saslProperties, requestControls,
@@ -4154,11 +4149,9 @@ public class LDAPAuthenticationHandlerTestCase
     saslProperties.put("authid", propList);
 
     propList = new ArrayList<String>();
-    propList.add("o=test");
-    saslProperties.put("realm", propList);
 
     LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
+         new LDAPAuthenticationHandler(r, w, this.hostname, messageID);
     authHandler.doSASLBind(new ASN1OctetString(),
                            new ASN1OctetString("password"),
                            "DIGEST-MD5", saslProperties, requestControls,
@@ -4290,5 +4283,14 @@ public class LDAPAuthenticationHandlerTestCase
 
     s.close();
   }
+
+  private void getFQDN() {
+      try {
+         this.hostname = InetAddress.getLocalHost().getCanonicalHostName();
+      } catch(UnknownHostException ex) {
+         this.hostname = "localhost";
+      }
+  }
+  
 }
 

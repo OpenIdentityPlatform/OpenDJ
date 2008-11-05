@@ -114,7 +114,12 @@ public class PrivilegeTestCase
          throws Exception
   {
     TestCaseUtils.startServer();
-
+    
+    TestCaseUtils.dsconfig(
+            "set-sasl-mechanism-handler-prop",
+            "--handler-name", "DIGEST-MD5",
+            "--set", "server-fqdn:" + "127.0.0.1");
+    
     TestCaseUtils.initializeTestBackend(true);
     TestCaseUtils.addEntries(
       "dn: cn=Unprivileged Root,cn=Root DNs,cn=config",
@@ -303,6 +308,11 @@ public class PrivilegeTestCase
   public void cleanUp()
          throws Exception
   {
+   TestCaseUtils.dsconfig(
+            "set-sasl-mechanism-handler-prop",
+            "--handler-name", "DIGEST-MD5",
+            "--remove", "server-fqdn:" + "127.0.0.1");
+   
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
@@ -1595,7 +1605,6 @@ public class PrivilegeTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=dn:cn=Privileged User,o=test",
       "-o", "authzid=dn:",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "o=test",
       "-s", "base",
@@ -1627,7 +1636,6 @@ public class PrivilegeTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=dn:cn=Privileged User,o=test",
       "-o", "authzid=dn:cn=Privileged User,o=test",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "o=test",
       "-s", "base",
@@ -1659,7 +1667,6 @@ public class PrivilegeTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=dn:cn=Privileged User,o=test",
       "-o", "authzid=dn:cn=Unprivileged User,o=test",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "o=test",
       "-s", "base",
@@ -1691,7 +1698,6 @@ public class PrivilegeTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=u:privileged.user",
       "-o", "authzid=u:",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "o=test",
       "-s", "base",
@@ -1723,7 +1729,6 @@ public class PrivilegeTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=u:privileged.user",
       "-o", "authzid=u:privileged.user",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "o=test",
       "-s", "base",
@@ -1755,7 +1760,6 @@ public class PrivilegeTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=u:privileged.user",
       "-o", "authzid=u:unprivileged.user",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "o=test",
       "-s", "base",
@@ -1787,7 +1791,6 @@ public class PrivilegeTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=dn:cn=Unprivileged User,o=test",
       "-o", "authzid=dn:",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "o=test",
       "-s", "base",
@@ -1819,7 +1822,6 @@ public class PrivilegeTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=dn:cn=Unprivileged User,o=test",
       "-o", "authzid=dn:cn=Unprivileged User,o=test",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "o=test",
       "-s", "base",
@@ -1851,7 +1853,6 @@ public class PrivilegeTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=dn:cn=Unprivileged User,o=test",
       "-o", "authzid=dn:cn=Privileged User,o=test",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "o=test",
       "-s", "base",
@@ -1883,7 +1884,6 @@ public class PrivilegeTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=u:unprivileged.user",
       "-o", "authzid=u:",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "o=test",
       "-s", "base",
@@ -1915,7 +1915,6 @@ public class PrivilegeTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=u:unprivileged.user",
       "-o", "authzid=u:unprivileged.user",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "o=test",
       "-s", "base",
@@ -1947,7 +1946,6 @@ public class PrivilegeTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=u:unprivileged.user",
       "-o", "authzid=u:privileged.user",
-      "-o", "realm=o=test",
       "-w", "password",
       "-b", "o=test",
       "-s", "base",

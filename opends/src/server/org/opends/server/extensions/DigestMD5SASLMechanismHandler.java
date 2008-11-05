@@ -26,95 +26,65 @@
  */
 package org.opends.server.extensions;
 
-
-
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.SecureRandom;
-import java.text.ParseException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-
+import javax.security.sasl.*;
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.meta.DigestMD5SASLMechanismHandlerCfgDefn.*;
 import org.opends.server.admin.std.server.DigestMD5SASLMechanismHandlerCfg;
 import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
-import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.PasswordPolicyState;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.ByteString;
+import org.opends.server.loggers.debug.*;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
-import org.opends.server.util.Base64;
-
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
-
 /**
- * This class provides an implementation of a SASL mechanism that uses digest
- * authentication via DIGEST-MD5.  This is a password-based mechanism that does
- * not expose the password itself over the wire but rather uses an MD5 hash that
- * proves the client knows the password.  This is similar to the CRAM-MD5
- * mechanism, and the primary differences are that CRAM-MD5 only obtains random
- * data from the server whereas DIGEST-MD5 uses random data from both the
- * server and the client, CRAM-MD5 does not allow for an authorization ID in
- * addition to the authentication ID where DIGEST-MD5 does, and CRAM-MD5 does
- * not define any integrity and confidentiality mechanisms where DIGEST-MD5
- * does.  This implementation is based on the specification in RFC 2831 and
- * updates from draft-ietf-sasl-rfc2831bis-06.
+ * This class provides an implementation of a SASL mechanism that authenticates
+ * clients through DIGEST-MD5.
  */
 public class DigestMD5SASLMechanismHandler
-       extends SASLMechanismHandler<DigestMD5SASLMechanismHandlerCfg>
-       implements ConfigurationChangeListener<
-                       DigestMD5SASLMechanismHandlerCfg>
-{
-  /**
-   * The tracer object for the debug logger.
-   */
+      extends SASLMechanismHandler<DigestMD5SASLMechanismHandlerCfg>
+      implements ConfigurationChangeListener<DigestMD5SASLMechanismHandlerCfg> {
+
+  //The tracer object for the debug logger.
   private static final DebugTracer TRACER = getTracer();
 
   // The current configuration for this SASL mechanism handler.
-  private DigestMD5SASLMechanismHandlerCfg currentConfig;
+  private DigestMD5SASLMechanismHandlerCfg configuration;
 
   // The identity mapper that will be used to map ID strings to user entries.
   private IdentityMapper<?> identityMapper;
 
-  // The message digest engine that will be used to create the MD5 digests.
-  private MessageDigest md5Digest;
+  //Properties to use when creating a SASL server to process the authentication.
+  private HashMap<String,String> saslProps;
 
-  // The lock that will be used to provide threadsafe access to the message
-  // digest.
-  private Object digestLock;
+//The fully qualified domain name used when creating the SASL server.
+  private String serverFQDN;
 
-  // The random number generator that we will use to create the nonce.
-  private SecureRandom randomGenerator;
+  // The DN of the configuration entry for this SASL mechanism handler.
+  private DN configEntryDN;
 
+  //Property used to set the realm in the environment.
+  private static final String REALM_PROPERTY =
+                                          "com.sun.security.sasl.digest.realm";
 
 
   /**
@@ -128,1407 +98,93 @@ public class DigestMD5SASLMechanismHandler
   }
 
 
-
   /**
    * {@inheritDoc}
    */
   @Override()
   public void initializeSASLMechanismHandler(
-                   DigestMD5SASLMechanismHandlerCfg configuration)
-         throws ConfigException, InitializationException
-  {
-    configuration.addDigestMD5ChangeListener(this);
-    currentConfig = configuration;
-
-
-    // Initialize the variables needed for the MD5 digest creation.
-    digestLock      = new Object();
-    randomGenerator = new SecureRandom();
-
-    try
-    {
-      md5Digest = MessageDigest.getInstance("MD5");
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          DigestMD5SASLMechanismHandlerCfg configuration)
+  throws ConfigException, InitializationException {
+      configuration.addDigestMD5ChangeListener(this);
+      configEntryDN = configuration.dn();
+      try {
+         DN identityMapperDN = configuration.getIdentityMapperDN();
+         identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
+         serverFQDN = getFQDN(configuration);
+         Message msg= INFO_DIGEST_MD5_SERVER_FQDN.get(serverFQDN);
+         logError(msg);
+         String QOP = getQOP(configuration);
+         saslProps = new HashMap<String,String>();
+         saslProps.put(Sasl.QOP, QOP);
+         if(QOP.equalsIgnoreCase(SASL_MECHANISM_CONFIDENTIALITY)) {
+             saslProps.put(Sasl.STRENGTH, getStrength(configuration));
+         }
+         String realm=getRealm(configuration);
+         if(realm != null) {
+           msg = INFO_DIGEST_MD5_REALM.get(realm);
+           logError(msg);
+           saslProps.put(REALM_PROPERTY, getRealm(configuration));
+         }
+         this.configuration = configuration;
+         DirectoryServer.registerSASLMechanismHandler(SASL_MECHANISM_DIGEST_MD5,
+                  this);
+      } catch (UnknownHostException unhe) {
+          if (debugEnabled()) {
+              TRACER.debugCaught(DebugLogLevel.ERROR, unhe);
+          }
+          Message message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(
+                  String.valueOf(configEntryDN), getExceptionMessage(unhe));
+          throw new InitializationException(message, unhe);
       }
-
-      Message message = ERR_SASLDIGESTMD5_CANNOT_GET_MESSAGE_DIGEST.get(
-          getExceptionMessage(e));
-      throw new InitializationException(message, e);
-    }
-
-
-    // Get the identity mapper that should be used to find users.
-    DN identityMapperDN = configuration.getIdentityMapperDN();
-    identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
-
-
-    DirectoryServer.registerSASLMechanismHandler(SASL_MECHANISM_DIGEST_MD5,
-                                                 this);
   }
-
 
 
   /**
    * {@inheritDoc}
    */
   @Override()
-  public void finalizeSASLMechanismHandler()
-  {
-    currentConfig.removeDigestMD5ChangeListener(this);
+  public void finalizeSASLMechanismHandler() {
+    configuration.removeDigestMD5ChangeListener(this);
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_DIGEST_MD5);
   }
 
 
-
-
   /**
    * {@inheritDoc}
    */
   @Override()
-  public void processSASLBind(BindOperation bindOperation)
-  {
-    DigestMD5SASLMechanismHandlerCfg config = currentConfig;
-    IdentityMapper<?> identityMapper = this.identityMapper;
-    String realm = config.getRealm();
-
-
-    // The DIGEST-MD5 bind process uses two stages.  See if we have any state
-    // information from the first stage to determine whether this is a
-    // continuation of an existing bind or an initial authentication.  Note that
-    // this implementation does not support subsequent authentication, so even
-    // if the client provided credentials for the bind, it will be treated as an
-    // initial authentication if there is no existing state.
-    boolean initialAuth = true;
-    ClientConnection clientConnection  = bindOperation.getClientConnection();
-    Object saslStateInfo = clientConnection.getSASLAuthStateInfo();
-    if ((saslStateInfo != null) &&
-        (saslStateInfo instanceof DigestMD5StateInfo))
-    {
-      initialAuth = false;
-    }
-
-    if (initialAuth)
-    {
-      // Create a buffer to hold the challenge.
-      StringBuilder challengeBuffer = new StringBuilder();
-
-
-      // Add the realm to the challenge.  If we have a configured realm, then
-      // use it.  Otherwise, add a realm for each suffix defined in the server.
-      if (realm == null)
-      {
-        Map<DN,Backend> suffixes = DirectoryServer.getPublicNamingContexts();
-        if (! suffixes.isEmpty())
-        {
-          Iterator<DN> iterator = suffixes.keySet().iterator();
-          challengeBuffer.append("realm=\"");
-          challengeBuffer.append(iterator.next().toNormalizedString());
-          challengeBuffer.append("\"");
-
-          while (iterator.hasNext())
-          {
-            challengeBuffer.append(",realm=\"");
-            challengeBuffer.append(iterator.next().toNormalizedString());
-            challengeBuffer.append("\"");
-          }
-        }
-      }
-      else
-      {
-        challengeBuffer.append("realm=\"");
-        challengeBuffer.append(realm);
-        challengeBuffer.append("\"");
-      }
-
-
-      // Generate the nonce.  Add it to the challenge and remember it for future
-      // use.
-      String nonce = generateNonce();
-      if (challengeBuffer.length() > 0)
-      {
-        challengeBuffer.append(",");
-      }
-      challengeBuffer.append("nonce=\"");
-      challengeBuffer.append(nonce);
-      challengeBuffer.append("\"");
-
-
-      // Generate the qop-list and add it to the challenge.
-      // FIXME -- Add support for integrity and confidentiality.  Once we do,
-      //          we'll also want to add the maxbuf and cipher options.
-      challengeBuffer.append(",qop=\"auth\"");
-
-
-      // Add the charset option to indicate that we support UTF-8 values.
-      challengeBuffer.append(",charset=utf-8");
-
-
-      // Add the algorithm, which will always be "md5-sess".
-      challengeBuffer.append(",algorithm=md5-sess");
-
-
-      // Encode the challenge as an ASN.1 element.  The total length of the
-      // encoded value must be less than 2048 bytes, which should not be a
-      // problem, but we'll add a safety check just in case....  In the event
-      // that it does happen, we'll also log an error so it is more noticeable.
-      ASN1OctetString challenge =
-           new ASN1OctetString(challengeBuffer.toString());
-      if (challenge.value().length >= 2048)
-      {
-        bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-        Message message = WARN_SASLDIGESTMD5_CHALLENGE_TOO_LONG.get(
-                challenge.value().length);
-        bindOperation.setAuthFailureReason(message);
-
-        logError(message);
-        return;
-      }
-
-
-      // Store the state information with the client connection so we can use it
-      // for later validation.
-      DigestMD5StateInfo stateInfo = new DigestMD5StateInfo(nonce, "00000000");
-      clientConnection.setSASLAuthStateInfo(stateInfo);
-
-
-      // Prepare the response and return so it will be sent to the client.
-      bindOperation.setResultCode(ResultCode.SASL_BIND_IN_PROGRESS);
-      bindOperation.setServerSASLCredentials(challenge);
-      return;
-    }
-
-
-    // If we've gotten here, then we have existing SASL state information for
-    // this client.  Make sure that the client also provided credentials.
-    ASN1OctetString clientCredentials = bindOperation.getSASLCredentials();
-    if ((clientCredentials == null) || (clientCredentials.value().length == 0))
-    {
-      bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-      Message message = ERR_SASLDIGESTMD5_NO_CREDENTIALS.get();
-      bindOperation.setAuthFailureReason(message);
-      return;
-    }
-
-
-    // Parse the SASL state information.  Also, since there are only ever two
-    // stages of a DIGEST-MD5 bind, clear the SASL state information stored in
-    // the client connection because it shouldn't be used anymore regardless of
-    // whether the bind succeeds or fails.  Note that if we do add support for
-    // subsequent authentication in the future, then we will probably need to
-    // keep state information in the client connection, but even then it will
-    // be different from what's already there.
-    DigestMD5StateInfo stateInfo = (DigestMD5StateInfo) saslStateInfo;
-    clientConnection.setSASLAuthStateInfo(null);
-
-
-    // Create variables to hold values stored in the client's response.  We'll
-    // also store the base DN because we might need to override it later.
-    String responseUserName      = null;
-    String responseRealm         = null;
-    String responseNonce         = null;
-    String responseCNonce        = null;
-    int    responseNonceCount    = -1;
-    String responseNonceCountStr = null;
-    String responseQoP           = "auth";
-    String responseDigestURI     = null;
-    byte[] responseDigest        = null;
-    String responseCharset       = "ISO-8859-1";
-    String responseAuthzID       = null;
-
-
-    // Get a temporary string representation of the SASL credentials using the
-    // ISO-8859-1 encoding and see if it contains "charset=utf-8".  If so, then
-    // re-parse the credentials using that character set.
-    byte[] credBytes  = clientCredentials.value();
-    String credString = null;
-    String lowerCreds = null;
-    try
-    {
-      credString = new String(credBytes, responseCharset);
-      lowerCreds = toLowerCase(credString);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      // This isn't necessarily fatal because we're going to retry using UTF-8,
-      // but we want to log it anyway.
-      logError(WARN_SASLDIGESTMD5_CANNOT_PARSE_ISO_CREDENTIALS.get(
-          responseCharset, getExceptionMessage(e)));
-    }
-
-    if ((credString == null) ||
-        (lowerCreds.indexOf("charset=utf-8") >= 0))
-    {
-      try
-      {
-        credString = new String(credBytes, "UTF-8");
-        lowerCreds = toLowerCase(credString);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        // This is fatal because either we can't parse the credentials as a
-        // string at all, or we know we need to do so using UTF-8 and can't.
-        bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-        Message message = WARN_SASLDIGESTMD5_CANNOT_PARSE_UTF8_CREDENTIALS.get(
-                getExceptionMessage(e));
-        bindOperation.setAuthFailureReason(message);
-        return;
-      }
-    }
-
-
-    // Iterate through the credentials string, parsing the property names and
-    // their corresponding values.
-    int pos    = 0;
-    int length = credString.length();
-    while (pos < length)
-    {
-      int equalPos = credString.indexOf('=', pos+1);
-      if (equalPos < 0)
-      {
-        // This is bad because we're not at the end of the string but we don't
-        // have a name/value delimiter.
-        bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-        Message message = ERR_SASLDIGESTMD5_INVALID_TOKEN_IN_CREDENTIALS.get(
-                credString, pos);
-        bindOperation.setAuthFailureReason(message);
-        return;
-      }
-
-
-      String tokenName  = lowerCreds.substring(pos, equalPos);
-
-      String tokenValue;
-      try
-      {
-        StringBuilder valueBuffer = new StringBuilder();
-        pos = readToken(credString, equalPos+1, length, valueBuffer);
-        tokenValue = valueBuffer.toString();
-      }
-      catch (DirectoryException de)
-      {
-        // We couldn't parse the token value, so it must be malformed.
-        bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-        bindOperation.setAuthFailureReason(
-                de.getMessageObject());
-        return;
-      }
-
-      if (tokenName.equals("charset"))
-      {
-        // The value must be the string "utf-8".  If not, that's an error.
-        if (! tokenValue.equalsIgnoreCase("utf-8"))
-        {
-          bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-          Message message = ERR_SASLDIGESTMD5_INVALID_CHARSET.get(tokenValue);
-          bindOperation.setAuthFailureReason(message);
+  public void processSASLBind(BindOperation bindOp) {
+      ClientConnection clientConnection = bindOp.getClientConnection();
+      if (clientConnection == null) {
+          Message message = ERR_SASLGSSAPI_NO_CLIENT_CONNECTION.get();
+          bindOp.setAuthFailureReason(message);
+          bindOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
           return;
-        }
       }
-      else if (tokenName.equals("username"))
-      {
-        responseUserName = tokenValue;
-      }
-      else if (tokenName.equals("realm"))
-      {
-        responseRealm = tokenValue;
-        if (realm != null)
-        {
-          if (! responseRealm.equals(realm))
-          {
-            bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-            Message message =
-                    ERR_SASLDIGESTMD5_INVALID_REALM.get(responseRealm);
-            bindOperation.setAuthFailureReason(message);
-            return;
-          }
-        }
-      }
-      else if (tokenName.equals("nonce"))
-      {
-        responseNonce = tokenValue;
-        String requestNonce = stateInfo.getNonce();
-        if (! responseNonce.equals(requestNonce))
-        {
-          // The nonce provided by the client is incorrect.  This could be an
-          // attempt at a replay or chosen plaintext attack, so we'll close the
-          // connection.  We will put a message in the log but will not send it
-          // to the client.
-          Message message = ERR_SASLDIGESTMD5_INVALID_NONCE.get();
-          clientConnection.disconnect(DisconnectReason.SECURITY_PROBLEM, false,
-                  message);
-          return;
-        }
-      }
-      else if (tokenName.equals("cnonce"))
-      {
-        responseCNonce = tokenValue;
-      }
-      else if (tokenName.equals("nc"))
-      {
-        try
-        {
-          responseNonceCountStr = tokenValue;
-          responseNonceCount    = Integer.parseInt(responseNonceCountStr, 16);
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-
-          bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-          Message message = ERR_SASLDIGESTMD5_CANNOT_DECODE_NONCE_COUNT.get(
-                  tokenValue);
-          bindOperation.setAuthFailureReason(message);
-          return;
-        }
-
-        int storedNonce;
-        try
-        {
-          storedNonce = Integer.parseInt(stateInfo.getNonceCount(), 16);
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-
-          bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-          Message message =
-                  ERR_SASLDIGESTMD5_CANNOT_DECODE_STORED_NONCE_COUNT.get(
-                          getExceptionMessage(e));
-          bindOperation.setAuthFailureReason(message);
-          return;
-        }
-
-        if (responseNonceCount != (storedNonce + 1))
-        {
-          // The nonce count provided by the client is incorrect.  This
-          // indicates a replay attack, so we'll close the connection.  We will
-          // put a message in the log but we will not send it to the client.
-          Message message = ERR_SASLDIGESTMD5_INVALID_NONCE_COUNT.get();
-          clientConnection.disconnect(DisconnectReason.SECURITY_PROBLEM, false,
-                  message);
-          return;
-        }
-      }
-      else if (tokenName.equals("qop"))
-      {
-        responseQoP = tokenValue;
-
-        if (responseQoP.equals("auth"))
-        {
-          // No action necessary.
-        }
-        else if (responseQoP.equals("auth-int"))
-        {
-          // FIXME -- Add support for integrity protection.
-          bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-          Message message = ERR_SASLDIGESTMD5_INTEGRITY_NOT_SUPPORTED.get();
-          bindOperation.setAuthFailureReason(message);
-          return;
-        }
-        else if (responseQoP.equals("auth-conf"))
-        {
-          // FIXME -- Add support for confidentiality protection.
-          bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-          Message message =
-                  ERR_SASLDIGESTMD5_CONFIDENTIALITY_NOT_SUPPORTED.get();
-          bindOperation.setAuthFailureReason(message);
-          return;
-        }
-        else
-        {
-          // This is an invalid QoP value.
-          bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-          Message message = ERR_SASLDIGESTMD5_INVALID_QOP.get(responseQoP);
-          bindOperation.setAuthFailureReason(message);
-          return;
-        }
-      }
-      else if (tokenName.equals("digest-uri"))
-      {
-        responseDigestURI = tokenValue;
-
-        String serverFQDN = config.getServerFqdn();
-        if ((serverFQDN != null) && (serverFQDN.length() > 0))
-        {
-          // If a server FQDN is populated, then we'll use it to validate the
-          // digest-uri, which should be in the form "ldap/serverfqdn".
-          String expectedDigestURI = "ldap/" + serverFQDN;
-          if (! expectedDigestURI.equalsIgnoreCase(responseDigestURI))
-          {
-            bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-            Message message = ERR_SASLDIGESTMD5_INVALID_DIGEST_URI.get(
-                    responseDigestURI, expectedDigestURI);
-            bindOperation.setAuthFailureReason(message);
-            return;
-          }
-        }
-      }
-      else if (tokenName.equals("response"))
-      {
-        try
-        {
-          responseDigest = hexStringToByteArray(tokenValue);
-        }
-        catch (ParseException pe)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, pe);
-          }
-
-          Message message =
-                  ERR_SASLDIGESTMD5_CANNOT_PARSE_RESPONSE_DIGEST.get(
-                          getExceptionMessage(pe));
-          bindOperation.setAuthFailureReason(message);
-          return;
-        }
-      }
-      else if (tokenName.equals("authzid"))
-      {
-        responseAuthzID = tokenValue;
-
-        // FIXME -- This must always be parsed in UTF-8 even if the charset for
-        // other elements is ISO 8859-1.
-      }
-      else if (tokenName.equals("maxbuf") || tokenName.equals("cipher"))
-      {
-        // FIXME -- Add support for confidentiality and integrity protection.
-      }
-      else
-      {
-        bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-        Message message = ERR_SASLDIGESTMD5_INVALID_RESPONSE_TOKEN.get(
-                tokenName);
-        bindOperation.setAuthFailureReason(message);
-        return;
-      }
-    }
-
-
-    // Make sure that all required properties have been specified.
-    if ((responseUserName == null) || (responseUserName.length() == 0))
-    {
-      bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-      Message message = ERR_SASLDIGESTMD5_NO_USERNAME_IN_RESPONSE.get();
-      bindOperation.setAuthFailureReason(message);
-      return;
-    }
-    else if (responseNonce == null)
-    {
-      bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-      Message message = ERR_SASLDIGESTMD5_NO_NONCE_IN_RESPONSE.get();
-      bindOperation.setAuthFailureReason(message);
-      return;
-    }
-    else if (responseCNonce == null)
-    {
-      bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-      Message message = ERR_SASLDIGESTMD5_NO_CNONCE_IN_RESPONSE.get();
-      bindOperation.setAuthFailureReason(message);
-      return;
-    }
-    else if (responseNonceCount < 0)
-    {
-      bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-      Message message = ERR_SASLDIGESTMD5_NO_NONCE_COUNT_IN_RESPONSE.get();
-      bindOperation.setAuthFailureReason(message);
-      return;
-    }
-    else if (responseDigest == null)
-    {
-      bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-      Message message = ERR_SASLDIGESTMD5_NO_DIGEST_IN_RESPONSE.get();
-      bindOperation.setAuthFailureReason(message);
-      return;
-    }
-
-
-    // Slight departure from draft-ietf-sasl-rfc2831bis-06 in order to
-    // support legacy/broken client implementations, such as Solaris
-    // Native LDAP Client, which omit digest-uri directive. the presence
-    // of digest-uri directive erroneously read "may" in the RFC and has
-    // been fixed later in the DRAFT to read "must". if the client does
-    // not include digest-uri directive use the empty string instead.
-    if (responseDigestURI == null)
-    {
-      responseDigestURI = "";
-    }
-
-
-    // If a realm has not been specified, then use the empty string.
-    // FIXME -- Should we reject this if a specific realm is defined?
-    if (responseRealm == null)
-    {
-      responseRealm = "";
-    }
-
-
-    // Get the user entry for the authentication ID.  Allow for an
-    // authentication ID that is just a username (as per the DIGEST-MD5 spec),
-    // but also allow a value in the authzid form specified in RFC 2829.
-    Entry  userEntry    = null;
-    String lowerUserName = toLowerCase(responseUserName);
-    if (lowerUserName.startsWith("dn:"))
-    {
-      // Try to decode the user DN and retrieve the corresponding entry.
-      DN userDN;
-      try
-      {
-        userDN = DN.decode(responseUserName.substring(3));
-      }
-      catch (DirectoryException de)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
-
-        bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-        Message message = ERR_SASLDIGESTMD5_CANNOT_DECODE_USERNAME_AS_DN.get(
-                responseUserName, de.getMessageObject());
-        bindOperation.setAuthFailureReason(message);
-        return;
-      }
-
-      if (userDN.isNullDN())
-      {
-        bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-        Message message = ERR_SASLDIGESTMD5_USERNAME_IS_NULL_DN.get();
-        bindOperation.setAuthFailureReason(message);
-        return;
-      }
-
-      DN rootDN = DirectoryServer.getActualRootBindDN(userDN);
-      if (rootDN != null)
-      {
-        userDN = rootDN;
-      }
-
-      // Acquire a read lock on the user entry.  If this fails, then so will the
-      // authentication.
-      Lock readLock = null;
-      for (int i=0; i < 3; i++)
-      {
-        readLock = LockManager.lockRead(userDN);
-        if (readLock != null)
-        {
-          break;
-        }
-      }
-
-      if (readLock == null)
-      {
-        bindOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
-
-        Message message = INFO_SASLDIGESTMD5_CANNOT_LOCK_ENTRY.get(
-                String.valueOf(userDN));
-        bindOperation.setAuthFailureReason(message);
-        return;
-      }
-
-      try
-      {
-        userEntry = DirectoryServer.getEntry(userDN);
-      }
-      catch (DirectoryException de)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
-
-        bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-        Message message = ERR_SASLDIGESTMD5_CANNOT_GET_ENTRY_BY_DN.get(
-                String.valueOf(userDN), de.getMessageObject());
-        bindOperation.setAuthFailureReason(message);
-        return;
-      }
-      finally
-      {
-        LockManager.unlock(userDN, readLock);
-      }
-    }
-    else
-    {
-      // Use the identity mapper to resolve the username to an entry.
-      String userName = responseUserName;
-      if (lowerUserName.startsWith("u:"))
-      {
-        if (lowerUserName.equals("u:"))
-        {
-          bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-          Message message = ERR_SASLDIGESTMD5_ZERO_LENGTH_USERNAME.get();
-          bindOperation.setAuthFailureReason(message);
-          return;
-        }
-
-        userName = responseUserName.substring(2);
-      }
-
-
-      try
-      {
-        userEntry = identityMapper.getEntryForID(userName);
-      }
-      catch (DirectoryException de)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
-
-        bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-        Message message = ERR_SASLDIGESTMD5_CANNOT_MAP_USERNAME.get(
-                String.valueOf(responseUserName), de.getMessageObject());
-        bindOperation.setAuthFailureReason(message);
-        return;
-      }
-    }
-
-
-    // At this point, we should have a user entry.  If we don't then fail.
-    if (userEntry == null)
-    {
-      bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-      Message message =
-              ERR_SASLDIGESTMD5_NO_MATCHING_ENTRIES.get(responseUserName);
-      bindOperation.setAuthFailureReason(message);
-      return;
-    }
-    else
-    {
-      bindOperation.setSASLAuthUserEntry(userEntry);
-    }
-
-
-    Entry authZEntry = userEntry;
-    if (responseAuthzID != null)
-    {
-      if (responseAuthzID.length() == 0)
-      {
-        // The authorization ID must not be an empty string.
-        bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-        Message message = ERR_SASLDIGESTMD5_EMPTY_AUTHZID.get();
-        bindOperation.setAuthFailureReason(message);
-        return;
-      }
-      else if (! responseAuthzID.equals(responseUserName))
-      {
-        String lowerAuthzID = toLowerCase(responseAuthzID);
-
-        if (lowerAuthzID.startsWith("dn:"))
-        {
-          DN authzDN;
-          try
-          {
-            authzDN = DN.decode(responseAuthzID.substring(3));
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-            Message message = ERR_SASLDIGESTMD5_AUTHZID_INVALID_DN.get(
-                    responseAuthzID, de.getMessageObject());
-            bindOperation.setAuthFailureReason(message);
-            return;
-          }
-
-          DN actualAuthzDN = DirectoryServer.getActualRootBindDN(authzDN);
-          if (actualAuthzDN != null)
-          {
-            authzDN = actualAuthzDN;
-          }
-
-          if (! authzDN.equals(userEntry.getDN()))
-          {
-            AuthenticationInfo tempAuthInfo =
-              new AuthenticationInfo(userEntry,
-                       DirectoryServer.isRootDN(userEntry.getDN()));
-            InternalClientConnection tempConn =
-                 new InternalClientConnection(tempAuthInfo);
-            if (! tempConn.hasPrivilege(Privilege.PROXIED_AUTH, bindOperation))
-            {
-              bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-              Message message =
-                      ERR_SASLDIGESTMD5_AUTHZID_INSUFFICIENT_PRIVILEGES.get(
-                              String.valueOf(userEntry.getDN()));
-              bindOperation.setAuthFailureReason(message);
+      ClientConnection clientConn  = bindOp.getClientConnection();
+      SASLContext saslContext =
+         (SASLContext) clientConn.getSASLAuthStateInfo();
+      if(saslContext == null) {
+          try {
+              saslContext = SASLContext.createSASLContext(saslProps, serverFQDN,
+                            SASL_MECHANISM_DIGEST_MD5, identityMapper);
+          } catch (SaslException ex) {
+              if (debugEnabled()) {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+              }
+              Message msg =
+                  ERR_SASL_CONTEXT_CREATE_ERROR.get(SASL_MECHANISM_DIGEST_MD5,
+                                                    getExceptionMessage(ex));
+              clientConn.setSASLAuthStateInfo(null);
+              bindOp.setAuthFailureReason(msg);
+              bindOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
               return;
-            }
-
-            if (authzDN.isNullDN())
-            {
-              authZEntry = null;
-            }
-            else
-            {
-              try
-              {
-                authZEntry = DirectoryServer.getEntry(authzDN);
-                if (authZEntry == null)
-                {
-                  bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-                  Message message = ERR_SASLDIGESTMD5_AUTHZID_NO_SUCH_ENTRY.get(
-                          String.valueOf(authzDN));
-                  bindOperation.setAuthFailureReason(message);
-                  return;
-                }
-              }
-              catch (DirectoryException de)
-              {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
-
-                bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-                Message message = ERR_SASLDIGESTMD5_AUTHZID_CANNOT_GET_ENTRY
-                        .get(String.valueOf(authzDN), de.getMessageObject());
-                bindOperation.setAuthFailureReason(message);
-                return;
-              }
-            }
           }
-        }
-        else
-        {
-          String idStr;
-          if (lowerAuthzID.startsWith("u:"))
-          {
-            idStr = responseAuthzID.substring(2);
-          }
-          else
-          {
-            idStr = responseAuthzID;
-          }
-
-          if (idStr.length() == 0)
-          {
-            authZEntry = null;
-          }
-          else
-          {
-            try
-            {
-              authZEntry = identityMapper.getEntryForID(idStr);
-              if (authZEntry == null)
-              {
-                bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-                Message message = ERR_SASLDIGESTMD5_AUTHZID_NO_MAPPED_ENTRY.get(
-                        responseAuthzID);
-                bindOperation.setAuthFailureReason(message);
-                return;
-              }
-            }
-            catch (DirectoryException de)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
-
-              bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-              Message message = ERR_SASLDIGESTMD5_CANNOT_MAP_AUTHZID.get(
-                      responseAuthzID, de.getMessageObject());
-              bindOperation.setAuthFailureReason(message);
-              return;
-            }
-          }
-
-          if ((authZEntry == null) ||
-              (! authZEntry.getDN().equals(userEntry.getDN())))
-          {
-            AuthenticationInfo tempAuthInfo =
-              new AuthenticationInfo(userEntry,
-                       DirectoryServer.isRootDN(userEntry.getDN()));
-            InternalClientConnection tempConn =
-                 new InternalClientConnection(tempAuthInfo);
-            if (! tempConn.hasPrivilege(Privilege.PROXIED_AUTH, bindOperation))
-            {
-              bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-              Message message =
-                      ERR_SASLDIGESTMD5_AUTHZID_INSUFFICIENT_PRIVILEGES.get(
-                              String.valueOf(userEntry.getDN()));
-              bindOperation.setAuthFailureReason(message);
-              return;
-            }
-          }
-        }
+          saslContext.evaluateInitialStage(bindOp);
+      } else {
+          saslContext.evaluateFinalStage(bindOp);
       }
-    }
-
-
-    // Get the clear-text passwords from the user entry, if there are any.
-    List<ByteString> clearPasswords;
-    try
-    {
-      PasswordPolicyState pwPolicyState =
-           new PasswordPolicyState(userEntry, false);
-      clearPasswords = pwPolicyState.getClearPasswords();
-      if ((clearPasswords == null) || clearPasswords.isEmpty())
-      {
-        bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-        Message message = ERR_SASLDIGESTMD5_NO_REVERSIBLE_PASSWORDS.get(
-                String.valueOf(userEntry.getDN()));
-        bindOperation.setAuthFailureReason(message);
-        return;
-      }
-    }
-    catch (Exception e)
-    {
-      bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-      Message message = ERR_SASLDIGESTMD5_CANNOT_GET_REVERSIBLE_PASSWORDS.get(
-              String.valueOf(userEntry.getDN()),
-              String.valueOf(e));
-      bindOperation.setAuthFailureReason(message);
-      return;
-    }
-
-
-    // Iterate through the clear-text values and see if any of them can be used
-    // in conjunction with the challenge to construct the provided digest.
-    boolean matchFound    = false;
-    byte[]  passwordBytes = null;
-    for (ByteString clearPassword : clearPasswords)
-    {
-      byte[] generatedDigest;
-      try
-      {
-        generatedDigest =
-             generateResponseDigest(responseUserName, responseAuthzID,
-                                    clearPassword.value(), responseRealm,
-                                    responseNonce, responseCNonce,
-                                    responseNonceCountStr, responseDigestURI,
-                                    responseQoP, responseCharset);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        logError(WARN_SASLDIGESTMD5_CANNOT_GENERATE_RESPONSE_DIGEST.get(
-            getExceptionMessage(e)));
-        continue;
-      }
-
-      if (Arrays.equals(responseDigest, generatedDigest))
-      {
-        matchFound    = true;
-        passwordBytes = clearPassword.value();
-        break;
-      }
-    }
-
-    if (! matchFound)
-    {
-      bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-      Message message = ERR_SASLDIGESTMD5_INVALID_CREDENTIALS.get();
-      bindOperation.setAuthFailureReason(message);
-      return;
-    }
-
-
-    // Generate the response auth element to include in the response to the
-    // client.
-    byte[] responseAuth;
-    try
-    {
-      responseAuth =
-           generateResponseAuthDigest(responseUserName, responseAuthzID,
-                                      passwordBytes, responseRealm,
-                                      responseNonce, responseCNonce,
-                                      responseNonceCountStr, responseDigestURI,
-                                      responseQoP, responseCharset);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-      Message message =
-              ERR_SASLDIGESTMD5_CANNOT_GENERATE_RESPONSE_AUTH_DIGEST.get(
-                      getExceptionMessage(e));
-      bindOperation.setAuthFailureReason(message);
-      return;
-    }
-
-    ASN1OctetString responseAuthStr =
-         new ASN1OctetString("rspauth=" + getHexString(responseAuth));
-
-
-    // Make sure to store the updated nonce count with the client connection to
-    // allow for correct subsequent authentication.
-    stateInfo.setNonceCount(responseNonceCountStr);
-
-
-    // If we've gotten here, then the authentication was successful.  We'll also
-    // need to include the response auth string in the server SASL credentials.
-    bindOperation.setResultCode(ResultCode.SUCCESS);
-    bindOperation.setServerSASLCredentials(responseAuthStr);
-
-
-    AuthenticationInfo authInfo =
-         new AuthenticationInfo(userEntry, authZEntry,
-                                SASL_MECHANISM_DIGEST_MD5,
-                                DirectoryServer.isRootDN(userEntry.getDN()));
-    bindOperation.setAuthenticationInfo(authInfo);
-    return;
   }
-
-
-
-  /**
-   * Generates a new nonce value to use during the DIGEST-MD5 authentication
-   * process.
-   *
-   * @return  The nonce that should be used for DIGEST-MD5 authentication.
-   */
-  private String generateNonce()
-  {
-    byte[] nonceBytes = new byte[16];
-    randomGenerator.nextBytes(nonceBytes);
-    return Base64.encode(nonceBytes);
-  }
-
-
-
-  /**
-   * Reads the next token from the provided credentials string using the
-   * provided information.  If the token is surrounded by quotation marks, then
-   * the token returned will not include those quotation marks.
-   *
-   * @param  credentials  The credentials string from which to read the token.
-   * @param  startPos     The position of the first character of the token to
-   *                      read.
-   * @param  length       The total number of characters in the credentials
-   *                      string.
-   * @param  token        The buffer into which the token is to be placed.
-   *
-   * @return  The position at which the next token should start, or a value
-   *          greater than or equal to the length of the string if there are no
-   *          more tokens.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting to read
-   *                              the token.
-   */
-  private int readToken(String credentials, int startPos, int length,
-                        StringBuilder token)
-          throws DirectoryException
-  {
-    // If the position is greater than or equal to the length, then we shouldn't
-    // do anything.
-    if (startPos >= length)
-    {
-      return startPos;
-    }
-
-
-    // Look at the first character to see if it's an empty string or the string
-    // is quoted.
-    boolean isEscaped = false;
-    boolean isQuoted  = false;
-    int     pos       = startPos;
-    char    c         = credentials.charAt(pos++);
-
-    if (c == ',')
-    {
-      // This must be a zero-length token, so we'll just return the next
-      // position.
-      return pos;
-    }
-    else if (c == '"')
-    {
-      // The string is quoted, so we'll ignore this character, and we'll keep
-      // reading until we find the unescaped closing quote followed by a comma
-      // or the end of the string.
-      isQuoted = true;
-    }
-    else if (c == '\\')
-    {
-      // The next character is escaped, so we'll take it no matter what.
-      isEscaped = true;
-    }
-    else
-    {
-      // The string is not quoted, and this is the first character.  Store this
-      // character and keep reading until we find a comma or the end of the
-      // string.
-      token.append(c);
-    }
-
-
-    // Enter a loop, reading until we find the appropriate criteria for the end
-    // of the token.
-    while (pos < length)
-    {
-      c = credentials.charAt(pos++);
-
-      if (isEscaped)
-      {
-        // The previous character was an escape, so we'll take this no matter
-        // what.
-        token.append(c);
-        isEscaped = false;
-      }
-      else if (c == ',')
-      {
-        // If this is a quoted string, then this comma is part of the token.
-        // Otherwise, it's the end of the token.
-        if (isQuoted)
-        {
-          token.append(c);
-        }
-        else
-        {
-          break;
-        }
-      }
-      else if (c == '"')
-      {
-        if (isQuoted)
-        {
-          // This should be the end of the token, but in order for it to be
-          // valid it must be followed by a comma or the end of the string.
-          if (pos >= length)
-          {
-            // We have hit the end of the string, so this is fine.
-            break;
-          }
-          else
-          {
-            char c2 = credentials.charAt(pos++);
-            if (c2 == ',')
-            {
-              // We have hit the end of the token, so this is fine.
-              break;
-            }
-            else
-            {
-              // We found the closing quote before the end of the token.  This
-              // is not fine.
-              Message message =
-                  ERR_SASLDIGESTMD5_INVALID_CLOSING_QUOTE_POS.get((pos-2));
-              throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                                           message);
-            }
-          }
-        }
-        else
-        {
-          // This must be part of the value, so we'll take it.
-          token.append(c);
-        }
-      }
-      else if (c == '\\')
-      {
-        // The next character is escaped.  We'll set a flag so we know to
-        // accept it, but will not include the backspace itself.
-        isEscaped = true;
-      }
-      else
-      {
-        token.append(c);
-      }
-    }
-
-
-    return pos;
-  }
-
-
-
-  /**
-   * Generates the appropriate DIGEST-MD5 response for the provided set of
-   * information.
-   *
-   * @param  userName    The username from the authentication request.
-   * @param  authzID     The authorization ID from the request, or
-   *                     <CODE>null</CODE> if there is none.
-   * @param  password    The clear-text password for the user.
-   * @param  realm       The realm for which the authentication is to be
-   *                     performed.
-   * @param  nonce       The random data generated by the server for use in the
-   *                     digest.
-   * @param  cnonce      The random data generated by the client for use in the
-   *                     digest.
-   * @param  nonceCount  The 8-digit hex string indicating the number of times
-   *                     the provided nonce has been used by the client.
-   * @param  digestURI   The digest URI that specifies the service and host for
-   *                     which the authentication is being performed.
-   * @param  qop         The quality of protection string for the
-   *                     authentication.
-   * @param  charset     The character set used to encode the information.
-   *
-   * @return  The DIGEST-MD5 response for the provided set of information.
-   *
-   * @throws  UnsupportedEncodingException  If the specified character set is
-   *                                        invalid for some reason.
-   */
-  public byte[] generateResponseDigest(String userName, String authzID,
-                                       byte[] password, String realm,
-                                       String nonce, String cnonce,
-                                       String nonceCount, String digestURI,
-                                       String qop, String charset)
-         throws UnsupportedEncodingException
-  {
-    synchronized (digestLock)
-    {
-      // First, get a hash of "username:realm:password".
-      StringBuilder a1String1 = new StringBuilder();
-      a1String1.append(userName);
-      a1String1.append(':');
-      a1String1.append(realm);
-      a1String1.append(':');
-
-      byte[] a1Bytes1a = a1String1.toString().getBytes(charset);
-      byte[] a1Bytes1  = new byte[a1Bytes1a.length + password.length];
-      System.arraycopy(a1Bytes1a, 0, a1Bytes1, 0, a1Bytes1a.length);
-      System.arraycopy(password, 0, a1Bytes1, a1Bytes1a.length,
-                       password.length);
-      byte[] urpHash = md5Digest.digest(a1Bytes1);
-
-
-      // Next, get a hash of "urpHash:nonce:cnonce[:authzid]".
-      StringBuilder a1String2 = new StringBuilder();
-      a1String2.append(':');
-      a1String2.append(nonce);
-      a1String2.append(':');
-      a1String2.append(cnonce);
-      if (authzID != null)
-      {
-        a1String2.append(':');
-        a1String2.append(authzID);
-      }
-      byte[] a1Bytes2a = a1String2.toString().getBytes(charset);
-      byte[] a1Bytes2  = new byte[urpHash.length + a1Bytes2a.length];
-      System.arraycopy(urpHash, 0, a1Bytes2, 0, urpHash.length);
-      System.arraycopy(a1Bytes2a, 0, a1Bytes2, urpHash.length,
-                       a1Bytes2a.length);
-      byte[] a1Hash = md5Digest.digest(a1Bytes2);
-
-
-      // Next, get a hash of "AUTHENTICATE:digesturi".
-      byte[] a2Bytes = ("AUTHENTICATE:" + digestURI).getBytes(charset);
-      byte[] a2Hash  = md5Digest.digest(a2Bytes);
-
-
-      // Get hex string representations of the last two hashes.
-      String a1HashHex = getHexString(a1Hash);
-      String a2HashHex = getHexString(a2Hash);
-
-
-      // Put together the final string to hash, consisting of
-      // "a1HashHex:nonce:nonceCount:cnonce:qop:a2HashHex" and get its digest.
-      StringBuilder kdString = new StringBuilder();
-      kdString.append(a1HashHex);
-      kdString.append(':');
-      kdString.append(nonce);
-      kdString.append(':');
-      kdString.append(nonceCount);
-      kdString.append(':');
-      kdString.append(cnonce);
-      kdString.append(':');
-      kdString.append(qop);
-      kdString.append(':');
-      kdString.append(a2HashHex);
-      return md5Digest.digest(kdString.toString().getBytes(charset));
-    }
-  }
-
-
-
-  /**
-   * Generates the appropriate DIGEST-MD5 rspauth digest using the provided
-   * information.
-   *
-   * @param  userName    The username from the authentication request.
-   * @param  authzID     The authorization ID from the request, or
-   *                     <CODE>null</CODE> if there is none.
-   * @param  password    The clear-text password for the user.
-   * @param  realm       The realm for which the authentication is to be
-   *                     performed.
-   * @param  nonce       The random data generated by the server for use in the
-   *                     digest.
-   * @param  cnonce      The random data generated by the client for use in the
-   *                     digest.
-   * @param  nonceCount  The 8-digit hex string indicating the number of times
-   *                     the provided nonce has been used by the client.
-   * @param  digestURI   The digest URI that specifies the service and host for
-   *                     which the authentication is being performed.
-   * @param  qop         The quality of protection string for the
-   *                     authentication.
-   * @param  charset     The character set used to encode the information.
-   *
-   * @return  The DIGEST-MD5 response for the provided set of information.
-   *
-   * @throws  UnsupportedEncodingException  If the specified character set is
-   *                                        invalid for some reason.
-   */
-  public byte[] generateResponseAuthDigest(String userName, String authzID,
-                                           byte[] password, String realm,
-                                           String nonce, String cnonce,
-                                           String nonceCount, String digestURI,
-                                           String qop, String charset)
-         throws UnsupportedEncodingException
-  {
-    synchronized (digestLock)
-    {
-      // First, get a hash of "username:realm:password".
-      StringBuilder a1String1 = new StringBuilder();
-      a1String1.append(userName);
-      a1String1.append(':');
-      a1String1.append(realm);
-      a1String1.append(':');
-
-      byte[] a1Bytes1a = a1String1.toString().getBytes(charset);
-      byte[] a1Bytes1  = new byte[a1Bytes1a.length + password.length];
-      System.arraycopy(a1Bytes1a, 0, a1Bytes1, 0, a1Bytes1a.length);
-      System.arraycopy(password, 0, a1Bytes1, a1Bytes1a.length,
-                       password.length);
-      byte[] urpHash = md5Digest.digest(a1Bytes1);
-
-
-      // Next, get a hash of "urpHash:nonce:cnonce[:authzid]".
-      StringBuilder a1String2 = new StringBuilder();
-      a1String2.append(':');
-      a1String2.append(nonce);
-      a1String2.append(':');
-      a1String2.append(cnonce);
-      if (authzID != null)
-      {
-        a1String2.append(':');
-        a1String2.append(authzID);
-      }
-      byte[] a1Bytes2a = a1String2.toString().getBytes(charset);
-      byte[] a1Bytes2  = new byte[urpHash.length + a1Bytes2a.length];
-      System.arraycopy(urpHash, 0, a1Bytes2, 0, urpHash.length);
-      System.arraycopy(a1Bytes2a, 0, a1Bytes2, urpHash.length,
-                       a1Bytes2a.length);
-      byte[] a1Hash = md5Digest.digest(a1Bytes2);
-
-
-      // Next, get a hash of "AUTHENTICATE:digesturi".
-      String a2String = ":" + digestURI;
-      if (qop.equals("auth-int") || qop.equals("auth-conf"))
-      {
-        a2String += ":00000000000000000000000000000000";
-      }
-      byte[] a2Bytes = a2String.getBytes(charset);
-      byte[] a2Hash  = md5Digest.digest(a2Bytes);
-
-
-      // Get hex string representations of the last two hashes.
-      String a1HashHex = getHexString(a1Hash);
-      String a2HashHex = getHexString(a2Hash);
-
-
-      // Put together the final string to hash, consisting of
-      // "a1HashHex:nonce:nonceCount:cnonce:qop:a2HashHex" and get its digest.
-      StringBuilder kdString = new StringBuilder();
-      kdString.append(a1HashHex);
-      kdString.append(':');
-      kdString.append(nonce);
-      kdString.append(':');
-      kdString.append(nonceCount);
-      kdString.append(':');
-      kdString.append(cnonce);
-      kdString.append(':');
-      kdString.append(qop);
-      kdString.append(':');
-      kdString.append(a2HashHex);
-      return md5Digest.digest(kdString.toString().getBytes(charset));
-    }
-  }
-
-
-
-  /**
-   * Retrieves a hexadecimal string representation of the contents of the
-   * provided byte array.
-   *
-   * @param  byteArray  The byte array for which to obtain the hexadecimal
-   *                    string representation.
-   *
-   * @return  The hexadecimal string representation of the contents of the
-   *          provided byte array.
-   */
-  private String getHexString(byte[] byteArray)
-  {
-    StringBuilder buffer = new StringBuilder(2*byteArray.length);
-    for (byte b : byteArray)
-    {
-      buffer.append(byteToLowerHex(b));
-    }
-
-    return buffer.toString();
-  }
-
 
 
   /**
@@ -1554,7 +210,6 @@ public class DigestMD5SASLMechanismHandler
   }
 
 
-
   /**
    * {@inheritDoc}
    */
@@ -1569,7 +224,6 @@ public class DigestMD5SASLMechanismHandler
   }
 
 
-
   /**
    * {@inheritDoc}
    */
@@ -1581,23 +235,116 @@ public class DigestMD5SASLMechanismHandler
   }
 
 
-
   /**
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationChange(
-              DigestMD5SASLMechanismHandlerCfg configuration)
+          DigestMD5SASLMechanismHandlerCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+      ResultCode        resultCode          = ResultCode.SUCCESS;
+      boolean           adminActionRequired = false;
 
-    // Get the identity mapper that should be used to find users.
-    DN identityMapperDN = configuration.getIdentityMapperDN();
-    identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
-    currentConfig  = configuration;
+      ArrayList<Message> messages            = new ArrayList<Message>();
+      try {
+          DN identityMapperDN = configuration.getIdentityMapperDN();
+          identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
+          serverFQDN = getFQDN(configuration);
+          Message msg = INFO_DIGEST_MD5_SERVER_FQDN.get(serverFQDN);
+          logError(msg);
+          String QOP = getQOP(configuration);
+          saslProps = new HashMap<String,String>();
+          saslProps.put(Sasl.QOP, QOP);
+          if(QOP.equalsIgnoreCase(SASL_MECHANISM_CONFIDENTIALITY)) {
+              saslProps.put(Sasl.STRENGTH, getStrength(configuration));
+          }
+          String realm=getRealm(configuration);
+          if(realm != null) {
+               msg = INFO_DIGEST_MD5_REALM.get(realm);
+              logError(msg);
+             saslProps.put(REALM_PROPERTY, getRealm(configuration));
+          }
+          this.configuration  = configuration;
+      } catch (UnknownHostException unhe) {
+          if (debugEnabled()) {
+              TRACER.debugCaught(DebugLogLevel.ERROR, unhe);
+          }
+          resultCode = ResultCode.OPERATIONS_ERROR;
+          messages.add(ERR_SASL_CANNOT_GET_SERVER_FQDN.get(
+                  String.valueOf(configEntryDN), getExceptionMessage(unhe)));
+          return new ConfigChangeResult(resultCode,adminActionRequired,
+                  messages);
+      }
+      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+
+  /**
+   * Retrieves the cipher strength string to use if confidentiality is enforce.
+   * This determination is the lowest value that the server can use.
+   *
+   * @param configuration The configuration to examine.
+   * @return The cipher strength string.
+   */
+  private String
+  getStrength(DigestMD5SASLMechanismHandlerCfg configuration) {
+      CipherStrength strength = configuration.getCipherStrength();
+      if(strength.equals(CipherStrength.HIGH)) {
+          return "high";
+      } else if(strength.equals(CipherStrength.MEDIUM)) {
+          return "high,medium";
+      } else {
+          return "high,medium,low";
+      }
+  }
+
+
+  /**
+   * Retrieves the QOP (quality-of-protection) from the specified
+   * configuration.
+   *
+   * @param configuration The new configuration to use.
+   * @return A string representing the quality-of-protection.
+   */
+  private String
+  getQOP(DigestMD5SASLMechanismHandlerCfg configuration) {
+      QualityOfProtection QOP = configuration.getQualityOfProtection();
+      if(QOP.equals(QualityOfProtection.CONFIDENTIALITY))
+          return "auth-conf";
+      else if(QOP.equals(QualityOfProtection.INTEGRITY))
+          return "auth-int";
+      else
+          return "auth";
+  }
+
+
+  /**
+   * Returns the fully qualified name either defined in the configuration, or,
+   * determined by examining the system configuration.
+   *
+   * @param configuration The configuration to check.
+   * @return The fully qualified hostname of the server.
+   *
+   * @throws UnknownHostException If the name cannot be determined from the
+   *                              system configuration.
+   */
+  private String getFQDN(DigestMD5SASLMechanismHandlerCfg configuration)
+  throws UnknownHostException {
+      String serverName = configuration.getServerFqdn();
+      if (serverName == null) {
+              serverName = InetAddress.getLocalHost().getCanonicalHostName();
+      }
+      return serverName;
+  }
+
+
+  /**
+   * Retrieve the realm either defined in the specified configuration. If this
+   * isn't defined, the SaslServer internal code uses the server name.
+   *
+   * @param configuration The configuration to check.
+   * @return A string representing the realm.
+   */
+  private String getRealm(DigestMD5SASLMechanismHandlerCfg configuration) {
+    return configuration.getRealm();
   }
 }
-

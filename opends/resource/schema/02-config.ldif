@@ -2354,6 +2354,21 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.489
   NAME 'ds-cfg-prohibited-subtrees'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.511
+  NAME 'ds-cfg-quality-of-protection'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.512
+  NAME 'ds-cfg-cipher-strength'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.513
+  NAME 'ds-cfg-principal-name'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -2801,6 +2816,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.46
   STRUCTURAL
   MUST ds-cfg-identity-mapper
   MAY ( ds-cfg-realm $
+        ds-cfg-cipher-strength $
+        ds-cfg-quality-of-protection $
         ds-cfg-server-fqdn )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.47
@@ -2811,6 +2828,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.47
         ds-cfg-realm $
         ds-cfg-kdc-address $
         ds-cfg-keytab $
+        ds-cfg-principal-name $
+        ds-cfg-quality-of-protection $
         ds-cfg-server-fqdn )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.48
