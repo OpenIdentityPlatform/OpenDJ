@@ -981,7 +981,47 @@ public final class DirectoryEnvironmentConfig
     return disableStr.equalsIgnoreCase("true");
   }
 
+  /**
+   * Indicates whether the Directory Server startup process should
+   * skip the synchronization provider creation and initialization
+   * phases.
+   *
+   * @return  {@code true} if the Directory Server should not start
+   *          its synchronization provider, or {@code false} if the
+   *          synchronization provider should be enabled.
+   */
+  public boolean disableSynchronization()
+  {
+    String disableStr =
+         getProperty(PROPERTY_DISABLE_SYNCHRONIZATION);
+    if (disableStr == null)
+    {
+      return false;
+    }
 
+    return disableStr.equalsIgnoreCase("true");
+  }
+
+  /**
+   * Indicates whether the Directory Server startup process should
+   * skip the synchronization between admin data and the
+   * configuration.
+   *
+   * @return  {@code true} if the Directory Server should start
+   *          synchronization between admin data and the
+   *          configuration.
+   */
+  public boolean disableAdminDataSynchronization()
+  {
+    String disableStr =
+         getProperty(PROPERTY_DISABLE_ADMIN_DATA_SYNCHRONIZATION);
+    if (disableStr == null)
+    {
+      return false;
+    }
+
+    return disableStr.equalsIgnoreCase("true");
+  }
 
   /**
    * Specifies whether the Directory Server startup process should

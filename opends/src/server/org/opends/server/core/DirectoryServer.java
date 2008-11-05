@@ -26,6 +26,7 @@
  */
 package org.opends.server.core;
 
+import org.opends.server.admin.AdministrationDataSync;
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.GlobalCfgDefn.WorkflowConfigurationMode;
@@ -1448,9 +1449,14 @@ public class DirectoryServer
 
 
       // Initialize any synchronization providers that may be defined.
-      synchronizationProviderConfigManager =
-           new SynchronizationProviderConfigManager();
-      synchronizationProviderConfigManager.initializeSynchronizationProviders();
+      if (!environmentConfig.disableSynchronization())
+      {
+        synchronizationProviderConfigManager =
+          new SynchronizationProviderConfigManager();
+        synchronizationProviderConfigManager
+            .initializeSynchronizationProviders();
+      }
+
 
 
       // Create and initialize the work queue.
@@ -1495,7 +1501,16 @@ public class DirectoryServer
       sendAlertNotification(this, ALERT_TYPE_SERVER_STARTED, message);
 
       // Force the root connection to be initialized.
-      InternalClientConnection.getRootConnection();
+      InternalClientConnection rootConnection =
+        InternalClientConnection.getRootConnection();
+
+      // Determine whether or not we should synchronized admin data.
+      if (! environmentConfig.disableAdminDataSynchronization())
+      {
+        AdministrationDataSync admDataSync = new AdministrationDataSync(
+            rootConnection);
+        admDataSync.synchronize();
+      }
 
       // If a server.starting file exists, then remove it.
       File serverStartingFile =

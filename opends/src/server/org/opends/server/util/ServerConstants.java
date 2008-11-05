@@ -2627,7 +2627,22 @@ public final class ServerConstants
   public static final String PROPERTY_DISABLE_CONNECTION_HANDLERS =
        "org.opends.server.DisableConnectionHandlers";
 
+  /**
+   * The name of the system property that can be used to disable any
+   * synchronization provider that may be enabled in the server configuration.
+   * This may be used to start the server in a mode where it will not accept any
+   * external connections, but may still be used for processing internal
+   * operations.
+   */
+  public static final String PROPERTY_DISABLE_SYNCHRONIZATION =
+       "org.opends.server.DisableSynchronization";
 
+  /**
+   * The name of the system property that can be used to disable the
+   * synchronization between between administration data.
+   */
+  public static final String PROPERTY_DISABLE_ADMIN_DATA_SYNCHRONIZATION =
+       "org.opends.server.DisableAdminDataSynchronization";
 
   /**
    * The name of the system property that can be used to indicate whether

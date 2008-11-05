@@ -259,6 +259,31 @@ public class InProcessServerController {
   }
 
   /**
+   * Disables the server's synchronization provider upon startup.  The server
+   * when started is otherwise up and running but will not accept any
+   * synchronization message. This could be useful, for example,
+   * in an upgrade mode where it might be helpful to start the server
+   * but don't want it to appear externally.
+   * @param disable boolean that when true disables synchronization provider
+   *  when the server is started.
+   */
+  static public void disableSynchronization(boolean disable) {
+    System.setProperty(
+            "org.opends.server.DisableSynchronization",
+            disable ? "true" : "false");
+  }
+  /**
+   * Disables the admin data synchronization upon startup.
+   * @param disable boolean that when true disables connection handlers when
+   * the server is started.
+   */
+  static public void disableAdminDataSynchronization(boolean disable) {
+    System.setProperty(
+            "org.opends.server.DisableAdminDataSynchronization",
+            disable ? "true" : "false");
+  }
+
+  /**
    * Stops a server that had been running 'in process'.
    */
   public void stopServer() {
