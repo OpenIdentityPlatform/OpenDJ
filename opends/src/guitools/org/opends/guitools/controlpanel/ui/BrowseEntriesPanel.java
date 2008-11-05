@@ -52,6 +52,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
+import javax.naming.InterruptedNamingException;
 import javax.naming.ldap.InitialLdapContext;
 import javax.swing.ButtonGroup;
 import javax.swing.JComponent;
@@ -522,8 +523,11 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       }
       catch (Throwable t)
       {
-        EntryReadErrorEvent ev = new EntryReadErrorEvent(this, dn, t);
-        entryPane.entryReadError(ev);
+        if (!(t instanceof InterruptedNamingException))
+        {
+          EntryReadErrorEvent ev = new EntryReadErrorEvent(this, dn, t);
+          entryPane.entryReadError(ev);
+        }
       }
     }
     else
