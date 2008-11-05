@@ -36,6 +36,7 @@ package org.opends.guitools.controlpanel.util;
 public abstract class BackgroundTask<T>
 {
   private BackgroundTaskThread<T> taskThread;
+  private boolean interrupted;
   /**
    * Creates a new thread and begins running the task in the background.  When
    * the task has completed, the {@code backgroundTaskCompleted} method will be
@@ -43,6 +44,7 @@ public abstract class BackgroundTask<T>
    */
   public final void startBackgroundTask()
   {
+    interrupted = false;
     taskThread = new BackgroundTaskThread<T>(this);
     taskThread.start();
   }
@@ -53,6 +55,7 @@ public abstract class BackgroundTask<T>
    */
   public final void interrupt()
   {
+    interrupted = true;
     if (taskThread != null)
     {
       taskThread.interrupt();
@@ -67,14 +70,7 @@ public abstract class BackgroundTask<T>
    */
   public boolean isInterrupted()
   {
-    if (taskThread != null)
-    {
-      return taskThread.isInterrupted();
-    }
-    else
-    {
-      return false;
-    }
+    return interrupted;
   }
 
   /**

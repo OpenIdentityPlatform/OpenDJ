@@ -28,6 +28,8 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.QuickSetupMessages.INFO_CERTIFICATE_EXCEPTION;
+import static org.opends.messages.QuickSetupMessages.INFO_NOT_AVAILABLE_LABEL;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -39,12 +41,16 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.net.URI;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
@@ -68,6 +74,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
+import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
@@ -87,6 +94,10 @@ import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
+import org.opends.quicksetup.UserDataCertificateException;
+import org.opends.quicksetup.ui.CertificateDialog;
+import org.opends.quicksetup.util.UIKeyStore;
+import org.opends.quicksetup.util.Utils;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -128,6 +139,8 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
   private JLabel lNumberOfEntries;
 
   private JLabel lNoMatchFound;
+
+  private InitialLdapContext createdUserDataCtx;
 
   /**
    * The tree pane contained in this panel.
@@ -182,6 +195,9 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
       "organization",
       "organizationalUnit"
   };
+
+  private static final Logger LOG =
+    Logger.getLogger(AbstractBrowseEntriesPanel.class.getName());
 
   /**
    * Default constructor.
@@ -1188,8 +1204,7 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
             if (getInfo().getUserDataDirContext() == null)
             {
               InitialLdapContext ctxUserData =
-                Utilities.getUserDataDirContext(getInfo(),
-                    ConnectionUtils.getBindDN(ctx),
+                createUserDataDirContext(ConnectionUtils.getBindDN(ctx),
                     ConnectionUtils.getBindPassword(ctx));
               getInfo().setUserDataDirContext(ctxUserData);
             }
@@ -1392,6 +1407,188 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
       dn = null;
     }
     return dn;
+  }
+
+  /**
+   * Creates the context to be used to retrieve user data for some given
+   * credentials.
+   * @param bindDN the bind DN.
+   * @param bindPassword the bind password.
+   * @return the context to be used to retrieve user data for some given
+   * credentials.
+   * @throws NamingException if an error occurs connecting to the server.
+   * @throws ConfigReadException if an error occurs reading the configuration.
+   */
+  private InitialLdapContext createUserDataDirContext(
+      final String bindDN, final String bindPassword)
+  throws NamingException, ConfigReadException
+  {
+    createdUserDataCtx = null;
+    try
+    {
+      createdUserDataCtx = Utilities.getUserDataDirContext(getInfo(),
+          bindDN, bindPassword);
+    }
+    catch (NamingException ne)
+    {
+      if (Utils.isCertificateException(ne))
+      {
+        ApplicationTrustManager.Cause cause =
+          getInfo().getTrustManager().getLastRefusedCause();
+
+        LOG.log(Level.INFO, "Certificate exception cause: "+cause);
+        UserDataCertificateException.Type excType = null;
+        if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
+        {
+          excType = UserDataCertificateException.Type.NOT_TRUSTED;
+        }
+        else if (cause ==
+          ApplicationTrustManager.Cause.HOST_NAME_MISMATCH)
+        {
+          excType = UserDataCertificateException.Type.HOST_NAME_MISMATCH;
+        }
+
+        if (excType != null)
+        {
+          String h;
+          int p;
+          try
+          {
+            URI uri = new URI(getInfo().getAdminConnectorURL());
+            h = uri.getHost();
+            p = uri.getPort();
+          }
+          catch (Throwable t)
+          {
+            LOG.log(Level.WARNING,
+                "Error parsing ldap url of ldap url.", t);
+            h = INFO_NOT_AVAILABLE_LABEL.get().toString();
+            p = -1;
+          }
+          final UserDataCertificateException udce =
+            new UserDataCertificateException(null,
+                INFO_CERTIFICATE_EXCEPTION.get(h, String.valueOf(p)),
+                ne, h, p,
+                getInfo().getTrustManager().getLastRefusedChain(),
+                getInfo().getTrustManager().getLastRefusedAuthType(),
+                excType);
+
+          if (SwingUtilities.isEventDispatchThread())
+          {
+            handleCertificateException(udce, bindDN, bindPassword);
+          }
+          else
+          {
+            final ConfigReadException[] fcre = {null};
+            final NamingException[] fne = {null};
+            try
+            {
+              SwingUtilities.invokeAndWait(new Runnable()
+              {
+                public void run()
+                {
+                  try
+                  {
+                    handleCertificateException(udce, bindDN, bindPassword);
+                  }
+                  catch (ConfigReadException cre)
+                  {
+                    fcre[0] = cre;
+                  }
+                  catch (NamingException ne)
+                  {
+                    fne[0] = ne;
+                  }
+                }
+              });
+            }
+            catch (Throwable t)
+            {
+              throw new IllegalArgumentException("Unexpected error: "+t, t);
+            }
+            if (fcre[0] != null)
+            {
+              throw fcre[0];
+            }
+            if (fne[0] != null)
+            {
+              throw fne[0];
+            }
+          }
+        }
+      }
+      else
+      {
+        throw ne;
+      }
+    }
+    return createdUserDataCtx;
+  }
+
+  /**
+   * Displays a dialog asking the user to accept a certificate if the user
+   * accepts it, we update the trust manager and simulate a click on "OK" to
+   * re-check the authentication.
+   * This method assumes that we are being called from the event thread.
+   * @param bindDN the bind DN.
+   * @param bindPassword the bind password.
+   */
+  private void handleCertificateException(UserDataCertificateException ce,
+      String bindDN, String bindPassword)
+  throws NamingException, ConfigReadException
+  {
+    CertificateDialog dlg = new CertificateDialog(null, ce);
+    dlg.pack();
+    Utilities.centerGoldenMean(dlg, Utilities.getParentDialog(this));
+    dlg.setVisible(true);
+    if (dlg.getUserAnswer() !=
+      CertificateDialog.ReturnType.NOT_ACCEPTED)
+    {
+      X509Certificate[] chain = ce.getChain();
+      String authType = ce.getAuthType();
+      String host = ce.getHost();
+
+      if ((chain != null) && (authType != null) && (host != null))
+      {
+        LOG.log(Level.INFO, "Accepting certificate presented by host "+host);
+        getInfo().getTrustManager().acceptCertificate(chain, authType, host);
+        createdUserDataCtx = createUserDataDirContext(bindDN, bindPassword);
+      }
+      else
+      {
+        if (chain == null)
+        {
+          LOG.log(Level.WARNING,
+              "The chain is null for the UserDataCertificateException");
+        }
+        if (authType == null)
+        {
+          LOG.log(Level.WARNING,
+              "The auth type is null for the UserDataCertificateException");
+        }
+        if (host == null)
+        {
+          LOG.log(Level.WARNING,
+              "The host is null for the UserDataCertificateException");
+        }
+      }
+    }
+    if (dlg.getUserAnswer() ==
+      CertificateDialog.ReturnType.ACCEPTED_PERMANENTLY)
+    {
+      X509Certificate[] chain = ce.getChain();
+      if (chain != null)
+      {
+        try
+        {
+          UIKeyStore.acceptCertificate(chain);
+        }
+        catch (Throwable t)
+        {
+          LOG.log(Level.WARNING, "Error accepting certificate: "+t, t);
+        }
+      }
+    }
   }
 
   /**
