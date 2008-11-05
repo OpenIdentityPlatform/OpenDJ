@@ -331,5 +331,22 @@ public abstract class AccessControlHandler
                              SearchOperation searchOperation,
                              SearchResultReference searchReference);
 
+  /**
+   * Indicates if the specified proxy user entry can proxy, or act on
+   * the behalf of the specified proxied user entry. The operation
+   * parameter is used in the evaluation.
+   *
+   * @param proxyUser The entry to use as the proxy user.
+   * @param proxiedUser The entry to be proxied by the proxy user.
+   * @param operation The operation to use in the evaluation.
+   *
+   * @return  {@code true} if the access control configuration allows
+   *          the proxy user to proxy the proxied user, or
+   *          {@code false} if not.
+   */
+  public abstract boolean mayProxy(Entry proxyUser,
+                                   Entry proxiedUser,
+                                   Operation operation);
+
 }
 

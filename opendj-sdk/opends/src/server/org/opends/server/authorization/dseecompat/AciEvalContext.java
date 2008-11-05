@@ -146,7 +146,7 @@ public interface AciEvalContext
      * @return True if the authorization DN of the operation is a
      * member of the specified group.
      */
-    public boolean isMemberOf(Group group);
+    public boolean isMemberOf(Group<?> group);
 
   /**
    * Returns true if the hashtable of ACIs that matched the targattrfilters

@@ -1873,6 +1873,12 @@ public final class ServerConstants
        "Kerberos Confidentiality";
 
 
+  /**
+   * The name of the default protocol used.
+   */
+  public static final String SASL_DEFAULT_PROTOCOL = "ldap";
+
+
 
   /**
    * The name of the security mechanism that will be used for connections
@@ -1930,6 +1936,33 @@ public final class ServerConstants
    * The name of the SASL mechanism based on PLAIN authentication.
    */
   public static final String SASL_MECHANISM_PLAIN = "PLAIN";
+
+
+
+  /**
+   * The name of the security mechanism that will be used for connections whose
+   * communication only SASL authenticated.
+   */
+  public static final String SASL_MECHANISM_AUTHENTICATION_ONLY =
+       "none";
+
+
+
+  /**
+   * The name of the security mechanism that will be used for connections whose
+   * communication is protected using the confidentiality features SASL.
+   */
+  public static final String SASL_MECHANISM_CONFIDENTIALITY =
+       "confidentiality";
+
+
+
+  /**
+   * The name of the security mechanism that will be used for connections whose
+   * communication is verified using SASL integrity.
+   */
+  public static final String SASL_MECHANISM_INTEGRITY =
+       "integrity";
 
 
 

@@ -59,7 +59,6 @@ import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.SearchOperationBasis;
 import org.opends.server.core.UnbindOperationBasis;
-import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.extensions.NullConnectionSecurityProvider;
 import org.opends.server.extensions.TLSCapableConnection;
 import org.opends.server.extensions.TLSConnectionSecurityProvider;
@@ -220,7 +219,9 @@ public class LDAPClientConnection
   // if StartTLS is requested.
   private TLSConnectionSecurityProvider tlsSecurityProvider;
 
-
+  //The SASL connection provider used if confidentiality/integrity is negotiated
+  //during a SASL bind (GSSAPI and DIGEST-MD5 only).
+  private ConnectionSecurityProvider saslSecurityProvider;
 
   /**
    * Creates a new LDAP client connection with the provided information.
@@ -237,9 +238,6 @@ public class LDAPClientConnection
 
 
     this.connectionHandler     = connectionHandler;
-    if (connectionHandler.isAdminConnectionHandler()) {
-      setNetworkGroup(NetworkGroup.getAdminNetworkGroup());
-    }
     this.clientChannel         = clientChannel;
     this.securityProvider      = null;
     this.clearSecurityProvider = null;
@@ -479,8 +477,23 @@ public class LDAPClientConnection
    */
   public ConnectionSecurityProvider getConnectionSecurityProvider()
   {
-    return securityProvider;
+      if(saslSecurityProvider != null && saslSecurityProvider.isActive())
+          securityProvider =  saslSecurityProvider;
+      return securityProvider;
   }
+
+
+
+  /**
+   * Set the security provider to be used to process SASL (DIGEST-MD5, GSSAPI)
+   * confidentiality/integrity messages.
+   *
+   * @param secProvider The security provider to use.
+   */
+    public void
+    setSASLConnectionSecurityProvider(ConnectionSecurityProvider secProvider) {
+        saslSecurityProvider = secProvider;
+    }
 
 
 

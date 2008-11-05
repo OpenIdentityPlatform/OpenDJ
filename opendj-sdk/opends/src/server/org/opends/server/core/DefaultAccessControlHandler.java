@@ -222,5 +222,15 @@ class DefaultAccessControlHandler
     return true;
   }
 
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public  boolean mayProxy(Entry proxyUser, Entry proxiedUser,
+                           Operation operation) {
+      return true;
+  }
 }
 

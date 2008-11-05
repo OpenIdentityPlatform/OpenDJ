@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
 
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -44,7 +45,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.OperatingSystem;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.Base64;
-
+import org.opends.server.tools.dsconfig.DSConfig;
 import static org.testng.Assert.*;
 
 import static org.opends.server.util.ServerConstants.*;
@@ -77,6 +78,12 @@ public class LDAPCompareTestCase
   {
     TestCaseUtils.startServer();
 
+    
+    TestCaseUtils.dsconfig(
+            "set-sasl-mechanism-handler-prop",
+            "--handler-name", "DIGEST-MD5",
+            "--set", "server-fqdn:" + "127.0.0.1");
+    
     File pwFile = File.createTempFile("valid-bind-password-", ".txt");
     pwFile.deleteOnExit();
     FileWriter fileWriter = new FileWriter(pwFile);
@@ -92,6 +99,14 @@ public class LDAPCompareTestCase
     invalidPasswordFile = pwFile.getAbsolutePath();
   }
 
+  @AfterClass
+  public void tearDown() throws Exception {
+   
+    TestCaseUtils.dsconfig(
+            "set-sasl-mechanism-handler-prop",
+            "--handler-name", "DIGEST-MD5",
+            "--remove", "server-fqdn:" + "127.0.0.1");
+  }
 
 
   /**
@@ -883,6 +898,7 @@ public class LDAPCompareTestCase
          "sn: User",
          "cn: Test User",
          "ds-privilege-name: bypass-acl",
+         "ds-privilege-name: proxied-auth",
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
@@ -894,7 +910,7 @@ public class LDAPCompareTestCase
                          e.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-
+    
     String[] args =
     {
       "-h", "127.0.0.1",
@@ -902,7 +918,6 @@ public class LDAPCompareTestCase
       "-o", "mech=DIGEST-MD5",
       "-o", "authid=u:test.user",
       "-o", "authzid=u:test.user",
-      "-o", "realm=o=test",
       "-w", "password",
       "--noPropertiesFile",
       "givenName:Test",

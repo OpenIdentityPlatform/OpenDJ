@@ -538,7 +538,7 @@ public class Aci  {
    * @param expr A string representing the OID expression.
    * @param msg  A message to be used if there is an exception.
    *
-   * @return  Return a hash set of verfied OID strings parsed from the OID
+   * @return  Return a hash set of verified OID strings parsed from the OID
    *          expression.
    *
    * @throws AciException If the specified expression string is invalid.

@@ -31,15 +31,15 @@
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The GSSAPI SASL mechanism 
+    The GSSAPI SASL mechanism
     performs all processing related to SASL GSSAPI
     authentication using Kerberos V5.
   </adm:synopsis>
   <adm:description>
-    The GSSAPI SASL mechanism provides the ability for clients 
-    to authenticate themselves to the server using existing 
-    authentication in a Kerberos environment. This mechanism 
-    provides the ability to achieve single sign-on for 
+    The GSSAPI SASL mechanism provides the ability for clients
+    to authenticate themselves to the server using existing
+    authentication in a Kerberos environment. This mechanism
+    provides the ability to achieve single sign-on for
     Kerberos-based clients.
   </adm:description>
   <adm:profile name="ldap">
@@ -85,7 +85,7 @@
     </adm:synopsis>
     <adm:description>
       If provided, this property must be a fully-qualified DNS-resolvable name.
-      If this property is not provided, then the server attempts to determine it 
+      If this property is not provided, then the server attempts to determine it
       from the system-wide Kerberos configuration.
     </adm:description>
     <adm:default-behavior>
@@ -102,6 +102,71 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-kdc-address</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="quality-of-protection">
+    <adm:synopsis>
+     The name of a property that specifies the quality of protection
+     the server will support.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>none</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="none">
+          <adm:synopsis>
+            QOP equals authentication only.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="integrity">
+          <adm:synopsis>
+            Quality of protection equals authentication with integrity
+            protection.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="confidentiality">
+          <adm:synopsis>
+            Quality of protection equals authentication with integrity and
+            confidentiality protection.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-quality-of-protection</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="principal-name">
+    <adm:synopsis>
+      Specifies the principal name.
+    </adm:synopsis>
+    <adm:description>
+      It can either be a simple user name or a
+      service name such as host/example.com.
+      If this property is not provided, then the server attempts to build the
+      principal name by appending the fully qualified domain name to the string
+      "ldap/".
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The server attempts to determine the principal name from the
+          underlying system configuration.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-principal-name</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -155,8 +220,8 @@
   <adm:property name="identity-mapper" mandatory="true">
     <adm:synopsis>
       Specifies the name of the identity mapper that is to be used
-      with this SASL mechanism handler 
-      to match the Kerberos principal 
+      with this SASL mechanism handler
+      to match the Kerberos principal
       included in the SASL bind request to the corresponding
       user in the directory.
     </adm:synopsis>
