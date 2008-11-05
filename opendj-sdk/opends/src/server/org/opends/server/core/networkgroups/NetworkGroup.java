@@ -94,6 +94,7 @@ public class NetworkGroup
   private static NetworkGroup adminNetworkGroup =
       new NetworkGroup (ADMIN_NETWORK_GROUP_NAME);
 
+
   // The internal network group (singleton).
   // The internal network group has no criterion, no policy, and gives
   // access to all the workflows. The purpose of the internal network
@@ -214,6 +215,8 @@ public class NetworkGroup
 
   /**
    * Deregisters the current network group (this) with the server.
+   * The method also decrements the reference counter of the workflows
+   * so that workflows can be disabled or deleted if needed.
    */
   public void deregister()
   {
@@ -224,6 +227,27 @@ public class NetworkGroup
       networkGroups.remove(networkGroupID);
       registeredNetworkGroups = networkGroups;
       orderedNetworkGroups.remove(this);
+
+      // decrement the reference counter of the workflows registered with
+      // this network group
+      updateWorkflowReferenceCounters();
+    }
+  }
+
+
+  /**
+   * Decrements the workflow reference counters of all the workflows
+   * registered with this network group.
+   */
+  private void updateWorkflowReferenceCounters()
+  {
+    synchronized (registeredWorkflowNodesLock)
+    {
+      for (WorkflowTopologyNode workflowNode: registeredWorkflowNodes.values())
+      {
+        WorkflowImpl workflowImpl = workflowNode.getWorkflowImpl();
+        workflowImpl.decrementReferenceCounter();
+      }
     }
   }
 

@@ -147,7 +147,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
    * - a boolean telling whether we expect to find a workflow for the baseDN
    *   in the default network group
    * - a boolean telling whether we expect to find a workflow for the baseDN
-   *   in the admin network group
+   *   in the administration network group
    * - a boolean telling whether we expect to find a workflow for the baseDN
    *   in the internal network group
    *
@@ -484,7 +484,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Create a workflow -- the workflow ID is the string representation
     // of the workflow base DN.
-    WorkflowElement nullWE = null;
+    WorkflowElement<?> nullWE = null;
     WorkflowImpl workflow = new WorkflowImpl(
         workflowBaseDN.toString(), workflowBaseDN, null, nullWE);
 
@@ -543,7 +543,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     dump(defaultNG, "defaultNetworkGroup> ");
 
     // let's get the admin network group -- it should always exist
-
     NetworkGroup adminNG = NetworkGroup.getAdminNetworkGroup();
     assertNotNull(adminNG);
 
@@ -610,7 +609,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     createAndRegisterWorkflow(networkGroup, dn2);
     createAndRegisterWorkflow(networkGroup, dn3);
 
-    // Check the route thorugh the network group
+    // Check the route through the network group
     doCheckNetworkGroup(networkGroup, dn1, subordinate1, unrelatedDN, true);
     doCheckNetworkGroup(networkGroup, dn2, subordinate2, unrelatedDN, true);
     doCheckNetworkGroup(networkGroup, dn3, subordinate3, unrelatedDN, true);
@@ -678,8 +677,8 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
    * backend base DNs are added or removed. When a new backend base DN is
    * added, the new suffix should be accessible for the route process - ie.
    * a workflow should be created and be a potential candidate for the route
-   * process. Simillarly, when a backend base DN is removed its associated
-   * workflow should be removed; subsequently, any request targetting the
+   * process. Similarly, when a backend base DN is removed its associated
+   * workflow should be removed; subsequently, any request targeting the
    * removed suffix should be rejected and a no such entry status code be
    * returned.
    */
@@ -777,7 +776,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Create a workflow -- the workflow ID is the string representation
     // of the workflow base DN.
-    WorkflowElement nullWE = null;
+    WorkflowElement<?> nullWE = null;
     WorkflowImpl workflow = new WorkflowImpl(
         workflowBaseDN.toString(), workflowBaseDN, null, nullWE);
 
@@ -833,7 +832,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Create a workflow -- the workflow ID is the string representation
     // of the workflow base DN.
-    WorkflowElement nullWE = null;
+    WorkflowElement<?> nullWE = null;
     WorkflowImpl workflow1 = new WorkflowImpl(
         dn1.toString(), dn1, null, nullWE);
     WorkflowImpl workflow2 = new WorkflowImpl(
@@ -848,7 +847,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Find a networkGroup for this connection
     // As the network groups define no criteria, the highest priority
-    // must be choosen
+    // must be chosen
     NetworkGroup ng = NetworkGroup.findMatchingNetworkGroup(connection);
     if (prio1 < prio2) {
       assertEquals(ng, networkGroup1);
@@ -996,7 +995,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
 
   /**
-   * Tests the mechnism to attribute a network group to a client connection,
+   * Tests the mechanism to attribute a network group to a client connection,
    * based on the bind dn filter.
    */
   @Test (groups = "virtual")
@@ -1207,7 +1206,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Create a workflow with no task inside. The workflow identifier
     // is the a string representation of the workflow base DN.
-    WorkflowElement rootWE = null;
+    WorkflowElement<?> rootWE = null;
     String workflowId = workflowBaseDN.toString();
     WorkflowImpl workflow = new WorkflowImpl(
         workflowId, workflowBaseDN, null, rootWE);

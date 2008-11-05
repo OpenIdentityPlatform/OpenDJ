@@ -150,9 +150,9 @@ public class NetworkGroupConfigManager
   public ConfigChangeResult applyConfigurationAdd(
       NetworkGroupCfg configuration)
   {
-    ResultCode         resultCode          = ResultCode.SUCCESS;
-    boolean            adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ResultCode    resultCode          = ResultCode.SUCCESS;
+    boolean       adminActionRequired = false;
+    List<Message> messages            = new ArrayList<Message>();
 
     configuration.addChangeListener(this);
 
@@ -198,9 +198,9 @@ public class NetworkGroupConfigManager
   public ConfigChangeResult applyConfigurationDelete(
       NetworkGroupCfg configuration)
   {
-    ResultCode         resultCode          = ResultCode.SUCCESS;
-    boolean            adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ResultCode    resultCode          = ResultCode.SUCCESS;
+    boolean       adminActionRequired = false;
+    List<Message> messages            = new ArrayList<Message>();
 
 
     NetworkGroup networkGroup = networkGroups.remove(configuration.dn());
@@ -234,9 +234,9 @@ public class NetworkGroupConfigManager
   public ConfigChangeResult applyConfigurationChange(
       NetworkGroupCfg configuration)
   {
-    ResultCode         resultCode          = ResultCode.SUCCESS;
-    boolean            adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ResultCode    resultCode          = ResultCode.SUCCESS;
+    boolean       adminActionRequired = false;
+    List<Message> messages            = new ArrayList<Message>();
 
     ConfigChangeResult configChangeResult =
       new ConfigChangeResult(resultCode, adminActionRequired, messages);
