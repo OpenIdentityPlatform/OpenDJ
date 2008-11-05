@@ -892,6 +892,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
           InProcessServerController ipsc =
                   new InProcessServerController(getInstallation());
           InProcessServerController.disableConnectionHandlers(true);
+          InProcessServerController.disableAdminDataSynchronization(true);
+          InProcessServerController.disableSynchronization(true);
           ipsc.startServer();
           LOG.log(Level.INFO, "start server finished");
           notifyListeners(getFormattedDoneWithLineBreak());
@@ -1969,7 +1971,21 @@ public class Upgrader extends GuiApplication implements CliApplication {
   {
     Installation installation = getInstallation() ;
     File installDir  = installation.getRootDirectory();
+    try
+    {
+      installDir = installDir.getCanonicalFile();
+    }
+    catch (Exception e) {
+      installDir  = installation.getRootDirectory();
+    }
     File instanceDir = installation.getInstanceDirectory();
+    try
+    {
+      instanceDir = instanceDir.getCanonicalFile();
+    }
+    catch (Exception e) {
+      instanceDir = installation.getInstanceDirectory();
+    }
     return installDir.getAbsolutePath().equals(instanceDir.getAbsolutePath());
   }
 
