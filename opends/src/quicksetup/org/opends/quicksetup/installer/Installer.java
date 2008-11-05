@@ -1174,6 +1174,8 @@ public abstract class Installer extends GuiApplication {
 
     argList.add("-Q");
 
+    argList.add("--noPropertiesFile");
+
     final String[] args = new String[argList.size()];
     argList.toArray(args);
 
