@@ -345,7 +345,7 @@ public class ConfigGuideGeneration {
       AbstractManagedObjectDefinition parentMo = rel.getParentDefinition();
       // Does not generate several entry for the same relation
       if (relList.put(childMo.getName(), rel) != null) {
-       continue; 
+       continue;
       }
       if (rel.hasOption(RelationOption.HIDDEN)) {
         continue;
