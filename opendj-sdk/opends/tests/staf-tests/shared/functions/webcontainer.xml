@@ -109,20 +109,31 @@
         
         <script>stafRoot=STAFResult</script>
         
-        <call function="'runCommand'">
-          { 'name'      : 'Generate a Certificate',
-            'location'  : STAXServiceMachine,
-            'command'   : '%s/bin/keytool' % (JAVA_HOME),
-            'arguments' : '-genkey -alias tomcat -keyalg rsa \
-                           -dname "cn=tomcat,O=Sun Microsystems,C=US" \
-                           -keystore "%s/services/DSML/tomcatCertificate" \
-                           -storepass "changeit" -keypass "changeit" \
-                           -storetype JKS ' % (stafRoot),
-            'path'      : '%s/bin' % (JAVA_HOME),
-            'expectedRC': 0
+        <!-- Check if 'tomcatCertificate' file exists -->
+        <call function="'GetEntry'">
+          {
+          'location'  : STAXServiceMachine,
+          'entry'     : '%s/services/DSML/tomcatCertificate' % stafRoot,
+          'attribute' : 'TYPE'
           }
         </call>
-      
+        <!-- 'tomcatCertificate' file does not exist so generate it -->
+        <if expr="RC == 48">
+          <call function="'runCommand'">
+            { 'name'      : 'Generate a Certificate',
+              'location'  : STAXServiceMachine,
+              'command'   : '%s/bin/keytool' % (LOCAL_JAVA_HOME),
+              'arguments' : '-genkey -alias tomcat -keyalg rsa \
+                             -dname "cn=tomcat,O=Sun Microsystems,C=US" \
+                             -keystore "%s/services/DSML/tomcatCertificate" \
+                             -storepass "changeit" -keypass "changeit" \
+                             -storetype JKS ' % (stafRoot),
+              'path'      : '%s/bin' % (LOCAL_JAVA_HOME),
+              'expectedRC': 0
+            }
+          </call>
+        </if>
+
         <call function="'copyFile'">
           { 'location'   : STAXServiceMachine,
             'srcfile'    : '%s/services/DSML/tomcatCertificate' % (stafRoot),
@@ -157,12 +168,12 @@
             (WC_SSL_PORT, wcPath, WC_TYPE, WC_VERSION)
           content=sslConnectorRegEx.sub(SSL_CONNECTOR, content)
           serverXmlOutput=open('%s/%s-%s-%s_server.xml' % \
-                          (TMPDIR,STAF_REMOTE_HOSTNAME,WC_TYPE,WC_VERSION),'w')
+                          (local.temp,STAF_REMOTE_HOSTNAME,WC_TYPE,WC_VERSION),'w')
           serverXmlOutput.write(content)
           serverXmlOutput.close()
         </script>
         <call function="'copyFile'">
-          {'srcfile' : '%s/%s-%s-%s_server.xml' % (TMPDIR, STAF_REMOTE_HOSTNAME, WC_TYPE, WC_VERSION),
+          {'srcfile' : '%s/%s-%s-%s_server.xml' % (local.temp, STAF_REMOTE_HOSTNAME, WC_TYPE, WC_VERSION),
            'destfile' : '%s/%s-%s/conf/server.xml' % (wcPath, WC_TYPE, WC_VERSION),
            'remotehost' : '%s' % STAF_REMOTE_HOSTNAME
           }
@@ -269,7 +280,7 @@
       <script>
         if wcPath:
           wcBinPath='%s/bin' % wcPath
-          STAFCmd='%s/shutdown.sh' % wcBinPath
+          STAFCmd='%s/shutdown%s' % (wcBinPath, scriptExt)
           STAFCmdEnv=['CATALINA_HOME=%s' % wcPath,'PATH=/bin:/usr/bin',\
                       'JAVA_HOME=%s' % JAVA_HOME]
       </script>
@@ -279,22 +290,13 @@
       </message>
       
       <call function="'runCommand'">
-        { 'location'  : location,
-        'command'   : STAFCmd,
-        'env' : STAFCmdEnv,
-        'name' : STAFCmd,
-        'path' : wcBinPath
+        { 'location' : location,
+        'command'    : STAFCmd,
+        'envCmd'     : STAFCmdEnv,
+        'name'       : STAFCmd,
+        'path'       : wcBinPath
         }
       </call>
-      <script>
-        stopRC=RC
-        stopResult=STAXResult
-      </script>
-      <call function="'checkRC'">
-        { 'returncode' : stopRC,
-        'result'     : stopResult }
-      </call>
-      <return>stopResult</return>
       
     </sequence>
     
@@ -325,7 +327,7 @@
       <script>
         if wcPath:
           wcBinPath='%s/bin' % wcPath
-          STAFCmd='%s/startup.sh' % wcBinPath
+          STAFCmd='%s/startup%s' % (wcBinPath, scriptExt)
           STAFCmdEnv=['CATALINA_HOME=%s' % wcPath,'PATH=/bin:/usr/bin', \
                       'JAVA_HOME=%s' % JAVA_HOME]
       </script>
@@ -333,25 +335,24 @@
       <message>
         '%s' % STAFCmd
       </message>
-      
+
+      <!-- On Windows systems, startup command always returns 1 -->
+      <script>
+        if is_windows_platform(location):
+          expectedRC=1
+        else:
+          expectedRC=0
+      </script>
+
       <call function="'runCommand'">
-        { 'location'  : location,
-        'command'   : STAFCmd,
-        'env' : STAFCmdEnv,
-        'name' : STAFCmd,
-        'path' : wcBinPath
+        { 'location' : location,
+        'command'    : STAFCmd,
+        'envCmd'     : STAFCmdEnv,
+        'name'       : STAFCmd,
+        'path'       : wcBinPath,
+        'expectedRC' : expectedRC
         }
       </call>
-      <script>
-        startRC=RC
-        startResult=STAXResult
-      </script>
-      <call function="'checkRC'">
-        { 'returncode' : startRC ,
-        'result'     : startResult }
-      </call>
-      
-      <return>startResult</return>
       
     </sequence>
     

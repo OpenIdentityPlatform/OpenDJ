@@ -286,12 +286,7 @@
                 'setup: start webcontainer as described in config.py'
               </message>
               <call function="'startWebcontainerWithScript'"/>
-              <call function="'checktestRC'">
-                {
-                'returncode' : RC ,
-                'result'     : STAXResult
-                }
-              </call>
+
               <stafcmd name="'waiting for webcontainer startup'">
                 <location>'%s' % location</location>
                 <service>'delay'</service>
@@ -321,17 +316,30 @@
                 'setup: configure DSML gateway DS port param.'
               </message>
 
+              <script>
+                myTmpDir='%s/%s' % (local.temp, STAF_REMOTE_HOSTNAME)
+              </script>
+              <message>
+                'Create folder %s on host %s' % (myTmpDir,STAXServiceMachine)
+              </message>
+              <call function="'createFolder'">
+                { 'location'   : STAXServiceMachine,
+                  'foldername' : '%s' % myTmpDir
+                }
+              </call>
+
               <call function="'runSTAFCommand'">
                 { 'name'      :  'Extract DSML gateway web.xml',
                   'location'  :  STAXServiceMachine,
                   'service'   :  'ZIP',
                   'request'   :  'UNZIP',
-                  'arguments' :  'ZIPFILE %s TODIRECTORY %s FILE WEB-INF/web.xml' % (DSML_WARPATH, TMPDIR)
+                  'arguments' :  'ZIPFILE %s TODIRECTORY %s FILE WEB-INF/web.xml' \
+                                  % (DSML_WARPATH, myTmpDir)
                 }
               </call>
 
               <script>
-                webXmlInput=open('%s/WEB-INF/web.xml' % TMPDIR,'r')
+                webXmlInput=open('%s/WEB-INF/web.xml' % myTmpDir,'r')
                 import re
                 portRegEx = re.compile('389')
                 hostRegEx = re.compile('localhost')
@@ -339,14 +347,18 @@
                 c1=portRegEx.sub(DIRECTORY_INSTANCE_PORT, c0)
                 content=hostRegEx.sub(DIRECTORY_INSTANCE_HOST, c1)
                 webXmlInput.close()
-                webXmlOutput=open('%s/WEB-INF/web.xml.out' % TMPDIR,'w')
+                webXmlOutput=open('%s/WEB-INF/web.xml.out' % myTmpDir,'w')
                 webXmlOutput.write(content)
                 webXmlOutput.close()
               </script>
+
+              <message>
+                'Update DSML gateway web.xml file on host %s' % STAF_REMOTE_HOSTNAME
+              </message>
               <call function="'copyFile'">
                 { 'location' : STAXServiceMachine,
                   'remotehost' : '%s' % STAF_REMOTE_HOSTNAME,
-                  'srcfile' : '%s/WEB-INF/web.xml.out' % TMPDIR,
+                  'srcfile' : '%s/WEB-INF/web.xml.out' % myTmpDir,
                   'destfile' : '%s/%s-%s/webapps/dsml/WEB-INF/web.xml' % (WC_DIRECTORY,WC_TYPE,WC_VERSION)
                  }
               </call>

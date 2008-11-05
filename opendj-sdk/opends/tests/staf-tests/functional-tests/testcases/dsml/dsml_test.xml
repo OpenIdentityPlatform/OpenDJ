@@ -43,7 +43,7 @@
         </script>
         <call function="'testSuite_Preamble'"/>
         <sequence>
-          <message>'TESTS_DATA_DIR=%s '%(TESTS_DATA_DIR)
+          <message>'TESTS_DATA_DIR=%s ' % (local.data)
           </message>
           <!--- Test Case information
               #@TestMarker          test
@@ -68,14 +68,14 @@
                   'location'  :  STAXServiceMachine,
                   'service'   :  'FS',
                   'request'   :  'LIST DIRECTORY',
-                  'arguments' :  '%s/dsml/suites SORTBYNAME TYPE d' % TESTS_DATA_DIR
+                  'arguments' :  '%s/dsml/suites SORTBYNAME TYPE d' % local.data
                 }
               </call>
 
               <if expr="RC != 0">
                 <sequence>
                   <message>
-                    'Folder %d/dsml/suites does not exist.' % (TESTS_DATA_DIR)
+                    'Folder %d/dsml/suites does not exist.' % (local.data)
                   </message>
                   <return>0</return>
                 </sequence>
@@ -111,7 +111,7 @@
                       'service'   :  'FS',
                       'request'   :  'LIST DIRECTORY',
                       'arguments' :  '%s/dsml/suites/%s/data \
-                                      SORTBYNAME EXT dat TYPE f' % (TESTS_DATA_DIR,family)
+                                      SORTBYNAME EXT dat TYPE f' % (local.data,family)
                     }
                   </call>
 
@@ -125,7 +125,7 @@
                       'service'   :  'FS',
                       'request'   :  'LIST DIRECTORY',
                       'arguments' :  '%s/dsml/suites/%s/data \
-                                      SORTBYNAME EXT res TYPE f' % (TESTS_DATA_DIR,family)
+                                      SORTBYNAME EXT res TYPE f' % (local.data,family)
                     }
                   </call>
 
@@ -141,10 +141,10 @@
                           runFileName = runFileRE.sub('run',test)
                           runFilePath = '/tmp/%s_%s' % (family, runFileName)
                           requestFilePath = '%s/dsml/suites/%s/data/%s' % \
-                            (TESTS_DATA_DIR,family,test)
+                            (local.data,family,test)
                           expectedFileName = runFileRE.sub('res',test)
                           expectedFilePath = '%s/dsml/suites/%s/data/%s' % \
-                            (TESTS_DATA_DIR,family,expectedFileName)
+                            (local.data,family,expectedFileName)
                           if (sslRE.search(test) != None):
                             url = urls['SSL']
                           else:

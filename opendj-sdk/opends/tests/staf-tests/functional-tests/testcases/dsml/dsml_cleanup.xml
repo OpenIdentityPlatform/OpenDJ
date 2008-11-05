@@ -128,12 +128,7 @@
               { 'location'   : STAF_REMOTE_HOSTNAME ,
               'wcPath' : '%s/%s-%s' % (WC_DIRECTORY,WC_TYPE,WC_VERSION) }
             </call>
-            <call function="'checktestRC'">
-              {
-              'returncode' : RC ,
-              'result'     : STAXResult
-              }
-            </call>
+
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
