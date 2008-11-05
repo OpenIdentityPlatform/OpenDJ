@@ -136,11 +136,13 @@
         OPENDS_BINPATH ='%s/%s/bin' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
         if is_windows_platform(STAF_REMOTE_HOSTNAME):
           fileExt='.bat'
+          scriptExt='.bat'
           fileFolder='bat'
           pathSeparator=';'
           newLine='\r\n'
         else:
           fileExt=''
+          scriptExt='.sh'
           fileFolder='bin'
           pathSeparator=':'
           newLine='\n'
