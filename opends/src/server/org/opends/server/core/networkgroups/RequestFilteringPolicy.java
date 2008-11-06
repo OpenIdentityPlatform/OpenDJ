@@ -90,6 +90,9 @@ implements ConfigurationAddListener<NetworkGroupRequestFilteringPolicyCfg>,
   // The list of prohibited subtrees
   Set<DN> prohibitedSubtrees = null;
 
+  // The stats for the request filtering policy
+  private RequestFilteringPolicyStat stat = new RequestFilteringPolicyStat();
+
   // The current configuration
   NetworkGroupRequestFilteringPolicyCfg config = null;
 
@@ -146,6 +149,14 @@ implements ConfigurationAddListener<NetworkGroupRequestFilteringPolicyCfg>,
     } else {
       resetPolicy();
     }
+  }
+
+  /**
+   * Returns the statistics associated to this policy.
+   * @return The statistics associated to this policy
+   */
+  public RequestFilteringPolicyStat getStat() {
+    return stat;
   }
 
   /**
@@ -281,6 +292,7 @@ implements ConfigurationAddListener<NetworkGroupRequestFilteringPolicyCfg>,
       }
 
       if (!result) {
+        stat.updateRejectedOperations();
         messages.add(INFO_ERROR_OPERATION_NOT_ALLOWED.get());
         return result;
       }
@@ -296,6 +308,7 @@ implements ConfigurationAddListener<NetworkGroupRequestFilteringPolicyCfg>,
         result = (!containsProhibitedAttribute(searchOp.getRawFilter()));
       }
       if (!result) {
+        stat.updateRejectedAttributes();
         messages.add(INFO_ERROR_ATTRIBUTE_NOT_ALLOWED.get());
         return result;
       }
@@ -305,6 +318,7 @@ implements ConfigurationAddListener<NetworkGroupRequestFilteringPolicyCfg>,
         result = (containsOnlyAllowedAttributes(searchOp.getRawFilter()));
       }
       if (!result) {
+        stat.updateRejectedAttributes();
         messages.add(INFO_ERROR_ATTRIBUTE_NOT_ALLOWED.get());
         return result;
       }
@@ -327,6 +341,7 @@ implements ConfigurationAddListener<NetworkGroupRequestFilteringPolicyCfg>,
         }
 
         if (!result) {
+          stat.updateRejectedScopes();
           messages.add(INFO_ERROR_SEARCH_SCOPE_NOT_ALLOWED.get());
           return result;
         }
@@ -343,6 +358,7 @@ implements ConfigurationAddListener<NetworkGroupRequestFilteringPolicyCfg>,
                 compareOp.getRawAttributeType()));
       }
       if (!result) {
+        stat.updateRejectedAttributes();
         messages.add(INFO_ERROR_ATTRIBUTE_NOT_ALLOWED.get());
         return result;
       }
@@ -350,6 +366,7 @@ implements ConfigurationAddListener<NetworkGroupRequestFilteringPolicyCfg>,
         result = (allowedAttributes.contains(compareOp.getRawAttributeType()));
       }
       if (!result) {
+        stat.updateRejectedAttributes();
         messages.add(INFO_ERROR_ATTRIBUTE_NOT_ALLOWED.get());
         return result;
       }
@@ -404,6 +421,7 @@ implements ConfigurationAddListener<NetworkGroupRequestFilteringPolicyCfg>,
                   .log(Level.SEVERE, null, ex);
     }
     if (!result) {
+      stat.updateRejectedSubtrees();
       messages.add(INFO_ERROR_SUBTREE_NOT_ALLOWED.get());
       return result;
     }
