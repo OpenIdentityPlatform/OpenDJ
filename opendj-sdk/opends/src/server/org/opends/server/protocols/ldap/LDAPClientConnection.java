@@ -1814,6 +1814,7 @@ public class LDAPClientConnection
     if (keepStats)
     {
       statTracker.updateMessageRead(message);
+      this.getNetworkGroup().updateMessageRead(message);
     }
     synchronized (operationsPerformedLock) {
       operationsPerformed++;

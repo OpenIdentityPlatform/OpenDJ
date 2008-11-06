@@ -79,10 +79,17 @@ public class ResourceLimits
   private int minSearchSubstringLength;
 
   // The number of connections in the group
-  private int numConnections;
+  private int numConnections = 0;
+
+  // The maximum number of simultaneous connections in the group
+  // since group creation
+  private int maxNumConnections = 0;
+
+  // The total number of connections managed by the group
+  private int totalNumConnections = 0;
 
   // Map containing the connections sorted by incoming IP address
-  HashMap<String, Integer> connectionsPerIpMap;
+  HashMap<String, Integer> connectionsPerIpMap = new HashMap<String, Integer>();
 
   // The lock for the counter numConnections and the map connectionsPerIpMap
   Object connMutex = new Object();
@@ -111,8 +118,6 @@ public class ResourceLimits
     searchSizeLimit = -1;
     searchTimeLimit = -1;
     minSearchSubstringLength = 0;
-    numConnections = 0;
-    connectionsPerIpMap = new HashMap<String, Integer>();
     isConfigured = false;
     if (config != null) {
       config.removeChangeListener(this);
@@ -136,7 +141,6 @@ public class ResourceLimits
       searchSizeLimit = resourcesCfg.getSearchSizeLimit();
       searchTimeLimit = (int) resourcesCfg.getSearchTimeLimit();
       minSearchSubstringLength = resourcesCfg.getMinSubstringLength();
-      connectionsPerIpMap = new HashMap<String, Integer>();
 
       if (config == null) {
         resourcesCfg.addChangeListener(this);
@@ -248,6 +252,10 @@ public class ResourceLimits
     synchronized(connMutex) {
       // increment the number of connections managed by the network group
       numConnections++;
+      totalNumConnections++;
+      if (numConnections > maxNumConnections) {
+        maxNumConnections = numConnections;
+      }
 
       // increment the number of connections from the given IP address
       String ip = connection.getClientAddress();
@@ -418,6 +426,18 @@ public class ResourceLimits
     }
   }
 
+  /**
+   * Retrieves the statistics associated to the resource limits.
+   * @return the statistics
+   */
+  public ResourceLimitsStat getStat() {
+    ResourceLimitsStat stat;
+    synchronized(connMutex) {
+      stat = new ResourceLimitsStat(
+          numConnections, maxNumConnections, totalNumConnections);
+    }
+    return stat;
+  }
 
   /**
    * {@inheritDoc}

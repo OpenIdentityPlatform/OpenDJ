@@ -36,6 +36,7 @@ import java.util.Collection;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.*;
+import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.types.AuthenticationType;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -133,6 +134,9 @@ public class NetworkGroup
   // The network group request filtering policy
   private RequestFilteringPolicy requestFilteringPolicy = null;
 
+  // The statistics
+  private NetworkGroupStatistics stats;
+
   /**
    * Creates a new instance of the network group.
    *
@@ -147,6 +151,9 @@ public class NetworkGroup
     isInternalNetworkGroup = INTERNAL_NETWORK_GROUP_NAME.equals(networkGroupID);
     isAdminNetworkGroup    = ADMIN_NETWORK_GROUP_NAME.equals(networkGroupID);
     isDefaultNetworkGroup  = DEFAULT_NETWORK_GROUP_NAME.equals(networkGroupID);
+
+    stats = new NetworkGroupStatistics(this,
+        networkGroupID + " Network Group Statistics");
   }
 
 
@@ -1107,5 +1114,37 @@ public class NetworkGroup
       rootDSEWorkflowNode = null;
       namingContexts = new NetworkGroupNamingContexts();
     }
+  }
+
+  /**
+   * Retrieves the statistics associated to the request filtering policy.
+   *
+   * @return the statistics associated to the request filtering policy
+   */
+  public RequestFilteringPolicyStat getRequestFilteringPolicyStat() {
+    if (requestFilteringPolicy != null) {
+      return requestFilteringPolicy.getStat();
+    }
+    return null;
+  }
+
+  /**
+   * Retrieves the statistics associated to the resource limits.
+   *
+   * @return the statistics associated to the resource limits
+   */
+  public ResourceLimitsStat getResourceLimitStat() {
+    if (resourceLimits != null) {
+      return resourceLimits.getStat();
+    }
+    return null;
+  }
+
+  /**
+   * Updates the operations statistics.
+   * @param message The LDAP message being processed
+   */
+  public void updateMessageRead(LDAPMessage message) {
+    stats.updateMessageRead(message);
   }
 }
