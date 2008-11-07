@@ -515,16 +515,29 @@ ServiceReturnCode doStartApplication()
     if (spawn(command, FALSE) != -1)
     {
       // Try to see if server is really running
-      int nTries = 10;
+      int nTries = 100;
+      char * nTriesEnv = getenv("OPENDS_WINDOWS_SERVICE_START_NTRIES");
       BOOL running = FALSE;
+      if (nTriesEnv != NULL)
+      {
+      	nTries = (int)strtol(nTriesEnv, (char **)NULL, 10);
+      	if (nTries <= 0)
+      	{
+      	  nTries = 100;
+      	}
+      }
+      else
+      {
+        debug("OPENDS_WINDOWS_SERVICE_START_NTRIES is not set.  Using default 50 tries.");
+      }	
 
       debug(
           "doStartApplication: the spawn of the process worked.  Command: '%s'",
           command);
-      // Wait to be able to launch the java process in order it to free the lock
+      // Wait to be able to launch the java process in order it to get the lock
       // on the file.
-      debug("Sleeping for 3 seconds to allow the process to free the lock.");
-      Sleep(3000);
+      debug("Sleeping for 5 seconds to allow the process to get the lock.");
+      Sleep(5000);
       while ((nTries > 0) && !running)
       {
         nTries--;
@@ -534,9 +547,9 @@ ServiceReturnCode doStartApplication()
         }
         if (!running)
         {
-          debug("Sleeping for 2 seconds to allow the process to free the lock.  %d tries remaining.",
+          debug("Sleeping for 5 seconds to allow the process to get the lock.  %d tries remaining.",
               nTries);
-          Sleep(2000);
+          Sleep(5000);
         }
       }
       if (running)
@@ -1278,7 +1291,7 @@ char* binPathName)
 } // getBinaryPathName
 
 // ---------------------------------------------------------------
-// Returns the list of NT services being created on the current host.
+// Returns the list of Windows services being created on the current host.
 // The function allocates the memory for the returned buffer.
 // serviceList contains the list of services.
 // nbServices the number of services returned in the list.
