@@ -27,24 +27,36 @@ rem      Copyright 2006-2008 Sun Microsystems, Inc.
 
 setlocal
 for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
+set INSTALL_ROOT=%DIR_HOME%
 
-set INSTANCE_ROOT=%DIR_HOME%
+set INSTANCE_DIR=
+for /f "delims=" %%a in (%DIR_HOME%\instance.loc) do (
+  set INSTANCE_DIR=%%a
+)
+set CUR_DIR=%~dp0
+cd /d %INSTALL_ROOT%
+cd /d %INSTANCE_DIR%
+set INSTANCE_ROOT=%CD%
+cd /d %CUR_DIR%
+
 
 set SCRIPT_NAME=control-panel
 
 rem Set environment variables
 set SCRIPT_UTIL_CMD=set-full-environment
-call "%INSTANCE_ROOT%\lib\_script-util.bat"
+call "%INSTALL_ROOT%\lib\_script-util.bat"
 if NOT %errorlevel% == 0 exit /B %errorlevel%
 
 if "%~1" == "" goto callLaunch
 goto callJava
 
 :callLaunch
-"%DIR_HOME%\lib\winlauncher.exe" launch "%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.guitools.controlpanel.ControlPanelLauncher
+if exist "%INSTALL_ROOT%\lib\set-java-args.bat" DO call "%INSTALL_ROOT%\lib\set-java-args.bat"
+"%INSTALL_ROOT%\lib\winlauncher.exe" launch "%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.guitools.controlpanel.ControlPanelLauncher
 goto end
 
 :callJava
+if exist "%INSTALL_ROOT%\lib\set-java-args.bat" DO call "%INSTALL_ROOT%\lib\set-java-args.bat"
 "%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.guitools.controlpanel.ControlPanelLauncher %*
 
 rem return part
