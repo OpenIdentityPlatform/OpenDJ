@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.opends.guitools.controlpanel.util.Utilities;
+
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.ObjectClass;
@@ -326,6 +328,12 @@ public class ServerDescriptor
           {
             equals = areSchemasEqual(schema, desc.getSchema());
           }
+        }
+
+        if (equals && Utilities.isWindows())
+        {
+          equals =
+            desc.isWindowsServiceEnabled() == isWindowsServiceEnabled();
         }
       }
     }
