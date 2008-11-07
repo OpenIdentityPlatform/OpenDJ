@@ -42,7 +42,8 @@ cd ..
 INSTALL_ROOT=`pwd`
 export INSTALL_ROOT
 
-cd "${WORKING_DIR}"
+NO_CHECK=1
+export NO_CHECK
 
 # Set environment variables
 .  "${INSTALL_ROOT}/lib/_script-util.sh"
@@ -51,6 +52,8 @@ if test ${RETURN_CODE} -ne 0
 then
         exit ${RETURN_CODE}
 fi
+
+cd "${WORKING_DIR}"
 
 "${SCRIPT_DIR}/../lib/_server-script.sh" \
      --resourcePath "${INSTANCE_ROOT}/config/MakeLDIF" "${@}"
