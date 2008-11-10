@@ -497,9 +497,6 @@ public class DirectoryServer
   // The set of import task listeners registered with the Directory Server.
   private CopyOnWriteArrayList<ImportTaskListener> importTaskListeners;
 
-  // The set of persistent searches registered with the Directory Server.
-  private CopyOnWriteArrayList<PersistentSearch> persistentSearches;
-
   // The set of restore task listeners registered with the Directory Server.
   private CopyOnWriteArrayList<RestoreTaskListener> restoreTaskListeners;
 
@@ -937,8 +934,6 @@ public class DirectoryServer
       directoryServer.baseDnRegistry = new BaseDnRegistry();
       directoryServer.changeNotificationListeners =
            new CopyOnWriteArrayList<ChangeNotificationListener>();
-      directoryServer.persistentSearches =
-           new CopyOnWriteArrayList<PersistentSearch>();
       directoryServer.shutdownListeners =
            new CopyOnWriteArrayList<ServerShutdownListener>();
       directoryServer.synchronizationProviders =
@@ -7726,56 +7721,6 @@ public class DirectoryServer
   {
     directoryServer.changeNotificationListeners.remove(changeListener);
   }
-
-
-
-  /**
-   * Retrieves the set of persistent searches registered with the Directory
-   * Server.
-   *
-   * @return  The set of persistent searches registered with the Directory
-   *          Server.
-   */
-  public static CopyOnWriteArrayList<PersistentSearch> getPersistentSearches()
-  {
-    return directoryServer.persistentSearches;
-  }
-
-
-
-  /**
-   * Registers the provided persistent search operation with the Directory
-   * Server so that it will be notified of any add, delete, modify, or modify DN
-   * operations that are performed.
-   *
-   * @param  persistentSearch  The persistent search operation to register with
-   *                           the Directory Server.
-   */
-  public static void registerPersistentSearch(PersistentSearch persistentSearch)
-  {
-    directoryServer.persistentSearches.add(persistentSearch);
-    persistentSearch.getSearchOperation().getClientConnection().
-         registerPersistentSearch(persistentSearch);
-  }
-
-
-
-  /**
-   * Deregisters the provided persistent search operation with the Directory
-   * Server so that it will no longer be notified of any add, delete, modify, or
-   * modify DN operations that are performed.
-   *
-   * @param  persistentSearch  The persistent search operation to deregister
-   *                           with the Directory Server.
-   */
-  public static void deregisterPersistentSearch(PersistentSearch
-                                                     persistentSearch)
-  {
-    directoryServer.persistentSearches.remove(persistentSearch);
-    persistentSearch.getSearchOperation().getClientConnection().
-         deregisterPersistentSearch(persistentSearch);
-  }
-
 
 
 

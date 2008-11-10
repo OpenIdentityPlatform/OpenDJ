@@ -622,5 +622,15 @@ public interface Operation
   public void checkIfCanceled(boolean signalTooLate)
       throws CanceledOperationException;
 
+  /**
+   * Registers a callback which should be run once this operation has
+   * completed and the response sent back to the client.
+   *
+   * @param callback
+   *          The callback to be run once this operation has completed
+   *          and the response sent back to the client.
+   */
+  public void registerPostResponseCallback(Runnable callback);
+
 }
 

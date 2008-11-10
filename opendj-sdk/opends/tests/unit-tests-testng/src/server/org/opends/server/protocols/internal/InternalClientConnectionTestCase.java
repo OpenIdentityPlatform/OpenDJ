@@ -54,7 +54,6 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.CancelRequest;
@@ -65,6 +64,7 @@ import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.Operation;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.RDN;
@@ -1074,7 +1074,7 @@ public class InternalClientConnectionTestCase
   {
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    Collection<AbstractOperation> opList = conn.getOperationsInProgress();
+    Collection<Operation> opList = conn.getOperationsInProgress();
     assertNotNull(opList);
     assertTrue(opList.isEmpty());
   }

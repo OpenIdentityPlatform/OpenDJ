@@ -138,7 +138,7 @@ public class LDAPClientConnection
   private byte[] elementValue;
 
   // The set of all operations currently in progress on this connection.
-  private ConcurrentHashMap<Integer,AbstractOperation> operationsInProgress;
+  private ConcurrentHashMap<Integer,Operation> operationsInProgress;
 
   // The number of operations performed on this connection.
   // Used to compare with the resource limits of the network group.
@@ -264,7 +264,7 @@ public class LDAPClientConnection
     nextOperationID      = new AtomicLong(0);
     connectionValid      = true;
     disconnectRequested  = false;
-    operationsInProgress = new ConcurrentHashMap<Integer,AbstractOperation>();
+    operationsInProgress = new ConcurrentHashMap<Integer,Operation>();
     operationsPerformed = 0;
     operationsPerformedLock = new Object();
     keepStats            = connectionHandler.keepStats();
@@ -1136,7 +1136,7 @@ public class LDAPClientConnection
    *
    * @return  The set of operations in progress for this client connection.
    */
-  public Collection<AbstractOperation> getOperationsInProgress()
+  public Collection<Operation> getOperationsInProgress()
   {
     return operationsInProgress.values();
   }
@@ -1151,7 +1151,7 @@ public class LDAPClientConnection
    * @return  The operation in progress with the specified message ID, or
    *          <CODE>null</CODE> if no such operation could be found.
    */
-  public AbstractOperation getOperationInProgress(int messageID)
+  public Operation getOperationInProgress(int messageID)
   {
     return operationsInProgress.get(messageID);
   }
@@ -1192,7 +1192,7 @@ public class LDAPClientConnection
 
         // See if there is already an operation in progress with the same
         // message ID.  If so, then we can't allow it.
-        AbstractOperation op = operationsInProgress.get(messageID);
+        Operation op = operationsInProgress.get(messageID);
         if (op != null)
         {
           Message message =
@@ -1252,7 +1252,7 @@ public class LDAPClientConnection
    */
   public boolean removeOperationInProgress(int messageID)
   {
-    AbstractOperation operation = operationsInProgress.remove(messageID);
+    Operation operation = operationsInProgress.remove(messageID);
     if (operation == null)
     {
       return false;
@@ -1279,16 +1279,15 @@ public class LDAPClientConnection
   public CancelResult cancelOperation(int messageID,
                                       CancelRequest cancelRequest)
   {
-    AbstractOperation op = operationsInProgress.get(messageID);
+    Operation op = operationsInProgress.get(messageID);
     if (op == null)
     {
       // See if the operation is in the list of persistent searches.
       for (PersistentSearch ps : getPersistentSearches())
       {
-        if (ps.getSearchOperation().getMessageID() == messageID)
+        if (ps.getMessageID() == messageID)
         {
-          CancelResult cancelResult =
-               ps.getSearchOperation().cancel(cancelRequest);
+          CancelResult cancelResult = ps.cancel();
 
           if (keepStats && (cancelResult.getResultCode() ==
               ResultCode.CANCELED))
@@ -1329,11 +1328,11 @@ public class LDAPClientConnection
     {
       try
       {
-        for (AbstractOperation o : operationsInProgress.values())
+        for (Operation o : operationsInProgress.values())
         {
           try
           {
-              o.abort(cancelRequest);
+            o.abort(cancelRequest);
 
             // TODO: Assume its cancelled?
             if (keepStats)
@@ -1361,7 +1360,7 @@ public class LDAPClientConnection
 
         for (PersistentSearch persistentSearch : getPersistentSearches())
         {
-          DirectoryServer.deregisterPersistentSearch(persistentSearch);
+          persistentSearch.cancel();
         }
       }
       catch (Exception e)
@@ -1400,7 +1399,7 @@ public class LDAPClientConnection
             continue;
           }
 
-          AbstractOperation o = operationsInProgress.get(msgID);
+          Operation o = operationsInProgress.get(msgID);
           if (o != null)
           {
             try
@@ -1429,7 +1428,7 @@ public class LDAPClientConnection
 
         for (PersistentSearch persistentSearch : getPersistentSearches())
         {
-          DirectoryServer.deregisterPersistentSearch(persistentSearch);
+          persistentSearch.cancel();
           lastCompletionTime.set(TimeThread.getTime());
         }
       }

@@ -39,8 +39,6 @@ import java.util.List;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationAbandonOperation;
 import org.opends.server.types.operation.PreParseAbandonOperation;
@@ -56,11 +54,6 @@ public class AbandonOperationBasis extends AbstractOperation
                PreParseAbandonOperation,
                PostOperationAbandonOperation
 {
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = DebugLogger.getTracer();
 
   // The message ID of the operation that should be abandoned.
   private final int idToAbandon;
@@ -251,7 +244,7 @@ abandonProcessing:
       // code to reflect whether the abandon was successful and an error message
       // if it was not.  Even though there is no response, the result should
       // still be logged.
-      AbstractOperation operation =
+      Operation operation =
            clientConnection.getOperationInProgress(idToAbandon);
       if (operation == null)
       {

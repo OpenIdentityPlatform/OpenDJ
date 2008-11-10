@@ -25,7 +25,6 @@
  *      Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 
 
@@ -37,11 +36,8 @@ import static org.opends.server.core.CoreConstants.LOG_ELEMENT_REFERRAL_URLS;
 import static org.opends.server.core.CoreConstants.LOG_ELEMENT_RESULT_CODE;
 import static org.opends.server.loggers.AccessLogger.logDeleteRequest;
 import static org.opends.server.loggers.AccessLogger.logDeleteResponse;
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -452,9 +448,10 @@ public class DeleteOperationBasis
       // Log the delete response.
       logDeleteResponse(this);
 
-      // Notifies any persistent searches that might be registered with the
-      // server.
-      notifyPersistentSearches(workflowExecuted);
+      // Invoke the post-response callbacks.
+      if (workflowExecuted) {
+        invokePostResponseCallbacks();
+      }
 
       // Invoke the post-response delete plugins.
       invokePostResponsePlugins(workflowExecuted);
@@ -506,61 +503,6 @@ public class DeleteOperationBasis
       // Invoke the post response plugins that have been registered with
       // the current operation
       pluginConfigManager.invokePostResponseDeletePlugins(this);
-    }
-  }
-
-
-  /**
-   * Notifies any persistent searches that might be registered with the server.
-   * If no workflow has been executed then don't notify persistent searches.
-   *
-   * @param workflowExecuted <code>true</code> if a workflow has been
-   *                         executed
-   */
-  private void notifyPersistentSearches(boolean workflowExecuted)
-  {
-    if (! workflowExecuted)
-    {
-      return;
-    }
-
-    List localOperations =
-      (List)getAttachment(Operation.LOCALBACKENDOPERATIONS);
-
-    if (localOperations != null)
-    {
-      for (Object localOp : localOperations)
-      {
-        LocalBackendDeleteOperation localOperation =
-          (LocalBackendDeleteOperation)localOp;
-        // Notify any persistent searches that might be registered with the
-        // server.
-        if (getResultCode() == ResultCode.SUCCESS)
-        {
-          for (PersistentSearch persistentSearch :
-            DirectoryServer.getPersistentSearches())
-          {
-            try
-            {
-              persistentSearch.processDelete(localOperation,
-                  localOperation.getEntryToDelete());
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              Message message = ERR_DELETE_ERROR_NOTIFYING_PERSISTENT_SEARCH.
-                  get(String.valueOf(persistentSearch), getExceptionMessage(e));
-              logError(message);
-
-              DirectoryServer.deregisterPersistentSearch(persistentSearch);
-            }
-          }
-        }
-      }
     }
   }
 

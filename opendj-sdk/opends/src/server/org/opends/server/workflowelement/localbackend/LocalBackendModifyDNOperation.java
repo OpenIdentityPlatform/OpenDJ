@@ -51,6 +51,7 @@ import org.opends.server.core.AccessControlConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyDNOperationWrapper;
+import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
@@ -180,16 +181,16 @@ public class LocalBackendModifyDNOperation
   /**
    * Process this modify DN operation in a local backend.
    *
-   * @param  backend  The backend in which the modify DN operation should be
-   *                  processed.
-   *
-   * @throws CanceledOperationException if this operation should be
-   * cancelled
+   * @param wfe
+   *          The local backend work-flow element.
+   * @throws CanceledOperationException
+   *           if this operation should be cancelled
    */
-  void processLocalModifyDN(Backend backend) throws CanceledOperationException {
+  void processLocalModifyDN(final LocalBackendWorkflowElement wfe)
+      throws CanceledOperationException
+  {
     boolean executePostOpPlugins = false;
-
-    this.backend = backend;
+    this.backend = wfe.getBackend();
 
     clientConnection = getClientConnection();
 
@@ -632,30 +633,45 @@ modifyDNProcessing:
       }
     }
 
-
-    // Notify any change notification listeners that might be registered with
-    // the server.
+    // Register a post-response call-back which will notify persistent
+    // searches and change listeners.
     if (getResultCode() == ResultCode.SUCCESS)
     {
-      for (ChangeNotificationListener changeListener :
-           DirectoryServer.getChangeNotificationListeners())
+      registerPostResponseCallback(new Runnable()
       {
-        try
+
+        public void run()
         {
-          changeListener.handleModifyDNOperation(this, currentEntry, newEntry);
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
+          // Notify persistent searches.
+          for (PersistentSearch psearch : wfe.getPersistentSearches())
           {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            psearch.processModifyDN(newEntry, getChangeNumber(),
+                currentEntry.getDN());
           }
 
-          Message message = ERR_MODDN_ERROR_NOTIFYING_CHANGE_LISTENER.get(
-              getExceptionMessage(e));
-          logError(message);
+          // Notify change listeners.
+          for (ChangeNotificationListener changeListener : DirectoryServer
+              .getChangeNotificationListeners())
+          {
+            try
+            {
+              changeListener.handleModifyDNOperation(
+                  LocalBackendModifyDNOperation.this, currentEntry, newEntry);
+            }
+            catch (Exception e)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+              }
+
+              Message message = ERR_MODDN_ERROR_NOTIFYING_CHANGE_LISTENER
+                  .get(getExceptionMessage(e));
+              logError(message);
+            }
+          }
         }
-      }
+      });
     }
   }
 

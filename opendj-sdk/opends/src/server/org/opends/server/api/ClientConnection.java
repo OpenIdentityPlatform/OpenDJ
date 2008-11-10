@@ -32,6 +32,7 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.Selector;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -45,7 +46,6 @@ import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -814,8 +814,7 @@ public abstract class ClientConnection
    * @return  The set of operations in progress for this client
    *          connection.
    */
-  public abstract Collection<AbstractOperation>
-                                      getOperationsInProgress();
+  public abstract Collection<Operation> getOperationsInProgress();
 
 
 
@@ -828,8 +827,7 @@ public abstract class ClientConnection
    * @return  The operation in progress with the specified message ID,
    *          or {@code null} if no such operation could be found.
    */
-  public abstract AbstractOperation
-                          getOperationInProgress(int messageID);
+  public abstract Operation getOperationInProgress(int messageID);
 
 
 
@@ -857,8 +855,7 @@ public abstract class ClientConnection
    * @return  The set of persistent searches registered for this
    *          client.
    */
-  public final CopyOnWriteArrayList<PersistentSearch>
-                    getPersistentSearches()
+  public final List<PersistentSearch> getPersistentSearches()
   {
     return persistentSearches;
   }
@@ -1660,13 +1657,13 @@ public abstract class ClientConnection
 
     if ((authzDN == null) || authzDN.isNullDN())
     {
-      return java.util.Collections.<Group>emptySet();
+      return Collections.<Group>emptySet();
     }
 
     Entry userEntry = DirectoryServer.getEntry(authzDN);
     if (userEntry == null)
     {
-      return java.util.Collections.<Group>emptySet();
+      return Collections.<Group>emptySet();
     }
 
     HashSet<Group> groupSet = new HashSet<Group>();

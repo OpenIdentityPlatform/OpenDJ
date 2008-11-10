@@ -484,5 +484,13 @@ public class OperationWrapper implements Operation
       throws CanceledOperationException {
     operation.checkIfCanceled(signalTooLate);
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void registerPostResponseCallback(Runnable callback)
+  {
+    operation.registerPostResponseCallback(callback);
+  }
 }
 

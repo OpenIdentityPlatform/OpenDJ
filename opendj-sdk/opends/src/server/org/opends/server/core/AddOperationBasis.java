@@ -25,7 +25,6 @@
  *      Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 
 
@@ -38,10 +37,8 @@ import static org.opends.server.core.CoreConstants.LOG_ELEMENT_REFERRAL_URLS;
 import static org.opends.server.core.CoreConstants.LOG_ELEMENT_RESULT_CODE;
 import static org.opends.server.loggers.AccessLogger.logAddRequest;
 import static org.opends.server.loggers.AccessLogger.logAddResponse;
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import java.util.ArrayList;
@@ -797,9 +794,10 @@ public class AddOperationBasis
       // Log the add response message.
       logAddResponse(this);
 
-      // Notifies any persistent searches that might be registered with the
-      // server.
-      notifyPersistentSearches(workflowExecuted);
+      // Invoke the post-response callbacks.
+      if (workflowExecuted) {
+        invokePostResponseCallbacks();
+      }
 
       // Invoke the post-response add plugins.
       invokePostResponsePlugins(workflowExecuted);
@@ -854,60 +852,6 @@ public class AddOperationBasis
     }
   }
 
-
-  /**
-   * Notifies any persistent searches that might be registered with the server.
-   * If no workflow has been executed then don't notify persistent searches.
-   *
-   * @param workflowExecuted <code>true</code> if a workflow has been
-   *                         executed
-   */
-  private void notifyPersistentSearches(boolean workflowExecuted)
-  {
-    if (! workflowExecuted)
-    {
-      return;
-    }
-
-    List<?> localOperations =
-      (List<?>)getAttachment(Operation.LOCALBACKENDOPERATIONS);
-
-    if (localOperations != null)
-    {
-      for (Object localOp : localOperations)
-      {
-        LocalBackendAddOperation localOperation =
-          (LocalBackendAddOperation)localOp;
-
-        if ((getResultCode() == ResultCode.SUCCESS) &&
-            (localOperation.getEntryToAdd() != null))
-        {
-          for (PersistentSearch persistentSearch :
-            DirectoryServer.getPersistentSearches())
-          {
-            try
-            {
-              persistentSearch.processAdd(localOperation,
-                  localOperation.getEntryToAdd());
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              Message message = ERR_ADD_ERROR_NOTIFYING_PERSISTENT_SEARCH.get(
-                  String.valueOf(persistentSearch), getExceptionMessage(e));
-              logError(message);
-
-              DirectoryServer.deregisterPersistentSearch(persistentSearch);
-            }
-          }
-        }
-      }
-    }
-  }
 
 
   /**

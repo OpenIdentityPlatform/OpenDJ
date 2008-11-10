@@ -33,12 +33,14 @@ import static org.opends.server.core.CoreConstants.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.types.operation.PostResponseOperation;
 import org.opends.server.types.operation.PreParseOperation;
 import org.opends.server.core.DirectoryServer;
+
 import static org.opends.server.loggers.debug.
     DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
@@ -167,6 +169,9 @@ public abstract class AbstractOperation
   // The time that processing ended on this operation in
   // nanoseconds.
   private long processingStopNanoTime;
+
+  // The callbacks to be invoked once a response has been sent.
+  private List<Runnable> postResponseCallbacks = null;
 
   /**
    * Creates a new operation with the provided information.
@@ -1148,5 +1153,47 @@ public abstract class AbstractOperation
    * processing.
    */
   public abstract void run();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final void registerPostResponseCallback(Runnable callback)
+  {
+    if (postResponseCallbacks == null)
+    {
+      postResponseCallbacks = new LinkedList<Runnable>();
+    }
+    postResponseCallbacks.add(callback);
+  }
+
+
+
+  /**
+   * Invokes the post response callbacks that were registered with
+   * this operation.
+   */
+  protected final void invokePostResponseCallbacks()
+  {
+    if (postResponseCallbacks != null)
+    {
+      for (Runnable callback : postResponseCallbacks)
+      {
+        try
+        {
+          callback.run();
+        }
+        catch (Exception e)
+        {
+          // Should not happen.
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+      }
+    }
+  }
 }
 

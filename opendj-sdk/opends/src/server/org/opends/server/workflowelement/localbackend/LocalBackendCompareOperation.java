@@ -116,16 +116,17 @@ public class LocalBackendCompareOperation
   /**
    * Process this compare operation in a local backend.
    *
-   * @param  backend  The backend in which the compare operation should be
-   *                  processed.
-   *
-   * @throws CanceledOperationException if this operation should be
-   * cancelled
+   * @param wfe
+   *          The local backend work-flow element.
+   * @throws CanceledOperationException
+   *           if this operation should be cancelled
    */
-  void processLocalCompare(Backend backend) throws CanceledOperationException {
+  void processLocalCompare(LocalBackendWorkflowElement wfe)
+      throws CanceledOperationException
+  {
     boolean executePostOpPlugins = false;
 
-    this.backend = backend;
+    this.backend = wfe.getBackend();
 
     clientConnection  = getClientConnection();
 
