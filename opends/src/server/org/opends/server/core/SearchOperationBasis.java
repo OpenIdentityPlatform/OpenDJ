@@ -1277,7 +1277,7 @@ public class SearchOperationBasis
 
       if (persistentSearch != null)
       {
-        DirectoryServer.deregisterPersistentSearch(persistentSearch);
+        persistentSearch.cancel();
         persistentSearch = null;
       }
     }

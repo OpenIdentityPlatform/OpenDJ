@@ -65,6 +65,7 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.AddOperationWrapper;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicy;
+import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.AuthPasswordSyntax;
@@ -173,16 +174,17 @@ public class LocalBackendAddOperation
   /**
    * Process this add operation against a local backend.
    *
-   * @param  backend  The backend in which the add operation should be
-   *                  processed.
-   *
-   * @throws CanceledOperationException if this operation should be
-   * cancelled
+   * @param wfe
+   *          The local backend work-flow element.
+   * @throws CanceledOperationException
+   *           if this operation should be cancelled
    */
-  void processLocalAdd(Backend backend) throws CanceledOperationException {
+  void processLocalAdd(final LocalBackendWorkflowElement wfe)
+      throws CanceledOperationException
+  {
     boolean executePostOpPlugins = false;
 
-    this.backend = backend;
+    this.backend = wfe.getBackend();
     ClientConnection clientConnection = getClientConnection();
 
     // Get the plugin config manager that will be used for invoking plugins.
@@ -772,29 +774,41 @@ addProcessing:
       }
     }
 
-
-    // Notify any change notification listeners that might be registered with
-    // the server.
-    if ((getResultCode() == ResultCode.SUCCESS) && (entry != null))
+    // Register a post-response call-back which will notify persistent
+    // searches and change listeners.
+    if (getResultCode() == ResultCode.SUCCESS)
     {
-      for (ChangeNotificationListener changeListener :
-           DirectoryServer.getChangeNotificationListeners())
+      registerPostResponseCallback(new Runnable()
       {
-        try
+        public void run()
         {
-          changeListener.handleAddOperation(this, entry);
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          // Notify persistent searches.
+          for (PersistentSearch psearch : wfe.getPersistentSearches()) {
+            psearch.processAdd(entry, getChangeNumber());
           }
 
-          logError(ERR_ADD_ERROR_NOTIFYING_CHANGE_LISTENER.get(
-                        getExceptionMessage(e)));
+          // Notify change listeners.
+          for (ChangeNotificationListener changeListener : DirectoryServer
+              .getChangeNotificationListeners())
+          {
+            try
+            {
+              changeListener.handleAddOperation(LocalBackendAddOperation.this,
+                  entry);
+            }
+            catch (Exception e)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+              }
+
+              logError(ERR_ADD_ERROR_NOTIFYING_CHANGE_LISTENER
+                  .get(getExceptionMessage(e)));
+            }
+          }
         }
-      }
+      });
     }
   }
 

@@ -65,6 +65,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationWrapper;
 import org.opends.server.core.PasswordPolicyState;
+import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -293,16 +294,16 @@ public class LocalBackendModifyOperation
   /**
    * Process this modify operation against a local backend.
    *
-   * @param  backend  The backend in which the modify operation should be
-   *                  performed.
-   *
-   * @throws CanceledOperationException if this operation should be
-   * cancelled
+   * @param wfe
+   *          The local backend work-flow element.
+   * @throws CanceledOperationException
+   *           if this operation should be cancelled
    */
-  void processLocalModify(Backend backend) throws CanceledOperationException {
+  void processLocalModify(final LocalBackendWorkflowElement wfe)
+      throws CanceledOperationException
+  {
     boolean executePostOpPlugins = false;
-
-    this.backend = backend;
+    this.backend = wfe.getBackend();
 
     clientConnection = getClientConnection();
 
@@ -690,11 +691,46 @@ modifyProcessing:
     }
 
 
-    // Notify any change notification listeners that might be registered with
-    // the server.
+    // Register a post-response call-back which will notify persistent
+    // searches and change listeners.
     if (getResultCode() == ResultCode.SUCCESS)
     {
-      notifyChangeListeners();
+      registerPostResponseCallback(new Runnable()
+      {
+
+        public void run()
+        {
+          // Notify persistent searches.
+          for (PersistentSearch psearch : wfe.getPersistentSearches())
+          {
+            psearch.processModify(modifiedEntry, getChangeNumber(),
+                currentEntry);
+          }
+
+          // Notify change listeners.
+          for (ChangeNotificationListener changeListener : DirectoryServer
+              .getChangeNotificationListeners())
+          {
+            try
+            {
+              changeListener
+                  .handleModifyOperation(LocalBackendModifyOperation.this,
+                      currentEntry, modifiedEntry);
+            }
+            catch (Exception e)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+              }
+
+              Message message = ERR_MODIFY_ERROR_NOTIFYING_CHANGE_LISTENER
+                  .get(getExceptionMessage(e));
+              logError(message);
+            }
+          }
+        }
+      });
     }
   }
 
@@ -2227,32 +2263,6 @@ modifyProcessing:
   }
 
 
-
-  /**
-   * Notify any registered change listeners about this update.
-   */
-  private void notifyChangeListeners()
-  {
-    for (ChangeNotificationListener changeListener :
-         DirectoryServer.getChangeNotificationListeners())
-    {
-      try
-      {
-        changeListener.handleModifyOperation(this, currentEntry, modifiedEntry);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_MODIFY_ERROR_NOTIFYING_CHANGE_LISTENER.get(
-            getExceptionMessage(e));
-        logError(message);
-      }
-    }
-  }
 
   private boolean handleConflictResolution() {
       boolean returnVal = true;

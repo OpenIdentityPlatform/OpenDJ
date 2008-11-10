@@ -47,6 +47,7 @@ import org.opends.server.core.AccessControlConfigManager;
 import org.opends.server.core.DeleteOperationWrapper;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.AttributeType;
@@ -143,16 +144,16 @@ public class LocalBackendDeleteOperation
   /**
    * Process this delete operation in a local backend.
    *
-   * @param  backend  The backend in which the delete operation should be
-   *                  processed.
-   *
-   * @throws CanceledOperationException if this operation should be
-   * cancelled
+   * @param wfe
+   *          The local backend work-flow element.
+   * @throws CanceledOperationException
+   *           if this operation should be cancelled
    */
-  void processLocalDelete(Backend backend) throws CanceledOperationException {
+  void processLocalDelete(final LocalBackendWorkflowElement wfe)
+      throws CanceledOperationException
+  {
     boolean executePostOpPlugins = false;
-
-    this.backend = backend;
+    this.backend = wfe.getBackend();
 
     clientConnection = getClientConnection();
 
@@ -444,29 +445,43 @@ deleteProcessing:
     }
 
 
-    // Notify any change notification listeners that might be registered with
-    // the server.
+    // Register a post-response call-back which will notify persistent
+    // searches and change listeners.
     if (getResultCode() == ResultCode.SUCCESS)
     {
-      for (ChangeNotificationListener changeListener :
-           DirectoryServer.getChangeNotificationListeners())
+      registerPostResponseCallback(new Runnable()
       {
-        try
+
+        public void run()
         {
-          changeListener.handleDeleteOperation(this, entry);
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          // Notify persistent searches.
+          for (PersistentSearch psearch : wfe.getPersistentSearches()) {
+            psearch.processDelete(entry, getChangeNumber());
           }
 
-          Message message = ERR_DELETE_ERROR_NOTIFYING_CHANGE_LISTENER.get(
-              getExceptionMessage(e));
-          logError(message);
+          // Notify change listeners.
+          for (ChangeNotificationListener changeListener : DirectoryServer
+              .getChangeNotificationListeners())
+          {
+            try
+            {
+              changeListener.handleDeleteOperation(
+                  LocalBackendDeleteOperation.this, entry);
+            }
+            catch (Exception e)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+              }
+
+              Message message = ERR_DELETE_ERROR_NOTIFYING_CHANGE_LISTENER
+                  .get(getExceptionMessage(e));
+              logError(message);
+            }
+          }
         }
-      }
+      });
     }
   }
 

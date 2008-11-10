@@ -27,206 +27,219 @@
 package org.opends.server.core;
 
 
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
+
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.opends.server.controls.EntryChangeNotificationControl;
 import org.opends.server.controls.PersistentSearchChangeType;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
+import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
-import org.opends.server.workflowelement.localbackend.*;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 
 
 
 /**
- * This class defines a data structure that will be used to hold the information
- * necessary for processing a persistent search.
+ * This class defines a data structure that will be used to hold the
+ * information necessary for processing a persistent search.
  */
-public class PersistentSearch
+public final class PersistentSearch
 {
+
+  /**
+   * A cancellation call-back which can be used by work-flow element
+   * implementations in order to register for resource cleanup when a
+   * persistent search is cancelled.
+   */
+  public static interface CancellationCallback
+  {
+
+    /**
+     * The provided persistent search has been cancelled. Any
+     * resources associated with the persistent search should be
+     * released.
+     *
+     * @param psearch
+     *          The persistent search which has just been cancelled.
+     */
+    void persistentSearchCancelled(PersistentSearch psearch);
+  }
+
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // Indicates whether entries returned should include the entry change
-  // notification control.
-  private boolean returnECs;
+  // Indicates whether entries returned should include the entry
+  // change notification control.
+  private final boolean returnECs;
 
   // The base DN for the search operation.
-  private DN baseDN;
+  private final DN baseDN;
 
   // The set of change types we want to see.
-  private Set<PersistentSearchChangeType> changeTypes;
+  private final Set<PersistentSearchChangeType> changeTypes;
 
   // The scope for the search operation.
-  private SearchScope scope;
+  private final SearchScope scope;
 
   // The filter for the search operation.
-  private SearchFilter filter;
+  private final SearchFilter filter;
 
   // The reference to the associated search operation.
-  private SearchOperation searchOperation;
+  private final SearchOperation searchOperation;
+
+  // Indicates whether or not this persistent search has already been
+  // aborted.
+  private boolean isCancelled = false;
+
+  // Cancellation callbacks which should be run when this persistent
+  // search is cancelled.
+  private final List<CancellationCallback> cancellationCallbacks =
+    new CopyOnWriteArrayList<CancellationCallback>();
 
 
 
   /**
-   * Creates a new persistent search object with the provided information.
+   * Creates a new persistent search object with the provided
+   * information.
    *
-   * @param  searchOperation  The search operation for this persistent search.
-   * @param  changeTypes      The change types for which changes should be
-   *                          examined.
-   * @param  returnECs        Indicates whether to include entry change
-   *                          notification controls in search result entries
-   *                          sent to the client.
+   * @param searchOperation
+   *          The search operation for this persistent search.
+   * @param changeTypes
+   *          The change types for which changes should be examined.
+   * @param returnECs
+   *          Indicates whether to include entry change notification
+   *          controls in search result entries sent to the client.
    */
   public PersistentSearch(SearchOperation searchOperation,
-                          Set<PersistentSearchChangeType> changeTypes,
-                          boolean returnECs)
+      Set<PersistentSearchChangeType> changeTypes, boolean returnECs)
   {
     this.searchOperation = searchOperation;
-    this.changeTypes     = changeTypes;
-    this.returnECs       = returnECs;
+    this.changeTypes = changeTypes;
+    this.returnECs = returnECs;
 
-    baseDN = searchOperation.getBaseDN();
-    scope  = searchOperation.getScope();
-    filter = searchOperation.getFilter();
+    this.baseDN = searchOperation.getBaseDN();
+    this.scope = searchOperation.getScope();
+    this.filter = searchOperation.getFilter();
   }
 
 
 
   /**
-   * Retrieves the search operation for this persistent search.
+   * Cancels this persistent search operation. On exit this persistent
+   * search will no longer be valid and any resources associated with
+   * it will have been released.
    *
-   * @return  The search operation for this persistent search.
+   * @return The result of the cancellation.
    */
-  public SearchOperation getSearchOperation()
+  public synchronized CancelResult cancel()
   {
-    return searchOperation;
+    if (!isCancelled)
+    {
+      isCancelled = true;
+
+      // The persistent search can no longer be cancelled.
+      searchOperation.getClientConnection().deregisterPersistentSearch(this);
+
+      // Notify any cancellation callbacks.
+      for (CancellationCallback callback : cancellationCallbacks)
+      {
+        try
+        {
+          callback.persistentSearchCancelled(this);
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+      }
+    }
+
+    return new CancelResult(ResultCode.CANCELED, null);
   }
 
 
 
   /**
-   * Retrieves the set of change types for this persistent search.
+   * Gets the message ID associated with this persistent search.
    *
-   * @return  The set of change types for this persistent search.
+   * @return The message ID associated with this persistent search.
    */
-  public Set<PersistentSearchChangeType> getChangeTypes()
+  public int getMessageID()
   {
-    return changeTypes;
+    return searchOperation.getMessageID();
   }
 
 
 
   /**
-   * Retrieves the returnECs flag for this persistent search.
+   * Notifies the persistent searches that an entry has been added.
    *
-   * @return  The return ECs flag for this persistent search.
+   * @param entry
+   *          The entry that was added.
+   * @param changeNumber
+   *          The change number associated with the operation that
+   *          added the entry, or {@code -1} if there is no change
+   *          number.
    */
-  public boolean getReturnECs()
-  {
-    return returnECs;
-  }
-
-
-
-  /**
-   * Retrieves the base DN for this persistent search.
-   *
-   * @return  The base DN for this persistent search.
-   */
-  public DN getBaseDN()
-  {
-    return baseDN;
-  }
-
-
-
-  /**
-   * Retrieves the scope for this persistent search.
-   *
-   * @return  The scope for this persistent search.
-   */
-  public SearchScope getScope()
-  {
-    return scope;
-  }
-
-
-
-  /**
-   * Retrieves the filter for this persistent search.
-   *
-   * @return  The filter for this persistent search.
-   */
-  public SearchFilter getFilter()
-  {
-    return filter;
-  }
-
-
-
-  /**
-   * Performs any necessary processing for the provided add operation.
-   *
-   * @param  addOperation  The add operation that has been processed.
-   * @param  entry         The entry that was added.
-   */
-  public void processAdd(LocalBackendAddOperation addOperation, Entry entry)
+  public void processAdd(Entry entry, long changeNumber)
   {
     // See if we care about add operations.
-    if (! changeTypes.contains(PersistentSearchChangeType.ADD))
+    if (!changeTypes.contains(PersistentSearchChangeType.ADD))
     {
       return;
     }
 
-
     // Make sure that the entry is within our target scope.
     switch (scope)
     {
-      case BASE_OBJECT:
-        if (! baseDN.equals(entry.getDN()))
-        {
-          return;
-        }
-        break;
-      case SINGLE_LEVEL:
-        if (! baseDN.equals(entry.getDN().getParentDNInSuffix()))
-        {
-          return;
-        }
-        break;
-      case WHOLE_SUBTREE:
-        if (! baseDN.isAncestorOf(entry.getDN()))
-        {
-          return;
-        }
-        break;
-      case SUBORDINATE_SUBTREE:
-        if (baseDN.equals(entry.getDN()) ||
-            (! baseDN.isAncestorOf(entry.getDN())))
-        {
-          return;
-        }
-        break;
-      default:
+    case BASE_OBJECT:
+      if (!baseDN.equals(entry.getDN()))
+      {
         return;
+      }
+      break;
+    case SINGLE_LEVEL:
+      if (!baseDN.equals(entry.getDN().getParentDNInSuffix()))
+      {
+        return;
+      }
+      break;
+    case WHOLE_SUBTREE:
+      if (!baseDN.isAncestorOf(entry.getDN()))
+      {
+        return;
+      }
+      break;
+    case SUBORDINATE_SUBTREE:
+      if (baseDN.equals(entry.getDN()) || (!baseDN.isAncestorOf(entry.getDN())))
+      {
+        return;
+      }
+      break;
+    default:
+      return;
     }
-
 
     // Make sure that the entry matches the target filter.
     try
     {
-      if (! filter.matchesEntry(entry))
+      if (!filter.matchesEntry(entry))
       {
         return;
       }
@@ -243,25 +256,22 @@ public class PersistentSearch
       return;
     }
 
-
-    // The entry is one that should be sent to the client.  See if we also need
-    // to construct an entry change notification control.
+    // The entry is one that should be sent to the client. See if we
+    // also need to construct an entry change notification control.
     ArrayList<Control> entryControls = new ArrayList<Control>(1);
     if (returnECs)
     {
       entryControls.add(new EntryChangeNotificationControl(
-                                 PersistentSearchChangeType.ADD,
-                                 addOperation.getChangeNumber()));
+          PersistentSearchChangeType.ADD, changeNumber));
     }
 
-
-    // Send the entry and see if we should continue processing.  If not, then
-    // deregister this persistent search.
+    // Send the entry and see if we should continue processing. If
+    // not, then deregister this persistent search.
     try
     {
-      if (! searchOperation.returnEntry(entry, entryControls))
+      if (!searchOperation.returnEntry(entry, entryControls))
       {
-        DirectoryServer.deregisterPersistentSearch(this);
+        cancel();
         searchOperation.sendSearchResultDone();
       }
     }
@@ -272,7 +282,7 @@ public class PersistentSearch
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      DirectoryServer.deregisterPersistentSearch(this);
+      cancel();
 
       try
       {
@@ -291,58 +301,58 @@ public class PersistentSearch
 
 
   /**
-   * Performs any necessary processing for the provided delete operation.
+   * Notifies the persistent searches that an entry has been deleted.
    *
-   * @param  deleteOperation  The delete operation that has been processed.
-   * @param  entry            The entry that was removed.
+   * @param entry
+   *          The entry that was deleted.
+   * @param changeNumber
+   *          The change number associated with the operation that
+   *          deleted the entry, or {@code -1} if there is no change
+   *          number.
    */
-  public void processDelete(LocalBackendDeleteOperation deleteOperation,
-      Entry entry)
+  public void processDelete(Entry entry, long changeNumber)
   {
     // See if we care about delete operations.
-    if (! changeTypes.contains(PersistentSearchChangeType.DELETE))
+    if (!changeTypes.contains(PersistentSearchChangeType.DELETE))
     {
       return;
     }
 
-
     // Make sure that the entry is within our target scope.
     switch (scope)
     {
-      case BASE_OBJECT:
-        if (! baseDN.equals(entry.getDN()))
-        {
-          return;
-        }
-        break;
-      case SINGLE_LEVEL:
-        if (! baseDN.equals(entry.getDN().getParentDNInSuffix()))
-        {
-          return;
-        }
-        break;
-      case WHOLE_SUBTREE:
-        if (! baseDN.isAncestorOf(entry.getDN()))
-        {
-          return;
-        }
-        break;
-      case SUBORDINATE_SUBTREE:
-        if (baseDN.equals(entry.getDN()) ||
-            (! baseDN.isAncestorOf(entry.getDN())))
-        {
-          return;
-        }
-        break;
-      default:
+    case BASE_OBJECT:
+      if (!baseDN.equals(entry.getDN()))
+      {
         return;
+      }
+      break;
+    case SINGLE_LEVEL:
+      if (!baseDN.equals(entry.getDN().getParentDNInSuffix()))
+      {
+        return;
+      }
+      break;
+    case WHOLE_SUBTREE:
+      if (!baseDN.isAncestorOf(entry.getDN()))
+      {
+        return;
+      }
+      break;
+    case SUBORDINATE_SUBTREE:
+      if (baseDN.equals(entry.getDN()) || (!baseDN.isAncestorOf(entry.getDN())))
+      {
+        return;
+      }
+      break;
+    default:
+      return;
     }
-
 
     // Make sure that the entry matches the target filter.
     try
     {
-      if (! filter.matchesEntry(entry))
+      if (!filter.matchesEntry(entry))
       {
         return;
       }
@@ -359,25 +369,22 @@ public class PersistentSearch
       return;
     }
 
-
-    // The entry is one that should be sent to the client.  See if we also need
-    // to construct an entry change notification control.
+    // The entry is one that should be sent to the client. See if we
+    // also need to construct an entry change notification control.
     ArrayList<Control> entryControls = new ArrayList<Control>(1);
     if (returnECs)
     {
       entryControls.add(new EntryChangeNotificationControl(
-                                 PersistentSearchChangeType.DELETE,
-                                 deleteOperation.getChangeNumber()));
+          PersistentSearchChangeType.DELETE, changeNumber));
     }
 
-
-    // Send the entry and see if we should continue processing.  If not, then
-    // deregister this persistent search.
+    // Send the entry and see if we should continue processing. If
+    // not, then deregister this persistent search.
     try
     {
-      if (! searchOperation.returnEntry(entry, entryControls))
+      if (!searchOperation.returnEntry(entry, entryControls))
       {
-        DirectoryServer.deregisterPersistentSearch(this);
+        cancel();
         searchOperation.sendSearchResultDone();
       }
     }
@@ -388,7 +395,7 @@ public class PersistentSearch
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      DirectoryServer.deregisterPersistentSearch(this);
+      cancel();
 
       try
       {
@@ -407,61 +414,78 @@ public class PersistentSearch
 
 
   /**
-   * Performs any necessary processing for the provided modify operation.
+   * Notifies the persistent searches that an entry has been modified.
    *
-   * @param  modifyOperation  The modify operation that has been processed.
-   * @param  oldEntry         The entry before the modification was applied.
-   * @param  newEntry         The entry after the modification was applied.
+   * @param entry
+   *          The entry after it was modified.
+   * @param changeNumber
+   *          The change number associated with the operation that
+   *          modified the entry, or {@code -1} if there is no change
+   *          number.
    */
-  public void processModify(LocalBackendModifyOperation modifyOperation,
-                            Entry oldEntry,
-                            Entry newEntry)
+  public void processModify(Entry entry, long changeNumber)
+  {
+    processModify(entry, changeNumber, entry);
+  }
+
+
+
+  /**
+   * Notifies persistent searches that an entry has been modified.
+   *
+   * @param entry
+   *          The entry after it was modified.
+   * @param changeNumber
+   *          The change number associated with the operation that
+   *          modified the entry, or {@code -1} if there is no change
+   *          number.
+   * @param oldEntry
+   *          The entry before it was modified.
+   */
+  public void processModify(Entry entry, long changeNumber, Entry oldEntry)
   {
     // See if we care about modify operations.
-    if (! changeTypes.contains(PersistentSearchChangeType.MODIFY))
+    if (!changeTypes.contains(PersistentSearchChangeType.MODIFY))
     {
       return;
     }
 
-
     // Make sure that the entry is within our target scope.
     switch (scope)
     {
-      case BASE_OBJECT:
-        if (! baseDN.equals(oldEntry.getDN()))
-        {
-          return;
-        }
-        break;
-      case SINGLE_LEVEL:
-        if (! baseDN.equals(oldEntry.getDN().getParentDNInSuffix()))
-        {
-          return;
-        }
-        break;
-      case WHOLE_SUBTREE:
-        if (! baseDN.isAncestorOf(oldEntry.getDN()))
-        {
-          return;
-        }
-        break;
-      case SUBORDINATE_SUBTREE:
-        if (baseDN.equals(oldEntry.getDN()) ||
-            (! baseDN.isAncestorOf(oldEntry.getDN())))
-        {
-          return;
-        }
-        break;
-      default:
+    case BASE_OBJECT:
+      if (!baseDN.equals(oldEntry.getDN()))
+      {
         return;
+      }
+      break;
+    case SINGLE_LEVEL:
+      if (!baseDN.equals(oldEntry.getDN().getParent()))
+      {
+        return;
+      }
+      break;
+    case WHOLE_SUBTREE:
+      if (!baseDN.isAncestorOf(oldEntry.getDN()))
+      {
+        return;
+      }
+      break;
+    case SUBORDINATE_SUBTREE:
+      if (baseDN.equals(oldEntry.getDN())
+          || (!baseDN.isAncestorOf(oldEntry.getDN())))
+      {
+        return;
+      }
+      break;
+    default:
+      return;
     }
-
 
     // Make sure that the entry matches the target filter.
     try
     {
-      if ((! filter.matchesEntry(oldEntry)) &&
-          (! filter.matchesEntry(newEntry)))
+      if ((!filter.matchesEntry(oldEntry)) && (!filter.matchesEntry(entry)))
       {
         return;
       }
@@ -478,25 +502,22 @@ public class PersistentSearch
       return;
     }
 
-
-    // The entry is one that should be sent to the client.  See if we also need
-    // to construct an entry change notification control.
+    // The entry is one that should be sent to the client. See if we
+    // also need to construct an entry change notification control.
     ArrayList<Control> entryControls = new ArrayList<Control>(1);
     if (returnECs)
     {
       entryControls.add(new EntryChangeNotificationControl(
-                                 PersistentSearchChangeType.MODIFY,
-                                 modifyOperation.getChangeNumber()));
+          PersistentSearchChangeType.MODIFY, changeNumber));
     }
 
-
-    // Send the entry and see if we should continue processing.  If not, then
-    // deregister this persistent search.
+    // Send the entry and see if we should continue processing. If
+    // not, then deregister this persistent search.
     try
     {
-      if (! searchOperation.returnEntry(newEntry, entryControls))
+      if (!searchOperation.returnEntry(entry, entryControls))
       {
-        DirectoryServer.deregisterPersistentSearch(this);
+        cancel();
         searchOperation.sendSearchResultDone();
       }
     }
@@ -507,7 +528,7 @@ public class PersistentSearch
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      DirectoryServer.deregisterPersistentSearch(this);
+      cancel();
 
       try
       {
@@ -526,82 +547,83 @@ public class PersistentSearch
 
 
   /**
-   * Performs any necessary processing for the provided modify DN operation.
+   * Notifies the persistent searches that an entry has been renamed.
    *
-   * @param  modifyDNOperation  The modify DN operation that has been processed.
-   * @param  oldEntry           The entry before the modify DN.
-   * @param  newEntry           The entry after the modify DN.
+   * @param entry
+   *          The entry after it was modified.
+   * @param changeNumber
+   *          The change number associated with the operation that
+   *          modified the entry, or {@code -1} if there is no change
+   *          number.
+   * @param oldDN
+   *          The DN of the entry before it was renamed.
    */
-  public void processModifyDN(LocalBackendModifyDNOperation modifyDNOperation,
-                              Entry oldEntry, Entry newEntry)
+  public void processModifyDN(Entry entry, long changeNumber, DN oldDN)
   {
     // See if we care about modify DN operations.
-    if (! changeTypes.contains(PersistentSearchChangeType.MODIFY_DN))
+    if (!changeTypes.contains(PersistentSearchChangeType.MODIFY_DN))
     {
       return;
     }
 
-
-    // Make sure that the old or new entry is within our target scope.  In this
-    // case, we need to check the DNs of both the old and new entry so we know
-    // which one(s) should be compared against the filter.
+    // Make sure that the old or new entry is within our target scope.
+    // In this case, we need to check the DNs of both the old and new
+    // entry so we know which one(s) should be compared against the
+    // filter.
     boolean oldMatches = false;
     boolean newMatches = false;
 
     switch (scope)
     {
-      case BASE_OBJECT:
-        oldMatches = baseDN.equals(oldEntry.getDN());
-        newMatches = baseDN.equals(newEntry.getDN());
+    case BASE_OBJECT:
+      oldMatches = baseDN.equals(oldDN);
+      newMatches = baseDN.equals(entry.getDN());
 
-        if (! (oldMatches || newMatches))
-        {
-          return;
-        }
-
-        break;
-      case SINGLE_LEVEL:
-        oldMatches = baseDN.equals(oldEntry.getDN().getParentDNInSuffix());
-        newMatches = baseDN.equals(newEntry.getDN().getParentDNInSuffix());
-
-        if (! (oldMatches || newMatches))
-        {
-          return;
-        }
-
-        break;
-      case WHOLE_SUBTREE:
-        oldMatches = baseDN.isAncestorOf(oldEntry.getDN());
-        newMatches = baseDN.isAncestorOf(newEntry.getDN());
-
-        if (! (oldMatches || newMatches))
-        {
-          return;
-        }
-
-        break;
-      case SUBORDINATE_SUBTREE:
-        oldMatches = ((! baseDN.equals(oldEntry.getDN())) &&
-                      baseDN.isAncestorOf(oldEntry.getDN()));
-        newMatches = ((! baseDN.equals(newEntry.getDN())) &&
-                      baseDN.isAncestorOf(newEntry.getDN()));
-
-        if (! (oldMatches || newMatches))
-        {
-          return;
-        }
-
-        break;
-      default:
+      if (!(oldMatches || newMatches))
+      {
         return;
-    }
+      }
 
+      break;
+    case SINGLE_LEVEL:
+      oldMatches = baseDN.equals(oldDN.getParent());
+      newMatches = baseDN.equals(entry.getDN().getParent());
+
+      if (!(oldMatches || newMatches))
+      {
+        return;
+      }
+
+      break;
+    case WHOLE_SUBTREE:
+      oldMatches = baseDN.isAncestorOf(oldDN);
+      newMatches = baseDN.isAncestorOf(entry.getDN());
+
+      if (!(oldMatches || newMatches))
+      {
+        return;
+      }
+
+      break;
+    case SUBORDINATE_SUBTREE:
+      oldMatches = ((!baseDN.equals(oldDN)) && baseDN.isAncestorOf(oldDN));
+      newMatches = ((!baseDN.equals(entry.getDN())) && baseDN
+          .isAncestorOf(entry.getDN()));
+
+      if (!(oldMatches || newMatches))
+      {
+        return;
+      }
+
+      break;
+    default:
+      return;
+    }
 
     // Make sure that the entry matches the target filter.
     try
     {
-      if (((! oldMatches) || (! filter.matchesEntry(oldEntry))) &&
-          ((! newMatches) && (! filter.matchesEntry(newEntry))))
+      if (!oldMatches && !newMatches && !filter.matchesEntry(entry))
       {
         return;
       }
@@ -618,26 +640,22 @@ public class PersistentSearch
       return;
     }
 
-
-    // The entry is one that should be sent to the client.  See if we also need
-    // to construct an entry change notification control.
+    // The entry is one that should be sent to the client. See if we
+    // also need to construct an entry change notification control.
     ArrayList<Control> entryControls = new ArrayList<Control>(1);
     if (returnECs)
     {
       entryControls.add(new EntryChangeNotificationControl(
-                                 PersistentSearchChangeType.MODIFY_DN,
-                                 oldEntry.getDN(),
-                                 modifyDNOperation.getChangeNumber()));
+          PersistentSearchChangeType.MODIFY_DN, oldDN, changeNumber));
     }
 
-
-    // Send the entry and see if we should continue processing.  If not, then
-    // deregister this persistent search.
+    // Send the entry and see if we should continue processing. If
+    // not, then deregister this persistent search.
     try
     {
-      if (! searchOperation.returnEntry(newEntry, entryControls))
+      if (!searchOperation.returnEntry(entry, entryControls))
       {
-        DirectoryServer.deregisterPersistentSearch(this);
+        cancel();
         searchOperation.sendSearchResultDone();
       }
     }
@@ -648,7 +666,7 @@ public class PersistentSearch
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      DirectoryServer.deregisterPersistentSearch(this);
+      cancel();
 
       try
       {
@@ -662,6 +680,21 @@ public class PersistentSearch
         }
       }
     }
+  }
+
+
+
+  /**
+   * Registers a cancellation callback with this persistent search.
+   * The cancellation callback will be notified when this persistent
+   * search has been cancelled.
+   *
+   * @param callback
+   *          The cancellation callback.
+   */
+  public void registerCancellationCallback(CancellationCallback callback)
+  {
+    cancellationCallbacks.add(callback);
   }
 
 
@@ -669,8 +702,9 @@ public class PersistentSearch
   /**
    * Retrieves a string representation of this persistent search.
    *
-   * @return  A string representation of this persistent search.
+   * @return A string representation of this persistent search.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();
@@ -681,10 +715,11 @@ public class PersistentSearch
 
 
   /**
-   * Appends a string representation of this persistent search to the provided
-   * buffer.
+   * Appends a string representation of this persistent search to the
+   * provided buffer.
    *
-   * @param  buffer  The buffer to which the information should be appended.
+   * @param buffer
+   *          The buffer to which the information should be appended.
    */
   public void toString(StringBuilder buffer)
   {
@@ -701,4 +736,3 @@ public class PersistentSearch
     buffer.append("\")");
   }
 }
-

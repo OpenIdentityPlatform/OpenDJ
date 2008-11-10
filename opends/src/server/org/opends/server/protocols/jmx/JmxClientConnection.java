@@ -100,7 +100,7 @@ public class JmxClientConnection
   private ConnectionSecurityProvider securityProvider;
 
   // The empty operation list for this connection.
-  private LinkedList<AbstractOperation> operationList;
+  private LinkedList<Operation> operationList;
 
   // The connection ID for this client connection.
   private long connectionID;
@@ -155,7 +155,7 @@ public class JmxClientConnection
           true,
           ERR_LDAP_CONNHANDLER_REJECTED_BY_SERVER.get());
     }
-    operationList = new LinkedList<AbstractOperation>();
+    operationList = new LinkedList<Operation>();
 
     try
     {
@@ -1130,7 +1130,7 @@ public class JmxClientConnection
    *
    * @return  The set of operations in progress for this client connection.
    */
-  public Collection<AbstractOperation> getOperationsInProgress()
+  public Collection<Operation> getOperationsInProgress()
   {
     return operationList;
   }

@@ -27,9 +27,6 @@
 package org.opends.server.core;
 
 import org.opends.messages.MessageBuilder;
-import org.opends.messages.Message;
-
-
 import static org.opends.server.core.CoreConstants.LOG_ELEMENT_ENTRY_DN;
 import static org.opends.server.core.CoreConstants.LOG_ELEMENT_ERROR_MESSAGE;
 import static org.opends.server.core.CoreConstants.LOG_ELEMENT_MATCHED_DN;
@@ -38,11 +35,8 @@ import static org.opends.server.core.CoreConstants.LOG_ELEMENT_REFERRAL_URLS;
 import static org.opends.server.core.CoreConstants.LOG_ELEMENT_RESULT_CODE;
 import static org.opends.server.loggers.AccessLogger.logModifyRequest;
 import static org.opends.server.loggers.AccessLogger.logModifyResponse;
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -554,9 +548,10 @@ public class ModifyOperationBasis
       // Log the modify response.
       logModifyResponse(this);
 
-      // Notifies any persistent searches that might be registered with the
-      // server.
-      notifyPersistentSearches(workflowExecuted);
+      // Invoke the post-response callbacks.
+      if (workflowExecuted) {
+        invokePostResponseCallbacks();
+      }
 
       // Invoke the post-response add plugins.
       invokePostResponsePlugins(workflowExecuted);
@@ -611,61 +606,6 @@ public class ModifyOperationBasis
     }
   }
 
-
-  /**
-   * Notifies any persistent searches that might be registered with the server.
-   * If no workflow has been executed then don't notify persistent searches.
-   *
-   * @param workflowExecuted <code>true</code> if a workflow has been
-   *                         executed
-   */
-  private void notifyPersistentSearches(boolean workflowExecuted)
-  {
-    if (! workflowExecuted)
-    {
-      return;
-    }
-
-    List localOperations =
-      (List)getAttachment(Operation.LOCALBACKENDOPERATIONS);
-
-    if (localOperations != null)
-    {
-      for (Object localOp : localOperations)
-      {
-        LocalBackendModifyOperation localOperation =
-          (LocalBackendModifyOperation)localOp;
-        // Notify any persistent searches that might be registered with
-        // the server.
-        if (localOperation.getResultCode() == ResultCode.SUCCESS)
-        {
-          for (PersistentSearch persistentSearch :
-               DirectoryServer.getPersistentSearches())
-          {
-            try
-            {
-              persistentSearch.processModify(localOperation,
-                  localOperation.getCurrentEntry(),
-                  localOperation.getModifiedEntry());
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              Message message = ERR_MODIFY_ERROR_NOTIFYING_PERSISTENT_SEARCH.
-                  get(String.valueOf(persistentSearch), getExceptionMessage(e));
-              logError(message);
-
-              DirectoryServer.deregisterPersistentSearch(persistentSearch);
-            }
-          }
-        }
-      }
-    }
-  }
 
 
   /**

@@ -25,7 +25,6 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 
 import java.util.ArrayList;
@@ -47,9 +46,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.loggers.ErrorLogger;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 /**
@@ -665,9 +662,10 @@ public class ModifyDNOperationBasis
       // Log the modify DN response.
       logModifyDNResponse(this);
 
-      // Notifies any persistent searches that might be registered with the
-      // server.
-      notifyPersistentSearches(workflowExecuted);
+      // Invoke the post-response callbacks.
+      if (workflowExecuted) {
+        invokePostResponseCallbacks();
+      }
 
       // Invoke the post-response modify DN plugins.
       invokePostResponsePlugins(workflowExecuted);
@@ -719,63 +717,6 @@ public class ModifyDNOperationBasis
       // Invoke the post response plugins that have been registered with
       // the current operation
       pluginConfigManager.invokePostResponseModifyDNPlugins(this);
-    }
-  }
-
-
-  /**
-   * Notifies any persistent searches that might be registered with the server.
-   * If no workflow has been executed then don't notify persistent searches.
-   *
-   * @param workflowExecuted <code>true</code> if a workflow has been
-   *                         executed
-   */
-  private void notifyPersistentSearches(boolean workflowExecuted)
-  {
-    if (! workflowExecuted)
-    {
-      return;
-    }
-
-    List localOperations =
-      (List)getAttachment(Operation.LOCALBACKENDOPERATIONS);
-
-    if (localOperations != null)
-    {
-      for (Object localOperation : localOperations)
-      {
-        LocalBackendModifyDNOperation localOp =
-          (LocalBackendModifyDNOperation)localOperation;
-        // Notify any persistent searches that might be registered with
-        // the server.
-        if (getResultCode() == ResultCode.SUCCESS)
-        {
-          for (PersistentSearch persistentSearch :
-            DirectoryServer.getPersistentSearches())
-          {
-            try
-            {
-              persistentSearch.processModifyDN(
-                  localOp,
-                  localOp.getOriginalEntry(),
-                  localOp.getUpdatedEntry());
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              Message message = ERR_MODDN_ERROR_NOTIFYING_PERSISTENT_SEARCH.get(
-                  String.valueOf(persistentSearch), getExceptionMessage(e));
-              ErrorLogger.logError(message);
-
-              DirectoryServer.deregisterPersistentSearch(persistentSearch);
-            }
-          }
-        }
-      }
     }
   }
 

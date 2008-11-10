@@ -178,12 +178,13 @@ public class LocalBackendBindOperation
   /**
    * Process this bind operation in a local backend.
    *
-   * @param  backend  The backend in which the bind operation should be
-   *                  processed.
+   * @param wfe
+   *          The local backend work-flow element.
+   *
    */
-  void processLocalBind(Backend backend)
+  void processLocalBind(LocalBackendWorkflowElement wfe)
   {
-    this.backend = backend;
+    this.backend = wfe.getBackend();
 
     // Initialize a number of variables for use during the bind processing.
     clientConnection         = getClientConnection();

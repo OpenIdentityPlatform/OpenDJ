@@ -141,7 +141,7 @@ public final class InternalClientConnection
   private AuthenticationInfo authenticationInfo;
 
   // The empty operation list for this connection.
-  private LinkedList<AbstractOperation> operationList;
+  private LinkedList<Operation> operationList;
 
   // The connection ID for this client connection.
   private long connectionID;
@@ -258,7 +258,7 @@ public final class InternalClientConnection
     }
 
     connectionID  = nextConnectionID.getAndDecrement();
-    operationList = new LinkedList<AbstractOperation>();
+    operationList = new LinkedList<Operation>();
 
     try
     {
@@ -298,7 +298,7 @@ public final class InternalClientConnection
     super.setLookthroughLimit(0);
 
     connectionID  = nextConnectionID.getAndDecrement();
-    operationList = new LinkedList<AbstractOperation>();
+    operationList = new LinkedList<Operation>();
 
     try
     {
@@ -2919,7 +2919,7 @@ public final class InternalClientConnection
        mayExtend=false,
        mayInvoke=false)
   @Override()
-  public Collection<AbstractOperation> getOperationsInProgress()
+  public Collection<Operation> getOperationsInProgress()
   {
     return operationList;
   }

@@ -121,16 +121,16 @@ public class LocalBackendSearchOperation
   /**
    * Process this search operation against a local backend.
    *
-   * @param  backend  The backend in which the search operation should be
-   *                  performed.
-   *
-   * @throws CanceledOperationException if this operation should be
-   * cancelled
+   * @param wfe
+   *          The local backend work-flow element.
+   * @throws CanceledOperationException
+   *           if this operation should be cancelled
    */
-  void processLocalSearch(Backend backend) throws CanceledOperationException {
+  void processLocalSearch(LocalBackendWorkflowElement wfe)
+      throws CanceledOperationException
+  {
     boolean executePostOpPlugins = false;
-
-    this.backend = backend;
+    this.backend = wfe.getBackend();
 
     clientConnection = getClientConnection();
 
@@ -230,7 +230,8 @@ searchProcessing:
       // If there's a persistent search, then register it with the server.
       if (persistentSearch != null)
       {
-        DirectoryServer.registerPersistentSearch(persistentSearch);
+        wfe.registerPersistentSearch(persistentSearch);
+        clientConnection.registerPersistentSearch(persistentSearch);
         setSendResponse(false);
       }
 
@@ -254,7 +255,7 @@ searchProcessing:
 
         if (persistentSearch != null)
         {
-          DirectoryServer.deregisterPersistentSearch(persistentSearch);
+          persistentSearch.cancel();
           setSendResponse(true);
         }
 
@@ -264,7 +265,7 @@ searchProcessing:
       {
         if (persistentSearch != null)
         {
-          DirectoryServer.deregisterPersistentSearch(persistentSearch);
+          persistentSearch.cancel();
           setSendResponse(true);
         }
 
@@ -283,7 +284,7 @@ searchProcessing:
 
         if (persistentSearch != null)
         {
-          DirectoryServer.deregisterPersistentSearch(persistentSearch);
+          persistentSearch.cancel();
           setSendResponse(true);
         }
 

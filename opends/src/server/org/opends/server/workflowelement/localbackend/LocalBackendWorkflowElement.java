@@ -31,6 +31,7 @@ package org.opends.server.workflowelement.localbackend;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -47,6 +48,7 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.LeafWorkflowElement;
@@ -73,6 +75,10 @@ public class LocalBackendWorkflowElement extends
        registeredLocalBackends =
             new TreeMap<String, LocalBackendWorkflowElement>();
 
+  // The set of persistent searches registered with this work flow
+  // element.
+  private final List<PersistentSearch> persistentSearches =
+    new CopyOnWriteArrayList<PersistentSearch>();
 
   // a lock to guarantee safe concurrent access to the registeredLocalBackends
   // variable
@@ -154,6 +160,12 @@ public class LocalBackendWorkflowElement extends
     // an NPE
     super.initialize(null, null);
     backend = null;
+
+    // Cancel all persistent searches.
+    for (PersistentSearch psearch : persistentSearches) {
+      psearch.cancel();
+    }
+    persistentSearches.clear();
   }
 
 
@@ -372,43 +384,43 @@ public class LocalBackendWorkflowElement extends
       case BIND:
         LocalBackendBindOperation bindOperation =
              new LocalBackendBindOperation((BindOperation) operation);
-        bindOperation.processLocalBind(backend);
+        bindOperation.processLocalBind(this);
         break;
 
       case SEARCH:
         LocalBackendSearchOperation searchOperation =
              new LocalBackendSearchOperation((SearchOperation) operation);
-        searchOperation.processLocalSearch(backend);
+        searchOperation.processLocalSearch(this);
         break;
 
       case ADD:
         LocalBackendAddOperation addOperation =
              new LocalBackendAddOperation((AddOperation) operation);
-        addOperation.processLocalAdd(backend);
+        addOperation.processLocalAdd(this);
         break;
 
       case DELETE:
         LocalBackendDeleteOperation deleteOperation =
              new LocalBackendDeleteOperation((DeleteOperation) operation);
-        deleteOperation.processLocalDelete(backend);
+        deleteOperation.processLocalDelete(this);
         break;
 
       case MODIFY:
         LocalBackendModifyOperation modifyOperation =
              new LocalBackendModifyOperation((ModifyOperation) operation);
-        modifyOperation.processLocalModify(backend);
+        modifyOperation.processLocalModify(this);
         break;
 
       case MODIFY_DN:
         LocalBackendModifyDNOperation modifyDNOperation =
              new LocalBackendModifyDNOperation((ModifyDNOperation) operation);
-        modifyDNOperation.processLocalModifyDN(backend);
+        modifyDNOperation.processLocalModifyDN(this);
         break;
 
       case COMPARE:
         LocalBackendCompareOperation compareOperation =
              new LocalBackendCompareOperation((CompareOperation) operation);
-        compareOperation.processLocalCompare(backend);
+        compareOperation.processLocalCompare(this);
         break;
 
       case ABANDON:
@@ -456,5 +468,58 @@ public class LocalBackendWorkflowElement extends
                                   newAttachment);
   }
 
+
+
+  /**
+   * Gets the backend associated with this local backend workflow
+   * element.
+   *
+   * @return The backend associated with this local backend workflow
+   *         element.
+   */
+  Backend getBackend()
+  {
+    return backend;
+  }
+
+
+
+  /**
+   * Registers the provided persistent search operation with this
+   * local backend workflow element so that it will be notified of any
+   * add, delete, modify, or modify DN operations that are performed.
+   *
+   * @param persistentSearch
+   *          The persistent search operation to register with this
+   *          local backend workflow element.
+   */
+  void registerPersistentSearch(PersistentSearch persistentSearch)
+  {
+    PersistentSearch.CancellationCallback callback =
+      new PersistentSearch.CancellationCallback()
+    {
+      public void persistentSearchCancelled(PersistentSearch psearch)
+      {
+        persistentSearches.remove(psearch);
+      }
+    };
+
+    persistentSearches.add(persistentSearch);
+    persistentSearch.registerCancellationCallback(callback);
+  }
+
+
+
+  /**
+   * Gets the list of persistent searches currently active against
+   * this local backend workflow element.
+   *
+   * @return The list of persistent searches currently active against
+   *         this local backend workflow element.
+   */
+  List<PersistentSearch> getPersistentSearches()
+  {
+    return persistentSearches;
+  }
 }
 
