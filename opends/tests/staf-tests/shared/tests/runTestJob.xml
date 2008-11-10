@@ -597,12 +597,9 @@
                   tcsuiteshort=tcsuite
               else:
                 tcsuite=tcgroup
-              if tcnamesplit[2]:
-                tcshortname=tcnamesplit[2].strip()
             else:
               tcgroup=tcname
               tcsuite=tcname
-              tcshortname=tcname
               tcsuiteshort=tcname
 
             if testDict[tcname].has_key('pass'):
@@ -640,6 +637,7 @@
           else:
             tcresult='fail'
 
+          tcshortname=get_test_name(tcname)
           tcdurationsecs=test_time().timeToSeconds(tcduration)
 
           # Create the testgroup element

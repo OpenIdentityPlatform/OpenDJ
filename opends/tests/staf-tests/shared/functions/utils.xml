@@ -1199,7 +1199,7 @@
             line.setAttribute("level", "%s" % level)
             line.setAttribute("message", "%s" % message)
             if level == 'Start':
-              tag=message.split(":")[3].strip()
+              tag=get_test_name(message.replace('testcase: ',''))
               line.setAttribute("tag", "%s" % tag.lower())
             log.appendChild(line)
           </script>

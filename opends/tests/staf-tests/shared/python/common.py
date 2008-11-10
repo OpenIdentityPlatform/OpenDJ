@@ -40,7 +40,8 @@ __all__ = [ "format_testcase",
             "exception_thrown",
             "directory_server",
             "test_env",
-            "staf_service" ]
+            "staf_service",
+            "get_test_name" ]
 
 class format_testcase:
   'Format the Test name objects'
@@ -536,4 +537,15 @@ class test_env:
 
     def get_reljavadir(self):
       return self.directory
+
+def get_test_name(name):
+  i=2
+  __name=''
+  __tn=name.split(':')
+  while i < len(__tn):
+    __name += '%s:' % __tn[i]
+    i=i+1
+  return __name[0:-1].strip()
+
+
 
