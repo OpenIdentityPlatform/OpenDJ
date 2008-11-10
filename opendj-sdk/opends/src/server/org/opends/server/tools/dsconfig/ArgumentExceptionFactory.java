@@ -604,6 +604,25 @@ public final class ArgumentExceptionFactory {
 
 
   /**
+   * Creates an argument exception which should be used when a multi-valued
+   * property does not contain a given value.
+   *
+   * @param value
+   *          The property value.
+   * @param propertyName
+   *          The property name.
+   * @return Returns an argument exception.
+   */
+  public static ArgumentException unknownValueForMultiValuedProperty(
+    String value, String propertyName) {
+          Message msg = ERR_DSCFG_ERROR_VALUE_DOES_NOT_EXIST.get(
+            value, propertyName);
+    return new ArgumentException(msg);
+  }
+
+
+
+  /**
    * Creates a CLI exception which should be used when a managed
    * object is retrieved but does not have the correct type
    * appropriate for the associated sub-command.

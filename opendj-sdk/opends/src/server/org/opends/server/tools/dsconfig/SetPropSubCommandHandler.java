@@ -754,6 +754,9 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
     // Set properties.
     for (String m : propertySetArgument.getValues()) {
+      if (!propertyResetArgument.getValues().isEmpty()) {
+        throw ArgumentExceptionFactory.incompatiblePropertyModification(m);
+      }
       // Parse the property "property:value".
       int sep = m.indexOf(':');
 
@@ -790,6 +793,9 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
     // Remove properties.
     for (String m : propertyRemoveArgument.getValues()) {
+      if (!propertyResetArgument.getValues().isEmpty()) {
+        throw ArgumentExceptionFactory.incompatiblePropertyModification(m);
+      }
       // Parse the property "property:value".
       int sep = m.indexOf(':');
 
@@ -816,19 +822,20 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       }
 
       // Apply the modification.
-      if (lastModTypes.containsKey(propertyName)) {
-        if (lastModTypes.get(propertyName) == ModificationType.SET) {
-          throw ArgumentExceptionFactory.incompatiblePropertyModification(m);
-        }
-      } else {
-        lastModTypes.put(propertyName, ModificationType.REMOVE);
-        modifyPropertyValues(child, pd, changes, ModificationType.REMOVE,
-            value);
+      if (lastModTypes.containsKey(propertyName) &&
+        (lastModTypes.get(propertyName) == ModificationType.SET)) {
+        throw ArgumentExceptionFactory.incompatiblePropertyModification(m);
       }
+
+      lastModTypes.put(propertyName, ModificationType.REMOVE);
+      modifyPropertyValues(child, pd, changes, ModificationType.REMOVE, value);
     }
 
     // Add properties.
     for (String m : propertyAddArgument.getValues()) {
+      if (!propertyResetArgument.getValues().isEmpty()) {
+        throw ArgumentExceptionFactory.incompatiblePropertyModification(m);
+      }
       // Parse the property "property:value".
       int sep = m.indexOf(':');
 
@@ -855,14 +862,13 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       }
 
       // Apply the modification.
-      if (lastModTypes.containsKey(propertyName)) {
-        if (lastModTypes.get(propertyName) == ModificationType.SET) {
-          throw ArgumentExceptionFactory.incompatiblePropertyModification(m);
-        }
-      } else {
-        lastModTypes.put(propertyName, ModificationType.ADD);
-        modifyPropertyValues(child, pd, changes, ModificationType.ADD, value);
+      if (lastModTypes.containsKey(propertyName) &&
+        (lastModTypes.get(propertyName) == ModificationType.SET)) {
+        throw ArgumentExceptionFactory.incompatiblePropertyModification(m);
       }
+
+      lastModTypes.put(propertyName, ModificationType.ADD);
+      modifyPropertyValues(child, pd, changes, ModificationType.ADD, value);
     }
 
     // Apply the command line changes.
@@ -931,7 +937,11 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
         values.add(value);
         break;
       case REMOVE:
-        values.remove(value);
+        if (values.remove(value) != true) {
+          // value was not part of values
+          throw ArgumentExceptionFactory.
+            unknownValueForMultiValuedProperty(s, pd.getName());
+        }
         break;
       case SET:
         values = new TreeSet<T>(pd);
