@@ -72,6 +72,13 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
 
   private NoItemSelectedPanel noEntryPanel = new NoItemSelectedPanel();
 
+  private final SchemaElementPanel[] panels =
+  {   standardObjectClassPanel, configurationObjectClassPanel,
+      customObjectClassPanel, standardAttributePanel,
+      configurationAttributePanel, customAttributePanel, matchingRulePanel,
+      attributeSyntaxPanel
+  };
+
   private final String NOTHING_SELECTED = "Nothing Selected";
 
 
@@ -105,12 +112,6 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
   public void setInfo(ControlPanelInfo info)
   {
     super.setInfo(info);
-    StatusGenericPanel[] panels = {standardObjectClassPanel,
-        configurationObjectClassPanel, customObjectClassPanel,
-        standardAttributePanel, configurationAttributePanel,
-        customAttributePanel, matchingRulePanel,
-        attributeSyntaxPanel
-    };
     for (StatusGenericPanel panel : panels)
     {
       panel.setInfo(info);
@@ -124,14 +125,10 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
   public void addSchemaElementSelectionListener(
       SchemaElementSelectionListener listener)
   {
-    standardObjectClassPanel.addSchemaElementSelectionListener(listener);
-    configurationObjectClassPanel.addSchemaElementSelectionListener(listener);
-    customObjectClassPanel.addSchemaElementSelectionListener(listener);
-    standardAttributePanel.addSchemaElementSelectionListener(listener);
-    configurationAttributePanel.addSchemaElementSelectionListener(listener);
-    customAttributePanel.addSchemaElementSelectionListener(listener);
-    matchingRulePanel.addSchemaElementSelectionListener(listener);
-    attributeSyntaxPanel.addSchemaElementSelectionListener(listener);
+    for (SchemaElementPanel panel : panels)
+    {
+      panel.addSchemaElementSelectionListener(listener);
+    }
   }
 
   /**
@@ -141,15 +138,10 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
   public void removeSchemaElementSelectionListener(
       SchemaElementSelectionListener listener)
   {
-    standardObjectClassPanel.removeSchemaElementSelectionListener(listener);
-    configurationObjectClassPanel.removeSchemaElementSelectionListener(
-        listener);
-    customObjectClassPanel.removeSchemaElementSelectionListener(listener);
-    standardAttributePanel.removeSchemaElementSelectionListener(listener);
-    configurationAttributePanel.removeSchemaElementSelectionListener(listener);
-    customAttributePanel.removeSchemaElementSelectionListener(listener);
-    matchingRulePanel.removeSchemaElementSelectionListener(listener);
-    attributeSyntaxPanel.removeSchemaElementSelectionListener(listener);
+    for (SchemaElementPanel panel : panels)
+    {
+      panel.removeSchemaElementSelectionListener(listener);
+    }
   }
 
   /**
@@ -331,7 +323,6 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
    */
   public Component getPreferredFocusComponent()
   {
-    // TODO
     return null;
   }
 
