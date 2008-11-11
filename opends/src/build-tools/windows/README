@@ -103,7 +103,7 @@ This will generate the binary winlauncher.exe.
  INSTRUCTIONS TO COMPILE opends_service.exe and administrator_launcher.exe
  ========================
 service.c (the main code file for opends_service.exe) uses windows resources and
-so 
+so it requires Windows libraries to be compiled.
 
 The fastest way of generating opends_service.exe is to do it using the command
 line.
