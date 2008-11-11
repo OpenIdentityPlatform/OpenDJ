@@ -699,7 +699,7 @@ class NodeRefresher extends AbstractNodeTask {
         }
         else
         {
-          name = r.getName()+","+parentDn;
+          name = unquoteRelativeName(r.getName())+","+parentDn;
         }
         boolean add = false;
         if (useCustomFilter())
@@ -900,6 +900,31 @@ class NodeRefresher extends AbstractNodeTask {
     }
   }
 
+  /**
+   * Removes the quotes surrounding the provided name.  JNDI can return relative
+   * names with this format.
+   * @param name the relative name to be treated.
+   * @return an String representing the provided relative name without
+   * surrounding quotes.
+   */
+  private String unquoteRelativeName(String name)
+  {
+    if ((name.length() > 0) && (name.charAt(0) == '"'))
+    {
+      if (name.charAt(name.length() - 1) == '"')
+      {
+        return name.substring(1, name.length() - 1);
+      }
+      else
+      {
+        return name.substring(1);
+      }
+    }
+    else
+    {
+      return name;
+    }
+  }
 
   /**
    * DEBUG : Dump the state of the task.
