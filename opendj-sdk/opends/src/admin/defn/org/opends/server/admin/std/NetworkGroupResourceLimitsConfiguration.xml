@@ -149,9 +149,11 @@
       per-user basis.
     </adm:description>
     <adm:default-behavior>
-      <adm:defined>
-        <adm:value>1000</adm:value>
-      </adm:defined>
+      <adm:alias>
+        <adm:synopsis>
+          Use the global default size limit.
+        </adm:synopsis>
+      </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
       <adm:integer lower-limit="0"/>
@@ -174,9 +176,11 @@
       on a per-user basis.
     </adm:description>
     <adm:default-behavior>
-      <adm:defined>
-        <adm:value>60 seconds</adm:value>
-      </adm:defined>
+      <adm:alias>
+        <adm:synopsis>
+          Use the global default time limit.
+        </adm:synopsis>
+      </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
       <adm:duration base-unit="s" lower-limit="0" />

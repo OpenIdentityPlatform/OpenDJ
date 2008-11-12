@@ -138,8 +138,18 @@ public class ResourceLimits
       maxConcurrentOpsPerConnection =
             resourcesCfg.getMaxConcurrentOpsPerConnection();
 
-      searchSizeLimit = resourcesCfg.getSearchSizeLimit();
-      searchTimeLimit = (int) resourcesCfg.getSearchTimeLimit();
+      Integer tmpSizeLimit = resourcesCfg.getSearchSizeLimit();
+      if (tmpSizeLimit != null) {
+        searchSizeLimit = tmpSizeLimit;
+      } else {
+        searchSizeLimit = -1;
+      }
+      Long tmpTimeLimit = resourcesCfg.getSearchTimeLimit();
+      if (tmpTimeLimit != null) {
+        searchTimeLimit = tmpTimeLimit.intValue();
+      } else {
+        searchTimeLimit = -1;
+      }
       minSearchSubstringLength = resourcesCfg.getMinSubstringLength();
 
       if (config == null) {
