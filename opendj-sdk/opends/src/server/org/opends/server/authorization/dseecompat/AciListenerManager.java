@@ -226,7 +226,8 @@ public class AciListenerManager
       // the ACI attribute.  If it does not, then log a warning message because
       // this processing could be very expensive.
       AttributeType aciType = DirectoryServer.getAttributeType("aci", true);
-      if (! backend.isIndexed(aciType, IndexType.PRESENCE))
+      if (backend.getEntryCount() > 0 &&
+          ! backend.isIndexed(aciType, IndexType.PRESENCE))
       {
         logError(WARN_ACI_ATTRIBUTE_NOT_INDEXED.get(backend.getBackendID(),
                                                     "aci"));

@@ -590,7 +590,7 @@ public class GroupManager
       try
       {
         filter = groupImplementation.getGroupDefinitionFilter();
-        if (! backend.isIndexed(filter))
+        if (backend.getEntryCount() > 0 && ! backend.isIndexed(filter))
         {
           logError(WARN_GROUP_FILTER_NOT_INDEXED.get(String.valueOf(filter),
                         String.valueOf(configEntryDN), backend.getBackendID()));
