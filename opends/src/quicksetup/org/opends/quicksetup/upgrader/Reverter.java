@@ -766,9 +766,7 @@ public class Reverter extends Application implements CliApplication {
       Set<String> cs = new HashSet<String>(Arrays.asList(children));
 
       // TODO:  more testing of file dir
-      String installPath = System.getProperty("INSTALL_ROOT");
-      String instancePath = System.getProperty("INSTANCE_ROOT");
-      if (installPath.equals(instancePath))
+      if (installation.instanceAndInstallInSameDir)
       {
       isFilesDir = cs.contains(CONFIG_PATH_RELATIVE) &&
               cs.contains(LIBRARIES_PATH_RELATIVE);
