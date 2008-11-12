@@ -440,7 +440,7 @@ public class Installation {
    * Indicates if the install and instance are in the same directory.
    * @return true if the install and instance are in the same directory.
    */
-  public boolean instanceAndInstallInSameDir;
+  private boolean instanceAndInstallInSameDir;
 
   /**
    * Creates a new instance from a root directory specified as a string.
