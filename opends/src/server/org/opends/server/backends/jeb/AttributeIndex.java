@@ -1420,9 +1420,12 @@ public class AttributeIndex
                                     entryContainer);
           equalityIndex.open();
 
-          adminActionRequired = true;
-          messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-                  name + ".equality"));
+          if(!equalityIndex.isTrusted())
+          {
+            adminActionRequired = true;
+            messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
+                equalityIndex.getName()));
+          }
 
         }
         else
@@ -1434,7 +1437,7 @@ public class AttributeIndex
             adminActionRequired = true;
             Message message =
                     NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
-                            name + ".equality");
+                            equalityIndex.getName());
             messages.add(message);
             this.equalityIndex.setIndexEntryLimit(indexEntryLimit);
           }
@@ -1480,10 +1483,12 @@ public class AttributeIndex
                                     entryContainer);
           presenceIndex.open();
 
-          adminActionRequired = true;
-
-          messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-                  name + ".presence"));
+          if(!presenceIndex.isTrusted())
+          {
+            adminActionRequired = true;
+            messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
+                presenceIndex.getName()));
+          }
         }
         else
         {
@@ -1494,7 +1499,7 @@ public class AttributeIndex
 
             Message message =
                     NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
-                            name + ".presence");
+                            presenceIndex.getName());
             messages.add(message);
           }
         }
@@ -1540,9 +1545,12 @@ public class AttributeIndex
                                      entryContainer);
           substringIndex.open();
 
-          adminActionRequired = true;
-          messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-                  name + ".substring"));
+          if(!substringIndex.isTrusted())
+          {
+            adminActionRequired = true;
+            messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
+                substringIndex.getName()));
+          }
         }
         else
         {
@@ -1552,7 +1560,7 @@ public class AttributeIndex
             adminActionRequired = true;
             Message message =
                     NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
-                            name + ".substring");
+                            substringIndex.getName());
             messages.add(message);
           }
 
@@ -1605,9 +1613,12 @@ public class AttributeIndex
                                     entryContainer);
           orderingIndex.open();
 
-          adminActionRequired = true;
-          messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-                  name + ".ordering"));
+          if(!orderingIndex.isTrusted())
+          {
+            adminActionRequired = true;
+            messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
+                orderingIndex.getName()));
+          }
         }
         else
         {
@@ -1618,7 +1629,7 @@ public class AttributeIndex
 
             Message message =
                     NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
-                            name + ".ordering");
+                            orderingIndex.getName());
             messages.add(message);
           }
         }
@@ -1664,10 +1675,12 @@ public class AttributeIndex
                                        entryContainer);
           approximateIndex.open();
 
-          adminActionRequired = true;
-
-          messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-                  name + ".approximate"));
+          if(!approximateIndex.isTrusted())
+          {
+            adminActionRequired = true;
+            messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
+                approximateIndex.getName()));
+          }
         }
         else
         {
@@ -1678,7 +1691,7 @@ public class AttributeIndex
 
             Message message =
                     NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
-                            name + ".approximate");
+                            approximateIndex.getName());
             messages.add(message);
           }
         }
@@ -1757,6 +1770,40 @@ public class AttributeIndex
     {
       approximateIndex.setTrusted(txn, trusted);
     }
+  }
+
+  /**
+   * Return true iff this index is trusted.
+   * @return the trusted state of this index
+   */
+  public boolean isTrusted()
+  {
+    if (equalityIndex != null && !equalityIndex.isTrusted())
+    {
+      return false;
+    }
+
+    if (presenceIndex != null && !presenceIndex.isTrusted())
+    {
+      return false;
+    }
+
+    if (substringIndex != null && !substringIndex.isTrusted())
+    {
+      return false;
+    }
+
+    if (orderingIndex != null && !orderingIndex.isTrusted())
+    {
+      return false;
+    }
+
+    if (approximateIndex != null && approximateIndex.isTrusted())
+    {
+      return false;
+    }
+
+    return true;
   }
 
   /**

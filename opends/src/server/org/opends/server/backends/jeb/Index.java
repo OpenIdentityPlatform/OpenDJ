@@ -181,12 +181,6 @@ public class Index extends DatabaseContainer
       setTrusted(null, true);
     }
 
-    // Issue warning if this index is not trusted
-    if(!trusted)
-    {
-      logError(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(name));
-    }
-
   }
 
   /**

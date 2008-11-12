@@ -241,12 +241,6 @@ public class VLVIndex extends DatabaseContainer
       setTrusted(null, true);
     }
 
-    // Issue warning if this vlvIndex is not trusted
-    if(!trusted)
-    {
-      logError(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(name));
-    }
-
     this.count = new AtomicInteger(0);
     this.config.addChangeListener(this);
   }
@@ -1509,6 +1503,15 @@ public class VLVIndex extends DatabaseContainer
   {
     this.trusted = trusted;
     state.putIndexTrustState(txn, this, trusted);
+  }
+
+  /**
+   * Return true iff this index is trusted.
+   * @return the trusted state of this index
+   */
+  public boolean isTrusted()
+  {
+    return trusted;
   }
 
   /**

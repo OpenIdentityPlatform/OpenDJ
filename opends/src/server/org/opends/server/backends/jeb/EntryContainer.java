@@ -58,6 +58,7 @@ import static org.opends.messages.JebMessages.*;
 import org.opends.messages.MessageBuilder;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.util.ServerConstants.*;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
@@ -225,6 +226,12 @@ public class EntryContainer
         AttributeIndex index =
             new AttributeIndex(cfg, state, env, EntryContainer.this);
         index.open();
+        if(!index.isTrusted())
+        {
+          adminActionRequired = true;
+          messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
+              cfg.getAttribute().getNameOrOID()));
+        }
         attrIndexMap.put(cfg.getAttribute(), index);
       }
       catch(Exception e)
@@ -236,9 +243,6 @@ public class EntryContainer
         return ccr;
       }
 
-      adminActionRequired = true;
-      messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-              cfg.getAttribute().getNameOrOID()));
       return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
                                     messages);
     }
@@ -375,6 +379,12 @@ public class EntryContainer
       {
         VLVIndex vlvIndex = new VLVIndex(cfg, state, env, EntryContainer.this);
         vlvIndex.open();
+        if(!vlvIndex.isTrusted())
+        {
+          adminActionRequired = true;
+          messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
+              cfg.getName()));
+        }
         vlvIndexMap.put(cfg.getName().toLowerCase(), vlvIndex);
       }
       catch(Exception e)
@@ -386,10 +396,6 @@ public class EntryContainer
         return ccr;
       }
 
-      adminActionRequired = true;
-
-      messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-              cfg.getName()));
       return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
                                     messages);
     }
@@ -540,11 +546,24 @@ public class EntryContainer
                               config.getIndexEntryLimit(), 0, true,
                               env,this);
       id2children.open();
+
+      if(!id2children.isTrusted())
+      {
+        logError(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
+            id2children.getName()));
+      }
+
       id2subtree = new Index(databasePrefix + "_" + ID2SUBTREE_DATABASE_NAME,
                              new ID2SIndexer(), state,
                              config.getIndexEntryLimit(), 0, true,
                              env, this);
       id2subtree.open();
+
+      if(!id2subtree.isTrusted())
+      {
+        logError(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
+            id2subtree.getName()));
+      }
 
       dn2uri = new DN2URI(databasePrefix + "_" + REFERRAL_DATABASE_NAME,
                           env, this);
@@ -554,11 +573,14 @@ public class EntryContainer
       {
         LocalDBIndexCfg indexCfg = config.getLocalDBIndex(idx);
 
-        //TODO: When issue 1793 is fixed, use inherited default values in
-        //admin framework instead for the entry limit.
         AttributeIndex index =
             new AttributeIndex(indexCfg, state, env, this);
         index.open();
+        if(!index.isTrusted())
+        {
+          logError(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
+              index.getName()));
+        }
         attrIndexMap.put(indexCfg.getAttribute(), index);
       }
 
@@ -568,6 +590,13 @@ public class EntryContainer
 
         VLVIndex vlvIndex = new VLVIndex(vlvIndexCfg, state, env, this);
         vlvIndex.open();
+
+        if(!vlvIndex.isTrusted())
+        {
+          logError(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
+              vlvIndex.getName()));
+        }
+
         vlvIndexMap.put(vlvIndexCfg.getName().toLowerCase(), vlvIndex);
       }
     }
