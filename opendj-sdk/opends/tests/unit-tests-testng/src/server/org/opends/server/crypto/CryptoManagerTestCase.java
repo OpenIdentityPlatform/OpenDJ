@@ -422,7 +422,10 @@ public class CryptoManagerTestCase extends CryptoTestCase {
         ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME + ": "
                 + compromisedTime);
     }
-
+    //Wait so the above asynchronous modification can be applied. The crypto
+    //manager's cipherKeyEntryCache needs to be updated before the encrypt()
+    //method is called below.
+    Thread.sleep(1000); 
     // Use the transformation and key length again. A new cipher key
     // should be produced.
     final byte[] cipherText2 = cm.encrypt(cipherTransformationName,
