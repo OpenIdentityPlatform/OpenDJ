@@ -754,9 +754,6 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
     // Set properties.
     for (String m : propertySetArgument.getValues()) {
-      if (!propertyResetArgument.getValues().isEmpty()) {
-        throw ArgumentExceptionFactory.incompatiblePropertyModification(m);
-      }
       // Parse the property "property:value".
       int sep = m.indexOf(':');
 
@@ -783,6 +780,11 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       }
 
       // Apply the modification.
+      if (lastModTypes.containsKey(propertyName) &&
+        (lastModTypes.get(propertyName) == ModificationType.SET)) {
+        throw ArgumentExceptionFactory.incompatiblePropertyModification(m);
+      }
+
       if (lastModTypes.containsKey(propertyName)) {
         modifyPropertyValues(child, pd, changes, ModificationType.ADD, value);
       } else {
@@ -793,9 +795,6 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
     // Remove properties.
     for (String m : propertyRemoveArgument.getValues()) {
-      if (!propertyResetArgument.getValues().isEmpty()) {
-        throw ArgumentExceptionFactory.incompatiblePropertyModification(m);
-      }
       // Parse the property "property:value".
       int sep = m.indexOf(':');
 
@@ -833,9 +832,6 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
     // Add properties.
     for (String m : propertyAddArgument.getValues()) {
-      if (!propertyResetArgument.getValues().isEmpty()) {
-        throw ArgumentExceptionFactory.incompatiblePropertyModification(m);
-      }
       // Parse the property "property:value".
       int sep = m.indexOf(':');
 
