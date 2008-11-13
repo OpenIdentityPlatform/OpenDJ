@@ -28,7 +28,6 @@
 package org.opends.server.tools;
 
 import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.protocols.ldap.LDAPConstants;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.util.ServerConstants;
 
@@ -151,11 +150,7 @@ public class VerboseTracer
   {
     if (verbose)
     {
-      if (message.getProtocolOpType() !=
-           LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY)
-      {
-        traceMessage("S>C", message, element);
-      }
+      traceMessage("S>C", message, element);
     }
   }
 
@@ -170,11 +165,7 @@ public class VerboseTracer
   {
     if (verbose)
     {
-      if (message.getProtocolOpType() !=
-           LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY)
-      {
-        traceMessage("C>S", message, element);
-      }
+      traceMessage("C>S", message, element);
     }
   }
 
