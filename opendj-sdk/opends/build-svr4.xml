@@ -75,7 +75,7 @@
 
 
   <!-- Construct SVR4 package -->
-  <target name="svr4" depends="checkos,wrongos,cleansvr4,pkgversion,layout,metadata,pkgmk" if="isSunOS" 
+  <target name="svr4" depends="checkos,wrongos,cleansvr4,pkgversion,layout,metadata,pkgmk,zipsvr4" if="isSunOS" 
 	  	description="Construct ${pkg.name} package for product ${product}.">
     <echo message="Package ${pkg.name} for product ${product} built in ${svr4.dir}" />
   </target>
@@ -161,6 +161,15 @@ i copyright</echo>
 	    <arg value="-f"/>
 	    <arg value="${svr4.meta.dir}/prototype"/>
 	</exec>
+  </target>
+  
+  <!-- ZIP package -->
+  <target name="zipsvr4" if="isSunOS" 
+		description="ZIP ${pkg.name} package" >
+    <echo message="Zipping ${pkg.name} pkg" />
+    <zip destfile="${svr4.dir}/${pkg.name}.zip">
+      <zipfileset dir="${svr4.dir}" includes="${pkg.name}/**/*"/>
+    </zip>
   </target>
 
 </project>
