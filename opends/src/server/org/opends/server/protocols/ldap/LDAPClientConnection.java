@@ -1287,10 +1287,14 @@ public class LDAPClientConnection
       {
         if (ps.getMessageID() == messageID)
         {
+          // We only need to find the first persistent search
+          // associated with the provided message ID. The persistent
+          // search will ensure that all other related persistent
+          // searches are cancelled.
           CancelResult cancelResult = ps.cancel();
 
           if (keepStats && (cancelResult.getResultCode() ==
-              ResultCode.CANCELED))
+            ResultCode.CANCELED))
           {
             statTracker.updateAbandonedOperation();
           }
@@ -1428,6 +1432,11 @@ public class LDAPClientConnection
 
         for (PersistentSearch persistentSearch : getPersistentSearches())
         {
+          if (persistentSearch.getMessageID() == messageID)
+          {
+            continue;
+          }
+
           persistentSearch.cancel();
           lastCompletionTime.set(TimeThread.getTime());
         }

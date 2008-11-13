@@ -231,8 +231,7 @@ searchProcessing:
       if (persistentSearch != null)
       {
         wfe.registerPersistentSearch(persistentSearch);
-        clientConnection.registerPersistentSearch(persistentSearch);
-        setSendResponse(false);
+        persistentSearch.enable();
       }
 
 
@@ -536,7 +535,6 @@ searchProcessing:
           persistentSearch = new PersistentSearch(this,
                                       psearchControl.getChangeTypes(),
                                       psearchControl.getReturnECs());
-          setPersistentSearch(persistentSearch);
 
           // If we're only interested in changes, then we don't actually want
           // to process the search now.

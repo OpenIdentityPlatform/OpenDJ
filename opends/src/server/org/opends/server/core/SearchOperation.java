@@ -334,20 +334,6 @@ public interface SearchOperation extends Operation
   public abstract void setIncludeUsableControl(boolean includeUsableControl);
 
   /**
-   * Register the psearch in the search operation.
-   *
-   * @param psearch - Persistent search associated to that operation
-   */
-  public abstract void setPersistentSearch(PersistentSearch psearch);
-
-  /**
-   * Get the psearch from the search operation.
-   *
-   * @return the psearch, or null if no psearch was registered
-   */
-  public abstract PersistentSearch getPersistentSearch();
-
-  /**
    * Indicates whether the client is able to handle referrals.
    *
    * @return true, if the client is able to handle referrals
