@@ -65,17 +65,10 @@
       </classpath>
     </taskdef>
 
-<!--    <getsvnrevision property="REVISION_NUMBER" /> 
-  <tstamp>
-    <format property="REVISION_NUMBER" pattern="MMddhhmm"/>
-  </tstamp>
--->
+    <getsvnrevision property="REVISION_NUMBER" /> 
 
-
-
-
-
-        <property name="zip.dir"           location="${pkg.dir}/${product}-${pkg.version}" />
+    <property name="zip.dir"           location="${pkg.dir}/${product}-${pkg.version}" />
+    
 	<echo message="Building layout for ${pkg.name} pkg based on ${zip.dir}" />
 	<!-- copy ZIP layout. Use exec instead of copy task to preserve file permissions -->
 	<mkdir dir="${svr4.layout.dir}"/>
