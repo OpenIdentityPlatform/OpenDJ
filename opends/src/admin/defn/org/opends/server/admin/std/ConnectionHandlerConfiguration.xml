@@ -86,10 +86,14 @@
   </adm:property>
   <adm:property name="allowed-client" multi-valued="true">
     <adm:synopsis>
-      Specifies a set of address masks that determines the 
-      addresses of the clients that are allowed to
-      establish connections to this connection handler.
+      Specifies a set of host names or address masks that determine the 
+      clients that are allowed to establish connections to this connection 
+      handler. 
     </adm:synopsis>
+    <adm:description>
+      Valid values include a host name, a fully qualified domain name, a 
+      domain name, an IP address, or a subnetwork with subnetwork mask.
+    </adm:description>
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
@@ -119,15 +123,17 @@
   </adm:property>
   <adm:property name="denied-client" multi-valued="true">
     <adm:synopsis>
-      Specifies a set of address masks that determines
-      the addresses of the clients that are not allowed to
-      establish connections to this connection handler.
+      Specifies a set of host names or address masks that determine
+      the clients that are not allowed to establish connections to this 
+      connection handler. 
     </adm:synopsis>
     <adm:description>
+      Valid values include a host name, a fully qualified domain name, a 
+      domain name, an IP address, or a subnetwork with subnetwork mask. 
       If both allowed and denied client masks are defined and a client
       connection matches one or more masks in both lists, then the
       connection is denied. If only a denied list is specified,
-      then any client not matching a mask in that list is allowed.
+      then any client not matching a mask in that list is allowed. 
     </adm:description>
     <adm:requires-admin-action>
       <adm:none>
