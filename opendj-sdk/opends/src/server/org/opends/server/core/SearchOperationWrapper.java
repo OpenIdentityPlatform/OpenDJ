@@ -332,22 +332,6 @@ public abstract class SearchOperationWrapper extends OperationWrapper
   /**
    * {@inheritDoc}
    */
-  public void setPersistentSearch(PersistentSearch psearch)
-  {
-    search.setPersistentSearch(psearch);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public PersistentSearch getPersistentSearch()
-  {
-    return search.getPersistentSearch();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   public Long getTimeLimitExpiration()
   {
     return search.getTimeLimitExpiration();

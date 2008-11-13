@@ -143,9 +143,6 @@ public class SearchOperationBasis
   // The matched values control associated with this search operation.
   private MatchedValuesControl matchedValuesControl;
 
-  // The persistent search associated with this search operation.
-  private PersistentSearch persistentSearch;
-
   // The search filter for the search operation.
   private SearchFilter filter;
 
@@ -249,7 +246,6 @@ public class SearchOperationBasis
     clientAcceptsReferrals = true;
     includeUsableControl   = false;
     responseSent           = new AtomicBoolean(false);
-    persistentSearch       = null;
     returnLDAPSubentries   = false;
     matchedValuesControl   = null;
     realAttributesOnly     = false;
@@ -350,7 +346,6 @@ public class SearchOperationBasis
     clientAcceptsReferrals = true;
     includeUsableControl   = false;
     responseSent           = new AtomicBoolean(false);
-    persistentSearch       = null;
     returnLDAPSubentries   = false;
     matchedValuesControl   = null;
   }
@@ -1274,12 +1269,6 @@ public class SearchOperationBasis
     if(cancelResult == null && this.cancelRequest == null)
     {
       this.cancelRequest = cancelRequest;
-
-      if (persistentSearch != null)
-      {
-        persistentSearch.cancel();
-        persistentSearch = null;
-      }
     }
   }
 
@@ -1346,14 +1335,6 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
-  public PersistentSearch getPersistentSearch()
-  {
-    return persistentSearch;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   public boolean isIncludeUsableControl()
   {
     return includeUsableControl;
@@ -1365,14 +1346,6 @@ public class SearchOperationBasis
   public void setIncludeUsableControl(boolean includeUsableControl)
   {
     this.includeUsableControl = includeUsableControl;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setPersistentSearch(PersistentSearch psearch)
-  {
-    this.persistentSearch = psearch;
   }
 
   /**

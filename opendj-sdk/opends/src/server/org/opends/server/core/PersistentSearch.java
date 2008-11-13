@@ -53,6 +53,33 @@ import org.opends.server.types.SearchScope;
 /**
  * This class defines a data structure that will be used to hold the
  * information necessary for processing a persistent search.
+ * <p>
+ * Work flow element implementations are responsible for managing the
+ * persistent searches that they are currently handling.
+ * <p>
+ * Typically, a work flow element search operation will first decode
+ * the persistent search control and construct a new {@code
+ * PersistentSearch}.
+ * <p>
+ * Once the initial search result set has been returned and no errors
+ * encountered, the work flow element implementation should register a
+ * cancellation callback which will be invoked when the persistent
+ * search is cancelled. This is achieved using
+ * {@link #registerCancellationCallback(CancellationCallback)}. The
+ * callback should make sure that any resources associated with the
+ * {@code PersistentSearch} are released. This may included removing
+ * the {@code PersistentSearch} from a list, or abandoning a
+ * persistent search operation that has been sent to a remote server.
+ * <p>
+ * Finally, the {@code PersistentSearch} should be enabled using
+ * {@link #enable()}. This method will register the {@code
+ * PersistentSearch} with the client connection and notify the
+ * underlying search operation that no result should be sent to the
+ * client.
+ * <p>
+ * Work flow element implementations should {@link #cancel()} active
+ * persistent searches when the work flow element fails or is shut
+ * down.
  */
 public final class PersistentSearch
 {
@@ -81,33 +108,64 @@ public final class PersistentSearch
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // Indicates whether entries returned should include the entry
-  // change notification control.
-  private final boolean returnECs;
+
+
+  // Cancel a persistent search.
+  private static synchronized void cancel(PersistentSearch psearch)
+  {
+    if (!psearch.isCancelled)
+    {
+      psearch.isCancelled = true;
+
+      // The persistent search can no longer be cancelled.
+      psearch.searchOperation.getClientConnection().deregisterPersistentSearch(
+          psearch);
+
+      // Notify any cancellation callbacks.
+      for (CancellationCallback callback : psearch.cancellationCallbacks)
+      {
+        try
+        {
+          callback.persistentSearchCancelled(psearch);
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+      }
+    }
+  }
 
   // The base DN for the search operation.
   private final DN baseDN;
-
-  // The set of change types we want to see.
-  private final Set<PersistentSearchChangeType> changeTypes;
-
-  // The scope for the search operation.
-  private final SearchScope scope;
-
-  // The filter for the search operation.
-  private final SearchFilter filter;
-
-  // The reference to the associated search operation.
-  private final SearchOperation searchOperation;
-
-  // Indicates whether or not this persistent search has already been
-  // aborted.
-  private boolean isCancelled = false;
 
   // Cancellation callbacks which should be run when this persistent
   // search is cancelled.
   private final List<CancellationCallback> cancellationCallbacks =
     new CopyOnWriteArrayList<CancellationCallback>();
+
+  // The set of change types we want to see.
+  private final Set<PersistentSearchChangeType> changeTypes;
+
+  // The filter for the search operation.
+  private final SearchFilter filter;
+
+  // Indicates whether or not this persistent search has already been
+  // aborted.
+  private boolean isCancelled = false;
+
+  // Indicates whether entries returned should include the entry
+  // change notification control.
+  private final boolean returnECs;
+
+  // The scope for the search operation.
+  private final SearchScope scope;
+
+  // The reference to the associated search operation.
+  private final SearchOperation searchOperation;
 
 
 
@@ -140,7 +198,9 @@ public final class PersistentSearch
   /**
    * Cancels this persistent search operation. On exit this persistent
    * search will no longer be valid and any resources associated with
-   * it will have been released.
+   * it will have been released. In addition, any other persistent
+   * searches that are associated with this persistent search will
+   * also be canceled.
    *
    * @return The result of the cancellation.
    */
@@ -148,24 +208,18 @@ public final class PersistentSearch
   {
     if (!isCancelled)
     {
-      isCancelled = true;
+      // Cancel this persistent search.
+      cancel(this);
 
-      // The persistent search can no longer be cancelled.
-      searchOperation.getClientConnection().deregisterPersistentSearch(this);
-
-      // Notify any cancellation callbacks.
-      for (CancellationCallback callback : cancellationCallbacks)
+      // Cancel any other persistent searches which are associated
+      // with this one. For example, a persistent search may be
+      // distributed across multiple proxies.
+      for (PersistentSearch psearch : searchOperation.getClientConnection()
+          .getPersistentSearches())
       {
-        try
+        if (psearch.getMessageID() == getMessageID())
         {
-          callback.persistentSearchCancelled(this);
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          cancel(psearch);
         }
       }
     }
@@ -695,6 +749,19 @@ public final class PersistentSearch
   public void registerCancellationCallback(CancellationCallback callback)
   {
     cancellationCallbacks.add(callback);
+  }
+
+
+
+  /**
+   * Enable this persistent search. The persistent search will be
+   * registered with the client connection and will be prevented from
+   * sending responses to the client.
+   */
+  public void enable()
+  {
+    searchOperation.getClientConnection().registerPersistentSearch(this);
+    searchOperation.setSendResponse(false);
   }
 
 
