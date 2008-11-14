@@ -2428,7 +2428,7 @@
             replicationServer = server.getChangelogServer()
             replServer = '%s:%s' % (server.getHostname(),
                                     replicationServer.getPort())
-            optionList.append('--set replication-server:%s' % replServer)
+            optionList.append('--add replication-server:%s' % replServer)
             replServerList.append(replServer)
           </script>
         </sequence>
