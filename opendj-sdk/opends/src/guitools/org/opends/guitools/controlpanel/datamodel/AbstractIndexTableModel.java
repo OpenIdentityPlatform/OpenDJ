@@ -72,13 +72,10 @@ implements Comparator<AbstractIndexDescriptor>
       ControlPanelInfo info)
   {
     this.info = info;
-    if (!newData.equals(data))
-    {
-      data.clear();
-      data.addAll(newData);
-      updateDataArray();
-      fireTableDataChanged();
-    }
+    data.clear();
+    data.addAll(newData);
+    updateDataArray();
+    fireTableDataChanged();
   }
 
   /**
