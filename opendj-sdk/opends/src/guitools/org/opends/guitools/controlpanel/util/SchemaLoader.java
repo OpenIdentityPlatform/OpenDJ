@@ -30,10 +30,12 @@ package org.opends.guitools.controlpanel.util;
 import static org.opends.messages.ConfigMessages.*;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.opends.messages.Message;
+import org.opends.quicksetup.util.Utils;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -143,7 +145,32 @@ public class SchemaLoader
           ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY.get(schemaDirPath);
         throw new InitializationException(message);
       }
-      File[] schemaInstallDirFiles = schemaDir.listFiles();
+      FileFilter ldifFiles = new FileFilter()
+      {
+        /**
+         * {@inheritDoc}
+         */
+        public boolean accept(File f)
+        {
+          boolean accept = false;
+          if (f != null)
+          {
+            if (f.isDirectory())
+            {
+              accept = true;
+            } else if (Utils.isWindows())
+            {
+              accept =
+                  f.getName().toLowerCase().endsWith(".ldif");
+            } else
+            {
+              accept = f.getName().endsWith(".ldif");
+            }
+          }
+          return accept;
+        }
+      };
+      File[] schemaInstallDirFiles = schemaDir.listFiles(ldifFiles);
       File[] schemaInstanceDirFiles = null ;
       int size = schemaInstallDirFiles.length;
 
@@ -157,7 +184,7 @@ public class SchemaLoader
             &&
             schemaDir.isDirectory())
         {
-          schemaInstanceDirFiles = schemaDir.listFiles();
+          schemaInstanceDirFiles = schemaDir.listFiles(ldifFiles);
           size += schemaInstanceDirFiles.length;
         }
       }
