@@ -569,6 +569,8 @@ public class JavaPropertiesPanel extends StatusGenericPanel
    */
   public void okClicked()
   {
+    editor.stopCellEditing();
+
     ArrayList<Message> errors = new ArrayList<Message>();
     String f = javaHome.getText().trim();
     if (f.length() > 0)
