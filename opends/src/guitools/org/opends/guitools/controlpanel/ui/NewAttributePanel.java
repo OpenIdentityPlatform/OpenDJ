@@ -463,6 +463,11 @@ public class NewAttributePanel extends StatusGenericPanel
           null,
           dlg);
       dlg.setVisible(true);
+      name.setText("");
+      oid.setText("");
+      description.setText("");
+      aliases.setText("");
+      name.grabFocus();
       Utilities.getParentDialog(this).setVisible(false);
     }
     else
