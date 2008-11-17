@@ -36,14 +36,9 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-
-import javax.naming.directory.Attributes;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.BasicAttributes;
 import javax.naming.ldap.InitialLdapContext;
 import javax.swing.SwingUtilities;
 
@@ -53,15 +48,19 @@ import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.OfflineUpdateException;
-import org.opends.guitools.controlpanel.task.OnlineUpdateException;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
+import org.opends.server.admin.client.ManagementContext;
+import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
+import org.opends.server.admin.client.ldap.LDAPManagementContext;
+import org.opends.server.admin.std.client.LocalDBBackendCfgClient;
+import org.opends.server.admin.std.client.LocalDBVLVIndexCfgClient;
+import org.opends.server.admin.std.client.RootCfgClient;
+import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn;
 import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn.Scope;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -352,7 +351,30 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
       LDIFImportConfig ldifImportConfig = null;
       try
       {
-        ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
+        String topEntryDN =
+          "cn=VLV Index,"+Utilities.getRDNString("ds-cfg-backend-id",
+          backendName.getText())+",cn=Backends,cn=config";
+        boolean topEntryExists =
+          DirectoryServer.getConfigHandler().entryExists(
+              DN.decode(topEntryDN));
+
+        if (!topEntryExists)
+        {
+          String completeLDIF =
+          Utilities.makeLdif(
+          "dn: "+topEntryDN,
+          "objectClass: top",
+          "objectClass: ds-cfg-branch",
+          "cn: VLV Index", "") + ldif;
+          ldifImportConfig =
+            new LDIFImportConfig(new StringReader(completeLDIF));
+        }
+        else
+        {
+          ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
+        }
+
+
         LDIFReader reader = new LDIFReader(ldifImportConfig);
         Entry backendConfigEntry;
         while ((backendConfigEntry = reader.readEntry()) != null)
@@ -378,53 +400,21 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
 
     private void createIndex(InitialLdapContext ctx) throws OpenDsException
     {
-      // Instead of adding indexes using management framework, use this approach
-      // so that we have to define the additional indexes only in the method
-      // getBackendLdif.
-      LDIFImportConfig ldifImportConfig = null;
-      try
-      {
-        ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
-        LDIFReader reader = new LDIFReader(ldifImportConfig);
-        Entry indexEntry = reader.readEntry();
-        Attributes attrs = new BasicAttributes();
+      ManagementContext mCtx = LDAPManagementContext.createFromContext(
+          JNDIDirContextAdaptor.adapt(ctx));
+      RootCfgClient root = mCtx.getRootConfiguration();
+      LocalDBBackendCfgClient backend =
+        (LocalDBBackendCfgClient)root.getBackend(backendName.getText());
+      LocalDBVLVIndexCfgDefn provider = LocalDBVLVIndexCfgDefn.getInstance();
+      LocalDBVLVIndexCfgClient index =
+        backend.createLocalDBVLVIndex(provider, name.getText(), null);
 
-        BasicAttribute oc = new BasicAttribute("objectClass");
-        Iterator<AttributeValue> it =
-          indexEntry.getObjectClassAttribute().iterator();
-        while (it.hasNext())
-        {
-          oc.add(it.next().getStringValue());
-        }
-        attrs.put(oc);
-
-        List<Attribute> odsAttrs = indexEntry.getAttributes();
-        for (Attribute odsAttr : odsAttrs)
-        {
-          String attrName = odsAttr.getName();
-          BasicAttribute attr = new BasicAttribute(attrName);
-          it = odsAttr.iterator();
-          while (it.hasNext())
-          {
-            attr.add(it.next().getStringValue());
-          }
-          attrs.put(attr);
-        }
-
-        ctx.createSubcontext(indexEntry.getDN().toString(), attrs);
-      }
-      catch (Throwable t)
-      {
-        throw new OnlineUpdateException(
-            ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(t.toString()), t);
-      }
-      finally
-      {
-        if (ldifImportConfig != null)
-        {
-          ldifImportConfig.close();
-        }
-      }
+      index.setFilter(filter.getText().trim());
+      index.setSortOrder(getSortOrderStringValue(getSortOrder()));
+      index.setBaseDN(DN.decode(getBaseDN()));
+      index.setScope(getScope());
+      index.setMaxBlockSize(Integer.parseInt(maxBlockSize.getText().trim()));
+      index.commit();
     }
 
     /**
@@ -523,9 +513,6 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
 
       args.add("--set");
       args.add("sort-order:"+sortOrderStringValue);
-
-      args.add("--index-filter");
-      args.add(filterValue);
 
       args.addAll(getConnectionCommandLineArguments());
       args.add("--no-prompt");

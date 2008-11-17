@@ -1367,7 +1367,8 @@ public class NewBaseDNPanel extends StatusGenericPanel
           public void run()
           {
             getProgressDialog().appendProgressHtml(
-                Utilities.getProgressDone(ColorAndFontConstants.progressFont));
+                Utilities.getProgressDone(ColorAndFontConstants.progressFont)+
+                "<br><br>");
           }
         });
       }
