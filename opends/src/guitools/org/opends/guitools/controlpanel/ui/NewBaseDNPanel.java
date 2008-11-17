@@ -602,6 +602,8 @@ public class NewBaseDNPanel extends StatusGenericPanel
             ERR_CTRL_PANEL_CREATING_BASE_DN_ERROR_DETAILS,
             progressDialog);
         progressDialog.setVisible(true);
+        baseDN.setText("");
+        baseDN.grabFocus();
         Utilities.getParentDialog(this).setVisible(false);
       }
     }
