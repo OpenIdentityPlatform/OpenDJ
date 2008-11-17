@@ -432,6 +432,7 @@ public class IndexPanel extends AbstractIndexPanel
     setPrimaryValid(lEntryLimit);
     setPrimaryValid(lType);
     name.setText(index.getName());
+    backendName.setText(index.getBackend().getBackendID());
     titlePanel.setDetails(Message.raw(index.getName()));
     entryLimit.setText(String.valueOf(index.getEntryLimit()));
     approximate.setSelected(false);

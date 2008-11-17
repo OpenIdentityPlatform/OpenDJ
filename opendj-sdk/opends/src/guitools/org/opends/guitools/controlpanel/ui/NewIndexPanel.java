@@ -87,8 +87,6 @@ public class NewIndexPanel extends AbstractIndexPanel
 {
   private static final long serialVersionUID = -3516011638125862137L;
 
-  private String backendName;
-
   private Component relativeComponent;
 
   private Schema schema;
@@ -104,7 +102,7 @@ public class NewIndexPanel extends AbstractIndexPanel
   public NewIndexPanel(String backendName, Component relativeComponent)
   {
     super();
-    this.backendName = backendName;
+    this.backendName.setText(backendName);
     this.relativeComponent = relativeComponent;
     createLayout();
   }
@@ -123,6 +121,15 @@ public class NewIndexPanel extends AbstractIndexPanel
   public Component getPreferredFocusComponent()
   {
     return attributes;
+  }
+
+  /**
+   * Updates the contents of the panel with the provided backend.
+   * @param backend the backend where the index will be created.
+   */
+  public void update(BackendDescriptor backend)
+  {
+    backendName.setText(backend.getBackendID());
   }
 
   /**
@@ -146,7 +153,7 @@ public class NewIndexPanel extends AbstractIndexPanel
       BackendDescriptor backend = null;
       for (BackendDescriptor b : getInfo().getServerDescriptor().getBackends())
       {
-        if (b.getBackendID().equalsIgnoreCase(backendName))
+        if (b.getBackendID().equalsIgnoreCase(backendName.getText()))
         {
           backend = b;
           break;
@@ -403,7 +410,7 @@ public class NewIndexPanel extends AbstractIndexPanel
     {
       super(info, dlg);
       backendSet = new HashSet<String>();
-      backendSet.add(backendName);
+      backendSet.add(backendName.getText());
       attributeName = getAttributeName();
       entryLimitValue = Integer.parseInt(entryLimit.getText());
       indexTypes = getTypes();
@@ -431,7 +438,7 @@ public class NewIndexPanel extends AbstractIndexPanel
     public Message getTaskDescription()
     {
       return INFO_CTRL_PANEL_NEW_INDEX_TASK_DESCRIPTION.get(
-          attributeName, backendName);
+          attributeName, backendName.getText());
     }
 
     /**
@@ -557,7 +564,7 @@ public class NewIndexPanel extends AbstractIndexPanel
     private String getIndexLDIF()
     {
       String dn = Utilities.getRDNString(
-          "ds-cfg-backend-id", backendName)+",cn=Backends,cn=config";
+          "ds-cfg-backend-id", backendName.getText())+",cn=Backends,cn=config";
       ArrayList<String> lines = new ArrayList<String>();
       lines.add("dn: "+Utilities.getRDNString("ds-cfg-attribute",
           attributeName)+
@@ -712,7 +719,7 @@ public class NewIndexPanel extends AbstractIndexPanel
         for (BackendDescriptor backend :
           getInfo().getServerDescriptor().getBackends())
         {
-          if (backend.getBackendID().equalsIgnoreCase(backendName))
+          if (backend.getBackendID().equalsIgnoreCase(backendName.getText()))
           {
             newIndex = new IndexDescriptor(attributeName,
                 schema.getAttributeType(attributeName.toLowerCase()), backend,
@@ -748,7 +755,7 @@ public class NewIndexPanel extends AbstractIndexPanel
       ArrayList<String> args = new ArrayList<String>();
       args.add("create-local-db-index");
       args.add("--backend-name");
-      args.add(backendName);
+      args.add(backendName.getText());
       args.add("--type");
       args.add("generic");
 

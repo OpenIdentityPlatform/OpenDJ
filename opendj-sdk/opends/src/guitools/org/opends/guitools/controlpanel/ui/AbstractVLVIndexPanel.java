@@ -68,7 +68,6 @@ import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
-import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.ui.renderer.IndexComboBoxCellRenderer;
@@ -321,6 +320,15 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
   }
 
   /**
+   * Sets the name of the backend where the index is defined or will be defined.
+   * @param backendID the ID of the backend.
+   */
+  public void setBackendName(String backendID)
+  {
+    backendName.setText(backendID);
+  }
+
+  /**
    * Returns the LDIF representing the new index.
    * @param indexName the name of the index.
    * @return the LDIF representing the new index.
@@ -419,15 +427,13 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
 
 
   /**
-   * Updates the layout with the new changed configuration event.
-   * @param ev the configuration change event.
+   * Updates the layout with the provided server descriptor.
+   * @param desc the server descriptor.
    * @return <CODE>true</CODE> if an error has been displayed and
    * <CODE>false</CODE> otherwise.
    */
-  protected boolean updateLayout(ConfigurationChangeEvent ev)
+  protected boolean updateLayout(final ServerDescriptor desc)
   {
-    final ServerDescriptor desc = ev.getNewDescriptor();
-
     Schema schema = desc.getSchema();
     BackendDescriptor backend = getBackend();
     final boolean[] repack = {false};

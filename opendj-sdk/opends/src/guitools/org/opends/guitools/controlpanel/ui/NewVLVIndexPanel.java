@@ -110,11 +110,21 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
    */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
-    if (updateLayout(ev))
+    if (updateLayout(ev.getNewDescriptor()))
     {
       updateErrorPaneAndOKButtonIfAuthRequired(ev.getNewDescriptor(),
           INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_NEW_VLV.get());
     }
+  }
+
+  /**
+   * Updates the contents of the panel with the provided backend.
+   * @param backend the backend where the index will be created.
+   */
+  public void update(BackendDescriptor backend)
+  {
+    updateBaseDNCombo(backend);
+    backendName.setText(backend.getBackendID());
   }
 
   /**
