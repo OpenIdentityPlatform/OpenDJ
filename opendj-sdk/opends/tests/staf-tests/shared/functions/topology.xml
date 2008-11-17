@@ -601,7 +601,18 @@
           'foldername' : '%s' % dsDir
         }
       </call>
+
       
+      <!--- Delete staging data folder on remote host -->
+      <message>
+        'Delete staging data folder %s/shared' % dsDir
+      </message>
+      <call function="'deleteFolder'">
+        { 'location'   : dsHost,
+          'foldername' : '%s/testdata' % dsDir
+        }
+      </call>
+            
       <!---   Copy staging data to remote host -->
       <message>
         'Copy %s/testdata.zip to %s on %s' % (local.testdata,dsDir,dsHost)
@@ -1651,16 +1662,6 @@
       <call function="'deleteFile'">
         { 'location' : dsHost,
           'filename' : '%s/testdata.zip' % dsDir 
-        }
-      </call>
-      
-      <!--- Delete staging data folder on remote host -->
-      <message>
-        'Delete staging data folder %s/shared' % dsDir
-      </message>
-      <call function="'deleteFolder'">
-        { 'location'   : dsHost,
-          'foldername' : '%s/shared' % dsDir
         }
       </call>
       
