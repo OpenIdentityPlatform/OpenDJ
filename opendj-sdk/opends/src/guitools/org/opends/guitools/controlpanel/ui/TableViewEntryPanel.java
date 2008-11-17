@@ -226,6 +226,26 @@ public class TableViewEntryPanel extends ViewEntryPanel
    */
   public Entry getEntry() throws OpenDsException
   {
+    if (SwingUtilities.isEventDispatchThread())
+    {
+      editor.stopCellEditing();
+    }
+    else
+    {
+      try
+      {
+        SwingUtilities.invokeAndWait(new Runnable()
+        {
+          public void run()
+          {
+            editor.stopCellEditing();
+          }
+        });
+      }
+      catch (Throwable t)
+      {
+      }
+    }
     Entry entry = null;
     LDIFImportConfig ldifImportConfig = null;
     try
