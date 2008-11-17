@@ -3311,12 +3311,12 @@
           #@TestResult         Success if trees are synchronised
           -->
           <testcase name="getTestCaseName
-                          ('double_add')">
+                          ('double_add_single_del_1')">
             <sequence>            
               <call function="'testCase_Preamble'"/>
               <message>
-                'Replication: Conflict: double_add. \
-                Double add (same dn, different uid)'
+                'Replication: Conflict: double_add_single_del_1. \
+                Add twice same dn, then delete it in one server'
               </message>
                                                                 
               <script>
