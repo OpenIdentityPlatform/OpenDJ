@@ -75,6 +75,15 @@ public abstract class AbstractIndexPanel extends StatusGenericPanel
    */
   protected JLabel name = Utilities.createDefaultLabel();
   /**
+   * Backends label.
+   */
+  protected JLabel lBackend = Utilities.createPrimaryLabel(
+      INFO_CTRL_PANEL_BACKEND_LABEL.get());
+  /**
+   * Read-only backend name label.
+   */
+  protected JLabel backendName = Utilities.createDefaultLabel();
+  /**
    * Label for attribute.
    */
   protected JLabel lAttribute =
@@ -298,6 +307,14 @@ public abstract class AbstractIndexPanel extends StatusGenericPanel
       c.add(name, gbc);
     }
     gbc.insets.top = 10;
+    gbc.gridy ++;
+    gbc.insets.left = 0;
+    gbc.gridx = 0;
+    c.add(lBackend, gbc);
+    gbc.insets.left = 10;
+    gbc.gridx = 1;
+    c.add(backendName, gbc);
+
     gbc.gridy ++;
     gbc.insets.left = 0;
     gbc.gridx = 0;

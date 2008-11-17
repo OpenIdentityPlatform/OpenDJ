@@ -115,7 +115,9 @@ implements IndexModifiedListener
   private JMenuItem deleteMenuItem;
 
   private GenericDialog newIndexDialog;
+  private NewIndexPanel newIndexPanel;
   private GenericDialog newVLVIndexDialog;
+  private NewVLVIndexPanel newVLVIndexPanel;
 
   private boolean ignoreSelectionEvents;
 
@@ -772,16 +774,16 @@ implements IndexModifiedListener
 
   private void newIndexClicked()
   {
-    if (newIndexDialog == null)
+    if (newIndexPanel == null)
     {
-      NewIndexPanel panel =
+      newIndexPanel =
         new NewIndexPanel((String)backends.getSelectedItem(),
           Utilities.getParentDialog(this));
-      panel.setInfo(getInfo());
-      newIndexDialog = new GenericDialog(null, panel);
+      newIndexPanel.setInfo(getInfo());
+      newIndexDialog = new GenericDialog(null, newIndexPanel);
       Utilities.centerGoldenMean(newIndexDialog,
           Utilities.getParentDialog(this));
-      panel.addConfigurationElementCreatedListener(
+      newIndexPanel.addConfigurationElementCreatedListener(
           new ConfigurationElementCreatedListener()
           {
             public void elementCreated(ConfigurationElementCreatedEvent ev)
@@ -794,21 +796,34 @@ implements IndexModifiedListener
             }
           });
     }
+    else if (!newIndexDialog.isVisible())
+    {
+      String backendID = (String)backends.getSelectedItem();
+      for (BackendDescriptor backend :
+        getInfo().getServerDescriptor().getBackends())
+      {
+        if (backend.getBackendID().equalsIgnoreCase(backendID))
+        {
+          newIndexPanel.update(backend);
+          break;
+        }
+      }
+    }
     newIndexDialog.setVisible(true);
   }
 
   private void newVLVIndexClicked()
   {
-    if (newVLVIndexDialog == null)
+    if (newVLVIndexPanel == null)
     {
-      NewVLVIndexPanel panel =
+      newVLVIndexPanel =
         new NewVLVIndexPanel((String)backends.getSelectedItem(),
           Utilities.getParentDialog(this));
-      panel.setInfo(getInfo());
-      newVLVIndexDialog = new GenericDialog(null, panel);
+      newVLVIndexPanel.setInfo(getInfo());
+      newVLVIndexDialog = new GenericDialog(null, newVLVIndexPanel);
       Utilities.centerGoldenMean(newVLVIndexDialog,
           Utilities.getParentDialog(this));
-      panel.addConfigurationElementCreatedListener(
+      newVLVIndexPanel.addConfigurationElementCreatedListener(
           new ConfigurationElementCreatedListener()
           {
             /**
@@ -823,6 +838,19 @@ implements IndexModifiedListener
               }
             }
           });
+    }
+    else if (!newVLVIndexDialog.isVisible())
+    {
+      String backendID = (String)backends.getSelectedItem();
+      for (BackendDescriptor backend :
+        getInfo().getServerDescriptor().getBackends())
+      {
+        if (backend.getBackendID().equalsIgnoreCase(backendID))
+        {
+          newVLVIndexPanel.update(backend);
+          break;
+        }
+      }
     }
     newVLVIndexDialog.setVisible(true);
   }

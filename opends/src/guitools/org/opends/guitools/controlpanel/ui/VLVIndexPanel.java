@@ -144,7 +144,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
    */
   public void configurationChanged(final ConfigurationChangeEvent ev)
   {
-    if (updateLayout(ev))
+    if (updateLayout(ev.getNewDescriptor()))
     {
       updateErrorPaneIfAuthRequired(ev.getNewDescriptor(),
           INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_VLV_INDEX_EDITING.get());
