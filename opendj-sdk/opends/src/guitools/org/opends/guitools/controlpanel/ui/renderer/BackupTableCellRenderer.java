@@ -51,6 +51,7 @@ public class BackupTableCellRenderer extends DefaultTableCellRenderer
 {
   private static final long serialVersionUID = -4645902129785751854L;
   private DateFormat formatter = DateFormat.getDateInstance(DateFormat.FULL);
+  private File backupParentPath;
   private final static Border fullBorder = BorderFactory.createCompoundBorder(
       BorderFactory.createMatteBorder(1, 0, 0, 0,
           ColorAndFontConstants.gridColor),
@@ -68,6 +69,16 @@ public class BackupTableCellRenderer extends DefaultTableCellRenderer
     setBackground(ColorAndFontConstants.tableBackground);
   }
 
+
+  /**
+   * Sets the path to which the backups are relative.
+   * @param backupParentPath the path to which the backups are relative.
+   */
+  public void setParentPath(File backupParentPath)
+  {
+    this.backupParentPath = backupParentPath;
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -80,10 +91,39 @@ public class BackupTableCellRenderer extends DefaultTableCellRenderer
     == BackupDescriptor.Type.FULL;
     if (value instanceof File)
     {
-      s = "..."+File.separator+((File)value).getName();
-      if (!isFull)
+      File f = (File)value;
+      s = "";
+      boolean isParent = false;
+      while (f != null)
       {
-        s = "  "+s;
+        if (!f.equals(backupParentPath))
+        {
+          if (s.length() == 0)
+          {
+            s = f.getName();
+          }
+          else
+          {
+            s = f.getName() + File.separator + s;
+          }
+        }
+        else
+        {
+          isParent = true;
+          break;
+        }
+        f = f.getParentFile();
+      }
+      if (isParent)
+      {
+        if (!isFull)
+        {
+          s = "  "+s;
+        }
+      }
+      else
+      {
+        s = value.toString();
       }
     }
     else if (value instanceof Date)

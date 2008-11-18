@@ -57,7 +57,6 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
 import org.opends.guitools.controlpanel.datamodel.BackupDescriptor;
@@ -138,6 +137,8 @@ public abstract class BackupListPanel extends StatusGenericPanel
    * not.
    */
   private boolean backupDirectoryInitialized;
+
+  private BackupTableCellRenderer renderer;
 
   private static final Logger LOG =
     Logger.getLogger(RestorePanel.class.getName());
@@ -246,7 +247,8 @@ public abstract class BackupListPanel extends StatusGenericPanel
         ListSelectionModel.SINGLE_SELECTION);
     backupList.setShowGrid(false);
     backupList.setIntercellSpacing(new Dimension(0, 0));
-    TableCellRenderer renderer = new BackupTableCellRenderer();
+    renderer = new BackupTableCellRenderer();
+    renderer.setParentPath(new File(DUMMY_PARENT_PATH));
     for (int i=0; i<model.getColumnCount(); i++)
     {
       TableColumn col = backupList.getColumn(model.getColumnName(i));
@@ -341,6 +343,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
     lRefreshingList.setVisible(true);
     final int lastSelectedRow = backupList.getSelectedRow();
 
+    final String parentPath = parentDirectory.getText();
     BackgroundTask<Set<BackupInfo>> worker =
       new BackgroundTask<Set<BackupInfo>>()
     {
@@ -355,45 +358,48 @@ public abstract class BackupListPanel extends StatusGenericPanel
         try
         {
           BackupDirectory backupDir =
-            BackupDirectory.readBackupDirectoryDescriptor(
-                parentDirectory.getText());
+            BackupDirectory.readBackupDirectoryDescriptor(parentPath);
           backups.addAll(backupDir.getBackups().values());
         }
         catch (Throwable t)
         {
           firstThrowable = t;
-          // Check the subdirectories
-          File f = new File(parentDirectory.getText());
+        }
+        // Check the subdirectories
+        File f = new File(parentPath);
 
-          if (f.isDirectory())
+        // Check the first level of directories (we might have done a backup
+        // of one backend and then a backup of several backends under the
+        // same directory).
+        if (f.isDirectory())
+        {
+          File[] children = f.listFiles();
+          for (int i=0; i<children.length; i++)
           {
-            File[] children = f.listFiles();
-            for (int i=0; i<children.length; i++)
+            if (children[i].isDirectory())
             {
-              if (children[i].isDirectory())
+              try
               {
-                try
-                {
-                  BackupDirectory backupDir =
-                    BackupDirectory.readBackupDirectoryDescriptor(
-                        children[i].getAbsolutePath());
+                BackupDirectory backupDir =
+                  BackupDirectory.readBackupDirectoryDescriptor(
+                      children[i].getAbsolutePath());
 
-                  backups.addAll(backupDir.getBackups().values());
-                }
-                catch (Throwable t2)
+                backups.addAll(backupDir.getBackups().values());
+              }
+              catch (Throwable t2)
+              {
+                if (!children[i].getName().equals("tasks") &&
+                    (firstThrowable != null))
                 {
-                  if (!children[i].getName().equals("tasks"))
-                  {
-                    LOG.log(Level.WARNING, "Error searching backup: "+t2, t2);
-                  }
+                  LOG.log(Level.WARNING, "Error searching backup: "+t2, t2);
                 }
               }
             }
           }
-          if (backups.size() == 0)
-          {
-            throw firstThrowable;
-          }
+        }
+        if ((backups.size() == 0) && (firstThrowable != null))
+        {
+          throw firstThrowable;
         }
         return backups;
       }
@@ -405,6 +411,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
       {
         BackupTableModel model = (BackupTableModel)backupList.getModel();
         model.clear();
+        renderer.setParentPath(new File(parentPath));
         if (t == null)
         {
           if (returnValue.size() > 0)
@@ -482,6 +489,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
     worker.startBackgroundTask();
   }
 
+  private final String DUMMY_PARENT_PATH = "/local/OpenDS-X.X.X/bak";
   /**
    * Creates a list with backup descriptor.  This is done simply to have a good
    * initial size for the table.
@@ -491,15 +499,15 @@ public abstract class BackupListPanel extends StatusGenericPanel
   {
     ArrayList<BackupDescriptor> list = new ArrayList<BackupDescriptor>();
     list.add(new BackupDescriptor(
-        new File("/local/OpenDS-0.9.0/bak/200704201567Z"),
+        new File(DUMMY_PARENT_PATH+"/200704201567Z"),
         new GregorianCalendar(2007, 5, 20, 8, 10).getTime(),
         BackupDescriptor.Type.FULL, "id"));
     list.add(new BackupDescriptor(
-        new File("/local/OpenDS-0.9.0/bak/200704201567Z"),
+        new File(DUMMY_PARENT_PATH+"/200704201567Z"),
         new GregorianCalendar(2007, 5, 22, 8, 10).getTime(),
         BackupDescriptor.Type.INCREMENTAL, "id"));
     list.add(new BackupDescriptor(
-        new File("/local/OpenDS-0.9.0/bak/200704221567Z"),
+        new File(DUMMY_PARENT_PATH+"/200704221567Z"),
         new GregorianCalendar(2007, 5, 25, 8, 10).getTime(),
         BackupDescriptor.Type.INCREMENTAL, "id"));
     return list;
