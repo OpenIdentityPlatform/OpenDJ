@@ -796,6 +796,8 @@ public class NewBaseDNPanel extends StatusGenericPanel
         {
           args.addAll(getConfigCommandLineArguments());
         }
+
+        args.add(getNoPropertiesFileArgument());
       }
       return args;
     }
@@ -1326,6 +1328,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
             }
           }
           args.addAll(getConnectionCommandLineArguments());
+          args.add(getNoPropertiesFileArgument());
           args.add("--no-prompt");
 
           dns.add(indexEntry.getDN().toString());
@@ -1498,6 +1501,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
           args.add("base-dn:"+newBaseDN);
         }
         args.addAll(getConnectionCommandLineArguments());
+        args.add(getNoPropertiesFileArgument());
         args.add("--no-prompt");
       }
       return args;

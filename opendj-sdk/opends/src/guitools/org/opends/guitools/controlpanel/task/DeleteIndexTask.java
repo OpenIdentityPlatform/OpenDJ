@@ -411,6 +411,7 @@ public class DeleteIndexTask extends Task
 
     args.addAll(getConnectionCommandLineArguments());
     args.add("--no-prompt");
+    args.add(getNoPropertiesFileArgument());
     return args;
   }
 }

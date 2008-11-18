@@ -770,6 +770,7 @@ public class NewIndexPanel extends AbstractIndexPanel
       args.add("--set");
       args.add("index-entry-limit:"+entryLimitValue);
       args.addAll(getConnectionCommandLineArguments());
+      args.add(getNoPropertiesFileArgument());
       args.add("--no-prompt");
       return args;
     }

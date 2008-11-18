@@ -292,6 +292,7 @@ public class NewEntryTask extends Task
     args.add(getCommandLinePath("ldapmodify"));
     args.addAll(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments(useAdminCtx, true)));
+    args.add(getNoPropertiesFileArgument());
     args.add("--defaultAdd");
     StringBuilder sb = new StringBuilder();
     for (String arg : args)
