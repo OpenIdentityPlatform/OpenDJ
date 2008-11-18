@@ -71,6 +71,7 @@ public class NewEntryTask extends Task
   private BasicNode parentNode;
   private BrowserController controller;
   private DN dn;
+  private boolean useAdminCtx = false;
 
   /**
    * Constructor of the task.
@@ -196,10 +197,12 @@ public class NewEntryTask extends Task
       if (parentNode != null)
       {
         ctx = controller.findConnectionForDisplayedEntry(parentNode);
+        useAdminCtx = controller.isConfigurationNode(parentNode);
       }
       else
       {
         ctx = getInfo().getDirContext();
+        useAdminCtx = true;
       }
       BasicAttributes attrs = new BasicAttributes();
       BasicAttribute objectclass =
@@ -288,7 +291,7 @@ public class NewEntryTask extends Task
     ArrayList<String> args = new ArrayList<String>();
     args.add(getCommandLinePath("ldapmodify"));
     args.addAll(getObfuscatedCommandLineArguments(
-        getConnectionCommandLineArguments()));
+        getConnectionCommandLineArguments(useAdminCtx, true)));
     args.add("--defaultAdd");
     StringBuilder sb = new StringBuilder();
     for (String arg : args)

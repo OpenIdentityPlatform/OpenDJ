@@ -201,7 +201,7 @@ public class AddToGroupTask extends Task
           {
             public void run()
             {
-              printEquivalentCommandToModify(groupDn, modifications);
+              printEquivalentCommandToModify(groupDn, modifications, false);
               getProgressDialog().appendProgressHtml(
                   Utilities.getProgressWithPoints(
                       INFO_CTRL_PANEL_ADDING_TO_GROUP.get(groupDn.toString()),

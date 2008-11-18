@@ -87,6 +87,7 @@ public class ModifyEntryTask extends Task
   private Entry newEntry;
   private BrowserController controller;
   private TreePath treePath;
+  private boolean useAdminCtx = false;
 
   /**
    * Constructor of the task.
@@ -234,6 +235,7 @@ public class ModifyEntryTask extends Task
     {
       BasicNode node = (BasicNode)treePath.getLastPathComponent();
       InitialLdapContext ctx = controller.findConnectionForDisplayedEntry(node);
+      useAdminCtx = controller.isConfigurationNode(node);
       if (!mustRename)
       {
         if (modifications.size() > 0) {
@@ -245,7 +247,8 @@ public class ModifyEntryTask extends Task
           {
             public void run()
             {
-              printEquivalentCommandToModify(newEntry.getDN(), modifications);
+              printEquivalentCommandToModify(newEntry.getDN(), modifications,
+                  useAdminCtx);
               getProgressDialog().appendProgressHtml(
                   Utilities.getProgressWithPoints(
                       INFO_CTRL_PANEL_MODIFYING_ENTRY.get(oldEntry.getDN()),
@@ -354,7 +357,7 @@ public class ModifyEntryTask extends Task
     {
       public void run()
       {
-        printEquivalentRenameCommand(oldDN, newEntry.getDN());
+        printEquivalentRenameCommand(oldDN, newEntry.getDN(), useAdminCtx);
         getProgressDialog().appendProgressHtml(
             Utilities.getProgressWithPoints(
                 INFO_CTRL_PANEL_RENAMING_ENTRY.get(oldDN.toString(),
@@ -393,7 +396,7 @@ public class ModifyEntryTask extends Task
         public void run()
         {
           DN dn = newEntry.getDN();
-          printEquivalentCommandToModify(dn, originalMods);
+          printEquivalentCommandToModify(dn, originalMods, useAdminCtx);
           getProgressDialog().appendProgressHtml(
               Utilities.getProgressWithPoints(
                   INFO_CTRL_PANEL_MODIFYING_ENTRY.get(dn.toString()),
