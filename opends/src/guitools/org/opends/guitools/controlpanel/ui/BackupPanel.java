@@ -602,7 +602,15 @@ public class BackupPanel extends BackupListPanel
           }
         }
       }
-      dir = parentDirectory.getText();
+      if (incrementalBackup.isSelected())
+      {
+        BackupDescriptor backup = getSelectedBackup();
+        dir = backup.getPath().getAbsolutePath();
+      }
+      else
+      {
+        dir = parentDirectory.getText();
+      }
     }
 
     /**

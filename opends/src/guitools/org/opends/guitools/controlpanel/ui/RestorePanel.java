@@ -312,8 +312,8 @@ implements BackupCreatedListener
     {
       super(info, dlg);
       this.verify = verify;
-      dir = parentDirectory.getText();
       BackupDescriptor backup = getSelectedBackup();
+      dir = backup.getPath().getAbsolutePath();
       backupID = backup.getID();
       backendSet = new HashSet<String>();
       for (BackendDescriptor backend : info.getServerDescriptor().getBackends())

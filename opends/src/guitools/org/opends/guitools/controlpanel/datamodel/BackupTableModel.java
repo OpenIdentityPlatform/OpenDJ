@@ -40,6 +40,7 @@ public class BackupTableModel extends AbstractTableModel
   private static final long serialVersionUID = -3511425157550147124L;
   private ArrayList<BackupDescriptor> backups =
     new ArrayList<BackupDescriptor>();
+
   /**
    * Clears the contents ot the table model.
    *
