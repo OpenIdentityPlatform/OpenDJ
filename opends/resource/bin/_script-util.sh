@@ -224,9 +224,11 @@ then
   fi
   if [ -d "${INSTANCE_ROOT}" ]
   then
-      cd ${INSTANCE_ROOT}
+      CURRENT_DIR=`pwd`
+      cd "${INSTANCE_ROOT}"
       INSTANCE_ROOT=`pwd`
       export INSTANCE_ROOT
+      cd "${CURRENT_DIR}"
   fi
 fi
 
