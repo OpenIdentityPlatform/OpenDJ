@@ -766,6 +766,8 @@ public class BackupPanel extends BackupListPanel
         args.addAll(getConfigCommandLineArguments());
       }
 
+      args.add(getNoPropertiesFileArgument());
+
       return args;
     }
 

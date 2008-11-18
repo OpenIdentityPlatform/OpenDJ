@@ -769,6 +769,7 @@ public class DeleteBaseDNAndBackendTask extends Task
                 getObfuscatedCommandLineArguments(
                     getCommandLineArgumentsToDisableReplication(domainName[0]));
               args.removeAll(getConfigCommandLineArguments());
+              args.add(getNoPropertiesFileArgument());
               for (String arg : args)
               {
                 sb.append(" "+CommandBuilder.escapeValue(arg));

@@ -568,6 +568,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       {
         args.addAll(getConfigCommandLineArguments());
       }
+      args.add(getNoPropertiesFileArgument());
 
       return args;
     }

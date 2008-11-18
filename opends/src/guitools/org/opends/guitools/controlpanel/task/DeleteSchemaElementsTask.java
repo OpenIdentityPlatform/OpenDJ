@@ -445,6 +445,7 @@ public class DeleteSchemaElementsTask extends Task
       args.add("-a");
       args.addAll(getObfuscatedCommandLineArguments(
           getConnectionCommandLineArguments(true, true)));
+      args.add(getNoPropertiesFileArgument());
       StringBuilder sb = new StringBuilder();
       for (String arg : args)
       {

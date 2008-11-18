@@ -286,6 +286,7 @@ public class RebuildIndexTask extends IndexTask
     args.add("enabled:"+enable);
 
     args.addAll(getConnectionCommandLineArguments());
+    args.add(getNoPropertiesFileArgument());
     args.add("--no-prompt");
 
     final StringBuilder sb = new StringBuilder();

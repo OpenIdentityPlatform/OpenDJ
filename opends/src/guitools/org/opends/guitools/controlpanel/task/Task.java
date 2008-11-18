@@ -740,6 +740,15 @@ public abstract class Task
   }
 
   /**
+   * Returns the noPropertiesFile argument.
+   * @return the noPropertiesFile argument.
+   */
+  protected String getNoPropertiesFileArgument()
+  {
+    return "--noPropertiesFile";
+  }
+
+  /**
    * Returns the command-line to be displayed (when we display the equivalent
    * command-line).
    * @return the command-line to be displayed.
@@ -822,6 +831,7 @@ public abstract class Task
     args.add(getCommandLinePath("ldapmodify"));
     args.addAll(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments(useAdminCtx, true)));
+    args.add(getNoPropertiesFileArgument());
     StringBuilder sb = new StringBuilder();
     for (String arg : args)
     {
@@ -918,6 +928,7 @@ public abstract class Task
     args.add(getCommandLinePath("ldapmodify"));
     args.addAll(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments(useAdminCtx, true)));
+    args.add(getNoPropertiesFileArgument());
     StringBuilder sb = new StringBuilder();
     for (String arg : args)
     {

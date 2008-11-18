@@ -946,6 +946,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       }
 
       args.addAll(getConnectionCommandLineArguments());
+      args.add(getNoPropertiesFileArgument());
       args.add("--no-prompt");
 
       return args;

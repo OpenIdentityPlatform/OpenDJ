@@ -450,6 +450,7 @@ implements BackupCreatedListener
       {
         args.addAll(getConfigCommandLineArguments());
       }
+      args.add(getNoPropertiesFileArgument());
 
       return args;
     }

@@ -694,6 +694,8 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
         args.addAll(getConfigCommandLineArguments());
       }
 
+      args.add(getNoPropertiesFileArgument());
+
       return args;
     }
 

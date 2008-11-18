@@ -515,6 +515,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
       args.add("sort-order:"+sortOrderStringValue);
 
       args.addAll(getConnectionCommandLineArguments());
+      args.add(getNoPropertiesFileArgument());
       args.add("--no-prompt");
       return args;
     }

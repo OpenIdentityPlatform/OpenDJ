@@ -514,6 +514,7 @@ public class DeleteEntryTask extends Task
     args.add(getCommandLinePath("ldapdelete"));
     args.addAll(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments(useAdminCtx, true)));
+    args.add(getNoPropertiesFileArgument());
     if (usingControl)
     {
       args.add("-J");
