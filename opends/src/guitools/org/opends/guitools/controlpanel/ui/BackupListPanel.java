@@ -420,6 +420,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
           }
           else
           {
+            model.fireTableDataChanged();
             lRefreshingList.setText(NO_BACKUPS_FOUND.toString());
           }
           errorPane.setVisible(false);
@@ -430,6 +431,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
         }
         else
         {
+          model.fireTableDataChanged();
           boolean displayError = true;
           if (t instanceof OpenDsException)
           {
