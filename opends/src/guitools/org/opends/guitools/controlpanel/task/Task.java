@@ -681,8 +681,32 @@ public abstract class Task
    */
   protected List<String> getConnectionCommandLineArguments()
   {
+    return getConnectionCommandLineArguments(true, false);
+  }
+
+  /**
+   * Returns the list of arguments related to the connection (host, port, bind
+   * DN, etc.).
+   * @param useAdminConnector use the administration connector to generate
+   * the command line.
+   * @param addConnectionTypeParameters add the connection type parameters
+   * (--useSSL or --useStartTLS parameters: for ldapadd, ldapdelete, etc.).
+   * @return the list of arguments related to the connection.
+   */
+  protected List<String> getConnectionCommandLineArguments(
+      boolean useAdminConnector, boolean addConnectionTypeParameters)
+  {
     ArrayList<String> args = new ArrayList<String>();
-    InitialLdapContext ctx = getInfo().getDirContext();
+    InitialLdapContext ctx;
+
+    if (useAdminConnector)
+    {
+      ctx = getInfo().getDirContext();
+    }
+    else
+    {
+      ctx = getInfo().getUserDataDirContext();
+    }
     if (isServerRunning() && (ctx != null))
     {
       String hostName = ConnectionUtils.getHostName(ctx);
@@ -702,6 +726,14 @@ public abstract class Task
       if (isSSL || isStartTLS)
       {
         args.add("--trustAll");
+      }
+      if (isSSL && addConnectionTypeParameters)
+      {
+        args.add("--useSSL");
+      }
+      else if (isStartTLS && addConnectionTypeParameters)
+      {
+        args.add("--useStartTLS");
       }
     }
     return args;
@@ -769,25 +801,27 @@ public abstract class Task
    * Prints the equivalent modify command line in the progress dialog.
    * @param dn the dn of the modified entry.
    * @param mods the modifications.
+   * @param useAdminCtx use the administration connector.
    */
   protected void printEquivalentCommandToModify(DN dn,
-      Collection<ModificationItem> mods)
+      Collection<ModificationItem> mods, boolean useAdminCtx)
   {
-    printEquivalentCommandToModify(dn.toString(), mods);
+    printEquivalentCommandToModify(dn.toString(), mods, useAdminCtx);
   }
 
   /**
    * Prints the equivalent modify command line in the progress dialog.
    * @param dn the dn of the modified entry.
    * @param mods the modifications.
+   * @param useAdminCtx use the administration connector.
    */
   protected void printEquivalentCommandToModify(String dn,
-      Collection<ModificationItem> mods)
+      Collection<ModificationItem> mods, boolean useAdminCtx)
   {
     ArrayList<String> args = new ArrayList<String>();
     args.add(getCommandLinePath("ldapmodify"));
     args.addAll(getObfuscatedCommandLineArguments(
-        getConnectionCommandLineArguments()));
+        getConnectionCommandLineArguments(useAdminCtx, true)));
     StringBuilder sb = new StringBuilder();
     for (String arg : args)
     {
@@ -875,13 +909,15 @@ public abstract class Task
    * Prints the equivalent rename command line in the progress dialog.
    * @param oldDN the old DN of the entry.
    * @param newDN the new DN of the entry.
+   * @param useAdminCtx use the administration connector.
    */
-  protected void printEquivalentRenameCommand(DN oldDN, DN newDN)
+  protected void printEquivalentRenameCommand(DN oldDN, DN newDN,
+      boolean useAdminCtx)
   {
     ArrayList<String> args = new ArrayList<String>();
     args.add(getCommandLinePath("ldapmodify"));
     args.addAll(getObfuscatedCommandLineArguments(
-        getConnectionCommandLineArguments()));
+        getConnectionCommandLineArguments(useAdminCtx, true)));
     StringBuilder sb = new StringBuilder();
     for (String arg : args)
     {

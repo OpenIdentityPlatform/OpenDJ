@@ -1055,7 +1055,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @return <CODE>true</CODE> if the node is a configuration node and
    * <CODE>false</CODE> otherwise.
    */
-  private boolean isConfigurationNode(BasicNode node)
+  public boolean isConfigurationNode(BasicNode node)
   {
     boolean isConfigurationNode = false;
     if (node instanceof SuffixNode)

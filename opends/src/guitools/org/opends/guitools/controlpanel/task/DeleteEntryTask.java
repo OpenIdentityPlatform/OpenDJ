@@ -78,6 +78,7 @@ public class DeleteEntryTask extends Task
   private long lastProgressTime;
   private boolean equivalentCommandWithControlPrinted = false;
   private boolean equivalentCommandWithoutControlPrinted = false;
+  private boolean useAdminCtx;
 
   /**
    * Constructor of the task.
@@ -237,6 +238,7 @@ public class DeleteEntryTask extends Task
           {
             InitialLdapContext ctx =
               controller.findConnectionForDisplayedEntry(node);
+            useAdminCtx = controller.isConfigurationNode(node);
             if (node.getNumSubOrdinates() > 0)
             {
               deleteSubtreeWithControl(ctx, dn, path, toNotify);
@@ -511,7 +513,7 @@ public class DeleteEntryTask extends Task
     ArrayList<String> args = new ArrayList<String>();
     args.add(getCommandLinePath("ldapdelete"));
     args.addAll(getObfuscatedCommandLineArguments(
-        getConnectionCommandLineArguments()));
+        getConnectionCommandLineArguments(useAdminCtx, true)));
     if (usingControl)
     {
       args.add("-J");

@@ -272,7 +272,7 @@ public abstract class SchemaTask extends Task
       args.add(getCommandLinePath("ldapmodify"));
       args.add("-a");
       args.addAll(getObfuscatedCommandLineArguments(
-          getConnectionCommandLineArguments()));
+          getConnectionCommandLineArguments(true, true)));
       StringBuilder sb = new StringBuilder();
       for (String arg : args)
       {

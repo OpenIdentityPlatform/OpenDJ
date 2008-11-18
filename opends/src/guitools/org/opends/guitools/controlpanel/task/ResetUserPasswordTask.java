@@ -66,7 +66,8 @@ public class ResetUserPasswordTask extends Task
   private BasicNode node;
   private char[] newPassword;
   private BrowserController controller;
-  DN dn;
+  private DN dn;
+  private boolean useAdminCtx;
 
   /**
    * Constructor of the task.
@@ -192,6 +193,7 @@ public class ResetUserPasswordTask extends Task
 
     try
     {
+      useAdminCtx = controller.isConfigurationNode(node);
       InitialLdapContext ctx =
         controller.findConnectionForDisplayedEntry(node);
       BasicAttribute attr =
@@ -208,7 +210,7 @@ public class ResetUserPasswordTask extends Task
       {
         public void run()
         {
-          printEquivalentCommandToModify(dn, modifications);
+          printEquivalentCommandToModify(dn, modifications, useAdminCtx);
           getProgressDialog().appendProgressHtml(
               Utilities.getProgressWithPoints(
                   INFO_CTRL_PANEL_RESETTING_USER_PASSWORD.get(node.getDN()),
