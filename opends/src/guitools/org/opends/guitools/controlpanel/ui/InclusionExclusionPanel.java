@@ -296,7 +296,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
     gbc.gridx = 0;
     gbc.weightx = 0.0;
     lAttributesToExclude = Utilities.createPrimaryLabel(
-        INFO_CTRL_PANEL_ATTRIBUTES_TO_INCLUDE.get());
+        INFO_CTRL_PANEL_ATTRIBUTES_TO_EXCLUDE.get());
     gbc.insets.left = labelInsetLeft;
     gbc.anchor = GridBagConstraints.NORTHWEST;
     gbc.insets.top = 10;
