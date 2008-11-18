@@ -35,7 +35,6 @@ import java.awt.GridBagLayout;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -417,29 +416,30 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       public Void processBackgroundTask() throws Throwable
       {
         String propertiesFile = getPropertiesFile();
-        FileInputStream fs = null;
         Properties properties = new Properties();
+        BufferedReader reader = null;
         try
         {
-          fs = new FileInputStream(propertiesFile);
-          properties.load(fs);
+          reader = new BufferedReader(new FileReader(propertiesFile));
+          JavaPropertiesTool.updateProperties(reader, properties);
         }
         catch (Throwable t)
         {
         }
         finally
         {
-          if (fs != null)
+          if (reader != null)
           {
             try
             {
-              fs.close();
+              reader.close();
             }
             catch (Throwable t)
             {
             }
           }
         }
+
         String[] scripts =
         {
             "start-ds", "import-ldif.offline", "backup.online", "base64",
