@@ -1008,7 +1008,8 @@ public class ReplicationBackend
       {
         // Add extensibleObject objectclass and the ChangeNumber
         // in the entry.
-        entry.addObjectClass(objectclass);
+        if (!entry.getObjectClasses().containsKey(objectclass))
+          entry.addObjectClass(objectclass);
         Attribute changeNumber =
           Attributes.create(CHANGE_NUMBER, msg.getChangeNumber().toStringUI());
         addAttribute(entry.getUserAttributes(), changeNumber);
@@ -1292,6 +1293,23 @@ public class ReplicationBackend
         }
       }
     }
+
+    // don't do anything if the search is a base search on
+    // the backend suffix.
+    try
+    {
+      DN backendBaseDN = DN.decode(BASE_DN);
+      if ( (searchOperation.getScope().equals(SearchScope.BASE_OBJECT)) &&
+           (backendBaseDN.equals(searchOperation.getBaseDN())) )
+      {
+        return;
+      }
+    }
+    catch (Exception e)
+    {
+      return;
+    }
+
     // Make sure the base entry exists if it's supposed to be in this backend.
     if (!handlesEntry(searchBaseDN))
     {
