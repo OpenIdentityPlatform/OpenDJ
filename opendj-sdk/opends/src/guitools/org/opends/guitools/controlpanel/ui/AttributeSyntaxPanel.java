@@ -33,6 +33,7 @@ import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Comparator;
 import java.util.TreeSet;
 
 import javax.swing.DefaultListModel;
@@ -41,6 +42,7 @@ import javax.swing.JList;
 
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
+import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.server.api.AttributeSyntax;
@@ -204,7 +206,8 @@ public class AttributeSyntaxPanel extends SchemaElementPanel
     }
     description.setText(n);
 
-    TreeSet<String> attributes = new TreeSet<String>();
+    Comparator<String> lowerCaseComparator = new LowerCaseComparator();
+    TreeSet<String> attributes = new TreeSet<String>(lowerCaseComparator);
     for (AttributeType attr : schema.getAttributeTypes().values())
     {
       if (syntax == attr.getSyntax())

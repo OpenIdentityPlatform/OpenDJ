@@ -80,6 +80,7 @@ import org.opends.guitools.controlpanel.ui.components.TreePanel;
 import org.opends.guitools.controlpanel.ui.nodes.*;
 import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.ui.renderer.TreeCellRenderer;
+import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.server.api.AttributeSyntax;
@@ -693,16 +694,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     }
     TreePath newSelectionPath = null;
 
-    /**
-     * {@inheritDoc}
-     */
-    Comparator<String> lowerCaseComparator = new Comparator<String>()
-    {
-      public int compare(String s1, String s2)
-      {
-        return s1.toLowerCase().compareTo(s2.toLowerCase());
-      }
-    };
+    Comparator<String> lowerCaseComparator = new LowerCaseComparator();
 
     TreeSet<String> standardOcNames = new TreeSet<String>(lowerCaseComparator);
     HashMap<String, StandardObjectClassTreeNode> hmStandardOcs =

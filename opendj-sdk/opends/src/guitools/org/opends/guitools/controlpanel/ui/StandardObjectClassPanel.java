@@ -35,6 +35,7 @@ import java.awt.GridBagConstraints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -49,6 +50,7 @@ import javax.swing.JList;
 
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
+import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -357,7 +359,8 @@ public class StandardObjectClassPanel extends SchemaElementPanel
 
     type.setText(getTypeValue(oc).toString());
 
-    SortedSet<String> requiredAttrs = new TreeSet<String>();
+    Comparator<String> lowerCaseComparator = new LowerCaseComparator();
+    SortedSet<String> requiredAttrs = new TreeSet<String>(lowerCaseComparator);
     Set<String> inheritedAttrs = new HashSet<String>();
     for (AttributeType attr : oc.getRequiredAttributeChain())
     {
@@ -389,7 +392,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
       hmAttrs.put(v, schema.getAttributeType(attr.toLowerCase()));
     }
 
-    SortedSet<String> optionalAttrs = new TreeSet<String>();
+    SortedSet<String> optionalAttrs = new TreeSet<String>(lowerCaseComparator);
     inheritedAttrs = new HashSet<String>();
     for (AttributeType attr : oc.getOptionalAttributeChain())
     {
