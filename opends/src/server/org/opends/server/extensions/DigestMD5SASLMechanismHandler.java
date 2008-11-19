@@ -116,9 +116,6 @@ public class DigestMD5SASLMechanismHandler
          String QOP = getQOP(configuration);
          saslProps = new HashMap<String,String>();
          saslProps.put(Sasl.QOP, QOP);
-         if(QOP.equalsIgnoreCase(SASL_MECHANISM_CONFIDENTIALITY)) {
-             saslProps.put(Sasl.STRENGTH, getStrength(configuration));
-         }
          String realm=getRealm(configuration);
          if(realm != null) {
            msg = INFO_DIGEST_MD5_REALM.get(realm);
@@ -254,9 +251,6 @@ public class DigestMD5SASLMechanismHandler
           String QOP = getQOP(configuration);
           saslProps = new HashMap<String,String>();
           saslProps.put(Sasl.QOP, QOP);
-          if(QOP.equalsIgnoreCase(SASL_MECHANISM_CONFIDENTIALITY)) {
-              saslProps.put(Sasl.STRENGTH, getStrength(configuration));
-          }
           String realm=getRealm(configuration);
           if(realm != null) {
                msg = INFO_DIGEST_MD5_REALM.get(realm);
@@ -275,26 +269,6 @@ public class DigestMD5SASLMechanismHandler
                   messages);
       }
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-  }
-
-
-  /**
-   * Retrieves the cipher strength string to use if confidentiality is enforce.
-   * This determination is the lowest value that the server can use.
-   *
-   * @param configuration The configuration to examine.
-   * @return The cipher strength string.
-   */
-  private String
-  getStrength(DigestMD5SASLMechanismHandlerCfg configuration) {
-      CipherStrength strength = configuration.getCipherStrength();
-      if(strength.equals(CipherStrength.HIGH)) {
-          return "high";
-      } else if(strength.equals(CipherStrength.MEDIUM)) {
-          return "high,medium";
-      } else {
-          return "high,medium,low";
-      }
   }
 
 
