@@ -40,6 +40,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.TreeSet;
@@ -692,13 +693,25 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     }
     TreePath newSelectionPath = null;
 
-    TreeSet<String> standardOcNames = new TreeSet<String>();
+    /**
+     * {@inheritDoc}
+     */
+    Comparator<String> lowerCaseComparator = new Comparator<String>()
+    {
+      public int compare(String s1, String s2)
+      {
+        return s1.toLowerCase().compareTo(s2.toLowerCase());
+      }
+    };
+
+    TreeSet<String> standardOcNames = new TreeSet<String>(lowerCaseComparator);
     HashMap<String, StandardObjectClassTreeNode> hmStandardOcs =
       new HashMap<String, StandardObjectClassTreeNode>();
-    TreeSet<String> configurationOcNames = new TreeSet<String>();
+    TreeSet<String> configurationOcNames =
+      new TreeSet<String>(lowerCaseComparator);
     HashMap<String, ConfigurationObjectClassTreeNode> hmConfigurationOcs =
       new HashMap<String, ConfigurationObjectClassTreeNode>();
-    TreeSet<String> customOcNames = new TreeSet<String>();
+    TreeSet<String> customOcNames = new TreeSet<String>(lowerCaseComparator);
     HashMap<String, CustomObjectClassTreeNode> hmCustomOcs =
       new HashMap<String, CustomObjectClassTreeNode>();
     for (ObjectClass oc : lastSchema.getObjectClasses().values())
@@ -726,13 +739,15 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     }
 
 
-    TreeSet<String> standardAttrNames = new TreeSet<String>();
+    TreeSet<String> standardAttrNames =
+      new TreeSet<String>(lowerCaseComparator);
     HashMap<String, StandardAttributeTreeNode> hmStandardAttrs =
       new HashMap<String, StandardAttributeTreeNode>();
-    TreeSet<String> configurationAttrNames = new TreeSet<String>();
+    TreeSet<String> configurationAttrNames =
+      new TreeSet<String>(lowerCaseComparator);
     HashMap<String, ConfigurationAttributeTreeNode> hmConfigurationAttrs =
       new HashMap<String, ConfigurationAttributeTreeNode>();
-    TreeSet<String> customAttrNames = new TreeSet<String>();
+    TreeSet<String> customAttrNames = new TreeSet<String>(lowerCaseComparator);
     HashMap<String, CustomAttributeTreeNode> hmCustomAttrs =
       new HashMap<String, CustomAttributeTreeNode>();
     for (AttributeType attr : lastSchema.getAttributeTypes().values())
@@ -759,7 +774,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       }
     }
 
-    TreeSet<String> matchingRuleNames = new TreeSet<String>();
+    TreeSet<String> matchingRuleNames =
+      new TreeSet<String>(lowerCaseComparator);
     HashMap<String, MatchingRuleTreeNode> hmMatchingRules =
       new HashMap<String, MatchingRuleTreeNode>();
     for (MatchingRule matchingRule : lastSchema.getMatchingRules().values())
@@ -772,7 +788,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       }
     }
 
-    TreeSet<String> syntaxNames = new TreeSet<String>();
+    TreeSet<String> syntaxNames = new TreeSet<String>(lowerCaseComparator);
     HashMap<String, AttributeSyntaxTreeNode> hmSyntaxes =
       new HashMap<String, AttributeSyntaxTreeNode>();
     for (AttributeSyntax syntax : lastSchema.getSyntaxes().values())
