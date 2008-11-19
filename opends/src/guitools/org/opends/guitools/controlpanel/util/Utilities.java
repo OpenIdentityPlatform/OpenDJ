@@ -1689,7 +1689,8 @@ public class Utilities
 
   private final static String[] standardSchemaFileNames =
   {
-      "00-core.ldif", "01-pwpolicy.ldif", "03-changelog.ldif", "03-uddiv3.ldif"
+      "00-core.ldif", "01-pwpolicy.ldif", "03-changelog.ldif",
+      "03-uddiv3.ldif", "05-solaris.ldif"
   };
 
   private final static String[] configurationSchemaFileNames =
