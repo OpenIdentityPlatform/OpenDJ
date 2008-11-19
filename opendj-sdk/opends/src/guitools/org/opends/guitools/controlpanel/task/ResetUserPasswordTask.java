@@ -55,6 +55,7 @@ import org.opends.messages.Message;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
+import org.opends.server.util.cli.CommandBuilder;
 
 /**
  * The task called when we want to reset the password of the user.
@@ -210,7 +211,7 @@ public class ResetUserPasswordTask extends Task
       {
         public void run()
         {
-          printEquivalentCommandToModify(dn, modifications, useAdminCtx);
+          printEquivalentCommand(dn, newPassword, useAdminCtx);
           getProgressDialog().appendProgressHtml(
               Utilities.getProgressWithPoints(
                   INFO_CTRL_PANEL_RESETTING_USER_PASSWORD.get(node.getDN()),
@@ -247,5 +248,34 @@ public class ResetUserPasswordTask extends Task
       lastException = t;
       state = State.FINISHED_WITH_ERROR;
     }
+  }
+
+  /**
+   * Prints the equivalent modify command line in the progress dialog.
+   * @param dn the dn of the modified entry.
+   * @param newPassword the new password.
+   * @param useAdminCtx use the administration connector.
+   */
+  private void printEquivalentCommand(DN dn, char[] newPassword,
+      boolean useAdminCtx)
+  {
+    ArrayList<String> args = new ArrayList<String>();
+    args.add(getCommandLinePath("ldappasswordmodify"));
+    args.add("--authzID");
+    args.add("dn:"+dn);
+    args.add("--newPassword");
+    args.add(Utilities.OBFUSCATED_VALUE);
+    args.addAll(getObfuscatedCommandLineArguments(
+        getConnectionCommandLineArguments(useAdminCtx, true)));
+    args.add(getNoPropertiesFileArgument());
+    StringBuilder sb = new StringBuilder();
+    for (String arg : args)
+    {
+      sb.append(" "+CommandBuilder.escapeValue(arg));
+    }
+    getProgressDialog().appendProgressHtml(Utilities.applyFont(
+        INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_RESET_PASSWORD.get().toString()+
+        "<br><b>"+sb.toString()+"</b><br><br>",
+        ColorAndFontConstants.progressFont));
   }
 }
