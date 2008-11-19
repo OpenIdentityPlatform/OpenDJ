@@ -1721,7 +1721,7 @@ public class Utilities
       }
       if (!isStandard)
       {
-        isStandard = fileName.indexOf("-rfc") != -1;
+        isStandard = fileName.toLowerCase().indexOf("-rfc") != -1;
       }
     }
     return isStandard;

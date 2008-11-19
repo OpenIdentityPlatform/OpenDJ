@@ -35,6 +35,7 @@ import java.awt.GridBagConstraints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -44,6 +45,7 @@ import javax.swing.JList;
 
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
+import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -328,7 +330,8 @@ public class StandardAttributePanel extends SchemaElementPanel
 
     type.setText(getTypeValue(attr).toString());
 
-    SortedSet<String> requiredByOcs = new TreeSet<String>();
+    Comparator<String> lowerCaseComparator = new LowerCaseComparator();
+    SortedSet<String> requiredByOcs = new TreeSet<String>(lowerCaseComparator);
     for (ObjectClass oc : schema.getObjectClasses().values())
     {
       if (oc.getRequiredAttributeChain().contains(attr))
@@ -344,7 +347,7 @@ public class StandardAttributePanel extends SchemaElementPanel
       model.addElement(oc);
     }
 
-    SortedSet<String> optionalByOcs = new TreeSet<String>();
+    SortedSet<String> optionalByOcs = new TreeSet<String>(lowerCaseComparator);
     for (ObjectClass oc : schema.getObjectClasses().values())
     {
       if (oc.getOptionalAttributeChain().contains(attr))
