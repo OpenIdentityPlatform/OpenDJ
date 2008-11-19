@@ -133,41 +133,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-    <adm:property name="cipher-strength">
-    <adm:synopsis>
-     The name of a property that specifies the minimum cipher strength that the
-	 server will support.
-    </adm:synopsis>
-    <adm:default-behavior>
-      <adm:defined>
-        <adm:value>low</adm:value>
-      </adm:defined>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:enumeration>
-        <adm:value name="low">
-          <adm:synopsis>
-            Cipher strength suported is high, medium or low.
-          </adm:synopsis>
-        </adm:value>
-        <adm:value name="medium">
-          <adm:synopsis>
-           Cipher strength suported is medium,high.
-          </adm:synopsis>
-          </adm:value>
-          <adm:value name="high">
-          <adm:synopsis>
-          Cipher strength suported is high only.
-          </adm:synopsis>
-        </adm:value>
-      </adm:enumeration>
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-cipher-strength</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
  <adm:property name="identity-mapper" mandatory="true">
     <adm:synopsis>
       Specifies the name of the identity mapper that is to be used
