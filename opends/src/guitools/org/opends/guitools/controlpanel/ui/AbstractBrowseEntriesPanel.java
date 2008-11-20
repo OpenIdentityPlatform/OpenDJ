@@ -1601,6 +1601,7 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
    */
   class CustomComboBoxCellRenderer extends CustomListCellRenderer
   {
+    private Message ALL_BASE_DNS_STRING = INFO_CTRL_PANEL_ALL_BASE_DNS.get();
     /**
      * The constructor.
      * @param combo the combo box to be rendered.
@@ -1624,7 +1625,7 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
         String name = getStringValue(element);
         if (ALL_BASE_DNS.equals(name))
         {
-          ((JLabel)comp).setText(ALL_BASE_DNS);
+          ((JLabel)comp).setText(ALL_BASE_DNS_STRING.toString());
         }
       }
       comp.setFont(defaultFont);
