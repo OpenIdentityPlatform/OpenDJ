@@ -99,6 +99,20 @@ public class TimeOfDay implements KeywordBindRule {
         int currentTime=TimeThread.getHourAndMinute();
         //check the type
         switch (type) {
+        case EQUAL_BINDRULE_TYPE:
+            if (currentTime == timeRef)
+            {
+                matched=EnumEvalResult.TRUE;
+            }
+            break;
+
+        case NOT_EQUAL_BINDRULE_TYPE:
+            if (currentTime != timeRef)
+            {
+                matched=EnumEvalResult.TRUE;
+            }
+            break;
+
         case LESS_OR_EQUAL_BINDRULE_TYPE:
             if (currentTime <= timeRef)
             {
