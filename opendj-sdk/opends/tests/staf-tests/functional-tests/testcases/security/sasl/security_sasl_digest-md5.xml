@@ -574,7 +574,7 @@
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'handlerName'            : 'DIGEST-MD5' ,
                     'propertyName'           : 'realm' ,
-                    'propertyValue'          : 'o=SASL Realm Tests,dc=example,dc=com' }
+                    'propertyValue'          : 'SASL-Realm-Tests.example.com' }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -608,7 +608,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=u:jsprinter" -o "realm=o=SASL Realm Tests,dc=example,dc=com" -w frogleg' ,
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=u:jsprinter" -o "realm=SASL-Realm-Tests.example.com" -w frogleg' ,
                 'expectedRC'       : 49 }
             </call>
             
@@ -643,7 +643,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=u:jwalleye" -o "realm=o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=u:jwalleye" -o "realm=SASL-Realm-Tests.example.com" -w frogleg' }
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -677,7 +677,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jsprinter,ou=People,o=SASL Tests,dc=example,dc=com" -o "realm=o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jsprinter,ou=People,o=SASL Tests,dc=example,dc=com" -o "realm=SASL-Realm-Tests.example.com" -w frogleg' }
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -711,7 +711,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -o "realm=o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -o "realm=SASL-Realm-Tests.example.com" -w frogleg' }
             </call>
 
             <call function="'testCase_Postamble'"/>
