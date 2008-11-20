@@ -244,26 +244,23 @@ abandonProcessing:
       // code to reflect whether the abandon was successful and an error message
       // if it was not.  Even though there is no response, the result should
       // still be logged.
-      Operation operation =
-           clientConnection.getOperationInProgress(idToAbandon);
-      if (operation == null)
-      {
-        setResultCode(ResultCode.NO_SUCH_OPERATION);
-        appendErrorMessage(ERR_ABANDON_OP_NO_SUCH_OPERATION.get(idToAbandon));
-      }
-      else
-      {
-        // Even though it is technically illegal to send a response for
-        // operations that have been abandoned, it may be a good idea to do so
-        // to ensure that the requestor isn't left hanging.  This will be a
-        // configurable option in the server.
-        boolean notifyRequestor = DirectoryServer.notifyAbandonedOperations();
-        Message cancelReason = INFO_CANCELED_BY_ABANDON_REQUEST.get(messageID);
-        CancelResult result =
-             operation.cancel(new CancelRequest(notifyRequestor, cancelReason));
-        setResultCode(result.getResultCode());
-        appendErrorMessage(result.getResponseMessage());
-      }
+      //
+      // Even though it is technically illegal to send a response for
+      // operations that have been abandoned, it may be a good idea to do so
+      // to ensure that the requestor isn't left hanging.  This will be a
+      // configurable option in the server.
+      boolean notifyRequestor = DirectoryServer.notifyAbandonedOperations();
+
+      Message cancelReason = INFO_CANCELED_BY_ABANDON_REQUEST.get(messageID);
+
+      CancelRequest _cancelRequest = new CancelRequest(notifyRequestor,
+                                                       cancelReason);
+
+      CancelResult result = clientConnection.cancelOperation(idToAbandon,
+                                                             _cancelRequest);
+
+      setResultCode(result.getResultCode());
+      appendErrorMessage(result.getResponseMessage());
 
       PluginResult.PostOperation postOpResult =
           pluginConfigManager.invokePostOperationAbandonPlugins(this);
