@@ -204,7 +204,7 @@ public class AbandonOperationTestCase
                   conn.nextMessageID(), new ArrayList<Control>(), 1);
     abandonOperation.run();
     assertEquals(abandonOperation.getResultCode(),
-                 ResultCode.NO_SUCH_OPERATION);
+                 ResultCode.CANNOT_CANCEL);
     examineCompletedOperation(abandonOperation);
   }
 
@@ -532,7 +532,7 @@ public class AbandonOperationTestCase
     long abandonsCompleted = ldapStatistics.getOperationsAbandoned();
 
 
-    // Create a "Who Am I?" extended oepration and send it to the server.  Make
+    // Create a "Who Am I?" extended operation and send it to the server.  Make
     // sure to include the delay request control so it won't complete before we
     // can send the abandon request.
     ExtendedRequestProtocolOp whoAmIRequest =

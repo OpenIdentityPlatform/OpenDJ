@@ -1293,12 +1293,6 @@ public class LDAPClientConnection
           // searches are cancelled.
           CancelResult cancelResult = ps.cancel();
 
-          if (keepStats && (cancelResult.getResultCode() ==
-            ResultCode.CANCELED))
-          {
-            statTracker.updateAbandonedOperation();
-          }
-
           return cancelResult;
         }
       }
@@ -1308,12 +1302,8 @@ public class LDAPClientConnection
     else
     {
       CancelResult cancelResult = op.cancel(cancelRequest);
-      if (keepStats && (cancelResult.getResultCode() == ResultCode.CANCELED))
-      {
-        statTracker.updateAbandonedOperation();
-      }
 
-      return op.cancel(cancelRequest);
+      return cancelResult;
     }
   }
 
