@@ -93,14 +93,14 @@
                 returnString = STAXResult[0][1]
                 msg = 'LDIF processing complete.  161 entries written'
               </script>
-                             
+              
               <call function="'checktestString'">
                 { 
                 'returnString'   : returnString ,
                 'expectedString' : msg
                 }
               </call>
-              
+
               <call function="'testCase_Postamble'"/>
               
             </sequence>
@@ -142,7 +142,7 @@
                 'randomSeed'     : 0
                 }
               </call>
-              
+
               <message>
                 'make-ldif: stop the server'
               </message>    
@@ -213,7 +213,7 @@
                 'expectedString'   : 'Total number of matching entries: 161' 
                 }
               </call>
-              
+
               <call function="'testCase_Postamble'"/>
               
             </sequence>
@@ -260,7 +260,7 @@
                                    % DIRECTORY_INSTANCE_DIR
                 }
               </call>
-              
+
               <message>
                 'make-ldif: generate a second ldif file without seed'
               </message>
@@ -346,8 +346,8 @@
                 'outputLdif' : '%s/make-ldif_seed5.diff' \
                 % DIRECTORY_INSTANCE_DIR
                 }
-              </call>   
-              
+              </call>
+
               <call function="'testCase_Postamble'"/>
               
             </sequence>

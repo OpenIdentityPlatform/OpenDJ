@@ -687,132 +687,150 @@
 
               <call function="'testCase_Preamble'"/>
 
-              <message>
-                'status: set the listen-port to a wrong value'
-              </message>
-
-              <call function="'dsconfig'">
-                {
-                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'subcommand'       : 'set-connection-handler-prop' ,
-                'objectType'       : 'handler-name' ,
-                'objectName'       : 'SNMP Connection Handler' ,
-                'optionsString'    : '--set listen-port:%s' \
-                                     % DEFAULT_PROPERTIES['listen-port']
-                }
-              </call>
-
-              <message>
-                'status: restart DS running on port %s' \
-                % (DIRECTORY_INSTANCE_PORT)
-              </message>
-              <call function="'StopDsWithScript'">
-                {
-                'location'    : STAF_REMOTE_HOSTNAME ,
-                'dsHost'      : DIRECTORY_INSTANCE_HOST ,
-                'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT ,
-                'dsBindDN'    : DIRECTORY_INSTANCE_DN ,
-                'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD
-                }
-              </call>
-              <call function="'StartDsWithScript'">
-                { 'location' : STAF_REMOTE_HOSTNAME }
-              </call>
-
+              <!-- This testcase is not relevant on Windows -->
               <script>
-                returnString = STAXResult[0][1]
+                if is_windows_platform(STAF_REMOTE_HOSTNAME):
+                  skip=1
+                else:
+                  skip=0
               </script>
 
-              <!--- Check that DS started -->
-              <call function="'isAlive'">
-                {
-                'noOfLoops'        : 5 ,
-                'noOfMilliSeconds' : 2000
-                }
-              </call>
+              <if expr="skip == 0">
+                <sequence>
+                  <message>
+                    'status: set the listen-port to a wrong value'
+                  </message>
 
-              <script>
-                msg1 = 'An unexpected error occurred while trying to initialize'
-                msg2 = 'the SNMP Connection Handler. Please check the'
-                msg3 = 'configuration attributes'
-                msg = '%s %s %s' % (msg1, msg2, msg3)
-              </script>
+                  <call function="'dsconfig'">
+                    {
+                    'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'subcommand'       : 'set-connection-handler-prop' ,
+                    'objectType'       : 'handler-name' ,
+                    'objectName'       : 'SNMP Connection Handler' ,
+                    'optionsString'    : '--set listen-port:%s' \
+                                         % DEFAULT_PROPERTIES['listen-port']
+                    }
+                  </call>
 
-              <call function="'checktestString'">
-                {
-                'returnString'   : returnString ,
-                'expectedString' : msg
-                }
-              </call>
+                  <message>
+                    'status: restart DS running on port %s' \
+                    % (DIRECTORY_INSTANCE_PORT)
+                  </message>
+                  <call function="'StopDsWithScript'">
+                    {
+                    'location'    : STAF_REMOTE_HOSTNAME ,
+                    'dsHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT ,
+                    'dsBindDN'    : DIRECTORY_INSTANCE_DN ,
+                    'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD
+                    }
+                  </call>
+                  <call function="'StartDsWithScript'">
+                    { 'location' : STAF_REMOTE_HOSTNAME }
+                  </call>
 
-              <message>
-                'status: status when the server is started'
-              </message>
+                  <script>
+                    returnString = STAXResult[0][1]
+                  </script>
 
-              <call function="'StatusWithScript'">
-                {
-                'dsBindDN'  : DIRECTORY_INSTANCE_DN ,
-                'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
-                }
-              </call>
+                  <!--- Check that DS started -->
+                  <call function="'isAlive'">
+                    {
+                    'noOfLoops'        : 5 ,
+                    'noOfMilliSeconds' : 2000
+                    }
+                  </call>
 
-              <script>
-                returnString = STAXResult[0][1]
-              </script>
+                  <script>
+                    msg1 = 'An unexpected error occurred while trying to'
+                    msg2 = 'initialize the SNMP Connection Handler. Please'
+                    msg3 = 'check the configuration attributes'
+                    msg = '%s %s %s' % (msg1, msg2, msg3)
+                  </script>
 
-              <call function="'checktestString'">
-                {
-                'returnString'   : returnString ,
-                'expectedString' : '0.0.0.0:%s  : SNMP     : Enabled' \
-                                   % DEFAULT_PROPERTIES['listen-port']
-                }
-              </call>
+                  <call function="'checktestString'">
+                    {
+                    'returnString'   : returnString ,
+                    'expectedString' : msg
+                    }
+                  </call>
 
-              <message>
-                'status: get request'
-              </message>
+                  <message>
+                    'status: status when the server is started'
+                  </message>
 
-              <call function="'SNMPGet'">
-                {
-                'snmpVersion'   : '1',
-                'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
-                'snmpPort'      : SNMP_PORT ,
-                'snmpCommunity' : community ,
-                'snmpOIDs'      : oid ,
-                'snmpStatus'    : 'reqTimeout'
-                }
-              </call>
+                  <call function="'StatusWithScript'">
+                    {
+                    'dsBindDN'  : DIRECTORY_INSTANCE_DN ,
+                    'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+                    }
+                  </call>
 
-              <message>
-                'status: restore value for listen-port property'
-              </message>
+                  <script>
+                    returnString = STAXResult[0][1]
+                  </script>
 
-              <call function="'dsconfig'">
-                {
-                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'subcommand'       : 'set-connection-handler-prop' ,
-                'objectType'       : 'handler-name' ,
-                'objectName'       : 'SNMP Connection Handler' ,
-                'optionsString'    : '--set listen-port:%s' \
-                                     % SNMP_PROPERTIES['listen-port']
-                }
-              </call>
+                  <call function="'checktestString'">
+                    {
+                    'returnString'   : returnString ,
+                    'expectedString' : '0.0.0.0:%s  : SNMP     : Enabled' \
+                                       % DEFAULT_PROPERTIES['listen-port']
+                    }
+                  </call>
 
-              <message>
-                'status: restart the SNMP Connection Handler'
-              </message>
+                  <message>
+                    'status: get request'
+                  </message>
 
-              <call function="'restartSNMPConnectionHandler'">
-                {
-                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
-                }
-              </call>
+                  <call function="'SNMPGet'">
+                    {
+                    'snmpVersion'   : '1',
+                    'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'snmpPort'      : SNMP_PORT ,
+                    'snmpCommunity' : community ,
+                    'snmpOIDs'      : oid ,
+                    'snmpStatus'    : 'reqTimeout'
+                    }
+                  </call>
+
+                  <message>
+                    'status: restore value for listen-port property'
+                  </message>
+
+                  <call function="'dsconfig'">
+                    {
+                    'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'subcommand'       : 'set-connection-handler-prop' ,
+                    'objectType'       : 'handler-name' ,
+                    'objectName'       : 'SNMP Connection Handler' ,
+                    'optionsString'    : '--set listen-port:%s' \
+                                         % SNMP_PROPERTIES['listen-port']
+                    }
+                  </call>
+
+                  <message>
+                    'status: restart the SNMP Connection Handler'
+                  </message>
+
+                  <call function="'restartSNMPConnectionHandler'">
+                    {
+                    'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
+                    }
+                  </call>
+                </sequence>
+                <else>
+                  <sequence>
+                    <message>'This testcase is not relevant on Windows'</message>
+                    <tcstatus result="'pass'"/>
+                  </sequence>
+                </else>
+              </if>
 
               <call function="'testCase_Postamble'"/>
 

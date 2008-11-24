@@ -2715,7 +2715,7 @@
           'command'   : '%s/bin/java' % JAVA_HOME,
           'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
           'location'  : location,
-          'env'       : ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s/../%s/ldap' % (dsPath,remote.reljavadir)],
+          'envCmd'    : ['CLASSPATH=%s/../%s/ldap' % (dsPath,remote.reljavadir)],
           'path'      : '%s/../%s/ldap' % (dsPath,remote.reljavadir),
           'expectedRC': expectedRC
         }
@@ -2958,7 +2958,7 @@
           'command'   : '%s/bin/java' % JAVA_HOME,
           'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
           'location'  : location,
-          'env'       : ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s/../%s/ldap' % (dsPath,remote.reljavadir)],
+          'envCmd'    : ['CLASSPATH=%s/../%s/ldap' % (dsPath,remote.reljavadir)],
           'path'      : '%s/../%s/ldap' % (dsPath,remote.reljavadir),
           'expectedRC': expectedRC
         }
@@ -3070,7 +3070,7 @@
           'command'   : '%s/bin/java' % JAVA_HOME,
           'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
           'location'  : location,
-          'env'       : ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s/../%s/ldap' % (dsPath,remote.reljavadir)],
+          'envCmd'    : ['CLASSPATH=%s/../%s/ldap' % (dsPath,remote.reljavadir)],
           'path'      : '%s/../%s/ldap' % (dsPath,remote.reljavadir),
           'expectedRC': expectedRC
         }

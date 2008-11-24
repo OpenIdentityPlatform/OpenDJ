@@ -195,7 +195,7 @@
           <!--- Test Case information
             #@TestMarker          verify-index check behavior tests
             #@TestName            verify-index: check with clean option
-            #@TestIssue           3102
+            #@TestIssue           none
             #@TestPurpose         Verify that verify-index command is successful
                                   and the output is correct.
             #@TestPreamble        none
@@ -272,11 +272,7 @@
                 'returnString'   : returnString ,
                 'expectedString' : msg
                 }
-              </call>
-
-              <script>
-                knownIssue(3102)
-              </script>              
+              </call>          
               
               <call function="'testCase_Postamble'"/>
               

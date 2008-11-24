@@ -190,8 +190,8 @@
         'command'    : '%s/bin/java' % JAVA_HOME ,
         'arguments'  : '%s %s' % (STAFCmd, STAFCmdParams) ,
         'location'   : location ,
-        'path'       : '%s/snmp' % remote.java,
-        'env'        : env ,
+        'path'       : '%s/snmp' % remote.java ,
+        'envCmd'     : env ,
         'expectedRC' : expectedRC
         }
       </call>
@@ -358,8 +358,8 @@
         'command'    : '%s/bin/java' % JAVA_HOME ,
         'arguments'  : '%s %s' % (STAFCmd, STAFCmdParams) ,
         'location'   : location ,
-        'path'       : '%s/snmp' % remote.java,
-        'env'        : env ,
+        'path'       : '%s/snmp' % remote.java ,
+        'envCmd'     : env ,
         'expectedRC' : expectedRC
         }
       </call>
@@ -434,7 +434,7 @@
       </call>
       <script>
         if is_windows_platform(location):
-          jstaf_jarfile='%s\\bin\\JSTAF.jar' % STAFResult
+          jstaf_jarfile='%s\bin\JSTAF.jar' % STAFResult
         else:
           jstaf_jarfile='%s/lib/JSTAF.jar' % STAFResult
       </script>
@@ -485,7 +485,7 @@
         'arguments'  : '%s %s' % (STAFCmd, STAFCmdParams) ,
         'location'   : location ,
         'path'       : snmpPath ,
-        'env'        : env ,
+        'envCmd'     : env ,
         'outputFile' : outputFile ,
         'expectedRC' : expectedRC
         }

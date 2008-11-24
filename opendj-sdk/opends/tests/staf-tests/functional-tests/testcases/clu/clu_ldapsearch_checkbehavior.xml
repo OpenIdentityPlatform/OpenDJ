@@ -106,7 +106,7 @@
                 'expectedString'   : 'Total number of matching entries: 111' 
                 }
               </call>
-              
+
               <script>
                 knownIssue(2764)
               </script>
@@ -575,7 +575,7 @@
             #@TestMarker          ldapsearch check behavior tests
             #@TestName            ldapsearch: check behavior with a filter file
                                   (containing one filter) and search attribute
-            #@TestIssue           3041
+            #@TestIssue           none
             #@TestPurpose         Verify the output of ldapsearch with
                                   filter option.
             #@TestPreamble        none
@@ -635,10 +635,6 @@
                                % DIRECTORY_INSTANCE_DIR
                 }
               </call>
-              
-              <script>
-                knownIssue(3041)
-              </script>
               
               <call function="'testCase_Postamble'"/>
               

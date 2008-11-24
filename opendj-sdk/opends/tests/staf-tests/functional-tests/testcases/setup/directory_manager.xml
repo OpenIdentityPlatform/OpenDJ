@@ -449,48 +449,34 @@
           </call>
 
           <script>
-            ldifDir = '%s/ldif' % (DM_I1_ROOT)
             ldifFile = '%s' % DM_O1_LDIF
+            ldifNewFile = '%s/ldif/dm-o1.ldif' % (DM_I1_ROOT)
           </script>
           
-          <call function="'runSTAFCommand'">
-            { 'name'      :  'Copy LDIF file in I1',
-              'location'  :  STAF_REMOTE_HOSTNAME,
-              'service'   :  'FS',
-              'request'   :  'COPY',
-              'arguments' :  'FILE %s TODIRECTORY %s' % (ldifFile, ldifDir)
+          <message>'Copy LDIF file in I1'</message>
+          <call function="'copyFile'">
+            { 'location'   : STAF_REMOTE_HOSTNAME,
+              'srcfile'    : ldifFile,
+              'destfile'   : ldifNewFile,
+              'remotehost' : STAF_REMOTE_HOSTNAME
             }
           </call>
 
-          <call function="'checktestRC'">
-            { 'returncode' : RC,
-              'expected'   : 0,
-              'result'     : 'FAIL to copy LDIF file for I1',
-            }
-          </call>
-          
           <script>
-            ldifDir = '%s/ldif' % (DM_I2_ROOT)
             ldifFile = '%s' % DM_O1_LDIF
+            ldifNewFile = '%s/ldif/dm-o1.ldif' % (DM_I2_ROOT)
           </script>
           
-          <call function="'runSTAFCommand'">
-            { 'name'      :  'Copy LDIF file in I2',
-              'location'  :  STAF_REMOTE_HOSTNAME,
-              'service'   :  'FS',
-              'request'   :  'COPY',
-              'arguments' :  'FILE %s TODIRECTORY %s' % (ldifFile, ldifDir)
+          <message>'Copy LDIF file in I2'</message>
+          <call function="'copyFile'">
+            { 'location'   : STAF_REMOTE_HOSTNAME,
+              'srcfile'    : ldifFile,
+              'destfile'   : ldifNewFile,
+              'remotehost' : STAF_REMOTE_HOSTNAME
             }
           </call>
-
-          <call function="'checktestRC'">
-            { 'returncode' : RC,
-              'expected'   : 0,
-              'result'     : 'FAIL to copy LDIF file for I2',
-            }
-          </call>
-
-      <!-- 5. Uninstall I1: referencedHostTestcase adminUID bindPassword 
+          
+          <!-- 5. Uninstall I1: referencedHostTestcase adminUID bindPassword 
            configuration-files databases log-files server-libraries -->
           <message>'Uninstall I1'</message>
           <script>
@@ -567,41 +553,83 @@
           </call>
 
           <call function="'checkFileExists'">
-            { 'file' : '%s/bak' % DM_I1_ROOT }
+            {
+            'location' : STAF_REMOTE_HOSTNAME,
+            'file'     : '%s/bak' % DM_I1_ROOT
+            }
           </call>
           <call function="'checkFileExists'">
-            { 'file' : '%s/ldif' % DM_I1_ROOT }
+            {
+            'location' : STAF_REMOTE_HOSTNAME,
+            'file'     : '%s/ldif' % DM_I1_ROOT
+            }
           </call>
           <call function="'checkFileNotExists'">
-            { 'file' : '%s/bin' % DM_I1_ROOT }
+            {
+            'location' : STAF_REMOTE_HOSTNAME,
+            'file'     : '%s/bin' % DM_I1_ROOT
+            }
           </call>
           <call function="'checkFileNotExists'">
-            { 'file' : '%s/config' % DM_I1_ROOT }
+            {
+            'location' : STAF_REMOTE_HOSTNAME,
+            'file'     : '%s/config' % DM_I1_ROOT
+            }
           </call>
           <call function="'checkFileNotExists'">
-            { 'file' : '%s/db' % DM_I1_ROOT }
+            {
+            'location' : STAF_REMOTE_HOSTNAME,
+            'file'     : '%s/db' % DM_I1_ROOT
+            }
           </call>
           <call function="'checkFileNotExists'">
-            { 'file' : '%s/logs' % DM_I1_ROOT }
+            {
+            'location' : STAF_REMOTE_HOSTNAME,
+            'file'     : '%s/logs' % DM_I1_ROOT
+            }
           </call>
 
           <call function="'checkFileNotExists'">
-            { 'file' : '%s/bak' % DM_I2_ROOT }
+            {
+            'location' : STAF_REMOTE_HOSTNAME,
+            'file' : '%s/bak' % DM_I2_ROOT
+            }
           </call>
           <call function="'checkFileNotExists'">
-            { 'file' : '%s/ldif' % DM_I2_ROOT }
+            {
+            'location' : STAF_REMOTE_HOSTNAME,
+            'file' : '%s/ldif' % DM_I2_ROOT
+            }
+          </call>
+          <script>
+            if is_windows_platform(STAF_REMOTE_HOSTNAME):
+              subDir='bat'
+            else:
+              subDir='bin'
+          </script>
+          <call function="'checkFileExists'">
+            {
+            'location' : STAF_REMOTE_HOSTNAME,
+            'file' : '%s/%s' % (DM_I2_ROOT, subDir)
+            }
           </call>
           <call function="'checkFileExists'">
-            { 'file' : '%s/bin' % DM_I2_ROOT }
+            {
+            'location' : STAF_REMOTE_HOSTNAME,
+            'file' : '%s/config' % DM_I2_ROOT
+            }
           </call>
           <call function="'checkFileExists'">
-            { 'file' : '%s/config' % DM_I2_ROOT }
+            {
+            'location' : STAF_REMOTE_HOSTNAME,
+            'file' : '%s/db' % DM_I2_ROOT
+            }
           </call>
           <call function="'checkFileExists'">
-            { 'file' : '%s/db' % DM_I2_ROOT }
-          </call>
-          <call function="'checkFileExists'">
-            { 'file' : '%s/logs' % DM_I2_ROOT }
+            {
+            'location' : STAF_REMOTE_HOSTNAME,
+            'file' : '%s/logs' % DM_I2_ROOT
+            }
           </call>
 
 

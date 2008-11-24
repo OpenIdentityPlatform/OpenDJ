@@ -110,18 +110,16 @@
                                          % SNMP_PORT)
                 indexLDAP = get_handler_index(DEFAULT_VALUES, '1.3.6.1.27.3.%s'\
                                          % DIRECTORY_INSTANCE_PORT)
-                indexLDIF = get_handler_index(DEFAULT_VALUES, '1.3.6.1.4.1.42')
               </script>
 
-              <if expr="nbHandler == 3 and indexSNMP != 0 and indexLDAP != 0 and indexLDIF != 0">
+              <if expr="nbHandler == 2 and indexSNMP != 0 and indexLDAP != 0">
                 <sequence>
                   <script>
                     msg1 = 'The connection handlers info are correct.\n'
                     msg2 = 'number of hanlder: %s\n' % nbHandler
                     msg3 = 'index SNMP hanlder: %s\n' % indexSNMP
                     msg4 = 'index LDAP hanlder: %s\n' % indexLDAP
-                    msg5 = 'index LDIF hanlder: %s\n' % indexLDIF
-                    msg = '%s%s%s%s%s' % (msg1, msg2, msg3, msg4, msg5)
+                    msg = '%s%s%s%s' % (msg1, msg2, msg3, msg4)
                   </script>
                   <message>
                     '%s' % msg
@@ -135,8 +133,7 @@
                       msg2 = 'number of hanlder: %s/3\n' % nbHandler
                       msg3 = 'index SNMP hanlder: %s\n' % indexSNMP
                       msg4 = 'index LDAP hanlder: %s\n' % indexLDAP
-                      msg5 = 'index LDIF hanlder: %s' % indexLDIF
-                      msg = '%s%s%s%s%s' % (msg1, msg2, msg3, msg4, msg5)
+                      msg = '%s%s%s%s' % (msg1, msg2, msg3, msg4)
                     </script>
                     <message>
                       '%s' % msg
@@ -173,14 +170,36 @@
                 'snmp_mibvalues: check value of dsServerType entry'
               </message>
 
+              <!-- Get the information about the server -->
+              <call function="'GetVar'">
+                { 'location'  : STAF_REMOTE_HOSTNAME,
+                  'type'      : 'shared',
+                  'variable'  : 'Job%s_ServerInfo' % STAXParentID
+                }
+              </call>
+
+              <if expr="RC != 0">
+                <script>
+                  STAFResult='{}'
+                </script>
+              </if>
+
               <script>
-                dsServerType = DEFAULT_VALUES['dsServerType.1']
-                version = DSInfo.ServerDict['server version']
-                dsVersion = DSInfo.getServerVersion(version)
-                build = DSInfo.ServerDict['server buildid']
-                dsBuild = DSInfo.getServerBuildId(build)
+                jobInfo=eval(STAFResult)
+
+                if jobInfo.has_key('%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)):
+                  serverInformation=jobInfo['%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)]
+
+                  dsVersion=serverInformation['server version']
+                  dsBuild=serverInformation['server buildid']
+                else:
+                  dsVersion='unknown'
+                  dsBuild='unknown'
+
                 dsServer = 'OpenDS Directory Server %s - %s' \
                            % (dsVersion.rstrip(), dsBuild)
+
+                dsServerType = DEFAULT_VALUES['dsServerType.1']
               </script>
 
               <if expr="dsServerType == dsServer">
