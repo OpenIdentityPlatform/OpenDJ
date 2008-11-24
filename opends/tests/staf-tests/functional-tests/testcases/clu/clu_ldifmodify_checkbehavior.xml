@@ -60,7 +60,7 @@
           <!--- Test Case information
             #@TestMarker          ldifmodify check behavior tests
             #@TestName            ldifmodify: add, delete and modify operations
-            #@TestIssue           3111
+            #@TestIssue           none
             #@TestPurpose         Test ldifmodify with add, delete and modify 
                                   operations
             #@TestPreamble        none
@@ -105,10 +105,6 @@
                 'result'     : STAXResult
                 }
               </call>
-              
-              <script>
-                knownIssue(3111)
-              </script>
               
               <call function="'testCase_Postamble'"/>
               

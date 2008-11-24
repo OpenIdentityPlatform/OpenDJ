@@ -1534,8 +1534,9 @@
           the path where the command is to be found
         </function-arg-description>
       </function-arg-def>
-      <function-arg-def name="env" 
-                        type="optional">
+      <function-arg-def name="envCmd" 
+                        type="optional"
+                        default="''">
         <function-arg-description>
           the environment variables to set. The default set here should just
           work for OpenDS commands
@@ -1615,11 +1616,15 @@
         random.seed(java.util.Date().getTime())
         _id = '%s#%d' % (strftime('%Y-%m-%d %H:%M:%S',localtime()),random.randint(0,999))
         
-        if not env:
-          if is_windows_platform(location):
-            env=['PATH=C:\Windows;C:\Windows\system32;%s' % path, 'JAVA_HOME=%s' % JAVA_HOME]
-          else:
-            env=['PATH=/bin:/usr/bin:%s' % path, 'JAVA_HOME=%s' % JAVA_HOME]
+        env=[]
+        for item in envCmd:
+          env.append('%s' % item)
+        if is_windows_platform(location):
+          env.append('PATH=C:\Windows;C:\Windows\system32;%s' % path)
+          env.append('JAVA_HOME=%s' % JAVA_HOME)
+        else:
+          env.append('PATH=/bin:/usr/bin:%s' % path)
+          env.append('JAVA_HOME=%s' % JAVA_HOME)
       </script>
       <message>
         '%s: Running command:\n %s %s\nlocation: %s\nenv: %s\nworkdir: %s' % (_id,command,arguments,location,env,path)
@@ -2204,7 +2209,7 @@
             'arguments'  : '-target 1.5 %s' % list ,
             'location'   : location ,
             'path'       : foldername ,
-            'env'        : env ,
+            'envCmd'     : env ,
             'expectedRC' : expectedRC
             }
           </call>
@@ -2270,6 +2275,14 @@
       Set testcase result to FAIL if file (as param) does not exist
     </function-description>
     <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
       <function-arg-def name="file" type="required">
         <function-arg-description>
           The file to check existence
@@ -2277,14 +2290,20 @@
       </function-arg-def>
     </function-map-args>
     <sequence>
-      <script>
-        if os.path.exists('%s' % file):
-          exist=1
-        else:
-          exist=0
-      </script>
-      <if expr="exist == 0">
-        <tcstatus result="'fail'"/>
+      <call function="'GetEntry'">
+        {
+        'location'  : STAF_REMOTE_HOSTNAME ,
+        'entry'     : file ,
+        'attribute' : 'TYPE'
+        }
+      </call>
+      <if expr="RC == 48">
+        <sequence>
+          <tcstatus result="'fail'"/>
+          <message log="1" level="'Error'">
+            'ERROR :  File %s does not exist' % file
+          </message>
+        </sequence>
       </if>
     </sequence>
   </function>
@@ -2294,6 +2313,14 @@
       Set testcase result to FAIL if file (as param) exists
     </function-description>
     <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
       <function-arg-def name="file" type="required">
         <function-arg-description>
           The file to check absence
@@ -2301,14 +2328,20 @@
       </function-arg-def>
     </function-map-args>
     <sequence>
-      <script>
-        if os.path.exists('%s' % file):
-          exist=1
-        else:
-          exist=0
-      </script>
-      <if expr="exist == 1">
-        <tcstatus result="'fail'"/>
+      <call function="'GetEntry'">
+        {
+        'location'  : STAF_REMOTE_HOSTNAME ,
+        'entry'     : file ,
+        'attribute' : 'TYPE'
+        }
+      </call>
+      <if expr="RC != 48">
+        <sequence>
+          <tcstatus result="'fail'"/>
+          <message log="1" level="'Error'">
+            'ERROR :  File %s does not exist' % file
+          </message>
+        </sequence>
       </if>
     </sequence>
   </function>

@@ -480,18 +480,18 @@
             }
           </call>
 
+          <script>
+            nb = len(STAFResult)
+            ct = (STAFResult[0] == 'lib')
+            a = ' '
+          </script>
+
           <call function="'checktestRC'">
             { 'returncode' : RC,
               'expected'   : 0,
               'result'     : 'FAIL to get content of install directory',
             }
           </call>
-
-          <script>
-            nb = len(STAFResult)
-            ct = (STAFResult[0] == 'lib')
-            a = ' '
-          </script>
 
           <call function="'checktestRC'">
             { 'returncode' : nb,

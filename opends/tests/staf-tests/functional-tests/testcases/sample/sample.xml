@@ -26,57 +26,64 @@
  !      Copyright 2007-2008 Sun Microsystems, Inc.
  ! -->
 <stax>
-  <defaultcall function="sample" />
-  <function name="sample">
+  <defaultcall function="main_sample" />
+
+  <function name="main_sample">
+
     <function-list-args>
       <function-required-arg name="STAXParentID"/>
     </function-list-args>
-    <sequence>
-      <script>
-        CurrentTestPath['group']= 'sample'
-        envAlreadyLoaded='true'
-      </script>
 
-      <!--- Load the job environment for the test group execution -->
-      <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
-      <call function="'loadJobEnvironment'">
-           { 'parent' : STAXParentID }
-      </call>
-      
-      <!---
-        #@TestSuiteName             Sample
-        #@TestSuitePurpose          Illustrate how to easily contribute functional tests
-        #@TestSuiteGroup            Sample
-        #@TestScript                aci_add_entry.xml
-      -->
-      
-      <!-- Try/catch/finally structure are a handy way to alter the execution
+    <sequence>
+
+      <block name="'sample'">
+
+        <sequence>
+          <!--- Load the job environment for the test group execution -->
+          <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR"/>
+          <call function="'loadJobEnvironment'">
+            { 'parent' : STAXParentID }
+          </call>
+
+          <script>
+            CurrentTestPath['group']= 'sample'
+            envAlreadyLoaded='true'
+          </script>
+
+          <!---
+            #@TestSuiteName             Sample
+            #@TestSuitePurpose          Illustrate how to easily contribute functional tests
+            #@TestSuiteGroup            Sample
+            #@TestScript                aci_add_entry.xml
+          -->
+
+          <!-- Try/catch/finally structure are a handy way to alter the execution
            flow of a suite in front of unexpected conditions
-       -->
-      <try>
-        <!-- this is an example of how to loop through a list of functions to 
-             run instead of duplicating calls 
-         -->
-         <sequence>
-          <iterate in="['testGroup_Preamble','testSuite_Preamble','sample_setup']" var="setupStep">
-            <!-- the sequence tag is superfluous here since there is only a 
-                 single instruction to execute within the iterate block 
+          -->
+          <try>
+            <!-- this is an example of how to loop through a list of functions to
+             run instead of duplicating calls
              -->
-            <call function="setupStep" />
-          </iterate>
-          <iterate in="['sample_test','knownIssue_test','passing_test','inconclusive_test','failing_test']" var="testStep">
-            <!-- the sequence tag is superfluous here since there is only a 
-                 single instruction to execute within the iterate block 
-             -->
-            <call function="testStep" />
-          </iterate>
-        </sequence>
-        <catch exception="'STAFException.Topology.CreationException'">
-          <!-- it is a good idea to make sure that the messages getting
-               sent to the gui also make their way in the logs for easier 
+            <sequence>
+              <iterate in="['testGroup_Preamble','testSuite_Preamble','sample_setup']" var="setupStep">
+                <!-- the sequence tag is superfluous here since there is only a
+                 single instruction to execute within the iterate block
+                 -->
+                <call function="setupStep" />
+              </iterate>
+              <iterate in="['sample_test','knownIssue_test','passing_test','inconclusive_test','failing_test']" var="testStep">
+                <!-- the sequence tag is superfluous here since there is only a
+                 single instruction to execute within the iterate block
+                 -->
+                <call function="testStep" />
+              </iterate>
+            </sequence>
+            <catch exception="'STAFException.Topology.CreationException'">
+              <!-- it is a good idea to make sure that the messages getting
+               sent to the gui also make their way in the logs for easier
                after-the-fact log mining. Use log="1" wherever it makes sense
-               Setting the log level to an appropriate value will also make 
+               Setting the log level to an appropriate value will also make
                troubleshooting and debugging easier.
                Level values can be (among others):
                 . fatal
@@ -85,18 +92,21 @@
                 . info
                 . trace
                 . debug
-           -->
-          <message log="1" level="'fatal'">'Could not create the topology. Bailing out.'</message>
-        </catch>
-        <catch exception="'STAXException.Topology.StartException'">
-          <message log="1" level="'fatal'">'Could not start at least one server in the topology. Bailing out.'</message>
-        </catch>
-        <finally>
-          <iterate in="['sample_cleanup','testSuite_Postamble','testGroup_Postamble']" var="testStep">
-            <call function="testStep" />
-          </iterate>
-        </finally>
-      </try>
+               -->
+              <message log="1" level="'fatal'">'Could not create the topology. Bailing out.'</message>
+            </catch>
+            <catch exception="'STAXException.Topology.StartException'">
+              <message log="1" level="'fatal'">'Could not start at least one server in the topology. Bailing out.'</message>
+            </catch>
+            <finally>
+              <iterate in="['sample_cleanup','testSuite_Postamble','testGroup_Postamble']" var="testStep">
+                <call function="testStep" />
+              </iterate>
+            </finally>
+          </try>
+
+        </sequence>
+      </block>
     </sequence>
   </function>
   

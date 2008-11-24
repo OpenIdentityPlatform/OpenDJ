@@ -1036,6 +1036,10 @@
           'expectedRC': expectedRC
         }
       </call>
+
+      <return>
+        STAXResult
+      </return>
     </sequence>
   </function>
 
@@ -4266,11 +4270,12 @@
       </message>
             
       <call function="'runCommand'">
-        { 'location'  : location,
-          'name'      : 'manage-tasks Script',
-          'command'   : STAFCmd,
-          'arguments' : STAFCmdParams,
-          'expectedRC': expectedRC
+        { 'location'   : location,
+          'envCmd'     : [ 'LANG=C' , 'LC_ALL=C' ] ,
+          'name'       : 'manage-tasks Script',
+          'command'    : STAFCmd,
+          'arguments'  : STAFCmdParams,
+          'expectedRC' : expectedRC
         }
       </call>
       <return>

@@ -118,7 +118,19 @@
       }
     </call>
 
-              
+    <!-- Cleanup -->
+    <message>'######  Cleanup ###### '</message>    
+    <message>'-- Delete the test entry --'</message>
+    <call function="'DeleteEntry'">
+      { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+      'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+      'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+      'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+      'dsBaseDN'         : 'uid=testuser_7bit,%s' % DIRECTORY_INSTANCE_SFX,
+      'expectedRC'       : 'noCheck'
+      }
+    </call>
+
     <call function="'testCase_Postamble'"/>
   </sequence>
  </testcase>            
@@ -178,7 +190,19 @@
       }
     </call>
 
-           
+    <!-- Cleanup -->
+    <message>'######  Cleanup ###### '</message>    
+    <message>'-- Delete the test entry --'</message>
+    <call function="'DeleteEntry'">
+      { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+      'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+      'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+      'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+      'dsBaseDN'         : 'uid=testuser_7bit,%s' % DIRECTORY_INSTANCE_SFX,
+      'expectedRC'       : 'noCheck'
+      }
+    </call>
+
     <call function="'testCase_Postamble'"/>
   </sequence>
  </testcase>        
@@ -239,7 +263,6 @@
       }
     </call>
 
-
     <!-- Cleanup -->
     <message>'######  Cleanup ###### '</message>    
     <message>'-- Delete the test entry --'</message>
@@ -251,8 +274,7 @@
       'dsBaseDN'         : 'uid=testuser_7bit,%s' % DIRECTORY_INSTANCE_SFX,
       }
     </call>
-                     
-           
+
     <call function="'testCase_Postamble'"/>
   </sequence>
  </testcase>     

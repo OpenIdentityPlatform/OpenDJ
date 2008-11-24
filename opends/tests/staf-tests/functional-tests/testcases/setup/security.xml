@@ -155,7 +155,7 @@
             DM_PW = 'secret12'
             DM_PW_FILE = '%s/setup/pwd-security.ldif' % remote.data
 
-            KEYTOOL = '%s/bin/keytool%s' % (JAVA_HOME, fileExt)
+            KEYTOOL = '%s/bin/keytool' % (JAVA_HOME)
             SEC_I1_BASE = '%s/sec_i1' % (OUT_GROUP)
             SEC_I1_ROOT = '%s/%s' % (SEC_I1_BASE, OPENDSNAME)
             SEC_I2_BASE = '%s/sec_i2' % (OUT_GROUP)
@@ -165,7 +165,10 @@
           </script>
 
           <call function="'checkFileExists'">
-            { 'file' : KEYTOOL }
+            {
+            'location' : STAF_REMOTE_HOSTNAME,
+            'file'     : KEYTOOL
+            }
           </call>
 
           <!-- 1.1. Setup I1 -->
@@ -268,7 +271,10 @@
           </script>
 
           <call function="'checkFileExists'">
-            { 'file' : ks }
+            {
+            'location' : STAF_REMOTE_HOSTNAME,
+            'file'     : ks
+            }
           </call>
 
           <!-- 1.4. Check StartTLS non-enablement -->
@@ -326,7 +332,7 @@
               'service'   :  'ZIP',
               'request'   :  'UNZIP',
               'arguments' :  'ZIPFILE %s/%s TODIRECTORY %s RESTOREPERMISSION' \
-                % (ZIPPATH, ZIPNAME, SEC_I2_BASE)
+                % (DIRECTORY_INSTANCE_DIR, ZIPNAME, SEC_I2_BASE)
 
             }
           </call>
@@ -403,7 +409,10 @@
           </script>
 
           <call function="'checkFileExists'">
-            { 'file' : ks }
+            {
+            'location' : STAF_REMOTE_HOSTNAME,
+            'file'     : ks
+            }
           </call>
 
           <!-- 2.4. Check StartTLS enablement -->
@@ -851,34 +860,8 @@
               'outputFile': '%s/sec-import-cert-i2.txt' % OUT_GROUP,
             }
           </call>
-          
-          <!-- 6.1. Uninstall I1 (should fail: incompatible options) -->
-          <message>'++ Uninstall I1 (should fail)'</message> 
-          <script>
-            c = '%s/uninstall%s' % (SEC_I1_ROOT, fileExt)
-            p = []
-            p.append('--cli --no-prompt')
-            p.append('--adminUID admin --bindPassword %s' % DM_PW)
-            p.append('--remove-all')
-            p.append('--trustStorePath %s' % MY_KEYSTORE)
-            p.append('--trustStorePassword secret12')
-            p = ' '.join(p)
-          </script>
 
-          <message>'%s %s' % (c, p)</message>
-          <call function="'runCommand'">
-            { 'location'  : STAF_REMOTE_HOSTNAME,
-              'name'      : 'Uninstall I1',
-              'command'   : c,
-              'arguments' : p,
-              'path'      : SEC_I1_ROOT,
-              'expectedRC': 2,
-              'outputFile': '%s/sec-uninstall1-i1.txt' % OUT_GROUP,
-            }
-          </call>
-
-
-          <!-- 6.2. Uninstall I1 -->
+          <!-- 6.1. Uninstall I1 -->
           <message>'++ Uninstall I1'</message> 
           <script>
             c = '%s/uninstall%s' % (SEC_I1_ROOT, fileExt)
@@ -903,33 +886,12 @@
             }
           </call>
 
-          <!--- Temporary fix to avoid remaning processes
-                when this testcase fails -->
-          <script>
-            cmd = '%s/%s/%s/stop-ds%s' \
-            % (ODS_UNZIPPED, OPENDSNAME, fileFolder, fileExt)
-          </script>
-          <if expr="os.path.exists(cmd)" >
-            <sequence>
-              <message>'Stop I1'</message>
-              <call function="'StopDsWithScript'">
-                { 'location'  : STAF_REMOTE_HOSTNAME,
-                'dsPath'      : SEC_I1_ROOT,
-                'dsAdminPort' : SEC_I1_ADMIN_PORT,
-                'dsBindDN'    : DM_DN ,
-                'dsBindPwd'   : DM_PW ,
-                'expectedRC'  : 'noCheck'
-                }
-              </call>
-            </sequence>
-          </if>
-
-          <!-- 6.3. Uninstall I2 -->
+          <!-- 6.2. Uninstall I2 -->
           <message>'++ Uninstall I2'</message> 
           <script>
             c = '%s/uninstall%s' % (SEC_I2_ROOT, fileExt)
             p = []
-            p.append('--cli --no-prompt')
+            p.append('--cli --no-prompt --trustAll')
             p.append('--adminUID admin --bindPasswordFile %s' % DM_PW_FILE)
             p.append('--remove-all')
             p = ' '.join(p)
@@ -946,27 +908,6 @@
               'outputFile': '%s/sec-uninstall-i2.txt' % OUT_GROUP,
             }
           </call>
-
-          <!--- Temporary fix to avoid remaning processes
-                when this testcase fails -->
-          <script>
-            cmd = '%s/%s/%s/stop-ds%s' \
-            % (ODS_UNZIPPED, OPENDSNAME, fileFolder, fileExt)
-          </script>
-          <if expr="os.path.exists(cmd)" >
-            <sequence>
-              <message>'Stop I2'</message>
-              <call function="'StopDsWithScript'">
-                { 'location'  : STAF_REMOTE_HOSTNAME,
-                'dsPath'      : SEC_I2_ROOT,
-                'dsAdminPort' : SEC_I2_ADMIN_PORT,
-                'dsBindDN'    : DM_DN ,
-                'dsBindPwd'   : DM_PW ,
-                'expectedRC'  : 'noCheck'
-                }
-              </call>
-            </sequence>
-          </if>
 
           <call function="'testCase_Postamble'"/>
 

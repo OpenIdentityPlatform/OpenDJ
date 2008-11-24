@@ -42,226 +42,215 @@
           CurrentTestPath['suite'] = STAXCurrentBlock
         </script>
         <call function="'testSuite_Preamble'"/>
-        <sequence>
-          <message>'TESTS_DATA_DIR=%s ' % (local.data)
-          </message>
-          <!--- Test Case information
-              #@TestMarker          test
-              #@TestName            test: test webcontainer
-              #@TestIssue           none
-              #@TestPurpose         test webcontainer responding necessary to the
-                                    test suite.
-              #@TestPreamble        none
-              #@TestSteps           get the list of DSML test family
-              #@TestSteps           for each family get the list of DSML SOAP requests (testXYZ.dat)
-              #@TestSteps           for each SOAP request, submit it and store the result (testXYZ.run)
-              #@TestSteps           for each SOAP result, compare it with reference (testXYZ.run vs testXYZ.res)
-              #@TestResult          Success if returns 0.
-          -->
-          <testcase name="getTestCaseName('dsml suites')">
-            <sequence>
 
-              <message>'List DSML suites families'</message>
+        <message>'TESTS_DATA_DIR=%s ' % (local.data)</message>
+        
+        <!--- Test Case information
+            #@TestMarker          test
+            #@TestName            test: test webcontainer
+            #@TestIssue           none
+            #@TestPurpose         test webcontainer responding necessary to the
+                                  test suite.
+            #@TestPreamble        none
+            #@TestSteps           get the list of DSML test family
+            #@TestSteps           for each family get the list of DSML SOAP requests (testXYZ.dat)
+            #@TestSteps           for each SOAP request, submit it and store the result (testXYZ.run)
+            #@TestSteps           for each SOAP result, compare it with reference (testXYZ.run vs testXYZ.res)
+            #@TestResult          Success if returns 0.
+        -->
 
-              <call function="'runSTAFCommand'">
-                { 'name'      :  'list DSML suites families',
-                  'location'  :  STAXServiceMachine,
-                  'service'   :  'FS',
-                  'request'   :  'LIST DIRECTORY',
-                  'arguments' :  '%s/dsml/suites SORTBYNAME TYPE d' % local.data
-                }
-              </call>
+        <message>'List DSML suites families'</message>
 
-              <if expr="RC != 0">
+        <call function="'runSTAFCommand'">
+          { 'name'      :  'list DSML suites families',
+            'location'  :  STAXServiceMachine,
+            'service'   :  'FS',
+            'request'   :  'LIST DIRECTORY',
+            'arguments' :  '%s/dsml/suites SORTBYNAME TYPE d' % local.data
+          }
+        </call>
+
+        <if expr="RC != 0">
+          <sequence>
+            <message>
+              'Folder %d/dsml/suites does not exist.' % (local.data)
+            </message>
+            <return>0</return>
+          </sequence>
+        </if>
+
+        <script>
+          cmdRC=RC
+          familyList=STAFResult
+          # The subversion folder could be present, if so remove it
+          if familyList.count != 0:
+            try:
+              familyList.remove('.svn')
+            except ValueError:
+              print "List element .svn does not exist"
+          import re
+          import base64
+          runFileRE = re.compile( 'dat$')
+          validAuthRE = re.compile ( '\%VALIDAUTH\%' )
+          sslRE = re.compile( '_ssl' )
+          urls = { \
+            'noSSL' : 'http://%s:%s/dsml/DSMLServlet' % (WC_HOST,WC_PORT), \
+            'SSL'   : 'https://%s:%s/dsml/DSMLServlet' % (WC_HOST,WC_SSL_PORT) \
+          }
+        </script>
+        <message>'DSML familyList = %s' % familyList</message>
+        <iterate var="family" in="familyList">
+          <sequence>
+            <message>'DSML family %s ' % family</message>
+
+            <call function="'runSTAFCommand'">
+              { 'name'      :  'List DSML suite %s input' % family,
+                'location'  :  STAXServiceMachine,
+                'service'   :  'FS',
+                'request'   :  'LIST DIRECTORY',
+                'arguments' :  '%s/dsml/suites/%s/data \
+                                SORTBYNAME EXT dat TYPE f' % (local.data,family)
+              }
+            </call>
+
+            <script>
+              familyInput = STAFResult
+            </script>
+
+            <call function="'runSTAFCommand'">
+              { 'name'      :  'List DSML suite %s expected results' % family,
+                'location'  :  STAXServiceMachine,
+                'service'   :  'FS',
+                'request'   :  'LIST DIRECTORY',
+                'arguments' :  '%s/dsml/suites/%s/data \
+                                SORTBYNAME EXT res TYPE f' % (local.data,family)
+              }
+            </call>
+
+            <script>
+              familyExpected = STAFResult
+            </script>
+
+            <iterate var="test" in="familyInput">
+              <testcase name="getTestCaseName('%s-%s' % (family,test))">
                 <sequence>
-                  <message>
-                    'Folder %d/dsml/suites does not exist.' % (local.data)
-                  </message>
-                  <return>0</return>
-                </sequence>
-              </if>
-
-              <script>
-                cmdRC=RC
-                familyList=STAFResult
-                # The subversion folder could be present, if so remove it
-                if familyList.count != 0:
-                  try:
-                    familyList.remove('.svn')
-                  except ValueError:
-                    print "List element .svn does not exist"
-                import re
-                import base64
-                runFileRE = re.compile( 'dat$')
-                validAuthRE = re.compile ( '\%VALIDAUTH\%' )
-                sslRE = re.compile( '_ssl' )
-                urls = { \
-                  'noSSL' : 'http://%s:%s/dsml/DSMLServlet' % (WC_HOST,WC_PORT), \
-                  'SSL'   : 'https://%s:%s/dsml/DSMLServlet' % (WC_HOST,WC_SSL_PORT) \
-                }
-              </script>
-              <message>'DSML familyList = %s' % familyList</message>
-              <iterate var="family" in="familyList">
-                <sequence>
-                  <message>'DSML family %s ' % family</message>
+                  <call function="'testCase_Preamble'"/>
+                  <script>
+                    runFileName = runFileRE.sub('run',test)
+                    runFilePath = '/tmp/%s_%s' % (family, runFileName)
+                    requestFilePath = '%s/dsml/suites/%s/data/%s' % \
+                      (local.data,family,test)
+                    expectedFileName = runFileRE.sub('res',test)
+                    expectedFilePath = '%s/dsml/suites/%s/data/%s' % \
+                      (local.data,family,expectedFileName)
+                    if (sslRE.search(test) != None):
+                      url = urls['SSL']
+                    else:
+                      url = urls['noSSL']
+                  </script>
 
                   <call function="'runSTAFCommand'">
-                    { 'name'      :  'List DSML suite %s input' % family,
+                    { 'name'      :  'List DSML suite %s file %s' % (family,test),
                       'location'  :  STAXServiceMachine,
                       'service'   :  'FS',
-                      'request'   :  'LIST DIRECTORY',
-                      'arguments' :  '%s/dsml/suites/%s/data \
-                                      SORTBYNAME EXT dat TYPE f' % (local.data,family)
+                      'request'   :  'GET FILE',
+                      'arguments' :  requestFilePath
                     }
                   </call>
 
                   <script>
-                    familyInput = STAFResult
+                    from com.ibm.staf import STAFUtil
+                    BODYSeparator = '\n\n'
+                    BODYStart = STAFResult.index(BODYSeparator)
+                    h = STAFResult[:BODYStart]
+                    kvs=h.split("\n")
+                    SOAPHeaders = "HEADER content-type=text/xml "
+
+                    for e in kvs[1:]:
+                      if (e.upper().startswith("CONTENT-LENGTH:")):
+                        continue
+                      if len(e.strip()) == 0:
+                        continue
+                      if (e.upper().startswith("AUTHORIZATION:")):
+                        e = validAuthRE.sub( base64.encodestring('%s:%s' % \
+                               (DIRECTORY_INSTANCE_DN,DIRECTORY_INSTANCE_PSWD)) , \
+                             e )
+                      s = e.split(':')
+                      rs = re.compile(' ')
+                      s[1]=s[1].strip()
+                      if (rs.search(s[1]) != None):
+                        s[1] = '"' + s[1] + '"'
+                      SOAPHeaders = SOAPHeaders + 'HEADER ' + s[0] + '=' + s[1] + ' '
+
+                    SOAPBody = STAFUtil.wrapData(STAFResult[BODYStart+len(BODYSeparator):])
                   </script>
 
                   <call function="'runSTAFCommand'">
-                    { 'name'      :  'List DSML suite %s expected results' % family,
+                    { 'name'      :  'Submit SOAPBody',
                       'location'  :  STAXServiceMachine,
-                      'service'   :  'FS',
-                      'request'   :  'LIST DIRECTORY',
-                      'arguments' :  '%s/dsml/suites/%s/data \
-                                      SORTBYNAME EXT res TYPE f' % (local.data,family)
+                      'service'   :  'HTTP',
+                      'request'   :  'REQUEST METHOD POST',
+                      'arguments' :  'URL %s FOLLOWREDIRECT %s CONTENT %s RETURNHEADERS ' \
+                                      % (url, SOAPHeaders, SOAPBody)
                     }
                   </call>
 
-                  <script>
-                    familyExpected = STAFResult
-                  </script>
+                  <call function="'checktestRC'">
+                    {
+                    'returncode' : RC ,
+                    'result'     : STAFResult
+                    }
+                  </call>
+                  <if expr="result['statusCode'] == '200'">
+                    <sequence>
+                      <script>
+                        # writing the result file to compare with expected result
+                        httpHeaders = result['headers']
+                        httpContent = result['content']
+                        resultContent = "HTTP1.1 "
+                        resultContent += result['statusCode'] + ' '
+                        resultContent += result['statusMessage'] + '\n'
+                        resultContent += "\n".join(["%s: %s" % (k, v) for k, v in httpHeaders.items()])
+                        resultContent += '\n\n' + httpContent
+                        f=open(runFilePath,'w')
+                        f.write(resultContent)
+                        f.close()
+                      </script>
+                      <message>'Comparing result %s and expected result %s' %  (runFilePath, expectedFilePath)</message>
 
-                  <iterate var="test" in="familyInput">
-                    <testcase name="getTestCaseName('%s-%s' % (family,test))">
-                      <sequence>
-                        <call function="'testCase_Preamble'"/>
-                        <script>
-                          runFileName = runFileRE.sub('run',test)
-                          runFilePath = '/tmp/%s_%s' % (family, runFileName)
-                          requestFilePath = '%s/dsml/suites/%s/data/%s' % \
-                            (local.data,family,test)
-                          expectedFileName = runFileRE.sub('res',test)
-                          expectedFilePath = '%s/dsml/suites/%s/data/%s' % \
-                            (local.data,family,expectedFileName)
-                          if (sslRE.search(test) != None):
-                            url = urls['SSL']
-                          else:
-                            url = urls['noSSL']
-                        </script>
+                      <call function="'runSTAFCommand'">
+                        { 'name'      :  'Compare SOAPResult with expected result',
+                          'location'  :  STAXServiceMachine,
+                          'service'   :  'DSML',
+                          'request'   :  'COMPARE FILE',
+                          'arguments' :  '%s EXP_FILE %s' %(runFilePath, expectedFilePath)
+                        }
+                      </call>
 
-                        <call function="'runSTAFCommand'">
-                          { 'name'      :  'List DSML suite %s file %s' % (family,test),
-                            'location'  :  STAXServiceMachine,
-                            'service'   :  'FS',
-                            'request'   :  'GET FILE',
-                            'arguments' :  requestFilePath
-                          }
-                        </call>
+                      <call function="'checktestRC'">
+                        {
+                        'returncode' : RC ,
+                        'result'     : STAXResult
+                        }
+                      </call>
+                    </sequence>
+                    <else>
+                      <call function="'checktestRC'">
+                        {
+                        'returncode' : result['statusCode'] ,
+                        'result'     : result['statusMessage']
+                        }
+                      </call>
+                    </else>
+                  </if>
 
-                        <script>
-                          from com.ibm.staf import STAFUtil
-                          BODYSeparator = '\n\n'
-                          BODYStart = STAFResult.index(BODYSeparator)
-                          h = STAFResult[:BODYStart]
-                          kvs=h.split("\n")
-                          SOAPHeaders = "HEADER content-type=text/xml "
-                          
-                          for e in kvs[1:]:
-                            if (e.upper().startswith("CONTENT-LENGTH:")):
-                              continue
-                            if len(e.strip()) == 0:
-                              continue
-                            if (e.upper().startswith("AUTHORIZATION:")):
-                              e = validAuthRE.sub( base64.encodestring('%s:%s' % \
-                                     (DIRECTORY_INSTANCE_DN,DIRECTORY_INSTANCE_PSWD)) , \
-                                   e )
-                            s = e.split(':')
-                            rs = re.compile(' ')
-                            s[1]=s[1].strip()
-                            if (rs.search(s[1]) != None):
-                              s[1] = '"' + s[1] + '"'
-                            SOAPHeaders = SOAPHeaders + 'HEADER ' + s[0] + '=' + s[1] + ' '
-                            
-                          SOAPBody = STAFUtil.wrapData(STAFResult[BODYStart+len(BODYSeparator):])
-                        </script>
-
-                        <call function="'runSTAFCommand'">
-                          { 'name'      :  'Submit SOAPBody',
-                            'location'  :  STAXServiceMachine,
-                            'service'   :  'HTTP',
-                            'request'   :  'REQUEST METHOD POST',
-                            'arguments' :  'URL %s FOLLOWREDIRECT %s CONTENT %s RETURNHEADERS ' \
-                                            % (url, SOAPHeaders, SOAPBody)
-                          }
-                        </call>
-
-                        <call function="'checktestRC'">
-                          {
-                          'returncode' : RC ,
-                          'result'     : STAFResult
-                          }
-                        </call>
-                        <if expr="result['statusCode'] == '200'">
-                          <sequence>
-                            <script>
-                              # writing the result file to compare with expected result
-                              httpHeaders = result['headers']
-                              httpContent = result['content']
-                              resultContent = "HTTP1.1 "
-                              resultContent += result['statusCode'] + ' ' 
-                              resultContent += result['statusMessage'] + '\n'
-                              resultContent += "\n".join(["%s: %s" % (k, v) for k, v in httpHeaders.items()])
-                              resultContent += '\n\n' + httpContent
-                              f=open(runFilePath,'w')
-                              f.write(resultContent)
-                              f.close()
-                            </script>
-                            <message>'Comparing result %s and expected result %s' %  (runFilePath, expectedFilePath)</message>
-
-                            <call function="'runSTAFCommand'">
-                              { 'name'      :  'Compare SOAPResult with expected result',
-                                'location'  :  STAXServiceMachine,
-                                'service'   :  'DSML',
-                                'request'   :  'COMPARE FILE',
-                                'arguments' :  '%s EXP_FILE %s' %(runFilePath, expectedFilePath)
-                              }
-                            </call>
-
-                            <call function="'checktestRC'">
-                              {
-                              'returncode' : RC ,
-                              'result'     : STAXResult
-                              }
-                            </call>
-                          </sequence>
-                          <else>
-                            <call function="'checktestRC'">
-                              {
-                              'returncode' : result['statusCode'] ,
-                              'result'     : result['statusMessage']
-                              }
-                            </call>
-                          </else>
-                        </if>
-                        
-                        <call function="'testCase_Postamble'"/>
-                      </sequence>
-                    </testcase>
-                  </iterate>
+                  <call function="'testCase_Postamble'"/>
                 </sequence>
-              </iterate>
+              </testcase>
+            </iterate>
+          </sequence>
+        </iterate>
 
-              <call function="'checktestRC'">
-                {
-                'returncode' : RC ,
-                'result'     : STAFResult
-                }
-              </call>
-            </sequence>
-          </testcase>
-        </sequence>
         <call function="'testSuite_Postamble'"/>
       </sequence>
     </block>

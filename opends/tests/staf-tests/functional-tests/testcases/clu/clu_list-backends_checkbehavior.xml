@@ -296,7 +296,7 @@
           <!--- Test Case information
             #@TestMarker          list-backends check behavior tests
             #@TestName            list-backends: invalid baseDN
-            #@TestIssue           2594
+            #@TestIssue           none
             #@TestPurpose         Test list-backends with an invalid baseDN
             #@TestPreamble        none
             #@TestStep            Do an list-backends with an invalid baseDN.
@@ -334,11 +334,7 @@
                 'expectedString' : '%s %s' % (msg1, msg2)
                 }
               </call>
-              
-              <script>
-                knownIssue(2594)
-              </script>
-              
+
               <call function="'testCase_Postamble'"/>
               
             </sequence>

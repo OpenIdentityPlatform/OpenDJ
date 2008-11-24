@@ -182,7 +182,7 @@
                 'refFile'    : 'ldif-diff.ref'
                 }
               </call>
-              
+
               <script>
                 knownIssue(3111)
               </script>
@@ -233,7 +233,7 @@
                 'refFile'    : 'ldif-diff_singlevalue.ref'
                 }
               </call>
-              
+
               <script>
                 knownIssue(3111)
               </script>

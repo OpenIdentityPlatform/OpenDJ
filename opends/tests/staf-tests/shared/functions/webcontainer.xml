@@ -292,7 +292,7 @@
       <call function="'runCommand'">
         { 'location' : location,
         'command'    : STAFCmd,
-        'env'        : STAFCmdEnv,
+        'envCmd'     : STAFCmdEnv,
         'name'       : STAFCmd,
         'path'       : wcBinPath
         }
@@ -347,7 +347,7 @@
       <call function="'runCommand'">
         { 'location' : location,
         'command'    : STAFCmd,
-        'env'        : STAFCmdEnv,
+        'envCmd'     : STAFCmdEnv,
         'name'       : STAFCmd,
         'path'       : wcBinPath,
         'expectedRC' : expectedRC

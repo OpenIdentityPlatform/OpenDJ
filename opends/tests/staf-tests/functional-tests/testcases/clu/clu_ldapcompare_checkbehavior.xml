@@ -85,15 +85,15 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'dsDn'             : ['postalCode=63792' ,
+                'dsDn'             : ['postalCode:63792' ,
                                       '%s' % dsdn] ,
                 'expectedRC'       : 6
                 }
               </call>
-              
+
               <script>
                 knownIssue(2761)
-              </script>     
+              </script>
               
               <call function="'testCase_Postamble'"/>
               
@@ -129,7 +129,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'dsDn'             : ['postalCode=00000' ,
+                'dsDn'             : ['postalCode:00000' ,
                                       '%s' % dsdn] ,
                 'expectedRC'       : 5
                 }

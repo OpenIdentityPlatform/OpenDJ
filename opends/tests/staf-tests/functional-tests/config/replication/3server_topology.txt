@@ -26,7 +26,7 @@
 Hostname: localhost
 Directory: /var/tmp/opends-synchro-tests/server1
 Port: 11389
-Adminport: 14444
+Adminport: 11444
 Sslport: 11636
 Jmxport: 11689
 RootDn: cn=directory manager
@@ -41,7 +41,7 @@ ChangelogServer: localhost:33333
 Hostname: localhost
 Directory: /var/tmp/opends-synchro-tests/server2
 Port: 22389
-Adminport: 24444
+Adminport: 22444
 Sslport: 22636
 Jmxport: 22689
 RootDn: cn=directory manager
@@ -56,7 +56,7 @@ ChangelogServer: localhost:33333
 Hostname: localhost
 Directory: /var/tmp/opends-synchro-tests/server3
 Port: 33389
-Adminport: 34444
+Adminport: 33444
 Sslport: 33636
 Jmxport: 33689
 RootDn: cn=directory manager

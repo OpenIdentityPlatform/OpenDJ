@@ -79,7 +79,7 @@
         <switch value="${os.arch}">
           <case value="sparc">
             <!-- Solaris sparc -->
-            <exec executable="isainfo" output="os.bits">
+            <exec executable="isainfo" outputproperty="os.bits">
               <arg value="-b"/>
             </exec>
             <switch value="${os.bits}">

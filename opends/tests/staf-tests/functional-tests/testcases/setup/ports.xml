@@ -53,18 +53,13 @@
 
       <call function="'testSuite_Preamble'"/>
 
-      <script>
-        STAF_PORT = 6500
-      </script>
-
-      
       <call function="'getFreePort'">
         {
           'host'  : STAF_REMOTE_HOSTNAME,
-          'port'  : 3000,
+          'port'  : 2000,
         }
       </call>
-      <script>FREE_PORT_1 = STAXResult</script>
+      <script>PORTS_I1_PORT = STAXResult</script>
 
       <call function="'getFreePort'">
         {
@@ -72,13 +67,103 @@
           'port'  : 4000,
         }
       </call>
-      <script>FREE_PORT_2 = STAXResult</script>
+      <script>PORTS_I1_ADMIN_PORT = STAXResult</script>
+
+      <call function="'getFreePort'">
+        {
+          'host'  : STAF_REMOTE_HOSTNAME,
+          'port'  : 3000,
+        }
+      </call>
+      <script>PORTS_I2_PORT = STAXResult</script>
 
       <message>
-        'Got 2 free ports: %s and %s' % (FREE_PORT_1, FREE_PORT_2)
+        'Got 3 free ports: %s, %s and %s' \
+        % (PORTS_I1_PORT, PORTS_I1_ADMIN_PORT, PORTS_I2_PORT)
       </message>
       
+      <!--- Test Case information
+        #@TestMarker          Setup-Uninstall ports Tests
+        #@TestName            Setup-Uninstall: Ports: 
+                              bind-port
+        #@TestID              bind-port
+        #@TestPurpose         Setup a first instance to bind a port
+        #@TestPreamble        
+        #@TestStep            Setup a first instance to bind a port
+        #@TestPostamble       
+        #@TestResult          PASS if all steps ran without errors
+      -->
+      <testcase name="getTestCaseName('bind-port')">
+        <sequence>
+          
+          <call function="'testCase_Preamble'"/>
+          <message>'Ports: Setup a first instance to bind a port'</message>
+
+          <script>
+            PORTS_I1_BASE = '%s/port_i1' % (OUT_GROUP)
+            PORTS_I1_ROOT = '%s/%s' % (PORTS_I1_BASE, OPENDSNAME)
+          </script>
+
+          <message>'Prepare Open DS ZIP (in %s)' % PORTS_I1_ROOT</message>
+
+          <call function="'runSTAFCommand'">
+            { 'name'      :  'Create directory to contain I1',
+              'location'  :  STAF_REMOTE_HOSTNAME,
+              'service'   :  'FS',
+              'request'   :  'CREATE',
+              'arguments' :  'DIRECTORY %s FAILIFEXISTS' % PORTS_I1_BASE
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC,
+              'expected'   : 0,
+              'result'     : 'FAIL to create directory',
+            }
+          </call>
+
+          <call function="'runSTAFCommand'">
+            { 'name'      :  'Extract OpenDS ZIP file',
+              'location'  :  STAF_REMOTE_HOSTNAME,
+              'service'   :  'ZIP',
+              'request'   :  'UNZIP',
+              'arguments' :  'ZIPFILE %s/%s TODIRECTORY %s RESTOREPERMISSION' \
+                % (DIRECTORY_INSTANCE_DIR, ZIPNAME, PORTS_I1_BASE)
+            }
+          </call>
+
+          <call function="'checktestRC'">
+            { 'returncode' : RC,
+              'expected'   : 0,
+              'result'     : 'FAIL to unzip OpenDS ZIP file',
+            }
+          </call>
+          
+          <script>
+            c = '%s/setup%s' % (PORTS_I1_ROOT, fileExt)
+            p = []
+            p.append('--cli --no-prompt --rootUserPassword kangourou')
+            p.append('--ldapPort %s' % PORTS_I1_PORT)
+            p.append('--adminConnectorPort %s' % PORTS_I1_ADMIN_PORT)
+            p = ' '.join(p)
+          </script>
       
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Setup a first instance to bind a port',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : PORTS_I1_ROOT,
+              'expectedRC': 0,
+              'outputFile': '%s/ports-install-i1.txt' % OUT_GROUP,
+            }
+          </call>
+
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+      </testcase> 
+
       <!--- Test Case information
         #@TestMarker          Setup-Uninstall ports Tests
         #@TestName            Setup-Uninstall: Ports: 
@@ -101,7 +186,7 @@
             c = '%s/%s/setup%s' % (ODS_UNZIPPED, OPENDSNAME, fileExt)
             p = []
             p.append('--cli --no-prompt --rootUserPassword kangourou')
-            p.append('--ldapPort %s' % STAF_PORT)
+            p.append('--ldapPort %s' % PORTS_I1_PORT)
             p = ' '.join(p)
           </script>
       
@@ -144,8 +229,8 @@
             c = '%s/%s/setup%s' % (ODS_UNZIPPED, OPENDSNAME, fileExt)
             p = []
             p.append('--cli --no-prompt --rootUserPassword kangourou')
-            p.append('--ldapPort %s' % FREE_PORT_1)
-            p.append('--ldapsPort %s' % STAF_PORT)
+            p.append('--ldapPort %s' % PORTS_I2_PORT)
+            p.append('--ldapsPort %s' % PORTS_I1_PORT)
             p.append('--generateSelfSignedCertificate')
             p = ' '.join(p)
           </script>
@@ -188,8 +273,8 @@
             c = '%s/%s/setup%s' % (ODS_UNZIPPED, OPENDSNAME, fileExt)
             p = []
             p.append('--cli --no-prompt --rootUserPassword kangourou')
-            p.append('--ldapPort %s' % FREE_PORT_1)
-            p.append('--jmxPort %s' % STAF_PORT)
+            p.append('--ldapPort %s' % PORTS_I2_PORT)
+            p.append('--jmxPort %s' % PORTS_I1_PORT)
             p = ' '.join(p)
           </script>
     
@@ -227,8 +312,8 @@
         <sequence>
           
           <script>
-            PORTS_I1_BASE = '%s/ports_i1' % (OUT_GROUP)
-            PORTS_I1_ROOT = '%s/%s' % (PORTS_I1_BASE, OPENDSNAME)
+            PORTS_I2_BASE = '%s/ports_i2' % (OUT_GROUP)
+            PORTS_I2_ROOT = '%s/%s' % (PORTS_I2_BASE, OPENDSNAME)
           </script>
           
           
@@ -239,11 +324,11 @@
           <message>'Prepare Open DS ZIP (in %s)' % PORTS_I1_ROOT</message>
 
           <call function="'runSTAFCommand'">
-            { 'name'      :  'Create directory to contain I1',
+            { 'name'      :  'Create directory to contain I2',
               'location'  :  STAF_REMOTE_HOSTNAME,
               'service'   :  'FS',
               'request'   :  'CREATE',
-              'arguments' :  'DIRECTORY %s FAILIFEXISTS' % PORTS_I1_BASE
+              'arguments' :  'DIRECTORY %s FAILIFEXISTS' % PORTS_I2_BASE
             }
           </call>
 
@@ -260,7 +345,7 @@
               'service'   :  'ZIP',
               'request'   :  'UNZIP',
               'arguments' :  'ZIPFILE %s/%s TODIRECTORY %s RESTOREPERMISSION' \
-                % (DIRECTORY_INSTANCE_DIR, ZIPNAME, PORTS_I1_BASE)
+                % (DIRECTORY_INSTANCE_DIR, ZIPNAME, PORTS_I2_BASE)
             }
           </call>
 
@@ -272,9 +357,9 @@
           </call>
 
           <script>
-            c = '%s/setup%s' % (PORTS_I1_ROOT, fileExt)
+            c = '%s/setup%s' % (PORTS_I2_ROOT, fileExt)
             p = []
-            p.append('--cli --no-prompt --ldapPort %s' % (STAF_PORT))
+            p.append('--cli --no-prompt --ldapPort %s' % PORTS_I1_PORT)
             p.append('--rootUserPassword "kangourou"')
             p.append('--skipPortCheck --doNotStart --noPropertiesFile')
             p = ' '.join(p)
@@ -283,17 +368,17 @@
           <message>'%s %s' % (c, p)</message>
           <call function="'runCommand'">
             { 'location'  : STAF_REMOTE_HOSTNAME,
-              'name'      : 'Setup command for I1 (port conflict but nocheck)',
+              'name'      : 'Setup command for I2 (port conflict but nocheck)',
               'command'   : c,
               'arguments' : p,
               'path'      : PORTS_I1_ROOT,
               'expectedRC': 0,
-              'outputFile': '%s/ports-setup-confl-nocheck-i1.txt' % OUT_GROUP,
+              'outputFile': '%s/ports-setup-confl-nocheck-i2.txt' % OUT_GROUP,
             }
           </call>
 
           <script>
-            c = '%s/%s/start-ds%s' % (PORTS_I1_ROOT, fileFolder, fileExt)
+            c = '%s/%s/start-ds%s' % (PORTS_I2_ROOT, fileFolder, fileExt)
             p = []
             p = ' '.join(p)
           </script>
@@ -304,14 +389,14 @@
               'name'      : 'start DS (will raise port conflict)',
               'command'   : c,
               'arguments' : p,
-              'path'      : PORTS_I1_ROOT,
+              'path'      : PORTS_I2_ROOT,
               'expectedRC': 1,
-              'outputFile': '%s/ports-start-conflict-i1.txt' % OUT_GROUP,
+              'outputFile': '%s/ports-start-conflict-i2.txt' % OUT_GROUP,
             }
           </call>
           
           <script>
-            c = '%s/uninstall%s' % (PORTS_I1_ROOT, fileExt)
+            c = '%s/uninstall%s' % (PORTS_I2_ROOT, fileExt)
             p = []
             p.append('--cli --no-prompt')
             p.append('--quiet --forceOnError --remove-all')
@@ -322,12 +407,12 @@
           <message>'%s %s' % (c, p)</message>
           <call function="'runCommand'">
             { 'location'  : STAF_REMOTE_HOSTNAME,
-              'name'      : 'Uninstall I1',
+              'name'      : 'Uninstall I2',
               'command'   : c,
               'arguments' : p,
               'path'      : PORTS_I1_ROOT,
               'expectedRC': 0,
-              'outputFile': '%s/ports-uninstall-conflict-i1.txt' % OUT_GROUP,
+              'outputFile': '%s/ports-uninstall-conflict-i2.txt' % OUT_GROUP,
             }
           </call>
           <call function="'testCase_Postamble'"/>
@@ -355,46 +440,90 @@
           <call function="'testCase_Preamble'"/>
           <message>'Ports: Unauthorized LDAP port'</message>
           
+          <!-- This testcase is not relevant on Windows -->
           <script>
-            c = '%s/%s/setup%s' % (ODS_UNZIPPED, OPENDSNAME, fileExt)
-            p = []
-            p.append('--cli --no-prompt --rootUserPassword kangourou')
-            p.append('--ldapPort 1')
-            p = ' '.join(p)
+            if is_windows_platform(STAF_REMOTE_HOSTNAME):
+              skip=1
+            else:
+              skip=0
           </script>
-      
-          <message>'%s %s' % (c, p)</message>
-          <call function="'runCommand'">
-            { 'location'  : STAF_REMOTE_HOSTNAME,
-              'name'      : 'Launch setup command with unauthorized LDAP port',
-              'command'   : c,
-              'arguments' : p,
-              'path'      : ODS_UNZIPPED,
-              'expectedRC': 2,
-              'outputFile': '%s/ports-unauthorized-ldap.txt' % OUT_GROUP,
-            }
-          </call>
 
-          <!--- Temporary fix to avoid remaning processes
-                when this testcase fails -->
-          <script>
-            cmd = '%s/%s/%s/stop-ds%s' \
-                  % (ODS_UNZIPPED, OPENDSNAME, fileFolder, fileExt)
-          </script>
-          <if expr="os.path.exists(cmd)" >
+          <if expr="skip == 0">
             <sequence>
-              <message>'Stop instance'</message>
-              <call function="'StopDsWithScript'">
+              <script>
+                c = '%s/%s/setup%s' % (ODS_UNZIPPED, OPENDSNAME, fileExt)
+                p = []
+                p.append('--cli --no-prompt --rootUserPassword kangourou')
+                p.append('--ldapPort 1')
+                p = ' '.join(p)
+              </script>
+
+              <message>'%s %s' % (c, p)</message>
+              <call function="'runCommand'">
                 { 'location'  : STAF_REMOTE_HOSTNAME,
-                'dsPath'      : '%s/%s' % (ODS_UNZIPPED, OPENDSNAME),
-                'dsAdminPort' : 1,
-                'dsBindDN'    : 'cn=Directory Manager' ,
-                'dsBindPwd'   : 'kangourou' ,
-                'expectedRC'  : 'noCheck'
+                  'name'      : 'Launch setup command with unauthorized LDAP port',
+                  'command'   : c,
+                  'arguments' : p,
+                  'path'      : ODS_UNZIPPED,
+                  'expectedRC': 2,
+                  'outputFile': '%s/ports-unauthorized-ldap.txt' % OUT_GROUP,
                 }
               </call>
             </sequence>
+            <else>
+              <sequence>
+                <message>'This testcase is not relevant on Windows'</message>
+                <tcstatus result="'pass'"/>
+              </sequence>
+            </else>
           </if>
+
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+      </testcase> 
+
+      <!--- Test Case information
+        #@TestMarker          Setup-Uninstall ports Tests
+        #@TestName            Setup-Uninstall: Ports: 
+                              uninstall
+        #@TestID              uninstall
+        #@TestPurpose         Uninstall the first instance
+        #@TestPreamble        
+        #@TestStep            Uninstall the first instance
+        #@TestPostamble       
+        #@TestResult          PASS if all steps ran without errors
+      -->
+      <testcase name="getTestCaseName('uninstall')">
+        <sequence>
+          
+          <call function="'testCase_Preamble'"/>
+          <message>'Ports: Uninstall the first instance'</message>
+
+          <script>
+            PORTS_I1_BASE = '%s/port_i1' % (OUT_GROUP)
+            PORTS_I1_ROOT = '%s/%s' % (PORTS_I1_BASE, OPENDSNAME)
+          </script>
+
+          <script>
+            c = '%s/uninstall%s' % (PORTS_I1_ROOT, fileExt)
+            p = []
+            p.append('--cli --no-prompt')
+            p.append('--quiet --forceOnError --remove-all')
+            p.append('--referencedHostName %s' % STAF_REMOTE_HOSTNAME)
+            p = ' '.join(p)
+          </script>
+
+          <message>'%s %s' % (c, p)</message>
+          <call function="'runCommand'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Uninstall I1',
+              'command'   : c,
+              'arguments' : p,
+              'path'      : PORTS_I1_ROOT,
+              'expectedRC': 0,
+              'outputFile': '%s/ports-uninstall-i1.txt' % OUT_GROUP,
+            }
+          </call>
 
           <call function="'testCase_Postamble'"/>
         </sequence>
