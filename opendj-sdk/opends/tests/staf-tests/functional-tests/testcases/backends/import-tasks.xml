@@ -911,17 +911,12 @@
                   'startDS'         : 'no'
                 }
               </call>
-              <!-- This test should fail. -->
-              <tcstatus result="'fail'"/>
-              <message log="1" level="'Error'">
-               'Error: Known bug. Issue 839: Encrypted LDIF export is not implemented'
-              </message>
-               <script>
-                knownIssue(839)
-              </script>
+
               <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult
+                { 'returncode' : 1 ,
+                  'expected'   : 0 ,
+                  'result'     : 'Encrypted LDIF export is not implemented',
+                  'issue'      : '839'
                 }
               </call>
               <call function="'testCase_Postamble'"/>

@@ -197,17 +197,11 @@
               <call function="'importLdif'">
                 { 'ldifFile'    : '%s/backends/Export_schema.ldif' % remote.data,
                   'backEnd'     : 'schema',
-                  'dsPath'      : '%s/server2/%s' % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
+                  'dsPath'      : '%s/server2/%s' % (DIRECTORY_INSTANCE_DIR, OPENDSNAME),
+                  'knownIssue'  : '2173'
                 }
               </call>
-              <script>
-                knownIssue(2173)
-              </script>
-              <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult
-                }
-              </call>
+
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>

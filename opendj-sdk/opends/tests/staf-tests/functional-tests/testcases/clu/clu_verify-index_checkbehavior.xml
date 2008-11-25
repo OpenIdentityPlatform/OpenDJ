@@ -270,10 +270,11 @@
               <call function="'checktestString'">
                 { 
                 'returnString'   : returnString ,
-                'expectedString' : msg
+                'expectedString' : msg ,
+                'issue'          : '3102'
                 }
               </call>          
-              
+
               <call function="'testCase_Postamble'"/>
               
             </sequence>

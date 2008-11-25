@@ -1339,10 +1339,6 @@
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
 
-              <script>
-                knownIssue(3006)
-              </script>
-
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>     

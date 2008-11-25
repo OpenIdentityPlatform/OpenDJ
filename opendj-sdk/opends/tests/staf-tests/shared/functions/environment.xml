@@ -162,11 +162,6 @@
         def getTestCaseName(name):
           return '%s: %s: %s' % (CurrentTestPath['group'],CurrentTestPath['suite'],name)
 
-        # this functions adds a known issue to a testcase's known issues list
-        issuesList=[]
-        def knownIssue(issue):
-          issuesList.append(issue)
-                
         DSCONFIG = 'dsconfig'       
         DSREPLICATION = 'dsreplication'   
           

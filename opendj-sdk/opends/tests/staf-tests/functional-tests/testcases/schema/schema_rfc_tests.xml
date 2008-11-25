@@ -768,16 +768,11 @@
                     'subcommand'             : 'set-attribute-syntax-prop' ,
                     'objectType'             : 'syntax-name' ,
                     'objectName'             : 'Generalized Time',
-                    'optionsString'          : '--set enabled:false'
+                    'optionsString'          : '--set enabled:false',
+                    'knownIssue'             : '2046'
                     }
             </call> 
-            <script>
-              knownIssue(2046)
-            </script>
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
+
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>

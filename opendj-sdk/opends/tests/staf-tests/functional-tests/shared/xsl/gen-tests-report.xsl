@@ -31,14 +31,10 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <xsl:param name="group">''</xsl:param>
 <xsl:param name="suite">''</xsl:param>
-<xsl:param name="tests-log">''</xsl:param>
 
 <xsl:variable name="groupdir" select="translate($group, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')"/>
 
 <xsl:template match="/">
-
-  <!-- Tests log XML document -->
-  <xsl:variable name="tests-log-doc"             select="document($tests-log)"/>
     
   <!--- Test Report Header Variables -->
   <xsl:variable name="ft"             select="qa/functional-tests"/>
@@ -61,7 +57,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:variable name="pass-tests"     select="count($testcase[@result='pass' and @suite=$suite])"/>
   <xsl:variable name="fail-tests"     select="count($testcase[@result='fail' and @suite=$suite])"/>
   <xsl:variable name="inconc-tests"   select="count($testcase[@result='unknown' and @suite=$suite])"/>
-  <xsl:variable name="kfail-tests"    select="count($tests-log-doc/qa/functional-tests/results/test[result='known' and suite=$suite])"/>
+  <xsl:variable name="kfail-tests"    select="count($testcase[@suite=$suite]/issues)"/>
   
   <xsl:element name="html">
   
@@ -396,7 +392,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:value-of select="'Result'"/>
         </xsl:element>
         <xsl:element name="th">
-          <xsl:value-of select="'Issue'"/>
+          <xsl:value-of select="'Issues'"/>
         </xsl:element>
       </xsl:element>
 
@@ -411,7 +407,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
               <xsl:when test="@result = 'pass'">
                 <xsl:value-of select="'lightgreen'" />
               </xsl:when>
-              <xsl:when test="$tests-log-doc/qa/functional-tests/results/test[result='known' and translate(normalize-space(name),'abcdefghijklmnopqrstuvwxyz','ABCDEFGHIJKLMNOPQRSTUVWXYZ')=translate(normalize-space($tcname), 'abcdefghijklmnopqrstuvwxyz','ABCDEFGHIJKLMNOPQRSTUVWXYZ')]">
+              <xsl:when test="issues">
                 <xsl:value-of select="'yellow'" />
               </xsl:when>
               <xsl:otherwise>
@@ -466,12 +462,19 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           </xsl:element>
 
           <!-- Issue -->
-          <xsl:variable name="issue" select="$tests-log-doc/qa/functional-tests/results/test/issues/issue"/>
           <xsl:element name="td">
             <xsl:attribute name="align">
               <xsl:value-of select="'center'"/>
             </xsl:attribute>
-            <xsl:value-of select="''"/>
+            <xsl:for-each select="issues/issue">
+              <xsl:value-of select="' '"/>
+              <xsl:element name="a">
+                <xsl:attribute name="href">
+                  <xsl:value-of select="concat('https://opends.dev.java.net/issues/show_bug.cgi?id=',@id)"/>
+                </xsl:attribute>
+                <xsl:value-of select="@id"/>
+              </xsl:element>
+            </xsl:for-each>
           </xsl:element>
               
         </xsl:element>

@@ -744,10 +744,6 @@
                 }
               </call>
 
-              <script>
-                knownIssue(3392)
-              </script>
-                
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>     
@@ -1101,10 +1097,6 @@
                 }
               </call>
 
-              <script>
-                knownIssue(3394)
-              </script>
-
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>     
@@ -1444,10 +1436,6 @@
                 }
               </call>
 
-              <script>
-                knownIssue(3397)
-              </script>
-
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>     
@@ -1615,12 +1603,6 @@
                   'dsDn'           : [entry.getDn()]
                 }
               </call>
-
-              <!-- Issue visible in the error log, so not detectable so far.
-              <script>
-                knownIssue(3399)
-              </script>
-              -->
 
               <call function="'testCase_Postamble'"/>
             </sequence>
@@ -2508,10 +2490,6 @@
                 }
               </call>
 
-              <script>
-                knownIssue(3397)
-              </script>
-
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>     
@@ -2763,7 +2741,7 @@
                         'dsInstancePort' : server.getPort(),
                         'dsInstanceDn'   : server.getRootDn(),
                         'dsInstancePswd' : server.getRootPwd(),
-                        'dsDn'           : [entryToDelete]
+                        'dsDn'           : [entryToDelete] 
                       }
                     </call>
                   </paralleliterate>
@@ -2772,9 +2750,9 @@
 
               <!-- Issue visible in the conflict counters, so not automatically
                !   detectable so far.
-              <script>
-                knownIssue(3400)
-              </script>
+              <call function="'setKnownIssue'">
+                { 'issueId' : '3400' }
+              </call>
               -->
 
               <call function="'testCase_Postamble'"/>
@@ -3037,9 +3015,9 @@
 
               <!-- Issue visible in the conflict counters, so not automatically
                !   detectable so far.
-              <script>
-                knownIssue(3400)
-              </script>
+              <call function="'setKnownIssue'">
+                { 'issueId' : '3400' }
+              </call>
               -->
 
               <call function="'testCase_Postamble'"/>
@@ -3278,16 +3256,13 @@
                         'dsInstancePort' : server.getPort(),
                         'dsInstanceDn'   : server.getRootDn(),
                         'dsInstancePswd' : server.getRootPwd(),
-                        'dsDn'           : [entryToDelete]
+                        'dsDn'           : [entryToDelete],
+                        'knownIssue'     : '3401'
                       }
                     </call>
                   </paralleliterate>
                 </if>
               </paralleliterate>
-
-              <script>
-                knownIssue(3401)
-              </script>
 
               <call function="'testCase_Postamble'"/>
             </sequence>
@@ -3539,16 +3514,13 @@
                         'dsInstancePort' : server.getPort(),
                         'dsInstanceDn'   : server.getRootDn(),
                         'dsInstancePswd' : server.getRootPwd(),
-                        'dsDn'           : [entryToDelete]
+                        'dsDn'           : [entryToDelete],
+                        'knownIssue'     : '3401'
                       }
                     </call>
                   </paralleliterate>
                 </if>
               </paralleliterate>
-
-              <script>
-                knownIssue(3401)
-              </script>
 
               <call function="'testCase_Postamble'"/>
             </sequence>

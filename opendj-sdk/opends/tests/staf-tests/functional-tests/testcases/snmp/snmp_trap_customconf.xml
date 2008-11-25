@@ -284,16 +284,11 @@
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'knownIssue'       : '3435'
                 }
               </call>
               
-              <if expr="is_windows_platform(DIRECTORY_INSTANCE_HOST)">
-                <script>
-                  knownIssue(3435)
-                </script>
-              </if>
-
               <call function="'testCase_Postamble'"/>
 
             </sequence>
@@ -447,15 +442,10 @@
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'knownIssue'       : '3435'
                 }
               </call>
-
-              <if expr="is_windows_platform(DIRECTORY_INSTANCE_HOST)">
-                <script>
-                  knownIssue(3435)
-                </script>
-              </if>
 
               <call function="'testCase_Postamble'"/>
 
@@ -856,15 +846,10 @@
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'knownIssue'       : '3435'
                 }
               </call>
-
-              <if expr="is_windows_platform(DIRECTORY_INSTANCE_HOST)">
-                <script>
-                  knownIssue(3435)
-                </script>
-              </if>
 
               <call function="'testCase_Postamble'"/>
 

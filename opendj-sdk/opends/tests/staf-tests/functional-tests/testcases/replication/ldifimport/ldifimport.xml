@@ -229,9 +229,9 @@
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
 
-              <script>
-                knownIssue(3122)
-              </script>
+              <call function="'setKnownIssue'">
+                { 'issueId' : '3122' }
+              </call>
 
               <call function="'testCase_Postamble'"/>
             </sequence>

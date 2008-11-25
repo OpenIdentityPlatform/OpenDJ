@@ -556,6 +556,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
 
     <sequence>
@@ -606,7 +612,8 @@
         'location'  : location ,
         'command'   : STAFCmd ,
         'arguments' : '%s --set enabled:true' % STAFCmdParams ,
-        'expectedRC': expectedRC
+        'expectedRC': expectedRC ,
+        'knownIssue': knownIssue
         }
       </call>
 
@@ -742,6 +749,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
       </function-arg-def>
+      <function-arg-def name="issue" type="optional" default="None">
+        <function-arg-description>
+          Issue id. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
     </function-map-args>
 
     <sequence>
@@ -823,7 +836,16 @@
           </if>
         </sequence>
         <else>
-          <tcstatus result="'fail'">'Timer failed to begin.'</tcstatus>
+           <if expr="issue == None">
+              <tcstatus result="'fail'"/>
+            <else>
+              <sequence>
+                <call function="'setKnownIssue'">
+                  { 'issueId' : issue }
+                </call>
+              </sequence>
+            </else>
+            </if>
         </else>
       </if>
 

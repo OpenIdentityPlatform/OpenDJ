@@ -135,6 +135,12 @@
         </function-arg-description>
         <function-arg-property name="help" value="option"/>
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -191,7 +197,8 @@
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
           'path'      : dsPath,
-          'expectedRC': 'noCheck'
+          'expectedRC': 'noCheck',
+          'knownIssue': knownIssue
         }
       </call>
     </sequence>
@@ -251,6 +258,12 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -291,7 +304,8 @@
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
           'location'  : location,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       <return>STAXResult</return>
@@ -448,6 +462,12 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -531,7 +551,8 @@
           'name'      : 'Stop DS Script',
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       <call function="'Sleep'">
@@ -736,6 +757,12 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
       
     <sequence>
@@ -752,7 +779,8 @@
           'name'      : 'Offline Import',
           'command'   : '%s/import-ldif%s' % (dsBinPath,fileExt),
           'arguments' : '-l %s -n %s %s' % (ldifFile,backEnd,extraParams),
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       <return>RC</return>
@@ -936,6 +964,12 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -1033,7 +1067,8 @@
           'name'      : 'Offline Import Script',
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
 
@@ -1201,7 +1236,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
       </function-arg-def>    
-      
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>      
     </function-map-args>
     <sequence>
     
@@ -1616,7 +1656,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
       </function-arg-def>
- 
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def> 
     </function-map-args>
 
     <sequence>
@@ -1659,7 +1704,8 @@
           'name'      : 'Export Script',
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       <return>
@@ -1798,6 +1844,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
       </function-arg-def>
+
     </function-map-args>
 
     <sequence>
@@ -1995,6 +2042,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
 	    </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
 
     <sequence>
@@ -2036,7 +2089,8 @@
           'name'      : 'Backup Script',
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }              
       </call> 
       
@@ -2332,6 +2386,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
       </function-arg-def>      
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
 
@@ -2370,7 +2430,8 @@
           'name'      : 'Restore Script',
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call> 
       
@@ -3647,6 +3708,12 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -3684,7 +3751,8 @@
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
           'path'      : dsPath,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       
@@ -3766,6 +3834,12 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -3815,7 +3889,8 @@
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
           'path'      : dsPath,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       
@@ -4190,6 +4265,12 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -4275,7 +4356,8 @@
           'name'       : 'manage-tasks Script',
           'command'    : STAFCmd,
           'arguments'  : STAFCmdParams,
-          'expectedRC' : expectedRC
+          'expectedRC' : expectedRC,
+          'knownIssue' : knownIssue
         }
       </call>
       <return>
@@ -4320,6 +4402,12 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -4333,7 +4421,8 @@
           'location'  : location,
           'command'   : _cmd,
           'arguments' : _args,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       <return>STAXResult</return>
@@ -4369,6 +4458,12 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
 
     <sequence>
@@ -4382,7 +4477,8 @@
           'location'  : location,
           'command'   : _cmd,
           'arguments' : _args,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       <return>STAXResult</return>
@@ -4551,6 +4647,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>     
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
       <!-- Build the Command -->
@@ -4589,7 +4691,8 @@
         'command'    : STAFCmd,
         'arguments'  : STAFCmdParams,
         'location'   : location,
-        'expectedRC' : expectedRC
+        'expectedRC' : expectedRC,
+        'knownIssue': knownIssue
         }
       </call>
       
@@ -4652,6 +4755,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>     
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
       <!-- Build the Command -->
@@ -4684,7 +4793,8 @@
         'command'    : STAFCmd,
         'arguments'  : STAFCmdParams,
         'location'   : location,
-        'expectedRC' : expectedRC
+        'expectedRC' : expectedRC,
+        'knownIssue' : knownIssue
         }
       </call>
       
@@ -4789,6 +4899,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>     
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
       <!-- Build the Command -->
@@ -4842,7 +4958,8 @@
         'command'    : STAFCmd,
         'arguments'  : STAFCmdParams,
         'location'   : location,
-        'expectedRC' : expectedRC
+        'expectedRC' : expectedRC,
+        'knownIssue': knownIssue
         }
       </call>
       

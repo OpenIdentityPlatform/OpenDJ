@@ -301,13 +301,14 @@
             <!-- Check the entry on cn=System Info,cn=monitor is available -->  
             <message>'######  Monitor the System Info  ###### '</message>     
             <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'       : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
-              'dsBaseDN'           : 'cn=System Info,cn=monitor',
-              'dsFilter'           : 'objectclass=*',
-              'expectedRC'	   :  0 }
+              { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,	
+              'dsBaseDN'          : 'cn=System Info,cn=monitor',
+              'dsFilter'          : 'objectclass=*',
+              'expectedRC'        :  0 ,
+              'knownIssue'        : '2619' }
             </call>  	    
             
             <message>'-- Disable the System Info monitor provider --'</message>   
@@ -332,12 +333,9 @@
               'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,	
               'dsBaseDN'            : 'cn=System Info,cn=monitor',
               'dsFilter'            : 'objectclass=*',
-              'expectedRC'	    :  32 }
+              'expectedRC'          :  32 }
             </call> 
             
-            <script>
-		knownIssue(2873)
-            </script>            
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>

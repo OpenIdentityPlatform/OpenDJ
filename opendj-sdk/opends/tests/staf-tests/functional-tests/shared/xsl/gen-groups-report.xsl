@@ -29,12 +29,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <xsl:output method="html" version="4.0" encoding="iso-8859-1" indent="yes"/>
 
-<xsl:param name="tests-log">''</xsl:param>
-
 <xsl:template match="/">
-
-  <!-- Tests log XML document -->
-  <xsl:variable name="tests-log-doc"  select="document($tests-log)"/>
   
   <!-- Test Groups Report Header Variables -->
   <xsl:variable name="ft"             select="qa/functional-tests"/>
@@ -55,7 +50,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:variable name="testcase"       select="$testsuite/testcase"/>
   <xsl:variable name="total-tests"    select="count($testcase)"/>
   <xsl:variable name="pass-tests"     select="count($testcase[@result='pass'])"/>
-  <xsl:variable name="kfail-tests"    select="count($tests-log-doc/qa/functional-tests/results/test[result='known'])"/>
+  <xsl:variable name="kfail-tests"    select="count($testcase/issues)"/>
   <xsl:variable name="fail-tests"     select="count($testcase[@result='fail'])"/>
   <xsl:variable name="inconc-tests"   select="count($testcase[@result='unknown'])"/>
   
@@ -388,7 +383,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:variable name="test-pass" select="count($all-tests[@result = 'pass'])"/>
           <xsl:variable name="test-fail" select="count($all-tests[@result = 'fail'])"/>
           <xsl:variable name="test-inc" select="count($all-tests[@result = 'unknown'])"/>
-          <xsl:variable name="test-kfail" select="count($tests-log-doc/qa/functional-tests/results/test[group=$group and result='known'])"/>
+          <xsl:variable name="test-kfail" select="count($all-tests[@group=$group]/issues)"/>
           <xsl:variable name="test-percent" select="round((($test-pass div $test-num) * 100) - 0.5)"/>
 
           <xsl:variable name="end-time">

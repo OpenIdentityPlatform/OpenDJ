@@ -124,13 +124,10 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : basedn ,
                 'dsFilter'         : dsfilter ,
-                'expectedRC'       : 89
+                'expectedRC'       : 89 ,
+                'knownIssue'       : '2619'
                 }
               </call>
-
-              <script>
-                knownIssue(2619)
-              </script>
 
               <call function="'testCase_Postamble'"/>
 
@@ -202,13 +199,10 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsFilter'         : dsfilter ,
-                'expectedRC'       : 89
+                'expectedRC'       : 89 ,
+                'knownIssue'       : '2619'
                 }
               </call>
-
-              <script>
-                knownIssue(2619)
-              </script>
 
               <call function="'testCase_Postamble'"/>
 
@@ -245,13 +239,10 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsFilter'         : dsfilter ,
-                'expectedRC'       : 89
+                'expectedRC'       : 89 ,
+                'knownIssue'       : '2619'
                 }
               </call>
-
-              <script>
-                knownIssue(2619)
-              </script>
 
               <call function="'testCase_Postamble'"/>
 
@@ -329,13 +320,10 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsBaseDN'         : basedn ,
                 'dsFilter'         : dsfilter ,
-                'expectedRC'       : 48
+                'expectedRC'       : 48 ,
+                'knownIssue'       : '2624'
                 }
               </call>
-
-              <script>
-                knownIssue(2624)
-              </script>
 
               <call function="'testCase_Postamble'"/>
 
@@ -413,13 +401,10 @@
                 'dsScope'          : ' ' ,
                 'dsBaseDN'         : basedn ,
                 'dsFilter'         : dsfilter ,
-                'expectedRC'       : 89
+                'expectedRC'       : 89 ,
+                'knownIssue'       : '2619'
                 }
               </call>
-
-              <script>
-                knownIssue(2619)
-              </script>
 
               <call function="'testCase_Postamble'"/>
 
@@ -456,13 +441,10 @@
                 'dsScope'          : 'bad_scope' ,
                 'dsBaseDN'         : basedn ,
                 'dsFilter'         : dsfilter ,
-                'expectedRC'       : 89
+                'expectedRC'       : 89 ,
+                'knownIssue'       : '2619'
                 }
               </call>
-
-              <script>
-                knownIssue(2619)
-              </script>
 
               <call function="'testCase_Postamble'"/>
 
@@ -573,13 +555,10 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : basedn ,
-                'expectedRC'       : 89
+                'expectedRC'       : 89 ,
+                'knownIssue'       : '2619'
                 }
               </call>
-
-              <script>
-                knownIssue(2619)
-              </script>
 
               <call function="'testCase_Postamble'"/>
 
@@ -1010,13 +989,10 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsSortOrder'      : 'bad_sort' ,
                 'dsBaseDN'         : basedn ,
-                'dsFilter'         : dsfilter
+                'dsFilter'         : dsfilter ,
+                'knownIssue'       : '2623'
                 }
               </call>
-
-              <script>
-                knownIssue(2623)
-              </script>
 
               <call function="'testCase_Postamble'"/>
 
@@ -1095,13 +1071,10 @@
                 'dsDereferencePolicy' : 'bad_ref' ,
                 'dsBaseDN'            : basedn ,
                 'dsFilter'            : dsfilter ,
-                'expectedRC'          : 89
+                'expectedRC'          : 89 ,
+                'knownIssue'          : '2619'
                 }
               </call>
-
-              <script>
-                knownIssue(2619)
-              </script>
 
               <call function="'testCase_Postamble'"/>
 
@@ -1179,13 +1152,10 @@
                 'dsSimplePageSize'    : '0' ,             
                 'dsBaseDN'            : basedn ,
                 'dsFilter'            : 'objectclass=*' ,
-                'expectedRC'          : 89
+                'expectedRC'          : 89 ,
+                'knownIssue'          : '2619'
                 }
               </call>
-              
-              <script>
-                knownIssue(2619)
-              </script>
               
               <call function="'testCase_Postamble'"/>
 

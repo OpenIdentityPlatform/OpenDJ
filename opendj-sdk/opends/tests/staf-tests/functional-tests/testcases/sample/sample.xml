@@ -176,11 +176,9 @@
               'dsInstanceDn'     : DIRECTORY_INSTANCE_DN   ,
               'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
               'dsBaseDN'         : DIRECTORY_INSTANCE_SFX  ,
-              'dsFilter'         : 'wrongfilter'         }
+              'dsFilter'         : 'wrongfilter' ,
+              'knownIssue'       : '2619'         }
             </call>
-            <script>
-              knownIssue(828)
-            </script>
             <call function="'testCase_Postamble'" />
           </sequence>
         </testcase>

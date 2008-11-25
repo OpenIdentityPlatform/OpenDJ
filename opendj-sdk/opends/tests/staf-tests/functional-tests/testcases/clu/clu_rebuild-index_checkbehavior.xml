@@ -383,7 +383,8 @@
               <call function="'checktestString'">
                 { 
                 'returnString'   : returnString ,
-                'expectedString' : '%s %s %s' % (msg1, msg2, msg3)
+                'expectedString' : '%s %s %s' % (msg1, msg2, msg3) ,
+                'issue'          : '3102'
                 }
               </call>
               
@@ -432,7 +433,8 @@
               <call function="'checktestString'">
                 { 
                 'returnString'   : returnString ,
-                'expectedString' : '%s %s %s' % (msg1, msg2, msg3)
+                'expectedString' : '%s %s %s' % (msg1, msg2, msg3) ,
+                'issue'          : '3102'
                 }
               </call>
               
@@ -538,7 +540,7 @@
               <call function="'checktestString'">
                 { 
                 'returnString'   : returnString ,
-                'expectedString' : msg
+                'expectedString' : msg 
                 }
               </call>
 
@@ -557,7 +559,7 @@
                 'noOfMilliSeconds' : 2000
                 }
               </call>             
-                            
+
               <call function="'testCase_Postamble'"/>
               
             </sequence>

@@ -92,6 +92,14 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
       </function-arg-def>
+
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+
     </function-map-args>
     <sequence>
       <!-- Build the Command -->
@@ -125,7 +133,8 @@
           'location'  : location,
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       <return>STAXResult</return>
@@ -296,6 +305,7 @@
         </function-arg-description>
         <function-arg-property name="help" value="option"/>
       </function-arg-def> 
+
     </function-map-args>
     <sequence>
       <!-- Build the Command -->
@@ -335,7 +345,7 @@
         'Running command:\n %s %s\nlocation: %s\nworkdir: %s' \
         % (STAFCmd,STAFCmdParams,location,dsBinPath)
       </message>
-      
+    
       <process name="'LDIF Diff Script'">
         <location>location</location>
         <command>STAFCmd</command>
@@ -349,7 +359,7 @@
         <returnstdout/>          
         <returnfile>outputLdif</returnfile>
       </process>
-      
+    
       <script>
         STAXCode=RC
         STAXReason=STAXResult
@@ -431,6 +441,14 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
       </function-arg-def>
+
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+
     </function-map-args>
     <sequence>
       <!-- Build the Command -->
@@ -464,7 +482,8 @@
           'location'  : location,
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       <return>STAXResult</return>
@@ -515,6 +534,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="DN"/>
       </function-arg-def>
+
     </function-list-args>
     <sequence>
       <script>
@@ -660,6 +680,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="filename"/>
       </function-arg-def>
+
     </function-list-args>
     <sequence>
       <script>
@@ -1278,6 +1299,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>     
       </function-arg-def>      
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
       <!-- Build the Command -->
@@ -1319,7 +1346,8 @@
         'command'    : STAFCmd,
         'arguments'  : STAFCmdParams,
         'location'   : location,
-        'expectedRC' : expectedRC
+        'expectedRC' : expectedRC ,
+        'knownIssue' : knownIssue
         }
       </call>
       

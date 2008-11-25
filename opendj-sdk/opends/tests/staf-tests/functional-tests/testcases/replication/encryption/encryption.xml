@@ -136,9 +136,9 @@
 
               <!-- #3315: dsreplication initialize-all returns before peer has
                    completed initialisation -->
-              <script>
-                knownIssue(3315)
-              </script>
+              <call function="'setKnownIssue'">
+                { 'issueId' : '3315' }
+              </call>
 
               <call function="'testCase_Postamble'"/>
             </sequence>
@@ -196,9 +196,9 @@
 
               <!-- #3315: dsreplication initialize-all returns before peer has
                    completed initialisation -->
-              <script>
-                knownIssue(3315)
-              </script>
+              <call function="'setKnownIssue'">
+                { 'issueId' : '3315' }
+              </call>
 
               <call function="'testCase_Postamble'"/>
             </sequence>
@@ -253,9 +253,9 @@
 
               <!-- #3315: dsreplication initialize-all returns before peer has
                    completed initialisation -->
-              <script>
-                knownIssue(3315)
-              </script>
+              <call function="'setKnownIssue'">
+                { 'issueId' : '3315' }
+              </call>
          
               <call function="'testCase_Postamble'"/>
             </sequence>
