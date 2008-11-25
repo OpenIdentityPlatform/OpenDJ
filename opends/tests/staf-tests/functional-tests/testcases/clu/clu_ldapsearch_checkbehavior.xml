@@ -92,7 +92,8 @@
                 'dsTypesOnly'      : 'True' ,
                 'dsCountEntries'   : 'True' ,
                 'dsBaseDN'         : basedn ,
-                'dsFilter'         : 'uid=user.1*'
+                'dsFilter'         : 'uid=user.1*' ,
+                'knownIssue'       : '2764'
                 }                
               </call>
               
@@ -107,10 +108,6 @@
                 }
               </call>
 
-              <script>
-                knownIssue(2764)
-              </script>
-              
               <call function="'testCase_Postamble'"/>
               
             </sequence>
@@ -373,7 +370,8 @@
               <call function="'checktestString'">
                 { 
                 'returnString'     : returnString ,
-                'expectedString'   : 'Total number of matching entries: 11' 
+                'expectedString'   : 'Total number of matching entries: 11',
+                'issue'            : '2934'
                 }
               </call>
               
@@ -391,10 +389,6 @@
                 'attributeName'    : 'subordinate-base-dn'
                 }
               </call>
-              
-              <script>
-                knownIssue(2934)
-              </script>
               
               <call function="'testCase_Postamble'"/>
               

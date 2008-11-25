@@ -329,12 +329,9 @@
             
             <call function="'checktestString'">
                 { 'returnString'       : returnString ,
-                  'expectedString'     : 'Remaining Grace Login Count:  2' }
+                  'expectedString'     : 'Remaining Grace Login Count:  2' ,
+                  'issue'              : '3430' }
             </call>
-            
-            <script>
-              knownIssue(3430)
-            </script>
             
             <message>
              '%s Verify grace login use times with manage-account ' % msg
@@ -390,13 +387,10 @@
             
             <call function="'checktestString'">
                 { 'returnString'       : returnString ,
-                  'expectedString'     : 'Remaining Grace Login Count:  1' }
+                  'expectedString'     : 'Remaining Grace Login Count:  1',
+                  'issue'              : '3430' }
             </call>
             
-            <script>
-              knownIssue(3430)
-            </script>
-               
             <message>
                'Security: Grace Login:  Search Bind 3'
             </message>
@@ -543,13 +537,10 @@
                     'dsInstanceDn'           : 'uid=kwinters,%s' % basedn ,
                     'dsInstancePswd'         : 'forsook' ,
                     'dsAuthzID'              : 'dn:uid=kwinters,%s' % basedn ,
-                    'dsNewPassword'          : 'newforsook' }
+                    'dsNewPassword'          : 'newforsook' ,
+                    'knownIssue'             : '3249' }
              </call>
              
-            <script>
-              knownIssue(3249)
-            </script>
-    
             <message>
                'Security: Grace Login: Reset Pwd, Admin reset max password age'
             </message>

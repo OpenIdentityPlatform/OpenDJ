@@ -124,12 +124,10 @@
                     'dsInstancePswd'         : 'sprainone' ,
                     'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
                     'dsNewPassword'          : 'sprain' ,
-                    'expectedRC'             : 53 }
+                    'expectedRC'             : 53 ,
+                    'knownIssue'             : '3270' }
             </call>
             
-	    <script>
-              knownIssue(3270)
-            </script>
             <message>
             '%s user binding with password 1' % msg
             </message>
@@ -141,12 +139,9 @@
                 'dsInstancePswd'   : 'sprainone' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base' ,
+                'knownIssue'       : '3270' }
             </call>
-
-            <script>
-              knownIssue(3270)
-            </script>
 
             <call function="'testCase_Postamble'"/>
             
@@ -183,13 +178,10 @@
                     'dsInstanceDn'           : 'uid=scarter,%s' % basedn,
                     'dsInstancePswd'         : 'sprainone' ,
                     'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
-                    'dsNewPassword'          : 'spraintwo'  }
+                    'dsNewPassword'          : 'spraintwo' ,
+                    'knownIssue'             : '3270'  }
             </call>
            
-            <script>
-              knownIssue(3270)
-            </script>
- 
             <message>
             '%s user modifying password back to old passwords' % msg
             </message>
@@ -206,14 +198,11 @@
                     'dsInstancePswd'         : 'spraintwo' ,
                     'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
                     'dsNewPassword'          : '%s' % pwds ,
-                    'expectedRC'             : 53 }
+                    'expectedRC'             : 53 ,
+                    'knownIssue'             : '3270' }
               </call>
             </iterate>
  
-            <script>
-              knownIssue(3270)
-            </script>
-           
             <message>
             '%s user binding with password 2' % msg
             </message>
@@ -225,15 +214,13 @@
                 'dsInstancePswd'   : 'spraintwo' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base' ,
+                'knownIssue'       : '3270' }
             </call>
 
-            <script>
-              knownIssue(3270)
-            </script>
             
-                        <message>
-            '%s Check manage-account get-password-history  ' % msg
+            <message>
+              '%s Check manage-account get-password-history  ' % msg
             </message>
 
             <call function="'manageAccountWithScript'">
@@ -287,13 +274,10 @@
                     'dsInstanceDn'           : 'uid=scarter,%s' % basedn,
                     'dsInstancePswd'         : 'spraintwo' ,
                     'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
-                    'dsNewPassword'          : 'sprainthree'  }
+                    'dsNewPassword'          : 'sprainthree' ,
+                    'knownIssue'             : '3270'  }
             </call>
 
-            <script>
-              knownIssue(3270)
-            </script>
-            
             <message>
             '%s user modifying password back to old passwords' % msg
             </message>
@@ -310,15 +294,11 @@
                     'dsInstancePswd'         : 'sprainthree' ,
                     'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
                     'dsNewPassword'          : '%s' % pwds ,
-                    'expectedRC'             : 53 }
+                    'expectedRC'             : 53 ,
+                    'knownIssue'             : '3270' }
               </call>
             </iterate>
 
-            <script>
-              knownIssue(3270)
-            </script>
-
-            
             <message>
             '%s user binding with password 3' % msg
             </message>
@@ -330,12 +310,9 @@
                 'dsInstancePswd'   : 'sprainthree' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base' ,
+                'knownIssue'       : '3270' }
             </call>
-
-            <script>
-              knownIssue(3270)
-            </script>
 
             <call function="'testCase_Postamble'"/>
             
@@ -373,13 +350,10 @@
                     'dsInstanceDn'           : 'uid=scarter,%s' % basedn,
                     'dsInstancePswd'         : 'sprainthree' ,
                     'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn ,
-                    'dsNewPassword'          : 'sprainfour'   }
+                    'dsNewPassword'          : 'sprainfour' ,
+                    'knownIssue'             : '3270'   }
             </call>
 
-            <script>
-              knownIssue(3270)
-            </script>
-            
             <message>
             '%s user modifying password back to old passwords' % msg
             </message>
@@ -396,14 +370,11 @@
                     'dsInstancePswd'         : 'sprainfour' ,
                     'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
                     'dsNewPassword'          : '%s' % pwds ,
-                    'expectedRC'             : 53 }
+                    'expectedRC'             : 53 ,
+                    'knownIssue'             : '3270' }
               </call>
             </iterate>
             
-            <script>
-              knownIssue(3270)
-            </script>
-
             <message>
             '%s user modifying password to original one' % msg
             </message>
@@ -414,13 +385,10 @@
                     'dsInstanceDn'           : 'uid=scarter,%s' % basedn ,
                     'dsInstancePswd'         : 'sprainfour' ,
                     'dsAuthzID'              : 'dn:uid=scarter, %s' % basedn,
-                    'dsNewPassword'          : 'sprain'   }
+                    'dsNewPassword'          : 'sprain' ,
+                    'knownIssue'             : '3270'   }
             </call>
  
-            <script>
-              knownIssue(3270)
-            </script>
-           
             <message>
             '%s user binding with original password' % msg
             </message>

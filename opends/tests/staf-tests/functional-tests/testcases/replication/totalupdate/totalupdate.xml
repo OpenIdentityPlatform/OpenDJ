@@ -355,10 +355,10 @@
                 [ clientHost, clientPath, master, consumerList, 'o=example' ]
               </call>                
 
-              <script>
-                knownIssue(2599)
-              </script>
-
+              <call function="'setKnownIssue'">
+                { 'issueId' : '2599' }
+              </call>
+              
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>

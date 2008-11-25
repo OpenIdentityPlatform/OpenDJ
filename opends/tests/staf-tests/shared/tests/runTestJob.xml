@@ -345,6 +345,7 @@
 
               startValueDict={}
               stopValueDict={}
+              failValueDict={}
               statusValueDict={}
 
               if level == 'Start':
@@ -386,6 +387,26 @@
 
                 else:
                   errorfh.write('Warning: No match Stop element %s.\n' % element)
+
+              elif level == 'Fail':
+
+                tcpattern=re.compile("(Testcase): (.*),.*,.*, Last Status: fail, Message: KnownIssue: (.*)")
+                tcmatch = tcpattern.search(message)
+
+                if tcmatch:
+                  tctype=tcmatch.group(1)
+                  tcname=tcmatch.group(2)
+                  tcissues=tcmatch.group(3)
+                  if testDict.has_key(tcname):
+                    for key in testDict[tcname].keys():
+                      value=testDict[tcname][key]
+                      failValueDict[key]=value
+
+                  failValueDict['issue']=tcissues
+                  testDict[tcname]=failValueDict
+
+                else:
+                  errorfh.write('Warning: No match Fail element %s.\n' % element)
 
               elif level == 'Status':
 
@@ -625,7 +646,12 @@
             if testDict[tcname].has_key('duration'):
               tcduration=testDict[tcname]['duration']
             else:
-              duration='unknown'
+              tcduration='unknown'
+
+            if testDict[tcname].has_key('issue'):
+              tcissues=testDict[tcname]['issue']
+            else:
+              tcissues='unknown'
 
           else:
             errorfh.write('No key for testcase %s.\n' % tcname)
@@ -661,6 +687,14 @@
           case.setAttribute("start", "%s" % tcstart)
           case.setAttribute("stop", "%s" % tcstop)
           case.setAttribute("duration", "%s" % tcdurationsecs)
+          if tcissues != 'unknown':
+            issues = doc.createElement("issues")
+            tcissuesList=eval(tcissues)
+            for attr in tcissuesList:
+              issue = doc.createElement("issue")
+              issue.setAttribute("id", attr)
+              issues.appendChild(issue)
+            case.appendChild(issues)
           suite.appendChild(case)
 
         # Write out the results
@@ -703,7 +737,7 @@
         htmlfile= '%s/groups.html' % logsReportDir
         testslog= '%s/tests-log.xml' % logsTestsDir
         groupsReport=report_generation()
-        stringParamsDict={ 'tests-log' : testslog }
+        stringParamsDict={}
 
         try:
           groupsReport.transformReport(xslfile,xmlfile,htmlfile,stringParamsDict)
@@ -732,7 +766,7 @@
             xslfile= '%s/xsl/gen-suites-report.xsl' % TESTS_SHARED_DIR
 
             suitesReport=report_generation()
-            stringParamsDict={ 'group' : testGroupName, 'tests-log' : testslog }
+            stringParamsDict={ 'group' : testGroupName }
 
             try:
               suitesReport.transformReport(xslfile,xmlfile,htmlfile,stringParamsDict)

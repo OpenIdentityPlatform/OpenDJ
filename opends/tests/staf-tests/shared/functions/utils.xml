@@ -103,8 +103,14 @@
           the expected return code
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
+      </function-arg-def> 
+      <function-arg-def name="issue" type="optional" default="None">
+        <function-arg-description>
+          Issue id. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
       </function-arg-def>
-    </function-map-args>  
+    </function-map-args>
     <sequence>    
       <if expr="expected == 'noCheck'">
         <return/>
@@ -113,7 +119,7 @@
         <sequence>
           <if expr="STAXCurrentTestcase != None">
             <sequence>
-              <tcstatus result="'pass'"/>          
+              <tcstatus result="'pass'"/>
             </sequence>
           </if>
           <if expr="VERBOSE_MODE == 'True'">
@@ -134,7 +140,17 @@
         <sequence>
           <if expr="STAXCurrentTestcase != None">
             <sequence>
-              <tcstatus result="'fail'"/>          
+              <if expr="issue == None">
+                <tcstatus result="'fail'"/>
+              <else>
+                <sequence>
+                  <call function="'setKnownIssue'">
+                    { 'issueId' : issue }
+                  </call>
+                </sequence>
+              </else>
+              </if>
+                        
             </sequence>
           </if>                   
           <message log="1" level="'Error'">
@@ -146,7 +162,36 @@
     </sequence>
   </function>
 
-  
+<!-- Set Known Issue -->
+  <function name="setKnownIssue">
+    <function-prolog>
+      This function set the known issue flag and maintains list of known issues
+    </function-prolog>
+    
+    <function-map-args>
+      <function-arg-def name="issueId" type="required">
+        <function-arg-description>
+          Issue ID
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    </function-map-args>
+      <sequence>
+        <script>
+          try:
+            issuesList.append(issueId)
+          except:
+            print 'Issues list undefined. Unable to add issue %s' % issueId
+        </script>
+        <message log="1" level="'Error'">
+          'ERROR: HIT **** Known Issue (%s) ****' % issueId
+        </message>
+        <tcstatus result="'fail'">
+          'KnownIssue: %s' % issuesList
+        </tcstatus>
+    </sequence>
+  </function>
+
 <!-- testPassed  -->
 <!-- Set the test status to PASS -->   
   
@@ -194,7 +239,13 @@
           the return string received from command
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
-      </function-arg-def>          
+      </function-arg-def>
+      <function-arg-def name="issue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>               
     </function-map-args>
     
     <sequence>
@@ -211,7 +262,16 @@
         </sequence>
         <else>
           <sequence>
-            <tcstatus result="'fail'"/>
+            <if expr="issue == None">
+              <tcstatus result="'fail'"/>
+            <else>
+              <sequence>
+                <call function="'setKnownIssue'">
+                  { 'issueId' : issue }
+                </call>
+              </sequence>
+            </else>
+            </if>
             <message log="1" level="'Error'">
               'ERROR : Did not find substring, %s, in the return string, %s' % (expectedString, returnString)
             </message>
@@ -238,6 +298,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>          
+      <function-arg-def name="issue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
 
     <sequence>
@@ -253,7 +319,16 @@
         </sequence>
         <else>
           <sequence>
-            <tcstatus result="'fail'"/>
+            <if expr="issue == None">
+              <tcstatus result="'fail'"/>
+            <else>
+              <sequence>
+                <call function="'setKnownIssue'">
+                  { 'issueId' : issue }
+                </call>
+              </sequence>
+            </else>
+            </if>
             <message log="1" level="'Error'">
               'Found substring, %s, in the return string, %s' % (testString, returnString)
             </message>
@@ -1596,6 +1671,11 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+      </function-arg-def>
       <function-arg-def name="logStderr" type="optional" default="True">
         <function-arg-description>
           If true, stderr for the command is redirect to stdout.
@@ -1686,7 +1766,8 @@
         <call function="'checktestRC'">
           { 'returncode' : cmdRC,
             'result'     : cmdOutput,
-            'expected'   : expectedRC
+            'expected'   : expectedRC,
+            'issue'      : knownIssue
           }
         </call>
       </if>
@@ -1985,6 +2066,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -2102,7 +2189,14 @@
             </sequence>
             <else>
               <sequence>
-                <tcstatus result="'fail'"/>      
+                <if expr="knownIssue == None">
+                  <tcstatus result="'fail'"/>
+                <else>
+                  <call function="'setKnownIssue'">
+                    { 'issueId' : knownIssue }
+                  </call>
+                  </else>
+                </if>
                 <message log="1">
                   'ERROR : Differences were found between %s and %s\n%s' % \
                   (outputFile, refFile, diff)

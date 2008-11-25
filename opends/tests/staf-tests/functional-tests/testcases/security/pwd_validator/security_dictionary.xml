@@ -234,11 +234,10 @@
                     'propertyName'           : 'Dictionary' ,
                     'attributeName'          : 'test-reversed-password' ,
                     'attributeValue'         : 'false' ,
-                    'modifyType'             : 'set' }
+                    'modifyType'             : 'set' ,
+                    'knownIssue'             : '2361' }
             </call>
-            <script>
-              knownIssue(2361)
-            </script>
+
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -272,13 +271,10 @@
                 'dsInstancePswd'   : 'tcilfni' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base' ,
+                'knownIssue'       : '2361' }
             </call>
 
-            <script>
-              knownIssue(2361)
-            </script>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -340,18 +336,9 @@
                 'dsInstancePswd'   : 'zymochemistry' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base' ,
+                'knownIssue'       : '2361' }
             </call>
-            
-            <!--  
-              On Windows platforms:
-              "Dictionary: Using Using Reverse Password 2" testcase failed due
-              to issue 2361 and the password for user "uid=abergin" is not 
-              changed => so this testcase failed for this reason
-            -->
-            <script>
-              knownIssue(2361)
-            </script>
             
             <call function="'testCase_Postamble'"/>
             

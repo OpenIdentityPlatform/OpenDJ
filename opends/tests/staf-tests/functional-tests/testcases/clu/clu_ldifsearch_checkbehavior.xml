@@ -234,10 +234,6 @@
                 }                
               </call>              
               
-              <script>
-                returnString = STAXResult[0][1]
-              </script>
-              
               <call function="'CheckMatches'">
                 { 
                 'string2find' : 'dn: ' ,

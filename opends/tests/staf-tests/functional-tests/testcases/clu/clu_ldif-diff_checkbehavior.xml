@@ -91,10 +91,6 @@
                 }
               </call>
               
-              <script>
-                knownIssue(3111)
-              </script>
-              
               <call function="'testCase_Postamble'"/>
               
             </sequence>
@@ -130,13 +126,10 @@
                 'targetLdif' : targetldif ,
                 'outputLdif' : '%s/ldif-diff_withdiffs.out' \
                                % DIRECTORY_INSTANCE_DIR ,
-                'expectedRC' : 1
+                'expectedRC' : 1 ,
+                'knownIssue' : '2641'
                 }
               </call>
-              
-              <script>
-                knownIssue(2641)
-              </script>
               
               <call function="'testCase_Postamble'"/>
               
@@ -179,14 +172,11 @@
               <call function="'compareFile'">
                 { 
                 'outputFile' : 'ldif-diff.out' ,
-                'refFile'    : 'ldif-diff.ref'
+                'refFile'    : 'ldif-diff.ref',
+                'knownIssue' : '3111'
                 }
               </call>
 
-              <script>
-                knownIssue(3111)
-              </script>
-              
               <call function="'testCase_Postamble'"/>
               
             </sequence>
@@ -230,14 +220,11 @@
               <call function="'compareFile'">
                 { 
                 'outputFile' : 'ldif-diff_singlevalue.out' ,
-                'refFile'    : 'ldif-diff_singlevalue.ref'
+                'refFile'    : 'ldif-diff_singlevalue.ref' ,
+                'knownIssue' : '3111'
                 }
               </call>
 
-              <script>
-                knownIssue(3111)
-              </script>
-              
               <call function="'testCase_Postamble'"/>
               
             </sequence>

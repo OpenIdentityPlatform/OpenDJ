@@ -28,9 +28,9 @@
 
 <stax>
 
-  <defaultcall function="schema-dynamic"/>
+  <defaultcall function="schema_dynamic"/>
 
-  <function name="schema-dynamic">
+  <function name="schema_dynamic">
   
     <sequence>
 

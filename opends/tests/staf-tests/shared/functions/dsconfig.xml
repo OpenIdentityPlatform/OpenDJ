@@ -52,7 +52,7 @@
   
   
   <!-- Set property value using dsconfig -->
-  <function name="dsconfigSet">
+  <function name="dsconfigSet" scope="local">
     <function-prolog>
       This function modifies a property value using dsconfig
     </function-prolog>
@@ -156,6 +156,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
       
@@ -192,7 +198,8 @@
           'location'  : location,
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       
@@ -204,7 +211,7 @@
   
   
   <!-- Get property value using dsconfig -->
-  <function name="dsconfigGet">
+  <function name="dsconfigGet" scope="local">
     <function-prolog>
       This function get a property value using dsconfig
     </function-prolog>
@@ -308,6 +315,14 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
+
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+
     </function-map-args>
     <sequence>
       <!-- Local variables -->
@@ -342,7 +357,8 @@
           'location'  : location,
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       <script>
@@ -366,7 +382,7 @@
   <!-- generic wrapper on dsconfig -->
   <!-- can be used to list, get or set a list of attribues -->
   
-  <function name="dsconfig">
+  <function name="dsconfig" scope="local">
     <function-prolog>
       This function lists, get or set a list of attributes using dsconfig
     </function-prolog>
@@ -454,6 +470,13 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
+
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
       <!-- Local variables -->
@@ -482,7 +505,8 @@
           'location'  : location,
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       <return>
@@ -696,6 +720,14 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
+
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+
     </function-map-args>
     <sequence>
       <call function="'dsconfigSet'">
@@ -711,7 +743,8 @@
           'attributeName'       : attributeName,
           'attributeValue'      : attributeValue,
           'modifyType'          : modifyType,
-          'expectedRC'          : expectedRC
+          'expectedRC'          : expectedRC,
+          'knownIssue'          : knownIssue
         }
       </call>
       <return>

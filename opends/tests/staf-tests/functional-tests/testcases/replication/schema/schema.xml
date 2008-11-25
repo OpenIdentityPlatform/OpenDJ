@@ -716,11 +716,10 @@
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
 
+              <call function="'setKnownIssue'">
+                { 'issueId' : '2355' }
+              </call>
 
-              <script>
-                knownIssue(2355)
-              </script>                                 
-                                
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
@@ -820,11 +819,10 @@
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
 
+              <call function="'setKnownIssue'">
+                { 'issueId' : '2355' }
+              </call>
 
-              <script>
-                knownIssue(2355)
-              </script> 
-                                                                
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>                                                                     

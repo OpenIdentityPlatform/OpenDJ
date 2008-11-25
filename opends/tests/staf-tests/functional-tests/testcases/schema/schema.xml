@@ -52,19 +52,21 @@
           
           <call function="'testGroup_Preamble'"/>
       
-      
+          <script>
+            suiteList=[]
+            suiteList.append('schema_rfc_tests')
+            suiteList.append('schema_dynamic')
+          </script>
 
-          <!-- Call the test suites -->
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/schema/schema_rfc_tests.xml' % TESTS_DIR" />
-          <call function="'schema_rfc_tests'" />
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/schema/schema_dynamic.xml' % TESTS_DIR" />
-          <call function="'schema-dynamic'" />
-
-          
-                          
+          <!-- Run the test suites -->
+          <iterate  var="__test" in="suiteList">
+            <sequence> 
+              <import machine="STAF_LOCAL_HOSTNAME"
+                file="'%s/testcases/schema/%s.xml' % (TESTS_DIR,__test)" />
+              <call function="'%s' % __test" />
+            </sequence>
+          </iterate>    
+  
           <call function="'testGroup_Postamble'"/>
 
         </sequence>

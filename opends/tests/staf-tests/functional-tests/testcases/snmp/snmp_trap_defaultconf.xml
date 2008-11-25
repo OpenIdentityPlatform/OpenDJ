@@ -149,16 +149,11 @@
                 'location'      : STAF_REMOTE_HOSTNAME ,
                 'outputFile'    : outputFile ,
                 'timerDuration' : timerDuration ,
-                'timerRC'       : timerRC
+                'timerRC'       : timerRC ,
+                'issue'         : '3435'
                 }
               </call>
               
-              <if expr="is_windows_platform(STAF_REMOTE_HOSTNAME)">
-                <script>
-                  knownIssue(3435)
-                </script>
-              </if>
-
               <call function="'testCase_Postamble'"/>
 
             </sequence>
@@ -360,15 +355,10 @@
                 'location'      : STAF_REMOTE_HOSTNAME ,
                 'outputFile'    : outputFile ,
                 'timerDuration' : timerDuration ,
-                'timerRC'       : timerRC
+                'timerRC'       : timerRC ,
+                'issue'         : '3435'
                 }
               </call>
-              
-              <if expr="is_windows_platform(STAF_REMOTE_HOSTNAME)">
-                <script>
-                  knownIssue(3435)
-                </script>
-              </if>
               
               <call function="'testCase_Postamble'"/>
 

@@ -92,6 +92,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
         </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
       <!-- Local variables -->
@@ -128,7 +134,8 @@
           'arguments'   : STAFCmdParams,
           'location'    : mylocation,
           'name'        : 'Add Entry From LDIF',
-          'expectedRC'  : expectedRC
+          'expectedRC'  : expectedRC,
+          'knownIssue'  : knownIssue
         }
       </call>
       <return>
@@ -354,7 +361,13 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
-        </function-arg-def>    
+      </function-arg-def>    
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -479,7 +492,8 @@
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
           'location'  : location,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       
@@ -549,7 +563,13 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
-        </function-arg-def>    
+      </function-arg-def>    
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
     
@@ -590,7 +610,8 @@
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
           'name'      : 'Modify Entry from ldif file',
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       
@@ -932,6 +953,12 @@
           <function-arg-property-data type="choice" value="False"/>
         </function-arg-property>
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -1100,7 +1127,8 @@
           'location'  : location,
           'outputFile': '%s/%s' % (outputPath, outputFile) ,
           'expectedRC': expectedRC ,
-          'logStderr' : logStderr
+          'logStderr' : logStderr,
+          'knownIssue': knownIssue
         }
       </call>
       <return>
@@ -1193,7 +1221,13 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
-        </function-arg-def>    
+      </function-arg-def>    
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
     
@@ -1247,7 +1281,8 @@
           'arguments' : STAFCmdParams,
           'location'  : location,
           'name'      : 'ldapsearch',
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       <return>
@@ -1317,6 +1352,12 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
       <call function="'runCommand'" >
@@ -1324,7 +1365,8 @@
           'command'   : '%s/ldapsearch%s' % (dsBinPath,fileExt),
           'arguments' : '-h %s -p %s -D "%s" %s -b "%s" "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,extraParams,dsBaseDN,dsFilter),
           'location'  : location,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       <return>
@@ -1387,7 +1429,13 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
-        </function-arg-def>    
+      </function-arg-def>    
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
       <call function="'runCommand'" >
@@ -1395,7 +1443,8 @@
           'location'  : location,
           'command'   : '%s/ldapsearch%s' % (dsBinPath,fileExt),
           'arguments' : '-h %s -p %s %s -b "%s" "%s"' % (dsInstanceHost,dsInstancePort,extraParams,dsBaseDN,dsFilter),
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       <return>
@@ -1598,6 +1647,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
       </function-arg-def>    
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -1708,7 +1763,8 @@
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
           'location'  : location,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       <return>
@@ -1778,6 +1834,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
       </function-arg-def>    
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -1820,7 +1882,8 @@
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
           'location'  : location,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       <return>
@@ -2036,6 +2099,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
       </function-arg-def>    
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -2145,7 +2214,8 @@
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
           'location'  : location,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       <return>
@@ -2221,6 +2291,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
       </function-arg-def>    
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
     
@@ -2260,7 +2336,8 @@
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
           'location'  : location,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       <return>
@@ -2456,6 +2533,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
       </function-arg-def>    
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -2546,7 +2629,8 @@
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
           'location'  : location,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       <return>
@@ -2653,6 +2737,13 @@
       </function-arg-description>
       <function-arg-property name="type" value="string"/>
     </function-arg-def>      
+
+    <function-arg-def name="knownIssue" type="optional" default="None">
+      <function-arg-description>
+        Known issue. Corresponds to an issue number.
+      </function-arg-description>
+      <function-arg-property name="type" value="string" />
+    </function-arg-def>
   
     </function-map-args>
     <sequence>
@@ -2717,7 +2808,8 @@
           'location'  : location,
           'envCmd'    : ['CLASSPATH=%s/../%s/ldap' % (dsPath,remote.reljavadir)],
           'path'      : '%s/../%s/ldap' % (dsPath,remote.reljavadir),
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       
@@ -2928,6 +3020,12 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
       <!-- Local variables -->
@@ -2960,7 +3058,8 @@
           'location'  : location,
           'envCmd'    : ['CLASSPATH=%s/../%s/ldap' % (dsPath,remote.reljavadir)],
           'path'      : '%s/../%s/ldap' % (dsPath,remote.reljavadir),
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       <return>
@@ -3037,6 +3136,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
     </function-map-args>
     <sequence>
     
@@ -3072,7 +3177,8 @@
           'location'  : location,
           'envCmd'    : ['CLASSPATH=%s/../%s/ldap' % (dsPath,remote.reljavadir)],
           'path'      : '%s/../%s/ldap' % (dsPath,remote.reljavadir),
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
         }
       </call>
       <return>
