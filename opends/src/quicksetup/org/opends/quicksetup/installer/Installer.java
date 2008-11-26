@@ -1032,7 +1032,7 @@ public abstract class Installer extends GuiApplication {
             pwd);
         trustManager.addCertificate(SELF_SIGNED_CERT_ALIAS,
             new File(getTemporaryCertificatePath()));
-        createFile(getKeystorePinPath(), pwd);
+        createProtectedFile(getKeystorePinPath(), pwd);
         f = new File(getTemporaryCertificatePath());
         f.delete();
 
@@ -1051,7 +1051,7 @@ public abstract class Installer extends GuiApplication {
             sec.getKeystorePassword());
         trustManager.addCertificate(sec.getAliasToUse(),
             new File(getTemporaryCertificatePath()));
-        createFile(getKeystorePinPath(), sec.getKeystorePassword());
+        createProtectedFile(getKeystorePinPath(), sec.getKeystorePassword());
         f = new File(getTemporaryCertificatePath());
         f.delete();
         break;
@@ -1069,7 +1069,7 @@ public abstract class Installer extends GuiApplication {
             sec.getKeystorePassword());
         trustManager.addCertificate(sec.getAliasToUse(),
             new File(getTemporaryCertificatePath()));
-        createFile(getKeystorePinPath(), sec.getKeystorePassword());
+        createProtectedFile(getKeystorePinPath(), sec.getKeystorePassword());
         f = new File(getTemporaryCertificatePath());
         f.delete();
         break;
@@ -1087,7 +1087,7 @@ public abstract class Installer extends GuiApplication {
             sec.getKeystorePassword());
         trustManager.addCertificate(sec.getAliasToUse(),
             new File(getTemporaryCertificatePath()));
-        createFile(getKeystorePinPath(), sec.getKeystorePassword());
+        createProtectedFile(getKeystorePinPath(), sec.getKeystorePassword());
         f = new File(getTemporaryCertificatePath());
         f.delete();
         break;
@@ -1105,7 +1105,7 @@ public abstract class Installer extends GuiApplication {
             sec.getKeystorePassword());
         trustManager.addCertificate(sec.getAliasToUse(),
             new File(getTemporaryCertificatePath()));
-        createFile(getKeystorePinPath(), sec.getKeystorePassword());
+        createProtectedFile(getKeystorePinPath(), sec.getKeystorePassword());
         break;
       default:
         throw new IllegalStateException("Unknown certificate type: "+certType);

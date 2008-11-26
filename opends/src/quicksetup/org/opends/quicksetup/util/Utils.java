@@ -634,12 +634,15 @@ public class Utils
 
   /**
    * Creates a file on the specified path with the contents of the provided
-   * String.
+   * String.  The file is protected, so that 'others' have no access to it.
    * @param path the path where the file will be created.
    * @param content the String with the contents of the file.
    * @throws IOException if something goes wrong.
+   * @throws InterruptedException if there is a problem changing the permissions
+   * of the file.
    */
-  public static void createFile(String path, String content) throws IOException
+  public static void createProtectedFile(String path, String content)
+  throws IOException, InterruptedException
   {
     FileWriter file = new FileWriter(path);
     PrintWriter out = new PrintWriter(file);
@@ -648,6 +651,11 @@ public class Utils
 
     out.flush();
     out.close();
+
+    if (!isWindows())
+    {
+      setPermissionsUnix(path, "640");
+    }
   }
 
   /**
