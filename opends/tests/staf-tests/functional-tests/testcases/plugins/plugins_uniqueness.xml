@@ -121,6 +121,17 @@
         'optionsString'        : '--set enabled:true',
         'expectedRC'           : 0 } 
     </call>	
+
+    <message>'######  Get the UID Unique Attributes ###### '</message>                
+    <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'get-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'UID Unique Attribute',
+        'expectedRC'           : 0 } 
+    </call>
     
     <call function="'testCase_Postamble'"/>
   </sequence>
@@ -207,6 +218,16 @@
         'expectedRC'             : 0 } 
     </call>	        
 
+    <message>'######  Get the UID Unique Attributes ###### '</message>                
+    <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'get-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'UID Unique Attribute',
+        'expectedRC'           : 0 } 
+    </call>
      
     <message>'######  Add an entry containing a mail already present in the DIT ###### '</message>
     <!-- Add an entry --> 
@@ -260,6 +281,17 @@
 
     <message>'######  Set the type to mail  and telephoneNumber ###### '</message>
     <message>' '</message>        
+
+    <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'set-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'UID Unique Attribute',
+        'optionsString'        : '--set type:mail',
+        'expectedRC'           : 0 } 
+    </call>
        
     <call function="'dsconfig'">
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
@@ -268,10 +300,20 @@
         'subcommand'           : 'set-plugin-prop' ,
         'objectType'           : 'plugin-name' ,
         'objectName'           : 'UID Unique Attribute',
-        'optionsString'        : '--set type:mail --set type:telephoneNumber',
+        'optionsString'        : '--add type:telephoneNumber',
         'expectedRC'           : 0 } 
     </call>	        
-                
+
+    <message>'######  Get the UID Unique Attributes ###### '</message>                
+    <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'get-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'UID Unique Attribute',
+        'expectedRC'           : 0 } 
+    </call>
      
     <message>'######  Add an entry containing a mail already present in the DIT ###### '</message>
     <!-- Add an entry --> 
@@ -406,7 +448,17 @@
         'expectedRC'           : 0 } 
     </call>	        
 
-
+    <message>'######  Get the UID Unique Attributes ###### '</message>                
+    <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'get-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'UID Unique Attribute',
+        'expectedRC'           : 0 } 
+    </call>
+    
     <message>'######  Add an entry containing a telephoneNumber already present in the DIT ###### '</message>
     <!-- Add an entry --> 
     <!-- the Add must be refused with the error 19 -->
@@ -514,7 +566,17 @@
         'expectedRC'           : 0 } 
     </call>	        
                 
-
+    <message>'######  Get the UID Unique Attributes ###### '</message>                
+    <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'get-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'UID Unique Attribute',
+        'expectedRC'           : 0 } 
+    </call>
+    
     <message>'######  Add an entry under dc=example,%s ###### ' % DIRECTORY_INSTANCE_SFX</message>
     <!-- Add an entry --> 
     <!-- the Add must be added -->    
@@ -648,6 +710,17 @@
         'expectedRC'           : 0 } 
     </call>	
 
+    <message>'######  Get the UID Unique Attributes ###### '</message>                
+    <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'get-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'UID Unique Attribute',
+        'expectedRC'           : 0 } 
+    </call>
+    
     <message>'######  Add an entry ###### '</message>
     <message>'-- The creation must be  accepted '</message>
     <!-- Add an entry --> 
@@ -734,6 +807,16 @@
         'expectedRC'           : 0 } 
     </call>	
   
+    <message>'######  Get the UID Unique Attributes ###### '</message>                
+    <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'get-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'UID Unique Attribute',
+        'expectedRC'           : 0 } 
+    </call>
         
     <call function="'testCase_Postamble'"/>
   </sequence>
