@@ -179,7 +179,8 @@
       <sequence>
         <script>
           try:
-            issuesList.append(issueId)
+            if issueId not in issuesList:
+              issuesList.append(issueId)
           except:
             print 'Issues list undefined. Unable to add issue %s' % issueId
         </script>
