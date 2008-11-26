@@ -31,6 +31,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
@@ -63,8 +64,7 @@ public class ControlPanel
   public static void main(String[] args) {
     try
     {
-      UIManager.setLookAndFeel(
-          UIManager.getSystemLookAndFeelClassName());
+      initLookAndFeel();
     }
     catch (Throwable t)
     {
@@ -120,6 +120,38 @@ public class ControlPanel
     {
       controlCenterPane.getLoginDialog().setVisible(true);
       controlCenterPane.getLoginDialog().toFront();
+    }
+  }
+
+  private static void initLookAndFeel() throws Throwable
+  {
+    if (SwingUtilities.isEventDispatchThread())
+    {
+      UIManager.setLookAndFeel(
+          UIManager.getSystemLookAndFeelClassName());
+    }
+    else
+    {
+      final Throwable[] ts = {null};
+      SwingUtilities.invokeAndWait(new Runnable()
+      {
+        public void run()
+        {
+          try
+          {
+            UIManager.setLookAndFeel(
+                UIManager.getSystemLookAndFeelClassName());
+          }
+          catch (Throwable t)
+          {
+            ts[0] = t;
+          }
+        }
+      });
+      if (ts[0] != null)
+      {
+        throw ts[0];
+      }
     }
   }
 }
