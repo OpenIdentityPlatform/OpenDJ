@@ -725,17 +725,37 @@ public class UIFactory
   {
     if (!initialized)
     {
-      System.setProperty("swing.aatext", "true");
-      try
+      Runnable r = new Runnable()
       {
-        UIManager.setLookAndFeel(
-            UIManager.getSystemLookAndFeelClassName());
-      } catch (Exception ex)
+        public void run()
+        {
+          System.setProperty("swing.aatext", "true");
+          try
+          {
+            UIManager.setLookAndFeel(
+                UIManager.getSystemLookAndFeelClassName());
+          } catch (Throwable t)
+          {
+            t.printStackTrace();
+          }
+          JFrame.setDefaultLookAndFeelDecorated(false);
+        }
+      };
+      if (SwingUtilities.isEventDispatchThread())
       {
-        ex.printStackTrace();
+        r.run();
       }
-      JFrame.setDefaultLookAndFeelDecorated(false);
-
+      else
+      {
+        try
+        {
+          SwingUtilities.invokeAndWait(r);
+        }
+        catch (Throwable t)
+        {
+          t.printStackTrace();
+        }
+      }
       initialized = true;
     }
   }

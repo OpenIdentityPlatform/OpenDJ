@@ -177,13 +177,9 @@ public class ControlPanelLauncher
       {
         try
         {
-          // Setup MacOSX native menu bar before AWT is loaded.
-          Utils.setMacOSXMenuBar(
-              AdminToolMessages.INFO_CONTROL_PANEL_TITLE.get());
           try
           {
-            UIManager.setLookAndFeel(
-                UIManager.getSystemLookAndFeelClassName());
+            initLookAndFeel();
           }
           catch (Throwable t)
           {
@@ -237,7 +233,48 @@ public class ControlPanelLauncher
     System.setErr(printStream);
     return returnValue[0];
   }
+
+  private static void initLookAndFeel() throws Throwable
+  {
+    if (SwingUtilities.isEventDispatchThread())
+    {
+//    Setup MacOSX native menu bar before AWT is loaded.
+      Utils.setMacOSXMenuBar(
+          AdminToolMessages.INFO_CONTROL_PANEL_TITLE.get());
+
+      UIManager.setLookAndFeel(
+          UIManager.getSystemLookAndFeelClassName());
+    }
+    else
+    {
+      final Throwable[] ts = {null};
+      SwingUtilities.invokeAndWait(new Runnable()
+      {
+        public void run()
+        {
+          try
+          {
+//          Setup MacOSX native menu bar before AWT is loaded.
+            Utils.setMacOSXMenuBar(
+                AdminToolMessages.INFO_CONTROL_PANEL_TITLE.get());
+
+            UIManager.setLookAndFeel(
+                UIManager.getSystemLookAndFeelClassName());
+          }
+          catch (Throwable t)
+          {
+            ts[0] = t;
+          }
+        }
+      });
+      if (ts[0] != null)
+      {
+        throw ts[0];
+      }
+    }
+  }
 }
+
 
 /**
  * The enumeration containing the different return codes that the command-line
