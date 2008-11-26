@@ -654,7 +654,7 @@ public class Utils
 
     if (!isWindows())
     {
-      setPermissionsUnix(path, "640");
+      setPermissionsUnix(path, "600");
     }
   }
 
