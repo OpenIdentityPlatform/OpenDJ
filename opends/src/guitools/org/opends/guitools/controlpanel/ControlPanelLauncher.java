@@ -43,7 +43,6 @@ import org.opends.guitools.controlpanel.util.ControlPanelLog;
 import org.opends.messages.AdminToolMessages;
 import org.opends.messages.Message;
 import org.opends.quicksetup.Installation;
-import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
@@ -131,9 +130,9 @@ public class ControlPanelLauncher
       if (exitCode != 0)
       {
         String logFileName = null;
-        if (QuickSetupLog.getLogFile() != null)
+        if (ControlPanelLog.getLogFile() != null)
         {
-          logFileName = QuickSetupLog.getLogFile().toString();
+          logFileName = ControlPanelLog.getLogFile().toString();
         }
         if (logFileName != null)
         {
@@ -233,7 +232,7 @@ public class ControlPanelLauncher
     catch (InterruptedException ie)
     {
       /* An error occurred, so the return value will be -1.  We got nothing to
-    do with this exception. */
+      do with this exception. */
     }
     System.setErr(printStream);
     return returnValue[0];
