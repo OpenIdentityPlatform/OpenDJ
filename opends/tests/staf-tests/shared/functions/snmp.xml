@@ -779,7 +779,16 @@
             </sequence>
             <else>
               <sequence>
-                <tcstatus result="'fail'"></tcstatus>
+                <if expr="issue == None">
+                  <tcstatus result="'fail'"/>
+                <else>
+                  <sequence>
+                    <call function="'setKnownIssue'">
+                      { 'issueId' : issue }
+                    </call>
+                  </sequence>
+                </else>
+                </if>
 
                 <message>
                   'Process TrapListener still running after timer duration: %s' \
@@ -836,16 +845,7 @@
           </if>
         </sequence>
         <else>
-           <if expr="issue == None">
-              <tcstatus result="'fail'"/>
-            <else>
-              <sequence>
-                <call function="'setKnownIssue'">
-                  { 'issueId' : issue }
-                </call>
-              </sequence>
-            </else>
-            </if>
+          <tcstatus result="'fail'"></tcstatus>
         </else>
       </if>
 
