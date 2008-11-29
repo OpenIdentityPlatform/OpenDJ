@@ -215,6 +215,8 @@ public abstract class Launcher {
    */
   protected int launchGui(final String[] args)
   {
+//  Setup MacOSX native menu bar before AWT is loaded.
+    Utils.setMacOSXMenuBar(getFrameTitle());
     final int[] returnValue =
       { -1 };
     Thread t = new Thread(new Runnable()
@@ -223,8 +225,6 @@ public abstract class Launcher {
       {
         try
         {
-          // Setup MacOSX native menu bar before AWT is loaded.
-          Utils.setMacOSXMenuBar(getFrameTitle());
           SplashScreen.main(args);
           returnValue[0] = 0;
         }
