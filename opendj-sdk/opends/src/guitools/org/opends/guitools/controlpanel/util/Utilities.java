@@ -895,16 +895,31 @@ public class Utilities
   /**
    * Returns an ImageIcon or <CODE>null</CODE> if the path was invalid.
    * @param path the path of the image.
+   * @param loader the class loader to use to load the image.  If
+   * <CODE>null</CODE> this class class loader will be used.
    * @return an ImageIcon or <CODE>null</CODE> if the path was invalid.
    */
-  public static ImageIcon createImageIcon(String path) {
-    java.net.URL imgURL = ControlPanel.class.getClassLoader().getResource(path);
+  public static ImageIcon createImageIcon(String path, ClassLoader loader) {
+    if (loader == null)
+    {
+      loader = ControlPanel.class.getClassLoader();
+    }
+    java.net.URL imgURL = loader.getResource(path);
     if (imgURL != null) {
       return new ImageIcon(imgURL);
     } else {
       System.err.println("Couldn't find file: " + path);
       return null;
     }
+  }
+
+  /**
+   * Returns an ImageIcon or <CODE>null</CODE> if the path was invalid.
+   * @param path the path of the image.
+   * @return an ImageIcon or <CODE>null</CODE> if the path was invalid.
+   */
+  public static ImageIcon createImageIcon(String path) {
+    return createImageIcon(path, null);
   }
 
   /**
