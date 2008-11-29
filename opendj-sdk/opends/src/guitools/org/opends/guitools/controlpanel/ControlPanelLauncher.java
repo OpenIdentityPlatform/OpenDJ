@@ -236,12 +236,12 @@ public class ControlPanelLauncher
 
   private static void initLookAndFeel() throws Throwable
   {
+//  Setup MacOSX native menu bar before AWT is loaded.
+    Utils.setMacOSXMenuBar(
+        AdminToolMessages.INFO_CONTROL_PANEL_TITLE.get());
+
     if (SwingUtilities.isEventDispatchThread())
     {
-//    Setup MacOSX native menu bar before AWT is loaded.
-      Utils.setMacOSXMenuBar(
-          AdminToolMessages.INFO_CONTROL_PANEL_TITLE.get());
-
       UIManager.setLookAndFeel(
           UIManager.getSystemLookAndFeelClassName());
     }
@@ -254,10 +254,6 @@ public class ControlPanelLauncher
         {
           try
           {
-//          Setup MacOSX native menu bar before AWT is loaded.
-            Utils.setMacOSXMenuBar(
-                AdminToolMessages.INFO_CONTROL_PANEL_TITLE.get());
-
             UIManager.setLookAndFeel(
                 UIManager.getSystemLookAndFeelClassName());
           }
