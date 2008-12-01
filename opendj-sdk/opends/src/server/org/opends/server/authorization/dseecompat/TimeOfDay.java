@@ -71,12 +71,19 @@ public class TimeOfDay implements KeywordBindRule {
      */
     public static TimeOfDay decode(String expr,  EnumBindRuleType type)
     throws AciException  {
+        int valueAsInt = 0;
         if (!Pattern.matches(timeofdayRegex, expr))
         {
             Message message = WARN_ACI_SYNTAX_INVALID_TIMEOFDAY.get(expr);
             throw new AciException(message);
          }
-        int valueAsInt = Integer.parseInt(expr);
+        try {
+            valueAsInt = Integer.parseInt(expr);
+        } catch (NumberFormatException nfe) {
+          Message message =
+           WARN_ACI_SYNTAX_INVALID_TIMEOFDAY_FORMAT.get(expr, nfe.getMessage());
+            throw new AciException(message);
+        }
         if ((valueAsInt < 0) || (valueAsInt > 2359))
         {
             Message message = WARN_ACI_SYNTAX_INVALID_TIMEOFDAY_RANGE.get(expr);

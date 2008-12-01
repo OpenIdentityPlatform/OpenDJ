@@ -534,6 +534,11 @@ public class BindRule {
                 rule = UserAttr.decode(expr, op);
                 break;
             }
+            case SSF:
+            {
+                rule = SSF.decode(expr, op);
+                break;
+            }
             default:  {
                 Message message = WARN_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD.get(
                     keyword.toString());

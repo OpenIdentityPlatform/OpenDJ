@@ -34,6 +34,8 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.security.cert.Certificate;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
@@ -76,15 +78,11 @@ public class TLSConnectionSecurityProvider
    */
   private static final DebugTracer TRACER = getTracer();
 
-
-
   /**
    * The SSL context name that should be used for this TLS connection security
    * provider.
    */
   private static final String SSL_CONTEXT_INSTANCE_NAME = "TLS";
-
-
 
   // The buffer that will be used when reading clear-text data.
   private ByteBuffer clearInBuffer;
@@ -127,6 +125,27 @@ public class TLSConnectionSecurityProvider
   // The set of protocols to allow.
   private String[] enabledProtocols;
 
+  //Map of cipher phrases to effective key size (bits). Taken from the
+  //following RFCs: 5289, 4346, 3268,4132 and 4162.
+  private static final Map<String, Integer> cipherMap;
+
+  static {
+      cipherMap = new LinkedHashMap<String, Integer>();
+      cipherMap.put("_WITH_AES_256_CBC_", new Integer(256));
+      cipherMap.put("_WITH_CAMELLIA_256_CBC_", new Integer(256));
+      cipherMap.put("_WITH_AES_256_GCM_", new Integer(256));
+      cipherMap.put("_WITH_3DES_EDE_CBC_", new Integer(168));
+      cipherMap.put("_WITH_AES_128_GCM_", new Integer(128));
+      cipherMap.put("_WITH_SEED_CBC_", new Integer(128));
+      cipherMap.put("_WITH_CAMELLIA_128_CBC_", new Integer(128));
+      cipherMap.put("_WITH_AES_128_CBC_", new Integer(128));
+      cipherMap.put("_WITH_IDEA_CBC_", new Integer(128));
+      cipherMap.put("_WITH_DES_CBC_", new Integer(56));
+      cipherMap.put("_WITH_RC2_CBC_40_", new Integer(40));
+      cipherMap.put("_WITH_RC4_40_", new Integer(40));
+      cipherMap.put("_WITH_DES40_CBC_", new Integer(40));
+      cipherMap.put("_WITH_NULL_", new Integer(0));
+  };
 
 
   /**
@@ -175,7 +194,7 @@ public class TLSConnectionSecurityProvider
 
     // Create an SSL session based on the configured key and trust stores in the
     // Directory Server.
-    KeyManagerProvider keyManagerProvider =
+    KeyManagerProvider<?> keyManagerProvider =
          DirectoryServer.getKeyManagerProvider(
               clientConnection.getKeyManagerProviderDN());
     if (keyManagerProvider == null)
@@ -183,7 +202,7 @@ public class TLSConnectionSecurityProvider
       keyManagerProvider = new NullKeyManagerProvider();
     }
 
-    TrustManagerProvider trustManagerProvider =
+    TrustManagerProvider<?> trustManagerProvider =
          DirectoryServer.getTrustManagerProvider(
               clientConnection.getTrustManagerProviderDN());
     if (trustManagerProvider == null)
@@ -1038,6 +1057,26 @@ handshakeStatusLoop:
 
       return null;
     }
+  }
+
+
+  /**
+   * Return the Security Strength FActor of the cipher used in the current
+   * TLS session.
+   *
+   * @return The cipher SSF used in the current TLS session.
+   */
+
+  public int getSSF() {
+      int cipherKeySSF = 0;
+      String cipherString = sslEngine.getSession().getCipherSuite();
+      for(Map.Entry<String, Integer> mapEntry : cipherMap.entrySet()) {
+          if(cipherString.indexOf(mapEntry.getKey()) >= 0) {
+              cipherKeySSF = mapEntry.getValue().intValue();
+              break;
+          }
+      }
+      return cipherKeySSF;
   }
 }
 

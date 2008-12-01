@@ -498,5 +498,13 @@ public class NullConnectionSecurityProvider
       }
     }
   }
+
+  /**
+   * Always returns 0, there is no cipher used.
+   * @return Returns 0 always.
+   */
+  public int getSSF() {
+      return 0;
+  }
 }
 

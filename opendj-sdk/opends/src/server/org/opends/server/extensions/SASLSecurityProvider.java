@@ -454,4 +454,14 @@ public class SASLSecurityProvider extends ConnectionSecurityProvider {
     public boolean isActive() {
         return saslContext.isBindComplete();
     }
+
+    /**
+     * Return the cipher Security Strength Function of the cipher used in the
+     * SSAL context.
+     *
+     * @return The cipher SSF of the cipher used in the SASL context.
+     */
+    public int getSSF() {
+        return saslContext.getSSF();
+    }
 }

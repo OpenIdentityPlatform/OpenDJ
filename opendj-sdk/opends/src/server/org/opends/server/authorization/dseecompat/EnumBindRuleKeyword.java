@@ -77,7 +77,12 @@ public enum EnumBindRuleKeyword {
      * The enumeration type when the bind rule has specified keyword of
      * authmethod.
      */
-    AUTHMETHOD ("authmethod");
+    AUTHMETHOD ("authmethod"),
+    /**
+     * The enumeration type when the bind rule has specified keyword of
+     * ssf.
+     */
+    SSF("ssf");
 
     /*
      * The keyword name.

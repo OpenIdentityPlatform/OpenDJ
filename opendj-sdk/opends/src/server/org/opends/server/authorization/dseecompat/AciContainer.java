@@ -980,4 +980,11 @@ implements AciTargetMatchContext, AciEvalContext {
     else
       evalAllAttributes &= ~v;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public int getCurrentSSF() {
+      return clientConnection.getConnectionSecurityProvider().getSSF();
+  }
 }

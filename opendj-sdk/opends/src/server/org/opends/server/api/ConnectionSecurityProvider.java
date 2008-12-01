@@ -223,5 +223,12 @@ public abstract class ConnectionSecurityProvider
    *          already disconnected the client.
    */
   public abstract boolean writeData(ByteBuffer clearData);
+
+  /**
+   * Return the Security Strength Factor.
+   *
+   * @return The SSF.
+   */
+  public abstract int getSSF();
 }
 
