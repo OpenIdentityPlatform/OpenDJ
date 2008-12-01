@@ -86,7 +86,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
     private String serverFQDN;
 
     //The SASL mechanism name.
-    private final String mech;
+    private final String mechanism;
 
     //The authorization entry used in the authentication.
     private Entry authEntry=null;
@@ -116,19 +116,19 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
      * @param saslProps The properties to use in creating the SASL server.
      * @param serverFQDN The fully qualified domain name to use in creating the
      *                   SASL server.
-     * @param mech The SASL mechanism name.
+     * @param mechanism The SASL mechanism name.
      * @param identityMapper The identity mapper to use in mapping identities.
      *
      * @throws SaslException If the SASL server can not be instantiated.
      */
     private SASLContext(HashMap<String, String>saslProps, String serverFQDN,
-                          String mech, IdentityMapper<?> identityMapper)
+                          String mechanism, IdentityMapper<?> identityMapper)
                           throws SaslException {
         this.identityMapper = identityMapper;
-        this.mech = mech;
+        this.mechanism = mechanism;
         this.saslProps = saslProps;
         this.serverFQDN = serverFQDN;
-        if(mech.equals(SASL_MECHANISM_DIGEST_MD5)) {
+        if(mechanism.equals(SASL_MECHANISM_DIGEST_MD5)) {
             initSASLServer();
         }
     }
@@ -141,7 +141,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
      * @param saslProps The properties to use in creating the SASL server.
      * @param serverFQDN The fully qualified domain name to use in creating the
      *                   SASL server.
-     * @param mech The SASL mechanism name.
+     * @param mechanism The SASL mechanism name.
      * @param identityMapper The identity mapper to use in mapping identities.
      * @return A fully instantiated SASL context to use in processing a SASL
      *         bind for the GSSAPI or DIGEST-MD5 mechanisms.
@@ -150,21 +150,19 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
      */
     public static
     SASLContext createSASLContext(HashMap<String,String>saslProps,
-                        String serverFQDN, String mech,
+                        String serverFQDN, String mechanism,
                         IdentityMapper<?> identityMapper) throws SaslException {
-        return (new SASLContext(saslProps,serverFQDN, mech, identityMapper));
+      return (new SASLContext(saslProps,serverFQDN, mechanism, identityMapper));
     }
 
 
     /**
      * Initialize the SASL server using parameters specified in the
      * constructor.
-     *
-     * @throws SaslException If the SASL server can not be instantiated.
      */
     private void initSASLServer() throws SaslException {
-        this.saslServer = Sasl.createSaslServer(mech, SASL_DEFAULT_PROTOCOL,
-                                                serverFQDN, saslProps, this);
+       this.saslServer = Sasl.createSaslServer(mechanism, SASL_DEFAULT_PROTOCOL,
+                                               serverFQDN, saslProps, this);
     }
 
 
@@ -189,7 +187,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
     /**
      * Unwrap the specified byte array using the provided offset and length
      * values. Used only when the SASL server has negotiated
-     * confidentiality/integrity  processing.
+     * confidentiality or integrity processing.
      *
      * @param bytes The byte array to unwrap.
      * @param offset The offset in the array.
@@ -230,15 +228,38 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
           return Integer.parseInt(sizeStr);
     }
 
+    /**
+     * Return the Security Strength Factor of the cipher if the QOP property
+     * is confidentiality, or, 1 if it is integrity.
+     *
+     * @return The SSF of the cipher used during confidentiality or
+     *         integrity processing.
+     */
+    int getSSF() {
+        int ssf = 0;
+        String qop = (String) saslServer.getNegotiatedProperty(Sasl.QOP);
+        if(qop.equalsIgnoreCase(integrity)) {
+            ssf = 1;
+        } else {
+            String negStrength =
+                (String) saslServer.getNegotiatedProperty(Sasl.STRENGTH);
+            if(negStrength.equalsIgnoreCase("low"))
+                ssf = 40;
+            else if (negStrength.equalsIgnoreCase("medium"))
+                ssf = 56;
+            else
+                ssf = 128;
+        }
+        return ssf;
+    }
 
     /**
-     * Return true if the bind has been completed. If the context is supporting
-     * confidentiality/integrity, the security provider will need to check
-     * if the context has completed its handshakes with the client and is
-     * ready to process confidentiality/integrity messages.
+     * Return {@code true} if the bind has been completed. If the context is
+     * supporting confidentiality or integrity, the security provider will need
+     * to check if the context has completed the handshake with the client
+     * and is ready to process confidentiality or integrity messages.
      *
-     * @return {@code true} if the handshaking is complete,
-     *         {@code false} if further handshaking is needed.
+     * @return {@code true} if the handshaking is complete.
      */
     boolean isBindComplete() {
           return saslServer.isComplete();
@@ -247,10 +268,10 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
 
     /**
      * Return true if the SASL server has negotiated with the client to support
-     * confidentiality/integrity.
+     * confidentiality or integrity.
      *
-     * @return {@code true} if the context support
-     *         confidentiality/integrity, or, {@code false} otherwise.
+     * @return {@code true} if the context supports confidentiality or
+     *         integrity.
      */
     private boolean isConfidentialIntegrity() {
       boolean ret = false;
@@ -312,7 +333,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
      *
      * @param authInfo The authentication information to use in the check.
      * @return {@code true} if the authentication information has
-     *         PROXIED_AUTH privileges, {@code false} otherwise.
+     *         PROXIED_AUTH privileges.
      */
     private boolean
     hasPrivilege(AuthenticationInfo authInfo) {
@@ -334,7 +355,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
      *
      * @param authInfo The authentication information to check access on.
      * @return {@code true} if the authentication information has
-     *         proxy access, {@code false} otherwise.
+     *         proxy access.
      */
     private boolean
     hasPermission(AuthenticationInfo authInfo) {
@@ -388,7 +409,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
                 authorizeCallback((AuthorizeCallback) callback);
             } else {
                 Message message =
-                    INFO_SASL_UNSUPPORTED_CALLBACK.get(mech,
+                    INFO_SASL_UNSUPPORTED_CALLBACK.get(mechanism,
                                                       String.valueOf(callback));
                 throw new UnsupportedCallbackException(callback,
                         message.toString());
@@ -586,7 +607,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
           clearPasswords = pwPolicyState.getClearPasswords();
           if ((clearPasswords == null) || clearPasswords.isEmpty()) {
               setCallbackMsg(
-                 ERR_SASL_NO_REVERSIBLE_PASSWORDS.get(mech,
+                 ERR_SASL_NO_REVERSIBLE_PASSWORDS.get(mechanism,
                                             String.valueOf(authEntry.getDN())));
             return;
           }
@@ -596,7 +617,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
             setCallbackMsg(ERR_SASL_CANNOT_GET_REVERSIBLE_PASSWORDS.get(
-                    String.valueOf(authEntry.getDN()),mech,
+                    String.valueOf(authEntry.getDN()),mechanism,
                     String.valueOf(e)));
           return;
         }
@@ -625,13 +646,13 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
                     TRACER.debugCaught(DebugLogLevel.ERROR, e);
                 }
                  setCallbackMsg(ERR_SASL_CANNOT_DECODE_USERNAME_AS_DN.get(
-                                      mech,
+                                      mechanism,
                                       userName, e.getMessageObject()));
                 return;
             }
             if (userDN.isNullDN()) {
               setCallbackMsg(ERR_SASL_USERNAME_IS_NULL_DN.get(
-                                                      mech));
+                                                      mechanism));
               return;
             }
             DN rootDN = DirectoryServer.getActualRootBindDN(userDN);
@@ -646,7 +667,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
             if (lowerUserName.startsWith("u:")) {
                 if (lowerUserName.equals("u:")) {
                     setCallbackMsg(ERR_SASL_ZERO_LENGTH_USERNAME.get(
-                            mech,mech));
+                            mechanism,mechanism));
                     return;
                 }
                 entryID = userName.substring(2);
@@ -707,8 +728,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
     * The method performs all GSSAPI processing. It is run as the context of
     * the login context performed by the GSSAPI mechanism handler. See comments
     * for processing overview.
-    * @return {@code true} if the authentication processing was successful,
-    *         or, {@code false} otherwise.
+    * @return {@code true} if the authentication processing was successful.
     */
    public Boolean run() {
        ClientConnection clientConn = bindOp.getClientConnection();
@@ -751,7 +771,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
                bindOp.setSASLAuthUserEntry(authEntry);
                AuthenticationInfo authInfo =
                     new AuthenticationInfo(authEntry, authzEntry,
-                                    mech,
+                                    mechanism,
                                    DirectoryServer.isRootDN(authEntry.getDN()));
                bindOp.setAuthenticationInfo(authInfo);
                //If confidentiality/integrity has been negotiated then
@@ -760,7 +780,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
                //negotiated, dispose of the SASL server.
                if(isConfidentialIntegrity()) {
                    SASLSecurityProvider secProvider =
-                       new SASLSecurityProvider(clientConn, mech, this);
+                       new SASLSecurityProvider(clientConn, mechanism, this);
                    LDAPClientConnection ldapConn =
                        (LDAPClientConnection) clientConn;
                        ldapConn.setSASLConnectionSecurityProvider(secProvider);
@@ -778,7 +798,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
                TRACER.debugCaught(DebugLogLevel.ERROR, e);
            }
            Message msg =
-               ERR_SASL_PROTOCOL_ERROR.get(mech, getExceptionMessage(e));
+               ERR_SASL_PROTOCOL_ERROR.get(mechanism, getExceptionMessage(e));
            handleError(msg);
            return false;
        }
@@ -806,7 +826,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
                TRACER.debugCaught(DebugLogLevel.ERROR, e);
            }
            Message msg =
-               ERR_SASL_PROTOCOL_ERROR.get(mech, getExceptionMessage(e));
+               ERR_SASL_PROTOCOL_ERROR.get(mechanism, getExceptionMessage(e));
            handleError(msg);
        }
    }
@@ -832,7 +852,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
                TRACER.debugCaught(DebugLogLevel.ERROR, e);
            }
            Message msg =
-               ERR_SASL_PROTOCOL_ERROR.get(mech,getExceptionMessage(e));
+               ERR_SASL_PROTOCOL_ERROR.get(mechanism,getExceptionMessage(e));
            handleError(msg);
        }
    }
@@ -850,7 +870,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
        if ((clientCredentials == null) ||
                (clientCredentials.value().length == 0)) {
            Message msg =
-               ERR_SASL_NO_CREDENTIALS.get(mech, mech);
+               ERR_SASL_NO_CREDENTIALS.get(mechanism, mechanism);
            handleError(msg);
            return;
        }
@@ -866,7 +886,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
            bindOp.setSASLAuthUserEntry(authEntry);
            AuthenticationInfo authInfo =
                 new AuthenticationInfo(authEntry, authzEntry,
-                                       mech,
+                                       mechanism,
                                   DirectoryServer.isRootDN(authEntry.getDN()));
            bindOp.setAuthenticationInfo(authInfo);
            //If confidentiality/integrity has been negotiated, then create a
@@ -874,7 +894,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
            //use in later processing.
            if(isConfidentialIntegrity()) {
                SASLSecurityProvider secProvider =
-                   new SASLSecurityProvider(clientConn, mech, this);
+                   new SASLSecurityProvider(clientConn, mechanism, this);
                LDAPClientConnection ldapConn =
                    (LDAPClientConnection) clientConn;
                ldapConn.setSASLConnectionSecurityProvider(secProvider);
@@ -887,7 +907,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
                TRACER.debugCaught(DebugLogLevel.ERROR, e);
            }
            Message msg =
-               ERR_SASL_PROTOCOL_ERROR.get(mech, getExceptionMessage(e));
+               ERR_SASL_PROTOCOL_ERROR.get(mechanism, getExceptionMessage(e));
            handleError(msg);
        }
    }

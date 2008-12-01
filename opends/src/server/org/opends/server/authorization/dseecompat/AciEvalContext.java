@@ -87,7 +87,7 @@ public interface AciEvalContext
 
     /**
      * Check if the remote client is bound anonymously.
-     * @return True if client is bound anonymously.
+     * @return {@code true} if client is bound anonymously.
      */
     public boolean isAnonymousUser();
 
@@ -118,6 +118,7 @@ public interface AciEvalContext
      * @param authMethod The required authentication method.
      * @param saslMech The required SASL mechanism if the authentication method
      * is SASL.
+     *
      * @return An evaluation result indicating whether the client connection
      * has been authenticated using the required authentication method.
      */
@@ -126,14 +127,15 @@ public interface AciEvalContext
 
     /**
      * Get the  address of the bound connection.
-     * @return The  address of the bound connection.
+     * @return The address of the bound connection.
      */
     public InetAddress getRemoteAddress();
 
     /**
-     * Return true if this is an add operation, needed by the userattr
+     * Return true if this is an add operation needed by the userattr
      * USERDN parent inheritance level 0 processing.
-     * @return True if this is an add operation.
+     *
+     * @return {@code true} if this is an add operation.
      */
     public boolean isAddOperation();
 
@@ -143,60 +145,61 @@ public interface AciEvalContext
      * ClientConnection.isMemberOf() method, which checks authorization
      * DN membership in the specified group.
      * @param group The group to check membership in.
-     * @return True if the authorization DN of the operation is a
+     * @return {@code true} if the authorization DN of the operation is a
      * member of the specified group.
      */
     public boolean isMemberOf(Group<?> group);
 
   /**
    * Returns true if the hashtable of ACIs that matched the targattrfilters
-   * keyword evaluation is empty.  Used by geteffectiverights evaluation to
-   * determine the access value to put in the "write" rights evaluation field.
+   * keyword evaluation is empty.  Used in a geteffectiverights control
+   * evaluation to determine the access value to put in the "write" rights
+   * evaluation field.
    *
-   * @return True if there were not any ACIs that matched targattrfilters
-   *         keyword evaluation.
+   * @return {@code true} if there were not any ACIs that matched
+   *         targattrfilters keyword evaluation.
    */
     public boolean isTargAttrFilterMatchAciEmpty();
 
   /**
    * The context maintains a hashtable of ACIs that matched the targattrfilters
    * keyword evaluation.  The hasTargAttrFiltersMatchAci method returns true if
-   * the specified ACI is contained in that hashtable. Used by
-   * geteffectiverights evaluation to determine the access value to put in the
-   * "write" rights evaluation field.
+   * the specified ACI is contained in that hashtable. Used in a
+   * geteffectiverights control evaluation to determine the access value to put
+   * in the "write" rights evaluation field.
    *
    * @param aci The ACI that to evaluate if it contains a match during
    *            targattrfilters keyword evaluation.
    *
-   * @return True if a specified ACI matched targattrfilters evaluation.
+   * @return {@code true} if a specified ACI matched targattrfilters evaluation.
    */
     public boolean hasTargAttrFiltersMatchAci(Aci aci);
 
   /**
    * Return true if an ACI that evaluated to deny or allow has an
-   * targattrfilters keyword. Used by geteffectiverights
+   * targattrfilters keyword. Used by geteffectiverights control
    * evaluation to determine the access value to put in the "write" rights
    * evaluation field.
    *
    * @param flag  The integer value specifying either a deny or allow, but not
    * both.
    *
-   * @return   True if the ACI that evaluated to
+   * @return  {@code true} if the ACI has an targetattrfilters keyword.
    */
     public boolean hasTargAttrFiltersMatchOp(int flag);
 
   /**
-   * Returns true if the evaluation context is being used in a
-   * geteffectiverights evaluation.
+   * Returns {@code true} if the evaluation context is being used in a
+   * geteffectiverights control evaluation.
    *
-   * @return  True if the evaluation context is being used in a
-   * geteffectiverights evaluation.
+   * @return  {@code true} if the evaluation context is being used in a
+   * geteffectiverights control evaluation.
    */
     public boolean isGetEffectiveRightsEval();
 
   /**
    * Set the name of the ACI that last matched a targattrfilters rule. Used
-   * in geteffectiverights targattrfilters "write" rights evaluation.
+   * in geteffectiverights control targattrfilters "write" evaluation.
    *
    * @param name The ACI name string matching the targattrfilters rule.
    */
@@ -205,8 +208,8 @@ public interface AciEvalContext
   /**
    * Set a flag that specifies that a ACI that evaluated to either deny or
    * allow contains a targattrfilters keyword. Used by geteffectiverights
-   * evaluation to determine the access value to put in the "write" rights
-   * evaluation field.
+   * control evaluation to determine the access value to put in the "write"
+   * rights evaluation field.
    *
    * @param flag Either the integer value representing an allow or a deny,
    *             but not both.
@@ -215,7 +218,7 @@ public interface AciEvalContext
 
   /**
    * Set the reason the last access evaluation was evaluated the way it
-   * was. Used by geteffectiverights evaluation to eventually build the
+   * was. Used by geteffectiverights control evaluation to eventually build the
    * summary string.
    *
    * @param reason  The enumeration representing the reason of the last access
@@ -225,7 +228,8 @@ public interface AciEvalContext
 
   /**
    * Return the reason the last access evaluation was evaluated the way it
-   * was. Used by geteffectiverights evaluation to build the summary string.
+   * was. Used by geteffectiverights control evaluation to build the summary
+   * string.
    *
    * @return The enumeration representing the reason of the last access
    * evaluation.
@@ -234,7 +238,7 @@ public interface AciEvalContext
 
   /**
    * Set the ACI that decided that last access evaluation. Used by
-   * geteffectiverights evaluation to the build summary string.
+   * geteffectiverights control evaluation to the build summary string.
    *
    * @param aci The ACI that decided the last access evaluation.
    */
@@ -245,13 +249,13 @@ public interface AciEvalContext
    *
    * @param rights The rights mask to check.
    *
-   * @return True if the evaluation context contains a access right set.
+   * @return {@code true} if the evaluation context contains a access right set.
    */
     public boolean hasRights(int rights);
 
   /**
    * Return the name of the ACI that decided the last access evaluation. Used
-   * by geteffectiverights evaluation to build the summmary string.
+   * by geteffectiverights control evaluation to build the summary string.
    *
    * @return The name of the ACI that decided the last access evaluation.
    */
@@ -259,10 +263,10 @@ public interface AciEvalContext
 
   /**
    * Return true if a evaluation context is being used in proxied authorization
-   * evaluation.
+   * control evaluation.
    *
-   * @return  True if evaluation context is being used in proxied authorization
-   * evaluation.
+   * @return  {@code true} if evaluation context is being used in proxied
+   *          authorization control evaluation.
    */
     public boolean isProxiedAuthorization();
 
@@ -275,15 +279,16 @@ public interface AciEvalContext
 
   /**
    * Set the value of the summary string to the specified string.
-   * Used in geteffectiverights evaluation to build summary string.
+   * Used in get effective rights evaluation to build summary string.
    *
    * @param summary The string to set the summary string to
    */
     public void setEvalSummary(String summary);
 
   /**
-   * Return the access evaluation summary string. Used by the geteffectiverights
-   * evaluation when a aclRightsInfo attribute was specified in a search.
+   * Return the access evaluation summary string. Used in a geteffectiverights
+   * control evaluation when an aclRightsInfo attribute was specified in a
+   * search request.
    *
    * @return   The string describing the access evaluation.
    */
@@ -291,7 +296,7 @@ public interface AciEvalContext
 
   /**
    * Return a string representation of the current right being evaluated.
-   * Used in geteffectiverights evaluation to build summary string.
+   * Used in geteffectiverights control evaluation to build summary string.
    *
    * @return  String representation of the current right being evaluated.
    */
@@ -299,9 +304,9 @@ public interface AciEvalContext
 
     /**
    * Return the name of the ACI that last matched a targattrfilters rule. Used
-   * in geteffectiverights evaluation.
+   * in geteffectiverights control evaluation.
    *
-   * @return   The name of the ACI that last matched a targattrfilters rule.
+   * @return The name of the ACI that last matched a targattrfilters rule.
    */
     public String getTargAttrFiltersAciName();
 
@@ -315,9 +320,19 @@ public interface AciEvalContext
    * This method is used to replace the current resource entry with that saved
    * entry and back.
    *
-   * @param val Specifies if the saved entry should be used or not. True if it
-   * should be used, false if the original resource entry should be used.
+   * @param val Specifies if the saved entry should be used or not. {@code true}
+   * if it should be used, {@code false} if the original resource entry should
+   * be used.
    *
    */
     public void useFullResourceEntry(boolean val);
+
+
+    /**
+     * Return the current SSF (Security Strength Factor) of the underlying
+     * connection.
+     *
+     * @return The current SSF of the connection.
+     */
+    public int getCurrentSSF();
 }

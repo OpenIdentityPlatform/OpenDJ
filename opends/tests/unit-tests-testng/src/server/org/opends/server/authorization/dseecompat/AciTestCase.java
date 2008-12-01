@@ -29,6 +29,8 @@ package org.opends.server.authorization.dseecompat;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.tools.LDAPDelete;
@@ -38,9 +40,23 @@ import org.testng.annotations.Test;
 import org.testng.Assert;
 
 import java.io.*;
+import java.util.Hashtable;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
+
+import javax.naming.Context;
+import javax.naming.NamingException;
+import javax.naming.NoPermissionException;
+import javax.naming.directory.AttributeModificationException;
+import javax.naming.directory.BasicAttribute;
+import javax.naming.directory.DirContext;
+import javax.naming.directory.InitialDirContext;
+import javax.naming.directory.ModificationItem;
+import javax.naming.ldap.InitialLdapContext;
+import javax.naming.ldap.LdapContext;
+import javax.naming.ldap.StartTlsRequest;
+import javax.naming.ldap.StartTlsResponse;
 
 
 @Test(groups = {"precommit", "dseecompat"}, sequential = true)
@@ -335,6 +351,25 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     ldapModify(argList.toArray(args), rc);
   }
 
+  protected void JNDIModify(Hashtable<?, ?> env, String name,
+                            String attr, String val, int rc) {
+      try {
+          DirContext ctx = new InitialDirContext(env);
+          ModificationItem[] mods = new ModificationItem[1 ];
+          mods[0] = new ModificationItem(DirContext.ADD_ATTRIBUTE,
+                  new BasicAttribute(attr, val));
+          ctx.modifyAttributes(name, mods);
+          ctx.close();
+      } catch (NoPermissionException npe) {
+          Assert.assertEquals(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,  rc,
+                              "Returned error: " + npe.getMessage());
+          return;
+      } catch (NamingException ex) {
+          Assert.assertEquals(-1,  rc, "Returned error: " + ex.getMessage());
+      }
+      Assert.assertEquals(LDAPResultCode.SUCCESS, rc, "");
+  }
+
   private void ldapModify(String[] args, int rc) {
     oStream.reset();
     int retVal =LDAPModify.mainModify(args, false, oStream, oStream);
@@ -616,4 +651,5 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     }
     return attrMap;
   }
+
 }
