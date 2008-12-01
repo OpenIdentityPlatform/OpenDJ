@@ -211,9 +211,9 @@ public abstract class ConsoleApplication {
         String ninput = input.toLowerCase().trim();
         if (ninput.length() == 0) {
           return defaultValue;
-        } else if (no.toString().startsWith(ninput)) {
+        } else if (no.toString().toLowerCase().startsWith(ninput)) {
           return false;
-        } else if (yes.toString().startsWith(ninput)) {
+        } else if (yes.toString().toLowerCase().startsWith(ninput)) {
           return true;
         } else {
           // Try again...
