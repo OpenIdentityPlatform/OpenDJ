@@ -49,6 +49,7 @@ public class CategoryPanel extends JPanel {
   private static final long serialVersionUID = 8941374689175404431L;
   private JPanel panel;
   private JComponent child;
+  private Category category;
 
   private CategoryButton expandButton;
   private boolean expanded = true;
@@ -74,6 +75,8 @@ public class CategoryPanel extends JPanel {
     expandButton.addChangeListener(new CollapseListener());
     add(expandButton, BorderLayout.NORTH);
 
+    this.category = category;
+
     setBorder(categoryBorder);
   }
 
@@ -92,6 +95,26 @@ public class CategoryPanel extends JPanel {
       child.setVisible(expanded);
       firePropertyChange("expanded", oldExpanded, expanded);
     }
+  }
+
+  /**
+   * Returns the category associated with this panel.
+   * @return the category associated with this panel.
+   */
+  public Category getCategory()
+  {
+    return category;
+  }
+
+  /**
+   * Returns the component that must be displayed by this panel if its
+   * CategoryButton is in a certain state.
+   * @return the component that must be displayed by this panel if its
+   * CategoryButton is in a certain state.
+   */
+  public JComponent getChild()
+  {
+    return child;
   }
 
   /**
