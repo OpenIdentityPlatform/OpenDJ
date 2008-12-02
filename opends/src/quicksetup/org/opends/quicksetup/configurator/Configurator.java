@@ -202,7 +202,7 @@ public class Configurator extends Launcher {
           System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
         }
       } else {
-        user = "opendsd";
+        user = "ldap";
         cmd = "id " + user;
         proc = Runtime.getRuntime().exec(cmd);
         proc.waitFor();

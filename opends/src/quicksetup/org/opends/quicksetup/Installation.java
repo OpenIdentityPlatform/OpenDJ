@@ -150,7 +150,7 @@ public class Installation {
   /**
    * The path to the default instance.
    */
-  public static final String DEFAULT_INSTANCE_PATH = "/var/opt/opends";
+  public static final String DEFAULT_INSTANCE_PATH = "/var/opends";
 
   /**
    * The relative path to the instance.loc file.
@@ -161,7 +161,7 @@ public class Installation {
   /**
    * The path to the instance.loc file.
    */
-  public static final String INSTANCE_LOCATION_PATH = "/etc/opt/opends/" +
+  public static final String INSTANCE_LOCATION_PATH = "/etc/opends/" +
     INSTANCE_LOCATION_PATH_RELATIVE;
 
   /**
