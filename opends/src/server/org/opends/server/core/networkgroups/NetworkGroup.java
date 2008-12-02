@@ -25,6 +25,7 @@
  *      Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core.networkgroups;
+
 import org.opends.messages.Message;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.Validator.ensureNotNull;
@@ -34,6 +35,10 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.Collection;
 
+import org.opends.server.admin.std.meta.
+        NetworkGroupResourceLimitsCfgDefn.ReferralBindPolicy;
+import org.opends.server.admin.std.meta.
+        NetworkGroupResourceLimitsCfgDefn.ReferralPolicy;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.*;
 import org.opends.server.protocols.ldap.LDAPMessage;
@@ -43,7 +48,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.operation.PreParseOperation;
 import org.opends.server.workflowelement.WorkflowElement;
-
 
 /**
  * This class defines the network group. A network group is used to categorize
@@ -852,6 +856,48 @@ public class NetworkGroup
     return 0;
   }
 
+  /**
+   * Gets the referral policy. The referral policy defines the behavior
+   * when a referral or a search continuation reference is received.
+   * The referral can either be discarded (ie an error is returned to the
+   * client), forwarded (ie the result is passed as-is to the client) or
+   * followed (ie the server contacts the server targeted by the referral to
+   * pursue the request).
+   * @return the referral policy for this network group
+   */
+  public ReferralPolicy getReferralPolicy() {
+    if (resourceLimits != null) {
+      return resourceLimits.getReferralPolicy();
+    }
+    return ReferralPolicy.FORWARD;
+  }
+
+  /**
+   * Gets the referral bind policy. The referral bind policy defines
+   * the bind credentials used when the server tries to follow a referral. It
+   * can either bind to the referred server anonymously, or using the same
+   * credentials as in the original request.
+   * @return the referral binf policy
+   */
+  public ReferralBindPolicy getReferralBindPolicy() {
+    if (resourceLimits != null) {
+      return resourceLimits.getReferralBindPolicy();
+    }
+    return ReferralBindPolicy.ANONYMOUS;
+  }
+
+  /**
+   * Gets the referral hop limit. When configured to follow referrals,
+   * the request to the referred server can also contain a referral. The hop
+   * limit is the maximum number of subsequent operations.
+   * @return the referral hop limit
+   */
+  public int getReferralHopLimit() {
+    if (resourceLimits != null) {
+      return resourceLimits.getReferralHopLimit();
+    }
+    return 0;
+  }
 
   /**
    * Checks the request filtering policy.
