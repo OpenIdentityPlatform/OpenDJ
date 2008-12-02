@@ -26,8 +26,6 @@
  */
 package org.opends.server.workflowelement;
 
-import java.util.Observable;
-
 
 /**
  * This class implements an observable workflow element state.
@@ -35,12 +33,9 @@ import java.util.Observable;
  * state of the workflow element has changed. Typically, observers are
  * notified when a workflow element is enabled or disabled.
  */
-public class ObservableWorkflowElementState extends Observable
+public class ObservableWorkflowElementState
+    extends ObservableWorkflowElement
 {
-  // The observed workflow element
-  private final WorkflowElement<?> observedWorkflowElement;
-
-
   // The "enabled" state of the observed workflow element.
   // By default, a workflow element is enabled (otherwise this
   // instance of workflow element state would not exist).
@@ -51,22 +46,13 @@ public class ObservableWorkflowElementState extends Observable
    * Creates an instance of an observable object for a given workflow
    * element.
    *
-   * @param observedWorkflowElement  the workflow element to observe
+   * @param  observedWorkflowElement
+   *         The workflow element to observe.
    */
   public ObservableWorkflowElementState(
       WorkflowElement<?> observedWorkflowElement)
   {
-    this.observedWorkflowElement = observedWorkflowElement;
-  }
-
-
-  /**
-   * Gets the observed workflow element.
-   * @return the observed workflow element.
-   */
-  public WorkflowElement<?> getObservedWorkflowElement()
-  {
-    return observedWorkflowElement;
+    super(observedWorkflowElement);
   }
 
 

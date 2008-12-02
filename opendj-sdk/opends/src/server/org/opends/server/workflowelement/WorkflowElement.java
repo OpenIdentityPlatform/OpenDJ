@@ -80,6 +80,13 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
       new ConcurrentHashMap<String, List<Observer>>();
 
 
+  // The observable status of the workflow element.
+  // The status contains the health indicator (aka saturation index)
+  // of the workflow element.
+  private ObservableWorkflowElementStatus observableStatus =
+    new ObservableWorkflowElementStatus(this);
+
+
   /**
    * Provides the observable state of the workflow element.
    * This method is intended to be called by the WorkflowElementConfigManager
@@ -91,6 +98,17 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
   protected ObservableWorkflowElementState getObservableState()
   {
     return observableState;
+  }
+
+
+  /**
+   * Provides the observable status of the workflow element.
+   *
+   * @return the observable status of the workflow element.
+   */
+  protected ObservableWorkflowElementStatus getObservableStatus()
+  {
+    return observableStatus;
   }
 
 
@@ -187,7 +205,8 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
       ObservableWorkflowElementState westate = we.getObservableState();
       westate.deleteObserver(observer);
     }
-    else
+
+    if (weid != null)
     {
       List<Observer> observers = newWorkflowElementNotificationList.get(weid);
       if (observers != null)
@@ -362,5 +381,54 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
   {
     return workflowElementID;
   }
-}
 
+
+  /**
+   * Modifies the saturation index of the workflow element.
+   *
+   * @param  newValue
+   *         The new value of the saturation index of the workflow element.
+   */
+  public void setSaturationIndex(int newValue)
+  {
+    observableStatus.setSaturationIndex(newValue);
+  }
+
+
+  /**
+   * Gets the saturation index of the workflow element.
+   *
+   * @return  the value of the saturation index of the workflow element.
+   */
+  public int getSaturationIndex()
+  {
+    return observableStatus.getSaturationIndex();
+  }
+
+
+  /**
+   * Registers an observer with the saturation index of the workflow
+   * element. The observer will be notified when the saturation index
+   * is updated.
+   *
+   * @param  observer
+   *         The observer to notify when the saturation index is modified.
+   */
+  public void registerForSaturationIndexUpdate(Observer observer)
+  {
+    observableStatus.addObserver(observer);
+  }
+
+
+  /**
+   * Deregisters an observer with the saturation index of the workflow
+   * element.
+   *
+   * @param  observer
+   *         The observer to deregister.
+   */
+  public void deregisterForSaturationIndexUpdate(Observer observer)
+  {
+    observableStatus.deleteObserver(observer);
+  }
+}
