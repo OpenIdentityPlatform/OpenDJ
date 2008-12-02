@@ -190,14 +190,14 @@ if test "${INSTANCE_ROOT}" = ""
 then
   if [ -f ${INSTALL_ROOT}/configure ]
   then
-    if [ -f /etc/opt/opends/instance.loc ]
+    if [ -f /etc/opends/instance.loc ]
     then 
       if [ "${SCRIPT_NAME}" = "configure" ]
       then
         echo "${INSTALL_ROOT}/configure has already be run. Exiting."
         exit 0
       fi	
-      INSTANCE_ROOT=`cat /etc/opt/opends/instance.loc`
+      INSTANCE_ROOT=`cat /etc/opends/instance.loc`
     else
       if [ "${SCRIPT_NAME}" != "configure" ]
       then
