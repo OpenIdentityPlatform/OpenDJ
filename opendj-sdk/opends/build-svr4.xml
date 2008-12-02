@@ -42,7 +42,7 @@
   <property name="pkg.dir"           location="${build.dir}/package" />
   <property name="svr4.dir"          location="${build.dir}/package/svr4" />
 
-  <!-- Product specific properties: pkg.name / pkg.fullname / pkg.arch / pkg.desc / pkg.vendor / pkg.basedir -->
+  <!-- Product specific properties: pkg.name / pkg.fullname / pkg.arch / pkg.desc / pkg.vendor / pkg.basedir / pkg.prefix -->
   <property file="${svr4.src.dir}/pkg.properties" />
 
   <!-- Default values for product specific properties -->
@@ -57,7 +57,7 @@
   <property name="svr4.build.dir"        location="${build.dir}/package/svr4/build/${pkg.name}" />
   <property name="svr4.meta.dir"         location="${svr4.build.dir}/meta" />
   <property name="svr4.layout.dir"       location="${svr4.build.dir}/layout" />
-  <property name="svr4.layout.pkg.dir"   location="${svr4.build.dir}/layout/${pkg.name}" />
+  <property name="svr4.layout.pkg.dir"   location="${svr4.build.dir}/layout/${pkg.prefix}" />
 
   <!-- Must define layout/pkgversion target -->
   <import file="${svr4.src.dir}/layout.xml" />
@@ -88,7 +88,7 @@
   </target>
   
   <!-- Construct metadata data -->
-  <target name="metadata" depends="pkginfo,prototype,copyright" if="isSunOS" 
+  <target name="metadata" depends="pkginfo,prototype,copyright,depend" if="isSunOS" 
 	  	description="Construct metadata for ${pkg.name}.">
   </target>
   
@@ -145,6 +145,17 @@ i copyright</echo>
 		description="Create copyright file based on ${svr4.src.dir}/copyright" >
 	<echo message="Building copyright for ${pkg.name} pkg" />
 	<copy file="${svr4.src.dir}/copyright" todir="${svr4.meta.dir}"/>
+  </target>
+
+  <!-- Construct depend file -->
+  <target name="depend.init" if="isSunOS">
+      <available property="present" file="${svr4.src.dir}/depend"/>
+  </target>
+
+  <target name="depend" depends="depend.init" if="present"
+                description="Create depend file based on ${svr4.src.dir}/depend" >
+       <echo message="Building depend for ${pkg.name} pkg" />
+       <copy file="${svr4.src.dir}/depend" todir="${svr4.meta.dir}"/>
   </target>
 
   <!-- Make package -->
