@@ -33,6 +33,10 @@ import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
+import org.opends.server.admin.std.meta.
+        NetworkGroupResourceLimitsCfgDefn.ReferralBindPolicy;
+import org.opends.server.admin.std.meta.
+        NetworkGroupResourceLimitsCfgDefn.ReferralPolicy;
 import org.opends.server.admin.std.server.NetworkGroupResourceLimitsCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.types.ByteString;
@@ -78,6 +82,15 @@ public class ResourceLimits
   // The minimum substring length in a search
   private int minSearchSubstringLength;
 
+  // The referral policy
+  private ReferralPolicy referralPolicy = ReferralPolicy.FORWARD;
+
+  // The referral policy
+  private ReferralBindPolicy referralBindPolicy = ReferralBindPolicy.ANONYMOUS;
+
+  // The referral hop limit
+  private int referralHopLimit = 0;
+
   // The number of connections in the group
   private int numConnections = 0;
 
@@ -118,6 +131,11 @@ public class ResourceLimits
     searchSizeLimit = -1;
     searchTimeLimit = -1;
     minSearchSubstringLength = 0;
+
+    referralPolicy = ReferralPolicy.FORWARD;
+    referralBindPolicy = ReferralBindPolicy.ANONYMOUS;
+    referralHopLimit = 0;
+
     isConfigured = false;
     if (config != null) {
       config.removeChangeListener(this);
@@ -151,6 +169,10 @@ public class ResourceLimits
         searchTimeLimit = -1;
       }
       minSearchSubstringLength = resourcesCfg.getMinSubstringLength();
+
+      referralPolicy = resourcesCfg.getReferralPolicy();
+      referralBindPolicy = resourcesCfg.getReferralBindPolicy();
+      referralHopLimit = resourcesCfg.getReferralHopLimit();
 
       if (config == null) {
         resourcesCfg.addChangeListener(this);
@@ -251,6 +273,30 @@ public class ResourceLimits
    */
   public int getMinSubstring() {
       return minSearchSubstringLength;
+  }
+
+  /**
+   * Returns the referral policy.
+   * @return referral policy
+   */
+  public ReferralPolicy getReferralPolicy() {
+    return referralPolicy;
+  }
+
+  /**
+   * Returns the referralBindPolicy.
+   * @return referral bind policy
+   */
+  public ReferralBindPolicy getReferralBindPolicy() {
+    return referralBindPolicy;
+  }
+
+  /**
+   * Returns the referral hop limit.
+   * @return referral hop limit
+   */
+  public int getReferralHopLimit() {
+    return referralHopLimit;
   }
 
   /**
