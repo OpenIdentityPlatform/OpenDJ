@@ -62,5 +62,20 @@ then
   # Version info was on requested
   exit 0
 else
+  if test ${RETURN_CODE} -eq 0
+  then
+    # Now update SMF manifest, cp it to the right place and import it
+    USER_GROUP=`ls -ld ${INSTANCE_ROOT} | cut -c16-33`
+    USERNAME=`echo ${USER_GROUP} | cut -c1-8`
+    GROUPNAME=`echo ${USER_GROUP} | cut -c9-16`
+    if test "${USERNAME}" = "ldap" -a "$GROUPNAME" = "ldap"
+    then
+        cp ${INSTALL_ROOT}/resources/opends-manifest.xml /var/svc/manifest/network/ldap/
+    else
+        cat ${INSTALL_ROOT}/resources/opends-manifest.xml | sed -e "s/user='ldap/user='${USERNAME}/;s/group='ldap/group='${GROUPNAME}/" > /tmp/opends-manifest.$$
+        cp /tmp/opends-manifest.$$ /var/svc/manifest/network/ldap/opends-manifest.xml
+    fi
+    /usr/sbin/svccfg import /var/svc/manifest/network/ldap/opends-manifest.xml
+  fi
   exit ${RETURN_CODE}
 fi
