@@ -67,10 +67,13 @@
 
     <getsvnrevision property="REVISION_NUMBER" /> 
 
-    <property name="zip.dir"           location="${pkg.dir}/${product}-${pkg.version}" />
+    <property name="zip.dir"
+        location="${pkg.dir}/${product}-${pkg.version}" />
     
-	<echo message="Building layout for ${pkg.name} pkg based on ${zip.dir}" />
-	<!-- copy ZIP layout. Use exec instead of copy task to preserve file permissions -->
+	<echo 
+        message="Building layout for ${pkg.name} pkg based on ${zip.dir}" />
+	<!-- copy ZIP layout.
+        Use exec instead of copy task to preserve file permissions -->
 	<mkdir dir="${svr4.layout.dir}"/>
 	<exec executable="cp">
 	    <arg value="-R"/>
@@ -82,7 +85,8 @@
 	   <fileset dir="${svr4.layout.pkg.dir}" includes="**/*.exe"/>
 	   <fileset dir="${svr4.layout.pkg.dir}" includes="**/*.bat"/>
 	   <fileset dir="${svr4.layout.pkg.dir}" includes="**/bat/"/>
-	   <fileset dir="${svr4.layout.pkg.dir}" includes="**/README_WINDOWS.txt"/>
+	   <fileset dir="${svr4.layout.pkg.dir}"
+               includes="**/README_WINDOWS.txt"/>
 	</delete>
 	<!-- Remove MacOS specific files  -->
 	<delete includeemptydirs="true">
@@ -102,15 +106,30 @@
 	<delete file="${svr4.layout.pkg.dir}/install.txt" />
 	<delete file="${svr4.layout.pkg.dir}/install.html" />
 	<!-- Add SVR4 README / install files -->
-	<copy file="${svr4.src.dir}/README" tofile="${svr4.layout.pkg.dir}/README" />
-	<copy file="${svr4.src.dir}/install.txt" tofile="${svr4.layout.pkg.dir}/install.txt" />
-	<copy file="${svr4.src.dir}/install.html" tofile="${svr4.layout.pkg.dir}/install.html" />
+	<copy file="${svr4.src.dir}/README"
+        tofile="${svr4.layout.pkg.dir}/README" />
+	<copy file="${svr4.src.dir}/install.txt"
+        tofile="${svr4.layout.pkg.dir}/install.txt" />
+	<copy file="${svr4.src.dir}/install.html"
+        tofile="${svr4.layout.pkg.dir}/install.html" />
+        <!-- Add svc-opends.sh wrapper -->
+        <copy file="${svr4.src.dir}/_svc-opends.sh"
+            tofile="${svr4.layout.pkg.dir}/lib/_svc-opends.sh" />
+        <chmod file="${svr4.layout.pkg.dir}/lib/_svc-opends.sh" perm="755" />
+        <!-- Add the SMF Manifest for OpenDS in a resources directory -->
+        <mkdir dir="${svr4.layout.pkg.dir}/resources"/>
+        <copy file="${svr4.src.dir}/opends-manifest.xml"
+            tofile="${svr4.layout.pkg.dir}/resources/opends-manifest.xml" />
+        <chmod file="${svr4.layout.pkg.dir}/resources/opends-manifest.xml"
+            perm="644" />
 	<!-- Add configure script -->
-	<copy file="${resource.dir}/configure" tofile="${svr4.layout.pkg.dir}/configure" />
+	<copy file="${resource.dir}/configure"
+        tofile="${svr4.layout.pkg.dir}/configure" />
 	<chmod file="${svr4.layout.pkg.dir}/configure" perm="744" />
-	<!-- Replace zip upgrade script by svr4 upgrade script -->
+  	<!-- Replace zip upgrade script by svr4 upgrade script -->
 	<delete file="${svr4.layout.pkg.dir}/upgrade" />
-	<copy file="${resource.dir}/upgrade_svr4" tofile="${svr4.layout.pkg.dir}/upgrade" />
+	<copy file="${resource.dir}/upgrade_svr4"
+        tofile="${svr4.layout.pkg.dir}/upgrade" />
 	<chmod file="${svr4.layout.pkg.dir}/upgrade" perm="755" />
 	<!-- Move instance files in ${svr4.layout.pkg.dir}/tmpl_instance  -->
 	<mkdir dir="${svr4.layout.pkg.dir}/tmpl_instance"/>
@@ -118,7 +137,8 @@
         <mkdir dir="${svr4.layout.pkg.dir}/tmpl_instance/lib"/>
         <chmod dir="${svr4.layout.pkg.dir}/tmpl_instance/lib" perm="755"/>
         <mkdir dir="${svr4.layout.pkg.dir}/tmpl_instance/lib/extensions"/>
-        <chmod dir="${svr4.layout.pkg.dir}/tmpl_instance/lib/extensions" perm="755"/>
+        <chmod dir="${svr4.layout.pkg.dir}/tmpl_instance/lib/extensions"
+            perm="755"/>
 	<move todir="${svr4.layout.pkg.dir}/tmpl_instance/bak">
 	  <fileset dir="${svr4.layout.pkg.dir}/bak"/>
 	</move>
@@ -137,7 +157,8 @@
 	  <fileset dir="${svr4.layout.pkg.dir}/tmpl_instance/config/schema"/>
 	</move>
         <mkdir dir="${svr4.layout.pkg.dir}/tmpl_instance/config/schema"/>
-        <chmod dir="${svr4.layout.pkg.dir}/tmpl_instance/config/schema" perm="755"/>
+        <chmod dir="${svr4.layout.pkg.dir}/tmpl_instance/config/schema"
+            perm="755"/>
 	<move todir="${svr4.layout.pkg.dir}/tmpl_instance/db">
 	  <fileset dir="${svr4.layout.pkg.dir}/db"/>
 	</move>
@@ -154,7 +175,8 @@
 	  <fileset dir="${svr4.layout.pkg.dir}/logs"/>
 	</move>
         <!-- Create buildinfo file -->
-	<echo message="${pkg.version}.${REVISION_NUMBER}" file="${svr4.layout.pkg.dir}/tmpl_instance/config/buildinfo" />
+	<echo message="${pkg.version}.${REVISION_NUMBER}"
+        file="${svr4.layout.pkg.dir}/tmpl_instance/config/buildinfo" />
   </target>
 
 </project>

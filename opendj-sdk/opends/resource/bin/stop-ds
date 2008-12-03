@@ -59,6 +59,23 @@ ORIGINAL_JAVA_BIN=${OPENDS_JAVA_BIN}
 SCRIPT_NAME="stop-ds"
 export SCRIPT_NAME
 
+# check for presence of lib/_svc-opends.sh file
+# If present, we should be on Solaris/OpenSolaris and use SMF to start
+# OpenDS. 
+# Check --exec. If not present, start OpenDS from SMF
+if test -f "${INSTALL_ROOT}/lib/_svc-opends.sh"
+then
+    if [ "$1" == "--exec" ]
+    then
+        shift
+    elif [ "$1" != "-V" -a "$1" != "--version" -a "$1" != "-?" -a \
+        "$1" != "-H" -a "$1" != "--help" ]
+#These options are not stopping the server, but checking version and help
+    then
+        exec /usr/sbin/svcadm disable -t svc:/network/ldap/server:opends
+    fi
+fi
+
 # Set environment variables
 SCRIPT_UTIL_CMD=set-full-environment-and-test-java
 export SCRIPT_UTIL_CMD
