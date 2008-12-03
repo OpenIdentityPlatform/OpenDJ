@@ -34,57 +34,51 @@
     <sequence>
 
       <block name="'cleanup'">
-      
+
+        <try>      
+
         <sequence>
 
-      
-          <block name="'Block DS Process Stop'">        
-          <!--- Stop DS -->
-        <sequence>
-              <message>
-                 'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
-              </message>
-
-              <call function="'StopDsWithScript'">
-                { 'location'    : STAF_REMOTE_HOSTNAME,
-                  'dsHost'      : DIRECTORY_INSTANCE_HOST,
-                  'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
-                  'dsBindDN'    : DIRECTORY_INSTANCE_DN,
-                  'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD }
-              </call>
-
-              <call function="'checkRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-              </call>
-
+            <call function="'runFunction'">
+              { 'functionName'      : 'StopDsWithScript'                      ,
+                'functionMessage'   : 'Stop the Directory Server.'             ,
+                'functionException' : 'Server.StopException'                  ,
+                'functionArguments' : { 'location'    : STAF_REMOTE_HOSTNAME  ,
+                                        'dsHost'      : server.host           ,
+                                        'dsAdminPort' : server.adminport      ,
+                                        'dsBindDN'    : server.dn             ,
+                                        'dsBindPwd'   : server.password }
+              }
+            </call>
+            
+            <call function="'runFunction'">
+              { 'functionName'      : 'removeTopology'                  ,
+                'functionMessage'   : 'Remove DS topology.'             ,
+                'functionException' : 'Server.RemoveTopologyException' 
+              }
+            </call>                                 
+          
         </sequence>        
-          <!--- End Block DS Process Stop -->
-          </block>
-      
-                              
+          <catch exception="'STAXException.Server.RemoveTopologyException'" typevar="eType" var="eInfo">
+            <sequence>
+            <message log="1" level="'fatal'">
+              '%s: Remove topology failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+            <throw exception="'STAFException.TestSuite.CleanupException'" />
+            </sequence>
+          </catch>
 
-      <block name="'Block Remove DS Topology'">
-      <!-- Remove  the topology created for the test suite -->
-      <sequence>
-        
-              <message>
-                 'Remove DS topology created for the Test Suite'
-              </message>          
+          <catch exception="'STAXException.Server.StopException'" typevar="eType" var="eInfo">
+            <sequence>
+            <message log="1" level="'fatal'">
+              '%s: Failed to stop Directory Server. eInfo(%s)' % (eType,eInfo)
+            </message>
+            <throw exception="'STAFException.TestSuite.CleanupException'" />
+            </sequence>
+          </catch>
 
-        <call function="'removeTopology'"/>
-        
-        <call function="'checkRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-              </call>
-      
-      </sequence>        
-      <!-- End Block Remove DS Topology-->  
-      </block>                                  
-              
-      
-        </sequence>        
+        </try>
+ 
       </block>
             
      </sequence>

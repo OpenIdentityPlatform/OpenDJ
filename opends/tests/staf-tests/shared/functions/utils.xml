@@ -254,6 +254,15 @@
         searchre = re.compile('%s' % expectedString)
       </script> 
 
+      <!-- Check that returnString is really a string -->
+      <if expr='returnString.__class__ is not org.python.core.PyString'>
+        <sequence>
+          <message log="1" level="'Error'">
+            'ERROR : Invalid returnString type (%s), requires org.python.core.PyString.' % returnString.__class__
+          </message>
+          <tcstatus result="'fail'"/>
+        </sequence>
+      </if>
       <if expr='re.search(searchre, returnString) != None'>
         <sequence>
           <tcstatus result="'pass'"/>      
@@ -1428,7 +1437,7 @@
     </sequence>
   </function>
   
-  <function name="runFunction">
+  <function name="runFunction" scope="local">
     <function-map-args>
       <function-arg-def name="functionName" type="required">
         <function-arg-description>
@@ -1523,7 +1532,9 @@
           
         if not True:
           True=1
-          
+
+        _expectedRC=int(expectedRC)         
+
         _throwException=False
         if functionException:
           _throwException=True
@@ -1541,20 +1552,27 @@
         if functionFailureTC:
           _createFailureTC=True
       </script>
-      <message log="1" level="'info'" if="_displayMessage == True">'%s' % functionMessage</message>
-      <message log="1" level="'debug'">'runFunction: %s: called with parameters [%s]' % (functionName,functionArguments)</message>
+      <message log="1" level="'info'" if="_displayMessage == True">
+        '%s' % functionMessage
+      </message>
+      <message log="1" level="'debug'">
+        'runFunction: %s: called with parameters [%s]' % (functionName,functionArguments)
+      </message>
       <call function="functionName">functionArguments</call>
       <script>
-        _functionRC = RC
+        _functionRC = int(RC)
+        _functionResult = STAXResult
       </script>
-      <message log="1" level="'debug'">'runFunction: %s: returned [%s] with [%s]' % (functionName,RC,STAXResult)</message>
+      <message log="1" level="'debug'">
+        'runFunction: %s: returned [%s] with [%s]' % (functionName,RC,STAXResult)
+      </message>
 
       <!-- this section handles the optional case when we need to set the 
            test case status
        -->
       <if expr="_doSetTCStatus == True">
         <sequence>
-          <if expr="_functionRC == expectedRC">
+          <if expr="_functionRC == _expectedRC">
             <script>_tcStatus='pass'</script>
           </if>
           <tcstatus result="_tcStatus" />
@@ -1565,7 +1583,7 @@
            exception upon unexpected function return code
        -->
       <if expr="_throwException == True" >
-        <if expr="_functionRC != expectedRC" >
+        <if expr="_functionRC != _expectedRC" >
           <throw exception="'STAXException.%s' % functionException" />
         </if>
       </if>
@@ -1574,7 +1592,7 @@
            test case status to fail to reflect the failure in the test report.
       -->
       <if expr="_createFailureTC == True" >
-        <if expr="_functionRC != expectedRC" >
+        <if expr="_functionRC != _expectedRC" >
           <testcase name="'!!! %s [%s]' % (functionFailureTC,functionName)">
             <tcstatus result="'fail'" />
           </testcase>
@@ -1584,8 +1602,8 @@
       <!-- TODO: implement the signal raising mechanism -->
       <!-- TODO: implement the call back function mechanism -->
       
-      <!-- bubble the function return code up one level -->
-      <return>_functionRC</return>
+      <!-- bubble the function return code and result up one level -->
+      <return>[_functionRC,_functionResult]</return>
     </sequence>
   </function>
   
