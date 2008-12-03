@@ -1,0 +1,167 @@
+#
+# Container for Solaris Schema (RFC 4876) Tests
+#
+dn: o=rfc4876, o=Solaris Schema Tests,dc=example,dc=com
+objectClass: dcObject
+objectClass: organization
+objectClass: nisDomainObject
+dc: rfc4876
+o: rfc4876
+description: DIT for Solaris Schema Tests (RFC 4876,Solaris)
+nisDomain: rfc4876
+
+#
+# Container for passwd entries.  See solaris.schema and nis.schema for
+# additional containers we could create here.
+#
+dn: ou=People,o=rfc4876, o=Solaris Schema Tests,dc=example,dc=com
+objectClass: organizationalUnit
+ou: People
+
+#
+# Container for group entries.  See solaris.schema and nis.schema for
+# additional containers we could create here.
+#
+dn: ou=Group,o=rfc4876, o=Solaris Schema Tests,dc=example,dc=com
+objectClass: organizationalUnit
+ou: Group
+
+dn: ou=profile,o=rfc4876, o=Solaris Schema Tests,dc=example,dc=com
+objectClass: organizationalUnit
+ou: profile
+description: Profile
+
+dn: cn=example,ou=profile,o=rfc4876, o=Solaris Schema Tests,dc=example,dc=com
+objectClass: top
+objectClass: DUAConfigProfile
+cn: example
+defaultServerList: ldap1.example.com ldap2.example.com 192.168.169.170 ldap1.mycorp.com ldap2:1389 [1080::8:800:200C:417A]:5912
+preferredServerList: ldap3.example.com ldap4.example.com 192.168.169.170 ldap2:1389 [1080::8:800:200C:417A]:389
+defaultSearchBase: o=Solaris Schema Tests, dc=example,dc=com
+defaultSearchScope: one
+authenticationMethod: tls:simple;sasl/DIGEST-MD5
+credentialLevel: proxy anonymous
+searchTimeLimit: 30
+bindTimeLimit: 2
+followReferrals: TRUE
+dereferenceAliases: FALSE
+profileTTL: 43200
+serviceSearchDescriptor: email:ou=people,ou=org1,? one;ou=contractor,?one; ref:cn=profile,dc=mycompany,dc=com
+serviceCredentialLevel: email:proxy anonymous
+serviceAuthenticationMethod: email:tls:simple;sasl/DIGEST-MD5
+objectclassMap: email:cn=employeeName
+attributeMap: email:mail=email
+attributeMap: email:cn=employeeName
+attributeMap: email:cn=firstName lastName
+
+
+#
+# LDAP Proxy Agents File
+#
+
+#
+# Base organizational unit for proxy agents.
+#
+dn: ou=LDAPauth,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: LDAPauth
+description: LDAP Proxy Agent Subtree.
+
+#
+# Proxy agent for solaris based machines.
+#
+dn: cn=solaris,ou=LDAPauth,dc=example,dc=com
+objectClass: top
+objectClass: person
+cn: solaris
+sn: Solaris Proxy Agent
+userPassword: SolarisRulz
+
+#
+# Proxy agent for OS X based machines. - UNUSED
+#
+dn: cn=mac,ou=LDAPauth,dc=example,dc=com
+objectClass: top
+objectClass: person
+cn: mac
+sn: mac
+cn: OS X Proxy Agent
+userPassword: MacAttac
+
+#
+# Proxy agent for Linux based machines. - UNUSED
+#
+dn: cn=linux,ou=LDAPauth,dc=example,dc=com
+objectClass: top
+objectClass: person
+cn: linux
+cn: Linux Proxy Agent
+sn: linux
+
+#
+# GroupOfNames  entity  used  to  gain  read  access  to the
+# userPassword attribute in our DIT.
+#
+dn: cn=LDAPaccess,ou=LDAPauth,dc=example,dc=com
+objectClass: top
+objectClass: groupOfNames
+cn: LDAPaccess
+description: LDAP Proxy Agent Group
+member: cn=solaris,ou=LDAPauth,dc=example,dc=com
+member: cn=mac,ou=LDAPauth,dc=example,dc=com
+member: cn=linux,ou=LDAPauth,dc=example,dc=com
+
+
+dn: uid=user1,ou=People,o=rfc4876, o=Solaris Schema Tests,dc=example,dc=com
+objectClass: top
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: user1
+userpassword: password
+uidNumber: 1025
+gidNumber: 15
+gecos: user 1
+homeDirectory: /home/user1
+loginShell: /bin/bash
+cn: user 1
+givenName: user1
+sn: User1
+shadowlastchange: -1
+shadowmin: -1
+shadowmax: -1
+shadowwarning: -1
+shadowinactive: -1
+shadowexpire: -1
+shadowflag: -1
+description: User1
+
+dn: uid=user2,ou=People,o=rfc4876, o=Solaris Schema Tests,dc=example,dc=com
+objectClass: top
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: user2
+userPassword: password
+uidNumber: 1026
+gidNumber: 15
+gecos: user 2
+homeDirectory: /home/user2
+loginShell: /bin/bash
+cn: user 2
+givenName: user 2
+sn: User2
+shadowlastchange: -1
+shadowmin: -1
+shadowmax: -1
+shadowwarning: -1
+shadowinactive: -1
+shadowexpire: -1
+shadowflag: -1
+description: User2
+

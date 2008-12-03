@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  <defaultcall function="main_schema_rfc"/>
+  <function name="main_schema_rfc" scope="local">
+    <sequence>
+      <block name="'main_schema_rfc'">
+        <try>
+          <sequence>
+            <script>
+              CurrentTestPath['group']='schema'        
+              CurrentTestPath['suite']='rfc'
+              
+              __group=CurrentTestPath['group']
+              __groupdir='%s/testcases/%s' % (TESTS_DIR,__group)
+            </script>
+
+            <!--- Test Suite information
+            #@TestSuiteName       Native schema test suite
+            #@TestSuitePurpose    Verify that 
+            #@TestSuiteID         Suite
+            #@TestSuiteGroup      Example
+            #@TestGroup           Example
+            #@TestScript          suite.xml
+            #@TestHTMLLink        http://opends.dev.java.net/
+            -->          
+            <call function="'testSuite_Preamble'"/>
+
+            <try>
+              <sequence> 
+ 
+                <!-- List of Import of Test Functions -->
+                <script>
+                  importList=[]
+                  importList.append('schema_setup')
+                  importList.append('rfc/schema_rfc_tests')
+                  importList.append('schema_cleanup')
+                </script>
+
+                <!-- Import the files for this test suite -->
+                <iterate var="__import" in="importList">
+                  <import machine="STAF_LOCAL_HOSTNAME"
+                    file="'%s/%s.xml' % (__groupdir,__import)"/>
+                </iterate>                                                                       
+
+                <!-- Test Suite Setup -->
+                <call function="'%s_setup' % __group"/>
+
+                <!-- Specific to rfc tests -->
+                <script>
+                  __baseDN='o=rfc tests, dc=example,%s' % server.suffix
+                  
+                  def parse_stax_result(result):
+                  
+                    if result.__class__ is org.python.core.PyList:
+                      _unwrapResult=result[1][0]
+                      
+                      try:
+                        _functionString=_unwrapResult[1]
+                      except AttributeError:
+                        _functionString='Unable to parse result.'
+                    elif result.__class__ is org.python.core.PyString:
+                      _functionString=STAXResult
+                    else:
+                      _functionString='Unable to parse result.'
+
+                    return _functionString
+                </script>
+                                                    
+                <!-- List of Test Cases -->
+                <script>
+                  testsList=[]
+                  testsList.append('schema_rfc_2079')
+                  testsList.append('schema_rfc_2247_1')
+                  testsList.append('schema_rfc_2247_2')
+                  testsList.append('schema_rfc_2247_3')
+                  testsList.append('schema_rfc_2247_4')
+                  testsList.append('schema_rfc_2247_5')
+                  testsList.append('schema_rfc_2377')
+                  testsList.append('schema_rfc_2798')
+                  testsList.append('schema_rfc_3045_1')
+                  testsList.append('schema_rfc_3045_2')
+                  testsList.append('schema_rfc_4403_1')
+                  testsList.append('schema_rfc_4403_2')
+                  testsList.append('schema_rfc_4403_3')
+                  testsList.append('schema_rfc_4403_4')
+                  testsList.append('schema_rfc_4403_5')
+                  testsList.append('schema_rfc_2307_1')
+                  testsList.append('schema_rfc_2307_2')
+                  testsList.append('schema_rfc_2307_3')
+                  testsList.append('schema_rfc_2307_4')
+                  testsList.append('schema_rfc_furseth')
+                  testsList.append('schema_rfc_good_1')
+                  testsList.append('schema_rfc_good_2')
+                  testsList.append('schema_rfc_good_3')
+                  testsList.append('schema_rfc_howard_1')
+                  testsList.append('schema_rfc_howard_2')
+                  testsList.append('schema_rfc_ldup_1')
+                  testsList.append('schema_rfc_ldup_2')
+                  testsList.append('schema_rfc_ldup_3')
+                  testsList.append('schema_disable_schema_checking')
+                  testsList.append('schema_enable_schema_checking')
+                  testsList.append('schema_disable_syntax_checking')
+                  testsList.append('schema_enable_syntax_checking')
+                  testsList.append('schema_cosine_1')
+                  testsList.append('schema_cosine_2')
+                  testsList.append('schema_cosine_3')
+                  testsList.append('schema_rfc_2739')
+                  testsList.append('schema_rfc_2714_1')
+                  testsList.append('schema_rfc_2714_2')
+                  testsList.append('schema_rfc_2713')
+                </script>
+
+                <!-- Execute the Tests -->
+                <iterate var="__test" in="testsList">
+                  <sequence>
+                    <call function="'%s' % (__test)" />
+                  </sequence>
+                </iterate>                
+                                
+              </sequence>
+            <catch exception="'STAFException.TestSuite.SetupException'">
+              <sequence>
+                <message log="1" level="'fatal'">
+                  'Setup of test suite failed.'
+                </message>
+                <rethrow/>
+              </sequence>
+            </catch>
+
+            <finally>
+              <message>'Test Cases Completed.'</message>
+            </finally>
+
+            </try>
+
+          </sequence>
+          
+          <finally>
+            <sequence>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Example Cleanup.'</message>
+              <call function="'%s_cleanup' % __group"/>
+              <call function="'testSuite_Postamble'"/>
+            </sequence>
+          </finally>
+ 
+        </try>
+      </block>
+    </sequence>
+  </function>
+</stax>

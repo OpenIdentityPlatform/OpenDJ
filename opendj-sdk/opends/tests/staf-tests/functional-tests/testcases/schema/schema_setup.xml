@@ -34,88 +34,85 @@
     <sequence>
 
       <block name="'setup'">
-      
-        <sequence>
-              
-          
-      <block name="'Block Create DS Topology'">
-      <!-- Create the topology necessary to the test group/suite -->
-        <sequence>
-                
-              <message>
-                 'Create DS topology as described in config.py'
-              </message>
-          
-        <call function="'createTopology'">
-          { 'initialiseInstance' : True }
-        </call>
-                    
-        <call function="'checkRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-              </call>
-      
-            </sequence>      
-          <!--- End Block Create DS Topology -->  
-          </block>                    
 
-
-      <block name="'Block DS Process Active'">      
-          <!--- Start DS -->
-        <sequence>
-        
-              <message>
-                 'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
-              </message>
-  
-              <!--- Start DS -->
-              <call function="'StartDsWithScript'">
-               { 'location'  : STAF_REMOTE_HOSTNAME }
-              </call>
-  
-              <call function="'checkRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-              </call>
-  
-              <!--- Check that DS started -->
-              <call function="'isAlive'">
-                { 'noOfLoops'        : 5 ,
-                  'noOfMilliSeconds' : 2000 }
-              </call>      
-        
-            </sequence>
-          <!--- End Block DS Process Active -->
-          </block>              
-            
-
-          <block name="'Block DS Load Data'">
-      <!-- Load the data needed by the test suite -->      
+        <try>
           <sequence>
-
-              <message>
-                 'Add entries that are required for the Schema Tests'
-              </message>
-    
-              <call function="'addEntry'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/schema/ldifs/schema_start.ldif' % remote.data }
-              </call>
-    
-              <call function="'checkRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-              </call>
-
-                                              
-      </sequence>
-          <!-- End Block DS Load Data -->                                        
-          </block>
               
-        </sequence>        
+            <!-- Create the topology necessary to the test group/suite -->                
+            <call function="'runFunction'">
+              { 'functionName'      : 'createTopology'                  ,
+                'functionMessage'   : 'Create DS topology'              ,
+                'functionException' : 'Server.CreateTopologyException'  ,
+                'functionArguments' : { 'initialiseInstance' : True }
+              }
+            </call>
+  
+            <!-- Start the OpenDS Server -->                  
+            <call function="'runFunction'">
+              { 'functionName'      : 'StartDsWithScript'                   ,
+                'functionMessage'   : 'Start the Directory Server.'         ,
+                'functionException' : 'Server.StartException'               ,
+                'functionArguments' : { 'location' : STAF_REMOTE_HOSTNAME }
+              }
+            </call>
+  
+            <!--- Check that DS started -->
+            <call function="'runFunction'">
+              { 'functionName'      : 'isAlive'                       ,
+                'functionMessage'   : 'Start the Directory Server.'   ,
+                'functionException' : 'Server.StartException'         ,
+                'functionArguments' : { 'noOfLoops'        : 5        ,
+                                        'noOfMilliSeconds' : 2000 }
+              }
+            </call>     
+  
+            <!-- Load the data needed by the test suite -->
+            <script>
+              schemastartldif='%s/schema/ldifs/schema_start.ldif' % remote.data
+            </script>
+            <call function="'runFunction'">
+              { 'functionName'      : 'addEntry'                       ,
+                'functionMessage'   : 'Start the Directory Server.'   ,
+                'functionException' : 'LDAP.AddEntryException'  ,
+                'functionArguments' : { 'dsInstanceHost'   : server.host ,
+                                        'dsInstancePort'   : server.port ,
+                                        'dsInstanceDn'     : server.dn ,
+                                        'dsInstancePswd'   : server.password ,
+                                        'entryToBeAdded'   : schemastartldif }
+              }  
+            </call>
+              
+          </sequence>        
+
+          <catch exception="'STAXException.Server.CreateTopologyException'" typevar="eType" var="eInfo">
+            <sequence>
+            <message log="1" level="'fatal'">
+              '%s: Create topology failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+            <throw exception="'STAFException.TestSuite.SetupException'" />
+            </sequence>
+          </catch>
+
+          <catch exception="'STAXException.Server.StartException'" typevar="eType" var="eInfo">
+            <sequence>
+            <message log="1" level="'fatal'">
+              '%s: Failed to start Directory Server. eInfo(%s)' % (eType,eInfo)
+            </message>
+            <throw exception="'STAFException.TestSuite.SetupException'" />
+            </sequence>
+          </catch>
+
+          <catch exception="'STAXException.LDAP.AddEntryException'" typevar="eType" var="eInfo">
+            <sequence>
+            <message log="1" level="'fatal'">
+              '%s: LDAPAdd failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+            <throw exception="'STAFException.TestSuite.SetupException'" />
+            </sequence>
+          </catch>          
+
+        </try>
+
       </block>
             
      </sequence>

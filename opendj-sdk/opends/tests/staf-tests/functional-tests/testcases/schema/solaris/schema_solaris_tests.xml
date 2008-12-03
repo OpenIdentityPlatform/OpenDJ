@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+               
+  <!-- Definition of Test Cases -->             
+
+  <!--- Test Case : Schema: Add Solaris Schema Entries -->          
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Schema: Add Solaris Schema Entries
+  #@TestID              Test
+  #@TestPurpose         Add Solaris schema entries
+  #@TestPreamble
+  #@TestSteps           Add over LDAP protocol Solaris schema entries
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->                           
+  <function name="schema_solaris_001" scope="local">
+    <testcase name="getTestCaseName('Add Solaris Schema Entries')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+              solarisLdif='%s/schema/solaris/solaris.ldif' % remote.data
+            </script>
+            <call function="'runFunction'">
+              { 'functionName'      : 'ldapModifyWithScript'              ,
+                'functionMessage'   : 'Add solaris schema entries'        ,
+                'functionException' : 'LDAP.ModifyException'              ,
+                'functionArguments' : { 'location'      : server.location ,
+                                        'dsInstanceHost': server.host     ,
+                                        'dsInstancePort': server.port     ,
+                                        'dsInstanceDn'  : server.dn       ,
+                                        'dsInstancePswd': server.password ,
+                                        'dsAdd'         : 'TRUE'          ,
+                                        'dsFilename'    : solarisLdif }
+              }
+            </call>
+
+            <!-- TODO: Need to verify that the added entry is working as specified -->
+
+          </sequence>
+          <catch exception="'STAXException.LDAP.ModifyException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: LDAPModify failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case : Schema: Add RFC 4876 Schema Entries -->          
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Schema: Add RFC 4876 Schema Entries
+  #@TestID              Test
+  #@TestPurpose         Add RFC 4876 schema entries
+  #@TestPreamble
+  #@TestSteps           Add over LDAP protocol RFC 4876 schema entries
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->                           
+  <function name="schema_rfc4876_001" scope="local">
+    <testcase name="getTestCaseName('Add RFC 4876 Schema Entries')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+              rfc4876ldif='%s/schema/solaris/rfc4876.ldif ' % remote.data
+            </script>
+            <call function="'runFunction'">
+              { 'functionName'      : 'ldapModifyWithScript'              ,
+                'functionMessage'   : 'Add solaris schema entries'        ,
+                'functionException' : 'LDAP.ModifyException'              ,
+                'functionArguments' : { 'location'      : server.location ,
+                                        'dsInstanceHost': server.host     ,
+                                        'dsInstancePort': server.port     ,
+                                        'dsInstanceDn'  : server.dn       ,
+                                        'dsInstancePswd': server.password ,
+                                        'dsAdd'         : 'TRUE'          ,
+                                        'dsFilename'    : rfc4876ldif }
+              }
+            </call>
+
+            <!-- TODO: Need to verify that the added entry is working as specified -->
+
+          </sequence>
+          <catch exception="'STAXException.LDAP.ModifyException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: LDAPModify failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+   
+</stax>

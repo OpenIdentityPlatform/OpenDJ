@@ -23,36 +23,36 @@
 #      Copyright 2006-2008 Sun Microsystems, Inc.
 #
 
-dn: dc=rfc-2377-tests,dc=example,dc=com
+dn: dc=rfc-2377-tests,o=rfc tests,dc=example,dc=com
 dc: rfc-2377-tests
 o: Crucial RFC Tests 
 objectclass: top
 objectclass: dcObject
 objectclass: organization
 
-dn: dc=Europe, dc=rfc-2377-tests,dc=example,dc=com
+dn: dc=Europe, dc=rfc-2377-tests,o=rfc tests,dc=example,dc=com
 dc: Europe
 o: Europe Crucial RFC Tests 
 objectclass: top
 objectclass: dcObject
 objectclass: organization
 
-dn: dc=North America, dc=rfc-2377-tests,dc=example,dc=com
+dn: dc=North America, dc=rfc-2377-tests,o=rfc tests,dc=example,dc=com
 dc: North America
 objectclass: top
 objectclass: domain
 
-dn: ou=People,dc=Europe,dc=rfc-2377-tests,dc=example,dc=com
+dn: ou=People,dc=Europe,dc=rfc-2377-tests,o=rfc tests,dc=example,dc=com
 ou: People
 objectclass: top
 objectclass: organizationalunit
 
-dn: ou=People,dc=North America,dc=rfc-2377-tests,dc=example,dc=com
+dn: ou=People,dc=North America,dc=rfc-2377-tests,o=rfc tests,dc=example,dc=com
 ou: People
 objectclass: top
 objectclass: organizationalunit
 
-dn: uid=nmiller, ou=People,dc=Europe,dc=rfc-2377-tests,dc=example,dc=com
+dn: uid=nmiller, ou=People,dc=Europe,dc=rfc-2377-tests,o=rfc tests,dc=example,dc=com
 cn: Nate Miller
 sn: Miller
 givenname: Nate
@@ -70,7 +70,7 @@ facsimiletelephonenumber: +1 408 555 0111
 roomnumber: 4135
 userpassword: gosling
 
-dn: uid=lmiller, ou=People,dc=North America,dc=rfc-2377-tests,dc=example,dc=com
+dn: uid=lmiller, ou=People,dc=North America,dc=rfc-2377-tests,o=rfc tests,dc=example,dc=com
 cn: Late Miller
 sn: Miller
 givenname: Late
@@ -88,7 +88,7 @@ facsimiletelephonenumber: +1 408 555 0111
 roomnumber: 4135
 userpassword: gosling
 
-dn: cn=Anton Miller, ou=People,dc=Europe,dc=rfc-2377-tests,dc=example,dc=com
+dn: cn=Anton Miller, ou=People,dc=Europe,dc=rfc-2377-tests,o=rfc tests,dc=example,dc=com
 cn: Anton Miller
 sn: Miller
 givenname: Anton
@@ -106,7 +106,7 @@ facsimiletelephonenumber: +1 408 555 0111
 roomnumber: 4135
 userpassword: gosling
 
-dn: cn=Art Miller, ou=People,dc=North America,dc=rfc-2377-tests,dc=example,dc=com
+dn: cn=Art Miller, ou=People,dc=North America,dc=rfc-2377-tests,o=rfc tests,dc=example,dc=com
 cn: Art Miller
 sn: Miller
 givenname: Art

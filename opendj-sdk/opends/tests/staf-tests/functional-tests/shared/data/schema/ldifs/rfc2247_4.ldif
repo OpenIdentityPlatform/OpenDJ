@@ -23,7 +23,7 @@
 #      Copyright 2006-2008 Sun Microsystems, Inc.
 #
 
-dn: dc=rfc-2247-tests-4,dc=example,dc=com
+dn: dc=rfc-2247-tests-4,o=rfc tests,dc=example,dc=com
 dc: rfc-2247-tests-4
 objectclass: top
 objectclass: dcObject

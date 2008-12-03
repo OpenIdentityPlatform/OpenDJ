@@ -1,0 +1,1990 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2006-2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+<!-- Test Case : Schema RFC Test 2079 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC 2079
+    #@TestIssue                 
+    #@TestPurpose               Check RFC 2079 URI Attribute Type and Object Class Schema Objects.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC 2079 Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_2079" scope="local">
+
+    <testcase name="getTestCaseName('RFC 2079')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+
+          <call function="'runFunction'">
+            { 'functionName'      : 'addEntry'                       ,
+              'functionMessage'   : 'Add an entry that is covered by RFC 2079.' ,
+              'functionException' : 'LDAP.AddException'               ,
+              'functionArguments' : { 'dsInstanceHost' : server.host ,
+                                      'dsInstancePort' : server.port ,
+                                      'dsInstanceDn'   : server.dn ,
+                                      'dsInstancePswd' : server.password ,
+                                      'entryToBeAdded' : '%s/schema/ldifs/rfc2079.ldif'
+                                                          % remote.data }
+            }
+          </call>
+  
+          <call function="'runFunction'">
+            { 'functionName'      : 'ldapSearchWithScript'                       ,
+              'functionMessage'   : 'Search for the entry just added and return labeledURI.' ,
+              'functionException' : 'LDAP.SearchException'               ,
+              'functionArguments' : { 'dsInstanceHost'   : server.host ,
+                                      'dsInstancePort'   : server.port ,
+                                      'dsInstanceDn'     : server.dn ,
+                                      'dsInstancePswd'   : server.password ,
+                                      'dsBaseDN'         : "ou=People, %s" % __baseDN ,
+                                      'dsFilter'         : 'objectclass=*' ,
+                                      'dsAttributes'     : 'labeledURI' }
+            }
+          </call>
+          
+          <script>
+            _functionString=parse_stax_result(STAXResult)
+         </script>
+
+          <call function="'runFunction'">
+           { 'functionName'      : 'checktestString' ,
+             'functionMessage'   : 'Check that the labeledURI attribute is returned.' ,
+             'functionException' : 'Utils.CheckStringException' ,
+             'functionArguments' : { 'expectedString' : 'labeledURI: ftp://example.com/rfc/rfc2079.txt' ,
+                                     'returnString'   : _functionString }
+           }
+          </call>
+        </sequence>
+        <catch exception="'STAXException.LDAP.AddException'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: LDAPAdd failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+        <catch exception="'STAXException.LDAP.SearchException'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: LDAPSearch failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+        <catch exception="'STAXException.Utils.CheckStringException'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: UtilsCheck failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch> 
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC Test 2247 1 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC 2247
+    #@TestIssue                 
+    #@TestPurpose               Check RFC 2247 Using Domains in LDAP/X.500 Schema Objects.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC 2247 Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_2247_1" scope="local">
+
+    <testcase name="getTestCaseName('RFC 2247 1')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+  
+          <call function="'runFunction'">
+            { 'functionName'      : 'addEntry'                       ,
+              'functionMessage'   : 'Add an entry where dcObject is an auxiliary class.' ,
+              'functionException' : 'LDAP.AddException'               ,
+              'functionArguments' : { 'dsInstanceHost' : server.host ,
+                                      'dsInstancePort' : server.port ,
+                                      'dsInstanceDn'   : server.dn ,
+                                      'dsInstancePswd' : server.password ,
+                                      'entryToBeAdded' : '%s/schema/ldifs/rfc2247_1.ldif'
+                                                          % remote.data }
+            }
+          </call>
+  
+          <call function="'runFunction'">
+            { 'functionName'      : 'ldapSearchWithScript'                       ,
+              'functionMessage'   : 'Search for the entry just added and return dc.' ,
+              'functionException' : 'LDAP.SearchException'               ,
+              'functionArguments' : { 'dsInstanceHost'   : server.host ,
+                                      'dsInstancePort'   : server.port ,
+                                      'dsInstanceDn'     : server.dn ,
+                                      'dsInstancePswd'   : server.password ,
+                                      'dsBaseDN'         : __baseDN ,
+                                      'dsFilter'         : 'objectclass=dcObject' ,
+                                      'dsAttributes'     : 'dc' }
+            }
+          </call>
+
+          <script>
+            _functionString=parse_stax_result(STAXResult)
+         </script>
+
+          <call function="'runFunction'">
+           { 'functionName'      : 'checktestString' ,
+             'functionMessage'   : 'Check that the dc attribute is returned.' ,
+             'functionException' : 'Utils.CheckStringException' ,
+             'functionArguments' : { 'expectedString' : 'dc: rfc-2247-tests' ,
+                                     'returnString'   : _functionString }
+           }
+          </call>
+            
+        </sequence>
+        <catch exception="'STAXException.LDAP.AddException'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: LDAPAdd failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+        <catch exception="'STAXException.LDAP.SearchException'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: LDAPSearch failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+        <catch exception="'STAXException.Utils.CheckStringException'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: UtilsCheck failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC Test 2247 2 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC 2247
+    #@TestIssue                 
+    #@TestPurpose               Check RFC 2247 Using Domains in LDAP/X.500 Schema Objects.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC 2247 Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_2247_2" scope="local">
+
+    <testcase name="getTestCaseName('RFC 2247 2')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by rfc 2247'
+          </message>
+
+          <call function="'runFunction'">
+            { 'functionName'      : 'addEntry'                       ,
+              'functionMessage'   : 'Add an entry where domain is a structural class.' ,
+              'functionException' : 'LDAP.AddException'               ,
+              'functionArguments' : { 'dsInstanceHost' : server.host ,
+                                      'dsInstancePort' : server.port ,
+                                      'dsInstanceDn'   : server.dn ,
+                                      'dsInstancePswd' : server.password ,
+                                      'entryToBeAdded' : '%s/schema/ldifs/rfc2247_2.ldif'
+                                                          % remote.data }
+            }
+          </call>
+  
+          <call function="'runFunction'">
+            { 'functionName'      : 'ldapSearchWithScript'                       ,
+              'functionMessage'   : 'Search for the entry just added and return dc.' ,
+              'functionException' : 'LDAP.SearchException'               ,
+              'functionArguments' : { 'dsInstanceHost'   : server.host ,
+                                      'dsInstancePort'   : server.port ,
+                                      'dsInstanceDn'     : server.dn ,
+                                      'dsInstancePswd'   : server.password ,
+                                      'dsBaseDN'         : __baseDN ,
+                                      'dsFilter'         : 'objectclass=domain' ,
+                                      'dsAttributes'     : 'dc' }
+            }
+          </call>
+
+          <script>
+            _functionString=parse_stax_result(STAXResult)
+         </script>
+
+          <call function="'runFunction'">
+           { 'functionName'      : 'checktestString' ,
+             'functionMessage'   : 'Check that the dc attribute is returned.' ,
+             'functionException' : 'Utils.CheckStringException' ,
+             'functionArguments' : { 'expectedString' : 'dc: rfc-2247-tests-2' ,
+                                     'returnString'   : _functionString }
+           }
+          </call>
+            
+        </sequence>
+        <catch exception="'STAXException.LDAP.AddException'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: LDAPAdd failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+        <catch exception="'STAXException.LDAP.SearchException'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: LDAPSearch failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC Test 2247 3 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC 2247
+    #@TestIssue                 
+    #@TestPurpose               Check RFC 2247 Schema Objects.
+    #@TestPreamble              none
+    #@TestStep                  Add Invalid RFC 2247 Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add returns 65 (Object Class Violation)
+-->
+
+  <function name="schema_rfc_2247_3" scope="local">
+
+    <testcase name="getTestCaseName('RFC 2247 3')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+
+          <call function="'runFunction'">
+            { 'functionName'      : 'addEntry'                       ,
+              'functionMessage'   : 'Add an invalid object that is covered by RFC 2247.' ,
+              'functionException' : 'LDAP.AddException'               ,
+              'functionArguments' : { 'dsInstanceHost' : server.host ,
+                                      'dsInstancePort' : server.port ,
+                                      'dsInstanceDn'   : server.dn ,
+                                      'dsInstancePswd' : server.password ,
+                                      'entryToBeAdded' : '%s/schema/ldifs/rfc2247_3.ldif'
+                                                          % remote.data ,
+                                      'expectedRC'     : 65 }
+            }
+          </call>
+  
+        </sequence>
+        <catch exception="'STAXException.LDAP.AddException'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: LDAPAdd failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC Test 2247 4 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC 2247
+    #@TestIssue                 
+    #@TestPurpose               Check RFC 2247 Schema Objects.
+    #@TestPreamble              none
+    #@TestStep                  Add Invalid RFC 2247 Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add returns 65 (Object Class Violation)
+-->
+
+  <function name="schema_rfc_2247_4" scope="local">
+
+    <testcase name="getTestCaseName('RFC 2247 4')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+
+          <call function="'runFunction'">
+            { 'functionName'      : 'addEntry'                       ,
+              'functionMessage'   : 'Add an invalid object that is covered by RFC 2247.' ,
+              'functionException' : 'LDAP.AddException'               ,
+              'functionArguments' : { 'dsInstanceHost' : server.host ,
+                                      'dsInstancePort' : server.port ,
+                                      'dsInstanceDn'   : server.dn ,
+                                      'dsInstancePswd' : server.password ,
+                                      'entryToBeAdded' : '%s/schema/ldifs/rfc2247_4.ldif'
+                                                          % remote.data ,
+                                      'expectedRC'     : 65 }
+            }
+          </call>
+  
+        </sequence>
+        <catch exception="'STAXException.LDAP.AddException'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: LDAPAdd failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+  
+<!-- Test Case : Schema RFC Test 2247 5 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC 2247
+    #@TestIssue                 
+    #@TestPurpose               Check RFC 2247 Schema Objects.
+    #@TestPreamble              none
+    #@TestStep                  Add Invalid RFC 2247 Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add returns 65 (Object Class Violation)
+-->
+
+  <function name="schema_rfc_2247_5" scope="local">
+
+    <testcase name="getTestCaseName('RFC 2247 5')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by rfc 2247'
+          </message>
+
+          <call function="'runFunction'">
+            { 'functionName'      : 'addEntry'                       ,
+              'functionMessage'   : 'Add an invalid object that is covered by RFC 2247.' ,
+              'functionException' : 'LDAP.AddException'               ,
+              'functionArguments' : { 'dsInstanceHost' : server.host ,
+                                      'dsInstancePort' : server.port ,
+                                      'dsInstanceDn'   : server.dn ,
+                                      'dsInstancePswd' : server.password ,
+                                      'entryToBeAdded' : '%s/schema/ldifs/rfc2247_5.ldif'
+                                                          % remote.data ,
+                                      'expectedRC'     : 65 }
+            }
+          </call>
+  
+        </sequence>
+        <catch exception="'STAXException.LDAP.AddException'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: LDAPAdd failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC Test 2377 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC 2377
+    #@TestIssue                 
+    #@TestPurpose               Check RFC 2377 Directory Naming Plan Schema Objects.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC 2377 Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_2377" scope="local">
+
+    <testcase name="getTestCaseName('RFC 2377')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by rfc 2377'
+          </message>
+
+          <call function="'runFunction'">
+            { 'functionName'      : 'addEntry'                       ,
+              'functionMessage'   : 'Add an entry that is covered by RFC 2377.' ,
+              'functionException' : 'LDAP.AddException'               ,
+              'functionArguments' : { 'dsInstanceHost' : server.host ,
+                                      'dsInstancePort' : server.port ,
+                                      'dsInstanceDn'   : server.dn ,
+                                      'dsInstancePswd' : server.password ,
+                                      'entryToBeAdded' : '%s/schema/ldifs/rfc2377.ldif'
+                                                          % remote.data }
+            }
+          </call>
+  
+          <call function="'runFunction'">
+            { 'functionName'      : 'ldapSearchWithScript'                       ,
+              'functionMessage'   : 'Search for the entry just added and return uid.' ,
+              'functionException' : 'LDAP.SearchException'               ,
+              'functionArguments' : { 'dsInstanceHost'   : server.host ,
+                                      'dsInstancePort'   : server.port ,
+                                      'dsInstanceDn'     : server.dn ,
+                                      'dsInstancePswd'   : server.password ,
+                                      'dsBaseDN'         : __baseDN ,
+                                      'dsFilter'         : 'objectclass=*' ,
+                                      'dsAttributes'     : 'uid' }
+            }
+          </call>
+
+          <!--
+              TODO: RFC 2377 suggests using dcObject and uidObject for constructing 
+              the name in existing structural objects.
+          -->
+
+          <script>
+            _functionString=parse_stax_result(STAXResult)
+         </script>
+
+          <call function="'runFunction'">
+           { 'functionName'      : 'checktestString' ,
+             'functionMessage'   : 'Check that the uid attribute is returned.' ,
+             'functionException' : 'Utils.CheckStringException' ,
+             'functionArguments' : { 'expectedString' : 'uid: amiller' ,
+                                     'returnString'   : _functionString }
+           }
+          </call>
+            
+        </sequence>
+        <catch exception="'STAXException.LDAP.AddException'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: LDAPAdd failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+        <catch exception="'STAXException.LDAP.SearchException'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: LDAPSearch failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+        <catch exception="'STAXException.Utils.CheckStringException'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: UtilsCheck failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+     
+<!-- Test Case : Schema RFC Test 2798 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC 2798
+    #@TestIssue                 
+    #@TestPurpose               Check RFC 2798 LDAP inetOrgPerson Schema Objects.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC 2798 LDAP inetOrgPerson Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_2798" scope="local">
+
+    <testcase name="getTestCaseName('RFC 2798')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by rfc 2798'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/rfc2798.ldif' % remote.data }
+          </call>
+
+          <call function="'runFunction'">
+            { 'functionName'      : 'ldapSearchWithScript'                       ,
+              'functionMessage'   : 'Search for the entry just added and return departmentNumber.' ,
+              'functionException' : 'LDAP.SearchException'               ,
+              'functionArguments' : { 'dsInstanceHost'   : server.host ,
+                                      'dsInstancePort'   : server.port ,
+                                      'dsInstanceDn'     : server.dn ,
+                                      'dsInstancePswd'   : server.password ,
+                                      'dsBaseDN'         : "ou=People, %s" % __baseDN ,
+                                      'dsFilter'         : 'objectclass=*' ,
+                                      'dsAttributes'     : 'departmentNumber' }
+            }
+          </call>
+
+          <script>
+            _functionString=parse_stax_result(STAXResult)
+         </script>
+
+          <call function="'runFunction'">
+           { 'functionName'      : 'checktestString' ,
+             'functionMessage'   : 'Check that the departmentNumber attribute is returned.' ,
+             'functionException' : 'Utils.CheckStringException' ,
+             'functionArguments' : { 'expectedString' : 'departmentNumber: 602' ,
+                                     'returnString'   : _functionString }
+           }
+          </call>
+  
+        </sequence>
+        <catch exception="'STAXException.LDAP.AddException'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: LDAPAdd failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+        <catch exception="'STAXException.LDAP.SearchException'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: LDAPSearch failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+        <catch exception="'STAXException.Utils.CheckStringException'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: UtilsCheck failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function> 
+    
+<!-- Test Case : Schema RFC Test 3045 1 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC 3045
+    #@TestIssue                 
+    #@TestPurpose               Check RFC 3045 Schema Objects.
+    #@TestPreamble              none
+    #@TestStep                  Add Invalid RFC 3045 Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add returns 53 (Unwilling to Perform) 
+-->
+
+  <function name="schema_rfc_3045_1" scope="local">
+
+    <testcase name="getTestCaseName('RFC 3045 1')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by rfc 3045'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/rfc3045_1.ldif' % remote.data ,
+              'expectedRC'       : 53 }
+          </call>
+
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC Test 3045 2 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC 3045
+    #@TestIssue                 
+    #@TestPurpose               Check RFC 3045 Schema Objects.
+    #@TestPreamble              none
+    #@TestStep                  Add Invalid RFC 3045 Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add returns 53 (Unwilling to Perform) 
+-->
+
+  <function name="schema_rfc_3045_2" scope="local">
+
+    <testcase name="getTestCaseName('RFC 3045 2')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by rfc 3045'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/rfc3045_2.ldif' % remote.data ,
+              'expectedRC'       : 53 }
+          </call>
+
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC Test 4403 1 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC 4403
+    #@TestIssue                 
+    #@TestPurpose               Check RFC 4403 Schema Objects.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC 4403 Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_4403_1" scope="local">
+
+    <testcase name="getTestCaseName('RFC 4403 1')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by rfc 4403'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/rfc4403_1.ldif' % remote.data }
+          </call>
+
+          <!-- TODO: Need to verify that the added entry is working as specified -->  
+  
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC Test 4403 2 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC 4403
+    #@TestIssue                 
+    #@TestPurpose               Check RFC 4403 Schema Objects.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC 4403 Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_4403_2" scope="local">
+
+    <testcase name="getTestCaseName('RFC 4403 2')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by rfc 4403'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/rfc4403_2.ldif' % remote.data }
+          </call>
+
+          <!-- TODO: Need to verify that the added entry is working as specified -->  
+  
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC Test 4403 3 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC 4403
+    #@TestIssue                 
+    #@TestPurpose               Check RFC 4403 Schema Objects.
+    #@TestPreamble              none
+    #@TestStep                  Add Invalid RFC 4403 Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add returns 65 (Object Class Violation)
+-->
+
+  <function name="schema_rfc_4403_3" scope="local">
+
+    <testcase name="getTestCaseName('RFC 4403 3')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by rfc 4403'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/rfc4403_3.ldif' % remote.data,
+              'expectedRC'       : 65 }
+          </call>
+  
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC Test 4403 4 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC 4403
+    #@TestIssue                 
+    #@TestPurpose               Check RFC 4403 Schema Objects.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC 4403 Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_4403_4" scope="local">
+
+    <testcase name="getTestCaseName('RFC 4403 4')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by rfc 4403'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/rfc4403_4.ldif' % remote.data }
+          </call>
+
+          <!-- TODO: Need to verify that the added entry is working as specified -->  
+  
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC Test 4403 5 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC 4403
+    #@TestIssue                 
+    #@TestPurpose               Check RFC 4403 Schema Objects.
+    #@TestPreamble              none
+    #@TestStep                  Add Invalid RFC 4403 Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add returns 65 (Object Class Violation)
+-->
+
+  <function name="schema_rfc_4403_5" scope="local">
+
+    <testcase name="getTestCaseName('RFC 4403 5')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by rfc 4403'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/rfc4403_5.ldif' % remote.data,
+              'expectedRC'       : 65 }
+          </call>
+  
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC Test 2307 BIS 1-->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC 2307 BIS 1
+    #@TestIssue                 
+    #@TestPurpose               Check RFC 2307 Schema Objects.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC 2307 Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_2307_1" scope="local">
+
+    <testcase name="getTestCaseName('Draft Howard RFC 2307bis 1')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by Draft Howard RFC 2307bis 1'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/rfc2307bis_1.ldif' % remote.data }
+          </call>
+
+          <!-- TODO: Need to verify that the added entry is working as specified -->  
+  
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC Test 2307 BIS 2-->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC 2307 BIS 2
+    #@TestIssue                 
+    #@TestPurpose               Check RFC 2307 Schema Objects.
+    #@TestPreamble              none
+    #@TestStep                  Add Invalid RFC 4403 Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add returns 65 (Object Class Violation)
+-->
+
+  <function name="schema_rfc_2307_2" scope="local">
+
+    <testcase name="getTestCaseName('Draft Howard RFC 2307bis 2')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by Draft Howard RFC 2307bis 2'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/rfc2307bis_2.ldif' % remote.data ,
+              'expectedRC'       : 65 }
+          </call>
+
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC Test 2307 BIS 3 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC 2307 BIS 3
+    #@TestIssue                 
+    #@TestPurpose               Check RFC 2307 Schema Objects.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC 2307 Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_2307_3" scope="local">
+
+    <testcase name="getTestCaseName('Draft Howard RFC 2307bis 3')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by Draft Howard RFC 2307bis 3'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/rfc2307bis_3.ldif' % remote.data }
+          </call>
+
+          <!-- TODO: Need to verify that the added entry is working as specified -->  
+  
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC Test 2307 BIS 4 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC 2307 BIS 4
+    #@TestIssue                 
+    #@TestPurpose               Check RFC 2307 Schema Objects.
+    #@TestPreamble              none
+    #@TestStep                  Add Invalid RFC 4403 Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add returns 65 (Object Class Violation)
+-->
+
+  <function name="schema_rfc_2307_4" scope="local">
+
+    <testcase name="getTestCaseName('Draft Howard RFC 2307bis 4')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by Draft Howard RFC 2307bis 4'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/rfc2307bis_4.ldif' % remote.data ,
+              'expectedRC'       : 65 }
+          </call>
+  
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+    
+<!-- Test Case : Schema RFC Test draft-furseth-ldap-untypedobject -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC 2307 BIS 4
+    #@TestIssue                 
+    #@TestPurpose               Check RFC Draft Furseth LDAP Untypedobject Schema Objects.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC 2307 Draft Furseth LDAP Untypedobject Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_furseth" scope="local">
+
+    <testcase name="getTestCaseName('Draft Furseth LDAP Untypedobject')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by Draft draft-furseth-ldap-untypedobject'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/untypedobject.ldif' % remote.data }
+          </call>
+
+          <!-- TODO: Need to verify that the added entry is working as specified -->  
+    
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC draft-good-ldap-changelog 1 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC Draft Good LDAP Changelog
+    #@TestIssue                 
+    #@TestPurpose               Check RFC Draft Good LDAP Changelog.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC Draft Good LDAP Changelog Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_good_1" scope="local">
+
+    <testcase name="getTestCaseName('Draft Good LDAP Changelog 1')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by Draft draft-good-ldap-changelog'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/changelog_1.ldif' % remote.data }
+          </call>
+
+          <!-- TODO: Need to verify that the added entry is working as specified -->  
+    
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+   
+<!-- Test Case : Schema RFC draft-good-ldap-changelog 2 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC Draft Good LDAP Changelog
+    #@TestIssue                 
+    #@TestPurpose               Check RFC Draft Good LDAP Changelog.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC Draft Good LDAP Changelog Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_good_2" scope="local">
+
+    <testcase name="getTestCaseName('Draft Good LDAP Changelog 2')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by Draft draft-good-ldap-changelog'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/changelog_2.ldif' % remote.data }
+          </call>
+
+          <!-- TODO: Need to verify that the added entry is working as specified -->  
+    
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+  
+<!-- Test Case : Schema RFC draft-good-ldap-changelog 3 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC Draft Good LDAP Changelog
+    #@TestIssue                 
+    #@TestPurpose               Check RFC Draft Good LDAP Changelog.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC Draft Good LDAP Changelog Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_good_3" scope="local">
+
+    <testcase name="getTestCaseName('Draft Good LDAP Changelog 3')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by Draft draft-good-ldap-changelog'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/changelog_3.ldif' % remote.data }
+          </call>
+
+          <!-- TODO: Need to verify that the added entry is working as specified -->  
+    
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC Test Draft Howard NamedObject 1 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC Draft Howard NamedObject 1
+    #@TestIssue                 
+    #@TestPurpose               Check RFC Draft Howard NamedObject.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC Draft Howard NamedObject object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_howard_1" scope="local">
+
+    <testcase name="getTestCaseName('Draft Howard NamedObject 1')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by draft-howard-namedobject.'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/namedobject_1.ldif' % remote.data }
+          </call>
+
+          <!-- TODO: Need to verify that the added entry is working as specified -->  
+    
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC Test Draft Howard NamedObject 2 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC Draft Howard NamedObject 1
+    #@TestIssue                 
+    #@TestPurpose               Check RFC Draft Howard NamedObject.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC Draft Howard NamedObject object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_howard_2" scope="local">
+
+    <testcase name="getTestCaseName('Draft Howard NamedObject 2')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by draft-howard-namedobject.'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/namedobject_2.ldif' % remote.data }
+          </call>
+
+          <!-- TODO: Need to verify that the added entry is working as specified -->  
+    
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC Test Draft IETF LDUP Subentry 1 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC Draft IETF LDUP Subentry 1
+    #@TestIssue                 
+    #@TestPurpose               Check RFC Draft IETF LDUP Subentry 1.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC Draft IETF LDUP Subentry object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_ldup_1" scope="local">
+
+    <testcase name="getTestCaseName('Draft IETF LDUP Subentry 1')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Schema: Add an entry that is covered by draft-ietf-ldup-subentry.'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/ldup_subentry_1.ldif' % remote.data }
+          </call>
+
+          <!-- TODO: Need to verify that the added entry is working as specified -->  
+    
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC Test Draft IETF LDUP Subentry 2 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC Draft IETF LDUP Subentry 2
+    #@TestIssue                 
+    #@TestPurpose               Check RFC Draft IETF LDUP Subentry 2.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC Draft IETF LDUP Subentry 2 object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_ldup_2" scope="local">
+
+    <testcase name="getTestCaseName('Draft IETF LDUP Subentry 2')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Schema: Add an entry that is covered by draft-ietf-ldup-subentry.'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/ldup_subentry_2.ldif' % remote.data }
+          </call>
+
+          <!-- TODO: Need to verify that the added entry is working as specified -->  
+  
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC Test Draft IETF LDUP Subentry 3 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                RFC Schema Tests
+    #@TestName                  RFC Draft IETF LDUP Subentry 3
+    #@TestIssue                 
+    #@TestPurpose               Check RFC Draft IETF LDUP Subentry 3.
+    #@TestPreamble              none
+    #@TestStep                  Add Invalid RFC Draft IETF LDUP Subentry 3 object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add returns 53 (Unwilling to Perform) 
+-->
+
+  <function name="schema_rfc_ldup_3" scope="local">
+
+    <testcase name="getTestCaseName('Draft IETF LDUP Subentry 3')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Schema: Add an entry that is covered by draft-ietf-ldup-subentry.'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/ldup_subentry_3.ldif' % remote.data ,
+              'expectedRC'       : 53 }
+          </call>
+  
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema Disable Schema Checking -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                Disable Schema Checking
+    #@TestName                  Disable Schema Checking
+    #@TestIssue                 
+    #@TestPurpose               Check Disable Schema Checking.
+    #@TestPreamble              none
+    #@TestStep                  Set check schema to false.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_disable_schema_checking" scope="local">
+
+    <testcase name="getTestCaseName('Disable Schema Checking')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Disable schema checking.'
+          </message>
+  
+          <call function="'modifyGlobal'">
+                { 'dsInstanceHost'         : server.host ,
+                  'dsInstanceDn'           : server.dn ,
+                  'dsInstancePswd'         : server.password ,
+                  'attributeName'          : 'check-schema' ,
+                  'attributeValue'         : 'false' }
+          </call> 
+
+          <!-- TODO: Need to verify the disabling of schema check. -->  
+          <!-- TODO: Should be part of a separate test suite. -->
+  
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema Enable Schema Checking -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                Enable Schema Checking
+    #@TestName                  Enable Schema Checking
+    #@TestIssue                 
+    #@TestPurpose               Check Enable Schema Checking.
+    #@TestPreamble              none
+    #@TestStep                  Set check schema to true.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_enable_schema_checking" scope="local">
+
+    <testcase name="getTestCaseName('Enable Schema Checking')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Enable schema checking.'
+          </message>
+  
+          <call function="'modifyGlobal'">
+                { 'dsInstanceHost'         : server.host ,
+                  'dsInstanceDn'           : server.dn ,
+                  'dsInstancePswd'         : server.password ,
+                  'attributeName'          : 'check-schema' ,
+                  'attributeValue'         : 'true' }
+          </call> 
+
+          <!-- TODO: Need to verify the enabling of schema check. -->  
+          <!-- TODO: Should be part of a separate test suite. -->
+    
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema Disable Syntax Checking for Generalized Time-->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                Disable Syntax Checking
+    #@TestName                  Disable Syntax Checking
+    #@TestIssue                 
+    #@TestPurpose               Check Disable Syntax Checking for Generalized Time.
+    #@TestPreamble              none
+    #@TestStep                  Set check schema to true.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_disable_syntax_checking" scope="local">
+
+    <testcase name="getTestCaseName('Disable Syntax Checking')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Disable Syntax Checking for Generalized Time.'
+          </message>
+  
+          <call function="'dsconfig'">
+                { 'dsInstanceHost'         : server.host ,
+                  'dsInstanceDn'           : server.dn ,
+                  'dsInstancePswd'         : server.password ,
+                  'subcommand'             : 'set-attribute-syntax-prop' ,
+                  'objectType'             : 'syntax-name' ,
+                  'objectName'             : 'Generalized Time',
+                  'optionsString'          : '--set enabled:false',
+                  'knownIssue'             : '2046'
+                  }
+          </call> 
+
+          <!-- TODO: Need to verify the disabling of syntax check. -->  
+          <!-- TODO: Should be part of a separate test suite. -->
+  
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema Enable Syntax Checking for Generalized Time -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                Enable Syntax Checking
+    #@TestName                  Enable Syntax Checking
+    #@TestIssue                 
+    #@TestPurpose               Check Enable Syntax Checking for Generalized Time.
+    #@TestPreamble              none
+    #@TestStep                  Set check schema to true.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_enable_syntax_checking" scope="local">
+
+    <testcase name="getTestCaseName('Enable Syntax Checking for Generalized Time')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Enable Syntax Checking for Generalized Time.'
+          </message>
+  
+          <call function="'dsconfig'">
+                { 'dsInstanceHost'         : server.host ,
+                  'dsInstanceDn'           : server.dn ,
+                  'dsInstancePswd'         : server.password ,
+                  'subcommand'             : 'set-attribute-syntax-prop' ,
+                  'objectType'             : 'syntax-name' ,
+                  'objectName'             : 'Generalized Time',
+                  'optionsString'          : '--set enabled:true'
+                  }
+          </call>
+
+          <!-- TODO: Need to verify the enabling of syntax check. -->  
+          <!-- TODO: Should be part of a separate test suite. -->
+  
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema Draft IETF Zeilenga LDAP COSINE 1 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                Draft IETF Zeilenga LDAP COSINE
+    #@TestName                  Draft IETF Zeilenga LDAP COSINE
+    #@TestIssue                 
+    #@TestPurpose               Check Draft IETF Zeilenga LDAP COSINE Schema Object.
+    #@TestPreamble              none
+    #@TestStep                  Add Draft IETF Zeilenga LDAP COSINE Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_cosine_1" scope="local">
+
+    <testcase name="getTestCaseName('Draft IETF Zeilenga LDAP COSINE 1')">
+      <try>
+        <sequence>
+
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine'
+          </message>
+    
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/ldap_cosine_1.ldif' % remote.data }
+          </call>
+
+          <!-- TODO: Need to verify that the added entry is working as specified -->
+            
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema Draft IETF Zeilenga LDAP COSINE 2 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                Draft IETF Zeilenga LDAP COSINE
+    #@TestName                  Draft IETF Zeilenga LDAP COSINE 2
+    #@TestIssue                 
+    #@TestPurpose               Check Draft IETF Zeilenga LDAP COSINE Schema Object.
+    #@TestPreamble              none
+    #@TestStep                  Add Draft IETF Zeilenga LDAP COSINE Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_cosine_2" scope="local">
+
+    <testcase name="getTestCaseName('Draft IETF Zeilenga LDAP COSINE 2')">
+      <try>
+        <sequence>
+
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine'
+          </message>
+    
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/ldap_cosine_2.ldif' % remote.data }
+          </call>
+
+          <!-- TODO: Need to verify that the added entry is working as specified -->
+  
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema Draft IETF Zeilenga LDAP COSINE 3 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                Draft IETF Zeilenga LDAP COSINE
+    #@TestName                  Draft IETF Zeilenga LDAP COSINE 3
+    #@TestIssue                 
+    #@TestPurpose               Check Draft IETF Zeilenga LDAP COSINE Schema Object.
+    #@TestPreamble              none
+    #@TestStep                  Add Invalid Draft IETF Zeilenga LDAP COSINE Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add returns 65 (Object Class Violation)
+-->
+
+  <function name="schema_cosine_3" scope="local">
+
+    <testcase name="getTestCaseName('Draft IETF Zeilenga LDAP COSINE 3')">
+      <try>
+        <sequence>
+
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by draft-ietf-zeilenga-ldap-cosine'
+          </message>
+    
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/ldap_cosine_3.ldif' % remote.data ,
+              'expectedRC'       : 65 }
+          </call>
+
+          <!-- TODO: Need to verify that the added entry is working as specified -->
+  
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try> 
+    </testcase>
+  </function>  
+
+<!-- Test Case : Schema RFC 2739 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                Schema RFC 2739
+    #@TestName                  Schema RFC 2739
+    #@TestIssue                 
+    #@TestPurpose               Check Schema RFC 2739 Schema Object.
+    #@TestPreamble              none
+    #@TestStep                  Add Schema RFC 2739 Schema Object.
+    #@TestStep                  Search Schema RFC 2739 Schema Object.
+    #@TestStep                  Add Schema RFC 2739 Schema Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_2739" scope="local">
+    
+    <testcase name="getTestCaseName('RFC 2739')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by rfc 2739'
+          </message>
+    
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/rfc2739.ldif' % remote.data }
+          </call>
+    
+          <if expr="RC != 0">
+              <tcstatus result="'fail'"/>
+          </if>
+    
+          <message>
+             'Search the entry just added and return calCalURI '
+          </message>
+    
+          <call function="'SearchObject'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'dsBaseDN'         : 'o=rfc tests,dc=example,dc=com' ,
+              'dsFilter'         : 'uid=tsmith' ,
+              'attributes'     : 'calCalURI' }
+              
+          </call>
+    
+          <call function="'checktestRC'">
+              { 'returncode' : RC ,
+                'result'     : STAXResult }
+          </call>
+
+          <!-- TODO: Need to verify that correct attributes are returned -->
+
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try>
+    </testcase>
+  </function>
+
+<!-- Test Case : Schema RFC 2714 1 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                Schema RFC 2714 1
+    #@TestName                  Schema RFC 2714 1
+    #@TestIssue                 
+    #@TestPurpose               Check Schema RFC 2714 Schema Object.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC 2714 Schema Object.
+    #@TestStep                  Search Schema RFC 2714 Object.
+    #@TestStep                  Add Schema RFC 2714 Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_2714_1" scope="local">  
+
+    <testcase name="getTestCaseName('RFC 2714 1')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by rfc 2714'
+          </message>
+    
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/rfc2714.ldif' % remote.data ,
+              'expectedRC'       : 65
+              }
+          </call>
+          
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try>
+    </testcase>
+</function>
+
+<!-- Test Case : Schema RFC 2714 2 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                Schema RFC 2714 2
+    #@TestName                  Schema RFC 2714 2
+    #@TestIssue                 
+    #@TestPurpose               Check Schema RFC 2714 Schema Object.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC 2714 Schema Object.
+    #@TestStep                  Search Schema RFC 2714 Object.
+    #@TestStep                  Add Schema RFC 2714 Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_2714_2" scope="local">  
+
+    <testcase name="getTestCaseName('RFC 2714 2')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by rfc 2714'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/rfc2714_2.ldif' % remote.data }
+          </call>
+          
+          <if expr="RC != 0">
+              <tcstatus result="'fail'"/>
+          </if>
+  
+          <message>
+             'Search the entry just added and return corbaRepositoryId '
+          </message>
+  
+          <call function="'SearchObject'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'dsBaseDN'         : 'o=rfc tests,dc=example,dc=com' ,
+              'dsFilter'         : 'cn=corba1' ,
+              'attributes'     : 'corbaRepositoryId' }
+              
+          </call>
+          <call function="'checktestRC'">
+              { 'returncode' : RC ,
+                'result'     : STAXResult }
+          </call>
+  
+          <!-- TODO: Need to verify that correct attributes are returned -->
+            
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try>
+    </testcase>
+
+  </function>
+
+<!-- Test Case : Schema RFC 2713 -->
+<!--
+    Place test-specific test information here.
+    The tag, TestMarker, must be the same as the tag, TestSuiteName.
+    #@TestMarker                Schema RFC 2713
+    #@TestName                  Schema RFC 2713
+    #@TestIssue                 
+    #@TestPurpose               Check Schema RFC 2713 Schema Object.
+    #@TestPreamble              none
+    #@TestStep                  Add RFC 2713 Schema Object.
+    #@TestStep                  Search Schema RFC 2713 Object.
+    #@TestStep                  Add Schema RFC 2713 Object.
+    #@TestPostamble             none
+    #@TestResult                Success if Add Operation returns 0
+-->
+
+  <function name="schema_rfc_2713" scope="local">  
+  
+    <testcase name="getTestCaseName('RFC 2713')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+             'Schema: Add an entry that is covered by rfc 2713'
+          </message>
+  
+          <call function="'addEntry'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'entryToBeAdded'   : '%s/schema/ldifs/rfc2713.ldif' % remote.data }
+          </call>
+          
+          <if expr="RC != 0">
+              <tcstatus result="'fail'"/>
+          </if>
+  
+          <message>
+             'Search the entry just added and return javaClassName '
+          </message>
+  
+          <call function="'SearchObject'">
+            { 'dsInstanceHost'   : server.host ,
+              'dsInstancePort'   : server.port ,
+              'dsInstanceDn'     : server.dn ,
+              'dsInstancePswd'   : server.password ,
+              'dsBaseDN'         : 'ou=java object,o=rfc tests,dc=example,dc=com' ,
+              'dsFilter'         : 'cn=java1' ,
+              'attributes'     : 'javaClassName' }
+              
+          </call>
+  
+          <call function="'checktestRC'">
+              { 'returncode' : RC ,
+                'result'     : STAXResult }
+          </call>
+
+          <!-- TODO: Need to verify that correct attributes are returned -->
+                    
+        </sequence>
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try>
+    </testcase>
+</function>
+
+</stax>

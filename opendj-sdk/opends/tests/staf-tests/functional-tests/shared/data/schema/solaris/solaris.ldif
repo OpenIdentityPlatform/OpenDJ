@@ -1,0 +1,180 @@
+# CDDL HEADER START
+#
+# The contents of this file are subject to the terms of the
+# Common Development and Distribution License, Version 1.0 only
+# (the "License").  You may not use this file except in compliance
+# with the License.
+#
+# You can obtain a copy of the license at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE
+# or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+# See the License for the specific language governing permissions
+# and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL HEADER in each
+# file and include the License file at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+# add the following below this CDDL HEADER, with the fields enclosed
+# by brackets "[]" replaced with your own identifying information:
+#      Portions Copyright [yyyy] [name of copyright owner]
+#
+# CDDL HEADER END
+#
+#      Copyright 2008 Sun Microsystems, Inc.
+#
+
+dn: o=Solaris schema tests,dc=example,dc=com
+o: Solaris schema tests
+objectclass: top
+objectclass: organization
+
+dn: o=Solaris, o=Solaris schema tests,dc=example,dc=com
+o: Solaris
+objectclass: top
+objectclass: organization
+
+dn: cn=nisMailAlias,o=Solaris, o=Solaris schema tests,dc=example,dc=com
+objectclass: top
+objectclass: person
+objectclass: nisMailAlias
+cn: nisMailAlias
+sn: nisMailAlias
+rfc822mailMember: nisMailAlias@sun.com
+
+dn: cn=nisNetId,o=Solaris, o=Solaris schema tests,dc=example,dc=com
+objectclass: nisNetId
+objectclass: person
+cn: nisNetId
+sn: nisNetId
+nisNetIdUser: testuser
+nisNetIdGroup: testgroup
+nisNetIdHost: ldap5.ldap.sun.com
+
+dn: SolarisProjectName=Schema Tests,o=Solaris, o=Solaris schema tests,dc=example,dc=com
+objectclass: SolarisProject
+SolarisProjectID: 42
+SolarisProjectName: Schema Tests
+memberUid: chibber
+memberUid: bignik!
+memberUid: *
+memberUid: !*
+memberGid: schema
+memberGid: sheffield!
+memberGid: *
+memberGid: !*
+description: Schema Tests Project
+SolarisProjectAttr: task.max-cpu-time process.max-file-descriptor
+
+dn: cn=SolarisAuditUser,o=Solaris, o=Solaris schema tests,dc=example,dc=com
+objectclass: person
+objectclass: SolarisAuditUser
+cn: SolarisAuditUser
+sn: SolarisAuditUser
+SolarisAuditAlways: *
+SolarisAuditNever: *
+
+dn: uid=SolarisUserAttr, o=Solaris, o=Solaris schema tests,dc=example,dc=com
+objectClass:posixAccount
+objectClass:shadowAccount
+objectClass:account
+objectclass:SolarisUserAttr
+cn:SolarisUserAttr
+description:Testing LDAP User to give RBAC
+gecos:Test User
+SolarisUserQualifier: qualified
+SolarisAttrReserved1: *
+SolarisAttrReserved2: *
+SolarisAttrKeyValue: type=role;profiles=Basic Solaris User
+loginShell:/usr/bin/ksh
+homeDirectory:/home/SolarisUserAttr
+uidNumber: 57
+gidNumber: 58
+
+dn: cn=SolarisAuthAttr, o=Solaris, o=Solaris schema tests,dc=example,dc=com
+objectclass: SolarisAuthAttr
+cn: SolarisAuthAttr
+SolarisAttrReserved1: *
+SolarisAttrReserved2: *
+SolarisAttrShortDesc: authtest
+SolarisAttrLongDesc: Special profile for auth testing
+SolarisAttrKeyValue: privs=none
+
+dn: cn=SolarisProfile, o=Solaris, o=Solaris schema tests,dc=example,dc=com
+objectclass: SolarisProfAttr
+objectclass: SolarisExecAttr
+cn: SolarisProfile
+SolarisAttrLongDesc: Special profile for testing
+SolarisAttrKeyValue: help=TestProfile.html 
+SolarisKernelSecurityPolicy: solaris
+SolarisProfileType: act
+SolarisAttrReserved1: *
+SolarisAttrReserved2: *
+SolarisProfileId: TestAction;*;*;*;*
+
+dn: cn=SolarisNamingProfile, o=Solaris, o=Solaris schema tests,dc=example,dc=com
+objectclass: SolarisNamingProfile
+cn: SolarisNamingProfile
+SolarisDataSearchDN: "passwd:(ou=People,dc=ldap-test,dc=com)"
+SolarisDataSearchDN: "printers:(ou=Printers,dc=ldap-test,dc=com)"
+SolarisDataSearchDN: "group:(ou=Group,dc=ldap-test,dc=com)"
+SolarisDataSearchDN: "automount:(ou=Services,dc=ldap-test,dc=com)"
+SolarisLDAPServers: ldap3.ldap.sun.com ldap2.ldap.sun.com ldap1.ldap.sun.com
+SolarisSearchBaseDN: o=Solaris, o=Solaris schema tests,dc=example,dc=com
+SolarisBindDN: cn=proxyagent,o=Solaris, o=Solaris schema tests,dc=example,dc=com
+SolarisBindPassword: secret12
+SolarisAuthMethod: NS_LDAP_AUTH_SIMPLE
+SolarisTransportSecurity: NS_LDAP_SEC_NONE
+SolarisCertificatePath: NS_LDAP_CERT_PATH_NONE
+SolarisCertificatePassword: password
+SolarisSearchScope: NS_LDAP_SCOPE_ONELEVEL
+SolarisSearchTimeLimit: 30
+SolarisPreferredServer: ldap3.ldap.sun.com
+SolarisPreferredServerOnly: TRUE
+SolarisCacheTTL: 43200
+SolarisSearchReferral: NS_LDAP_FOLLOWREF
+SolarisBindTimeLimit: 180
+
+dn: cn=mailGroup,o=Solaris, o=Solaris schema tests,dc=example,dc=com
+objectclass: mailGroup
+mail: mailgroup@sun.com
+cn: mailGroup
+mgrpRFC822MailMember: uid=jim1234,o=sun,c=fr
+mgrpRFC822MailMember: uid=kippo2545,o=sun,c=fr
+mgrpRFC822MailMember: uid=macka5381,o=sun,c=fr
+mgrpRFC822MailMember: uid=hume0734o=sun,c=fr
+mgrpRFC822MailMember: uid=chappy,2578o=sun,c=fr
+
+#dn: printer-name=wombat07,o=Solaris, o=Solaris schema tests,dc=example,dc=com
+#objectclass: printerService
+#objectclass: printerAbstract
+#objectclass: sunPrinter
+#objectclass: top
+#printer-name: wombat07
+#printer-uri: wombat07
+#sun-printer-bsdaddr: printsvr.example.com,myprinter,Solaris
+#sun-printer-kvp: description=My Super Printer (PS)
+
+dn: cn=nisplusTimeZone,o=Solaris, o=Solaris schema tests,dc=example,dc=com
+objectclass: nisplusTimeZoneData
+cn: nisplusTimeZone
+nisplusTimeZone: GMT+1
+description: The NIS+ time zone
+
+dn: ou=ipTnet,o=Solaris, o=Solaris schema tests,dc=example,dc=com
+objectClass: top
+objectClass: organizationalunit
+ou: ipTnet
+
+dn: ipTnetTemplateName=cipso,ou=ipTnet,o=Solaris, o=Solaris schema tests,dc=example,dc=com
+objectClass:top
+objectClass:ipTnetTemplate
+ipTnetTemplateName:cipso
+SolarisAttrKeyValue:host_type=cipso;doi=1;min_sl=ADMIN_LOW;max_sl=ADMIN_HIGH;
+
+dn: ipTnetNumber=0.0.0.0,o=Solaris, o=Solaris schema tests,dc=example,dc=com
+objectClass:top
+objectClass:ipTnetTemplate
+objectClass:ipTnetHost
+ipTnetNumber:0.0.0.0
+ipTnetTemplateName:internal
+
