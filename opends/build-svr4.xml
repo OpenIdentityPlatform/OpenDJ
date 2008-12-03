@@ -51,7 +51,7 @@
   <property name="pkg.arch"       value="all" />
   <property name="pkg.desc"       value="${product}" />
   <property name="pkg.vendor"     value="Sun Microsystems, Inc." />
-  <property name="pkg.basedir"    value="/opt" />
+  <property name="pkg.basedir"    value="/usr" />
 
   <!-- Some others general properties -->
   <property name="svr4.build.dir"        location="${build.dir}/package/svr4/build/${pkg.name}" />

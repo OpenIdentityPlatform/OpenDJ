@@ -209,7 +209,7 @@ public class Configurator extends Launcher {
         exit = proc.exitValue();
         if (exit != 0) {
           LOG.log(Level.SEVERE, "[" + cmd + "] returns " + exit);
-          System.err.println(ERR_CONFIGURE_OPENDSD_NOT_EXIST.get());
+          System.err.println(ERR_CONFIGURE_LDAPUSER_NOT_EXIST.get(user));
           System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
         }
       }
