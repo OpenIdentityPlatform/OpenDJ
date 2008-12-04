@@ -52,7 +52,11 @@ public class ObjectClassValue
   {
     this.structural = structural;
     this.auxiliary.addAll(auxiliary);
-    hashCode = structural.hashCode();
+    if (structural != null)
+    {
+      // This can happen when the schema checking is not enabled.
+      hashCode = structural.hashCode();
+    }
     for (String oc : auxiliary)
     {
       hashCode += oc.hashCode();
