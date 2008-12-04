@@ -65,7 +65,7 @@ export SCRIPT_NAME
 # Check --exec. If not present, start OpenDS from SMF
 if test -f "${INSTALL_ROOT}/lib/_svc-opends.sh"
 then
-    if [ "$1" == "--exec" ]
+    if [ "$1" = "--exec" ]
     then
         shift
     elif [ "$1" != "-V" -a "$1" != "--version" -a "$1" != "-?" -a \
