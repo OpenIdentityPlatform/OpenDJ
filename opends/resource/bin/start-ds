@@ -52,12 +52,12 @@ export SCRIPT_NAME
 
 if test -f "${INSTALL_ROOT}/lib/_svc-opends.sh"
 then
-    if [ "$1" == "--exec" ]
+    if [ "$1" = "--exec" ]
     then
         shift
-    elif [ -z "$1" -o "$1" == "-L" -o "$1" == "-Q" -o "$1" == "-N" -o \
-     "$1" == "--nodetach" -o "$1" == "-useLastKnownGoodConfig" \
-     -o "$1" == "--quiet" ]
+    elif [ -z "$1" -o "$1" = "-L" -o "$1" = "-Q" -o "$1" = "-N" -o \
+     "$1" = "--nodetach" -o "$1" = "-useLastKnownGoodConfig" \
+     -o "$1" = "--quiet" ]
     then
 # these options are only used when trying to start the server
 # In this case, start it through the service.
