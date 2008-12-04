@@ -74,6 +74,7 @@ else
     else
         cat ${INSTALL_ROOT}/resources/opends-manifest.xml | sed -e "s/user='ldap/user='${USERNAME}/;s/group='ldap/group='${GROUPNAME}/" > /tmp/opends-manifest.$$
         cp /tmp/opends-manifest.$$ /var/svc/manifest/network/ldap/opends-manifest.xml
+        rm /tmp/opends-manifest.$$
     fi
     /usr/sbin/svccfg import /var/svc/manifest/network/ldap/opends-manifest.xml
   fi
