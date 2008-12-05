@@ -735,7 +735,10 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         mo.commit();
 
         // Output success message.
-        app.println();
+        if (app.isInteractive() || app.isVerbose())
+        {
+          app.println();
+        }
         Message msg = INFO_DSCFG_CONFIRM_CREATE_SUCCESS.get(ufn);
         app.printVerboseMessage(msg);
 
