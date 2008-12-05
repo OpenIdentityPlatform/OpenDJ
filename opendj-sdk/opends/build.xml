@@ -147,6 +147,10 @@
   <property name="msg.package.dir" location="${classes.dir}/messages" />
   <property name="msg.src.dir"     location="${msg.dir}/src" />
 
+  <!-- Properties for L10n for generating messages. -->
+  <property name="msgl10n.prop.dir"  location="src/admin/messages/" />
+
+
   <!-- Properties for SNMP extension. -->
   <property name="snmp.mib.dir"      location="src/snmp/resource/mib" />
   <property name="snmp.security.dir" location="src/snmp/resource/security" />
@@ -695,6 +699,13 @@
     </copy>
   </target>
 
+  <!-- copy the l10n message properties files (for generated messages)-->
+  <target name="copyl10nmessages">
+    <echo message="JPI"/>
+    <copy todir="${msg.package.dir}">
+    <fileset dir="${msgl10n.prop.dir}" />
+    </copy>
+  </target>
 
 
   <!--
@@ -759,6 +770,7 @@
 
     <!-- copy the message properties files -->
     <antcall target="copymessages" />
+
 
     <!-- copy the message descriptor registry file -->
     <copy todir="${classes.dir}/org/opends/messages"
@@ -915,6 +927,10 @@
 
     <!-- copy the message properties files -->
     <antcall target="copymessages" />
+
+    <!-- copy the l10n message properties files -->
+    <antcall target="copyl10nmessages" />
+
 
     <!-- copy the message descriptor registry file -->
     <copy todir="${classes.dir}/org/opends/messages"
