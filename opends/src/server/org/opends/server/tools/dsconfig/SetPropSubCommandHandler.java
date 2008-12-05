@@ -701,10 +701,8 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       Message msg = ERR_DSCFG_ERROR_MODIFY_CME.get(ufn);
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (ManagedObjectNotFoundException e) {
-      Message msg = ERR_DSCFG_ERROR_FINDER_NO_CHILDREN.get(ufn);
-      app.println();
-      app.printVerboseMessage(msg);
-      return MenuResult.cancel();
+      throw ArgumentExceptionFactory.unknownValueForChildComponent(
+        "\"" + names.get(0) + "\"");
     }
 
     if (result.isQuit()) {
