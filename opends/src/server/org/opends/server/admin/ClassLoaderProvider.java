@@ -318,15 +318,39 @@ public final class ClassLoaderProvider {
     // First load the extension from the install directory, then
     // from the instance directory.
     File libDir ;
-    File extensionsPath ;
+    File installExtensionsPath ;
+    File instanceExtensionsPath ;
 
-    libDir = new File(DirectoryServer.getServerRoot(),LIB_DIR);
-    extensionsPath = new File(libDir, EXTENSIONS_DIR);
-    initializeAllExtensions(extensionsPath);
 
+    // load install dir extension
+    libDir = new File(DirectoryServer.getServerRoot(), LIB_DIR);
+    try
+    {
+      installExtensionsPath =
+        new File(libDir, EXTENSIONS_DIR).getCanonicalFile();
+    }
+    catch (Exception e)
+    {
+      installExtensionsPath = new File(libDir, EXTENSIONS_DIR);
+    }
+    initializeAllExtensions(installExtensionsPath);
+
+    // load instance dir extension
     libDir = new File(DirectoryServer.getInstanceRoot(),LIB_DIR);
-    extensionsPath = new File(libDir, EXTENSIONS_DIR);
-    initializeAllExtensions(extensionsPath);
+    try
+    {
+      instanceExtensionsPath =
+        new File(libDir, EXTENSIONS_DIR).getCanonicalFile();
+    }
+    catch (Exception e)
+    {
+      instanceExtensionsPath = new File(libDir, EXTENSIONS_DIR);
+    }
+    if (! installExtensionsPath.getAbsolutePath().equals(
+        instanceExtensionsPath.getAbsolutePath()))
+    {
+      initializeAllExtensions(instanceExtensionsPath);
+    }
   }
 
 
