@@ -58,6 +58,7 @@ import javax.net.ssl.KeyManager;
 import org.opends.admin.ads.util.ApplicationKeyManager;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.quicksetup.Constants;
+import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.PasswordReader;
@@ -470,7 +471,8 @@ public final class SecureConnectionCliArgs
     }
 
     portArg = new IntegerArgument("port", OPTION_SHORT_PORT, OPTION_LONG_PORT,
-        false, false, true, INFO_PORT_PLACEHOLDER.get(), 389, null,
+        false, false, true, INFO_PORT_PLACEHOLDER.get(),
+        AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT, null,
         portDescription);
     portArg.setPropertyName(OPTION_LONG_PORT);
     argList.add(portArg);
