@@ -623,6 +623,23 @@ public final class ArgumentExceptionFactory {
 
 
   /**
+   * Creates an argument exception which should be used when a child
+   * component does not exist.
+   *
+   * @param componentName
+   *          The component name.
+   * @return Returns an argument exception.
+   */
+  public static ArgumentException unknownValueForChildComponent(
+    String componentName) {
+          Message msg = ERR_DSCFG_ERROR_FINDER_NO_CHILDREN.get(
+            componentName);
+    return new ArgumentException(msg);
+  }
+
+
+
+  /**
    * Creates a CLI exception which should be used when a managed
    * object is retrieved but does not have the correct type
    * appropriate for the associated sub-command.
