@@ -134,7 +134,7 @@ public class TLSConnectionSecurityProvider
       cipherMap.put("_WITH_AES_256_CBC_", new Integer(256));
       cipherMap.put("_WITH_CAMELLIA_256_CBC_", new Integer(256));
       cipherMap.put("_WITH_AES_256_GCM_", new Integer(256));
-      cipherMap.put("_WITH_3DES_EDE_CBC_", new Integer(168));
+      cipherMap.put("_WITH_3DES_EDE_CBC_", new Integer(112));
       cipherMap.put("_WITH_AES_128_GCM_", new Integer(128));
       cipherMap.put("_WITH_SEED_CBC_", new Integer(128));
       cipherMap.put("_WITH_CAMELLIA_128_CBC_", new Integer(128));
