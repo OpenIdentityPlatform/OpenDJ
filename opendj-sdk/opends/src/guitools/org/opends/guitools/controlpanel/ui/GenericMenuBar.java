@@ -49,7 +49,7 @@ import org.opends.quicksetup.util.WebBrowserLauncher;
  *
  */
 
-abstract class GenericMenuBar extends JMenuBar
+public abstract class GenericMenuBar extends JMenuBar
 {
   private ControlPanelInfo info;
 
