@@ -39,11 +39,11 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.plugin.DomainFakeCfg;
 import org.opends.server.replication.plugin.MultimasterReplication;
-import org.opends.server.replication.plugin.ReplicationBroker;
-import org.opends.server.replication.plugin.ReplicationDomain;
+import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
@@ -90,7 +90,7 @@ public class DependencyTest extends ReplicationTestCase
   public void addModDelDependencyTest() throws Exception
   {
     ReplicationServer replServer = null;
-    ReplicationDomain domain = null;
+    LDAPReplicationDomain domain = null;
     DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
     SynchronizationProvider replicationPlugin = null;
     short brokerId = 2;
@@ -255,7 +255,7 @@ public class DependencyTest extends ReplicationTestCase
   public void moddnDelDependencyTest() throws Exception
   {
     ReplicationServer replServer = null;
-    ReplicationDomain domain = null;
+    LDAPReplicationDomain domain = null;
     DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
     SynchronizationProvider replicationPlugin = null;
     short brokerId = 2;
@@ -302,7 +302,7 @@ public class DependencyTest extends ReplicationTestCase
       Thread.sleep(2000);
       domain = MultimasterReplication.createNewDomain(domainConf);
       replicationPlugin.completeSynchronizationProvider();
-      
+
       ReplicationBroker broker =
         openReplicationSession(baseDn, brokerId, 1000, replServerPort, 1000,
                                false, CLEAN_DB_GENERATION_ID);
@@ -330,7 +330,7 @@ public class DependencyTest extends ReplicationTestCase
       assertTrue(found, "The initial entry add failed");
 
 
-      // disable the domain to make sure that the messages are 
+      // disable the domain to make sure that the messages are
       // all sent in a row.
       domain.disable();
 
@@ -413,7 +413,7 @@ public class DependencyTest extends ReplicationTestCase
   public void addDelAddDependencyTest() throws Exception
   {
     ReplicationServer replServer = null;
-    ReplicationDomain domain = null;
+    LDAPReplicationDomain domain = null;
     DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
     SynchronizationProvider replicationPlugin = null;
     short brokerId = 2;
@@ -546,7 +546,7 @@ public class DependencyTest extends ReplicationTestCase
   public void addModdnDependencyTest() throws Exception
   {
     ReplicationServer replServer = null;
-    ReplicationDomain domain = null;
+    LDAPReplicationDomain domain = null;
     DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
     SynchronizationProvider replicationPlugin = null;
     short brokerId = 2;
@@ -555,7 +555,7 @@ public class DependencyTest extends ReplicationTestCase
     int AddSequenceLength = 30;
 
     cleanDB();
-    
+
 
     try
     {

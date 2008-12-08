@@ -34,6 +34,8 @@ import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.StaticUtils.*;
 
+import org.opends.server.replication.protocol.LDAPUpdateMsg;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -858,7 +860,7 @@ public class ReplicationBackend
   /**
    * Export one change.
    */
-  private void processChange(UpdateMsg msg,
+  private void processChange(UpdateMsg updateMsg,
       LDIFExportConfig exportConfig, LDIFWriter ldifWriter,
       SearchOperation searchOperation, String baseDN)
   {
@@ -873,159 +875,165 @@ public class ReplicationBackend
 
     try
     {
-      if (msg instanceof AddMsg)
+      if (updateMsg instanceof LDAPUpdateMsg)
       {
-        AddMsg addMsg = (AddMsg)msg;
-        AddOperation addOperation = (AddOperation)msg.createOperation(conn);
+        LDAPUpdateMsg msg = (LDAPUpdateMsg) updateMsg;
 
-        dn = DN.decode("puid=" + addMsg.getParentUid() + "+" +
-            CHANGE_NUMBER + "=" + msg.getChangeNumber().toString() + "+" +
-            msg.getDn() + "," + BASE_DN);
-
-        Map<AttributeType,List<Attribute>> attributes =
-          new HashMap<AttributeType,List<Attribute>>();
-        Map<ObjectClass, String> objectclasses =
-          new HashMap<ObjectClass, String>();
-
-        for (RawAttribute a : addOperation.getRawAttributes())
+        if (msg instanceof AddMsg)
         {
-          Attribute attr = a.toAttribute();
-          if (attr.getAttributeType().isObjectClassType())
-          {
-            for (ByteString os : a.getValues())
-            {
-              String ocName = os.toString();
-              ObjectClass oc =
-                DirectoryServer.getObjectClass(toLowerCase(ocName));
-              if (oc == null)
-              {
-                oc = DirectoryServer.getDefaultObjectClass(ocName);
-              }
+          AddMsg addMsg = (AddMsg)msg;
+          AddOperation addOperation = (AddOperation)msg.createOperation(conn);
 
-              objectclasses.put(oc,ocName);
+          dn = DN.decode("puid=" + addMsg.getParentUid() + "+" +
+              CHANGE_NUMBER + "=" + msg.getChangeNumber().toString() + "+" +
+              msg.getDn() + "," + BASE_DN);
+
+          Map<AttributeType,List<Attribute>> attributes =
+            new HashMap<AttributeType,List<Attribute>>();
+          Map<ObjectClass, String> objectclasses =
+            new HashMap<ObjectClass, String>();
+
+          for (RawAttribute a : addOperation.getRawAttributes())
+          {
+            Attribute attr = a.toAttribute();
+            if (attr.getAttributeType().isObjectClassType())
+            {
+              for (ByteString os : a.getValues())
+              {
+                String ocName = os.toString();
+                ObjectClass oc =
+                  DirectoryServer.getObjectClass(toLowerCase(ocName));
+                if (oc == null)
+                {
+                  oc = DirectoryServer.getDefaultObjectClass(ocName);
+                }
+
+                objectclasses.put(oc,ocName);
+              }
             }
+            else
+            {
+              addAttribute(attributes, attr);
+            }
+          }
+
+          Attribute changetype = Attributes.create("changetype", "add");
+          addAttribute(attributes, changetype);
+
+          if (exportConfig != null)
+          {
+            AddChangeRecordEntry changeRecord =
+              new AddChangeRecordEntry(dn, attributes);
+            ldifWriter.writeChangeRecord(changeRecord);
           }
           else
           {
-            addAttribute(attributes, attr);
+            entry = new Entry(dn, objectclasses, attributes, null);
+          }
+        }
+        else if (msg instanceof DeleteMsg)
+        {
+          DeleteMsg delMsg = (DeleteMsg)msg;
+
+          dn = DN.decode("uuid=" + msg.getUniqueId() + "," +
+              CHANGE_NUMBER + "=" + delMsg.getChangeNumber().toString()+ "," +
+              msg.getDn() +","+ BASE_DN);
+
+          DeleteChangeRecordEntry changeRecord =
+            new DeleteChangeRecordEntry(dn);
+          if (exportConfig != null)
+          {
+            ldifWriter.writeChangeRecord(changeRecord);
+          }
+          else
+          {
+            Writer writer = new Writer();
+            LDIFWriter ldifWriter2 = writer.getLDIFWriter();
+            ldifWriter2.writeChangeRecord(changeRecord);
+            LDIFReader reader = writer.getLDIFReader();
+            entry = reader.readEntry();
+          }
+        }
+        else if (msg instanceof ModifyMsg)
+        {
+          ModifyOperation op = (ModifyOperation)msg.createOperation(conn);
+
+          dn = DN.decode("uuid=" + msg.getUniqueId() + "," +
+              CHANGE_NUMBER + "=" + msg.getChangeNumber().toString()+ "," +
+              msg.getDn() +","+ BASE_DN);
+          op.setInternalOperation(true);
+
+          ModifyChangeRecordEntry changeRecord =
+            new ModifyChangeRecordEntry(dn, op.getRawModifications());
+          if (exportConfig != null)
+          {
+            ldifWriter.writeChangeRecord(changeRecord);
+          }
+          else
+          {
+            Writer writer = new Writer();
+            LDIFWriter ldifWriter2 = writer.getLDIFWriter();
+            ldifWriter2.writeChangeRecord(changeRecord);
+            LDIFReader reader = writer.getLDIFReader();
+            entry = reader.readEntry();
+          }
+        }
+        else if (msg instanceof ModifyDNMsg)
+        {
+          ModifyDNOperation op = (ModifyDNOperation)msg.createOperation(conn);
+
+          dn = DN.decode("uuid=" + msg.getUniqueId() + "," +
+              CHANGE_NUMBER + "=" + msg.getChangeNumber().toString()+ "," +
+              msg.getDn() +","+ BASE_DN);
+          op.setInternalOperation(true);
+
+          ModifyDNChangeRecordEntry changeRecord =
+            new ModifyDNChangeRecordEntry(dn, op.getNewRDN(), op.deleteOldRDN(),
+                op.getNewSuperior());
+
+          if (exportConfig != null)
+          {
+            ldifWriter.writeChangeRecord(changeRecord);
+          }
+          else
+          {
+            Writer writer = new Writer();
+            LDIFWriter ldifWriter2 = writer.getLDIFWriter();
+            ldifWriter2.writeChangeRecord(changeRecord);
+            LDIFReader reader = writer.getLDIFReader();
+            Entry modDNEntry = reader.readEntry();
+            entry = modDNEntry;
           }
         }
 
-        Attribute changetype = Attributes.create("changetype", "add");
-        addAttribute(attributes, changetype);
-
         if (exportConfig != null)
         {
-          AddChangeRecordEntry changeRecord =
-            new AddChangeRecordEntry(dn, attributes);
-          ldifWriter.writeChangeRecord(changeRecord);
+          this.exportedCount++;
         }
         else
         {
-          entry = new Entry(dn, objectclasses, attributes, null);
-        }
-      }
-      else if (msg instanceof DeleteMsg)
-      {
-        DeleteMsg delMsg = (DeleteMsg)msg;
+          // Add extensibleObject objectclass and the ChangeNumber
+          // in the entry.
+          if (!entry.getObjectClasses().containsKey(objectclass))
+            entry.addObjectClass(objectclass);
+          Attribute changeNumber =
+            Attributes.create(CHANGE_NUMBER,
+                msg.getChangeNumber().toStringUI());
+          addAttribute(entry.getUserAttributes(), changeNumber);
+          Attribute domain = Attributes.create("replicationDomain", baseDN);
+          addAttribute(entry.getUserAttributes(), domain);
 
-        dn = DN.decode("uuid=" + msg.getUniqueId() + "," +
-            CHANGE_NUMBER + "=" + delMsg.getChangeNumber().toString()+ "," +
-            msg.getDn() +","+ BASE_DN);
+          // Get the base DN, scope, and filter for the search.
+          DN  searchBaseDN = searchOperation.getBaseDN();
+          SearchScope  scope  = searchOperation.getScope();
+          SearchFilter filter = searchOperation.getFilter();
 
-        DeleteChangeRecordEntry changeRecord =
-          new DeleteChangeRecordEntry(dn);
-        if (exportConfig != null)
-        {
-          ldifWriter.writeChangeRecord(changeRecord);
-        }
-        else
-        {
-          Writer writer = new Writer();
-          LDIFWriter ldifWriter2 = writer.getLDIFWriter();
-          ldifWriter2.writeChangeRecord(changeRecord);
-          LDIFReader reader = writer.getLDIFReader();
-          entry = reader.readEntry();
-        }
-      }
-      else if (msg instanceof ModifyMsg)
-      {
-        ModifyOperation op = (ModifyOperation)msg.createOperation(conn);
-
-        dn = DN.decode("uuid=" + msg.getUniqueId() + "," +
-            CHANGE_NUMBER + "=" + msg.getChangeNumber().toString()+ "," +
-            msg.getDn() +","+ BASE_DN);
-        op.setInternalOperation(true);
-
-        ModifyChangeRecordEntry changeRecord =
-          new ModifyChangeRecordEntry(dn, op.getRawModifications());
-        if (exportConfig != null)
-        {
-          ldifWriter.writeChangeRecord(changeRecord);
-        }
-        else
-        {
-          Writer writer = new Writer();
-          LDIFWriter ldifWriter2 = writer.getLDIFWriter();
-          ldifWriter2.writeChangeRecord(changeRecord);
-          LDIFReader reader = writer.getLDIFReader();
-          entry = reader.readEntry();
-        }
-      }
-      else if (msg instanceof ModifyDNMsg)
-      {
-        ModifyDNOperation op = (ModifyDNOperation)msg.createOperation(conn);
-
-        dn = DN.decode("uuid=" + msg.getUniqueId() + "," +
-            CHANGE_NUMBER + "=" + msg.getChangeNumber().toString()+ "," +
-            msg.getDn() +","+ BASE_DN);
-        op.setInternalOperation(true);
-
-        ModifyDNChangeRecordEntry changeRecord =
-          new ModifyDNChangeRecordEntry(dn, op.getNewRDN(), op.deleteOldRDN(),
-              op.getNewSuperior());
-
-        if (exportConfig != null)
-        {
-          ldifWriter.writeChangeRecord(changeRecord);
-        }
-        else
-        {
-          Writer writer = new Writer();
-          LDIFWriter ldifWriter2 = writer.getLDIFWriter();
-          ldifWriter2.writeChangeRecord(changeRecord);
-          LDIFReader reader = writer.getLDIFReader();
-          Entry modDNEntry = reader.readEntry();
-          entry = modDNEntry;
-        }
-      }
-
-      if (exportConfig != null)
-      {
-        this.exportedCount++;
-      }
-      else
-      {
-        // Add extensibleObject objectclass and the ChangeNumber
-        // in the entry.
-        if (!entry.getObjectClasses().containsKey(objectclass))
-          entry.addObjectClass(objectclass);
-        Attribute changeNumber =
-          Attributes.create(CHANGE_NUMBER, msg.getChangeNumber().toStringUI());
-        addAttribute(entry.getUserAttributes(), changeNumber);
-        Attribute domain = Attributes.create("replicationDomain", baseDN);
-        addAttribute(entry.getUserAttributes(), domain);
-
-        // Get the base DN, scope, and filter for the search.
-        DN  searchBaseDN = searchOperation.getBaseDN();
-        SearchScope  scope  = searchOperation.getScope();
-        SearchFilter filter = searchOperation.getFilter();
-
-        boolean ms = entry.matchesBaseAndScope(searchBaseDN, scope);
-        boolean mf = filter.matchesEntry(entry);
-        if ( ms && mf )
-        {
-          searchOperation.returnEntry(entry, new LinkedList<Control>());
+          boolean ms = entry.matchesBaseAndScope(searchBaseDN, scope);
+          boolean mf = filter.matchesEntry(entry);
+          if ( ms && mf )
+          {
+            searchOperation.returnEntry(entry, new LinkedList<Control>());
+          }
         }
       }
     }

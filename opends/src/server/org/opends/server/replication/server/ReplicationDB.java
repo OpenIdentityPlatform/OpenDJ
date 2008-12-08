@@ -34,7 +34,6 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import java.util.List;
 import java.io.UnsupportedEncodingException;
 
-import org.opends.server.types.DN;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.UpdateMsg;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -59,7 +58,7 @@ public class ReplicationDB
   private ReplicationDbEnv dbenv = null;
   private ReplicationServer replicationServer;
   private Short serverId;
-  private DN baseDn;
+  private String baseDn;
 
   // The maximum number of retries in case of DatabaseDeadlock Exception.
   private static final int DEADLOCK_RETRIES = 10;
@@ -77,7 +76,7 @@ public class ReplicationDB
    * @param dbenv The Db environment to use to create the db.
    * @throws DatabaseException If a database problem happened.
    */
-  public ReplicationDB(Short serverId, DN baseDn,
+  public ReplicationDB(Short serverId, String baseDn,
                      ReplicationServer replicationServer,
                      ReplicationDbEnv dbenv)
                      throws DatabaseException

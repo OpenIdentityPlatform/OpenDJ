@@ -63,8 +63,8 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
   private static final short RS2_ID = 32;
   private int rs1Port = -1;
   private int rs2Port = -1;
-  private ReplicationDomain rd1 = null;
-  private ReplicationDomain rd2 = null;
+  private LDAPReplicationDomain rd1 = null;
+  private LDAPReplicationDomain rd2 = null;
   private ReplicationServer rs1 = null;
   private ReplicationServer rs2 = null;
 
@@ -298,7 +298,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
   {
 
     int rsPort = -1;
-    ReplicationDomain rd = null;
+    LDAPReplicationDomain rd = null;
     switch (dsId)
     {
       case DS1_ID:
@@ -439,7 +439,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
   /**
    * Creates a new ReplicationDomain.
    */
-  private ReplicationDomain createReplicationDomain(DN baseDn, short serverId)
+  private LDAPReplicationDomain createReplicationDomain(DN baseDn, short serverId)
   {
 
     SortedSet<String> replServers = new TreeSet<String>();
@@ -452,7 +452,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
       DomainFakeCfg domainConf =
         new DomainFakeCfg(baseDn, serverId, replServers);
       //domainConf.setHeartbeatInterval(500);
-      ReplicationDomain replicationDomain =
+      LDAPReplicationDomain replicationDomain =
         MultimasterReplication.createNewDomain(domainConf);
       replicationDomain.start();
 
@@ -465,7 +465,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
     return null;
   }
 
-  private int findReplServerConnected(ReplicationDomain rd)
+  private int findReplServerConnected(LDAPReplicationDomain rd)
   {
     int rsPort = -1;
 

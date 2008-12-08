@@ -50,9 +50,9 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
+import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.common.ChangeNumberGenerator;
-import org.opends.server.replication.plugin.ReplicationBroker;
-import org.opends.server.replication.plugin.ReplicationDomain;
+import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.SocketSession;
@@ -93,7 +93,7 @@ public class MonitorTest extends ReplicationTestCase
   private ReplicationServer replServer2 = null;
   private ReplicationServer replServer3 = null;
   private boolean emptyOldChanges = true;
-  ReplicationDomain replDomain = null;
+  LDAPReplicationDomain replDomain = null;
   SocketSession ssSession = null;
   boolean ssShutdownRequested = false;
   protected String[] updatedEntries;
@@ -240,7 +240,7 @@ public class MonitorTest extends ReplicationTestCase
         "Unable to add the synchronized server");
       configEntryList.add(synchroServerEntry.getDN());
 
-      replDomain = ReplicationDomain.retrievesReplicationDomain(baseDn);
+      replDomain = LDAPReplicationDomain.retrievesReplicationDomain(baseDn);
 
       if (replDomain != null)
       {
@@ -393,7 +393,6 @@ public class MonitorTest extends ReplicationTestCase
 
       debugInfo("Connecting DS to replServer1");
       connectServer1ToChangelog(changelog1ID);
-      Thread.sleep(1500);
 
       try
       {

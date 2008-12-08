@@ -31,6 +31,8 @@ import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import org.opends.server.replication.service.ReplicationBroker;
+
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 import java.util.Iterator;
@@ -49,7 +51,6 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.replication.plugin.ReplicationBroker;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;

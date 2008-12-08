@@ -110,6 +110,42 @@ public class AckMsg extends ReplicationMsg
   }
 
   /**
+   * Sets the timeout marker for this message.
+   * @param hasTimeout True if some timeout occurred
+   */
+  public void setHasTimeout(boolean hasTimeout)
+  {
+    this.hasTimeout = hasTimeout;
+  }
+
+  /**
+   * Sets the wrong status marker for this message.
+   * @param hasWrongStatus True if some servers were in wrong status
+   */
+  public void setHasWrongStatus(boolean hasWrongStatus)
+  {
+    this.hasWrongStatus = hasWrongStatus;
+  }
+
+  /**
+   * Sets the replay error marker for this message.
+   * @param hasReplayError True if some servers had errors replaying the change
+   */
+  public void setHasReplayError(boolean hasReplayError)
+  {
+    this.hasReplayError = hasReplayError;
+  }
+
+  /**
+   * Sets the list of failing servers for this message.
+   * @param failedServers The list of failing servers for this message.
+   */
+  public void setFailedServers(List<Short> failedServers)
+  {
+    this.failedServers = failedServers;
+  }
+
+  /**
    * Creates a new AckMsg by decoding the provided byte array.
    *
    * @param in The byte array containing the encoded form of the AckMsg.
@@ -277,4 +313,35 @@ public class AckMsg extends ReplicationMsg
     return failedServers;
   }
 
+  /**
+   * Transforms the errors information of the ack into human readable string.
+   * @return A human readable string for errors embedded in the message.
+   */
+  public String errorsToString()
+  {
+    String idList = null;
+    if (failedServers.size() > 0)
+    {
+      idList = "[";
+      int size = failedServers.size();
+      for (int i=0 ; i<size ; i++) {
+        idList += failedServers.get(i);
+        if ( i != (size-1) )
+          idList += ", ";
+      }
+      idList += "]";
+    } else
+    {
+      idList="none";
+    }
+
+    String ackErrorStr = "hasTimeout: " + (hasTimeout ? "yes" : "no")  + ", " +
+      "hasWrongStatus: " + (hasWrongStatus ? "yes" : "no")  + ", " +
+      "hasReplayError: " + (hasReplayError ? "yes" : "no")  + ", " +
+      " concerned server ids: " + idList;
+
+    return ackErrorStr;
+  }
+
 }
+

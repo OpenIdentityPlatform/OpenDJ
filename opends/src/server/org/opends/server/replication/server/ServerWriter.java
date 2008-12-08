@@ -138,7 +138,7 @@ public class ServerWriter extends DirectoryThread
               logError(ERR_IGNORING_UPDATE_TO_DS_BADGENID.get(
                 Short.toString(replicationServerDomain.getReplicationServer().
                 getServerId()),
-                replicationServerDomain.getBaseDn().toNormalizedString(),
+                replicationServerDomain.getBaseDn(),
                 update.getChangeNumber().toString(),
                 Short.toString(handler.getServerId()),
                 Long.toString(handler.getGenerationId()),
@@ -147,7 +147,7 @@ public class ServerWriter extends DirectoryThread
               logError(ERR_IGNORING_UPDATE_TO_DS_FULLUP.get(
                 Short.toString(replicationServerDomain.getReplicationServer().
                 getServerId()),
-                replicationServerDomain.getBaseDn().toNormalizedString(),
+                replicationServerDomain.getBaseDn(),
                 update.getChangeNumber().toString(),
                 Short.toString(handler.getServerId())));
             continue;
@@ -166,7 +166,7 @@ public class ServerWriter extends DirectoryThread
             logError(ERR_IGNORING_UPDATE_TO_RS.get(
               Short.toString(replicationServerDomain.getReplicationServer().
               getServerId()),
-              replicationServerDomain.getBaseDn().toNormalizedString(),
+              replicationServerDomain.getBaseDn(),
               update.getChangeNumber().toString(),
               Short.toString(handler.getServerId()),
               Long.toString(handler.getGenerationId()),

@@ -26,15 +26,10 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+
 import java.net.ServerSocket;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.UUID;
 
 import static org.testng.Assert.*;
 
@@ -65,7 +60,7 @@ public class IsolationTest extends ReplicationTestCase
   @Test()
   public void noUpdateIsolationPolicyTest() throws Exception
   {
-    ReplicationDomain domain = null;
+    LDAPReplicationDomain domain = null;
     DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
     SynchronizationProvider replicationPlugin = null;
     short serverId = 1;
@@ -106,7 +101,7 @@ public class IsolationTest extends ReplicationTestCase
       op = conn.processModify(baseDn, generatemods("description", "test"));
 
       // check that the operation was successful.
-      assertEquals(op.getResultCode(), ResultCode.SUCCESS, 
+      assertEquals(op.getResultCode(), ResultCode.SUCCESS,
           op.getAdditionalLogMessage().toString());
     }
     finally

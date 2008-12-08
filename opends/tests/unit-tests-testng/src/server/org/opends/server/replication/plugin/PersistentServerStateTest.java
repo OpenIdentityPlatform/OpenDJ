@@ -28,6 +28,8 @@ package org.opends.server.replication.plugin;
 
 import static org.testng.Assert.assertEquals;
 
+import org.opends.server.replication.common.ServerState;
+
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
@@ -69,9 +71,13 @@ public class PersistentServerStateTest extends ReplicationTestCase
      * 2 ChangeNumbers have been saved in this new PersistentServerState.
      */
     DN baseDn = DN.decode(dn);
-    PersistentServerState state = new PersistentServerState(baseDn, (short) 1);
-    ChangeNumberGenerator gen1 = new ChangeNumberGenerator((short) 1, state);
-    ChangeNumberGenerator gen2 = new ChangeNumberGenerator((short) 2, state);
+    ServerState origState = new ServerState();
+    PersistentServerState state =
+      new PersistentServerState(baseDn, (short) 1, origState);
+    ChangeNumberGenerator gen1 =
+      new ChangeNumberGenerator((short) 1, origState);
+    ChangeNumberGenerator gen2 =
+      new ChangeNumberGenerator((short) 2, origState);
 
     ChangeNumber cn1 = gen1.newChangeNumber();
     ChangeNumber cn2 = gen2.newChangeNumber();

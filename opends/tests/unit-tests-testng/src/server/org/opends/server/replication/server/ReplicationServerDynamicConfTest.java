@@ -32,13 +32,13 @@ import java.net.ServerSocket;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.plugin.ReplicationBroker;
+import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.DN;
 import org.testng.annotations.Test;
 import static org.opends.server.TestCaseUtils.*;
 
 /**
- * Tests that we can dynamically modify the configuration of replicationServer 
+ * Tests that we can dynamically modify the configuration of replicationServer
  */
 
 public class ReplicationServerDynamicConfTest extends ReplicationTestCase

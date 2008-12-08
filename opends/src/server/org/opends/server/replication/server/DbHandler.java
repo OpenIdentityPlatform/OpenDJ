@@ -43,7 +43,6 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.TimeThread;
 import org.opends.server.core.DirectoryServer;
@@ -102,7 +101,7 @@ public class DbHandler implements Runnable
   private ChangeNumber firstChange = null;
   private ChangeNumber lastChange = null;
   private short serverId;
-  private DN baseDn;
+  private String baseDn;
   private DbMonitorProvider dbMonitor = new DbMonitorProvider();
   private boolean shutdown = false;
   private boolean done = false;
@@ -133,7 +132,7 @@ public class DbHandler implements Runnable
    * @throws DatabaseException If a database problem happened
    */
   public DbHandler(
-      short id, DN baseDn, ReplicationServer replicationServer,
+      short id, String baseDn, ReplicationServer replicationServer,
       ReplicationDbEnv dbenv, int queueSize)
          throws DatabaseException
   {

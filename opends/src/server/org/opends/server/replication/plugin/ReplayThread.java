@@ -25,6 +25,8 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
+import org.opends.server.replication.protocol.LDAPUpdateMsg;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import org.opends.messages.Message;
@@ -37,7 +39,6 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.protocol.UpdateMsg;
 
 /**
  * Thread that is used to get message from the replication servers (stored
@@ -102,8 +103,8 @@ public class ReplayThread extends DirectoryThread
           TimeUnit.SECONDS)) != null))
         {
           // Find replication domain for that update message
-          UpdateMsg updateMsg = updateToreplay.getUpdateMessage();
-          ReplicationDomain domain = updateToreplay.getReplicationDomain();
+          LDAPUpdateMsg updateMsg = updateToreplay.getUpdateMessage();
+          LDAPReplicationDomain domain = updateToreplay.getReplicationDomain();
           domain.replay(updateMsg);
         }
       } catch (Exception e)

@@ -47,7 +47,7 @@ import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.replication.plugin.ReplicationBroker;
+import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.types.Attribute;
@@ -203,7 +203,7 @@ public class StressTest extends ReplicationTestCase
         + "objectClass: ds-cfg-replication-server\n"
         + "cn: Replication Server\n"
         + "ds-cfg-replication-port: " + replServerPort + "\n"
-        + "ds-cfg-replication-db-directory: StressTest\n"    
+        + "ds-cfg-replication-db-directory: StressTest\n"
         + "ds-cfg-replication-server-id: 106\n";
     replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 

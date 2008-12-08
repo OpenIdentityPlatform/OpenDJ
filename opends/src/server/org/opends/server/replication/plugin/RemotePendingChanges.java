@@ -37,13 +37,12 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.OperationContext;
-import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.types.DN;
 import org.opends.server.types.Operation;
 
@@ -76,42 +75,31 @@ public class RemotePendingChanges
     new TreeSet<PendingChange>();
 
   /**
-   * The ServerState that will be updated when UpdateMsg are fully replayed.
+   * The ServerState that will be updated when LDAPUpdateMsg are fully replayed.
    */
   private ServerState state;
 
   /**
-   * The ChangeNumberGenerator to must be adjusted when new changes
-   * are received from a remote server.
-   */
-  private ChangeNumberGenerator changeNumberGenerator;
-
-  /**
    * Creates a new RemotePendingChanges using the provided ServerState.
    *
-   * @param changeNumberGenerator The ChangeNumberGenerator that should
-   *                              be adjusted when changes are received.
-   * @param state   The ServerState that will be updated when UpdateMsg
+   * @param state   The ServerState that will be updated when LDAPUpdateMsg
    *                have been fully replayed.
    */
-  public RemotePendingChanges(ChangeNumberGenerator changeNumberGenerator,
-                              ServerState state)
+  public RemotePendingChanges(ServerState state)
   {
-    this.changeNumberGenerator = changeNumberGenerator;
     this.state = state;
   }
 
   /**
-   * Add a new UpdateMsg that was received from the replication server
+   * Add a new LDAPUpdateMsg that was received from the replication server
    * to the pendingList.
    *
-   * @param update The UpdateMsg that was received from the replication
+   * @param update The LDAPUpdateMsg that was received from the replication
    *               server and that will be added to the pending list.
    */
-  public synchronized void putRemoteUpdate(UpdateMsg update)
+  public synchronized void putRemoteUpdate(LDAPUpdateMsg update)
   {
     ChangeNumber changeNumber = update.getChangeNumber();
-    changeNumberGenerator.adjust(changeNumber);
     pendingChanges.put(changeNumber, new PendingChange(changeNumber, null,
                                                         update));
   }
@@ -154,9 +142,9 @@ public class RemotePendingChanges
   /**
    * Get the first update in the list that have some dependencies cleared.
    *
-   * @return The UpdateMsg to be handled.
+   * @return The LDAPUpdateMsg to be handled.
    */
-  public synchronized UpdateMsg getNextUpdate()
+  public synchronized LDAPUpdateMsg getNextUpdate()
   {
     /*
      * Parse the list of Update with dependencies and check if the dependencies
@@ -216,7 +204,7 @@ public class RemotePendingChanges
     {
       if (pendingChange.getChangeNumber().older(changeNumber))
       {
-        UpdateMsg pendingMsg = pendingChange.getMsg();
+        LDAPUpdateMsg pendingMsg = pendingChange.getMsg();
         if (pendingMsg != null)
         {
           if (pendingMsg instanceof DeleteMsg)
@@ -297,7 +285,7 @@ public class RemotePendingChanges
     {
       if (pendingChange.getChangeNumber().older(changeNumber))
       {
-        UpdateMsg pendingMsg = pendingChange.getMsg();
+        LDAPUpdateMsg pendingMsg = pendingChange.getMsg();
         if (pendingMsg != null)
         {
           if (pendingMsg instanceof AddMsg)
@@ -349,7 +337,7 @@ public class RemotePendingChanges
     {
       if (pendingChange.getChangeNumber().older(changeNumber))
       {
-        UpdateMsg pendingMsg = pendingChange.getMsg();
+        LDAPUpdateMsg pendingMsg = pendingChange.getMsg();
         if (pendingMsg != null)
         {
           if (pendingMsg instanceof DeleteMsg)
@@ -424,7 +412,7 @@ public class RemotePendingChanges
     {
       if (pendingChange.getChangeNumber().older(changeNumber))
       {
-        UpdateMsg pendingMsg = pendingChange.getMsg();
+        LDAPUpdateMsg pendingMsg = pendingChange.getMsg();
         if (pendingMsg != null)
         {
           if (pendingMsg instanceof DeleteMsg)
@@ -479,7 +467,7 @@ public class RemotePendingChanges
    * @return     A boolean indicating if an operation cannot be replayed
    *             because of dependencies.
    */
-  public boolean checkDependencies(Operation op, UpdateMsg msg)
+  public boolean checkDependencies(Operation op, LDAPUpdateMsg msg)
   {
     if (op instanceof ModifyOperation)
     {

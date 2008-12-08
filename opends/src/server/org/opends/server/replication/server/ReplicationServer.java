@@ -108,8 +108,8 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   /* This table is used to store the list of dn for which we are currently
    * handling servers.
    */
-  private ConcurrentHashMap<DN, ReplicationServerDomain> baseDNs =
-          new ConcurrentHashMap<DN, ReplicationServerDomain>();
+  private ConcurrentHashMap<String, ReplicationServerDomain> baseDNs =
+          new ConcurrentHashMap<String, ReplicationServerDomain>();
 
   private String localURL = "null";
   private boolean shutdown = false;
@@ -202,7 +202,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     assuredTimeout = configuration.getAssuredTimeout();
     degradedStatusThreshold = configuration.getDegradedStatusThreshold();
 
-    replSessionSecurity = new ReplSessionSecurity(configuration);
+    replSessionSecurity = new ReplSessionSecurity();
     initialize(replicationPort);
     configuration.addChangeListener(this);
     DirectoryServer.registerMonitorProvider(this);
@@ -360,7 +360,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
    *                    colon.
    * @param baseDn     The baseDn of the connection
    */
-  private void connect(String serverURL, DN baseDn)
+  private void connect(String serverURL, String baseDn)
   {
     int separator = serverURL.lastIndexOf(':');
     String port = serverURL.substring(separator + 1);
@@ -484,7 +484,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
    * @return The ReplicationServerDomain associated to the base DN given in
    *         parameter.
    */
-  public ReplicationServerDomain getReplicationServerDomain(DN baseDn,
+  public ReplicationServerDomain getReplicationServerDomain(String baseDn,
           boolean create)
   {
     ReplicationServerDomain replicationServerDomain;
@@ -560,7 +560,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
    *         DN given in parameter.
    * @throws DatabaseException in case of underlying database problem.
    */
-  public DbHandler newDbHandler(short id, DN baseDn)
+  public DbHandler newDbHandler(short id, String baseDn)
   throws DatabaseException
   {
     return new DbHandler(id, baseDn, this, dbEnv, queueSize);
@@ -572,7 +572,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
    * @param  baseDn The baseDn for which to delete the generationId.
    * @throws DatabaseException When it occurs.
    */
-  public void clearGenerationId(DN baseDn)
+  public void clearGenerationId(String baseDn)
   throws DatabaseException
   {
     try
@@ -799,7 +799,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
      * Add all the base DNs that are known by this replication server.
      */
     AttributeBuilder builder = new AttributeBuilder("base-dn");
-    for (DN base : baseDNs.keySet())
+    for (String base : baseDNs.keySet())
     {
       builder.add(base.toString());
     }
@@ -807,7 +807,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
 
     // Publish to monitor the generation ID by replicationServerDomain
     builder = new AttributeBuilder("base-dn-generation-id");
-    for (DN base : baseDNs.keySet())
+    for (String base : baseDNs.keySet())
     {
       long generationId=-1;
       ReplicationServerDomain replicationServerDomain =
@@ -828,7 +828,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
    * @param baseDN The baseDN of the replicationServerDomain.
    * @return The value of the generationID.
    */
-  public long getGenerationId(DN baseDN)
+  public long getGenerationId(String baseDN)
   {
     ReplicationServerDomain rsd =
             this.getReplicationServerDomain(baseDN, false);

@@ -24,9 +24,15 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
-package org.opends.server.tasks;
-import org.opends.messages.Message;
+package org.opends.server.replication.service;
+import org.opends.server.tasks.TaskUtils;
+
+import org.opends.server.types.ResultCode;
+
 import org.opends.messages.MessageBuilder;
+
+
+import org.opends.messages.Message;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.getAttributeType;
@@ -39,13 +45,10 @@ import org.opends.messages.TaskMessages;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.plugin.ReplicationDomain;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -59,13 +62,10 @@ public class InitializeTask extends Task
    */
   private static final DebugTracer TRACER = getTracer();
 
-  boolean isCompressed            = false;
-  boolean isEncrypted             = false;
-  boolean skipSchemaValidation    = false;
-  String  domainString            = null;
-  short  source;
-  ReplicationDomain domain = null;
-  TaskState initState;
+  private String  domainString            = null;
+  private short  source;
+  private ReplicationDomain domain        = null;
+  private TaskState initState;
 
   // The total number of entries expected to be processed when this import
   // will end successfully
@@ -108,21 +108,18 @@ public class InitializeTask extends Task
     List<Attribute> attrList;
     attrList = taskEntry.getAttribute(typeDomainBase);
     domainString = TaskUtils.getSingleValueString(attrList);
-    DN domainDN = DN.nullDN();
+
     try
     {
-      domainDN = DN.decode(domainString);
+      domain = ReplicationDomain.retrievesReplicationDomain(domainString);
     }
-    catch(Exception e)
+    catch(DirectoryException e)
     {
       MessageBuilder mb = new MessageBuilder();
       mb.append(TaskMessages.ERR_TASK_INITIALIZE_INVALID_DN.get());
       mb.append(e.getMessage());
-      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-          mb.toMessage());
+      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, e);
     }
-
-    domain = ReplicationDomain.retrievesReplicationDomain(domainDN);
 
     attrList = taskEntry.getAttribute(typeSourceScope);
     String sourceString = TaskUtils.getSingleValueString(attrList);
@@ -140,7 +137,7 @@ public class InitializeTask extends Task
     if (debugEnabled())
     {
       TRACER.debugInfo("InitializeTask is starting domain: %s source:%d",
-                domain.getBaseDN(), source);
+                domain.getServiceID(), source);
     }
     initState = getTaskState();
     try

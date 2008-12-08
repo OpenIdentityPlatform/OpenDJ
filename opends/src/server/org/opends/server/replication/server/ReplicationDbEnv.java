@@ -37,9 +37,6 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseConfig;
@@ -148,7 +145,7 @@ public class ReplicationDbEnv
           {
             long generationId=-1;
 
-            DN baseDn;
+            String baseDn;
 
             try
             {
@@ -165,18 +162,7 @@ public class ReplicationDbEnv
                   + "<" + str[1] + ">"));
             }
 
-            // <baseDn>
-            baseDn = null;
-            try
-            {
-              baseDn = DN.decode(str[2]);
-            } catch (DirectoryException e)
-            {
-              Message message =
-                ERR_IGNORE_BAD_DN_IN_DATABASE_IDENTIFIER.get(str[1]);
-              logError(message);
-
-            }
+            baseDn = str[2];
 
             if (debugEnabled())
               TRACER.debugInfo(
@@ -239,16 +225,7 @@ public class ReplicationDbEnv
                 + "<" + str[0] + ">"));
           }
           // <baseDn>
-          DN baseDn = null;
-          try
-          {
-            baseDn = DN.decode(str[1]);
-          } catch (DirectoryException e)
-          {
-            Message message =
-              ERR_IGNORE_BAD_DN_IN_DATABASE_IDENTIFIER.get(str[1]);
-            logError(message);
-          }
+          String baseDn = str[1];
 
           if (debugEnabled())
             TRACER.debugInfo(
@@ -287,7 +264,7 @@ public class ReplicationDbEnv
      * @return the Database.
      * @throws DatabaseException in case of underlying Exception.
      */
-    public Database getOrAddDb(Short serverId, DN baseDn, Long generationId)
+    public Database getOrAddDb(Short serverId, String baseDn, Long generationId)
     throws DatabaseException
     {
       if (debugEnabled())
@@ -295,8 +272,7 @@ public class ReplicationDbEnv
           serverId + " " + baseDn + " " + generationId);
       try
       {
-        String stringId = serverId.toString() + FIELD_SEPARATOR
-                          + baseDn.toNormalizedString();
+        String stringId = serverId.toString() + FIELD_SEPARATOR + baseDn;
 
         // Opens the database for the changes received from this server
         // on this domain. Create it if it does not already exist.
@@ -333,11 +309,9 @@ public class ReplicationDbEnv
 
         // Creates the record domain base Dn/ generationId in the stateDb
         // if it does not already exist.
-        stringId = GENERATION_ID_TAG + FIELD_SEPARATOR +
-          baseDn.toNormalizedString();
+        stringId = GENERATION_ID_TAG + FIELD_SEPARATOR + baseDn;
         String dataStringId = GENERATION_ID_TAG + FIELD_SEPARATOR +
-        generationId.toString() + FIELD_SEPARATOR +
-          baseDn.toNormalizedString();
+        generationId.toString() + FIELD_SEPARATOR + baseDn;
         byteId = stringId.getBytes("UTF-8");
         byte[] dataByteId;
         dataByteId = dataStringId.getBytes("UTF-8");
@@ -408,7 +382,7 @@ public class ReplicationDbEnv
      * @param baseDn The baseDn for which the generationID must be cleared.
      *
      */
-    public void clearGenerationId(DN baseDn)
+    public void clearGenerationId(String baseDn)
     {
       if (debugEnabled())
         TRACER.debugInfo(
@@ -417,8 +391,7 @@ public class ReplicationDbEnv
       try
       {
         // Deletes the record domain base Dn/ generationId in the stateDb
-        String stringId = GENERATION_ID_TAG + FIELD_SEPARATOR +
-          baseDn.toNormalizedString();
+        String stringId = GENERATION_ID_TAG + FIELD_SEPARATOR + baseDn;
         byte[] byteId = stringId.getBytes("UTF-8");
         DatabaseEntry key = new DatabaseEntry();
         key.setData(byteId);
@@ -435,8 +408,7 @@ public class ReplicationDbEnv
             if (debugEnabled())
               TRACER.debugInfo(
                 "In " + this.replicationServer.getMonitorInstanceName() +
-                " clearGenerationId (" +
-                baseDn +") succeeded.");
+                " clearGenerationId (" + baseDn +") succeeded.");
           }
           catch (DatabaseException dbe)
           {
@@ -472,7 +444,7 @@ public class ReplicationDbEnv
      * @param serverId The serverId to remove from the Db.
      *
      */
-    public void clearServerId(DN baseDn, Short serverId)
+    public void clearServerId(String baseDn, Short serverId)
     {
       if (debugEnabled())
         TRACER.debugInfo(
@@ -480,8 +452,7 @@ public class ReplicationDbEnv
             "clearServerId(baseDN=" + baseDn + ", serverId=" + serverId);
       try
       {
-        String stringId = serverId.toString() + FIELD_SEPARATOR
-                         + baseDn.toNormalizedString();
+        String stringId = serverId.toString() + FIELD_SEPARATOR + baseDn;
 
         // Deletes the record serverId/domain base Dn in the stateDb
         byte[] byteId;

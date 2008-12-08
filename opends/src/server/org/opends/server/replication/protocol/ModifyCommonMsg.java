@@ -41,7 +41,7 @@ import org.opends.server.types.Modification;
 /**
  * This class holds every common code for the modify messages (mod, moddn).
  */
-public abstract class ModifyCommonMsg extends UpdateMsg {
+public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
 
   /**
    * The modifications kept encoded in the message.

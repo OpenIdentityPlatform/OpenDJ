@@ -27,7 +27,7 @@
 package org.opends.server.replication.plugin;
 
 import java.util.HashMap;
-import static org.opends.server.replication.plugin.ReplicationBroker.*;
+import static org.opends.server.replication.service.ReplicationBroker.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
@@ -40,8 +40,6 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.plugin.ReplicationBroker.ServerInfo;
-import org.opends.server.types.DN;
 import org.testng.annotations.Test;
 
 /**
@@ -85,7 +83,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     final String WINNER = "winner";
 
     // Create my state
-    ServerState mySt = new ServerState();     
+    ServerState mySt = new ServerState();
     ChangeNumber cn = new ChangeNumber(2L, 0, myId2); // Should not be used inside algo
     mySt.update(cn);
     cn = new ChangeNumber(3L, 0, myId3); // Should not be used inside algo
@@ -103,7 +101,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
 
     String bestServer =
-      computeBestReplicationServer(mySt, rsInfos, myId1, new DN(), (byte)1);
+      computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
 
     assertEquals(bestServer, WINNER, "Wrong best replication server.");
   }
@@ -148,7 +146,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
 
     String bestServer =
-      computeBestReplicationServer(mySt, rsInfos, myId1, new DN(), (byte)1);
+      computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
 
     assertEquals(bestServer, WINNER, "Wrong best replication server.");
   }
@@ -170,7 +168,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     short myId1 = 1;
     short myId2 = 2;
     short myId3 = 3;
-    
+
     // definitions for server names
     final String WINNER = "winner";
 
@@ -195,7 +193,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
 
     String bestServer =
-      computeBestReplicationServer(mySt, rsInfos, myId1, new DN(), (byte)1);
+      computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
 
     assertEquals(bestServer, WINNER, "Wrong best replication server.");
   }
@@ -242,7 +240,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
 
     String bestServer =
-      computeBestReplicationServer(mySt, rsInfos, myId1, new DN(), (byte)1);
+      computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
 
     assertEquals(bestServer, WINNER, "Wrong best replication server.");
   }
@@ -300,7 +298,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
 
     String bestServer =
-      computeBestReplicationServer(mySt, rsInfos, myId1, new DN(), (byte)1);
+      computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
 
     assertEquals(bestServer, WINNER, "Wrong best replication server.");
   }
@@ -360,11 +358,11 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(LOOSER1, new ServerInfo(aState, (byte)2));
 
     String bestServer =
-      computeBestReplicationServer(mySt, rsInfos, myId1, new DN(), (byte)1);
+      computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
 
     assertEquals(bestServer, WINNER, "Wrong best replication server.");
   }
-  
+
   /**
    * Test with 2 replication servers, none of them from our group id.
    *
@@ -418,7 +416,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(WINNER, new ServerInfo(aState, (byte)2));
 
     String bestServer =
-      computeBestReplicationServer(mySt, rsInfos, myId1, new DN(), (byte)1);
+      computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
 
     assertEquals(bestServer, WINNER, "Wrong best replication server.");
   }
@@ -487,11 +485,11 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(LOOSER2, new ServerInfo(aState, (byte)1));
 
     String bestServer =
-      computeBestReplicationServer(mySt, rsInfos, myId1, new DN(), (byte)1);
+      computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
 
     assertEquals(bestServer, WINNER, "Wrong best replication server.");
   }
-  
+
   /**
    * Test with 3 replication servers, up to date, but 2 different group ids.
    *
@@ -558,7 +556,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
 
     String bestServer =
-      computeBestReplicationServer(mySt, rsInfos, myId1, new DN(), (byte)1);
+      computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
 
     assertEquals(bestServer, WINNER, "Wrong best replication server.");
   }
@@ -605,7 +603,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
 
     String bestServer =
-      computeBestReplicationServer(mySt, rsInfos, myId1, new DN(), (byte)1);
+      computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
 
     assertEquals(bestServer, WINNER, "Wrong best replication server.");
   }
@@ -663,11 +661,11 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
 
     String bestServer =
-      computeBestReplicationServer(mySt, rsInfos, myId1, new DN(), (byte)1);
+      computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
 
     assertEquals(bestServer, WINNER, "Wrong best replication server.");
   }
-  
+
   /**
    * Test with 3 replication servers, late.
    *
@@ -732,11 +730,11 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(LOOSER2, new ServerInfo(aState, (byte)1));
 
     String bestServer =
-      computeBestReplicationServer(mySt, rsInfos, myId1, new DN(), (byte)1);
+      computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
 
     assertEquals(bestServer, WINNER, "Wrong best replication server.");
   }
-  
+
   /**
    * Test with 6 replication servers, some up, some late, one null
    *
@@ -752,8 +750,8 @@ public class ComputeBestServerTest extends ReplicationTestCase
     // definitions for server ids
     short myId1 = 1;
     short myId2 = 2;
-    short myId3 = 3;    
-    
+    short myId3 = 3;
+
     // definitions for server names
     final String WINNER = "winner";
     final String LOOSER1 = "looser1";
@@ -803,7 +801,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(10L, 0, myId3);
     aState.update(cn);
     rsInfos.put(LOOSER3, new ServerInfo(aState, (byte)1));
-    
+
     // State for server 4
     aState = new ServerState();
     cn = new ChangeNumber(6L, 0, myId1);
@@ -813,7 +811,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(8L, 0, myId3);
     aState.update(cn);
     rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
-    
+
     // State for server 5 (null one for our serverid)
     aState = new ServerState();
     cn = new ChangeNumber(5L, 0, myId2);
@@ -821,7 +819,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(5L, 0, myId3);
     aState.update(cn);
     rsInfos.put(LOOSER4, new ServerInfo(aState, (byte)1));
-    
+
     // State for server 6
     aState = new ServerState();
     cn = new ChangeNumber(5L, 0, myId1);
@@ -833,7 +831,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos.put(LOOSER5, new ServerInfo(aState, (byte)1));
 
     String bestServer =
-      computeBestReplicationServer(mySt, rsInfos, myId1, new DN(), (byte)1);
+      computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
 
     assertEquals(bestServer, WINNER, "Wrong best replication server.");
   }

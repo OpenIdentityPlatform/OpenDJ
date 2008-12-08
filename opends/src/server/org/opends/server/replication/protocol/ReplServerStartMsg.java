@@ -30,8 +30,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
 
 /**
  * Message sent by a replication server to another replication server
@@ -73,7 +71,7 @@ public class ReplServerStartMsg extends StartMsg
    * @param groupId The group id of the RS
    * @param degradedStatusThreshold The degraded status threshold
    */
-  public ReplServerStartMsg(short serverId, String serverURL, DN baseDn,
+  public ReplServerStartMsg(short serverId, String serverURL, String baseDn,
                                int windowSize,
                                ServerState serverState,
                                short protocolVersion,
@@ -86,7 +84,7 @@ public class ReplServerStartMsg extends StartMsg
     this.serverId = serverId;
     this.serverURL = serverURL;
     if (baseDn != null)
-      this.baseDn = baseDn.toNormalizedString();
+      this.baseDn = baseDn;
     else
       this.baseDn = null;
     this.windowSize = windowSize;
@@ -202,17 +200,9 @@ public class ReplServerStartMsg extends StartMsg
    *
    * @return the base DN from this ReplServerStartMsg.
    */
-  public DN getBaseDn()
+  public String getBaseDn()
   {
-    if (baseDn == null)
-      return null;
-    try
-    {
-      return DN.decode(baseDn);
-    } catch (DirectoryException e)
-    {
-      return null;
-    }
+    return baseDn;
   }
 
   /**
@@ -333,8 +323,8 @@ public class ReplServerStartMsg extends StartMsg
     return "ReplServerStartMsg content: " +
       "\nprotocolVersion: " + protocolVersion +
       "\ngenerationId: " + generationId +
+      "\nbaseDn: " + baseDn +
       "\ngroupId: " + groupId +
-      "\nbaseDn: " + baseDn.toString() +
       "\nserverId: " + serverId +
       "\nserverState: " + serverState +
       "\nserverURL: " + serverURL +

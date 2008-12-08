@@ -24,9 +24,7 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
-package org.opends.server.replication.plugin;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+package org.opends.server.replication.service;
 import org.opends.messages.Message;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
@@ -53,23 +51,18 @@ public class ListenerThread extends DirectoryThread
   private ReplicationDomain repDomain;
   private boolean shutdown = false;
   private boolean done = false;
-  private LinkedBlockingQueue<UpdateToReplay> updateToReplayQueue;
 
 
   /**
    * Constructor for the ListenerThread.
    *
    * @param repDomain the replication domain that created this thread
-   * @param updateToReplayQueue The update messages queue we must
-   * store messages in
    */
-  public ListenerThread(ReplicationDomain repDomain,
-    LinkedBlockingQueue<UpdateToReplay> updateToReplayQueue)
+  public ListenerThread(ReplicationDomain repDomain)
   {
      super("Replication Listener for server id " + repDomain.getServerId() +
-         " and domain " + repDomain.getBaseDN());
+         " and domain " + repDomain.getServiceID());
      this.repDomain = repDomain;
-     this.updateToReplayQueue = updateToReplayQueue;
   }
 
   /**
@@ -101,24 +94,8 @@ public class ListenerThread extends DirectoryThread
         // queue
         while ((!shutdown) && ((updateMsg = repDomain.receive()) != null))
         {
-          // Put update message into the queue (block until some place in the
-          // queue is available)
-          UpdateToReplay updateToReplay =
-            new UpdateToReplay(updateMsg, repDomain);
-          boolean queued = false;
-          while (!queued && !shutdown)
-          {
-            // Use timedout method (offer) instead of put for being able to
-            // shutdown the thread
-            queued = updateToReplayQueue.offer(updateToReplay,
-              1L, TimeUnit.SECONDS);
-          }
-          if (!queued)
-          {
-            // Shutdown requested but could not push message: ensure this one is
-            // not lost and put it in the queue before dying
-            updateToReplayQueue.offer(updateToReplay);
-          }
+          if (repDomain.processUpdate(updateMsg) == true)
+            repDomain.processUpdateDoneSynchronous(updateMsg);
         }
         if (updateMsg == null)
           shutdown = true;
@@ -133,9 +110,6 @@ public class ListenerThread extends DirectoryThread
         logError(message);
       }
     }
-
-    // Stop the HeartBeat thread
-    repDomain.getBroker().stopHeartBeat();
 
     done = true;
 
@@ -161,7 +135,7 @@ public class ListenerThread extends DirectoryThread
         if (n >= FACTOR)
         {
           TRACER.debugInfo("Interrupting listener thread for dn " +
-            repDomain.getBaseDN() + " in DS " + repDomain.getServerId());
+            repDomain.getServiceID() + " in DS " + repDomain.getServerId());
           this.interrupt();
         }
       }

@@ -58,10 +58,10 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.PersistentServerState;
-import org.opends.server.replication.plugin.ReplicationBroker;
-import org.opends.server.replication.plugin.ReplicationDomain;
+import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.protocol.ErrorMsg;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicationMsg;
@@ -104,7 +104,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   // TestCaseUtils.initializeTestBackend(true).
   // (using the default TestCaseUtils.TEST_ROOT_DN_STRING suffix)
   protected static final long TEST_DN_WITH_ROOT_ENTRY_GENID = 5095L;
-  
+
   /**
    * Generation id for a fully empty domain.
    */
@@ -139,8 +139,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
   // Call the paranoiaCheck at test cleanup or not.
   // Must not been touched except if sub class has its own clean up code,
-  // for instance: 
-  // @AfterClass  
+  // for instance:
+  // @AfterClass
   // public void classCleanUp() throws Exception
   // {
   //   callParanoiaCheck = false;
@@ -202,8 +202,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     long genId = TEST_DN_WITH_ROOT_ENTRY_GENID;
     try
     {
-      ReplicationDomain replDomain = ReplicationDomain.retrievesReplicationDomain(baseDn);
-      genId = replDomain.getGenerationId();
+      LDAPReplicationDomain replDomain = LDAPReplicationDomain.retrievesReplicationDomain(baseDn);
+      genId = replDomain.getGenerationID();
     }
     catch(Exception e) {}
     return genId;
@@ -233,15 +233,14 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         long generationId)
   throws Exception, SocketException
   {
-    ServerState state;
+    ServerState state = new ServerState();
+
     if (emptyOldChanges)
-       state = new PersistentServerState(baseDn, serverId);
-    else
-       state = new ServerState();
+       new PersistentServerState(baseDn, serverId, new ServerState());
 
     ReplicationBroker broker = new ReplicationBroker(null,
-        state, baseDn, serverId, 0, 0, 0, 0,
-        window_size, 0, generationId, getReplSessionSecurity(), (byte)1);
+        state, baseDn.toNormalizedString(), serverId, window_size,
+        generationId, 100000, getReplSessionSecurity(), (byte)1);
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
     broker.start(servers);
@@ -347,8 +346,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
           throws Exception, SocketException
   {
     ReplicationBroker broker = new ReplicationBroker(null,
-        state, baseDn, serverId, 0, 0, 0, 0, window_size, 0, generationId,
-        getReplSessionSecurity(), (byte)1);
+        state, baseDn.toNormalizedString(), serverId, window_size, generationId,
+        100000, getReplSessionSecurity(), (byte)1);
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
     broker.start(servers);
@@ -380,16 +379,14 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         boolean emptyOldChanges, long generationId)
             throws Exception, SocketException
   {
-    ServerState state;
+    ServerState state = new ServerState();
+
     if (emptyOldChanges)
-       state = new PersistentServerState(baseDn, serverId);
-    else
-       state = new ServerState();
+       new PersistentServerState(baseDn, serverId, new ServerState());
 
     ReplicationBroker broker = new ReplicationBroker(null,
-        state, baseDn, serverId, maxRcvQueue, 0,
-        maxSendQueue, 0, window_size, 0, generationId,
-        getReplSessionSecurity(), (byte)1);
+        state, baseDn.toNormalizedString(), serverId, window_size,
+        generationId, 0, getReplSessionSecurity(), (byte)1);
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
     broker.start(servers);
@@ -652,7 +649,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected long getMonitorAttrValue(DN baseDn, String attr) throws Exception
   {
     String monitorFilter =
-         "(&(cn=replication plugin*)(base-dn=" + baseDn + "))";
+         "(&(cn=replication Domain*)(base-dn=" + baseDn + "))";
 
     InternalSearchOperation op;
     int count = 0;
@@ -1111,5 +1108,5 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     {
       fail("addEntries Exception:"+ e.getMessage() + " " + stackTraceToSingleLineString(e));
     }
-  }  
+  }
 }

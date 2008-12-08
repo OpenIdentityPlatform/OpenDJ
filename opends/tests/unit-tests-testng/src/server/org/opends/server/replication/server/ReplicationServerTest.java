@@ -63,12 +63,12 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.replication.ReplicationTestCase;
+import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.plugin.MultimasterReplication;
-import org.opends.server.replication.plugin.ReplicationBroker;
 import org.opends.server.replication.plugin.ReplicationServerListener;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
@@ -192,14 +192,12 @@ public class ReplicationServerTest extends ReplicationTestCase
   {
     replicationServer.clearDb();
     changelogBasic();
-    multipleWriterMultipleReader();
     newClientLateServer1();
     newClient();
     newClientWithFirstChanges();
     newClientWithChangefromServer1();
     newClientWithChangefromServer2();
     newClientWithUnknownChanges();
-    oneWriterMultipleReader();
     changelogChaining();
     stopChangelog();
     exportBackend();
@@ -207,7 +205,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     windowProbeTest();
     replicationServerConnected();
   }
-  
+
   /**
    * This test allows to check the behavior of the Replication Server
    * when the DS disconnect and reconnect again.
@@ -255,7 +253,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       server2 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING), (short) 2, 100, replicationServerPort,
           1000, true);
-      
+
       assertTrue(server1.isConnected());
       assertTrue(server2.isConnected());
 
@@ -328,10 +326,6 @@ public class ReplicationServerTest extends ReplicationTestCase
                       "other-uid");
       server2.publish(msg);
       msg2 = server1.receive();
-      if (!(msg2 instanceof TopologyMsg))
-        fail("ReplicationServer basic : incorrect message type received: " +
-          msg2.getClass().toString() + ": content: " + msg2.toString());
-      msg2 = server1.receive();
       server1.updateWindowAfterReplay();
       if (msg2 instanceof DeleteMsg)
       {
@@ -359,7 +353,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       else
         fail("ReplicationServer basic : incorrect message type received: " +
           msg2.getClass().toString() + ": content: " + msg2.toString());
-      
+
       debugInfo("Ending changelogBasic");
     }
     finally
@@ -564,9 +558,14 @@ public class ReplicationServerTest extends ReplicationTestCase
    * This test is configured by a relatively low stress
    * but can be changed using TOTAL_MSG and CLIENT_THREADS consts.
    */
-  private void oneWriterMultipleReader() throws Exception
+  @Test(enabled=true)
+  public void oneWriterMultipleReader() throws Exception
   {
     debugInfo("Starting oneWriterMultipleReader");
+
+    replicationServer.clearDb();
+    TestCaseUtils.initializeTestBackend(true);
+
     ReplicationBroker server = null;
     BrokerReader reader = null;
     int TOTAL_MSG = 1000;     // number of messages to send during the test
@@ -638,6 +637,9 @@ public class ReplicationServerTest extends ReplicationTestCase
         if (clientBroker[i] != null)
           clientBroker[i].stop();
       }
+
+      replicationServer.clearDb();
+      TestCaseUtils.initializeTestBackend(true);
     }
   }
 
@@ -652,7 +654,8 @@ public class ReplicationServerTest extends ReplicationTestCase
    * This test is configured for a relatively low stress
    * but can be changed using TOTAL_MSG and THREADS consts.
    */
-  private void multipleWriterMultipleReader() throws Exception
+  @Test()
+  public void multipleWriterMultipleReader() throws Exception
   {
     debugInfo("Starting multipleWriterMultipleReader");
     final int TOTAL_MSG = 1000;   // number of messages to send during the test
@@ -662,6 +665,9 @@ public class ReplicationServerTest extends ReplicationTestCase
     BrokerWriter producer[] = new BrokerWriter[THREADS];
     BrokerReader reader[] = new BrokerReader[THREADS];
     ReplicationBroker broker[] = new ReplicationBroker[THREADS];
+
+    replicationServer.clearDb();
+    TestCaseUtils.initializeTestBackend(true);
 
     try
     {
@@ -711,6 +717,9 @@ public class ReplicationServerTest extends ReplicationTestCase
         if (broker[i] != null)
           broker[i].stop();
       }
+
+      replicationServer.clearDb();
+      TestCaseUtils.initializeTestBackend(true);
     }
   }
 
@@ -789,7 +798,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         //              client2 will be created later
         broker1 = openReplicationSession(DN.decode(TEST_ROOT_DN_STRING),
              brokerIds[0], 100, changelogPorts[0], 1000, !emptyOldChanges);
-        
+
         assertTrue(broker1.isConnected());
 
         if (itest == 0)
@@ -975,7 +984,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     {
       // send a ServerStartMsg with an empty ServerState.
       ServerStartMsg msg =
-        new ServerStartMsg((short) 1723, DN.decode(TEST_ROOT_DN_STRING),
+        new ServerStartMsg((short) 1723, TEST_ROOT_DN_STRING,
             0, 0, 0, 0, WINDOW, (long) 5000, new ServerState(),
             ProtocolVersion.getCurrentVersion(), 0, sslEncryption, (byte)-1);
       session.publish(msg);
@@ -1021,7 +1030,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       // received.
       DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
       msg = new ServerStartMsg(
-          (short) 1724, baseDn,
+          (short) 1724, TEST_ROOT_DN_STRING,
           0, 0, 0, 0, WINDOW, (long) 5000, replServerState,
           ProtocolVersion.getCurrentVersion(),
           ReplicationTestCase.getGenerationId(baseDn),
@@ -1072,7 +1081,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * @throws Exception If the environment could not be set up.
    */
   @AfterClass
- 
+
   public void classCleanUp() throws Exception
   {
     callParanoiaCheck = false;
@@ -1410,12 +1419,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     * Testing searches on the backend of the replication server.
     * @throws Exception
     */
-   // TODO: this test disabled as testReplicationBackendACIs() is failing
-   // : anonymous search returns entries from replication backend whereas it
-   // should not. Probably a previous test in the nightlytests suite is
-   // removing/modifying some ACIs...When problem foound, we have to re-enable
-   // this test.
-   @Test(enabled=false)
+   @Test(enabled=true)
    public void searchBackend() throws Exception
    {
      debugInfo("Starting searchBackend");
@@ -1494,7 +1498,13 @@ public class ReplicationServerTest extends ReplicationTestCase
            LDAPFilter.decode("(changetype=*)"));
        assertEquals(op.getResultCode(), ResultCode.NO_SUCH_OBJECT);
 
-       testReplicationBackendACIs();
+       // TODO:  testReplicationBackendACIs() is disabled because it
+       // is currently failing when run in the nightly target.
+       // anonymous search returns entries from replication backend whereas it
+       // should not. Probably a previous test in the nightlytests suite is
+       // removing/modifying some ACIs...When problem foound, we have to re-enable
+       // this test.
+       // testReplicationBackendACIs();
 
        // General search
        op = connection.processSearch(
@@ -1555,10 +1565,10 @@ public class ReplicationServerTest extends ReplicationTestCase
        assertEquals(op.getSearchEntries().size(), 1);
 
        /*
-        * It would be nice to be have the abilities to search for 
-        * entries in the replication backend using the DN on which the 
+        * It would be nice to be have the abilities to search for
+        * entries in the replication backend using the DN on which the
         * operation was done as the search criteria.
-        * This is not possible yet, this part of the test is therefore 
+        * This is not possible yet, this part of the test is therefore
         * disabled.
         *
         * debugInfo("Query / searchBase");
@@ -1604,7 +1614,7 @@ public class ReplicationServerTest extends ReplicationTestCase
              attrs2);
        assertEquals(op.getResultCode(), ResultCode.SUCCESS);
        assertEquals(op.getSearchEntries().size(), 5);
-       
+
        debugInfo("Successfully ending searchBackend");
 
      } finally {
@@ -1759,7 +1769,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
          broker2 = openReplicationSession(DN.decode(TEST_ROOT_DN_STRING),
               brokerIds[1], 100, changelogPorts[1], 1000, emptyOldChanges);
-         
+
          assertTrue(broker1.isConnected());
          assertTrue(broker2.isConnected());
 

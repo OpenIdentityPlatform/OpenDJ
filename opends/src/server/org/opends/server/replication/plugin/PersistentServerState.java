@@ -66,14 +66,15 @@ import org.opends.server.types.SearchScope;
  * used to store the synchronized data and that is therefore persistent
  * across server reboot.
  */
-public class PersistentServerState extends ServerState
+public class PersistentServerState
 {
-   private DN baseDn;
-   private boolean savedStatus = true;
-   private InternalClientConnection conn =
+   private final DN baseDn;
+   private final InternalClientConnection conn =
        InternalClientConnection.getRootConnection();
-   private ASN1OctetString asn1BaseDn;
-   private short serverId;
+   private final ASN1OctetString asn1BaseDn;
+   private final short serverId;
+
+   private final ServerState state;
 
    /**
     * The attribute name used to store the state in the backend.
@@ -83,24 +84,45 @@ public class PersistentServerState extends ServerState
   /**
    * create a new ServerState.
    * @param baseDn The baseDN for which the ServerState is created
-   *  @param serverId The serverId
+   * @param serverId The serverId
    */
   public PersistentServerState(DN baseDn, short serverId)
   {
     this.baseDn = baseDn;
     this.serverId = serverId;
+    this.state = new ServerState();
     asn1BaseDn = new ASN1OctetString(baseDn.toString());
     loadState();
   }
 
   /**
-   * {@inheritDoc}
+   * Create a new PersistenServerState based on an already existing ServerState.
+   *
+   * @param baseDn    The baseDN for which the ServerState is created.
+   * @param serverId  The serverId.
+   * @param state     The serverState.
    */
-  @Override
+  public PersistentServerState(DN baseDn, short serverId, ServerState state)
+  {
+    this.baseDn = baseDn;
+    this.serverId = serverId;
+    this.state = state;
+    asn1BaseDn = new ASN1OctetString(baseDn.toString());
+    loadState();
+  }
+
+  /**
+   * Update the Server State with a ChangeNumber.
+   * All operations with smaller CSN and the same serverID must be committed
+   * before calling this method.
+   *
+   * @param changeNumber    The committed ChangeNumber.
+   *
+   * @return a boolean indicating if the update was meaningful.
+   */
   public boolean update(ChangeNumber changeNumber)
   {
-    savedStatus = false;
-    return super.update(changeNumber);
+    return state.update(changeNumber);
   }
 
   /**
@@ -108,14 +130,14 @@ public class PersistentServerState extends ServerState
    */
   public void save()
   {
-    if (savedStatus)
+    if (state.isSaved())
       return;
 
-    savedStatus = true;
+    state.setSaved(true);
     ResultCode resultCode = updateStateEntry();
     if (resultCode != ResultCode.SUCCESS)
     {
-        savedStatus = false;
+      state.setSaved(false);
     }
   }
 
@@ -310,7 +332,7 @@ public class PersistentServerState extends ServerState
    */
   private ResultCode runUpdateStateEntry(DN serverStateEntryDN)
   {
-    ArrayList<ASN1OctetString> values = this.toASN1ArrayList();
+    ArrayList<ASN1OctetString> values = state.toASN1ArrayList();
 
     LDAPAttribute attr =
       new LDAPAttribute(REPLICATION_STATE, values);
@@ -347,8 +369,8 @@ public class PersistentServerState extends ServerState
    */
   public void clearInMemory()
   {
-    super.clear();
-    this.savedStatus = false;
+    state.clear();
+    state.setSaved(false);
   }
 
   /**
@@ -384,13 +406,13 @@ public class PersistentServerState extends ServerState
     // maxCn stored in the serverState
     synchronized (this)
     {
-      serverStateMaxCn = this.getMaxChangeNumber(serverId);
+      serverStateMaxCn = state.getMaxChangeNumber(serverId);
 
       if (serverStateMaxCn == null)
         return;
 
       try {
-        op = ReplicationBroker.searchForChangedEntries(baseDn,
+        op = LDAPReplicationDomain.searchForChangedEntries(baseDn,
             serverStateMaxCn, null);
       }
       catch (Exception  e)
@@ -447,5 +469,17 @@ public class PersistentServerState extends ServerState
         }
       }
     }
+  }
+
+  /**
+   * Get the largest ChangeNumber seen for a given LDAP server ID.
+   *
+   * @param serverID    The server ID.
+   *
+   * @return            The largest ChangeNumber seen.
+   */
+  public ChangeNumber getMaxChangeNumber(short serverID)
+  {
+    return state.getMaxChangeNumber(serverID);
   }
 }

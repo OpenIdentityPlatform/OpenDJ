@@ -26,11 +26,8 @@
  */
 package org.opends.server.replication.protocol;
 
-import static org.opends.server.replication.protocol.OperationContext.SYNCHROCONTEXT;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
+import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.testng.Assert.*;
 
 import java.util.Iterator;
 import java.util.ArrayList;
@@ -227,7 +224,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getAssuredMode(), assuredMode);
 
     // Check safe data level
-    assertTrue(msg.getSafeDataLevel() == -1);
+    assertTrue(msg.getSafeDataLevel() == 1);
     msg.setSafeDataLevel(safeDataLevel);
     assertTrue(msg.getSafeDataLevel() == safeDataLevel);
 
@@ -312,7 +309,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(op.getRawEntryDN(), mod2.getRawEntryDN());
 
     // Create an update message from this op
-    DeleteMsg updateMsg = (DeleteMsg) UpdateMsg.generateMsg(op);
+    DeleteMsg updateMsg = (DeleteMsg) LDAPUpdateMsg.generateMsg(op);
     assertEquals(msg.getChangeNumber(), updateMsg.getChangeNumber());
   }
 
@@ -415,7 +412,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(moddn1.getModifications(), moddn2.getModifications());
 
     // Create an update message from this op
-    ModifyDNMsg updateMsg = (ModifyDNMsg) UpdateMsg.generateMsg(localOp);
+    ModifyDNMsg updateMsg = (ModifyDNMsg) LDAPUpdateMsg.generateMsg(localOp);
     assertEquals(msg.getChangeNumber(), updateMsg.getChangeNumber());
   }
 
@@ -518,7 +515,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
 
     // Create an update message from this op
-    AddMsg updateMsg = (AddMsg) UpdateMsg.generateMsg(addOp);
+    AddMsg updateMsg = (AddMsg) LDAPUpdateMsg.generateMsg(addOp);
     assertEquals(msg.getChangeNumber(), updateMsg.getChangeNumber());
   }
 
@@ -615,12 +612,11 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   @DataProvider(name="createServerStartData")
   public Object [][] createServerStartData() throws Exception
   {
-    DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
+    String baseDN = TEST_ROOT_DN_STRING;
     ServerState state = new ServerState();
     state.update(new ChangeNumber((long)0, 0,(short)0));
     Object[] set1 = new Object[] {(short)1, baseDN, 0, state, 0L, false, (byte)0};
 
-    baseDN = DN.decode(TEST_ROOT_DN_STRING);
     state = new ServerState();
     state.update(new ChangeNumber((long)75, 5,(short)263));
     Object[] set2 = new Object[] {(short)16, baseDN, 100, state, 1248L, true, (byte)31};
@@ -633,7 +629,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
    * by checking that : msg == new ServerStartMsg(msg.getBytes()).
    */
   @Test(dataProvider="createServerStartData")
-  public void serverStartMsgTest(short serverId, DN baseDN, int window,
+  public void serverStartMsgTest(short serverId, String baseDN, int window,
          ServerState state, long genId, boolean sslEncryption, byte groupId) throws Exception
   {
     ServerStartMsg msg = new ServerStartMsg(serverId, baseDN,
@@ -659,12 +655,11 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   @DataProvider(name="createReplServerStartData")
   public Object [][] createReplServerStartData() throws Exception
   {
-    DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
+    String baseDN = TEST_ROOT_DN_STRING;
     ServerState state = new ServerState();
     state.update(new ChangeNumber((long)0, 0,(short)0));
     Object[] set1 = new Object[] {(short)1, baseDN, 0, "localhost:8989", state, 0L, (byte)0, 0};
 
-    baseDN = DN.decode(TEST_ROOT_DN_STRING);
     state = new ServerState();
     state.update(new ChangeNumber((long)75, 5,(short)263));
     Object[] set2 = new Object[] {(short)16, baseDN, 100, "anotherHost:1025", state, 1245L, (byte)25, 3456};
@@ -677,7 +672,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
    * by checking that : msg == new ReplServerStartMsg(msg.getBytes()).
    */
   @Test(dataProvider="createReplServerStartData")
-  public void replServerStartMsgTest(short serverId, DN baseDN, int window,
+  public void replServerStartMsgTest(short serverId, String baseDN, int window,
          String url, ServerState state, long genId, byte groupId, int degTh) throws Exception
   {
     ReplServerStartMsg msg = new ReplServerStartMsg(serverId,
@@ -734,7 +729,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     List<String> urls3 = new ArrayList<String>();
     urls3.add("ldaps://host:port/dc=foo??sub?(sn=One Entry)");
-    
+
     List<String> urls4 = new ArrayList<String>();
     urls4.add("ldaps://host:port/dc=foobar1??sub?(sn=Another Entry 1)");
     urls4.add("ldaps://host:port/dc=foobar2??sub?(sn=Another Entry 2)");
@@ -747,7 +742,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     DSInfo dsInfo3 = new DSInfo((short)2436, (short)591, (long)0, ServerStatus.NORMAL_STATUS,
       false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3);
-    
+
     DSInfo dsInfo4 = new DSInfo((short)415, (short)146, (long)0, ServerStatus.BAD_GEN_ID_STATUS,
       true, AssuredMode.SAFE_DATA_MODE, (byte)2, (byte)15, urls4);
 
@@ -862,7 +857,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertTrue(msg.getSafeDataLevel() == newMsg.getSafeDataLevel());
     assertEquals(msg.getReferralsURLs(), newMsg.getReferralsURLs());
   }
-  
+
   /**
    * Provider for the ChangeStatusMsg test
    */
@@ -897,6 +892,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     HeartbeatMsg msg = new HeartbeatMsg();
     HeartbeatMsg newMsg = new HeartbeatMsg(msg.getBytes());
+    assertNotNull(newMsg);
   }
 
   /**
@@ -909,7 +905,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     ResetGenerationIdMsg newMsg = new ResetGenerationIdMsg(msg.getBytes());
     assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
   }
-  
+
   /**
    * Test MonitorRequestMsg encoding and decoding.
    */
@@ -918,6 +914,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     MonitorRequestMsg msg = new MonitorRequestMsg((short)1,(short)2);
     MonitorRequestMsg newMsg = new MonitorRequestMsg(msg.getBytes());
+    assertEquals(newMsg.getDestination(), 2);
+    assertEquals(newMsg.getsenderID(), 1);
   }
 
   /**
@@ -963,14 +961,14 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     msg.setServerState(sid1, s1, now+1, true);
     msg.setServerState(sid2, s2, now+2, true);
     msg.setServerState(sid3, s3, now+3, false);
-    
+
     byte[] b = msg.getBytes();
     MonitorMsg newMsg = new MonitorMsg(b);
 
     assertEquals(rsState, msg.getReplServerDbState());
-    assertEquals(newMsg.getReplServerDbState().toString(), 
+    assertEquals(newMsg.getReplServerDbState().toString(),
         msg.getReplServerDbState().toString());
-    
+
     Iterator<Short> it = newMsg.ldapIterator();
     while (it.hasNext())
     {
@@ -983,7 +981,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       }
       else if (sid == sid2)
       {
-        assertEquals(s.toString(), s2.toString());        
+        assertEquals(s.toString(), s2.toString());
         assertEquals((Long)(now+2), newMsg.getLDAPApproxFirstMissingDate(sid), "");
       }
       else
@@ -1025,7 +1023,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
         "objectclass: top\n" +
         "objectclass: ds-task\n" +
         "objectclass: ds-task-initialize\n" +
-        "ds-task-class-name: org.opends.server.tasks.InitializeTask\n" +
+        "ds-task-class-name: org.opends.server.replication.api.InitializeTask\n" +
         "ds-task-initialize-domain-dn: " + TEST_ROOT_DN_STRING  + "\n" +
         "ds-task-initialize-source: 1\n");
     short sender = 1;
@@ -1047,7 +1045,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     short sender = 1;
     short target = 2;
     InitializeRequestMsg msg = new InitializeRequestMsg(
-        DN.decode(TEST_ROOT_DN_STRING), sender, target);
+        TEST_ROOT_DN_STRING, sender, target);
     InitializeRequestMsg newMsg = new InitializeRequestMsg(msg.getBytes());
     assertEquals(msg.getsenderID(), newMsg.getsenderID());
     assertEquals(msg.getDestination(), newMsg.getDestination());
@@ -1064,10 +1062,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     short targetID = 2;
     short requestorID = 3;
     long entryCount = 4;
-    DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
 
     InitializeTargetMsg msg = new InitializeTargetMsg(
-        baseDN, senderID, targetID, requestorID, entryCount);
+        TEST_ROOT_DN_STRING, senderID, targetID, requestorID, entryCount);
     InitializeTargetMsg newMsg = new InitializeTargetMsg(msg.getBytes());
     assertEquals(msg.getsenderID(), newMsg.getsenderID());
     assertEquals(msg.getDestination(), newMsg.getDestination());
@@ -1079,7 +1076,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(targetID, newMsg.getDestination());
     assertEquals(requestorID, newMsg.getRequestorID());
     assertEquals(entryCount, newMsg.getEntryCount());
-    assertTrue(baseDN.equals(newMsg.getBaseDN())) ;
+    assertTrue(TEST_ROOT_DN_STRING.equals(newMsg.getBaseDN())) ;
 
   }
 
@@ -1107,5 +1104,20 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getDestination(), newMsg.getDestination());
     assertEquals(msg.getMsgID(), newMsg.getMsgID());
     assertEquals(msg.getDetails(), newMsg.getDetails());
+  }
+
+  /**
+   * Test Generic UpdateMsg
+   */
+  @Test
+  public void UpdateMsgTest() throws Exception
+  {
+    final String test = "string used for test";
+    UpdateMsg msg =
+      new UpdateMsg(
+          new ChangeNumber((long) 1, 2 , (short)3),
+          test.getBytes());
+    UpdateMsg newMsg = new UpdateMsg(msg.getBytes());
+    assertEquals(test.getBytes(), newMsg.getPayload());
   }
 }

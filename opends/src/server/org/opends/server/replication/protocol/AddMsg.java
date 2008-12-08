@@ -58,7 +58,7 @@ import static org.opends.server.util.StaticUtils.toLowerCase;
  * This class is used to exchange Add operation between LDAP servers
  * and replication servers.
  */
-public class AddMsg extends UpdateMsg
+public class AddMsg extends LDAPUpdateMsg
 {
   private byte[] encodedAttributes;
   private String parentUniqueId;

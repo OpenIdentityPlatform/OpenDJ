@@ -32,8 +32,6 @@ import java.net.UnknownHostException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
 
 /**
  * This message is used by LDAP server when they first connect.
@@ -85,7 +83,7 @@ public class ServerStartMsg extends StartMsg
    *                      after the start messages have been exchanged.
    * @param groupId The group id of the DS for this DN
    */
-  public ServerStartMsg(short serverId, DN baseDn, int maxReceiveDelay,
+  public ServerStartMsg(short serverId, String baseDn, int maxReceiveDelay,
                             int maxReceiveQueue, int maxSendDelay,
                             int maxSendQueue, int windowSize,
                             long heartbeatInterval,
@@ -98,7 +96,7 @@ public class ServerStartMsg extends StartMsg
     super(protocolVersion, generationId);
 
     this.serverId = serverId;
-    this.baseDn = baseDn.toString();
+    this.baseDn = baseDn;
     this.maxReceiveDelay = maxReceiveDelay;
     this.maxReceiveQueue = maxReceiveQueue;
     this.maxSendDelay = maxSendDelay;
@@ -243,15 +241,9 @@ public class ServerStartMsg extends StartMsg
    * Get the baseDn.
    * @return Returns the baseDn.
    */
-  public DN getBaseDn()
+  public String getBaseDn()
   {
-    try
-    {
-      return DN.decode(baseDn);
-    } catch (DirectoryException e)
-    {
-      return null;
-    }
+    return baseDn;
   }
 
   /**

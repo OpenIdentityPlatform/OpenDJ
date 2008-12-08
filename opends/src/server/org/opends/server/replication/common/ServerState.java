@@ -49,6 +49,7 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 public class ServerState implements Iterable<Short>
 {
   private HashMap<Short, ChangeNumber> list;
+  private boolean saved = true;
 
   /**
    * Creates a new empty ServerState.
@@ -142,15 +143,17 @@ public class ServerState implements Iterable<Short>
 
   /**
    * Update the Server State with a ChangeNumber.
-   * All operations with smaller CSN and the same serverID must be committed
-   * before calling this method.
-   * @param changeNumber the committed ChangeNumber.
-   * @return a boolean indicating if the update was meaningfull.
+   *
+   * @param changeNumber    The committed ChangeNumber.
+   *
+   * @return a boolean indicating if the update was meaningful.
    */
   public boolean update(ChangeNumber changeNumber)
   {
     if (changeNumber == null)
       return false;
+
+    saved = false;
 
     synchronized(this)
     {
@@ -394,5 +397,25 @@ public class ServerState implements Iterable<Short>
      }
 
      return diff;
+  }
+
+  /**
+   * Set the saved status of this ServerState.
+   *
+   * @param b A booelan indicating if the State has been safely stored.
+   */
+  public void setSaved(boolean b)
+  {
+    saved = false;
+  }
+
+  /**
+   * Get the saved status of this ServerState.
+   *
+   * @return The saved status of this ServerState.
+   */
+  public boolean isSaved()
+  {
+    return saved;
   }
 }

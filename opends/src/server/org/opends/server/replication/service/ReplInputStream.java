@@ -24,7 +24,7 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
-package org.opends.server.replication.plugin;
+package org.opends.server.replication.service;
 
 
 
@@ -36,7 +36,7 @@ import java.io.InputStream;
  * This class creates an input stream that can be used to read entries generated
  * by SynchroLDIF as if they were being read from another source like a file.
  */
-public class ReplLDIFInputStream
+public class ReplInputStream
 extends InputStream
 {
   // Indicates whether this input stream has been closed.
@@ -51,14 +51,14 @@ extends InputStream
 
   /**
    * Creates a new ReplLDIFInputStream that will import entries
-   * for a synchronzation domain.
+   * for a synchronization domain.
    *
    * @param domain The replication domain
    */
-  public ReplLDIFInputStream(ReplicationDomain domain)
+  public ReplInputStream(ReplicationDomain domain)
   {
     this.domain = domain;
-    closed       = false;
+    closed      = false;
   }
 
   /**

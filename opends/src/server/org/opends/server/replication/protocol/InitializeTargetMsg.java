@@ -29,9 +29,6 @@ package org.opends.server.replication.protocol;
 import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-
 /**
  * This message is part of the replication protocol.
  * This message is sent by a server to one or several servers as the
@@ -59,12 +56,12 @@ public class InitializeTargetMsg extends RoutableMsg
    * @param requestorID The server that initiates this export.
    * @param entryCount The count of entries that will be sent.
    */
-  public InitializeTargetMsg(DN baseDN, short senderID,
+  public InitializeTargetMsg(String baseDN, short senderID,
       short destination, short requestorID, long entryCount)
   {
     super(senderID, destination);
     this.requestorID = requestorID;
-    this.baseDN = baseDN.toNormalizedString();
+    this.baseDN = baseDN;
     this.entryCount = entryCount;
   }
 
@@ -144,17 +141,9 @@ public class InitializeTargetMsg extends RoutableMsg
    *
    * @return the base DN
    */
-  public DN getBaseDN()
+  public String getBaseDN()
   {
-    if (baseDN == null)
-      return null;
-    try
-    {
-      return DN.decode(baseDN);
-    } catch (DirectoryException e)
-    {
-      return null;
-    }
+    return baseDN;
   }
 
   /**

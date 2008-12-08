@@ -43,14 +43,39 @@ public class EntryMsg extends RoutableMsg
   /**
    * Creates a new EntryMsg.
    *
+   * @param sender      The sender of this message.
+   * @param destination The destination of this message.
+   * @param entryBytes  The bytes of the entry.
+   */
+  public EntryMsg(
+      short sender,
+      short destination,
+      byte[] entryBytes)
+  {
+    super(sender, destination);
+    this.entryByteArray = new byte[entryBytes.length];
+    System.arraycopy(entryBytes, 0, this.entryByteArray, 0, entryBytes.length);
+  }
+
+  /**
+   * Creates a new EntryMsg.
+   *
    * @param sender The sender of this message.
    * @param destination The destination of this message.
    * @param entryBytes The bytes of the entry.
+   * @param pos         The starting Position in the array.
+   * @param length      Number of array elements to be copied.
    */
-  public EntryMsg(short sender, short destination, byte[] entryBytes)
+  public EntryMsg(
+      short sender,
+      short destination,
+      byte[] entryBytes,
+      int pos,
+      int length)
   {
     super(sender, destination);
-    this.entryByteArray = entryBytes.clone();
+    this.entryByteArray = new byte[length];
+    System.arraycopy(entryBytes, pos, this.entryByteArray, 0, length);
   }
 
   /**

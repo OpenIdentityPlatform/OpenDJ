@@ -69,6 +69,10 @@ public class MonitorData
   private ConcurrentHashMap<Short, ServerState> LDAPStates =
     new ConcurrentHashMap<Short, ServerState>();
 
+  // A Map containing the ServerStates of each RS.
+  private ConcurrentHashMap<Short, ServerState> RSStates =
+    new ConcurrentHashMap<Short, ServerState>();
+
   // For each LDAP server, the last(max) CN it published
   private ConcurrentHashMap<Short, ChangeNumber> maxCNs =
     new ConcurrentHashMap<Short, ChangeNumber>();
@@ -84,6 +88,9 @@ public class MonitorData
   // For each RS server, an approximation of the date of the first missing
   // change
   private ConcurrentHashMap<Short, Long> fmRSDate =
+    new ConcurrentHashMap<Short, Long>();
+
+  private ConcurrentHashMap<Short, Long> missingChangesRS =
     new ConcurrentHashMap<Short, Long>();
 
 
@@ -129,13 +136,29 @@ public class MonitorData
   }
 
   /**
+   * Get the number of missing changes for a Replication Server.
+   *
+   * @param serverId   The server ID.
+   *
+   * @return           The number of missing changes.
+   */
+  public long getMissingChangesRS(short serverId)
+  {
+    Long res = missingChangesRS.get(serverId);
+    if (res==null)
+      return 0;
+    else
+      return res;
+  }
+
+  /**
    * Build the monitor data that are computed from the collected ones.
    */
   public void completeComputing()
   {
     String mds = "";
 
-    // Computes the missing changes counters
+    // Computes the missing changes counters for LDAP servers
     // For each LSi ,
     //   Regarding each other LSj
     //    Sum the difference : max(LSj) - state(LSi)
@@ -167,6 +190,36 @@ public class MonitorData
       }
       mds += "=" + lsiMissingChanges;
       this.missingChanges.put(lsiSid,lsiMissingChanges);
+    }
+
+    // Computes the missing changes counters for RS :
+    // Sum the difference of seqnuence numbers for each element in the States.
+
+    for (short lsiSid : RSStates.keySet())
+    {
+      ServerState lsiState = this.RSStates.get(lsiSid);
+      Long lsiMissingChanges = (long)0;
+      if (lsiState != null)
+      {
+        Iterator<Short> lsjMaxItr = this.maxCNs.keySet().iterator();
+        while (lsjMaxItr.hasNext())
+        {
+          Short lsjSid = lsjMaxItr.next();
+          ChangeNumber lsjMaxCN = this.maxCNs.get(lsjSid);
+          ChangeNumber lsiLastCN = lsiState.getMaxChangeNumber(lsjSid);
+
+          int missingChangesLsiLsj =
+            ChangeNumber.diffSeqNum(lsjMaxCN, lsiLastCN);
+
+          mds +=
+            "+ diff("+lsjMaxCN+"-"
+                     +lsiLastCN+")="+missingChangesLsiLsj;
+
+          lsiMissingChanges += missingChangesLsiLsj;
+        }
+      }
+      mds += "=" + lsiMissingChanges;
+      this.missingChangesRS.put(lsiSid,lsiMissingChanges);
 
       if (debugEnabled())
         TRACER.debugInfo(
@@ -304,6 +357,17 @@ public class MonitorData
   public void setLDAPServerState(short serverId, ServerState state)
   {
     LDAPStates.put(serverId, state);
+  }
+
+  /**
+   * Set the state of the RS with the provided serverId.
+   *
+   * @param serverId   The server ID.
+   * @param state      The server state.
+   */
+  public void setRSState(short serverId, ServerState state)
+  {
+    RSStates.put(serverId, state);
   }
 
   /**

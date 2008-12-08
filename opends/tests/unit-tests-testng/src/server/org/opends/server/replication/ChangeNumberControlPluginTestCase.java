@@ -31,16 +31,12 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.net.ServerSocket;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.AddOperationBasis;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -53,19 +49,17 @@ public class ChangeNumberControlPluginTestCase
    * The port of the replicationServer.
    */
   private int replServerPort;
-  
+
   /**
    * The replicationServer that will be used in this test.
    */
-  private static final int WINDOW_SIZE = 10;
-  private static final int REPLICATION_QUEUE_SIZE = 100;
   private DN baseDn;
-  
+
   /**
    * Before starting the tests, start the server and configure a
    * replicationServer.
    */
-  
+
   @BeforeClass(alwaysRun=true)
   public void setUp() throws Exception {
     super.setUp();
@@ -80,9 +74,9 @@ public class ChangeNumberControlPluginTestCase
     // replication server
     String replServerLdif =
         "dn: cn=Replication Server, " + SYNCHRO_PLUGIN_DN + "\n"
-        + "objectClass: top\n" 
+        + "objectClass: top\n"
         + "objectClass: ds-cfg-replication-server\n"
-        + "cn: Replication Server\n" 
+        + "cn: Replication Server\n"
         + "ds-cfg-replication-port: " + replServerPort + "\n"
         + "ds-cfg-replication-db-directory: ChangeNumberControlDbTest\n"
         + "ds-cfg-replication-server-id: 103\n";
@@ -128,7 +122,7 @@ public class ChangeNumberControlPluginTestCase
          + "changetype: delete"}
     };
   }
-  
+
   @Test(dataProvider="operations")
   public void ChangeNumberControlTest(String request) throws Exception {
 
@@ -146,13 +140,13 @@ public class ChangeNumberControlPluginTestCase
     };
 
     String resultPath = TestCaseUtils.createTempFile();
-    
+
     FileOutputStream fos = new FileOutputStream(resultPath);
 
     assertEquals(LDAPModify.mainModify(args, false, fos, System.err), 0);
     //fos.flush();
     fos.close();
-    
+
     assertTrue(isCsnLinePresent(resultPath));
   }
 
@@ -168,27 +162,5 @@ public class ChangeNumberControlPluginTestCase
     }
     return (found);
   }
-  
-  /**
-   * Utility function. Can be used to create and add and entry
-   * in the local DS from its ldif description.
-   *
-   * @param entryString  The entry in ldif from.
-   * @return             The ResultCode of the operation.
-   * @throws Exception   If something went wrong.
-   */
-  private ResultCode addEntry(String entryString) throws Exception
-  {
-    Entry entry;
-    AddOperationBasis addOp;
-    entry = TestCaseUtils.entryFromLdifString(entryString);
-    addOp = new AddOperationBasis(InternalClientConnection.getRootConnection(),
-       InternalClientConnection.nextOperationID(), InternalClientConnection
-       .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
-       entry.getUserAttributes(), entry.getOperationalAttributes());
-    addOp.setInternalOperation(true);
-    addOp.run();
 
-    return addOp.getResultCode();
-  }
 }

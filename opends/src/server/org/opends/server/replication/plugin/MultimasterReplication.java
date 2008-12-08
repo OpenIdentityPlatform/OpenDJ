@@ -91,8 +91,8 @@ public class MultimasterReplication
                   ExportTaskListener
 {
   private ReplicationServerListener replicationServerListener = null;
-  private static Map<DN, ReplicationDomain> domains =
-    new HashMap<DN, ReplicationDomain>() ;
+  private static Map<DN, LDAPReplicationDomain> domains =
+    new HashMap<DN, LDAPReplicationDomain>() ;
 
   /**
    * The queue of received update messages, to be treated by the ReplayThread
@@ -122,7 +122,8 @@ public class MultimasterReplication
    *                   Can be null is the request has no associated operation.
    * @return           The domain for this DN.
    */
-  public static ReplicationDomain findDomain(DN dn, PluginOperation pluginOp)
+  public static LDAPReplicationDomain findDomain(
+      DN dn, PluginOperation pluginOp)
   {
     /*
      * Don't run the special replication code on Operation that are
@@ -163,7 +164,7 @@ public class MultimasterReplication
     }
 
 
-    ReplicationDomain domain = null;
+    LDAPReplicationDomain domain = null;
     DN temp = dn;
     do
     {
@@ -186,12 +187,12 @@ public class MultimasterReplication
    * @return The domain created.
    * @throws ConfigException When the configuration is not valid.
    */
-  public static ReplicationDomain createNewDomain(
+  public static LDAPReplicationDomain createNewDomain(
       ReplicationDomainCfg configuration)
       throws ConfigException
   {
-    ReplicationDomain domain;
-    domain = new ReplicationDomain(configuration, updateToReplayQueue);
+    LDAPReplicationDomain domain;
+    domain = new LDAPReplicationDomain(configuration, updateToReplayQueue);
 
     if (domains.size() == 0)
     {
@@ -211,7 +212,7 @@ public class MultimasterReplication
    */
   public static void deleteDomain(DN dn)
   {
-    ReplicationDomain domain = domains.remove(dn);
+    LDAPReplicationDomain domain = domains.remove(dn);
 
     if (domain != null)
       domain.shutdown();
@@ -310,7 +311,7 @@ public class MultimasterReplication
   public boolean isConfigurationAddAcceptable(
       ReplicationDomainCfg configuration, List<Message> unacceptableReasons)
   {
-    return ReplicationDomain.isConfigurationAcceptable(
+    return LDAPReplicationDomain.isConfigurationAcceptable(
       configuration, unacceptableReasons);
   }
 
@@ -322,7 +323,7 @@ public class MultimasterReplication
   {
     try
     {
-      ReplicationDomain rd = createNewDomain(configuration);
+      LDAPReplicationDomain rd = createNewDomain(configuration);
       if (isRegistered)
       {
         rd.start();
@@ -384,7 +385,7 @@ public class MultimasterReplication
   public SynchronizationProviderResult handleConflictResolution(
       PreOperationModifyOperation modifyOperation)
   {
-    ReplicationDomain domain =
+    LDAPReplicationDomain domain =
       findDomain(modifyOperation.getEntryDN(), modifyOperation);
     if (domain == null)
       return new SynchronizationProviderResult.ContinueProcessing();
@@ -399,7 +400,7 @@ public class MultimasterReplication
   public SynchronizationProviderResult handleConflictResolution(
       PreOperationAddOperation addOperation) throws DirectoryException
   {
-    ReplicationDomain domain =
+    LDAPReplicationDomain domain =
       findDomain(addOperation.getEntryDN(), addOperation);
     if (domain == null)
       return new SynchronizationProviderResult.ContinueProcessing();
@@ -414,7 +415,7 @@ public class MultimasterReplication
   public SynchronizationProviderResult handleConflictResolution(
       PreOperationDeleteOperation deleteOperation) throws DirectoryException
   {
-    ReplicationDomain domain =
+    LDAPReplicationDomain domain =
       findDomain(deleteOperation.getEntryDN(), deleteOperation);
     if (domain == null)
       return new SynchronizationProviderResult.ContinueProcessing();
@@ -429,7 +430,7 @@ public class MultimasterReplication
   public SynchronizationProviderResult handleConflictResolution(
       PreOperationModifyDNOperation modifyDNOperation) throws DirectoryException
   {
-    ReplicationDomain domain =
+    LDAPReplicationDomain domain =
       findDomain(modifyDNOperation.getEntryDN(), modifyDNOperation);
     if (domain == null)
       return new SynchronizationProviderResult.ContinueProcessing();
@@ -445,7 +446,7 @@ public class MultimasterReplication
          doPreOperation(PreOperationModifyOperation modifyOperation)
   {
     DN operationDN = modifyOperation.getEntryDN();
-    ReplicationDomain domain = findDomain(operationDN, modifyOperation);
+    LDAPReplicationDomain domain = findDomain(operationDN, modifyOperation);
 
     if ((domain == null) || (!domain.solveConflict()))
       return new SynchronizationProviderResult.ContinueProcessing();
@@ -485,7 +486,7 @@ public class MultimasterReplication
          throws DirectoryException
   {
     DN operationDN = modifyDNOperation.getEntryDN();
-    ReplicationDomain domain = findDomain(operationDN, modifyDNOperation);
+    LDAPReplicationDomain domain = findDomain(operationDN, modifyDNOperation);
 
     if ((domain == null) || (!domain.solveConflict()))
       return new SynchronizationProviderResult.ContinueProcessing();
@@ -513,7 +514,7 @@ public class MultimasterReplication
   public SynchronizationProviderResult doPreOperation(
          PreOperationAddOperation addOperation)
   {
-    ReplicationDomain domain =
+    LDAPReplicationDomain domain =
       findDomain(addOperation.getEntryDN(), addOperation);
     if (domain == null)
       return new SynchronizationProviderResult.ContinueProcessing();
@@ -534,7 +535,7 @@ public class MultimasterReplication
     isRegistered = false;
 
     // shutdown all the domains
-    for (ReplicationDomain domain : domains.values())
+    for (LDAPReplicationDomain domain : domains.values())
     {
       domain.shutdown();
     }
@@ -566,7 +567,7 @@ public class MultimasterReplication
   @Override
   public void processSchemaChange(List<Modification> modifications)
   {
-    ReplicationDomain domain =
+    LDAPReplicationDomain domain =
       findDomain(DirectoryServer.getSchemaDN(), null);
     if (domain != null)
       domain.synchronizeModifications(modifications);
@@ -579,7 +580,7 @@ public class MultimasterReplication
   {
     for (DN dn : backend.getBaseDNs())
     {
-      ReplicationDomain domain = findDomain(dn, null);
+      LDAPReplicationDomain domain = findDomain(dn, null);
       if (domain != null)
         domain.backupStart();
     }
@@ -593,7 +594,7 @@ public class MultimasterReplication
   {
     for (DN dn : backend.getBaseDNs())
     {
-      ReplicationDomain domain = findDomain(dn, null);
+      LDAPReplicationDomain domain = findDomain(dn, null);
       if (domain != null)
         domain.backupEnd();
     }
@@ -606,7 +607,7 @@ public class MultimasterReplication
   {
     for (DN dn : backend.getBaseDNs())
     {
-      ReplicationDomain domain = findDomain(dn, null);
+      LDAPReplicationDomain domain = findDomain(dn, null);
       if (domain != null)
         domain.disable();
     }
@@ -620,7 +621,7 @@ public class MultimasterReplication
   {
     for (DN dn : backend.getBaseDNs())
     {
-      ReplicationDomain domain = findDomain(dn, null);
+      LDAPReplicationDomain domain = findDomain(dn, null);
       if (domain != null)
         domain.enable();
     }
@@ -633,7 +634,7 @@ public class MultimasterReplication
   {
     for (DN dn : backend.getBaseDNs())
     {
-      ReplicationDomain domain = findDomain(dn, null);
+      LDAPReplicationDomain domain = findDomain(dn, null);
       if (domain != null)
         domain.disable();
     }
@@ -647,7 +648,7 @@ public class MultimasterReplication
   {
     for (DN dn : backend.getBaseDNs())
     {
-      ReplicationDomain domain = findDomain(dn, null);
+      LDAPReplicationDomain domain = findDomain(dn, null);
       if (domain != null)
         domain.enable();
     }
@@ -660,7 +661,7 @@ public class MultimasterReplication
   {
     for (DN dn : backend.getBaseDNs())
     {
-      ReplicationDomain domain = findDomain(dn, null);
+      LDAPReplicationDomain domain = findDomain(dn, null);
       if (domain != null)
         domain.backupStart();
     }
@@ -674,7 +675,7 @@ public class MultimasterReplication
   {
     for (DN dn : backend.getBaseDNs())
     {
-      ReplicationDomain domain = findDomain(dn, null);
+      LDAPReplicationDomain domain = findDomain(dn, null);
       if (domain != null)
         domain.backupEnd();
     }
@@ -708,7 +709,7 @@ public class MultimasterReplication
    */
   private void genericPostOperation(PostOperationOperation operation, DN dn)
   {
-    ReplicationDomain domain = findDomain(dn, operation);
+    LDAPReplicationDomain domain = findDomain(dn, operation);
     if (domain == null)
       return;
 
@@ -766,7 +767,7 @@ public class MultimasterReplication
     isRegistered = true;
 
     // start all the domains
-    for (ReplicationDomain domain : domains.values())
+    for (LDAPReplicationDomain domain : domains.values())
     {
       domain.start();
     }

@@ -131,4 +131,31 @@ public enum ServerStatus
   {
     return value;
   }
+
+  /**
+   * Get a user readable string representing this status (User friendly string
+   * for monitoring purpose).
+   * @return A user readable string representing this status.
+   */
+  public String toString()
+  {
+    switch (value)
+    {
+      case -1:
+        return "Invalid";
+      case 0:
+        return "Not connected";
+      case 1:
+        return "Normal";
+      case 2:
+        return "Degraded";
+      case 3:
+        return "Full update";
+      case 4:
+        return "Bad generation id";
+      default:
+        throw new IllegalArgumentException("Wrong status numeric value: " +
+          value);
+    }
+  }
 }

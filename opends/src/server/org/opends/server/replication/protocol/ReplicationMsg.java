@@ -69,6 +69,7 @@ public abstract class ReplicationMsg
   static final byte MSG_TYPE_TOPOLOGY = 26;
   static final byte MSG_TYPE_START_SESSION = 27;
   static final byte MSG_TYPE_CHANGE_STATUS = 28;
+  static final byte MSG_TYPE_GENERIC_UPDATE = 29;
 
   // Adding a new type of message here probably requires to
   // change accordingly generateMsg method below
@@ -209,6 +210,9 @@ public abstract class ReplicationMsg
       case MSG_TYPE_CHANGE_STATUS:
         msg = new ChangeStatusMsg(buffer);
       break;
+      case MSG_TYPE_GENERIC_UPDATE:
+        msg = new UpdateMsg(buffer);
+      break;
       default:
         throw new DataFormatException("received message with unknown type");
     }
@@ -224,7 +228,8 @@ public abstract class ReplicationMsg
    * @param pos the position where to concatenate.
    * @return the next position to use in the resultByteArray.
    */
-  protected int addByteArray(byte[] tail, byte[] resultByteArray, int pos)
+  protected static int addByteArray(byte[] tail, byte[] resultByteArray,
+    int pos)
   {
     for (int i=0; i<tail.length; i++,pos++)
     {

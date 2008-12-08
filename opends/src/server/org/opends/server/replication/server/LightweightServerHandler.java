@@ -254,7 +254,7 @@ replServerHandler.getDomain().getReplicationServer().getMonitorInstanceName() +
     attributes.add(Attributes.create("server-id",
         String.valueOf(serverId)));
     attributes.add(Attributes.create("base-dn",
-        rsDomain.getBaseDn().toNormalizedString()));
+        rsDomain.getBaseDn()));
     attributes.add(Attributes.create("connected-to",
         replServerHandler.getMonitorInstanceName()));
 

@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import static org.opends.server.replication.plugin.ReplicationBroker.*;
+
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
@@ -64,8 +64,8 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
   private int rs1Port = -1;
   private int rs2Port = -1;
   private int rs3Port = -1;
-  private ReplicationDomain rd1 = null;
-  private ReplicationDomain rd2 = null;
+  private LDAPReplicationDomain rd1 = null;
+  private LDAPReplicationDomain rd2 = null;
   private ReplicationServer rs1 = null;
   private ReplicationServer rs2 = null;
   private ReplicationServer rs3 = null;
@@ -147,16 +147,6 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
     rs3Port = -1;
   }
 
-  private void sleep(long time)
-  {
-    try
-    {
-      Thread.sleep(time);
-    } catch (InterruptedException ex)
-    {
-      fail("Error sleeping " + stackTraceToSingleLineString(ex));
-    }
-  }
 
   /**
    * Check connection of the provided replication domain to the provided
@@ -167,7 +157,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
   {
 
     int rsPort = -1;
-    ReplicationDomain rd = null;
+    LDAPReplicationDomain rd = null;
     switch (dsId)
     {
       case DS1_ID:
@@ -281,7 +271,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
   private SortedSet<String> createRSListForTestCase(String testCase)
   {
     SortedSet<String> replServers = new TreeSet<String>();
-    
+
     if (testCase.equals("testRSWithSameGroupIds"))
     {
       // 2 servers used for this test case.
@@ -369,7 +359,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
   /**
    * Creates a new ReplicationDomain.
    */
-  private ReplicationDomain createReplicationDomain(short serverId,
+  private LDAPReplicationDomain createReplicationDomain(short serverId,
     int groupId, String testCase)
   {
 
@@ -380,7 +370,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
       DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
       DomainFakeCfg domainConf =
         new DomainFakeCfg(baseDn, serverId, replServers, groupId);
-      ReplicationDomain replicationDomain =
+      LDAPReplicationDomain replicationDomain =
         MultimasterReplication.createNewDomain(domainConf);
       replicationDomain.start();
       return replicationDomain;

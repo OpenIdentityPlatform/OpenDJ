@@ -39,14 +39,13 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.replication.plugin.ReplicationDomain;
+import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
@@ -97,7 +96,7 @@ public class ReSyncTest extends ReplicationTestCase
     // data. So for this particular test, we use a classical backend. Let's
     // clear it and create the root entry
 
-    ReplicationDomain.clearJEBackend(false, "userRoot", EXAMPLE_DN);
+    LDAPReplicationDomain.clearJEBackend(false, "userRoot", EXAMPLE_DN);
     addEntry("dn: dc=example,dc=com\n" + "objectClass: top\n"
         + "objectClass: domain\n");
 
@@ -108,7 +107,7 @@ public class ReSyncTest extends ReplicationTestCase
         + "objectClass: ds-cfg-replication-server\n"
         + "cn: Replication Server\n"
         + "ds-cfg-replication-port:" + replServerPort + "\n"
-        + "ds-cfg-replication-db-directory: ReSyncTest\n"    
+        + "ds-cfg-replication-db-directory: ReSyncTest\n"
         + "ds-cfg-replication-server-id: 104\n";
     replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
@@ -153,7 +152,7 @@ public class ReSyncTest extends ReplicationTestCase
        entry.getUserAttributes(), entry.getOperationalAttributes());
     addOp.setInternalOperation(true);
     addOp.run();
-    
+
     entryList.add(entry.getDN());
     return addOp.getResultCode();
   }
@@ -258,7 +257,7 @@ public class ReSyncTest extends ReplicationTestCase
    if (getEntry(DN.decode("dc=fooUniqueName2," + EXAMPLE_DN), 30000, true) == null)
      fail("The Directory has not been resynchronized after the restore.");
   }
-  
+
   /**
    * Clean up the environment.
    *
@@ -272,7 +271,7 @@ public class ReSyncTest extends ReplicationTestCase
     super.classCleanUp();
 
     // Clear the backend
-    ReplicationDomain.clearJEBackend(false, "userRoot", EXAMPLE_DN);
+    LDAPReplicationDomain.clearJEBackend(false, "userRoot", EXAMPLE_DN);
 
     paranoiaCheck();
   }

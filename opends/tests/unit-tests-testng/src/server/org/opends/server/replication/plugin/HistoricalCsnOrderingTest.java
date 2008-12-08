@@ -158,7 +158,7 @@ extends ReplicationTestCase
   throws Exception
   {
     // Creates a rule
-    HistoricalCsnOrderingMatchingRule r = 
+    HistoricalCsnOrderingMatchingRule r =
       new HistoricalCsnOrderingMatchingRule();
 
     ChangeNumber del1 = new ChangeNumber(1, (short) 0, (short) 1);
@@ -178,7 +178,7 @@ extends ReplicationTestCase
   }
 
   /**
-   * Test that we can retrieve the entries that were missed by 
+   * Test that we can retrieve the entries that were missed by
    * a replication server and can  re-build operations from the historical
    * informations.
    */
@@ -227,7 +227,7 @@ extends ReplicationTestCase
     logError(Message.raw(Category.SYNC, Severity.INFORMATION,
         "First historical value:" + histValue));
 
-    // Perform a 2nd modification to update the hist attribute with 
+    // Perform a 2nd modification to update the hist attribute with
     // a second value
     resultCode = TestCaseUtils.applyModifications(false,
         "dn: cn=test1," + baseDn.toString(),
@@ -256,7 +256,8 @@ extends ReplicationTestCase
 
     // Retrieves the entries that have changed since the first modification
     InternalSearchOperation op =
-      ReplicationBroker.searchForChangedEntries(baseDn, fromChangeNumber, null);
+      LDAPReplicationDomain.searchForChangedEntries(
+          baseDn, fromChangeNumber, null);
 
     // The expected result is one entry .. the one previously modified
     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
@@ -279,6 +280,6 @@ extends ReplicationTestCase
         updatesCnt++;
       }
     }
-    assertTrue(updatesCnt == 3);    
+    assertTrue(updatesCnt == 3);
   }
 }

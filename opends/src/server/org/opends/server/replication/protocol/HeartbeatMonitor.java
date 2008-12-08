@@ -25,7 +25,7 @@
  *      Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
-package org.opends.server.replication.plugin;
+package org.opends.server.replication.protocol;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
@@ -37,7 +37,6 @@ import org.opends.server.loggers.debug.DebugTracer;
 import java.io.IOException;
 
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.replication.protocol.ProtocolSession;
 
 /**
  * This class implements a thread to monitor heartbeat messages from the

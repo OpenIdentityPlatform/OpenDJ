@@ -62,7 +62,7 @@ public class FakeAddOperation extends FakeOperation
   {
     return new AddMsg(getChangeNumber(), entry.getDN().toString(),
                Historical.getEntryUuid(entry),
-               ReplicationDomain.findEntryId(
+               LDAPReplicationDomain.findEntryId(
                    entry.getDN().getParentDNInSuffix()),
                entry.getObjectClasses(),
                entry.getUserAttributes(), entry.getOperationalAttributes());
