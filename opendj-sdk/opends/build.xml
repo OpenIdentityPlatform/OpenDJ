@@ -701,9 +701,9 @@
 
   <!-- copy the l10n message properties files (for generated messages)-->
   <target name="copyl10nmessages">
-    <echo message="JPI"/>
-    <copy todir="${msg.package.dir}">
-    <fileset dir="${msgl10n.prop.dir}" />
+    <copy todir="${build.dir}/classes/admin/messages/org/opends/server/admin/std/meta/">
+    <fileset dir="${msgl10n.prop.dir}" includes="*_fr.properties,*_de.properties,*_es.properties,*_ja.properties,*_ko.properties,*_zh_CN.properties,*_zh_TW.properties">
+    </fileset>
     </copy>
   </target>
 
