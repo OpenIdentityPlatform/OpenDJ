@@ -24,27 +24,21 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
-package org.opends.server.replication.plugin;
+package org.opends.server.replication.service;
 
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.opends.server.replication.service.ReplicationDomain;
-import org.opends.server.util.ServerConstants;
-
 /**
  * This class creates an output stream that can be used to export entries
- * to a synchonization domain.
+ * to a synchronization domain.
  */
-public class ReplLDIFOutputStream
+public class ReplOutputStream
        extends OutputStream
 {
   // The synchronization domain on which the export is done
   ReplicationDomain domain;
-
-  // The number of entries to be exported
-  long numEntries;
 
   // The current number of entries exported
   private long numExportedEntries;
@@ -55,12 +49,10 @@ public class ReplLDIFOutputStream
    * domain.
    *
    * @param domain The replication domain
-   * @param numEntries The max number of entry to process.
    */
-  public ReplLDIFOutputStream(ReplicationDomain domain, long numEntries)
+  public ReplOutputStream(ReplicationDomain domain)
   {
     this.domain = domain;
-    this.numEntries = numEntries;
   }
 
   /**
@@ -71,63 +63,13 @@ public class ReplLDIFOutputStream
     throw new IOException("Invalid call");
   }
 
+
   /**
    * {@inheritDoc}
    */
   public void write(byte b[], int off, int len) throws IOException
   {
-    int endOfEntryIndex;
-    int endIndex;
-
-    String ebytes = "";
-    ebytes = ebytes.concat(entryBuffer);
-    entryBuffer = "";
-
-    ebytes = ebytes.concat(new String(b, off, len));
-    endIndex = ebytes.length();
-
-    while (true)
-    {
-      // if we have the bytes for an entry, let's make an entry and send it
-      endOfEntryIndex = ebytes.indexOf(ServerConstants.EOL +
-          ServerConstants.EOL);
-
-      if ( endOfEntryIndex >= 0 )
-      {
-        endOfEntryIndex += 2;
-        entryBuffer = ebytes.substring(0, endOfEntryIndex);
-
-        // Send the entry
-        if ((numEntries>0) && (getNumExportedEntries() > numEntries))
-        {
-          // This outputstream has reached the total number
-          // of entries to export.
-          throw(new IOException());
-        }
-
-        numExportedEntries++;
-        entryBuffer = "";
-
-        if (endIndex == endOfEntryIndex)
-        {
-          // no more data to process
-          break;
-        }
-        else
-        {
-          // loop to the data of the next entry
-          ebytes = ebytes.substring(endOfEntryIndex,
-                                    endIndex);
-          endIndex = ebytes.length();
-        }
-      }
-      else
-      {
-        // a next call to us will provide more bytes to make an entry
-        entryBuffer = entryBuffer.concat(ebytes);
-        break;
-      }
-    }
+    domain.exportLDIFEntry(b, off, len);
   }
 
   /**

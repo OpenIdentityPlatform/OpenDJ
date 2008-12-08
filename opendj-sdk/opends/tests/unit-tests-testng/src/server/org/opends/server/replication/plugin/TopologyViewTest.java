@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import static org.opends.server.replication.plugin.ReplicationBroker.*;
+
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
@@ -114,20 +114,20 @@ public class TopologyViewTest extends ReplicationTestCase
   static
   {
     DS2_RU.add("ldap://fake_url_for_ds2");
-    
+
     DS6_RU.add("ldap://fake_url_for_ds6_A");
     DS6_RU.add("ldap://fake_url_for_ds6_B");
   }
-  
+
   private int rs1Port = -1;
   private int rs2Port = -1;
   private int rs3Port = -1;
-  private ReplicationDomain rd1 = null;
-  private ReplicationDomain rd2 = null;
-  private ReplicationDomain rd3 = null;
-  private ReplicationDomain rd4 = null;
-  private ReplicationDomain rd5 = null;
-  private ReplicationDomain rd6 = null;
+  private LDAPReplicationDomain rd1 = null;
+  private LDAPReplicationDomain rd2 = null;
+  private LDAPReplicationDomain rd3 = null;
+  private LDAPReplicationDomain rd4 = null;
+  private LDAPReplicationDomain rd5 = null;
+  private LDAPReplicationDomain rd6 = null;
   private ReplicationServer rs1 = null;
   private ReplicationServer rs2 = null;
   private ReplicationServer rs3 = null;
@@ -203,7 +203,7 @@ public class TopologyViewTest extends ReplicationTestCase
       rd6.shutdown();
       rd6 = null;
     }
-  
+
     try
     {
       // Clear any reference to a domain in synchro plugin
@@ -257,7 +257,7 @@ public class TopologyViewTest extends ReplicationTestCase
   private void checkConnection(int secTimeout, short dsId, short rsId)
   {
     int rsPort = -1;
-    ReplicationDomain rd = null;
+    LDAPReplicationDomain rd = null;
     switch (dsId)
     {
       case DS1_ID:
@@ -398,7 +398,7 @@ public class TopologyViewTest extends ReplicationTestCase
     }
 
     return replServers;
-  }   
+  }
 
   /**
    * Creates a new ReplicationServer.
@@ -447,7 +447,7 @@ public class TopologyViewTest extends ReplicationTestCase
    * Creates and starts a new ReplicationDomain with the correct list of
    * know RSs according to DS id
    */
-  private ReplicationDomain createReplicationDomain(short dsId)
+  private LDAPReplicationDomain createReplicationDomain(short dsId)
   {
     try
     {
@@ -523,7 +523,7 @@ public class TopologyViewTest extends ReplicationTestCase
       DomainFakeCfg domainConf =
         new DomainFakeCfg(baseDn, dsId, replServers, assuredType,
         assuredSdLevel, groupId, 0, refUrls);
-      ReplicationDomain replicationDomain =
+      LDAPReplicationDomain replicationDomain =
         MultimasterReplication.createNewDomain(domainConf);
       replicationDomain.start();
 
@@ -1047,7 +1047,7 @@ public class TopologyViewTest extends ReplicationTestCase
 
     return new TopoView(dsList, rsList);
   }
-  
+
   /**
    * Get the topo view each DS in the provided ds list has and compares it
    * with the theoretical topology view that every body should have at the time
@@ -1057,8 +1057,8 @@ public class TopologyViewTest extends ReplicationTestCase
   {
    for(short currentDsId : dsIdList)
    {
-     ReplicationDomain rd = null;
-     
+     LDAPReplicationDomain rd = null;
+
      switch (currentDsId)
      {
        case DS1_ID:
@@ -1082,7 +1082,7 @@ public class TopologyViewTest extends ReplicationTestCase
        default:
          fail("Unknown replication domain server id.");
      }
-   
+
      /**
       * Get the topo view of the current analyzed DS
       */
@@ -1096,7 +1096,7 @@ public class TopologyViewTest extends ReplicationTestCase
        dsList.add(aDsInfo);
      }
      short dsId = rd.getServerId();
-     short rsId = rd.getBroker().getRsServerId();
+     short rsId = rd.getRsServerId();
      ServerStatus status = rd.getStatus();
      boolean assuredFlag = rd.isAssured();
      AssuredMode assuredMode = rd.getAssuredMode();
@@ -1106,17 +1106,17 @@ public class TopologyViewTest extends ReplicationTestCase
      DSInfo dsInfo = new DSInfo(dsId, rsId, TEST_DN_WITH_ROOT_ENTRY_GENID, status, assuredFlag, assuredMode,
        safeDataLevel, groupId, refUrls);
      dsList.add(dsInfo);
-     
+
      TopoView dsTopoView = new TopoView(dsList, rd.getRsList());
-     
+
      /**
       * Compare to what is the expected view
       */
-     
+
      assertEquals(dsTopoView, theoricalTopoView);
    }
   }
-  
+
   /**
    * Bag class representing a view of the topology at a given time
    * (who is connected to who, what are the config parameters...)
@@ -1124,22 +1124,22 @@ public class TopologyViewTest extends ReplicationTestCase
   private class TopoView
   {
     private List<DSInfo> dsList = null;
-    private List<RSInfo> rsList = null;    
-    
+    private List<RSInfo> rsList = null;
+
     public TopoView(List<DSInfo> dsList, List<RSInfo> rsList)
     {
       assertNotNull(dsList);
       assertNotNull(rsList);
-        
+
       this.dsList = dsList;
       this.rsList = rsList;
     }
-    
+
     public boolean equals(Object obj)
     {
       assertNotNull(obj);
       assertFalse(obj.getClass() != this.getClass());
-        
+
       TopoView topoView = (TopoView) obj;
 
       // Check dsList

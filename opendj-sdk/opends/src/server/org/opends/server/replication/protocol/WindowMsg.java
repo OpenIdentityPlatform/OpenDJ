@@ -137,7 +137,6 @@ public class WindowMsg extends ReplicationMsg
   @Override
   public String toString()
   {
-    return "ServerStartMsg content: " +
-      "\nnumAck: " + numAck;
+    return "WindowMsg : " + "numAck: " + numAck;
   }
 }

@@ -31,8 +31,6 @@ import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.ReplicationMessages.*;
 
 import org.opends.messages.Message;
-import org.opends.server.admin.std.server.ReplicationServerCfg;
-import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.CryptoManager;
 import org.opends.server.config.ConfigException;
@@ -132,32 +130,12 @@ public class ReplSessionSecurity
   }
 
   /**
-   * Create a ReplSessionSecurity instance from a provided replication server
-   * configuration.
-   *
-   * @param replServerCfg The replication server configuration.
-   *
-   * @throws ConfigException If the supplied configuration was not valid.
-   */
-  public ReplSessionSecurity(ReplicationServerCfg replServerCfg)
-    throws ConfigException
-  {
-    // Currently use global settings from the crypto manager.
-    this(DirectoryConfig.getCryptoManager().getSslCertNickname(),
-      DirectoryConfig.getCryptoManager().getSslProtocols(),
-      DirectoryConfig.getCryptoManager().getSslCipherSuites(),
-      DirectoryConfig.getCryptoManager().isSslEncryption());
-  }
-
-  /**
    * Create a ReplSessionSecurity instance from a provided multimaster domain
    * configuration.
    *
-   * @param multimasterDomainCfg The multimaster domain configuration.
-   *
    * @throws ConfigException If the supplied configuration was not valid.
    */
-  public ReplSessionSecurity(ReplicationDomainCfg multimasterDomainCfg)
+  public ReplSessionSecurity()
     throws ConfigException
   {
     // Currently use global settings from the crypto manager.

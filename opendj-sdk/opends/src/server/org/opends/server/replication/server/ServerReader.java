@@ -141,7 +141,7 @@ public class ServerReader extends DirectoryThread
           {
             AckMsg ack = (AckMsg) msg;
             handler.checkWindow();
-            replicationServerDomain.ack(ack, serverId);
+            replicationServerDomain.processAck(ack, handler);
           } else if (msg instanceof UpdateMsg)
           {
             boolean filtered = false;
@@ -171,7 +171,7 @@ public class ServerReader extends DirectoryThread
                   logError(ERR_IGNORING_UPDATE_FROM_DS_BADGENID.get(
                     Short.toString(replicationServerDomain.
                     getReplicationServer().getServerId()),
-                    replicationServerDomain.getBaseDn().toNormalizedString(),
+                    replicationServerDomain.getBaseDn(),
                     ((UpdateMsg) msg).getChangeNumber().toString(),
                     Short.toString(handler.getServerId()),
                     Long.toString(referenceGenerationId),
@@ -180,7 +180,7 @@ public class ServerReader extends DirectoryThread
                   logError(ERR_IGNORING_UPDATE_FROM_DS_FULLUP.get(
                     Short.toString(replicationServerDomain.
                     getReplicationServer().getServerId()),
-                    replicationServerDomain.getBaseDn().toNormalizedString(),
+                    replicationServerDomain.getBaseDn(),
                     ((UpdateMsg) msg).getChangeNumber().toString(),
                     Short.toString(handler.getServerId())));
                 filtered = true;
@@ -199,7 +199,7 @@ public class ServerReader extends DirectoryThread
                 logError(ERR_IGNORING_UPDATE_FROM_RS.get(
                   Short.toString(replicationServerDomain.getReplicationServer().
                   getServerId()),
-                  replicationServerDomain.getBaseDn().toNormalizedString(),
+                  replicationServerDomain.getBaseDn(),
                   ((UpdateMsg) msg).getChangeNumber().toString(),
                   Short.toString(handler.getServerId()),
                   Long.toString(referenceGenerationId),

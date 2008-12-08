@@ -26,7 +26,7 @@
  */
 package org.opends.server.replication.plugin;
 
-import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.protocol.LDAPUpdateMsg;
 
 /**
  * This is a bag class to hold an update to replay in the queue of updates to
@@ -36,8 +36,8 @@ import org.opends.server.replication.protocol.UpdateMsg;
  */
 public class UpdateToReplay
 {
-  private UpdateMsg updateMessage = null;
-  private ReplicationDomain replicationDomain = null;
+  private LDAPUpdateMsg updateMessage = null;
+  private LDAPReplicationDomain replicationDomain = null;
 
   /**
    * Construct the object associating the update message with the replication
@@ -46,8 +46,8 @@ public class UpdateToReplay
    * @param replicationDomain The replication domain to use for replaying the
    * change from the update message
    */
-  public UpdateToReplay(UpdateMsg updateMessage,
-    ReplicationDomain replicationDomain)
+  public UpdateToReplay(LDAPUpdateMsg updateMessage,
+    LDAPReplicationDomain replicationDomain)
   {
     this.updateMessage = updateMessage;
     this.replicationDomain = replicationDomain;
@@ -57,7 +57,7 @@ public class UpdateToReplay
    * Getter for update message.
    * @return The update message
    */
-  public UpdateMsg getUpdateMessage()
+  public LDAPUpdateMsg getUpdateMessage()
   {
     return updateMessage;
   }
@@ -66,7 +66,7 @@ public class UpdateToReplay
    * Getter for replication domain.
    * @return The replication domain
    */
-  public ReplicationDomain getReplicationDomain()
+  public LDAPReplicationDomain getReplicationDomain()
   {
     return replicationDomain;
   }

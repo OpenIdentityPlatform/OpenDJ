@@ -60,8 +60,8 @@ import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.replication.plugin.ReplicationBroker;
-import org.opends.server.replication.plugin.ReplicationDomain;
+import org.opends.server.replication.service.ReplicationBroker;
+import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.protocol.DoneMsg;
 import org.opends.server.replication.protocol.EntryMsg;
 import org.opends.server.replication.protocol.ErrorMsg;
@@ -144,7 +144,7 @@ public class InitOnLineTest extends ReplicationTestCase
   ReplicationServer changelog2 = null;
   ReplicationServer changelog3 = null;
   boolean emptyOldChanges = true;
-  ReplicationDomain replDomain = null;
+  LDAPReplicationDomain replDomain = null;
 
   private void log(String s)
   {
@@ -181,7 +181,7 @@ public class InitOnLineTest extends ReplicationTestCase
     // re-enabled and this clears the backend reference and thus the underlying
     // data. So for this particular test, we use a classical backend. Let's
     // clear it.
-    ReplicationDomain.clearJEBackend(false, "userRoot", EXAMPLE_DN);
+    LDAPReplicationDomain.clearJEBackend(false, "userRoot", EXAMPLE_DN);
 
     updatedEntries = newLDIFEntries();
 
@@ -190,7 +190,7 @@ public class InitOnLineTest extends ReplicationTestCase
     connection = InternalClientConnection.getRootConnection();
 
     synchroServerEntry = null;
-    replServerEntry = null;   
+    replServerEntry = null;
 
     taskInitFromS2 = TestCaseUtils.makeEntry(
         "dn: ds-task-id=" + UUID.randomUUID() +
@@ -198,7 +198,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-from-remote-replica",
-        "ds-task-class-name: org.opends.server.tasks.InitializeTask",
+        "ds-task-class-name: org.opends.server.replication.service.InitializeTask",
         "ds-task-initialize-domain-dn: " + EXAMPLE_DN,
         "ds-task-initialize-replica-server-id: " + server2ID);
 
@@ -208,7 +208,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-remote-replica",
-        "ds-task-class-name: org.opends.server.tasks.InitializeTargetTask",
+        "ds-task-class-name: org.opends.server.replication.service.InitializeTargetTask",
         "ds-task-initialize-domain-dn: " + EXAMPLE_DN,
         "ds-task-initialize-replica-server-id: " + server2ID);
 
@@ -218,7 +218,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-remote-replica",
-        "ds-task-class-name: org.opends.server.tasks.InitializeTargetTask",
+        "ds-task-class-name: org.opends.server.replication.service.InitializeTargetTask",
         "ds-task-initialize-domain-dn: " + EXAMPLE_DN,
         "ds-task-initialize-replica-server-id: all");
   }
@@ -321,7 +321,7 @@ public class InitOnLineTest extends ReplicationTestCase
           {
             break;
           }
-          Thread.sleep(10);
+          Thread.sleep(100);
         }
       } while (completionTime == null);
 
@@ -485,8 +485,10 @@ public class InitOnLineTest extends ReplicationTestCase
     // Send entries
     try
     {
-      RoutableMsg initTargetMessage = new InitializeTargetMsg(
-          baseDn, server2ID, destinationServerID, requestorID, updatedEntries.length);
+      RoutableMsg initTargetMessage =
+        new InitializeTargetMsg(
+          EXAMPLE_DN, server2ID, destinationServerID, requestorID,
+          updatedEntries.length);
       broker.publish(initTargetMessage);
 
       for (String entry : updatedEntries)
@@ -536,7 +538,7 @@ public class InitOnLineTest extends ReplicationTestCase
         {
           EntryMsg em = (EntryMsg)msg;
           log("Broker " + serverID + " receives entry " + new String(em.getEntryBytes()));
-          entriesReceived++;
+          entriesReceived+=countEntryLimits(em.getEntryBytes());
         }
         else if (msg instanceof DoneMsg)
         {
@@ -572,6 +574,30 @@ public class InitOnLineTest extends ReplicationTestCase
   }
 
   /**
+   * Count the number of entries in the provided byte[].
+   * This is based on the hypothesis that the entries are separated
+   * by a "\n\n" String.
+   *
+   * @param   entryBytes
+   * @return  The number of entries in the provided byte[].
+   */
+  private int countEntryLimits(byte[] entryBytes)
+  {
+    int entryCount = 0;
+    int count = 0;
+    while (count<=entryBytes.length-2)
+    {
+      if ((entryBytes[count] == '\n') && (entryBytes[count+1] == '\n'))
+      {
+        entryCount++;
+        count++;
+      }
+      count++;
+    }
+    return entryCount;
+  }
+
+  /**
    * Creates a new replicationServer.
    * @param changelogId The serverID of the replicationServer to create.
    * @return The new replicationServer.
@@ -592,7 +618,7 @@ public class InitOnLineTest extends ReplicationTestCase
       ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(
             getChangelogPort(changelogId),
-            "initOnlineTest" + getChangelogPort(changelogId) + testCase + "Db", 
+            "initOnlineTest" + getChangelogPort(changelogId) + testCase + "Db",
             0,
             changelogId,
             0,
@@ -638,7 +664,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
 
       // Clear the backend
-      ReplicationDomain.clearJEBackend(false, "userRoot", EXAMPLE_DN);
+      LDAPReplicationDomain.clearJEBackend(false, "userRoot", EXAMPLE_DN);
 
       synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
       DirectoryServer.getConfigHandler().addEntry(synchroServerEntry, null);
@@ -646,7 +672,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "Unable to add the synchronized server");
       configEntryList.add(synchroServerEntry.getDN());
 
-      replDomain = ReplicationDomain.retrievesReplicationDomain(baseDn);
+      replDomain = LDAPReplicationDomain.retrievesReplicationDomain(baseDn);
 
       assertTrue(!replDomain.ieRunning(),
         "ReplicationDomain: Import/Export is not expected to be running");
@@ -699,7 +725,7 @@ public class InitOnLineTest extends ReplicationTestCase
         server2 = openReplicationSession(DN.decode(EXAMPLE_DN),
           server2ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
 
-      Thread.sleep(2000);
+      // Thread.sleep(2000);
 
       // In S1 launch the total update
       addTask(taskInitFromS2, ResultCode.SUCCESS, null);
@@ -729,7 +755,7 @@ public class InitOnLineTest extends ReplicationTestCase
     catch(Exception e)
     {
       fail(testCase + " Exception:"+ e.getMessage() + " " + stackTraceToSingleLineString(e));
-    } finally 
+    } finally
     {
       afterTest();
     }
@@ -744,7 +770,7 @@ public class InitOnLineTest extends ReplicationTestCase
     String testCase = "initializeExport";
 
     log("Starting "+testCase);
-    
+
     try
     {
       changelog1 = createChangelogServer(changelog1ID, testCase);
@@ -758,9 +784,11 @@ public class InitOnLineTest extends ReplicationTestCase
         server2 = openReplicationSession(DN.decode(EXAMPLE_DN),
           server2ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
 
-      Thread.sleep(3000);
+      // Not needed anymore since OpenReplicationSession
+      // checks for session establishment ?
+      // Thread.sleep(3000);
 
-      InitializeRequestMsg initMsg = new InitializeRequestMsg(baseDn,
+      InitializeRequestMsg initMsg = new InitializeRequestMsg(EXAMPLE_DN,
         server2ID, server1ID);
       server2.publish(initMsg);
 
@@ -782,7 +810,7 @@ public class InitOnLineTest extends ReplicationTestCase
     String testCase = "initializeTargetExport";
 
     log("Starting " + testCase);
-    
+
     try
     {
 
@@ -799,7 +827,7 @@ public class InitOnLineTest extends ReplicationTestCase
         server2 = openReplicationSession(DN.decode(EXAMPLE_DN),
           server2ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
 
-      Thread.sleep(1000);
+      // Thread.sleep(1000);
 
       // Launch in S1 the task that will initialize S2
       addTask(taskInitTargetS2, ResultCode.SUCCESS, null);
@@ -846,7 +874,7 @@ public class InitOnLineTest extends ReplicationTestCase
         server3 = openReplicationSession(DN.decode(EXAMPLE_DN),
           server3ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
 
-      Thread.sleep(1000);
+      // Thread.sleep(1000);
 
       // Launch in S1 the task that will initialize S2
       addTask(taskInitTargetAll, ResultCode.SUCCESS, null);
@@ -891,7 +919,14 @@ public class InitOnLineTest extends ReplicationTestCase
       // S2 publishes entries to S1
       makeBrokerPublishEntries(server2, server2ID, server1ID, server2ID);
 
-      Thread.sleep(10000); // FIXME - how to know the import is done
+      // wait until the replication domain has expected generationID
+      // this should indicate that the import occured correctly.
+      for (int count = 0; count < 100; count++)
+      {
+        if (replDomain.getGenerationID() == 56869)
+          break;
+        Thread.sleep(200);
+      }
 
       // Test that entries have been imported in S1
       testEntriesInDb();
@@ -926,7 +961,7 @@ public class InitOnLineTest extends ReplicationTestCase
           "objectclass: top",
           "objectclass: ds-task",
           "objectclass: ds-task-initialize-remote-replica",
-          "ds-task-class-name: org.opends.server.tasks.InitializeTargetTask",
+          "ds-task-class-name: org.opends.server.replication.service.InitializeTargetTask",
           "ds-task-initialize-domain-dn: foo",
           "ds-task-initialize-remote-replica-server-id: " + server2ID);
       addTask(taskInitTarget, ResultCode.INVALID_DN_SYNTAX,
@@ -939,7 +974,7 @@ public class InitOnLineTest extends ReplicationTestCase
           "objectclass: top",
           "objectclass: ds-task",
           "objectclass: ds-task-initialize-remote-replica",
-          "ds-task-class-name: org.opends.server.tasks.InitializeTargetTask",
+          "ds-task-class-name: org.opends.server.replication.service.InitializeTargetTask",
           "ds-task-initialize-domain-dn: dc=foo",
           "ds-task-initialize-remote-replica-server-id: " + server2ID);
       addTask(taskInitTarget, ResultCode.OTHER,
@@ -987,11 +1022,11 @@ public class InitOnLineTest extends ReplicationTestCase
           "objectclass: top",
           "objectclass: ds-task",
           "objectclass: ds-task-initialize-from-remote-replica",
-          "ds-task-class-name: org.opends.server.tasks.InitializeTask",
+          "ds-task-class-name: org.opends.server.replication.service.InitializeTask",
           "ds-task-initialize-domain-dn: foo",
           "ds-task-initialize-replica-server-id: " + server2ID);
       addTask(taskInit, ResultCode.INVALID_DN_SYNTAX,
-          ERR_TASK_INITIALIZE_INVALID_DN.get());
+          ERR_NO_MATCHING_DOMAIN.get());
 
       // Domain base dn not related to any domain
       taskInit = TestCaseUtils.makeEntry(
@@ -1000,10 +1035,11 @@ public class InitOnLineTest extends ReplicationTestCase
           "objectclass: top",
           "objectclass: ds-task",
           "objectclass: ds-task-initialize-from-remote-replica",
-          "ds-task-class-name: org.opends.server.tasks.InitializeTask",
+          "ds-task-class-name: org.opends.server.replication.service.InitializeTask",
           "ds-task-initialize-domain-dn: dc=foo",
           "ds-task-initialize-replica-server-id: " + server2ID);
-      addTask(taskInit, ResultCode.OTHER, ERR_NO_MATCHING_DOMAIN.get());
+      addTask(taskInit, ResultCode.INVALID_DN_SYNTAX,
+          ERR_NO_MATCHING_DOMAIN.get());
 
       // Invalid Source
       taskInit = TestCaseUtils.makeEntry(
@@ -1012,7 +1048,7 @@ public class InitOnLineTest extends ReplicationTestCase
           "objectclass: top",
           "objectclass: ds-task",
           "objectclass: ds-task-initialize-from-remote-replica",
-          "ds-task-class-name: org.opends.server.tasks.InitializeTask",
+          "ds-task-class-name: org.opends.server.replication.service.InitializeTask",
           "ds-task-initialize-domain-dn: " + baseDn,
           "ds-task-initialize-replica-server-id: -3");
       addTask(taskInit, ResultCode.OTHER,
@@ -1083,25 +1119,29 @@ public class InitOnLineTest extends ReplicationTestCase
 
       // Check that the list of connected LDAP servers is correct
       // in each replication servers
-      List<String> l1 = changelog1.getReplicationServerDomain(baseDn, false).
+      List<String> l1 = changelog1.getReplicationServerDomain(
+          baseDn.toNormalizedString(), false).
         getConnectedLDAPservers();
       assertEquals(l1.size(), 1);
       assertEquals(l1.get(0), String.valueOf(server1ID));
 
       List<String> l2;
-    l2 = changelog2.getReplicationServerDomain(baseDn, false).getConnectedLDAPservers();
+    l2 = changelog2.getReplicationServerDomain(
+        baseDn.toNormalizedString(), false).getConnectedLDAPservers();
       assertEquals(l2.size(), 2);
       assertTrue(l2.contains(String.valueOf(server2ID)));
       assertTrue(l2.contains(String.valueOf(server3ID)));
 
       List<String> l3;
-    l3 = changelog3.getReplicationServerDomain(baseDn, false).getConnectedLDAPservers();
+    l3 = changelog3.getReplicationServerDomain(
+        baseDn.toNormalizedString(), false).getConnectedLDAPservers();
       assertEquals(l3.size(), 0);
 
       // Test updates
       broker3.stop();
       Thread.sleep(1000);
-    l2 = changelog2.getReplicationServerDomain(baseDn, false).getConnectedLDAPservers();
+    l2 = changelog2.getReplicationServerDomain(
+        baseDn.toNormalizedString(), false).getConnectedLDAPservers();
       assertEquals(l2.size(), 1);
       assertEquals(l2.get(0), String.valueOf(server2ID));
 
@@ -1109,7 +1149,8 @@ public class InitOnLineTest extends ReplicationTestCase
         server3ID, 100, getChangelogPort(changelog2ID), 1000, emptyOldChanges);
       broker2.stop();
       Thread.sleep(1000);
-    l2 = changelog2.getReplicationServerDomain(baseDn, false).getConnectedLDAPservers();
+    l2 = changelog2.getReplicationServerDomain(
+        baseDn.toNormalizedString(), false).getConnectedLDAPservers();
       assertEquals(l2.size(), 1);
       assertEquals(l2.get(0), String.valueOf(server3ID));
 
@@ -1124,7 +1165,7 @@ public class InitOnLineTest extends ReplicationTestCase
       afterTest();
     }
   }
-  
+
   @Test(enabled=true, groups="slow")
   public void initializeTargetExportMultiSS() throws Exception
   {
@@ -1153,7 +1194,7 @@ public class InitOnLineTest extends ReplicationTestCase
             server2ID, 100, getChangelogPort(changelog2ID), 1000, emptyOldChanges);
       }
 
-      Thread.sleep(1000);
+     // Thread.sleep(1000);
 
       // Launch in S1 the task that will initialize S2
       addTask(taskInitTargetS2, ResultCode.SUCCESS, null);
@@ -1200,7 +1241,8 @@ public class InitOnLineTest extends ReplicationTestCase
         log(testCase + " Will connect server 2 to " + changelog2ID);
         server2 = openReplicationSession(DN.decode(EXAMPLE_DN),
           server2ID, 100, getChangelogPort(changelog2ID),
-          1000, emptyOldChanges, changelog1.getGenerationId(baseDn));
+          1000, emptyOldChanges,
+          changelog1.getGenerationId(baseDn.toNormalizedString()));
       }
 
       // Connect a broker acting as server 3 to Repl Server 3
@@ -1212,15 +1254,16 @@ public class InitOnLineTest extends ReplicationTestCase
         log(testCase + " Will connect server 3 to " + changelog3ID);
         server3 = openReplicationSession(DN.decode(EXAMPLE_DN),
           server3ID, 100, getChangelogPort(changelog3ID),
-          1000, emptyOldChanges, changelog1.getGenerationId(baseDn));
+          1000, emptyOldChanges,
+          changelog1.getGenerationId(baseDn.toNormalizedString()));
       }
 
-      Thread.sleep(500);
+      // Thread.sleep(500);
 
       // S3 sends init request
       log(testCase + " server 3 Will send reqinit to " + server1ID);
       InitializeRequestMsg initMsg =
-        new InitializeRequestMsg(baseDn, server3ID, server1ID);
+        new InitializeRequestMsg(EXAMPLE_DN, server3ID, server1ID);
       server3.publish(initMsg);
 
       // S3 should receive target, entries & done
@@ -1268,7 +1311,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-from-remote-replica",
-        "ds-task-class-name: org.opends.server.tasks.InitializeTask",
+        "ds-task-class-name: org.opends.server.replication.service.InitializeTask",
         "ds-task-initialize-domain-dn: " + baseDn,
         "ds-task-initialize-replica-server-id: " + 20);
 
@@ -1284,7 +1327,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-from-remote-replica",
-        "ds-task-class-name: org.opends.server.tasks.InitializeTask",
+        "ds-task-class-name: org.opends.server.replication.service.InitializeTask",
         "ds-task-initialize-domain-dn: " + baseDn,
         "ds-task-initialize-replica-server-id: " + server1ID);
 
@@ -1326,7 +1369,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-remote-replica",
-        "ds-task-class-name: org.opends.server.tasks.InitializeTargetTask",
+        "ds-task-class-name: org.opends.server.replication.service.InitializeTargetTask",
         "ds-task-initialize-domain-dn: " + baseDn,
         "ds-task-initialize-replica-server-id: " + 0);
 
@@ -1400,7 +1443,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-from-remote-replica",
-        "ds-task-class-name: org.opends.server.tasks.InitializeTask",
+        "ds-task-class-name: org.opends.server.replication.service.InitializeTask",
         "ds-task-initialize-domain-dn: " + baseDn,
         "ds-task-initialize-replica-server-id: " + server2ID);
 
@@ -1414,7 +1457,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-from-remote-replica",
-        "ds-task-class-name: org.opends.server.tasks.InitializeTask",
+        "ds-task-class-name: org.opends.server.replication.service.InitializeTask",
         "ds-task-initialize-domain-dn: " + baseDn,
         "ds-task-initialize-replica-server-id: " + server2ID);
 
@@ -1537,8 +1580,8 @@ public class InitOnLineTest extends ReplicationTestCase
     super.classCleanUp();
 
     // Clear the backend
-    ReplicationDomain.clearJEBackend(false, "userRoot", EXAMPLE_DN);
-    
+    LDAPReplicationDomain.clearJEBackend(false, "userRoot", EXAMPLE_DN);
+
     paranoiaCheck();
   }
 }

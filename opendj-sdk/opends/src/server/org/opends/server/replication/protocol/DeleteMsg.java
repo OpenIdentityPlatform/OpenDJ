@@ -41,7 +41,7 @@ import org.opends.server.types.operation.PostOperationDeleteOperation;
 /**
  * Object used when sending delete information to replication servers.
  */
-public class DeleteMsg extends UpdateMsg
+public class DeleteMsg extends LDAPUpdateMsg
 {
   /**
    * Creates a new delete message.

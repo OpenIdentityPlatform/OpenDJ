@@ -24,7 +24,12 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
-package org.opends.server.tasks;
+package org.opends.server.replication.service;
+import org.opends.server.tasks.TaskUtils;
+
+import org.opends.messages.TaskMessages;
+import org.opends.server.types.ResultCode;
+
 import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -36,17 +41,11 @@ import java.util.List;
 
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import org.opends.messages.TaskMessages;
-import org.opends.messages.Message;
-import org.opends.server.replication.plugin.ReplicationDomain;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 
-
-import org.opends.server.types.ResultCode;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -60,22 +59,10 @@ public class InitializeTargetTask extends Task
   private static final DebugTracer TRACER = getTracer();
 
   // Config properties
-  boolean append                  = false;
-  boolean isCompressed            = false;
-  boolean isEncrypted             = false;
-  boolean skipSchemaValidation    = false;
-  String  domainString            = null;
-  ReplicationDomain domain = null;
-  short target;
-  long total;
-  long left;
-
-  /**
-   * {@inheritDoc}
-   */
-  public Message getDisplayName() {
-    return TaskMessages.INFO_TASK_INITIALIZE_TARGET_NAME.get();
-  }
+  private String  domainString            = null;
+  private ReplicationDomain domain = null;
+  private short target;
+  private long total;
 
   /**
    * {@inheritDoc}
@@ -102,20 +89,17 @@ public class InitializeTargetTask extends Task
     attrList = taskEntry.getAttribute(typeDomainBase);
     domainString = TaskUtils.getSingleValueString(attrList);
 
-    DN domainDN = DN.nullDN();
     try
     {
-      domainDN = DN.decode(domainString);
+      domain = ReplicationDomain.retrievesReplicationDomain(domainString);
     }
-    catch(Exception e)
+    catch(DirectoryException e)
     {
       MessageBuilder mb = new MessageBuilder();
       mb.append(TaskMessages.ERR_TASK_INITIALIZE_INVALID_DN.get());
-      mb.append(e.getLocalizedMessage());
-      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-              mb.toMessage());
+      mb.append(e.getMessage());
+      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, e);
     }
-    domain=ReplicationDomain.retrievesReplicationDomain(domainDN);
 
     attrList = taskEntry.getAttribute(typeScope);
     String targetString = TaskUtils.getSingleValueString(attrList);
@@ -170,7 +154,6 @@ public class InitializeTargetTask extends Task
    */
   public void setLeft(long left)  throws DirectoryException
   {
-    this.left = left;
     replaceAttributeValue(ATTR_TASK_INITIALIZE_LEFT, String.valueOf(left));
     replaceAttributeValue(ATTR_TASK_INITIALIZE_DONE,String.valueOf(total-left));
   }

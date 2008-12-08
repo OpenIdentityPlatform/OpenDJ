@@ -75,7 +75,7 @@ public class StatusAnalyzer extends DirectoryThread
     int degradedStatusThreshold)
   {
     super("Replication Server Status Analyzer for " +
-      replicationServerDomain.getBaseDn().toNormalizedString() + " in RS " +
+      replicationServerDomain.getBaseDn() + " in RS " +
       replicationServerDomain.getReplicationServer().getServerId());
 
     this.replicationServerDomain = replicationServerDomain;

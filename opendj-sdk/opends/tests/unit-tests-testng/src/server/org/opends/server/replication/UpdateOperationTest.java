@@ -58,8 +58,8 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
-import org.opends.server.replication.plugin.ReplicationBroker;
-import org.opends.server.replication.plugin.ReplicationDomain;
+import org.opends.server.replication.service.ReplicationBroker;
+import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.HeartbeatThread;
@@ -160,7 +160,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
         + "objectClass: ds-cfg-replication-server\n"
         + "cn: Replication Server\n"
         + "ds-cfg-replication-port: " + replServerPort + "\n"
-        + "ds-cfg-replication-db-directory: UpdateOperationTest\n"    
+        + "ds-cfg-replication-db-directory: UpdateOperationTest\n"
         + "ds-cfg-replication-server-id: 107\n";
     replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
@@ -676,32 +676,32 @@ public class  UpdateOperationTest extends ReplicationTestCase
     // because the conflict has been automatically resolved.
     assertEquals(DummyAlertHandler.getAlertCount(), AlertCount,
         "An alert was incorrectly generated when resolving conflicts");
-    
+
     /*
-     * Test that modify conflict resolution is able to detect that 
+     * Test that modify conflict resolution is able to detect that
      * because there is a conflict between a MODIFYDN and a MODIFY,
      * when a MODIFY is replayed the attribute that is being modified is
      * now the RDN of the entry and therefore should not be deleted.
      */
-    // send a modify operation attempting to replace the RDN entry 
+    // send a modify operation attempting to replace the RDN entry
     // with a new value
     mods = generatemods("uid", "AnotherUid");
     modMsg = new ModifyMsg(gen.newChangeNumber(),
         personWithUUIDEntry.getDN(), mods,
         user1entryUUID);
-    
+
     updateMonitorCount(baseDn, resolvedMonitorAttr);
     AlertCount = DummyAlertHandler.getAlertCount();
     broker.publish(modMsg);
-    
+
     // check that the modify has been applied.
     found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
                            "uid", "AnotherUid", 10000, true);
-    
+
     if (found == false)
       fail("The modification has not been correctly replayed.");
     assertEquals(getMonitorDelta(), 1);
-    
+
     /*
      * Test that the conflict resolution code is able to detect
      * that an entry has been renamed and that a new entry has
@@ -1105,19 +1105,19 @@ public class  UpdateOperationTest extends ReplicationTestCase
     assertNotNull(resultEntry,
         "The ADD replication message was NOT applied under ou=baseDn2,"+baseDn);
     assertEquals(getMonitorDelta(), 1);
-    
+
     // Check that there was no administrative alert generated
     // because the conflict has been automatically resolved.
     assertEquals(DummyAlertHandler.getAlertCount(), AlertCount,
         "An alert was incorrectly generated when resolving conflicts");
 
-    
+
     //
     // Check that when a delete is conflicting with Add of some entries
     // below the deleted entries, the child entry that have been added
     // before the deleted is replayed gets renamed correctly.
     //
-    
+
     // add domain1 entry with 2 children : domain2 and domain3
     addEntry(domain1);
     domain1uid = getEntryUUID(DN.decode(domain1dn));
@@ -1129,10 +1129,10 @@ public class  UpdateOperationTest extends ReplicationTestCase
         "entryUUID = " + domain2uid + "+dc=domain2,ou=people," + TEST_ROOT_DN_STRING);
     DN conflictDomain3dn = DN.decode(
         "entryUUID = " + domain3uid + "+dc=domain3,ou=people," + TEST_ROOT_DN_STRING);
- 
+
     updateMonitorCount(baseDn, unresolvedMonitorAttr);
     AlertCount = DummyAlertHandler.getAlertCount();
-    
+
     // delete domain1
     delMsg = new DeleteMsg(domain1dn, gen.newChangeNumber(), domain1uid);
     broker.publish(delMsg);
@@ -1140,7 +1140,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
     // check that the domain1 has correctly been deleted
     assertNull(getEntry(DN.decode(domain1dn), 10000, false),
         "The DELETE replication message was not replayed");
-    
+
     // check that domain2 and domain3 have been renamed
     assertNotNull(getEntry(conflictDomain2dn, 1000, true),
         "The conflicting entries were not created");
@@ -1149,23 +1149,23 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
     // check that the 2 conflicting entries have been correctly marked
     assertTrue(checkEntryHasAttribute(conflictDomain2dn,
-        ReplicationDomain.DS_SYNC_CONFLICT, domain1dn, 1000, true));
+        LDAPReplicationDomain.DS_SYNC_CONFLICT, domain1dn, 1000, true));
     assertTrue(checkEntryHasAttribute(conflictDomain3dn,
-        ReplicationDomain.DS_SYNC_CONFLICT, domain1dn, 1000, true));
-    
+        LDAPReplicationDomain.DS_SYNC_CONFLICT, domain1dn, 1000, true));
+
     // check that unresolved conflict count has been incremented
     assertEquals(getMonitorDelta(), 1);
-    
+
     // Check that an administrative alert was generated
     // because the conflict has not been automatically resolved.
     assertEquals(DummyAlertHandler.getAlertCount(), AlertCount+2,
         "An alert was incorrectly generated when resolving conflicts");
 
-    
+
     // delete the resulting entries for the next test
     delEntry(conflictDomain2dn);
     delEntry(conflictDomain3dn);
-    
+
     //
     // Check that when an entry is added on one master below an entry
     // that is currently deleted on another master, the replay of the
@@ -1176,18 +1176,18 @@ public class  UpdateOperationTest extends ReplicationTestCase
         domain2.getObjectClassAttribute(),
         domain2.getAttributes(), new ArrayList<Attribute>());
     broker.publish(addMsg);
-    
+
     // check that conflict entry was created
     assertNotNull(getEntry(conflictDomain2dn, 1000, true),
       "The conflicting entries were not created");
-    
+
     // check that the entry have been correctly marked as conflicting.
     assertTrue(checkEntryHasAttribute(conflictDomain2dn,
-        ReplicationDomain.DS_SYNC_CONFLICT, domain2dn, 1000, true));
-    
+        LDAPReplicationDomain.DS_SYNC_CONFLICT, domain2dn, 1000, true));
+
     // check that unresolved conflict count has been incremented
     assertEquals(getMonitorDelta(), 1);
-    
+
     // Check that when an entry is deleted on a first master and
     // renamed on a second master and the rename is replayed last
     // this is correctly detected as a resolved conflict.
@@ -1215,14 +1215,14 @@ public class  UpdateOperationTest extends ReplicationTestCase
     // if the monitor counter did not get incremented after 200sec
     // then something got wrong.
     assertTrue(count < 200);
-    
+
     // Check that there was no administrative alert generated
     // because the conflict has been automatically resolved.
     assertEquals(DummyAlertHandler.getAlertCount(), AlertCount,
         "An alert was incorrectly generated when resolving conflicts");
 
     /*
-     * Check that a conflict is detected when an entry is 
+     * Check that a conflict is detected when an entry is
      * moved below an entry that does not exist.
      */
     updateMonitorCount(baseDn, unresolvedMonitorAttr);
@@ -1234,7 +1234,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
         "uid=wrong, ou=people," + TEST_ROOT_DN_STRING,
         "uid=newrdn");
     broker.publish(modDnMsg);
-    
+
     count = 0;
     while ((count<2000) && getMonitorDelta() == 0)
     {
@@ -1246,11 +1246,11 @@ public class  UpdateOperationTest extends ReplicationTestCase
     // if the monitor counter did not get incremented after 200sec
     // then something got wrong.
     assertTrue(count < 200);
-    
+
     // check that the entry have been correctly marked as conflicting.
     assertTrue(checkEntryHasAttribute(
         DN.decode("uid=new person,ou=baseDn2,"+baseDn),
-        ReplicationDomain.DS_SYNC_CONFLICT,
+        LDAPReplicationDomain.DS_SYNC_CONFLICT,
         "uid=newrdn,ou=baseDn2,ou=People," + TEST_ROOT_DN_STRING, 1000, true));
 
     broker.stop();
@@ -1426,7 +1426,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
       if (found == false)
         fail("The modification has not been correctly replayed.");
-      
+
       // Test that replication is able to add attribute that do
       // not exist in the schema.
       List<Modification> invalidMods = generatemods("badattribute", "value");
@@ -1569,7 +1569,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
         "Starting replication test : infiniteReplayLoop"));
 
     final DN baseDn = DN.decode("ou=People," + TEST_ROOT_DN_STRING);
-    
+
     Thread.sleep(2000);
     ReplicationBroker broker =
       openReplicationSession(baseDn, (short) 11, 100, replServerPort, 1000, true);
@@ -1709,7 +1709,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
         "Starting synchronization test : CNGeneratorAdjust"));
 
     final DN baseDn = DN.decode("ou=People," + TEST_ROOT_DN_STRING);
-    
+
     /*
      * Open a session to the replicationServer using the broker API.
      * This must use a different serverId to that of the directory server.
@@ -1731,7 +1731,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
         user3UUID,
         baseUUID,
         user3Entry.getObjectClassAttribute(),
-        user3Entry.getAttributes(), 
+        user3Entry.getAttributes(),
         new ArrayList<Attribute>());
     broker.publish(addMsg);
 
@@ -1745,8 +1745,8 @@ public class  UpdateOperationTest extends ReplicationTestCase
     List<Modification> mods = generatemods("telephonenumber", "01 02 45");
     ModifyOperationBasis modOp = new ModifyOperationBasis(
         connection,
-        InternalClientConnection.nextOperationID(), 
-        InternalClientConnection.nextMessageID(), 
+        InternalClientConnection.nextOperationID(),
+        InternalClientConnection.nextMessageID(),
         null,
         user3Entry.getDN(),
         mods);
@@ -1758,10 +1758,10 @@ public class  UpdateOperationTest extends ReplicationTestCase
     assertTrue(msg instanceof ModifyMsg,
       "The received replication message is not a MODIFY msg");
     ModifyMsg modMsg = (ModifyMsg) msg;
-    assertEquals(addMsg.getChangeNumber().getTimeSec(), 
+    assertEquals(addMsg.getChangeNumber().getTimeSec(),
                  modMsg.getChangeNumber().getTimeSec(),
                 "The MOD timestamp should have been adjusted to the ADD one");
-    
+
     // Delete the entries to clean the database.
     DeleteMsg delMsg =
       new DeleteMsg(

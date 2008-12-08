@@ -46,9 +46,8 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.common.ChangeNumberGenerator;
-import org.opends.server.replication.plugin.ReplicationBroker;
-import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.types.Attribute;
@@ -100,7 +99,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
         + "objectClass: ds-cfg-replication-server\n"
         + "cn: Replication Server\n"
         + "ds-cfg-replication-port: " + replServerPort + "\n"
-        + "ds-cfg-replication-db-directory: SchemaReplicationTest\n"    
+        + "ds-cfg-replication-db-directory: SchemaReplicationTest\n"
         + "ds-cfg-replication-server-id: 105\n";
     replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
@@ -247,9 +246,6 @@ public class SchemaReplicationTest extends ReplicationTestCase
    * Checks that changes done to the schema files are pushed to the
    * ReplicationServers and that the ServerState is updated in the schema
    * file.
-   * FIXME: This test is disabled because it has side effects.
-   * It causes schema tests in org.opends.server.core.AddOperationTestCase
-   * to fail when running the build test target.
    */
   @Test(enabled=true, dependsOnMethods = { "replaySchemaChange" })
   public void pushSchemaFilesChange() throws Exception
@@ -261,7 +257,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
     ReplicationBroker broker =
       openReplicationSession(baseDn, (short) 3, 100, replServerPort, 5000, true);
-    
+
     try
     {
       // create a schema change Notification

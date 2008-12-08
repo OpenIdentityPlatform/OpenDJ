@@ -26,6 +26,8 @@
  */
 package org.opends.server.replication.plugin;
 
+import org.opends.server.replication.protocol.LDAPUpdateMsg;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -49,7 +51,6 @@ import org.opends.server.replication.plugin.FakeOperationComparator;
 import org.opends.server.replication.plugin.Historical;
 import org.opends.server.replication.protocol.ModifyContext;
 import org.opends.server.replication.protocol.ReplicationMsg;
-import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
@@ -1137,9 +1138,9 @@ public class ModifyConflictTest
         assertTrue(new FakeOperationComparator().compare(fk, fk) == 0);
         assertTrue(new FakeOperationComparator().compare(null , fk) < 0);
         ReplicationMsg generatedMsg = fk.generateMessage() ;
-        if (generatedMsg instanceof UpdateMsg)
+        if (generatedMsg instanceof LDAPUpdateMsg)
         {
-          UpdateMsg new_name = (UpdateMsg) generatedMsg;
+          LDAPUpdateMsg new_name = (LDAPUpdateMsg) generatedMsg;
           assertEquals(new_name.getUniqueId(),uuid);
 
         }

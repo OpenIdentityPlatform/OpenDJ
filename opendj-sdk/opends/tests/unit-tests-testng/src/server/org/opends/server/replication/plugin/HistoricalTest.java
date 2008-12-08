@@ -27,11 +27,13 @@
 
 package org.opends.server.replication.plugin;
 
+import org.opends.server.replication.protocol.LDAPUpdateMsg;
+
 import org.opends.server.replication.ReplicationTestCase;
+import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
-import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPModify;
@@ -335,7 +337,7 @@ public class HistoricalTest
     ModifyMsg modMsg = new ModifyMsg(changeNum, dn, mods, entryuuid);
     broker.publish(modMsg);
   }
-  
+
   /**
    * Test that historical information is correctly added when performaing ADD,
    * MOD and MODDN operations.
@@ -416,7 +418,7 @@ public class HistoricalTest
 
     for (FakeOperation fake : ops)
     {
-      UpdateMsg msg = (UpdateMsg) fake.generateMessage();
+      LDAPUpdateMsg msg = (LDAPUpdateMsg) fake.generateMessage();
       AbstractOperation op =
         msg.createOperation(InternalClientConnection.getRootConnection());
       op.setInternalOperation(true);
@@ -449,7 +451,7 @@ public class HistoricalTest
         AddMsg addmsg = addOp.generateMessage();
         assertTrue(dn1.equals(DN.decode(addmsg.getDn())));
         assertTrue(addmsg.getUniqueId().equals(Historical.getEntryUuid(entry)));
-        String parentId = ReplicationDomain.findEntryId(dn1.getParent());
+        String parentId = LDAPReplicationDomain.findEntryId(dn1.getParent());
         assertTrue(addmsg.getParentUid().equals(parentId));
         addmsg.createOperation(InternalClientConnection.getRootConnection());
       } else
@@ -462,7 +464,7 @@ public class HistoricalTest
         }
       }
     }
-  
+
       assertEquals(count, assertCount);
     }
 }

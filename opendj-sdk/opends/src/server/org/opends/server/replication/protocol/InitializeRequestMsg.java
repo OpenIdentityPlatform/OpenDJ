@@ -49,10 +49,10 @@ public class InitializeRequestMsg extends RoutableMsg
    * @param destination destination of this message
    * @param senderID serverID of the server that will send this message
    */
-  public InitializeRequestMsg(DN baseDn, short senderID, short destination)
+  public InitializeRequestMsg(String baseDn, short senderID, short destination)
   {
     super(senderID, destination);
-    this.baseDn = baseDn.toNormalizedString();
+    this.baseDn = baseDn;
   }
 
   /**

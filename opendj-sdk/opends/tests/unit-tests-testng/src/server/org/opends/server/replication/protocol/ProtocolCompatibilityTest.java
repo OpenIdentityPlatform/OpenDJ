@@ -94,12 +94,12 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   @DataProvider(name="createReplServerStartData")
   public Object [][] createReplServerStartData() throws Exception
   {
-    DN baseDN = DN.decode("o=test");
+    String baseDN = "o=test";
     ServerState state = new ServerState();
     state.update(new ChangeNumber((long)0, 0,(short)0));
     Object[] set1 = new Object[] {(short)1, baseDN, 0, "localhost:8989", state, 0L, (byte)0, 0};
 
-    baseDN = DN.decode("dc=example,dc=com");
+    baseDN = "dc=example,dc=com";
     state = new ServerState();
     state.update(new ChangeNumber((long)75, 5,(short)263));
     Object[] set2 = new Object[] {(short)16, baseDN, 100, "anotherHost:1025", state, 1245L, (byte)25, 3456};
@@ -112,7 +112,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
    * using protocol V1 and V2 are working.
    */
   @Test(dataProvider="createReplServerStartData")
-  public void replServerStartMsgTest(short serverId, DN baseDN, int window,
+  public void replServerStartMsgTest(short serverId, String baseDN, int window,
          String url, ServerState state, long genId, byte groupId, int degTh) throws Exception
   {
     // Create V2 message
@@ -167,7 +167,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(msg.getGroupId(), v2Msg.getGroupId());
     assertEquals(msg.getDegradedStatusThreshold(), v2Msg.getDegradedStatusThreshold());
   }
-  
+
   @DataProvider(name = "createAddData")
   public Object[][] createAddData() {
     return new Object[][] {
@@ -250,7 +250,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
     // Check default value for only V2 fields
     assertEquals(newMsg.getAssuredMode(), AssuredMode.SAFE_DATA_MODE);
-    assertEquals(newMsg.getSafeDataLevel(), (byte)-1);
+    assertEquals(newMsg.getSafeDataLevel(), (byte)1);
 
     // Set again only V2 fields
     newMsg.setAssuredMode(assuredMode);
@@ -336,7 +336,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
     // Check default value for only V2 fields
     assertEquals(newMsg.getAssuredMode(), AssuredMode.SAFE_DATA_MODE);
-    assertEquals(newMsg.getSafeDataLevel(), (byte)-1);
+    assertEquals(newMsg.getSafeDataLevel(), (byte)1);
 
     // Set again only V2 fields
     newMsg.setAssuredMode(assuredMode);
@@ -356,7 +356,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(msg.getAssuredMode(), v2Msg.getAssuredMode());
     assertEquals(msg.getSafeDataLevel(), v2Msg.getSafeDataLevel());
   }
-  
+
   /**
    * Build some data for the ModifyMsg test below.
    */
@@ -469,7 +469,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
     // Check default value for only V2 fields
     assertEquals(newMsg.getAssuredMode(), AssuredMode.SAFE_DATA_MODE);
-    assertEquals(newMsg.getSafeDataLevel(), (byte)-1);
+    assertEquals(newMsg.getSafeDataLevel(), (byte)1);
 
     // Set again only V2 fields
     newMsg.setAssuredMode(assuredMode);
@@ -503,7 +503,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
                   genModOpBasis.getAttachment(SYNCHROCONTEXT));
     assertEquals(modOpBasis.getModifications(), genModOpBasis.getModifications());
   }
-  
+
   @DataProvider(name = "createModifyDnData")
   public Object[][] createModifyDnData() {
     
@@ -606,7 +606,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
     // Check default value for only V2 fields
     assertEquals(newMsg.getAssuredMode(), AssuredMode.SAFE_DATA_MODE);
-    assertEquals(newMsg.getSafeDataLevel(), (byte)-1);
+    assertEquals(newMsg.getSafeDataLevel(), (byte)1);
     assertEquals(modDnOpBasis.getModifications(), mods);
     assertTrue(genModDnOpBasis.getModifications() == null);
 

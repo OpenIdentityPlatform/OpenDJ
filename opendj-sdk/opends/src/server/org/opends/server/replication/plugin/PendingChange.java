@@ -28,7 +28,7 @@ package org.opends.server.replication.plugin;
 
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.operation.PluginOperation;
@@ -41,7 +41,7 @@ public class PendingChange implements Comparable<PendingChange>
 {
   private ChangeNumber changeNumber;
   private boolean committed;
-  private UpdateMsg msg;
+  private LDAPUpdateMsg msg;
   private PluginOperation op;
   private ServerState dependencyState = null;
   private DN targetDN = null;
@@ -54,7 +54,7 @@ public class PendingChange implements Comparable<PendingChange>
    */
   public PendingChange(ChangeNumber changeNumber,
                        PluginOperation op,
-                       UpdateMsg msg)
+                       LDAPUpdateMsg msg)
   {
     this.changeNumber = changeNumber;
     this.committed = false;
@@ -94,7 +94,7 @@ public class PendingChange implements Comparable<PendingChange>
    * @return the message if operation was a replication operation
    * null if the operation was a local operation
    */
-  public UpdateMsg getMsg()
+  public LDAPUpdateMsg getMsg()
   {
     return msg;
   }
@@ -103,7 +103,7 @@ public class PendingChange implements Comparable<PendingChange>
    * Set the message associated to the PendingChange.
    * @param msg the message
    */
-  public void setMsg(UpdateMsg msg)
+  public void setMsg(LDAPUpdateMsg msg)
   {
     this.msg = msg;
   }

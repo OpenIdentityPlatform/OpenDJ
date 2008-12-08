@@ -24,9 +24,12 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
-package org.opends.server.tasks;
+package org.opends.server.replication.service;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.getAttributeType;
+
+import org.opends.server.tasks.TaskUtils;
+
 
 import java.util.List;
 
@@ -37,10 +40,8 @@ import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.plugin.ReplicationDomain;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
@@ -56,14 +57,9 @@ public class SetGenerationIdTask extends Task
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-
-  boolean isCompressed            = false;
-  boolean isEncrypted             = false;
-  boolean skipSchemaValidation    = false;
-  String  domainString            = null;
-  ReplicationDomain domain        = null;
-  TaskState initState;
-  Long generationId = null;
+  private String  domainString            = null;
+  private ReplicationDomain domain        = null;
+  private Long generationId = null;
 
   private static final void debugInfo(String s)
   {
@@ -124,22 +120,18 @@ public class SetGenerationIdTask extends Task
 
     attrList = taskEntry.getAttribute(typeDomainBase);
     domainString = TaskUtils.getSingleValueString(attrList);
-    DN domainDN = DN.nullDN();
+
     try
     {
-      domainDN = DN.decode(domainString);
+      domain = ReplicationDomain.retrievesReplicationDomain(domainString);
     }
-    catch(Exception e)
+    catch(DirectoryException e)
     {
       MessageBuilder mb = new MessageBuilder();
       mb.append(TaskMessages.ERR_TASK_INITIALIZE_INVALID_DN.get());
       mb.append(e.getMessage());
-      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-          mb.toMessage());
+      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, e);
     }
-
-    domain = ReplicationDomain.retrievesReplicationDomain(domainDN);
-
   }
 
   /**
@@ -148,7 +140,7 @@ public class SetGenerationIdTask extends Task
   protected TaskState runTask()
   {
     debugInfo("setGenerationIdTask is starting on domain%s" +
-        domain.getBaseDN());
+        domain.getServiceID());
 
     try
     {

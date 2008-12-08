@@ -4204,7 +4204,9 @@ public abstract class Installer extends GuiApplication {
     oc.add("ds-task");
     oc.add("ds-task-initialize-from-remote-replica");
     attrs.put(oc);
-    attrs.put("ds-task-class-name", "org.opends.server.tasks.InitializeTask");
+    attrs.put(
+        "ds-task-class-name",
+        "org.opends.server.replication.service.InitializeTask");
     attrs.put("ds-task-initialize-domain-dn", suffixDn);
     attrs.put("ds-task-initialize-replica-server-id",
         String.valueOf(replicaId));
@@ -4521,7 +4523,7 @@ public abstract class Installer extends GuiApplication {
     oc.add("ds-task-reset-generation-id");
     attrs.put(oc);
     attrs.put("ds-task-class-name",
-        "org.opends.server.tasks.SetGenerationIdTask");
+        "org.opends.server.replication.service.SetGenerationIdTask");
     attrs.put("ds-task-reset-generation-id-domain-base-dn", suffixDn);
     while (!taskCreated)
     {

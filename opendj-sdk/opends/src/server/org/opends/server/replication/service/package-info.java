@@ -22,22 +22,20 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2008 Sun Microsystems, Inc.
  */
-package org.opends.server.replication.server;
 
-import java.util.Comparator;
+
 
 /**
- * This comparator is used to build TreeSet of AckMessageLists.
+ * This package contains the generic of the Multi-Master
+ * replication code that works on the Directory Server side.
+ * <br>
+ * Developers planning to use the Replication Service should
+ * subClass the <A> HREF="ReplicationDomain.html"><B>ReplicationDomain</B></A>
+ * class
  */
-public class AckMessageListComparator implements Comparator<AckMessageList>
-{
-  /**
-   * {@inheritDoc}
-   */
-  public int compare(AckMessageList a1, AckMessageList a2)
-  {
-    return a1.getChangeNumber().compareTo(a2.getChangeNumber());
-  }
-}
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
+package org.opends.server.replication.service;
+

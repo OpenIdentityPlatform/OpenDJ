@@ -34,7 +34,6 @@ import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.protocol.DeleteMsg;
-import org.opends.server.types.DN;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 import static org.opends.server.TestCaseUtils.*;
@@ -79,7 +78,7 @@ public class DbHandlerTest extends ReplicationTestCase
 
       dbEnv = new ReplicationDbEnv(path, replicationServer);
 
-      handler = new DbHandler((short) 1, DN.decode(TEST_ROOT_DN_STRING),
+      handler = new DbHandler((short) 1, TEST_ROOT_DN_STRING,
         replicationServer, dbEnv, 5000);
 
       ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 1, 0);
@@ -173,7 +172,7 @@ public class DbHandlerTest extends ReplicationTestCase
       dbEnv = new ReplicationDbEnv(path, replicationServer);
 
       handler =
-        new DbHandler((short) 1, DN.decode(TEST_ROOT_DN_STRING),
+        new DbHandler((short) 1, TEST_ROOT_DN_STRING,
         replicationServer, dbEnv, 5000);
 
       // Creates changes added to the dbHandler
