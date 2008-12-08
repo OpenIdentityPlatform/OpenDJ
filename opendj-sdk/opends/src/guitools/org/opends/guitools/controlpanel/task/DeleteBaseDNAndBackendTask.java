@@ -799,7 +799,8 @@ public class DeleteBaseDNAndBackendTask extends Task
         public void run()
         {
           getProgressDialog().appendProgressHtml(
-              Utilities.getProgressDone(ColorAndFontConstants.progressFont));
+              Utilities.getProgressDone(ColorAndFontConstants.progressFont)+
+              "<br>");
         }
       });
     }
