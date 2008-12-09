@@ -422,6 +422,18 @@ public class BackupTask extends Task
         {
           backupDir = BackupDirectory.readBackupDirectoryDescriptor(
                backupLocation.getPath());
+
+          // Check the current backup directory corresponds to the provided
+          // backend
+          if (! backupDir.getConfigEntryDN().equals(cfg.dn()))
+          {
+            Message message = ERR_BACKUPDB_CANNOT_BACKUP_IN_DIRECTORY.get(
+                b.getBackendID(),backupLocation.getPath(),
+                backupDir.getConfigEntryDN().getRDN().
+                getAttributeValue(0).getStringValue());
+            logError(message);
+            return false ;
+          }
         }
         catch (ConfigException ce)
         {
