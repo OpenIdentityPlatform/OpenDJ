@@ -74,6 +74,27 @@
               'startTask'           : '0',
               'backEnd'             : DIRECTORY_INSTANCE_BE}
             </call>
+
+            <!-- manage-tasks -->
+            <call function="'manage-tasks'">
+              { 'location'     : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'dsQuiet'        : ' '
+              }
+            </call>
+
+            <script>
+              returnString = STAXResult[0][1]
+            </script>
+        
+            <call function="'searchStringForSubstring'">
+              { 'returnString'    : returnString,
+              'testString'        : 'Completed successfully',
+              'expectedResult'    : '1' }
+            </call>
+
             <message>'--- Check log files export_asynchronous ---'</message>
             <call function="'listFolder'">
               { 'location'   : '%s' % (STAF_REMOTE_HOSTNAME),
@@ -138,7 +159,7 @@
         
             <call function="'searchStringForSubstring'">
               { 'returnString'	   : returnString,
-              'testString'	   : 'Export',
+              'testString'	       : 'Completed successfully',
               'expectedResult'	   : '1' }
             </call>                
             
@@ -188,6 +209,26 @@
               'ldifFile'            : '%s/tasks/export_schedule_asynchronous' % remote.data,
               'startTask'           : '20061212000000',
               'backEnd'             : DIRECTORY_INSTANCE_BE}
+            </call>
+
+            <!-- manage-tasks -->
+            <call function="'manage-tasks'">
+              { 'location'     : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'dsQuiet'        : ' '
+              }
+            </call>
+
+            <script>
+              returnString = STAXResult[0][1]
+            </script>
+        
+            <call function="'searchStringForSubstring'">
+              { 'returnString'    : returnString,
+              'testString'        : 'Completed successfully',
+              'expectedResult'    : '1' }
             </call>
             
             <message>'--- Check log files export_asynchronous ---'</message>

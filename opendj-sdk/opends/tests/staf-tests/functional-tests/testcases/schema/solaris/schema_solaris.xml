@@ -70,6 +70,11 @@
 
                 <!-- Test Suite Setup -->
                 <call function="'%s_setup' % __group"/>
+
+                <!-- Specific to solaris schema tests -->
+                <script>
+                  __baseDN='o=Solaris schema tests, dc=example,%s' % server.suffix
+                </script>
                                                     
                 <!-- List of Test Cases -->
                 <script>
@@ -106,7 +111,7 @@
           <finally>
             <sequence>
               <!-- Test Suite Cleanup -->
-              <message>'Finally: Example Cleanup.'</message>
+              <message>'Finally: Solaris Schema Cleanup.'</message>
               <call function="'%s_cleanup' % __group"/>
               <call function="'testSuite_Postamble'"/>
             </sequence>

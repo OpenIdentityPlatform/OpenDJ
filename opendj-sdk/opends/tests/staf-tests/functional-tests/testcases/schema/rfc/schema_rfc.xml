@@ -74,22 +74,6 @@
                 <!-- Specific to rfc tests -->
                 <script>
                   __baseDN='o=rfc tests, dc=example,%s' % server.suffix
-                  
-                  def parse_stax_result(result):
-                  
-                    if result.__class__ is org.python.core.PyList:
-                      _unwrapResult=result[1][0]
-                      
-                      try:
-                        _functionString=_unwrapResult[1]
-                      except AttributeError:
-                        _functionString='Unable to parse result.'
-                    elif result.__class__ is org.python.core.PyString:
-                      _functionString=STAXResult
-                    else:
-                      _functionString='Unable to parse result.'
-
-                    return _functionString
                 </script>
                                                     
                 <!-- List of Test Cases -->
