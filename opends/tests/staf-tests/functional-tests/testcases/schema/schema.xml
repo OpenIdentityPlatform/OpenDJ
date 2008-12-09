@@ -65,7 +65,7 @@
               suiteList.append('dynamic')
               suiteList.append('solaris')
             </script>
-
+                
             <!-- Data global to this test group  -->
             <!-- LDAP Server Object -->
             <script>
@@ -77,6 +77,22 @@
               server.dn         = DIRECTORY_INSTANCE_DN
               server.password   = DIRECTORY_INSTANCE_PSWD
               server.suffix     = DIRECTORY_INSTANCE_SFX
+              
+              def parse_stax_result(result):
+              
+                if result.__class__ is org.python.core.PyList:
+                  _unwrapResult=result[1][0]
+                  
+                  try:
+                    _functionString=_unwrapResult[1]
+                  except AttributeError:
+                    _functionString='Unable to parse result.'
+                elif result.__class__ is org.python.core.PyString:
+                  _functionString=STAXResult
+                else:
+                  _functionString='Unable to parse result.'
+
+                return _functionString
             </script>
 
             <!-- Run the test suites -->

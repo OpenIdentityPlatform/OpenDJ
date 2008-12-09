@@ -26,7 +26,7 @@
  !      Copyright 2008 Sun Microsystems, Inc.
  ! -->
 <stax>
-               
+
   <!-- Definition of Test Cases -->             
 
   <!--- Test Case : Schema: Add Solaris Schema Entries -->          
@@ -67,14 +67,49 @@
               }
             </call>
 
-            <!-- TODO: Need to verify that the added entry is working as specified -->
-
+            <call function="'runFunction'">
+              { 'functionName'      : 'ldapSearchWithScript'                       ,
+                'functionMessage'   : 'Search for the entry just added and return rfc822mailMember.' ,
+                'functionException' : 'LDAP.SearchException'               ,
+                'functionArguments' : { 'dsInstanceHost'   : server.host ,
+                                        'dsInstancePort'   : server.port ,
+                                        'dsInstanceDn'     : server.dn ,
+                                        'dsInstancePswd'   : server.password ,
+                                        'dsBaseDN'         : __baseDN ,
+                                        'dsFilter'         : 'objectclass=*' ,
+                                        'dsAttributes'     : 'rfc822mailMember' }
+              }
+            </call>
+            
+            <script>
+              _functionString=parse_stax_result(STAXResult)
+            </script>
+  
+            <call function="'runFunction'">
+             { 'functionName'      : 'checktestString' ,
+               'functionMessage'   : 'Check that the rfc822mailMember attribute is returned.' ,
+               'functionException' : 'Utils.CheckStringException' ,
+               'functionArguments' : { 'expectedString' : 'rfc822mailMember: nisMailAlias@sun.com' ,
+                                       'returnString'   : _functionString }
+             }
+            </call>
           </sequence>
-          <catch exception="'STAXException.LDAP.ModifyException'" typevar="eType" var="eInfo">
+  
+          <catch exception="'STAXException.LDAP.AddException'" typevar="eType" var="eInfo">
             <message log="1" level="'fatal'">
-              '%s: LDAPModify failed. eInfo(%s)' % (eType,eInfo)
+              '%s: LDAPAdd failed. eInfo(%s)' % (eType,eInfo)
             </message>
           </catch>
+          <catch exception="'STAXException.LDAP.SearchException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: LDAPSearch failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <catch exception="'STAXException.Utils.CheckStringException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: UtilsCheck failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch> 
           <finally>
             <call function="'testCase_Postamble'"/>
           </finally>
@@ -121,12 +156,47 @@
               }
             </call>
 
-            <!-- TODO: Need to verify that the added entry is working as specified -->
-
+            <call function="'runFunction'">
+              { 'functionName'      : 'ldapSearchWithScript'                       ,
+                'functionMessage'   : 'Search for the entry just added and return nisDomain.' ,
+                'functionException' : 'LDAP.SearchException'               ,
+                'functionArguments' : { 'dsInstanceHost'   : server.host ,
+                                        'dsInstancePort'   : server.port ,
+                                        'dsInstanceDn'     : server.dn ,
+                                        'dsInstancePswd'   : server.password ,
+                                        'dsBaseDN'         : __baseDN ,
+                                        'dsFilter'         : 'objectclass=*' ,
+                                        'dsAttributes'     : 'nisDomain' }
+              }
+            </call>
+          
+           <script>
+              _functionString=parse_stax_result(STAXResult)
+           </script>
+  
+            <call function="'runFunction'">
+             { 'functionName'      : 'checktestString' ,
+               'functionMessage'   : 'Check that the nisDomain attribute is returned.' ,
+               'functionException' : 'Utils.CheckStringException' ,
+               'functionArguments' : { 'expectedString' : 'nisDomain: rfc4876' ,
+                                       'returnString'   : _functionString }
+             }
+            </call>
           </sequence>
-          <catch exception="'STAXException.LDAP.ModifyException'" typevar="eType" var="eInfo">
+  
+          <catch exception="'STAXException.LDAP.AddException'" typevar="eType" var="eInfo">
             <message log="1" level="'fatal'">
-              '%s: LDAPModify failed. eInfo(%s)' % (eType,eInfo)
+              '%s: LDAPAdd failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <catch exception="'STAXException.LDAP.SearchException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: LDAPSearch failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <catch exception="'STAXException.Utils.CheckStringException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: UtilsCheck failed. eInfo(%s)' % (eType,eInfo)
             </message>
           </catch>
           <finally>
