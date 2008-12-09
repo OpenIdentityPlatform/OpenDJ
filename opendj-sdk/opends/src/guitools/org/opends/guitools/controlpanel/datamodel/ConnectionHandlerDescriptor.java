@@ -171,7 +171,7 @@ public class ConnectionHandlerDescriptor
    * Returns the address port representation of the listener.
    * @return the address port representation of the listener.
    */
-  public SortedSet<InetAddress> getAdresses()
+  public SortedSet<InetAddress> getAddresses()
   {
     return new TreeSet<InetAddress>(addresses);
   }
