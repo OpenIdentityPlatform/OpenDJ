@@ -125,7 +125,7 @@ implements Comparator<ConnectionHandlerDescriptor>
     int result = 0;
     if (sortColumn == 0)
     {
-      if (desc1.getAdresses().equals(desc2.getAdresses()))
+      if (desc1.getAddresses().equals(desc2.getAddresses()))
       {
         Integer port1 = new Integer(desc1.getPort());
         Integer port2 = new Integer(desc2.getPort());
@@ -259,7 +259,7 @@ implements Comparator<ConnectionHandlerDescriptor>
 
   private String getAddressPortString(ConnectionHandlerDescriptor desc)
   {
-    Set<InetAddress> addresses = desc.getAdresses();
+    Set<InetAddress> addresses = desc.getAddresses();
     String returnValue;
     if (addresses.size() == 0)
     {

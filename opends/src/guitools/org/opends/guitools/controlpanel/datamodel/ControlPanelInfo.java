@@ -877,7 +877,7 @@ public class ControlPanelInfo
           (desc.getProtocol() == protocol))
       {
         int port = desc.getPort();
-        SortedSet<InetAddress> addresses = desc.getAdresses();
+        SortedSet<InetAddress> addresses = desc.getAddresses();
         if (addresses.size() == 0)
         {
           if (port > 0)
@@ -914,7 +914,7 @@ public class ControlPanelInfo
 
     ConnectionHandlerDescriptor desc = server.getAdminConnector();
     int port = desc.getPort();
-    SortedSet<InetAddress> addresses = desc.getAdresses();
+    SortedSet<InetAddress> addresses = desc.getAddresses();
     if (addresses.size() == 0) {
       if (port > 0) {
         url = "ldaps://" +
