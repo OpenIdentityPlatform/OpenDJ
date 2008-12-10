@@ -40,6 +40,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
+import static org.opends.messages.ToolMessages.*;
 
 
 /**
@@ -92,7 +93,8 @@ public class MakeLDIFTestCase
     catch (InitializationException e)
     {
       String msg = e.getMessage();
-      assertTrue( msg.contains("line 1"), msg );
+      Message msg_locale = ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get("missingVar",1);
+      assertTrue (msg.equals(msg_locale.toString()), msg);
     }
   }
 }
