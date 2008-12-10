@@ -109,8 +109,6 @@ class StatusCli extends ConsoleApplication
 
   // This CLI is always using the administration connector with SSL
   private final boolean alwaysSSL = true;
-  private boolean useSSL = true;
-  private boolean useStartTLS = false;
 
   /**
    * The enumeration containing the different return codes that the command-line
@@ -775,10 +773,7 @@ class StatusCli extends ConsoleApplication
       new LinkedHashSet<ConnectionHandlerDescriptor>();
     for (ConnectionHandlerDescriptor listener: allHandlers)
     {
-      if (listener.getProtocol() != ConnectionHandlerDescriptor.Protocol.LDIF)
-      {
-        connectionHandlers.add(listener);
-      }
+      connectionHandlers.add(listener);
     }
 
     if (connectionHandlers.size() == 0)
