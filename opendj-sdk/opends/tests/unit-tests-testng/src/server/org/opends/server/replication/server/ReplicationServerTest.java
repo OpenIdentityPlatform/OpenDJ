@@ -187,7 +187,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * This method is used to make sure that this order is always respected.
    * (Using testng dependency does not work)
    */
-  @Test(enabled=true)
+  @Test(enabled=true, dependsOnMethods = { "searchBackend"})
   public void replicationServerTest() throws Exception
   {
     replicationServer.clearDb();
@@ -214,7 +214,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * test is disabled and should only be enabled in workspaces but never
    * committed in the repository.
    */
-  @Test(enabled=false)
+  @Test(enabled=false, dependsOnMethods = { "searchBackend"})
   public void replicationServerTestLoop() throws Exception
   {
     replicationServer.clearDb();
@@ -558,7 +558,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * This test is configured by a relatively low stress
    * but can be changed using TOTAL_MSG and CLIENT_THREADS consts.
    */
-  @Test(enabled=true)
+  @Test(enabled=true, dependsOnMethods = { "searchBackend"})
   public void oneWriterMultipleReader() throws Exception
   {
     debugInfo("Starting oneWriterMultipleReader");
@@ -654,7 +654,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * This test is configured for a relatively low stress
    * but can be changed using TOTAL_MSG and THREADS consts.
    */
-  @Test()
+  @Test(dependsOnMethods = { "searchBackend"})
   public void multipleWriterMultipleReader() throws Exception
   {
     debugInfo("Starting multipleWriterMultipleReader");
