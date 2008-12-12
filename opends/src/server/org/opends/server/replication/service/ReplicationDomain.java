@@ -104,7 +104,7 @@ import org.opends.server.types.ResultCode;
  *   should read the list of replication servers from the configuration,
  *   instantiate a {@link ServerState} then start the publish service
  *   by calling
- *   {@link #startPublishService(Collection, ServerState, int, long)}.
+ *   {@link #startPublishService(Collection, int, long)}.
  *   At this point it can start calling the {@link #publish(UpdateMsg)}
  *   method if needed.
  * <p>
@@ -119,7 +119,7 @@ import org.opends.server.types.ResultCode;
  *   ReplicationDomain implementation should implement the appropriate code
  *   for replaying the update on the local repository.
  *   When fully done the subclass must call the
- *   {@link #processUpdateDone(UpdateMsg)} method.
+ *   {@link #processUpdateDone(UpdateMsg, String)} method.
  *   This allows to process the update asynchronously if necessary.
  *
  * <p>
@@ -134,8 +134,8 @@ import org.opends.server.types.ResultCode;
  *   Full Initialization of a replica can be triggered by LDAP clients
  *   by creating InitializeTasks or InitializeTargetTask.
  *   Full initialization can also by triggered from the ReplicationDomain
- *   implementation using methods {@link #initializeRemote(short, Task)}
- *   or {@link #initializeFromRemote(short, Task)}.
+ *   implementation using methods {@link #initializeRemote(short)}
+ *   or {@link #initializeFromRemote(short)}.
  * <p>
  *   At shutdown time, the {@link #stopDomain()} method should be called to
  *   cleanly stop the replication service.
@@ -335,11 +335,15 @@ public abstract class ReplicationDomain
    * @param initStatus              The status to enter the state machine with.
    * @param replicationServerState  The ServerState of the ReplicationServer
    *                                with which the session was established.
+   * @param generationID            The current generationID of the
+   *                                ReplicationServer with which the session
+   *                                was established.
    * @param session                 The ProtocolSession that is currently used.
    */
   public void sessionInitiated(
       ServerStatus initStatus,
       ServerState replicationServerState,
+      long generationID,
       ProtocolSession session)
   {
     // Sanity check: is it a valid initial status?
@@ -1217,11 +1221,13 @@ public abstract class ReplicationDomain
   /**
    * Process the initialization of some other server or servers in the topology
    * specified by the target argument.
-   * @param target The target that should be initialized
-   * @param initTask The task that triggers this initialization and that should
-   *                 be updated with its progress.
    *
-   * @exception DirectoryException When an error occurs.
+   * @param target    The target that should be initialized
+   * @param initTask  The task that triggers this initialization and that should
+   *                  be updated with its progress.
+   *
+   * @exception DirectoryException  If the Replication Initialization protocol
+   *                                failed.
    */
   void initializeRemote(short target, Task initTask)
   throws DirectoryException
@@ -1507,6 +1513,54 @@ public abstract class ReplicationDomain
 
   /**
    * Initializes this domain from another source server.
+   * <p>
+   * When this method is called, a request for initialization will
+   * be sent to the source server asking for initialization.
+   * <p>
+   * The {@link #exportBackend(OutputStream)} will therefore be called
+   * on the source server, and the {@link #importBackend(InputStream)}
+   * will be called on his server.
+   * <p>
+   * The InputStream and OutpuStream given as a parameter to those
+   * methods will be connected through the replication protocol.
+   *
+   * @param source   The server-id of the source from which to initialize.
+   *                 The source can be discovered using the
+   *                 {@link #getDsList()} method.
+
+   * @throws DirectoryException If it was not possible to publish the
+   *                            Initialization message to the Topology.
+   */
+  public void initializeFromRemote(short source)
+  throws DirectoryException
+  {
+    initializeFromRemote(source, null);
+  }
+
+  /**
+   * Initializes a remote server from this server.
+   * <p>
+   * The {@link #exportBackend(OutputStream)} will therefore be called
+   * on this server, and the {@link #importBackend(InputStream)}
+   * will be called on the remote server.
+   * <p>
+   * The InputStream and OutpuStream given as a parameter to those
+   * methods will be connected through the replication protocol.
+   *
+   * @param target   The server-id of the server that should be initialized.
+   *                 The target can be discovered using the
+   *                 {@link #getDsList()} method.
+   *
+   * @throws DirectoryException If it was not possible to publish the
+   *                            Initialization message to the Topology.
+   */
+  public void initializeRemote(short target) throws DirectoryException
+  {
+    initializeRemote(target, null);
+  }
+
+  /**
+   * Initializes this domain from another source server.
    *
    * @param source The source from which to initialize
    * @param initTask The task that launched the initialization
@@ -1694,12 +1748,27 @@ public abstract class ReplicationDomain
   }
 
   /**
+   * Reset the Replication Log.
+   * Calling this method will remove all the Replication information that
+   * was kept on all the Replication Servers currently connected in the
+   * topology.
+   *
+   * @throws DirectoryException If this ReplicationDomain is not currently
+   *                           connected to a Replication Server or it
+   *                           was not possible to contact it.
+   */
+  public void resetReplicationLog() throws DirectoryException
+  {
+    resetGenerationId((long)-1);
+  }
+
+  /**
    * Reset the generationId of this domain in the whole topology.
    * A message is sent to the Replication Servers for them to reset
    * their change dbs.
    *
-   * @param generationIdNewValue The new value of the generation Id.
-   * @throws DirectoryException when an error occurs
+   * @param generationIdNewValue  The new value of the generation Id.
+   * @throws DirectoryException   When an error occurs
    */
   void resetGenerationId(Long generationIdNewValue)
   throws DirectoryException
@@ -2095,7 +2164,7 @@ public abstract class ReplicationDomain
    * <p>
    * The Replication Service will restart from the point indicated by the
    * {@link ServerState} that was given as a parameter to the
-   * {@link #startPublishService(Collection, ServerState, int, long)}
+   * {@link #startPublishService(Collection, int, long)}
    * at startup time.
    * If some data have changed in the repository during the period of time when
    * the Replication Service was disabled, this {@link ServerState} should
@@ -2195,9 +2264,10 @@ public abstract class ReplicationDomain
    *                   time.
    *                   If <code> true </code> is returned, no further
    *                   processing is necessary.
+   *
    *                   If <code> false </code> is returned, the subclass should
    *                   call the method
-   *                   {@link #processUpdateDone(UpdateMsg)}
+   *                   {@link #processUpdateDone(UpdateMsg, String)}
    *                   and update the ServerState
    *                   When this processing is complete.
    *

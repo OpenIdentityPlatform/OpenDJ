@@ -28,6 +28,7 @@ package org.opends.server.replication.service;
 
 import static org.testng.Assert.*;
 
+import java.util.List;
 import java.util.TreeSet;
 
 import java.util.concurrent.LinkedBlockingQueue;
@@ -39,6 +40,7 @@ import java.util.concurrent.TimeUnit;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.DSInfo;
+import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
@@ -51,6 +53,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
 {
   /**
    * Test that a ReplicationDomain is able to publish and receive UpdateMsg.
+   * Also test the ReplicationDomain.resetReplicationLog() method.
    */
   @Test(enabled=true)
   public void publishAndReceive() throws Exception
@@ -95,6 +98,33 @@ public class ReplicationDomainTest extends ReplicationTestCase
       UpdateMsg rcvdMsg = rcvQueue2.poll(1, TimeUnit.SECONDS);
       assertNotNull(rcvdMsg);
       assertEquals(test, rcvdMsg.getPayload());
+
+
+      /*
+       * Now test the resetReplicationLog() method.
+       */
+      List<RSInfo> replServers = domain1.getRsList();
+
+      // There should be one and only one server in the list.
+      assertTrue(replServers.size() == 1);
+
+      RSInfo replServerInfo = replServers.get(0);
+
+      // The generation Id of the remote should be 1
+      assertTrue(replServerInfo.getGenerationId() == 1);
+
+      domain1.resetReplicationLog();
+      Thread.sleep(1000);
+
+      replServers = domain1.getRsList();
+
+      // There should be one and only one server in the list.
+      assertTrue(replServers.size() == 1);
+
+      replServerInfo = replServers.get(0);
+
+      // The generation Id of the remote should now be -1
+      assertTrue(replServerInfo.getGenerationId() == -1);
     }
     finally
     {
@@ -161,7 +191,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
       {
         if (remoteDS.getDsId() != domain2.getServerId())
         {
-          domain2.initializeFromRemote(remoteDS.getDsId() , null);
+          domain2.initializeFromRemote(remoteDS.getDsId());
           break;
         }
       }
