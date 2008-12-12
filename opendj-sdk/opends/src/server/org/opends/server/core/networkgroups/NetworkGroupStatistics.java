@@ -69,12 +69,10 @@ public class NetworkGroupStatistics
   /**
    * Constructor.
    * @param networkGroup The network group owning these stats
-   * @param instanceName The name of the stat object
    */
-  public NetworkGroupStatistics(
-          NetworkGroup networkGroup, String instanceName) {
-    super("LDAP Statistics Monitor Provider");
-    this.instanceName = instanceName;
+  public NetworkGroupStatistics(NetworkGroup networkGroup) {
+    super(networkGroup.getID());
+    this.instanceName = networkGroup.getID();
     this.networkGroup = networkGroup;
     DirectoryServer.registerMonitorProvider(this);
   }
@@ -148,7 +146,7 @@ public class NetworkGroupStatistics
    * {@inheritDoc}
    */
   public String getMonitorInstanceName() {
-    return instanceName;
+      return this.instanceName+",cn=Network Groups";
   }
 
   /**

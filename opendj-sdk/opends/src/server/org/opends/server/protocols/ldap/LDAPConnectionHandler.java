@@ -293,7 +293,7 @@ public final class LDAPConnectionHandler extends
     if (currentConfig.isAllowLDAPV2() != config.isAllowLDAPV2()) {
       if (config.isAllowLDAPV2()) {
         if (statTracker == null) {
-          statTracker = new LDAPStatistics(handlerName
+          statTracker = new LDAPStatistics(this,handlerName
               + " Statistics");
         } else {
           statTracker.clearStatistics();
@@ -736,7 +736,7 @@ public final class LDAPConnectionHandler extends
     }
 
     // Perform any additional initialization that might be required.
-    statTracker = new LDAPStatistics(handlerName + " Statistics");
+    statTracker = new LDAPStatistics(this, handlerName + " Statistics");
 
     // Attempt to bind to the listen port on all configured addresses to
     // verify whether the connection handler will be able to start.

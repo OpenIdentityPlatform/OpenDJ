@@ -3968,3 +3968,9 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.188
         ds-cfg-allowed-subtrees $
         ds-cfg-prohibited-subtrees )
   X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.950
+  NAME 'ds-mon-branch'
+  SUP top
+  STRUCTURAL
+  MUST cn
+  X-ORIGIN 'OpenDS Directory Server' )

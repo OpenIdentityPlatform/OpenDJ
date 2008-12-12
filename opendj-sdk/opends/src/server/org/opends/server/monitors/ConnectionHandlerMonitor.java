@@ -70,6 +70,9 @@ public class ConnectionHandlerMonitor
   // The attribute type that will be used to report the protocol.
   private AttributeType protocolType;
 
+  // The attribute type that will be used to report the config dn .
+  private AttributeType configDnType;
+
   // The connection handler with which this monitor is associated.
   private ConnectionHandler<?> connectionHandler;
 
@@ -117,6 +120,10 @@ public class ConnectionHandlerMonitor
 
     protocolType =
          DirectoryConfig.getAttributeType(ATTR_MONITOR_CONNHANDLER_PROTOCOL,
+                                          true);
+
+    configDnType =
+         DirectoryConfig.getAttributeType(ATTR_MONITOR_CONFIG_DN,
                                           true);
   }
 
@@ -173,6 +180,10 @@ public class ConnectionHandlerMonitor
   public List<Attribute> getMonitorData()
   {
     LinkedList<Attribute> attrs = new LinkedList<Attribute>();
+
+    // Configuration DN
+    attrs.add(Attributes.create(configDnType, String.valueOf(
+            connectionHandler.getComponentEntryDN().toNormalizedString())));
 
     int numConnections = 0;
     LinkedList<ClientConnection> conns = new LinkedList<ClientConnection>(

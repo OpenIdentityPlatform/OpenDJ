@@ -56,13 +56,26 @@ import org.opends.server.types.InitializationException;
 public class ClientConnectionMonitorProvider
        extends MonitorProvider<ClientConnectionMonitorProviderCfg>
 {
+
+  private ConnectionHandler<?> handler;
+
   /**
    * Creates an instance of this monitor provider.
    */
   public ClientConnectionMonitorProvider()
   {
     super("Client Connection Monitor Provider");
+    // No initialization should be performed here.
+  }
 
+  /**
+   * Creates an instance of this monitor provider.
+   * @param handler to which the monitor provider is associated.
+   */
+  public ClientConnectionMonitorProvider(ConnectionHandler handler)
+  {
+    super("Client Connection Monitor Provider");
+    this.handler=handler;
     // No initialization should be performed here.
   }
 
@@ -88,7 +101,14 @@ public class ClientConnectionMonitorProvider
    */
   public String getMonitorInstanceName()
   {
-    return "Client Connections";
+    if (this.handler==null) {
+       return "Client Connections";
+    }
+    else {
+       // Client connections of a connection handler
+       return "Client Connections"+",cn="+
+               this.handler.getConnectionHandlerName();
+    }
   }
 
 
@@ -135,31 +155,38 @@ public class ClientConnectionMonitorProvider
    */
   public ArrayList<Attribute> getMonitorData()
   {
-    // Get information about all the available connections.
-    ArrayList<Collection<ClientConnection>> connCollections =
-         new ArrayList<Collection<ClientConnection>>();
-    for (ConnectionHandler<?> handler : DirectoryServer.getConnectionHandlers())
-    {
-      ConnectionHandler<? extends ConnectionHandlerCfg> connHandler =
-           (ConnectionHandler<? extends ConnectionHandlerCfg>) handler;
-      connCollections.add(connHandler.getClientConnections());
-    }
-
-
     // Re-order the connections by connection ID.
     TreeMap<Long,ClientConnection> connMap =
-         new TreeMap<Long,ClientConnection>();
-    for (Collection<ClientConnection> collection : connCollections)
-    {
-      for (ClientConnection conn : collection)
-      {
-        connMap.put(conn.getConnectionID(), conn);
-      }
+             new TreeMap<Long,ClientConnection>();
+
+    if (this.handler==null) {
+        // Get information about all the available connections.
+        ArrayList<Collection<ClientConnection>> connCollections =
+             new ArrayList<Collection<ClientConnection>>();
+        for (ConnectionHandler<?> hdl : DirectoryServer.getConnectionHandlers())
+        {
+          ConnectionHandler<? extends ConnectionHandlerCfg> connHandler =
+               (ConnectionHandler<? extends ConnectionHandlerCfg>) hdl;
+          connCollections.add(connHandler.getClientConnections());
+        }
+        for (Collection<ClientConnection> collection : connCollections)
+        {
+          for (ClientConnection conn : collection)
+          {
+            connMap.put(conn.getConnectionID(), conn);
+          }
+        }
+
+    }
+    else {
+       Collection<ClientConnection> collection =
+               this.handler.getClientConnections();
+       for (ClientConnection conn : collection) {
+            connMap.put(conn.getConnectionID(), conn);
+       }
     }
 
 
-    // Iterate through all the client connections and create a one-line summary
-    // of each.
     AttributeType attrType = DirectoryServer
         .getDefaultAttributeType("connection");
     AttributeBuilder builder = new AttributeBuilder(attrType);
@@ -168,8 +195,7 @@ public class ClientConnectionMonitorProvider
       builder.add(new AttributeValue(attrType, conn.getMonitorSummary()));
     }
 
-
-    ArrayList<Attribute> attrs = new ArrayList<Attribute>(1);
+    ArrayList<Attribute> attrs = new ArrayList<Attribute>(2);
     attrs.add(builder.toAttribute());
     return attrs;
   }
