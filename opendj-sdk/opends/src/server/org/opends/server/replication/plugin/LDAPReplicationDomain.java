@@ -158,7 +158,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
    * The fully-qualified name of this class.
    */
   private static final String CLASS_NAME =
-       "org.opends.server.replication.plugin.ReplicationDomain";
+       "org.opends.server.replication.plugin.LDAPReplicationDomain";
 
   /**
    * The attribute used to mark conflicting entries.
@@ -2642,12 +2642,15 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   /**
    * {@inheritDoc}
    */
+  @Override
   public void sessionInitiated(
       ServerStatus initStatus,
       ServerState replicationServerState,
+      long generationID,
       ProtocolSession session)
   {
-    super.sessionInitiated(initStatus, replicationServerState, session);
+    super.sessionInitiated(
+        initStatus, replicationServerState,generationID, session);
     try
     {
       /*

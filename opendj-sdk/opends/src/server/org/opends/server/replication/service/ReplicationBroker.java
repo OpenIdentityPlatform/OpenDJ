@@ -432,6 +432,7 @@ public class ReplicationBroker
                 {
                   domain.sessionInitiated(
                       initStatus, replServerStartMsg.getServerState(),
+                      replServerStartMsg.getGenerationId(),
                       session);
                 }
                 receiveTopo(topologyMsg);
