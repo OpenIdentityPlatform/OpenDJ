@@ -58,7 +58,7 @@ public class SwordFishIdConfiguration {
     private SwordFishIdConfiguration() {
         // Build the full path to the properties files
         String confDir =
-                DirectoryServer.getServerRoot() +
+                DirectoryServer.getInstanceRoot() +
                 File.separatorChar +
                 "config" +
                 File.separatorChar +
