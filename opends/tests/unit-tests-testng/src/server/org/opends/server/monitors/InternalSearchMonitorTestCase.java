@@ -140,12 +140,8 @@ public class InternalSearchMonitorTestCase
   public void testWithBaseObjectMonitorSearch(String monitorName)
          throws Exception
   {
-    AttributeType cnType = DirectoryServer.getAttributeType(ATTR_COMMON_NAME);
-
-    RDN[] rdns = new RDN[2];
-    rdns[0] = RDN.create(cnType, new AttributeValue(cnType, monitorName));
-    rdns[1] = RDN.create(cnType, new AttributeValue(cnType, "monitor"));
-    DN monitorDN = new DN(rdns);
+    // could be more than one level
+    DN monitorDN = DN.decode("cn="+monitorName+",cn=monitor");
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();

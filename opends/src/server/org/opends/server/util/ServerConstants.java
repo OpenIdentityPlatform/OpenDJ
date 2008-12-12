@@ -287,6 +287,12 @@ public final class ServerConstants
   public static final String ATTR_MONITOR_CONNHANDLER_LISTENER =
        "ds-connectionhandler-listener";
 
+   /**
+   * The name of the monitor attribute that is used to hold the connection
+   * handler listeners.
+   */
+  public static final String ATTR_MONITOR_CONFIG_DN =
+       "ds-mon-config-dn";
 
 
   /**
@@ -847,6 +853,11 @@ public final class ServerConstants
    */
   public static final String OC_MONITOR_ENTRY = "ds-monitor-entry";
 
+   /**
+   * The name of the objectclass that will be used as the structural class for
+   * monitor branches.
+   */
+  public static final String OC_MONITOR_BRANCH = "ds-mon-branch";
 
 
   /**

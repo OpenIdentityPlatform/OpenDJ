@@ -156,8 +156,7 @@ public class NetworkGroup
     isAdminNetworkGroup    = ADMIN_NETWORK_GROUP_NAME.equals(networkGroupID);
     isDefaultNetworkGroup  = DEFAULT_NETWORK_GROUP_NAME.equals(networkGroupID);
 
-    stats = new NetworkGroupStatistics(this,
-        networkGroupID + " Network Group Statistics");
+    stats = new NetworkGroupStatistics(this);
   }
 
 

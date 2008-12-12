@@ -467,25 +467,10 @@ public class MonitorBackend
       return getBaseMonitorEntry();
     }
 
-
-    // See if the monitor base entry is the immediate parent for the requested
-    // entry.  If not, then throw an exception.
-    DN parentDN = entryDN.getParentDNInSuffix();
-    if ((parentDN == null) || (! parentDN.equals(baseMonitorDN)))
-    {
-      if (baseMonitorDN.isAncestorOf(entryDN))
-      {
-        Message message = ERR_MONITOR_BASE_TOO_DEEP.get(
-            String.valueOf(entryDN), String.valueOf(baseMonitorDN));
-        throw new DirectoryException(
-                ResultCode.NO_SUCH_OBJECT, message, baseMonitorDN, null);
-      }
-      else
-      {
-        Message message = ERR_MONITOR_INVALID_BASE.get(
-            String.valueOf(entryDN), String.valueOf(baseMonitorDN));
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
-      }
+    if (!isATreeNode(entryDN)) {
+      Message message = ERR_MONITOR_INVALID_BASE.get(
+          String.valueOf(entryDN), String.valueOf(baseMonitorDN));
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
 
 
@@ -499,20 +484,14 @@ public class MonitorBackend
               ResultCode.NO_SUCH_OBJECT, message, baseMonitorDN, null);
     }
 
-
-    // Get the RDN value and see if it matches the instance name for one of
-    // the directory server monitor providers.
-    String rdnValue = entryRDN.getAttributeValue(0).getStringValue();
+    String rdnValue = getRdns(entryDN);
     MonitorProvider<? extends MonitorProviderCfg> monitorProvider =
          DirectoryServer.getMonitorProvider(rdnValue.toLowerCase());
-    if (monitorProvider == null)
-    {
-      Message message =
-          ERR_MONITOR_NO_SUCH_PROVIDER.get(String.valueOf(rdnValue));
-      throw new DirectoryException(
-              ResultCode.NO_SUCH_OBJECT, message, baseMonitorDN, null);
-    }
 
+    // Could be a monitor branch
+    if (monitorProvider == null) {
+       return getBranchMonitorEntry(entryDN);
+    }
 
     // Take the data from the monitor provider and stuff it into an entry.
     return getMonitorEntry(entryDN, monitorProvider);
@@ -527,27 +506,7 @@ public class MonitorBackend
   public boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-    if (entryDN.equals(baseMonitorDN))
-    {
-      return true;
-    }
-
-    DN parentDN = entryDN.getParentDNInSuffix();
-    if ((parentDN == null) || (! parentDN.equals(baseMonitorDN)))
-    {
-      return false;
-    }
-
-    RDN rdn = entryDN.getRDN();
-    if (rdn.isMultiValued())
-    {
-      return false;
-    }
-
-    String rdnValue = rdn.getAttributeValue(0).getStringValue();
-    MonitorProvider<?> monitorProvider =
-         DirectoryServer.getMonitorProvider(toLowerCase(rdnValue));
-    return (monitorProvider != null);
+      return this.isATreeNode(entryDN);
   }
 
 
@@ -718,7 +677,37 @@ public class MonitorBackend
     return e;
   }
 
+   /**
+   * Retrieves the branch monitor entry for the Directory Server.
+   * @param dn to get.
+   * @return  The branch monitor entry for the Directory Server.
+   */
+  public Entry getBranchMonitorEntry(DN dn) {
 
+    Entry e=null;
+    // Construct the set of objectclasses to include in the base monitor entry.
+    HashMap<ObjectClass,String> monitorClasses =
+         new LinkedHashMap<ObjectClass,String>(3);
+    monitorClasses.putAll(monitorObjectClasses);
+    ObjectClass monitorOC = DirectoryServer.getObjectClass(OC_MONITOR_BRANCH,
+                                                           true);
+    monitorClasses.put(monitorOC, OC_MONITOR_BRANCH);
+
+    // Iterate through all of the monitor providers defined in the server.
+
+    for (MonitorProvider<? extends MonitorProviderCfg> monitorProvider :
+           DirectoryServer.getMonitorProviders().values()) {
+
+      DN providerDN = DirectoryServer.getMonitorProviderDN(monitorProvider);
+      if (providerDN.isDescendantOf(dn)) {
+         // Construct and return the entry.
+         e = new Entry(dn, monitorClasses, null, null);
+         break;
+      }
+    }
+
+    return e;
+  }
 
   /**
    * Generates and returns a monitor entry based on the contents of the
@@ -872,60 +861,100 @@ public class MonitorBackend
     DN    baseDN    = searchOperation.getBaseDN();
     Entry baseEntry = getEntry(baseDN);
 
+    if (baseEntry==null) {
+      Message message =
+          ERR_MONITOR_NO_SUCH_PROVIDER.get(String.valueOf(baseDN.toString()));
+      throw new DirectoryException(
+              ResultCode.NO_SUCH_OBJECT, message, baseMonitorDN, null);
+
+    }
 
     // Figure out whether the base is the monitor base entry or one of its
     // children for a specific monitor.
     SearchScope  scope  = searchOperation.getScope();
     SearchFilter filter = searchOperation.getFilter();
-    if (baseMonitorDN.equals(baseDN))
+    if ((scope == SearchScope.BASE_OBJECT) ||
+        (scope == SearchScope.WHOLE_SUBTREE))
     {
-      // If it is a base-level or subtree search, then we need to look at the
-      // base monitor entry.
-      if ((scope == SearchScope.BASE_OBJECT) ||
-          (scope == SearchScope.WHOLE_SUBTREE))
+      if (filter.matchesEntry(baseEntry))
       {
-        if (filter.matchesEntry(baseEntry))
-        {
-          searchOperation.returnEntry(baseEntry, null);
-        }
-
-
-        // If it is a base-level search, then we're done.
-        if (scope == SearchScope.BASE_OBJECT)
-        {
-          return;
-        }
+        searchOperation.returnEntry(baseEntry, null);
       }
 
 
-      // Iterate through all of the monitor providers defined in the server.
-      // Get an entry for each and compare it against the filter.
-      for (MonitorProvider<? extends MonitorProviderCfg> monitorProvider :
-           DirectoryServer.getMonitorProviders().values())
+      // If it is a base-level search, then we're done.
+      if (scope == SearchScope.BASE_OBJECT)
       {
-        DN providerDN = DirectoryServer.getMonitorProviderDN(monitorProvider);
-        Entry monitorEntry = getMonitorEntry(providerDN, monitorProvider);
-        if (filter.matchesEntry(monitorEntry))
-        {
-          searchOperation.returnEntry(monitorEntry, null);
-        }
+        return;
       }
     }
-    else
-    {
-      // Look at the scope for the search.  We only need to return something if
-      // it is a base-level or subtree search.
-      if ((scope == SearchScope.BASE_OBJECT) ||
-          (scope == SearchScope.WHOLE_SUBTREE))
-      {
-        if (filter.matchesEntry(baseEntry))
-        {
-          searchOperation.returnEntry(baseEntry, null);
-        }
+
+    HashSet<DN> branches = new HashSet<DN>();
+    // Iterate through all of the monitor providers defined in the server.
+    // Get an entry for each and compare it against the filter.
+    for (MonitorProvider<? extends MonitorProviderCfg> monitorProvider :
+           DirectoryServer.getMonitorProviders().values()) {
+
+      DN providerDN = DirectoryServer.getMonitorProviderDN(monitorProvider);
+      if (baseDN.isAncestorOf(providerDN)) {
+         DN parentDN = providerDN.getParentDNInSuffix();
+         while ((parentDN!=null) && (!parentDN.equals(baseMonitorDN)) &&
+                 (!parentDN.equals(baseDN))) {
+            if ((!branches.contains(parentDN)) && (
+                    isABranch(parentDN))) {
+              Entry branchEntry = getBranchMonitorEntry(parentDN);
+              if (filter.matchesEntry(branchEntry)) {
+                  searchOperation.returnEntry(branchEntry, null);
+              }
+              branches.add(parentDN);
+            }
+            parentDN = parentDN.getParentDNInSuffix();
+         }
+         if (!providerDN.equals(baseDN)) {
+             Entry monitorEntry = getMonitorEntry(providerDN, monitorProvider);
+             if (filter.matchesEntry(monitorEntry)) {
+                searchOperation.returnEntry(monitorEntry, null);
+             }
+         }
+
       }
     }
   }
 
+  private boolean isABranch(DN dn) {
+      boolean found=false;
+      for (MonitorProvider<? extends MonitorProviderCfg> monitorProvider :
+           DirectoryServer.getMonitorProviders().values()) {
+         DN providerDN = DirectoryServer.getMonitorProviderDN(monitorProvider);
+         if (dn.equals(providerDN)) {
+             found=true;
+         }
+      }
+      return (!found);
+  }
+
+  private boolean isATreeNode(DN dn) {
+      boolean found=false;
+
+      if (dn.equals(baseMonitorDN)) {
+          return true;
+      }
+      for (MonitorProvider<? extends MonitorProviderCfg> monitorProvider :
+           DirectoryServer.getMonitorProviders().values()) {
+         DN providerDN = DirectoryServer.getMonitorProviderDN(monitorProvider);
+         if ((dn.isAncestorOf(providerDN)) ||
+                 (dn.equals(providerDN))) {
+             found=true;
+             return (found);
+         }
+      }
+      return (found);
+  }
+
+  private String getRdns(DN dn) {
+      int index = dn.toString().lastIndexOf(",");
+      return dn.toString().substring(3, index);
+  }
 
 
   /**

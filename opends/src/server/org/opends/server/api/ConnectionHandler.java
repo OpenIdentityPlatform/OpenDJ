@@ -35,6 +35,7 @@ import java.util.List;
 import org.opends.server.admin.std.server.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.monitors.ConnectionHandlerMonitor;
+import org.opends.server.types.DN;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
 
@@ -115,6 +116,14 @@ public abstract class ConnectionHandler
   public abstract String getConnectionHandlerName();
 
 
+   /**
+   * Retrieves the DN of the configuration entry with which this alert
+   * generator is associated.
+   *
+   * @return The DN of the configuration entry with which this alert
+   *         generator is associated.
+   */
+  public abstract DN getComponentEntryDN();
 
   /**
    * Retrieves the name of the protocol used to communicate with

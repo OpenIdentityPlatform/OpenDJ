@@ -36,6 +36,7 @@ import org.opends.server.admin.std.server.*;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.config.ConfigException;
+import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.HostPort;
 
@@ -67,6 +68,8 @@ public final class InternalConnectionHandler
   // The name of the protocol for this connection handler.
   private String protocol;
 
+  // Configuration object of the connection hanlder
+  private ConnectionHandlerCfg configuration;
 
 
   /**
@@ -124,7 +127,7 @@ public final class InternalConnectionHandler
                    ConnectionHandlerCfg configuration)
       throws ConfigException, InitializationException
   {
-    // No implementation required.
+    this.configuration = configuration;
   }
 
 
@@ -267,6 +270,15 @@ public final class InternalConnectionHandler
   public static void clearRootClientConnectionAtShutdown()
   {
     InternalClientConnection.clearRootClientConnectionAtShutdown();
+  }
+
+  /**
+   * Return the configuration dn of the object.
+   * @return DN of the entry.
+   */
+  @Override()
+  public DN getComponentEntryDN() {
+      return this.configuration.dn();
   }
 
 }

@@ -32,10 +32,13 @@ import java.util.ArrayList;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.monitors.ClientConnectionMonitorProvider;
+import org.opends.server.monitors.OperationMonitor;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
@@ -46,6 +49,7 @@ import org.opends.server.types.DebugLogLevel;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.types.OperationType.*;
 
 
 
@@ -128,17 +132,43 @@ public class LDAPStatistics
   // The instance name for this monitor provider instance.
   private String instanceName;
 
+  // Connection Handler to which the statistics belong to.
+  private ConnectionHandler handler;
 
+
+    // Monitor Objects : for Operations.
+    private OperationMonitor addRequestsMonitor =
+            OperationMonitor.getOperationMonitor(ADD);
+    private OperationMonitor searchRequestsMonitor =
+            OperationMonitor.getOperationMonitor(SEARCH);
+    private OperationMonitor delRequestsMonitor =
+            OperationMonitor.getOperationMonitor(DELETE);
+    private OperationMonitor bindRequestsMonitor =
+            OperationMonitor.getOperationMonitor(BIND);
+    private OperationMonitor unbindRequestsMonitor =
+            OperationMonitor.getOperationMonitor(UNBIND);
+    private OperationMonitor compareRequestsMonitor =
+            OperationMonitor.getOperationMonitor(COMPARE);
+    private OperationMonitor modRequestsMonitor =
+            OperationMonitor.getOperationMonitor(MODIFY);
+    private OperationMonitor moddnRequestsMonitor =
+            OperationMonitor.getOperationMonitor(MODIFY);
+    private OperationMonitor abandonRequestsMonitor =
+            OperationMonitor.getOperationMonitor(ABANDON);
+    private OperationMonitor extendedRequestsMonitor =
+            OperationMonitor.getOperationMonitor(EXTENDED);
 
 
   /**
    * Creates a new instance of this class with no parent.
    *
+   * @param handler to which the stats belong  to.
    * @param  instanceName  The name for this monitor provider instance.
    */
-  public LDAPStatistics(String instanceName)
+  public LDAPStatistics(ConnectionHandler handler,
+          String instanceName)
   {
-    this(instanceName, null);
+    this(handler, instanceName, null);
 
     DirectoryServer.registerMonitorProvider(this);
   }
@@ -148,18 +178,21 @@ public class LDAPStatistics
   /**
    * Creates a new instance of this class with the specified parent.
    *
+   * @param  handler       the handler to which the stats belong to.
    * @param  instanceName  The name for this monitor provider instance.
    * @param  parent        The parent object that should also be updated
    *                       whenever this class is updated.  It may be null if
    *                       there should not be a parent.
    */
-  public LDAPStatistics(String instanceName, LDAPStatistics parent)
+  public LDAPStatistics(ConnectionHandler handler,
+          String instanceName, LDAPStatistics parent)
   {
     super("LDAP Statistics Monitor Provider");
 
 
     this.instanceName = instanceName;
     this.parent       = parent;
+    this.handler = handler;
 
     abandonLock    = new Object();
     connectLock    = new Object();
@@ -196,6 +229,11 @@ public class LDAPStatistics
     searchResultReferences = 0;
     searchResultsDone      = 0;
     unbindRequests         = 0;
+
+    ClientConnectionMonitorProvider connections =
+                new ClientConnectionMonitorProvider(this.handler);
+
+    DirectoryServer.registerMonitorProvider(connections);
   }
 
 
@@ -407,7 +445,89 @@ public class LDAPStatistics
     attrs.add(createAttribute("unbindRequests",
                               String.valueOf(tmpUnbindRequests)));
 
-    return attrs;
+     // adds
+     attrs.add(createAttribute(
+                "ds-mon-add-operations-total-count",
+                String.valueOf(addRequestsMonitor.getCounter().getCount())));
+     attrs.add(createAttribute(
+                "ds-mon-resident-time-add-operations-total-time",
+                String.valueOf(addRequestsMonitor.getTotalTime())));
+
+     // search
+     attrs.add(createAttribute(
+              "ds-mon-search-operations-total-count",
+                String.valueOf(searchRequestsMonitor.getCounter().getCount())));
+     attrs.add(createAttribute(
+                "ds-mon-resident-time-search-operations-total-time",
+                String.valueOf(searchRequestsMonitor.getTotalTime())));
+
+     // bind
+     attrs.add(createAttribute(
+                "ds-mon-bind-operations-total-count",
+                String.valueOf(bindRequestsMonitor.getCounter().getCount())));
+     attrs.add(createAttribute(
+                "ds-mon-resident-time-bind-operations-total-time",
+                String.valueOf(bindRequestsMonitor.getTotalTime())));
+
+     // unbind
+     attrs.add(createAttribute(
+              "ds-mon-unbind-operations-total-count",
+              String.valueOf(unbindRequestsMonitor.getCounter().getCount())));
+     attrs.add(createAttribute(
+                "ds-mon-resident-time-unbind-operations-total-time",
+                String.valueOf(unbindRequestsMonitor.getTotalTime())));
+
+     // compare
+     attrs.add(createAttribute(
+             "ds-mon-compare-operations-total-count",
+             String.valueOf(
+             compareRequestsMonitor.getCounter().getCount())));
+     attrs.add(createAttribute(
+             "ds-mon-resident-time-compare-operations-total-time",
+             String.valueOf(compareRequestsMonitor.getTotalTime())));
+     // del
+     attrs.add(createAttribute(
+             "ds-mon-delete-operations-total-count",
+             String.valueOf(delRequestsMonitor.getCounter().getCount())));
+     attrs.add(createAttribute(
+             "ds-mon-resident-time-delete-operations-total-time",
+             String.valueOf(delRequestsMonitor.getTotalTime())));
+
+     // mod
+     attrs.add(createAttribute(
+             "ds-mon-mod-operations-total-count",
+             String.valueOf(modRequestsMonitor.getCounter().getCount())));
+     attrs.add(createAttribute(
+            "ds-mon-resident-time-mod-operations-total-time",
+            String.valueOf(modRequestsMonitor.getTotalTime())));
+
+     // moddn
+     attrs.add(createAttribute(
+            "ds-mon-moddn-operations-total-count",
+            String.valueOf(moddnRequestsMonitor.getCounter().getCount())));
+     attrs.add(createAttribute(
+            "ds-mon-resident-time-moddn-operations-total-time",
+            String.valueOf(moddnRequestsMonitor.getTotalTime())));
+
+     // abandon
+     attrs.add(createAttribute(
+             "ds-mon-abandon-operations-total-count",
+             String.valueOf(
+             abandonRequestsMonitor.getCounter().getCount())));
+     attrs.add(createAttribute(
+             "ds-mon-resident-time-abandon-operations-total-time",
+             String.valueOf(abandonRequestsMonitor.getTotalTime())));
+
+     // extended
+     attrs.add(createAttribute(
+             "ds-mon-extended-operations-total-count",
+             String.valueOf(
+             extendedRequestsMonitor.getCounter().getCount())));
+     attrs.add(createAttribute(
+             "ds-mon-resident-time-extended-operations-total-time",
+             String.valueOf(extendedRequestsMonitor.getTotalTime())));
+
+     return attrs;
   }
 
 
@@ -1163,5 +1283,52 @@ public class LDAPStatistics
   {
     return parent;
   }
+
+   /**
+     * Updates the monitor object.
+     * @param opMonitor monitor object.
+     */
+    public void updateMonitor(OperationMonitor opMonitor) {
+        synchronized (readLock) {
+            switch (opMonitor.getType()) {
+                case ABANDON:
+                    this.abandonRequestsMonitor.add(opMonitor);
+                    break;
+                case ADD:
+                    this.addRequestsMonitor.add(opMonitor);
+                    break;
+                case BIND:
+                    this.bindRequestsMonitor.add(opMonitor);
+                    break;
+                case COMPARE:
+                    this.compareRequestsMonitor.add(opMonitor);
+                    break;
+                case DELETE:
+                    this.delRequestsMonitor.add(opMonitor);
+                    break;
+                case EXTENDED:
+                    this.extendedRequestsMonitor.add(opMonitor);
+                    break;
+                case MODIFY:
+                    this.modRequestsMonitor.add(opMonitor);
+                    break;
+                case MODIFY_DN:
+                    this.moddnRequestsMonitor.add(opMonitor);
+                    break;
+                case SEARCH:
+                    this.searchRequestsMonitor.add(opMonitor);
+                    break;
+                case UNBIND:
+                    this.unbindRequestsMonitor.add(opMonitor);
+                    break;
+                default:
+            }
+            if (parent!=null) {
+                parent.updateMonitor(opMonitor);
+            }
+            opMonitor.reset();
+        }
+    }
+
 }
 

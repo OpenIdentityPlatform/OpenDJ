@@ -163,7 +163,6 @@ import org.opends.server.types.ObjectClassType;
 import org.opends.server.types.OperatingSystem;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.Privilege;
-import org.opends.server.types.RDN;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.Schema;
@@ -9827,7 +9826,8 @@ public class DirectoryServer
     DN monitorRootDN;
     try
     {
-      monitorRootDN = DN.decode(DN_MONITOR_ROOT);
+      // Get a complete DN which could be a tree naming schema
+      monitorRootDN = DN.decode("cn="+monitorName+","+DN_MONITOR_ROOT);
     }
     catch (DirectoryException e)
     {
@@ -9835,8 +9835,7 @@ public class DirectoryServer
       throw new RuntimeException();
     }
 
-    RDN rdn = RDN.create(cnType, new AttributeValue(cnType, monitorName));
-    return monitorRootDN.concat(rdn);
+    return monitorRootDN;
   }
 
 
