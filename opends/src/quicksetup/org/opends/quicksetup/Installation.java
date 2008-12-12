@@ -461,7 +461,7 @@ public class Installation {
    */
   public Installation(File rootDirectory, File instanceDirectory) {
     setRootDirectory(rootDirectory);
-    setInstancetDirectory(instanceDirectory);
+    setInstanceDirectory(instanceDirectory);
     if (rootDirectory.getAbsolutePath().
         equals(instanceDirectory.getAbsolutePath()))
     {
@@ -547,7 +547,7 @@ public class Installation {
    *
    * @param instanceDirectory File of this instance
    */
-  public void setInstancetDirectory(File instanceDirectory) {
+  public void setInstanceDirectory(File instanceDirectory) {
 
     // Hold off on doing validation of rootDirectory since
     // some applications (like the Installer) create an Installation
