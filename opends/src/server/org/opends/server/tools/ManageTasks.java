@@ -62,6 +62,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import org.opends.server.backends.task.TaskState;
 
 /**
  * Tool for getting information and managing tasks in the Directory Server.
@@ -423,12 +424,11 @@ public class ManageTasks extends ConsoleApplication {
                 new TaskDrilldownMenu(taskId),
                 taskEntry.getType(), taskEntry.getState());
         index++;
-        if (taskEntry.isCancelable() && !taskEntry.isDone()) {
+        if (taskEntry.isCancelable()) {
           cancelableIndices.add(index);
         }
       }
     } else {
-      // println();
       getOutputStream().println(INFO_TASKINFO_NO_TASKS.get());
       getOutputStream().println();
     }
@@ -621,6 +621,7 @@ public class ManageTasks extends ConsoleApplication {
     public MenuResult<TaskEntry> invoke(ManageTasks app)
             throws CLIException
     {
+      Message m = null;
       TaskEntry taskEntry = null;
       try {
         taskEntry = app.getTaskClient().getTaskEntry(taskId);
@@ -640,22 +641,29 @@ public class ManageTasks extends ConsoleApplication {
         table.appendCell(INFO_TASKINFO_FIELD_STATUS.get());
         table.appendCell(taskEntry.getState());
 
-        table.startRow();
-        table.appendCell(INFO_TASKINFO_FIELD_SCHEDULED_START.get());
-        Message m = taskEntry.getScheduledStartTime();
-        if (m == null || m.equals(Message.EMPTY)) {
-          table.appendCell(INFO_TASKINFO_IMMEDIATE_EXECUTION.get());
-        } else {
+        if (TaskState.isRecurring(taskEntry.getTaskState())) {
+          table.startRow();
+          table.appendCell(INFO_TASKINFO_FIELD_SCHEDULED_START.get());
+          m = taskEntry.getScheduleTab();
           table.appendCell(m);
+        } else {
+          table.startRow();
+          table.appendCell(INFO_TASKINFO_FIELD_SCHEDULED_START.get());
+          m = taskEntry.getScheduledStartTime();
+          if (m == null || m.equals(Message.EMPTY)) {
+            table.appendCell(INFO_TASKINFO_IMMEDIATE_EXECUTION.get());
+          } else {
+            table.appendCell(m);
+          }
+
+          table.startRow();
+          table.appendCell(INFO_TASKINFO_FIELD_ACTUAL_START.get());
+          table.appendCell(taskEntry.getActualStartTime());
+
+          table.startRow();
+          table.appendCell(INFO_TASKINFO_FIELD_COMPLETION_TIME.get());
+          table.appendCell(taskEntry.getCompletionTime());
         }
-
-        table.startRow();
-        table.appendCell(INFO_TASKINFO_FIELD_ACTUAL_START.get());
-        table.appendCell(taskEntry.getActualStartTime());
-
-        table.startRow();
-        table.appendCell(INFO_TASKINFO_FIELD_COMPLETION_TIME.get());
-        table.appendCell(taskEntry.getCompletionTime());
 
         writeMultiValueCells(
                 table,

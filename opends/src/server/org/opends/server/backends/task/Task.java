@@ -580,6 +580,18 @@ public abstract class Task
   }
 
   /**
+   * Indicates whether or not this task is an iteration of
+   * some recurring task.
+   *
+   * @return boolean where true indicates that this task is
+   *         recurring, false otherwise.
+   */
+  public boolean isRecurring()
+  {
+    return (recurringTaskID != null);
+  }
+
+  /**
    * Indicates whether or not this task has been cancelled.
    *
    * @return boolean where true indicates that this task was

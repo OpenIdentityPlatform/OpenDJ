@@ -701,5 +701,16 @@ public class RestoreDB extends TaskTool {
     }
     return 0;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getTaskId() {
+    if (backupIDString != null) {
+      return backupIDString.getValue();
+    } else {
+      return null;
+    }
+  }
 }
 

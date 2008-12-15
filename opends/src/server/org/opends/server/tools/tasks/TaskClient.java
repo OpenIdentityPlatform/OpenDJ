@@ -69,7 +69,10 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
+import org.opends.server.protocols.ldap.DeleteResponseProtocolOp;
 
 /**
  * Helper class for interacting with the task backend on behalf of utilities
@@ -109,16 +112,33 @@ public class TaskClient {
   public synchronized TaskEntry schedule(TaskScheduleInformation information)
           throws LDAPException, IOException, ASN1Exception, TaskClientException
   {
+    String taskID = null;
+    ASN1OctetString entryDN = null;
+    boolean scheduleRecurring = false;
+
     LDAPReader reader = connection.getLDAPReader();
     LDAPWriter writer = connection.getLDAPWriter();
 
-    // Use a formatted time/date for the ID so that is remotely useful
-    SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmssMM");
-    String taskID = df.format(new Date());
+    if (information.getRecurringDateTime() != null) {
+      scheduleRecurring = true;
+    }
 
-    ASN1OctetString entryDN =
-         new ASN1OctetString(ATTR_TASK_ID + "=" + taskID + "," +
-                             SCHEDULED_TASK_BASE_RDN + "," + DN_TASK_ROOT);
+    if (scheduleRecurring) {
+      taskID = information.getTaskId();
+      if ((taskID == null) || taskID.length() == 0) {
+        taskID = information.getTaskClass().getSimpleName() +
+          "-" + UUID.randomUUID().toString();
+      }
+      entryDN = new ASN1OctetString(ATTR_RECURRING_TASK_ID + "=" +
+        taskID + "," + RECURRING_TASK_BASE_RDN + "," + DN_TASK_ROOT);
+    } else {
+      // Use a formatted time/date for the ID so that is remotely useful
+      SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmssMM");
+      taskID = df.format(new Date());
+
+      entryDN = new ASN1OctetString(ATTR_TASK_ID + "=" + taskID + "," +
+        SCHEDULED_TASK_BASE_RDN + "," + DN_TASK_ROOT);
+    }
 
     ArrayList<LDAPControl> controls = new ArrayList<LDAPControl>();
 
@@ -127,11 +147,20 @@ public class TaskClient {
     ArrayList<ASN1OctetString> ocValues = new ArrayList<ASN1OctetString>(3);
     ocValues.add(new ASN1OctetString("top"));
     ocValues.add(new ASN1OctetString(ConfigConstants.OC_TASK));
+
+    if (scheduleRecurring) {
+      ocValues.add(new ASN1OctetString(ConfigConstants.OC_RECURRING_TASK));
+    }
+
     ocValues.add(new ASN1OctetString(information.getTaskObjectclass()));
     attributes.add(new LDAPAttribute(ATTR_OBJECTCLASS, ocValues));
 
     ArrayList<ASN1OctetString> taskIDValues = new ArrayList<ASN1OctetString>(1);
     taskIDValues.add(new ASN1OctetString(taskID));
+
+    if (scheduleRecurring) {
+      attributes.add(new LDAPAttribute(ATTR_RECURRING_TASK_ID, taskIDValues));
+    }
     attributes.add(new LDAPAttribute(ATTR_TASK_ID, taskIDValues));
 
     ArrayList<ASN1OctetString> classValues = new ArrayList<ASN1OctetString>(1);
@@ -147,6 +176,15 @@ public class TaskClient {
       startDateValues.add(new ASN1OctetString(startTimeString));
       attributes.add(new LDAPAttribute(ATTR_TASK_SCHEDULED_START_TIME,
               startDateValues));
+    }
+
+    if (scheduleRecurring) {
+      ArrayList<ASN1OctetString> recurringPatternValues =
+        new ArrayList<ASN1OctetString>(1);
+      recurringPatternValues.add(new ASN1OctetString(
+        information.getRecurringDateTime()));
+      attributes.add(new LDAPAttribute(ATTR_RECURRING_TASK_SCHEDULE,
+        recurringPatternValues));
     }
 
     // add dependency IDs
@@ -340,14 +378,13 @@ public class TaskClient {
    * Changes that the state of the task in the backend to a canceled state.
    *
    * @param  id if the task to cancel
-   * @return Entry of the task before the modification
    * @throws IOException if there is a stream communication problem
    * @throws LDAPException if there is a problem getting information
    *         out to the directory
    * @throws ASN1Exception if there is a problem with the encoding
    * @throws TaskClientException if there is no task with the requested id
    */
-  public synchronized TaskEntry cancelTask(String id)
+  public synchronized void cancelTask(String id)
           throws TaskClientException, IOException, ASN1Exception, LDAPException
   {
     LDAPReader reader = connection.getLDAPReader();
@@ -372,11 +409,6 @@ public class TaskClient {
         values.add(new ASN1OctetString(newState));
         LDAPAttribute attr = new LDAPAttribute(ATTR_TASK_STATE, values);
         mods.add(new LDAPModification(ModificationType.REPLACE, attr));
-
-        // We have to reset the start time or the scheduler will
-        // reschedule to task.
-        // attr = new LDAPAttribute(ATTR_TASK_SCHEDULED_START_TIME);
-        // mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
         ModifyRequestProtocolOp modRequest =
                 new ModifyRequestProtocolOp(dn, mods);
@@ -409,6 +441,41 @@ public class TaskClient {
                   LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
                   errorMessage);
         }
+      } else if (TaskState.isRecurring(state)) {
+
+        ASN1OctetString dn = new ASN1OctetString(entry.getDN().toString());
+        DeleteRequestProtocolOp deleteRequest =
+          new DeleteRequestProtocolOp(dn);
+
+        LDAPMessage requestMessage = new LDAPMessage(
+          nextMessageID.getAndIncrement(), deleteRequest, null);
+
+        writer.writeMessage(requestMessage);
+
+        LDAPMessage responseMessage = reader.readMessage();
+
+        if (responseMessage == null) {
+          Message message = ERR_TASK_CLIENT_UNEXPECTED_CONNECTION_CLOSURE.get();
+          throw new LDAPException(UNAVAILABLE.getIntValue(), message);
+        }
+
+        if (responseMessage.getProtocolOpType() !=
+                LDAPConstants.OP_TYPE_DELETE_RESPONSE)
+        {
+          throw new LDAPException(
+                  LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
+                  ERR_TASK_CLIENT_INVALID_RESPONSE_TYPE.get(
+                    responseMessage.getProtocolOpName()));
+        }
+
+        DeleteResponseProtocolOp deleteResponse =
+                responseMessage.getDeleteResponseProtocolOp();
+        Message errorMessage = deleteResponse.getErrorMessage();
+        if (errorMessage != null) {
+          throw new LDAPException(
+                  LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
+                  errorMessage);
+        }
       } else {
         throw new TaskClientException(
                 ERR_TASK_CLIENT_UNCANCELABLE_TASK.get(id));
@@ -417,7 +484,6 @@ public class TaskClient {
       throw new TaskClientException(
               ERR_TASK_CLIENT_TASK_STATE_UNKNOWN.get(id));
     }
-    return getTaskEntry(id);
   }
 
 

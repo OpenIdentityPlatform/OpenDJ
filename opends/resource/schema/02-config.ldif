@@ -311,8 +311,8 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.59
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.60
-  NAME 'ds-recurring-task-class-name'
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.515
+  NAME 'ds-recurring-task-schedule'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
@@ -2728,14 +2728,12 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.37
         ds-cfg-profile-sample-interval $
         ds-cfg-profile-action )
   X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.38
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.198
   NAME 'ds-recurring-task'
   SUP top
-  STRUCTURAL
-  MUST ( ds-recurring-task-class-name $
+  AUXILIARY
+  MUST ( ds-recurring-task-schedule $
          ds-recurring-task-id )
-  MAY ( ds-task-notify-on-completion $
-        ds-task-notify-on-error )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.39
   NAME 'ds-cfg-root-config'

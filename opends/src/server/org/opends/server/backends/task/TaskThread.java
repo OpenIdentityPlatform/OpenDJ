@@ -194,8 +194,11 @@ public class TaskThread
 
       try
       {
-        TaskState returnState = getAssociatedTask().execute();
-        getAssociatedTask().setTaskState(returnState);
+        if (!TaskState.isDone(getAssociatedTask().getTaskState()))
+        {
+          TaskState returnState = getAssociatedTask().execute();
+          getAssociatedTask().setTaskState(returnState);
+        }
       }
       catch (Exception e)
       {

@@ -77,6 +77,23 @@ public interface TaskScheduleInformation {
 
 
   /**
+   * Gets an arbitrary task id assigned to this task.
+   *
+   * @return assigned task id if any or <CODE>null</CODE> otherwise.
+   */
+  String getTaskId();
+
+
+  /**
+   * Gets the date/time pattern for recurring task schedule.
+   *
+   * @return recurring date/time pattern at which the task
+   *         should be scheduled.
+   */
+  String getRecurringDateTime();
+
+
+  /**
    * Gets a list of task IDs upon which this task is dependent.
    *
    * @return list of task IDs

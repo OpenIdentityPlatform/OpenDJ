@@ -168,7 +168,7 @@ public final class TestCaseUtils {
    * cases that depend on this specific value of "o=test".
    */
   public static final String TEST_ROOT_DN_STRING = "o=test";
-  
+
   /**
    * The backend if for the test backend
    */
@@ -178,7 +178,7 @@ public final class TestCaseUtils {
    * The string representation of the OpenDMK jar file location
    * that will be used as base to determine if snmp is included or not
    */
-  public static final String PROPERTY_OPENDMK_LOCATION = 
+  public static final String PROPERTY_OPENDMK_LOCATION =
           "org.opends.server.snmp.opendmk";
 
   /**
@@ -304,7 +304,7 @@ public final class TestCaseUtils {
         testInstallRoot.mkdirs();
         testInstanceRoot.mkdirs();
       }
-      
+
       File testInstanceSchema =
         new File (testInstanceRoot, "config" + File.separator + "schema");
       testInstanceSchema.mkdirs();
@@ -341,34 +341,34 @@ public final class TestCaseUtils {
       File testClassesDir   = new File(testInstanceRoot, "classes");
       File testLibDir       = new File(testInstallRoot, "lib");
       File testBinDir       = new File(testInstallRoot, "bin");
-      
+
       // Snmp resource
-      String opendmkJarFileLocation = 
+      String opendmkJarFileLocation =
               System.getProperty(PROPERTY_OPENDMK_LOCATION);
-      
+
       File opendmkJar = new File(opendmkJarFileLocation, "jdmkrt.jar");
-      
+
       File   snmpResourceDir = new File(buildRoot + File.separator + "src" +
                                     File.separator + "snmp" + File.separator +
                                     "resource");
-      
+
       File snmpConfigDir = new File(snmpResourceDir, "config");
-      
+
       File testSnmpResourceDir = new File (testConfigDir + File.separator +
                                     "snmp");
-      
+
       if (Boolean.getBoolean(PROPERTY_COPY_CLASSES_TO_TEST_PKG))
       {
         copyDirectory(serverClassesDir, testClassesDir);
         copyDirectory(unitClassesDir, testClassesDir);
       }
-      
+
       if (installedRoot != null)
       {
         copyDirectory(new File(installedRoot), testInstallRoot);
-        
+
         // Get the instance location
-        
+
       }
       else
       {
@@ -508,7 +508,7 @@ public final class TestCaseUtils {
       DirectoryEnvironmentConfig config = new DirectoryEnvironmentConfig();
       config.setServerRoot(testInstallRoot);
       config.setInstanceRoot(testInstanceRoot);
-      
+
       config.setForceDaemonThreads(true);
       config.setConfigClass(ConfigFileHandler.class);
       config.setConfigFile(new File(testConfigDir, "config.ldif"));
@@ -648,7 +648,7 @@ public final class TestCaseUtils {
     if (testConfigDir == null) {
       throw new RuntimeException("The testConfigDir variable is not set yet!");
     }
-    
+
     return (testConfigDir);
   }
 
@@ -974,7 +974,7 @@ public final class TestCaseUtils {
     in.close();
     out.close();
   }
-  
+
   public static void appendFile(File src, File dst) throws IOException {
     InputStream in = new FileInputStream(src);
     OutputStream out = new FileOutputStream(dst, true);
@@ -988,7 +988,7 @@ public final class TestCaseUtils {
     in.close();
     out.close();
   }
-   
+
 
   /**
    * Get the LDAP port the test environment Directory Server instance is
@@ -1305,6 +1305,33 @@ public final class TestCaseUtils {
 
 
   /**
+   * Adds the provided entry to the Directory Server using an internal
+   * operation.
+   *
+   * @param  lines  The lines that make up the entry to be added.
+   *
+   * @return result code for this operation.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  public static ResultCode addEntryOperation(String... lines)
+         throws Exception
+  {
+    Entry entry = makeEntry(lines);
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    AddOperation addOperation = conn.processAdd(entry.getDN(),
+                                     entry.getObjectClasses(),
+                                     entry.getUserAttributes(),
+                                     entry.getOperationalAttributes());
+    return addOperation.getResultCode();
+  }
+
+
+
+  /**
    * Adds the provided set of entries to the Directory Server using internal
    * operations.
    *
@@ -1387,7 +1414,7 @@ public final class TestCaseUtils {
       "-a",
       "-f", path
     };
-    
+
     if (useAdminPort) {
       return LDAPModify.mainModify(adminArgs, false, null, null);
     } else {
@@ -1749,7 +1776,7 @@ public final class TestCaseUtils {
     } catch (Exception e) {
        hostName="Unknown (" + e + ")";
     }
-    
+
     String[] fullArgs = new String[args.length + 11];
     fullArgs[0] = "-h";
     fullArgs[1] = hostName;
