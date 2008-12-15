@@ -48,7 +48,8 @@
             #@TestIssue                 345
             #@TestPurpose               Prepare for SASL DIGEST-MD5 tests.
             #@TestPreamble              none
-            #@TestStep                  Admin change password storage scheme to CLEAR.
+            #@TestStep                  Admin change password storage scheme to
+                                        CLEAR.
             #@TestStep                  User change his password.
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0 
@@ -58,53 +59,59 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: SASL DIGEST-MD5: Preamble Step 1 - Admin Changing Pwd Storage to CLEAR'
+              'Security: SASL DIGEST-MD5: Preamble Step 1 - Admin Changing \
+              Pwd Storage to CLEAR'
             </message>
 
             <call function="'modifyPwdPolicy'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'default-password-storage-scheme' ,
-                    'attributeValue'         : 'Clear' }
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                'propertyName'   : 'Default Password Policy' ,
+                'attributeName'  : 'default-password-storage-scheme' ,
+                'attributeValue' : 'Clear'
+              }
             </call>
             
             <message>
-               'Security: SASL DIGEST-MD5: Preamble Step 2 - Admin Changing Password for three users'
+              'Security: SASL DIGEST-MD5: Preamble Step 2 - Admin Changing \
+              Password for three users'
             </message>
 
             <call function="'modifyAnAttribute'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'uid=jsprinter, ou=People, o=SASL Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'frogleg' ,
-                    'changetype'             : 'replace' }
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : 'uid=jsprinter, ou=People, o=SASL Tests, dc=example,dc=com' ,
+                'attributeName'     : 'userpassword' ,
+                'newAttributeValue' : 'frogleg' ,
+                'changetype'        : 'replace'
+              }
             </call>
                 
             <call function="'modifyAnAttribute'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'uid=jwalleye, ou=People, o=SASL Realm Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'frogleg' ,
-                    'changetype'             : 'replace' }
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : 'uid=jwalleye, ou=People, o=SASL Realm Tests, dc=example,dc=com' ,
+                'attributeName'     : 'userpassword' ,
+                'newAttributeValue' : 'frogleg' ,
+                'changetype'        : 'replace'
+              }
             </call>
                 
             <call function="'modifyAnAttribute'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'uid=jcarp, ou=People, o=SASL Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'carpleg' ,
-                    'changetype'             : 'replace' }
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : 'uid=jcarp, ou=People, o=SASL Tests, dc=example,dc=com' ,
+                'attributeName'     : 'userpassword' ,
+                'newAttributeValue' : 'carpleg' ,
+                'changetype'        : 'replace'
+              }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -1845,9 +1852,844 @@
           </sequence>
         </testcase>
 
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          Non-clear Pwd Storage Scheme
+            #@TestIssue         
+            #@TestPurpose       Test DIGEST-MD5 with reversible pwd storage
+                                scheme other than CLEAR.
+            #@TestPreamble      none
+            #@TestStep          Admin change password storage scheme to 3DES.
+            #@TestStep          User change his password.
+            #@TestPostamble     none
+            #@TestResult        Success if OpenDS returns 0 for all ldap 
+                                operations.
+        -->
+        <testcase name="getTestCaseName('DIGEST-MD5 - Non-clear Pwd Storage')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: Non-clear Pwd Storage Scheme'
+            </message>
+            <message>
+              'Security: SASL DIGEST-MD5: Non-clear Pwd Storage Scheme - \
+              Admin Changing Pwd Storage to 3DES'
+            </message>
+
+            <call function="'modifyPwdPolicy'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                'propertyName'   : 'Default Password Policy' ,
+                'attributeName'  : 'default-password-storage-scheme' ,
+                'attributeValue' : '3DES'
+              }
+            </call>
+            
+            <message>
+              'Security: SASL DIGEST-MD5: Non-clear Pwd Storage Scheme - \
+              Admin Changing Password for test user'
+            </message>
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com' 
+            </script> 
+            <call function="'modifyAnAttribute'">
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : test_user,
+                'attributeName'     : 'userpassword',
+                'newAttributeValue' : 'newleg',
+                'changetype'        : 'replace'
+              }
+            </call>
+            
+            <message>
+              'Security: SASL DIGEST-MD5: Non-clear Pwd Storage Scheme - \
+              Search with SASL bind request as test user'
+            </message>
+            
+            <script>
+              sasl_options = '-o mech=DIGEST-MD5 -o \"authid=dn:%s\" -w newleg' \
+                             % test_user 
+            </script>
+            <call function="'AnonSearchObject'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'       : 'dc=example,dc=com',
+                'dsFilter'       : 'objectclass=*',
+                'extraParams'    : sasl_options
+              }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          Proxy-auth {no proxy-auth privilege ; 
+                                no proxy access right}
+            #@TestIssue         
+            #@TestPurpose       Test proxy authorization, when user has
+                                - no proxy-auth privilege
+                                - no proxy acces right
+            #@TestPreamble      User change his password.
+            #@TestStep          SASL bind with authzid=proxied-user
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind fails with 49.
+        -->
+        <testcase name=
+                 "getTestCaseName('DIGEST-MD5 - Proxy-auth {no priv; no aci}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: Proxy-auth \
+              {no proxy-auth privilege ; no proxy access right}'
+            </message>
+            
+            <message>
+              'Security: SASL DIGEST-MD5: Proxy-auth {no priv ; no aci}- \
+              Admin Changing Password for test user'
+            </message>
+            
+            <script>
+              proxy_auth = 'ou=People, o=Proxy Auth Tests, dc=example,dc=com'
+              proxy_user = 'uid=proxied-user, %s' % proxy_auth
+              test_user = 'uid=proxy-nopriv-noaci, %s' % proxy_auth
+            </script> 
+            <call function="'modifyAnAttribute'">
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : test_user,
+                'attributeName'     : 'userpassword',
+                'newAttributeValue' : 'newleg',
+                'changetype'        : 'replace'
+              }
+            </call>
+            
+            <message>
+              'Security: SASL DIGEST-MD5: Proxy-auth {no priv ; no aci} - \
+              SASL bind with authzid=proxied-user'
+            </message>
+            
+            <script>
+              sasl_options = '-o mech=DIGEST-MD5 -o \"authid=dn:%s\" -w newleg \
+               -o \"authzid=dn:%s\" ' % (test_user, proxy_user)
+            </script>
+            <call function="'AnonSearchObject'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'       : 'dc=example,dc=com',
+                'dsFilter'       : 'objectclass=*',
+                'extraParams'    : sasl_options,
+                'expectedRC'     : 49
+              }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          Proxy-auth {proxy-auth privilege ; 
+                                no proxy access right}
+            #@TestIssue         
+            #@TestPurpose       Test proxy authorization, when user has
+                                - proxy-auth privilege
+                                - no proxy acces right
+            #@TestPreamble      User change his password.
+            #@TestStep          SASL bind with authzid=proxied-user
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind fails with 49.
+        -->
+        <testcase name=
+                 "getTestCaseName('DIGEST-MD5 - Proxy-auth {priv; no aci}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: Proxy-auth \
+              {proxy-auth privilege ; no proxy access right}'
+            </message>
+            
+            <message>
+              'Security: SASL DIGEST-MD5: Proxy-auth {priv ; no aci}- \
+              Admin Changing Password for test user'
+            </message>
+            
+            <script>
+              proxy_auth = 'ou=People, o=Proxy Auth Tests, dc=example,dc=com'
+              proxy_user = 'uid=proxied-user, %s' % proxy_auth
+              test_user = 'uid=proxy-priv-noaci, %s' % proxy_auth
+            </script> 
+            <call function="'modifyAnAttribute'">
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : test_user,
+                'attributeName'     : 'userpassword',
+                'newAttributeValue' : 'newleg',
+                'changetype'        : 'replace'
+              }
+            </call>
+            
+            <message>
+              'Security: SASL DIGEST-MD5: Proxy-auth {priv ; no aci} - \
+              SASL bind with authzid=proxied-user'
+            </message>
+            
+            <script>
+              sasl_options = '-o mech=DIGEST-MD5 -o \"authid=dn:%s\" -w newleg \
+               -o \"authzid=dn:%s\" ' % (test_user, proxy_user)
+            </script>
+            <call function="'AnonSearchObject'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'       : 'dc=example,dc=com',
+                'dsFilter'       : 'objectclass=*',
+                'extraParams'    : sasl_options,
+                'expectedRC'     : 49
+              }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+        
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          Proxy-auth {proxy-auth + bypass acl privilege ; 
+                                no proxy access right}
+            #@TestIssue         
+            #@TestPurpose       Test proxy authorization, when user has
+                                - proxy-auth and bypass-acl privilege
+                                - no proxy acces right
+            #@TestPreamble      User change his password.
+            #@TestStep          SASL bind with authzid=proxied-user
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind succeeds.
+        -->
+        <testcase name=
+           "getTestCaseName('DIGEST-MD5 - Proxy-auth {priv + bypass; no aci}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: Proxy-auth \
+              {proxy-auth + bypass-acl privilege ; no proxy access right}'
+            </message>
+            
+            <message>
+              'Security: SASL DIGEST-MD5: Proxy-auth {priv + bypass; no aci}- \
+              Admin Changing Password for test user'
+            </message>
+            
+            <script>
+              proxy_auth = 'ou=People, o=Proxy Auth Tests, dc=example,dc=com'
+              proxy_user = 'uid=proxied-user, %s' % proxy_auth
+              test_user = 'uid=proxy-priv-bypass-acl, %s' % proxy_auth
+            </script> 
+            <call function="'modifyAnAttribute'">
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : test_user,
+                'attributeName'     : 'userpassword',
+                'newAttributeValue' : 'newleg',
+                'changetype'        : 'replace'
+              }
+            </call>
+            
+            <message>
+              'Security: SASL DIGEST-MD5: Proxy-auth {priv + bypass; no aci} - \
+              SASL bind with authzid=proxied-user'
+            </message>
+            
+            <script>
+              sasl_options = '-o mech=DIGEST-MD5 -o \"authid=dn:%s\" -w newleg \
+               -o \"authzid=dn:%s\" ' % (test_user, proxy_user)
+            </script>
+            <call function="'AnonSearchObject'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'       : 'dc=example,dc=com',
+                'dsFilter'       : 'objectclass=*',
+                'extraParams'    : sasl_options
+              }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          Proxy-auth {no proxy-auth privilege ; 
+                                proxy access right}
+            #@TestIssue         
+            #@TestPurpose       Test proxy authorization, when user has
+                                - no proxy-auth privilege
+                                - proxy acces right
+            #@TestPreamble      User change his password.
+            #@TestStep          SASL bind with authzid=proxied-user
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind fails with 49.
+        -->
+        <testcase name=
+                 "getTestCaseName('DIGEST-MD5 - Proxy-auth {no priv; aci}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: Proxy-auth \
+              {no proxy-auth privilege ; proxy access right}'
+            </message>
+            
+            <message>
+              'Security: SASL DIGEST-MD5: Proxy-auth {no priv ; aci}- \
+              Admin Changing Password for test user'
+            </message>
+            
+            <script>
+              proxy_auth = 'ou=People, o=Proxy Auth Tests, dc=example,dc=com'
+              proxy_user = 'uid=proxied-user, %s' % proxy_auth
+              test_user = 'uid=proxy-nopriv-aci, %s' % proxy_auth
+            </script> 
+            <call function="'modifyAnAttribute'">
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : test_user,
+                'attributeName'     : 'userpassword',
+                'newAttributeValue' : 'newleg',
+                'changetype'        : 'replace'
+              }
+            </call>
+            
+            <message>
+              'Security: SASL DIGEST-MD5: Proxy-auth {no priv ; aci} - \
+              SASL bind with authzid=proxied-user'
+            </message>
+            
+            <script>
+              sasl_options = '-o mech=DIGEST-MD5 -o \"authid=dn:%s\" -w newleg \
+               -o \"authzid=dn:%s\" ' % (test_user, proxy_user)
+            </script>
+            <call function="'AnonSearchObject'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'       : 'dc=example,dc=com',
+                'dsFilter'       : 'objectclass=*',
+                'extraParams'    : sasl_options,
+                'expectedRC'     : 49
+              }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          Proxy-auth {proxy-auth privilege ; 
+                                proxy access right}
+            #@TestIssue         
+            #@TestPurpose       Test proxy authorization, when user has
+                                - proxy-auth privilege
+                                - proxy acces right
+            #@TestPreamble      User change his password.
+            #@TestStep          SASL bind with authzid=proxied-user
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind succeeds.
+        -->
+        <testcase name=
+                 "getTestCaseName('DIGEST-MD5 - Proxy-auth {priv; aci}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: Proxy-auth \
+              {proxy-auth privilege ; proxy access right}'
+            </message>
+            
+            <message>
+              'Security: SASL DIGEST-MD5: Proxy-auth {priv ; aci}- \
+              Admin Changing Password for test user'
+            </message>
+            
+            <script>
+              proxy_auth = 'ou=People, o=Proxy Auth Tests, dc=example,dc=com'
+              proxy_user = 'uid=proxied-user, %s' % proxy_auth
+              test_user = 'uid=proxy-priv-aci, %s' % proxy_auth
+            </script> 
+            <call function="'modifyAnAttribute'">
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : test_user,
+                'attributeName'     : 'userpassword',
+                'newAttributeValue' : 'newleg',
+                'changetype'        : 'replace'
+              }
+            </call>
+            
+            <message>
+              'Security: SASL DIGEST-MD5: Proxy-auth {priv ; aci} - \
+              SASL bind with authzid=proxied-user'
+            </message>
+            
+            <script>
+              sasl_options = '-o mech=DIGEST-MD5 -o \"authid=dn:%s\" -w newleg \
+               -o \"authzid=dn:%s\" ' % (test_user, proxy_user)
+            </script>
+            <call function="'AnonSearchObject'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'       : 'dc=example,dc=com',
+                'dsFilter'       : 'objectclass=*',
+                'extraParams'    : sasl_options
+              }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          Proxy-auth {proxy-auth privilege ; 
+                                group proxy access right}
+            #@TestIssue         
+            #@TestPurpose       Test proxy authorization, when user has
+                                - proxy-auth privilege
+                                - group proxy acces right
+            #@TestPreamble      User change his password.
+            #@TestStep          SASL bind with authzid=proxied-user
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind succeeds.
+        -->
+        <testcase name=
+                 "getTestCaseName('DIGEST-MD5 - Proxy-auth {priv; group aci}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: Proxy-auth \
+              {proxy-auth privilege ; group proxy access right}'
+            </message>
+            
+            <message>
+              'Security: SASL DIGEST-MD5: Proxy-auth {priv ; group aci} - \
+              Admin Changing Password for test user'
+            </message>
+            
+            <script>
+              proxy_auth = 'ou=People, o=Proxy Auth Tests, dc=example,dc=com'
+              proxy_user = 'uid=proxied-user, %s' % proxy_auth
+              test_user = 'uid=proxy-priv-group-aci, %s' % proxy_auth
+            </script> 
+            <call function="'modifyAnAttribute'">
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : test_user,
+                'attributeName'     : 'userpassword',
+                'newAttributeValue' : 'newleg',
+                'changetype'        : 'replace'
+              }
+            </call>
+            
+            <message>
+              'Security: SASL DIGEST-MD5: Proxy-auth {priv ; group aci} - \
+              SASL bind with authzid=proxied-user'
+            </message>
+            
+            <script>
+              sasl_options = '-o mech=DIGEST-MD5 -o \"authid=dn:%s\" -w newleg \
+               -o \"authzid=dn:%s\" ' % (test_user, proxy_user)
+            </script>
+            <call function="'AnonSearchObject'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'       : 'dc=example,dc=com',
+                'dsFilter'       : 'objectclass=*',
+                'extraParams'    : sasl_options
+              }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+
+
+        
+        <!--- Test case: Admin set fqdn -->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          Set FQDN = fake hostname
+            #@TestIssue         
+            #@TestPurpose       Admin set FQDN in SASL DIGEST-MD5 mechanism.
+            #@TestPreamble      none
+            #@TestStep          ldapmodify used to set fqdn.
+            #@TestPostamble     none
+            #@TestResult        Success if OpenDS returns 0.
+        -->
+        <testcase name=
+                     "getTestCaseName('DIGEST-MD5 - Set FQDN = fake hostname')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL DIGEST-MD5: Set FQDN'
+            </message>
+
+            <call function="'modifySaslMech'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'handlerName'            : 'DIGEST-MD5' ,
+                    'propertyName'           : 'server-fqdn' ,
+                    'propertyValue'          : 'fqdn-test.com' }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          FQDN {hostname != fqdn}
+            #@TestIssue         
+            #@TestPurpose       Test the use of fqdn
+            #@TestPreamble      none
+            #@TestStep          SASL bind with hostname != fqdn
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind fails with 49.
+        -->
+        <testcase name=
+                 "getTestCaseName('DIGEST-MD5 - FQDN {hostname!=fqdn')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: FQDN {hostname != fqdn}'
+            </message>
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com' 
+              sasl_options = '-o mech=DIGEST-MD5 -o \"authid=dn:%s\" -w newleg' \
+                             % test_user 
+            </script>
+            <call function="'AnonSearchObject'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'       : 'dc=example,dc=com',
+                'dsFilter'       : 'objectclass=*',
+                'extraParams'    : sasl_options,
+                'expectedRC'     : 49
+              }
+            </call>
+                        
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          FQDN {hostname != fqdn ; 
+                                digest-uri = ldap/fqdn}
+            #@TestIssue         
+            #@TestPurpose       Test the use of fqdn and digest-uri
+            #@TestPreamble      none
+            #@TestStep          SASL bind with hostname != fqdn, 
+                                digest-uri = ldap/fqdn
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind succeeds.
+        -->
+        <testcase name=
+            "getTestCaseName('DIGEST-MD5 - FQDN {hostname!=fqdn ; uri=fqdn')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: FQDN {hostname!=fqdn ; uri=fqdn}'
+            </message>
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com' 
+              sasl_options = '-o mech=DIGEST-MD5 -o \"authid=dn:%s\" -w newleg \
+               -o \"digest-uri=ldap/fqdn-test.com\" ' % test_user 
+            </script>
+            <call function="'AnonSearchObject'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'       : 'dc=example,dc=com',
+                'dsFilter'       : 'objectclass=*',
+                'extraParams'    : sasl_options
+              }
+            </call>
+                        
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          FQDN {hostname != fqdn ; 
+                                digest-uri != ldap/fqdn}
+            #@TestIssue         
+            #@TestPurpose       Test the use of fqdn and digest-uri
+            #@TestPreamble      none
+            #@TestStep          SASL bind with hostname != fqdn, 
+                                digest-uri != ldap/fqdn
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind fails with 49.
+        -->
+        <testcase name=
+            "getTestCaseName('DIGEST-MD5 - FQDN {hostname!=fqdn ; uri!=fqdn')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: FQDN {hostname!=fqdn ; uri!=fqdn}'
+            </message>
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com' 
+              sasl_options = '-o mech=DIGEST-MD5 -o \"authid=dn:%s\" -w newleg \
+               -o \"digest-uri=ldap/fake-fqdn-test.com\" ' % test_user 
+            </script>
+            <call function="'AnonSearchObject'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'       : 'dc=example,dc=com',
+                'dsFilter'       : 'objectclass=*',
+                'extraParams'    : sasl_options,
+                'expectedRC'     : 49
+              }
+            </call>
+                        
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+
+
+        <!--- Test case: Admin reset fqdn -->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          Set FQDN = hostname
+            #@TestIssue         
+            #@TestPurpose       Admin set FQDN in SASL DIGEST-MD5 mechanism.
+            #@TestPreamble      none
+            #@TestStep          ldapmodify used to set fqdn.
+            #@TestPostamble     none
+            #@TestResult        Success if OpenDS returns 0.
+        -->
+        <testcase name="getTestCaseName('DIGEST-MD5 - Set FQDN = hostname')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL DIGEST-MD5: Set FQDN'
+            </message>
+
+            <call function="'modifySaslMech'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                'handlerName'    : 'DIGEST-MD5' ,
+                'propertyName'   : 'server-fqdn' ,
+                'propertyValue'  : DIRECTORY_INSTANCE_HOST
+              }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          FQDN {hostname = fqdn}
+            #@TestIssue         
+            #@TestPurpose       Test the use of fqdn
+            #@TestPreamble      none
+            #@TestStep          SASL bind with hostname = fqdn
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind succeeds.
+        -->
+        <testcase name=
+                 "getTestCaseName('DIGEST-MD5 - FQDN {hostname=fqdn')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: FQDN {hostname = fqdn}'
+            </message>
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com' 
+              sasl_options = '-o mech=DIGEST-MD5 -o \"authid=dn:%s\" -w newleg' \
+                             % test_user 
+            </script>
+            <call function="'AnonSearchObject'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'       : 'dc=example,dc=com',
+                'dsFilter'       : 'objectclass=*',
+                'extraParams'    : sasl_options
+              }
+            </call>
+                        
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          FQDN {hostname = fqdn ; 
+                                digest-uri = ldap/fqdn}
+            #@TestIssue         
+            #@TestPurpose       Test the use of fqdn and digest-uri
+            #@TestPreamble      none
+            #@TestStep          SASL bind with hostname = fqdn, 
+                                digest-uri = ldap/fqdn
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind succeeds.
+        -->
+        <testcase name=
+            "getTestCaseName('DIGEST-MD5 - FQDN {hostname=fqdn ; uri=fqdn')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: FQDN {hostname=fqdn ; uri=fqdn}'
+            </message>
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com' 
+              sasl_options = '-o mech=DIGEST-MD5 -o \"authid=dn:%s\" -w newleg \
+               -o \"digest-uri=ldap/%s\" ' % (test_user,DIRECTORY_INSTANCE_HOST)
+            </script>
+            <call function="'AnonSearchObject'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'       : 'dc=example,dc=com',
+                'dsFilter'       : 'objectclass=*',
+                'extraParams'    : sasl_options
+              }
+            </call>
+                        
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          FQDN {hostname = fqdn ; 
+                                digest-uri != ldap/fqdn}
+            #@TestIssue         
+            #@TestPurpose       Test the use of fqdn and digest-uri
+            #@TestPreamble      none
+            #@TestStep          SASL bind with hostname = fqdn, 
+                                digest-uri != ldap/fqdn
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind fails with 49.
+        -->
+        <testcase name=
+            "getTestCaseName('DIGEST-MD5 - FQDN {hostname=fqdn ; uri!=fqdn')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: FQDN {hostname=fqdn ; uri!=fqdn}'
+            </message>
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com' 
+              sasl_options = '-o mech=DIGEST-MD5 -o \"authid=dn:%s\" -w newleg \
+               -o \"digest-uri=ldap/fake-fqdn-test.com\" ' % test_user 
+            </script>
+            <call function="'AnonSearchObject'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'       : 'dc=example,dc=com',
+                'dsFilter'       : 'objectclass=*',
+                'extraParams'    : sasl_options,
+                'expectedRC'     : 49
+              }
+            </call>
+                        
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+
         
         <!--- Test case: DIGEST-MD5 SASL Mechanism -->
-       <!---
+        <!---
             Place test-specific test information here.
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests

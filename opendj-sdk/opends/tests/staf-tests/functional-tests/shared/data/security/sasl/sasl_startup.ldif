@@ -485,3 +485,145 @@ facsimiletelephonenumber: +1 408 555 1992
 roomnumber: 3915
 userpassword: dogleg
 
+dn: uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com
+cn: Test User
+sn: User
+givenname: Test
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Testing
+ou: People
+uid: test-user
+userpassword: testleg
+
+dn: o=Proxy Auth Tests, dc=example,dc=com
+objectclass: top
+objectclass: organization
+o: Proxy Auth Tests
+
+dn: ou=Groups, o=Proxy Auth Tests, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: Groups
+
+dn: cn=Test Group, ou=Groups, o=Proxy Auth Tests, dc=example,dc=com
+cn: Test Group
+objectclass: top
+objectclass: groupofuniquenames
+ou: Groups
+uniquemember: uid=proxy-priv-group-aci, ou=People, o=Proxy Auth Tests, dc=example,dc=com
+
+dn: ou=People, o=Proxy Auth Tests, dc=example,dc=com
+aci: (target="ldap:///uid=proxied-user,ou=People,o=Proxy Auth Tests,dc=example,dc=com")
+ (targetattr="*")(version 3.0; acl "SASL Client ACI"; allow (proxy) 
+ (userdn="ldap:///uid=proxy-priv-aci,ou=People,o=Proxy Auth Tests,dc=example,dc=com" or 
+ userdn="ldap:///uid=proxy-nopriv-aci,ou=People,o=Proxy Auth Tests,dc=example,dc=com" or 
+ groupdn="ldap:///cn=Test Group,ou=Groups,o=Proxy Auth Tests,dc=example,dc=com");)
+objectclass: top
+objectclass: organizationalunit
+ou: People
+
+dn: uid=proxied-user, ou=People, o=Proxy Auth Tests, dc=example,dc=com
+cn: Proxied User
+sn: User
+givenname: Proxied
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Testing
+ou: People
+uid: proxied-user
+userpassword: proxyleg
+description: This is the user used by those granted proxy-auth access
+
+dn: uid=proxy-priv-aci, ou=People, o=Proxy Auth Tests, dc=example,dc=com
+cn: Proxy Privilege & ACI
+sn: Privilege & ACI
+givenname: Proxy
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Testing
+ou: People
+uid: proxy-priv-aci
+userpassword: proxyleg
+ds-privilege-name: proxied-auth
+description: This user has proxied-auth privilege and is granted proxied access by ACI
+
+dn: uid=proxy-priv-noaci, ou=People, o=Proxy Auth Tests, dc=example,dc=com
+cn: Proxy Privilege & No ACI
+sn: Privilege & No ACI
+givenname: Proxy
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Testing
+ou: People
+uid: proxy-priv-noaci
+userpassword: proxyleg
+ds-privilege-name: proxied-auth
+description: This user has proxied-auth privilege but no granted proxied access by ACI
+
+dn: uid=proxy-nopriv-aci, ou=People, o=Proxy Auth Tests, dc=example,dc=com
+cn: Proxy No Privilege & ACI
+sn: No Privilege & ACI
+givenname: Proxy
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Testing
+ou: People
+uid: proxy-nopriv-aci
+userpassword: proxyleg
+description: This user has no proxied-auth privilege but is granted proxied access by ACI
+
+dn: uid=proxy-nopriv-noaci, ou=People, o=Proxy Auth Tests, dc=example,dc=com
+cn: Proxy No Privilege & No ACI
+sn: No Privilege & No ACI
+givenname: Proxy
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Testing
+ou: People
+uid: proxy-nopriv-noaci
+userpassword: proxyleg
+description: This user has no proxy access
+
+dn: uid=proxy-priv-bypass-acl, ou=People, o=Proxy Auth Tests, dc=example,dc=com
+cn: Proxy Privilege & By-pass ACL Privilege
+sn: Privilege & By-pass ACL Privilege
+givenname: Proxy
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Testing
+ou: People
+uid: proxy-priv-bypass-acl
+userpassword: proxyleg
+ds-privilege-name: proxied-auth
+ds-privilege-name: bypass-acl
+description: This user has proxied-auth and bypass-acl privilege but no granted proxied access by ACI
+
+dn: uid=proxy-priv-group-aci, ou=People, o=Proxy Auth Tests, dc=example,dc=com
+cn: Proxy Privilege & Group ACI
+sn: Privilege & Group ACI
+givenname: Proxy
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Testing
+ou: People
+uid: proxy-priv-group-aci
+userpassword: proxyleg
+ds-privilege-name: proxied-auth
+description: This user has proxied-auth and is member of a group granted proxied access by ACI
