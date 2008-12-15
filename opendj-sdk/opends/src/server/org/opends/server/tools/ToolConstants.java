@@ -576,6 +576,16 @@ public class ToolConstants
   public static final Character OPTION_SHORT_START_DATETIME = 't';
 
   /**
+   * Recurring task option long form.
+   */
+  public static final String OPTION_LONG_RECURRING_TASK = "recurringTask";
+
+  /**
+   * Recurring task option short form.
+   */
+  public static final Character OPTION_SHORT_RECURRING_TASK = null;
+
+  /**
    * The value for the long option propertiesFilePAth .
    */
   public static final String OPTION_LONG_PROP_FILE_PATH = "propertiesFilePath";

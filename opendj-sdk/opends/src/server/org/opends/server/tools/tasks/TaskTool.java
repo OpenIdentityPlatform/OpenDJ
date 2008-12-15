@@ -88,6 +88,9 @@ public abstract class TaskTool implements TaskScheduleInformation {
   // Argument for describing the task's start time
   StringArgument startArg;
 
+  // Argument to indicate a recurring task
+  StringArgument recurringArg;
+
   // Argument for specifying completion notifications
   StringArgument completionNotificationArg;
 
@@ -133,79 +136,88 @@ public abstract class TaskTool implements TaskScheduleInformation {
    * @return LDAPConnectionArgumentParser for processing CLI input
    */
   protected LDAPConnectionArgumentParser createArgParser(String className,
-      Message toolDescription)
-    {
+    Message toolDescription)
+  {
     ArgumentGroup ldapGroup = new ArgumentGroup(
-            INFO_DESCRIPTION_TASK_LDAP_ARGS.get(), 1001);
+      INFO_DESCRIPTION_TASK_LDAP_ARGS.get(), 1001);
 
     argParser = new LDAPConnectionArgumentParser(className,
-            toolDescription, false, ldapGroup, alwaysSSL);
+      toolDescription, false, ldapGroup, alwaysSSL);
 
     ArgumentGroup taskGroup = new ArgumentGroup(
-            INFO_DESCRIPTION_TASK_TASK_ARGS.get(), 1000);
+      INFO_DESCRIPTION_TASK_TASK_ARGS.get(), 1000);
 
     try {
       StringArgument propertiesFileArgument = new StringArgument(
-          "propertiesFilePath",
-          null, OPTION_LONG_PROP_FILE_PATH,
-          false, false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
-          INFO_DESCRIPTION_PROP_FILE_PATH.get());
+        "propertiesFilePath",
+        null, OPTION_LONG_PROP_FILE_PATH,
+        false, false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
+        INFO_DESCRIPTION_PROP_FILE_PATH.get());
       argParser.addArgument(propertiesFileArgument);
       argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-     BooleanArgument noPropertiesFileArgument = new BooleanArgument(
-          "noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
-          INFO_DESCRIPTION_NO_PROP_FILE.get());
-     argParser.addArgument(noPropertiesFileArgument);
-     argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
+      BooleanArgument noPropertiesFileArgument = new BooleanArgument(
+        "noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
+        INFO_DESCRIPTION_NO_PROP_FILE.get());
+      argParser.addArgument(noPropertiesFileArgument);
+      argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
       startArg = new StringArgument(
-              OPTION_LONG_START_DATETIME,
-              OPTION_SHORT_START_DATETIME,
-              OPTION_LONG_START_DATETIME, false, false,
-              true, INFO_START_DATETIME_PLACEHOLDER.get(),
-              null, null,
-              INFO_DESCRIPTION_START_DATETIME.get());
+        OPTION_LONG_START_DATETIME,
+        OPTION_SHORT_START_DATETIME,
+        OPTION_LONG_START_DATETIME, false, false,
+        true, INFO_START_DATETIME_PLACEHOLDER.get(),
+        null, null,
+        INFO_DESCRIPTION_START_DATETIME.get());
       argParser.addArgument(startArg, taskGroup);
 
+      recurringArg = new StringArgument(
+        OPTION_LONG_RECURRING_TASK,
+        OPTION_SHORT_RECURRING_TASK,
+        OPTION_LONG_RECURRING_TASK, false, false,
+        true, INFO_RECURRING_TASK_PLACEHOLDER.get(),
+        null, null,
+        INFO_DESCRIPTION_RECURRING_TASK.get());
+      argParser.addArgument(recurringArg, taskGroup);
+
       completionNotificationArg = new StringArgument(
-              OPTION_LONG_COMPLETION_NOTIFICATION_EMAIL,
-              OPTION_SHORT_COMPLETION_NOTIFICATION_EMAIL,
-              OPTION_LONG_COMPLETION_NOTIFICATION_EMAIL,
-              false, true, true, INFO_EMAIL_ADDRESS_PLACEHOLDER.get(),
-              null, null, INFO_DESCRIPTION_TASK_COMPLETION_NOTIFICATION.get());
+        OPTION_LONG_COMPLETION_NOTIFICATION_EMAIL,
+        OPTION_SHORT_COMPLETION_NOTIFICATION_EMAIL,
+        OPTION_LONG_COMPLETION_NOTIFICATION_EMAIL,
+        false, true, true, INFO_EMAIL_ADDRESS_PLACEHOLDER.get(),
+        null, null, INFO_DESCRIPTION_TASK_COMPLETION_NOTIFICATION.get());
       argParser.addArgument(completionNotificationArg, taskGroup);
 
       errorNotificationArg = new StringArgument(
-              OPTION_LONG_ERROR_NOTIFICATION_EMAIL,
-              OPTION_SHORT_ERROR_NOTIFICATION_EMAIL,
-              OPTION_LONG_ERROR_NOTIFICATION_EMAIL,
-              false, true, true, INFO_EMAIL_ADDRESS_PLACEHOLDER.get(),
-              null, null, INFO_DESCRIPTION_TASK_ERROR_NOTIFICATION.get());
+        OPTION_LONG_ERROR_NOTIFICATION_EMAIL,
+        OPTION_SHORT_ERROR_NOTIFICATION_EMAIL,
+        OPTION_LONG_ERROR_NOTIFICATION_EMAIL,
+        false, true, true, INFO_EMAIL_ADDRESS_PLACEHOLDER.get(),
+        null, null, INFO_DESCRIPTION_TASK_ERROR_NOTIFICATION.get());
       argParser.addArgument(errorNotificationArg, taskGroup);
 
       dependencyArg = new StringArgument(
-              OPTION_LONG_DEPENDENCY,
-              OPTION_SHORT_DEPENDENCY,
-              OPTION_LONG_DEPENDENCY,
-              false, true, true, INFO_TASK_ID_PLACEHOLDER.get(),
-              null, null, INFO_DESCRIPTION_TASK_DEPENDENCY_ID.get());
+        OPTION_LONG_DEPENDENCY,
+        OPTION_SHORT_DEPENDENCY,
+        OPTION_LONG_DEPENDENCY,
+        false, true, true, INFO_TASK_ID_PLACEHOLDER.get(),
+        null, null, INFO_DESCRIPTION_TASK_DEPENDENCY_ID.get());
       argParser.addArgument(dependencyArg, taskGroup);
 
       Set fdaValSet = EnumSet.allOf(FailedDependencyAction.class);
       failedDependencyActionArg = new StringArgument(
-              OPTION_LONG_FAILED_DEPENDENCY_ACTION,
-              OPTION_SHORT_FAILED_DEPENDENCY_ACTION,
-              OPTION_LONG_FAILED_DEPENDENCY_ACTION,
-              false, true, true, INFO_ACTION_PLACEHOLDER.get(),
-              null, null, INFO_DESCRIPTION_TASK_FAILED_DEPENDENCY_ACTION.get(
-                StaticUtils.collectionToString(fdaValSet, ","),
-                FailedDependencyAction.defaultValue().name()));
+        OPTION_LONG_FAILED_DEPENDENCY_ACTION,
+        OPTION_SHORT_FAILED_DEPENDENCY_ACTION,
+        OPTION_LONG_FAILED_DEPENDENCY_ACTION,
+        false, true, true, INFO_ACTION_PLACEHOLDER.get(),
+        null, null, INFO_DESCRIPTION_TASK_FAILED_DEPENDENCY_ACTION.get(
+        StaticUtils.collectionToString(fdaValSet, ","),
+        FailedDependencyAction.defaultValue().name()));
       argParser.addArgument(failedDependencyActionArg, taskGroup);
 
       testIfOfflineArg = new BooleanArgument(
-          "testIfOffline", null, "testIfOffline",
-          INFO_DESCRIPTION_TEST_IF_OFFLINE.get());
+        "testIfOffline", null, "testIfOffline",
+        INFO_DESCRIPTION_TEST_IF_OFFLINE.get());
       testIfOfflineArg.setHidden(true);
       argParser.addArgument(testIfOfflineArg);
 
@@ -311,6 +323,19 @@ public abstract class TaskTool implements TaskScheduleInformation {
   /**
    * {@inheritDoc}
    */
+  public String getRecurringDateTime() {
+    String pattern = null;
+
+    // If the recurring task arg is present parse its value
+    if (recurringArg != null && recurringArg.isPresent()) {
+      pattern = recurringArg.getValue();
+    }
+    return pattern;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public List<String> getDependencyIds() {
     if (dependencyArg.isPresent()) {
       return dependencyArg.getValues();
@@ -405,13 +430,18 @@ public abstract class TaskTool implements TaskScheduleInformation {
         TaskClient tc = new TaskClient(conn);
         TaskEntry taskEntry = tc.schedule(this);
         Message startTime = taskEntry.getScheduledStartTime();
-        if (startTime == null || startTime.length() == 0) {
+        if (taskEntry.getTaskState() == TaskState.RECURRING) {
+          out.println(
+                  wrapText(INFO_TASK_TOOL_RECURRING_TASK_SCHEDULED.get(
+                          taskEntry.getType(),
+                          taskEntry.getId()),
+                  MAX_LINE_WIDTH));
+        } else if (startTime == null || startTime.length() == 0) {
           out.println(
                   wrapText(INFO_TASK_TOOL_TASK_SCHEDULED_NOW.get(
                           taskEntry.getType(),
                           taskEntry.getId()),
                   MAX_LINE_WIDTH));
-
         } else {
           out.println(
                   wrapText(INFO_TASK_TOOL_TASK_SCHEDULED_FUTURE.get(
@@ -443,12 +473,13 @@ public abstract class TaskTool implements TaskScheduleInformation {
 
           } while (!taskEntry.isDone());
           if (TaskState.isSuccessful(taskEntry.getTaskState())) {
-            out.println(
-                wrapText(INFO_TASK_TOOL_TASK_SUCESSFULL.get(
-                        taskEntry.getType(),
-                        taskEntry.getId()),
-                MAX_LINE_WIDTH));
-
+            if (taskEntry.getTaskState() != TaskState.RECURRING) {
+              out.println(
+                  wrapText(INFO_TASK_TOOL_TASK_SUCESSFULL.get(
+                          taskEntry.getType(),
+                          taskEntry.getId()),
+                  MAX_LINE_WIDTH));
+            }
             return 0;
           } else {
             out.println(

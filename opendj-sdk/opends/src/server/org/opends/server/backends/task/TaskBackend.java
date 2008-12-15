@@ -617,7 +617,11 @@ public class TaskBackend
       TaskState state = t.getTaskState();
       if (TaskState.isPending(state))
       {
-        taskScheduler.removePendingTask(t.getTaskID());
+        if (t.isRecurring()) {
+          taskScheduler.removeRecurringTaskIteration(t.getTaskID());
+        } else {
+          taskScheduler.removePendingTask(t.getTaskID());
+        }
       }
       else if (TaskState.isDone(t.getTaskState()))
       {
@@ -641,9 +645,6 @@ public class TaskBackend
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
 
-
-      // Try to remove the recurring task.  This will fail if there are any
-      // associated iterations pending or running.
       taskScheduler.removeRecurringTask(rt.getRecurringTaskID());
     }
     else
@@ -707,13 +708,12 @@ public class TaskBackend
           throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
         }
 
-
         // Look at the state of the task.  We will allow anything to be altered
         // for a pending task.  For a running task, we will only allow the state
         // to be altered in order to cancel it.  We will not allow any
         // modifications for completed tasks.
         TaskState state = t.getTaskState();
-        if (TaskState.isPending(state))
+        if (TaskState.isPending(state) && !t.isRecurring())
         {
           Task newTask = taskScheduler.entryToScheduledTask(newEntry,
               modifyOperation);
@@ -727,50 +727,7 @@ public class TaskBackend
           // This will only be allowed using the replace modification type on
           // the ds-task-state attribute if the value starts with "cancel" or
           // "stop".  In that case, we'll cancel the task.
-          boolean acceptable = true;
-          for (Modification m : modifyOperation.getModifications())
-          {
-            if (m.isInternal())
-            {
-              continue;
-            }
-
-            if (m.getModificationType() != ModificationType.REPLACE)
-            {
-              acceptable = false;
-              break;
-            }
-
-            Attribute a = m.getAttribute();
-            AttributeType at = a.getAttributeType();
-            if (! at.hasName(ATTR_TASK_STATE))
-            {
-              acceptable = false;
-              break;
-            }
-
-            Iterator<AttributeValue> iterator = a.iterator();
-            if (! iterator.hasNext())
-            {
-              acceptable = false;
-              break;
-            }
-
-            AttributeValue v = iterator.next();
-            String valueString = toLowerCase(v.getStringValue());
-            if (! (valueString.startsWith("cancel") ||
-                   valueString.startsWith("stop")))
-            {
-              acceptable = false;
-              break;
-            }
-
-            if (iterator.hasNext())
-            {
-              acceptable = false;
-              break;
-            }
-          }
+          boolean acceptable = isReplaceEntryAcceptable(modifyOperation);
 
           if (acceptable)
           {
@@ -784,6 +741,37 @@ public class TaskBackend
                  ERR_TASKBE_MODIFY_RUNNING.get(String.valueOf(entryDN));
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                                          message);
+          }
+        }
+        else if (TaskState.isPending(state) && t.isRecurring())
+        {
+          // Pending recurring task iterations can only be canceled.
+          boolean acceptable = isReplaceEntryAcceptable(modifyOperation);
+
+          if (acceptable)
+          {
+            Task newTask = taskScheduler.entryToScheduledTask(newEntry,
+              modifyOperation);
+            if (newTask.getTaskState() ==
+              TaskState.CANCELED_BEFORE_STARTING)
+            {
+              taskScheduler.removePendingTask(t.getTaskID());
+              taskScheduler.scheduleTask(newTask, true);
+            }
+            else if (newTask.getTaskState() ==
+              TaskState.STOPPED_BY_ADMINISTRATOR)
+            {
+              Message message = INFO_TASKBE_RUNNING_TASK_CANCELLED.get();
+              t.interruptTask(TaskState.STOPPED_BY_ADMINISTRATOR, message);
+            }
+              return;
+          }
+          else
+          {
+            Message message =
+              ERR_TASKBE_MODIFY_RECURRING.get(String.valueOf(entryDN));
+            throw new DirectoryException(
+              ResultCode.UNWILLING_TO_PERFORM, message);
           }
         }
         else
@@ -815,6 +803,58 @@ public class TaskBackend
         LockManager.unlock(entryDN, entryLock);
       }
     }
+  }
+
+
+
+  /**
+   * Helper to determine if requested modifications are acceptable.
+   * @param modifyOperation associated with requested modifications.
+   * @return <CODE>true</CODE> if requested modifications are
+   *         acceptable, <CODE>false</CODE> otherwise.
+   */
+  private boolean isReplaceEntryAcceptable(ModifyOperation modifyOperation)
+  {
+    boolean acceptable = true;
+
+    for (Modification m : modifyOperation.getModifications()) {
+      if (m.isInternal()) {
+        continue;
+      }
+
+      if (m.getModificationType() != ModificationType.REPLACE) {
+        acceptable = false;
+        break;
+      }
+
+      Attribute a = m.getAttribute();
+      AttributeType at = a.getAttributeType();
+      if (!at.hasName(ATTR_TASK_STATE)) {
+        acceptable = false;
+        break;
+      }
+
+      Iterator<AttributeValue> iterator = a.iterator();
+      if (!iterator.hasNext()) {
+        acceptable = false;
+        break;
+      }
+
+      AttributeValue v = iterator.next();
+      String valueString = toLowerCase(v.getStringValue());
+      if (!(valueString.startsWith("cancel") ||
+        valueString.startsWith("stop"))) {
+        acceptable = false;
+        break;
+      }
+
+      if (iterator.hasNext()) {
+        acceptable = false;
+        break;
+      }
+    }
+
+    return acceptable;
   }
 
 

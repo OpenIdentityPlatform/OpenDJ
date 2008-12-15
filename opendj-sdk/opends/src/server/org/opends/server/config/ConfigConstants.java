@@ -2109,11 +2109,11 @@ public final class ConfigConstants
 
 
   /**
-   * The name of the configuration attribute that holds the name of the class
-   * used to provide the implementation logic for a recurring task.
+   * The name of the configuration attribute that holds the
+   * schedule for a recurring task.
    */
-  public static final String ATTR_RECURRING_TASK_CLASS_NAME =
-       NAME_PREFIX_RECURRING_TASK + "class-name";
+  public static final String ATTR_RECURRING_TASK_SCHEDULE =
+       NAME_PREFIX_RECURRING_TASK + "schedule";
 
 
 

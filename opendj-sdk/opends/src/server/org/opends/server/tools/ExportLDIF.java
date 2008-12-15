@@ -1029,5 +1029,13 @@ public class ExportLDIF extends TaskTool {
       return 1;
     }
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getTaskId() {
+    // NYI.
+    return null;
+  }
 }
 

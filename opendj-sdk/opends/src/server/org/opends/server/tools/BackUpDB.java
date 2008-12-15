@@ -1109,5 +1109,16 @@ public class BackUpDB extends TaskTool
     }
     return ret;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getTaskId() {
+    if (backupIDString != null) {
+      return backupIDString.getValue();
+    } else {
+      return null;
+    }
+  }
 }
 

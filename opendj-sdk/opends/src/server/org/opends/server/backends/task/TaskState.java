@@ -76,6 +76,13 @@ public enum TaskState
 
 
   /**
+   * The task state that indicates that the task is recurring.
+   */
+  RECURRING(INFO_TASK_STATE_RECURRING.get()),
+
+
+
+  /**
    * The task state that indicates that the task has completed without any
    * errors.
    */
@@ -164,6 +171,27 @@ public enum TaskState
     switch (taskState)
     {
       case RUNNING:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+
+
+  /**
+   * Indicates whether a task with the specified state is recurring.
+   *
+   * @param  taskState  The task state for which to make the determination.
+   *
+   * @return  <CODE>true</CODE> if the task state indicates that the task
+   *          is recurring, or <CODE>false</CODE> otherwise.
+   */
+  public static boolean isRecurring(TaskState taskState)
+  {
+    switch (taskState)
+    {
+      case RECURRING:
         return true;
       default:
         return false;
@@ -277,6 +305,10 @@ public enum TaskState
     else if (lowerString.equals("running"))
     {
       return RUNNING;
+    }
+    else if (lowerString.equals("recurring"))
+    {
+      return RECURRING;
     }
     else if (lowerString.equals("completed_successfully"))
     {

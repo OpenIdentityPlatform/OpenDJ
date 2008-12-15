@@ -82,6 +82,8 @@ public class TaskEntry {
     supAttrNames.add("ds-task-log-message");
     supAttrNames.add("ds-task-notify-on-completion");
     supAttrNames.add("ds-task-notify-on-error");
+    supAttrNames.add("ds-recurring-task-id");
+    supAttrNames.add("ds-recurring-task-schedule");
   }
 
   private String id;
@@ -90,6 +92,7 @@ public class TaskEntry {
   private String schedStart;
   private String actStart;
   private String compTime;
+  private String schedTab;
   private List<String> depends;
   private String depFailAct;
   private List<String> logs;
@@ -126,6 +129,7 @@ public class TaskEntry {
     logs =       getMultiStringValue(entry,  p + "log-message");
     notifyErr =  getMultiStringValue(entry,  p + "notify-on-error");
     notifyComp = getMultiStringValue(entry,  p + "notify-on-completion");
+    schedTab =   getSingleStringValue(entry, "ds-recurring-task-schedule");
 
 
     // Build a map of non-superior attribute value pairs for display
@@ -220,6 +224,15 @@ public class TaskEntry {
    */
   public Message getCompletionTime() {
     return formatTimeString(compTime);
+  }
+
+  /**
+   * Gets recurring schedule tab.
+   *
+   * @return Message tab string
+   */
+  public Message getScheduleTab() {
+    return Message.raw(schedTab);
   }
 
   /**
@@ -326,6 +339,7 @@ public class TaskEntry {
     if (state != null) {
       Task task = getTask();
       cancelable = (TaskState.isPending(state) ||
+        TaskState.isRecurring(state) ||
               (TaskState.isRunning(state) &&
                       task != null &&
                       task.isInterruptable()));

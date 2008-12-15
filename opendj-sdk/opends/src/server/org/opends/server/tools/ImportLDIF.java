@@ -1414,5 +1414,13 @@ public class ImportLDIF extends TaskTool {
     importConfig.close();
     return retCode;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getTaskId() {
+    // NYI.
+    return null;
+  }
 }
 

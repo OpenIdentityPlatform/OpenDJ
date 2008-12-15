@@ -147,6 +147,7 @@ public class BackupTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getDisplayName() {
     return INFO_TASK_BACKUP_NAME.get();
   }
@@ -154,6 +155,7 @@ public class BackupTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getAttributeDisplayName(String attrName) {
     return argDisplayMap.get(attrName);
   }
@@ -281,6 +283,12 @@ public class BackupTask extends Task
           ATTR_TASK_BACKUP_ALL, ATTR_TASK_BACKUP_BACKEND_ID);
       logError(message);
       return false;
+    }
+
+
+    // Use task id for backup id in case of recurring task.
+    if (super.isRecurring()) {
+      backupID = super.getTaskID();
     }
 
 
@@ -575,6 +583,7 @@ public class BackupTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   public void interruptTask(TaskState interruptState, Message interruptReason)
   {
     if (TaskState.STOPPED_BY_ADMINISTRATOR.equals(interruptState) &&
@@ -591,6 +600,7 @@ public class BackupTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isInterruptable() {
     return true;
   }
