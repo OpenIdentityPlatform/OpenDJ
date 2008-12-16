@@ -1822,7 +1822,7 @@
     <echo message="      for example will allow you to remotely debug the unit tests from"/>
     <echo message="      the debugger of your choice by pointing it at port 5005."/>
     <echo message="      The unit tests will not start to run until the debugger is attached"/>
-    <echo message="      unless you als specify -Dtest.remote.debug.suspend=n."/>
+    <echo message="      unless you also specify -Dtest.remote.debug.suspend=n."/>
     <echo message=""/>
   </target>
 
