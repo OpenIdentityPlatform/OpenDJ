@@ -2335,7 +2335,7 @@
   </target>
 
    <target name="compilesnmp"
-       depends="init,checkjavaversion,dynamicconstants,generatemessages,compileadmin,mibgeneration"
+       depends="mibgeneration"
        if="isopendmkpresent"
        description="Compile the SNMP Connection Handler extension source files.">
 
