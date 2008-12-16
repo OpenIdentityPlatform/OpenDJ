@@ -328,8 +328,6 @@ public class ConfigFromDirContext extends ConfigReader
         ex.add(oe);
       }
 
-      updateMonitorInformation(ctx, bs, ex);
-
       try
       {
         readSchema();
@@ -349,14 +347,150 @@ public class ConfigFromDirContext extends ConfigReader
     {
       LOG.log(Level.WARNING, "Error reading configuration: "+oe, oe);
     }
-    exceptions = Collections.unmodifiableList(ex);
     administrativeUsers = Collections.unmodifiableSet(as);
     listeners = Collections.unmodifiableSet(ls);
     backends = Collections.unmodifiableSet(bs);
+    try
+    {
+      updateMonitorInformation(ctx, ex);
+    }
+    catch (Throwable t)
+    {
+      OnlineUpdateException oupe = new OnlineUpdateException(
+          ERR_READING_CONFIG_LDAP.get(t.toString()), t);
+      ex.add(oupe);
+    }
+    exceptions = Collections.unmodifiableList(ex);
+
+  }
+
+  /**
+   * Returns an array of monitoring attributes to be returned in the request.
+   * @return an array of monitoring attributes to be returned in the request.
+   */
+  protected String[] getMonitoringAttributes()
+  {
+    return new String[] {
+        "approx-older-change-not-synchronized-millis", "missing-changes",
+        "base-dn", "server-id", "javaVersion", "currentConnections",
+        "ds-backend-id", "ds-backend-entry-count", "ds-base-dn-entry-count"
+    };
+  }
+
+  /**
+   * Takes the provided search result and updates the monitoring information
+   * accordingly.
+   * @param sr the search result.
+   * @param searchBaseDN the base search.
+   * @throws NamingException if there is an error retrieving the values of the
+   * search result.
+   */
+  protected void handleMonitoringSearchResult(SearchResult sr,
+      String searchBaseDN)
+  throws NamingException
+  {
+    if (javaVersion == null)
+    {
+      javaVersion = ConnectionUtils.getFirstValue(sr, "javaVersion");
+    }
+
+    if (numberConnections == -1)
+    {
+      String v = ConnectionUtils.getFirstValue(sr, "currentConnections");
+      if (v != null)
+      {
+        numberConnections = Integer.parseInt(v);
+      }
+    }
+
+    String dn = ConnectionUtils.getFirstValue(sr, "base-dn");
+    String replicaId = ConnectionUtils.getFirstValue(sr, "server-id");
+
+    if ((dn != null)  && (replicaId != null))
+    {
+      for (BackendDescriptor backend : backends)
+      {
+        for (BaseDNDescriptor baseDN : backend.getBaseDns())
+        {
+          if (Utilities.areDnsEqual(baseDN.getDn().toString(), dn) &&
+              String.valueOf(baseDN.getReplicaID()).equals(replicaId))
+          {
+            try
+            {
+              baseDN.setAgeOfOldestMissingChange(
+                  new Long(ConnectionUtils.getFirstValue(sr,
+              "approx-older-change-not-synchronized-millis")));
+            }
+            catch (Throwable t)
+            {
+            }
+            try
+            {
+              baseDN.setMissingChanges(new Integer(
+                  ConnectionUtils.getFirstValue(sr, "missing-changes")));
+            }
+            catch (Throwable t)
+            {
+            }
+          }
+        }
+      }
+    }
+    else
+    {
+      String backendID = ConnectionUtils.getFirstValue(sr,
+          "ds-backend-id");
+      String entryCount = ConnectionUtils.getFirstValue(sr,
+          "ds-backend-entry-count");
+      Set<String> baseDnEntries = ConnectionUtils.getValues(sr,
+          "ds-base-dn-entry-count");
+      if ((backendID != null) && ((entryCount != null) ||
+          (baseDnEntries != null)))
+      {
+        for (BackendDescriptor backend : backends)
+        {
+          if (backend.getBackendID().equalsIgnoreCase(backendID))
+          {
+            if (entryCount != null)
+            {
+              backend.setEntries(Integer.parseInt(entryCount));
+            }
+            if (baseDnEntries != null)
+            {
+              for (String s : baseDnEntries)
+              {
+                int index = s.indexOf(" ");
+                if (index != -1)
+                {
+                  for (BaseDNDescriptor baseDN : backend.getBaseDns())
+                  {
+                    dn = s.substring(index +1);
+
+                    if (Utilities.areDnsEqual(dn,
+                        baseDN.getDn().toString()))
+                    {
+                      try
+                      {
+                        baseDN.setEntries(
+                            Integer.parseInt(s.substring(0, index)));
+                      }
+                      catch (Throwable t)
+                      {
+                        /* Ignore */
+                      }
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   private void updateMonitorInformation(InitialLdapContext ctx,
-      Set<BackendDescriptor> bs,
       List<OpenDsException> ex)
   {
     // Read monitoring information: since it is computed, it is faster
@@ -364,13 +498,8 @@ public class ConfigFromDirContext extends ConfigReader
     SearchControls ctls = new SearchControls();
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
     ctls.setReturningAttributes(
-        new String[] {
-            "approx-older-change-not-synchronized-millis", "missing-changes",
-            "base-dn", "server-id", "javaVersion", "currentConnections",
-            "ds-backend-id", "ds-backend-entry-count", "ds-base-dn-entry-count"
-        });
+        getMonitoringAttributes());
     String filter = "(objectclass=*)";
-
 
     try
     {
@@ -384,106 +513,7 @@ public class ConfigFromDirContext extends ConfigReader
       while (monitorEntries.hasMore())
       {
         SearchResult sr = (SearchResult)monitorEntries.next();
-
-        if (javaVersion == null)
-        {
-          javaVersion = ConnectionUtils.getFirstValue(sr, "javaVersion");
-        }
-
-        if (numberConnections == -1)
-        {
-          String v = ConnectionUtils.getFirstValue(sr, "currentConnections");
-          if (v != null)
-          {
-            numberConnections = Integer.parseInt(v);
-          }
-        }
-
-        String dn = ConnectionUtils.getFirstValue(sr, "base-dn");
-        String replicaId = ConnectionUtils.getFirstValue(sr, "server-id");
-
-        if ((dn != null)  && (replicaId != null))
-        {
-          for (BackendDescriptor backend : bs)
-          {
-            for (BaseDNDescriptor baseDN : backend.getBaseDns())
-            {
-              if (Utilities.areDnsEqual(baseDN.getDn().toString(), dn) &&
-                  String.valueOf(baseDN.getReplicaID()).equals(replicaId))
-              {
-                try
-                {
-                  baseDN.setAgeOfOldestMissingChange(
-                      new Long(ConnectionUtils.getFirstValue(sr,
-                  "approx-older-change-not-synchronized-millis")));
-                }
-                catch (Throwable t)
-                {
-                }
-                try
-                {
-                  baseDN.setMissingChanges(new Integer(
-                      ConnectionUtils.getFirstValue(sr, "missing-changes")));
-                }
-                catch (Throwable t)
-                {
-                }
-              }
-            }
-          }
-        }
-        else
-        {
-          String backendID = ConnectionUtils.getFirstValue(sr,
-              "ds-backend-id");
-          String entryCount = ConnectionUtils.getFirstValue(sr,
-              "ds-backend-entry-count");
-          Set<String> baseDnEntries = ConnectionUtils.getValues(sr,
-              "ds-base-dn-entry-count");
-          if ((backendID != null) && ((entryCount != null) ||
-              (baseDnEntries != null)))
-          {
-            for (BackendDescriptor backend : bs)
-            {
-              if (backend.getBackendID().equalsIgnoreCase(backendID))
-              {
-                if (entryCount != null)
-                {
-                  backend.setEntries(Integer.parseInt(entryCount));
-                }
-                if (baseDnEntries != null)
-                {
-                  for (String s : baseDnEntries)
-                  {
-                    int index = s.indexOf(" ");
-                    if (index != -1)
-                    {
-                      for (BaseDNDescriptor baseDN : backend.getBaseDns())
-                      {
-                        dn = s.substring(index +1);
-
-                        if (Utilities.areDnsEqual(dn,
-                            baseDN.getDn().toString()))
-                        {
-                          try
-                          {
-                            baseDN.setEntries(
-                                Integer.parseInt(s.substring(0, index)));
-                          }
-                          catch (Throwable t)
-                          {
-                            /* Ignore */
-                          }
-                          break;
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+        handleMonitoringSearchResult(sr, "cn=monitor");
       }
     }
     catch (NamingException ne)
@@ -498,7 +528,8 @@ public class ConfigFromDirContext extends ConfigReader
       ConnectionHandlerCfgClient connHandler, String name)
   throws OpenDsException
   {
-    SortedSet<InetAddress> addresses = new TreeSet<InetAddress>();
+    SortedSet<InetAddress> addresses = new TreeSet<InetAddress>(
+        getInetAddressComparator());
     int port;
 
     ConnectionHandlerDescriptor.Protocol protocol;
@@ -524,7 +555,7 @@ public class ConfigFromDirContext extends ConfigReader
         protocol = ConnectionHandlerDescriptor.Protocol.LDAP;
       }
       SortedSet<InetAddress> v = ldap.getListenAddress();
-      if (v == null)
+      if (v != null)
       {
         addresses.addAll(v);
       }
@@ -568,7 +599,8 @@ public class ConfigFromDirContext extends ConfigReader
   private ConnectionHandlerDescriptor getConnectionHandler(
       AdministrationConnectorCfgClient adminConnector) throws OpenDsException
   {
-    SortedSet<InetAddress> addresses = new TreeSet<InetAddress>();
+    SortedSet<InetAddress> addresses = new TreeSet<InetAddress>(
+        getInetAddressComparator());
 
     ConnectionHandlerDescriptor.Protocol protocol =
       ConnectionHandlerDescriptor.Protocol.ADMINISTRATION_CONNECTOR;
@@ -578,7 +610,7 @@ public class ConfigFromDirContext extends ConfigReader
 
 
     SortedSet<InetAddress> v = adminConnector.getListenAddress();
-    if (v == null)
+    if (v != null)
     {
       addresses.addAll(v);
     }

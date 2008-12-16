@@ -57,6 +57,8 @@ public class CustomSearchResult implements Comparable {
   private String dn;
   private Map<String, Set<Object>> attributes;
   private SortedSet<String> attrNames;
+  private String toString;
+  private int hashCode;
 
   /**
    * Constructor of an empty search result.  This constructor is used by the
@@ -69,6 +71,8 @@ public class CustomSearchResult implements Comparable {
     this.dn = dn;
     attributes = new HashMap<String, Set<Object>>();
     attrNames = new TreeSet<String>();
+    toString = calculateToString();
+    hashCode = calculateHashCode();
   }
 
   /**
@@ -134,6 +138,8 @@ public class CustomSearchResult implements Comparable {
         attributes.put(name.toLowerCase(), values);
       }
     }
+    toString = calculateToString();
+    hashCode = calculateHashCode();
   }
 
   /**
@@ -178,8 +184,49 @@ public class CustomSearchResult implements Comparable {
   /**
    * {@inheritDoc}
    */
+  public boolean equals(Object o)
+  {
+    boolean equals = false;
+    if (o != null)
+    {
+      equals = o == this;
+      if (!equals && (o instanceof CustomSearchResult))
+      {
+        CustomSearchResult sr = (CustomSearchResult)o;
+        equals = getDN().equals(sr.getDN());
+        if (equals)
+        {
+          equals = getAttributeNames().equals(sr.getAttributeNames());
+          if (equals)
+          {
+            for (String attrName : getAttributeNames())
+            {
+              equals = getAttributeValues(attrName).equals(
+                  sr.getAttributeValues(attrName));
+              if (!equals)
+              {
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+    return equals;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public String toString() {
-    return "dn: "+dn+"\nattributes: "+attributes;
+    return toString;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public int hashCode() {
+    return hashCode;
   }
 
   /**
@@ -192,5 +239,17 @@ public class CustomSearchResult implements Comparable {
     attrNames.add(attrName);
     attrName = attrName.toLowerCase();
     attributes.put(attrName, values);
+    toString = calculateToString();
+    hashCode = calculateHashCode();
+  }
+
+  private String calculateToString()
+  {
+    return "dn: "+dn+"\nattributes: "+attributes;
+  }
+
+  private int calculateHashCode()
+  {
+    return 23 + toString.hashCode();
   }
 }

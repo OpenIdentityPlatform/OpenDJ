@@ -925,8 +925,8 @@ public class ControlPanelInfo
       if (port > 0) {
         InetAddress address = addresses.first();
         url = "ldaps://" +
-          ConnectionUtils.getHostNameForLdapUrl(address.toString()) + ":" +
-          port;
+          ConnectionUtils.getHostNameForLdapUrl(address.getHostAddress()) + ":"
+          + port;
       }
     }
     return url;

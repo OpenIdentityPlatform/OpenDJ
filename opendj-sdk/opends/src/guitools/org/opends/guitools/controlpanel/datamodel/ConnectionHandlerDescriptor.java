@@ -35,6 +35,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.opends.messages.Message;
+import org.opends.server.admin.std.meta.AdministrationConnectorCfgDefn;
 
 /**
  * This class is used to represent a Listener and is aimed to be used by the
@@ -131,7 +132,9 @@ public class ConnectionHandlerDescriptor
   }
 
   private State state;
-  private SortedSet<InetAddress> addresses = new TreeSet<InetAddress>();
+  private SortedSet<InetAddress> addresses = new TreeSet<InetAddress>(
+      AdministrationConnectorCfgDefn.getInstance().
+      getListenAddressPropertyDefinition());
   private int port;
   private Protocol protocol;
   private String toString;
@@ -140,7 +143,7 @@ public class ConnectionHandlerDescriptor
   private int hashCode;
 
   /**
-   * Constructor for thid class.
+   * Constructor for the connection handler..
    * @param addresses the list of InetAdresses of the listener.
    * @param port the port of the connection handler.
    * @param protocol the protocol of the listener.
@@ -173,7 +176,7 @@ public class ConnectionHandlerDescriptor
    */
   public SortedSet<InetAddress> getAddresses()
   {
-    return new TreeSet<InetAddress>(addresses);
+    return addresses;
   }
 
   /**
@@ -222,7 +225,7 @@ public class ConnectionHandlerDescriptor
     }
     else if (o instanceof ConnectionHandlerDescriptor)
     {
-      equals = hashCode() == o.hashCode();
+      equals = toString.equals(o.toString());
     }
     return equals;
   }

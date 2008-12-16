@@ -30,8 +30,10 @@ package org.opends.guitools.controlpanel.util;
 import static org.opends.messages.AdminToolMessages.*;
 
 import java.io.File;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -39,6 +41,7 @@ import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
 import org.opends.guitools.controlpanel.task.OfflineUpdateException;
+import org.opends.server.admin.std.meta.AdministrationConnectorCfgDefn;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
@@ -310,5 +313,15 @@ public abstract class ConfigReader
       }
     }
     return sortOrder;
+  }
+
+  /**
+   * Returns the comparator to be used to sort InetAddresses.
+   * @return the comparator to be used to sort InetAddresses.
+   */
+  protected Comparator<InetAddress> getInetAddressComparator()
+  {
+    return AdministrationConnectorCfgDefn.getInstance().
+    getListenAddressPropertyDefinition();
   }
 }

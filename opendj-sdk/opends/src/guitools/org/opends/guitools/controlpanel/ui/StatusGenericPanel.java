@@ -686,7 +686,7 @@ implements ConfigChangeListener
      * Constructor.
      * @param combo the combo box.
      */
-    IgnoreItemListener(JComboBox combo)
+    public IgnoreItemListener(JComboBox combo)
     {
       this.combo = combo;
       selectedItem = combo.getSelectedItem();
