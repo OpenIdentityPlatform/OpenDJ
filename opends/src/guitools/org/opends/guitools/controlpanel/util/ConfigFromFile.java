@@ -383,7 +383,8 @@ public class ConfigFromFile extends ConfigReader
   private ConnectionHandlerDescriptor getConnectionHandler(
       ConnectionHandlerCfg connHandler, String name) throws OpenDsException
   {
-    SortedSet<InetAddress> addresses = new TreeSet<InetAddress>();
+    SortedSet<InetAddress> addresses = new TreeSet<InetAddress>(
+        getInetAddressComparator());
     int port;
 
     ConnectionHandlerDescriptor.Protocol protocol;
@@ -408,7 +409,7 @@ public class ConfigFromFile extends ConfigReader
         protocol = ConnectionHandlerDescriptor.Protocol.LDAP;
       }
       SortedSet<InetAddress> v = ldap.getListenAddress();
-      if (v == null)
+      if (v != null)
       {
         addresses.addAll(v);
       }
@@ -450,7 +451,8 @@ public class ConfigFromFile extends ConfigReader
   private ConnectionHandlerDescriptor getConnectionHandler(
       AdministrationConnectorCfg adminConnector) throws OpenDsException
   {
-    SortedSet<InetAddress> addresses = new TreeSet<InetAddress>();
+    SortedSet<InetAddress> addresses = new TreeSet<InetAddress>(
+        getInetAddressComparator());
 
     ConnectionHandlerDescriptor.Protocol protocol =
       ConnectionHandlerDescriptor.Protocol.ADMINISTRATION_CONNECTOR;
@@ -460,7 +462,7 @@ public class ConfigFromFile extends ConfigReader
 
 
     SortedSet<InetAddress> v = adminConnector.getListenAddress();
-    if (v == null)
+    if (v != null)
     {
       addresses.addAll(v);
     }
