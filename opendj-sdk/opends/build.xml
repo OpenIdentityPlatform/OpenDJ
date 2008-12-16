@@ -2304,12 +2304,10 @@
   </target>
 
   <target name="snmpmessageNotbuild" unless="isopendmkpresent">
-      <echo message="SNMP extension will NOT be built/included in the delivery."/>
-      <echo message="You have to set the opendmk.lib.dir property in"/>
-      <echo message="${basedir}/build.properties file to indicate"/>
-      <echo message="the location of the OpenDMK jar files."/>
-      <echo message="To get the OpenDMK jar files please, go under"/>
-      <echo message="https://opendmk.dev.java.net/"/>
+      <echo message="Building without SNMP extension."/>
+      <echo message="To build with SNMP extension set opendmk.lib.dir build property"/>
+      <echo message="to indicate the location of the OpenDMK jar files. OpenDMK jars"/>
+      <echo message="can be found at OpenDMK project at https://opendmk.dev.java.net"/>
   </target>
 
   <target name="snmpecho" depends="snmpmessageNotbuild,snmpmessagebuild"/>
