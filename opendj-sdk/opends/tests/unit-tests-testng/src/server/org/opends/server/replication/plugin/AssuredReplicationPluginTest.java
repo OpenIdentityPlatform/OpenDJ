@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -37,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
+import java.util.UUID;
+import java.util.concurrent.locks.Lock;
 import org.opends.server.types.ResultCode;
 import org.opends.messages.Category;
 import org.opends.messages.Message;
@@ -63,15 +66,19 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.protocol.AckMsg;
+import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteStringFactory;
 import org.testng.annotations.BeforeClass;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.LockManager;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
@@ -79,6 +86,7 @@ import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.fail;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertFalse;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
@@ -120,6 +128,7 @@ public class AssuredReplicationPluginTest
   private static final int NO_TIMEOUT_SCENARIO = 3;
   private static final int SAFE_READ_MANY_ERRORS = 4;
   private static final int SAFE_DATA_MANY_ERRORS = 5;
+  private static final int NO_READ = 6;
 
   // The tracer object for the debug logger
   private static final DebugTracer TRACER = getTracer();
@@ -288,7 +297,10 @@ public class AssuredReplicationPluginTest
 
   /**
    * The fake replication server used to emulate RS behaviour the way we want
-   * for assured features test
+   * for assured features test.
+   * This fake replication server is able to receive a DS connection only.
+   * According to the configured scenario, it will answer to updates with acks
+   * as the scenario is requesting.
    */
   private class FakeReplicationServer extends Thread
   {
@@ -323,13 +335,16 @@ public class AssuredReplicationPluginTest
     // where the main code can perform test assertion
     private boolean scenarioExecuted = false;
 
+    private ChangeNumberGenerator gen = null;
+
     // Constructor for RS receiving updates in SR assured mode or not assured
     // The assured boolean means:
     // - true: SR mode
     // - false: not assured
-    public FakeReplicationServer(int port, short serverId, boolean assured)
+    public FakeReplicationServer(byte groupId, int port, short serverId, boolean assured)
     {
 
+      this.groupId = groupId;
       this.port = port;
       this.serverId = serverId;
 
@@ -341,9 +356,9 @@ public class AssuredReplicationPluginTest
     }
 
     // Constructor for RS receiving updates in SD assured mode
-    public FakeReplicationServer(int port, short serverId, int safeDataLevel)
+    public FakeReplicationServer(byte groupId, int port, short serverId, int safeDataLevel)
     {
-
+      this.groupId = groupId;
       this.port = port;
       this.serverId = serverId;
 
@@ -357,6 +372,8 @@ public class AssuredReplicationPluginTest
      */
     public void start(int scenario)
     {
+
+      gen = new ChangeNumberGenerator((short)3, 0L);
 
       // Store expected test case
       this.scenario = scenario;
@@ -472,7 +489,6 @@ public class AssuredReplicationPluginTest
         serverState = serverStartMsg.getServerState();
         generationId = serverStartMsg.getGenerationId();
         windowSize = serverStartMsg.getWindowSize();
-        groupId = serverStartMsg.getGroupId();
         sslEncryption = serverStartMsg.getSSLEncryption();
 
         // Send replication server start
@@ -586,8 +602,59 @@ public class AssuredReplicationPluginTest
         case SAFE_DATA_MANY_ERRORS:
           executeSafeDataManyErrorsScenario();
           break;
+        case NO_READ:
+          // Nothing to execute, just let session opne. This scenario used to
+          // send updates from the RS to the DS (reply test cases)
+          while (!shutdown)
+          {
+            try
+            {
+              sleep(5000);
+            } catch (InterruptedException ex)
+            {
+              // Going shutdown ?
+              break;
+            }
+          }
+          break;
         default:
           fail("Unknown scenario: " + scenario);
+      }
+    }
+
+    /*
+     * Make the RS send an add message with the passed entry and return the ack
+     * message it receives from the DS
+     */
+    private AckMsg sendAssuredAddMsg(Entry entry, String parentUid) throws SocketTimeoutException
+    {
+      try
+      {
+        // Create add message        
+        AddMsg addMsg =
+          new AddMsg(gen.newChangeNumber(), entry.getDN().toString(), UUID.randomUUID().toString(),
+                     parentUid,
+                     entry.getObjectClassAttribute(),
+                     entry.getAttributes(), null );
+
+        // Send add message in assured mode
+        addMsg.setAssured(isAssured);
+        addMsg.setAssuredMode(assuredMode);
+        addMsg.setSafeDataLevel(safeDataLevel);
+        session.publish(addMsg);
+
+        // Read and return matching ack
+        AckMsg ackMsg = (AckMsg)session.receive();
+        return ackMsg;
+
+      } catch(SocketTimeoutException e)
+      {
+        throw e;
+      } catch (Throwable t)
+      {
+        fail("Unexpected exception in fake replication server sendAddUpdate " +
+          "processing: " + t);
+        return null;
       }
     }
 
@@ -800,11 +867,26 @@ public class AssuredReplicationPluginTest
   }
 
   /**
+   * Return various group id values
+   */
+  @DataProvider(name = "rsGroupIdProvider")
+  private Object[][] rsGroupIdProvider()
+  {
+    return new Object[][]
+    {
+    { (byte)1 },
+    { (byte)2 }
+    };
+  }
+
+  /**
    * Tests that a DS performing a modification in safe data mode waits for
    * the ack of the RS for the configured timeout time, then times out.
+   * If the RS group id is not the same as the DS one, this must not time out
+   * and return immediately.
    */
-  @Test
-  public void testSafeDataModeTimeout() throws Exception
+  @Test(dataProvider = "rsGroupIdProvider")
+  public void testSafeDataModeTimeout(byte rsGroupId) throws Exception
   {
 
     int TIMEOUT = 5000;
@@ -813,7 +895,7 @@ public class AssuredReplicationPluginTest
     {
       // Create and start a RS expecting clients in safe data assured mode with
       // safe data level 2
-      replicationServer = new FakeReplicationServer(replServerPort, RS_SERVER_ID,
+      replicationServer = new FakeReplicationServer(rsGroupId, replServerPort, RS_SERVER_ID,
         1);
       replicationServer.start(TIMEOUT_SCENARIO);
 
@@ -830,34 +912,61 @@ public class AssuredReplicationPluginTest
         "objectClass: organizationalUnit\n";
       addEntry(TestCaseUtils.entryFromLdifString(entry));
 
-      // In this scenario, the fake RS will not send back an ack so we expect
-      // the add entry code (LDAP client code emulation) to be blocked for the
-      // timeout value at least. If the time we have slept is lower, timeout
-      // handling code is not working...
       long endTime = System.currentTimeMillis();
-      assertTrue((endTime - startTime) >= TIMEOUT);
-      assertTrue(replicationServer.isScenarioExecuted());
 
-      // Check monitoring values
-      DN baseDn = DN.decode(SAFE_DATA_DN);
-      assertEquals(getMonitorAttrValue(baseDn, "assured-sr-sent-updates"), 0);
-      assertEquals(getMonitorAttrValue(baseDn, "assured-sr-acknowledged-updates"), 0);
-      assertEquals(getMonitorAttrValue(baseDn, "assured-sr-not-acknowledged-updates"), 0);
-      assertEquals(getMonitorAttrValue(baseDn, "assured-sr-timeout-updates"), 0);
-      assertEquals(getMonitorAttrValue(baseDn, "assured-sr-wrong-status-updates"), 0);
-      assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
-      Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
-      assertTrue(errorsByServer.isEmpty());
-      assertEquals(getMonitorAttrValue(baseDn, "assured-sd-sent-updates"), 1);
-      assertEquals(getMonitorAttrValue(baseDn, "assured-sd-acknowledged-updates"), 0);
-      assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 1);
-      errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_DATA_MODE);
-      //  errors by server list for sd mode should be [[rsId:1]]
-      assertEquals(errorsByServer.size(), 1);
-      Integer nError = errorsByServer.get((short)RS_SERVER_ID);
-      assertNotNull(nError);
-      assertEquals(nError.intValue(), 1);
+      if (rsGroupId == (byte)1)
+      {
+        // RS has same group id as DS
+        // In this scenario, the fake RS will not send back an ack so we expect
+        // the add entry code (LDAP client code emulation) to be blocked for the
+        // timeout value at least. If the time we have slept is lower, timeout
+        // handling code is not working...
+        assertTrue((endTime - startTime) >= TIMEOUT);
+        assertTrue(replicationServer.isScenarioExecuted());
 
+        // Check monitoring values
+        sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+        DN baseDn = DN.decode(SAFE_DATA_DN);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-sent-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-acknowledged-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-not-acknowledged-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-timeout-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-wrong-status-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
+        Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
+        assertTrue(errorsByServer.isEmpty());
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sd-sent-updates"), 1);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sd-acknowledged-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 1);
+        errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_DATA_MODE);
+        //  errors by server list for sd mode should be [[rsId:1]]
+        assertEquals(errorsByServer.size(), 1);
+        Integer nError = errorsByServer.get((short)RS_SERVER_ID);
+        assertNotNull(nError);
+        assertEquals(nError.intValue(), 1);
+      } else
+      {
+        // RS has a different group id, addEntry should have returned quickly
+        assertTrue((endTime - startTime) < 3000);
+
+        // No error should be seen in monitoring and update should have not been
+        // sent in assured mode
+        sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+        DN baseDn = DN.decode(SAFE_DATA_DN);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-sent-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-acknowledged-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-not-acknowledged-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-timeout-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-wrong-status-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
+        Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
+        assertTrue(errorsByServer.isEmpty());
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sd-sent-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sd-acknowledged-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 0);
+        errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_DATA_MODE);
+        assertTrue(errorsByServer.isEmpty());
+      }
     } finally
     {
       endTest();
@@ -867,9 +976,11 @@ public class AssuredReplicationPluginTest
   /**
    * Tests that a DS performing a modification in safe read mode waits for
    * the ack of the RS for the configured timeout time, then times out.
+   * If the RS group id is not the same as the DS one, this must not time out
+   * and return immediately.
    */
-  @Test
-  public void testSafeReadModeTimeout() throws Exception
+  @Test(dataProvider = "rsGroupIdProvider")
+  public void testSafeReadModeTimeout(byte rsGroupId) throws Exception
   {
 
     int TIMEOUT = 5000;
@@ -877,7 +988,7 @@ public class AssuredReplicationPluginTest
     try
     {
       // Create and start a RS expecting clients in safe read assured mode
-      replicationServer = new FakeReplicationServer(replServerPort, RS_SERVER_ID,
+      replicationServer = new FakeReplicationServer(rsGroupId, replServerPort, RS_SERVER_ID,
         true);
       replicationServer.start(TIMEOUT_SCENARIO);
 
@@ -894,34 +1005,61 @@ public class AssuredReplicationPluginTest
         "objectClass: organizationalUnit\n";
       addEntry(TestCaseUtils.entryFromLdifString(entry));
 
-      // In this scenario, the fake RS will not send back an ack so we expect
-      // the add entry code (LDAP client code emulation) to be blocked for the
-      // timeout value at least. If the time we have slept is lower, timeout
-      // handling code is not working...
       long endTime = System.currentTimeMillis();
-      assertTrue((endTime - startTime) >= TIMEOUT);
-      assertTrue(replicationServer.isScenarioExecuted());
 
-      // Check monitoring values
-      DN baseDn = DN.decode(SAFE_READ_DN);
-      assertEquals(getMonitorAttrValue(baseDn, "assured-sr-sent-updates"), 1);
-      assertEquals(getMonitorAttrValue(baseDn, "assured-sr-acknowledged-updates"), 0);
-      assertEquals(getMonitorAttrValue(baseDn, "assured-sr-not-acknowledged-updates"), 1);
-      assertEquals(getMonitorAttrValue(baseDn, "assured-sr-timeout-updates"), 1);
-      assertEquals(getMonitorAttrValue(baseDn, "assured-sr-wrong-status-updates"), 0);
-      assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
-      Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
-      //  errors by server list for sr mode should be [[rsId:1]]
-      assertEquals(errorsByServer.size(), 1);
-      Integer nError = errorsByServer.get((short)RS_SERVER_ID);
-      assertNotNull(nError);
-      assertEquals(nError.intValue(), 1);
-      assertEquals(getMonitorAttrValue(baseDn, "assured-sd-sent-updates"), 0);
-      assertEquals(getMonitorAttrValue(baseDn, "assured-sd-acknowledged-updates"), 0);
-      assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 0);
-      errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_DATA_MODE);
-      assertTrue(errorsByServer.isEmpty());
+      if (rsGroupId == (byte)1)
+      {
+        // RS has same group id as DS
+        // In this scenario, the fake RS will not send back an ack so we expect
+        // the add entry code (LDAP client code emulation) to be blocked for the
+        // timeout value at least. If the time we have slept is lower, timeout
+        // handling code is not working...
+        assertTrue((endTime - startTime) >= TIMEOUT);
+        assertTrue(replicationServer.isScenarioExecuted());
 
+        // Check monitoring values
+        sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+        DN baseDn = DN.decode(SAFE_READ_DN);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-sent-updates"), 1);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-acknowledged-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-not-acknowledged-updates"), 1);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-timeout-updates"), 1);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-wrong-status-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
+        Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
+        //  errors by server list for sr mode should be [[rsId:1]]
+        assertEquals(errorsByServer.size(), 1);
+        Integer nError = errorsByServer.get((short)RS_SERVER_ID);
+        assertNotNull(nError);
+        assertEquals(nError.intValue(), 1);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sd-sent-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sd-acknowledged-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 0);
+        errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_DATA_MODE);
+        assertTrue(errorsByServer.isEmpty());
+      } else
+      {
+        // RS has a different group id, addEntry should have returned quickly
+        assertTrue((endTime - startTime) < 3000);
+
+        // No error should be seen in monitoring and update should have not been
+        // sent in assured mode
+        sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+        DN baseDn = DN.decode(SAFE_READ_DN);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-sent-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-acknowledged-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-not-acknowledged-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-timeout-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-wrong-status-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
+        Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
+        assertTrue(errorsByServer.isEmpty());
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sd-sent-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sd-acknowledged-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 0);
+        errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_DATA_MODE);
+        assertTrue(errorsByServer.isEmpty());
+      }
     } finally
     {
       endTest();
@@ -940,7 +1078,7 @@ public class AssuredReplicationPluginTest
     try
     {
       // Create and start a RS expecting not assured clients
-      replicationServer = new FakeReplicationServer(replServerPort, RS_SERVER_ID,
+      replicationServer = new FakeReplicationServer((byte)1, replServerPort, RS_SERVER_ID,
         false);
       replicationServer.start(NOT_ASSURED_SCENARIO);
 
@@ -1034,7 +1172,7 @@ public class AssuredReplicationPluginTest
     {
       // Create and start a RS expecting clients in safe data assured mode with
       // safe data level 2
-      replicationServer = new FakeReplicationServer(replServerPort, RS_SERVER_ID,
+      replicationServer = new FakeReplicationServer((byte)1, replServerPort, RS_SERVER_ID,
         2);
       replicationServer.start(NO_TIMEOUT_SCENARIO);
 
@@ -1060,6 +1198,7 @@ public class AssuredReplicationPluginTest
       assertTrue(replicationServer.isScenarioExecuted());
 
       // Check monitoring values
+      sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
       DN baseDn = DN.decode(SAFE_DATA_DN);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-sent-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-acknowledged-updates"), 0);
@@ -1094,7 +1233,7 @@ public class AssuredReplicationPluginTest
     try
     {
       // Create and start a RS expecting clients in safe read assured mode
-      replicationServer = new FakeReplicationServer(replServerPort, RS_SERVER_ID,
+      replicationServer = new FakeReplicationServer((byte)1, replServerPort, RS_SERVER_ID,
         true);
       replicationServer.start(NO_TIMEOUT_SCENARIO);
 
@@ -1120,6 +1259,7 @@ public class AssuredReplicationPluginTest
       assertTrue(replicationServer.isScenarioExecuted());
 
       // Check monitoring values
+      sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
       DN baseDn = DN.decode(SAFE_READ_DN);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-sent-updates"), 1);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-acknowledged-updates"), 1);
@@ -1142,6 +1282,195 @@ public class AssuredReplicationPluginTest
   }
 
   /**
+   *  Get the entryUUID for a given DN.
+   *
+   * @throws Exception if the entry does not exist or does not have
+   *                   an entryUUID.
+   */
+  private String getEntryUUID(DN dn) throws Exception
+  {
+    Entry newEntry;
+    int count = 10;
+    if (count<1)
+      count=1;
+    String found = null;
+    while ((count> 0) && (found == null))
+    {
+      Thread.sleep(100);
+
+      Lock lock = null;
+      for (int i=0; i < 3; i++)
+      {
+        lock = LockManager.lockRead(dn);
+        if (lock != null)
+        {
+          break;
+        }
+      }
+
+      if (lock == null)
+      {
+        throw new Exception("could not lock entry " + dn);
+      }
+
+      try
+      {
+        newEntry = DirectoryServer.getEntry(dn);
+
+        if (newEntry != null)
+        {
+          List<Attribute> tmpAttrList = newEntry.getAttribute("entryuuid");
+          Attribute tmpAttr = tmpAttrList.get(0);
+
+          for (AttributeValue val : tmpAttr)
+          {
+            found = val.getStringValue();
+            break;
+          }
+        }
+      }
+      finally
+      {
+        LockManager.unlock(dn, lock);
+      }
+      count --;
+    }
+    if (found == null)
+      throw new Exception("Entry: " + dn + " Could not be found.");
+    return found;
+  }
+
+  /**
+   * Tests that a DS receiving an update from a RS in safe read mode effectively
+   * sends an ack back (with or without error)
+   */
+  @Test(dataProvider = "rsGroupIdProvider")
+  public void testSafeReadModeReply(byte rsGroupId) throws Exception
+  {
+
+    int TIMEOUT = 5000;
+    String testcase = "testSafeReadModeReply";
+    try
+    {
+      // Create and start a RS expecting clients in safe read assured mode
+      replicationServer = new FakeReplicationServer(rsGroupId, replServerPort, RS_SERVER_ID,
+        true);
+      replicationServer.start(NO_READ);
+
+      // Create a safe read assured domain
+      safeReadDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_READ_MODE, 0,
+        TIMEOUT);
+      // Wait for connection of domain to RS
+      waitForConnectionToRs(testcase, replicationServer);
+
+      /*
+       *  Send an update from the RS and get the ack
+       */
+
+      // Make the RS send an assured add message
+      String entryStr = "dn: ou=assured-sr-reply-entry," + SAFE_READ_DN + "\n" +
+        "objectClass: top\n" +
+        "objectClass: organizationalUnit\n";
+      Entry entry = TestCaseUtils.entryFromLdifString(entryStr);
+      String parentUid = getEntryUUID(DN.decode(SAFE_READ_DN));
+      AckMsg ackMsg = null;
+
+      try {
+        ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
+
+         if (rsGroupId == (byte)2)
+           fail("Should only go here for RS with same group id as DS");
+
+        // Ack received, replay has occurred
+        assertNotNull(DirectoryServer.getEntry(entry.getDN()));
+
+        // Check that DS replied an ack without errors anyway
+        assertFalse(ackMsg.hasTimeout());
+        assertFalse(ackMsg.hasReplayError());
+        assertFalse(ackMsg.hasWrongStatus());
+        assertEquals(ackMsg.getFailedServers().size(), 0);
+      } catch (SocketTimeoutException e)
+      {
+        // Expected
+        if (rsGroupId == (byte)1)
+           fail("Should only go here for RS with group id different from DS one");
+
+        return;
+      }
+
+      /*
+       * Send un update with error from the RS and get the ack with error
+       */
+
+      // Make the RS send a not possible assured add message
+
+      // TODO: make the domain return an error: use a plugin ?
+      // The resolution code does not generate any error so we need to find a
+      // way to have the replay not working to test this...
+
+      // Check that DS replied an ack with errors
+//      assertFalse(ackMsg.hasTimeout());
+//      assertTrue(ackMsg.hasReplayError());
+//      assertFalse(ackMsg.hasWrongStatus());
+//      List<Short> failedServers = ackMsg.getFailedServers();
+//      assertEquals(failedServers.size(), 1);
+//      assertEquals((short)failedServers.get(0), (short)1);
+    } finally
+    {
+      endTest();
+    }
+  }
+
+  /**
+   * Tests that a DS receiving an update from a RS in safe data mode does not
+   * send back and ack (only safe read is taken into account in DS replay)
+   */
+  @Test(dataProvider = "rsGroupIdProvider")
+  public void testSafeDataModeReply(byte rsGroupId) throws Exception
+  {
+
+    int TIMEOUT = 5000;
+    String testcase = "testSafeDataModeReply";
+    try
+    {
+      // Create and start a RS expecting clients in safe data assured mode
+      replicationServer = new FakeReplicationServer(rsGroupId, replServerPort, RS_SERVER_ID,
+        4);
+      replicationServer.start(NO_READ);
+
+      // Create a safe data assured domain
+      safeDataDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_DATA_MODE, 4,
+        TIMEOUT);
+      // Wait for connection of domain to RS
+      waitForConnectionToRs(testcase, replicationServer);
+
+      // Make the RS send an assured add message: we expect a read timeout as
+      // safe data should be ignored by DS
+      String entryStr = "dn: ou=assured-sd-reply-entry," + SAFE_DATA_DN + "\n" +
+        "objectClass: top\n" +
+        "objectClass: organizationalUnit\n";
+      Entry entry = TestCaseUtils.entryFromLdifString(entryStr);
+      String parentUid = getEntryUUID(DN.decode(SAFE_DATA_DN));
+
+      AckMsg ackMsg = null;
+      try
+      {
+        ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
+      } catch (SocketTimeoutException e)
+      {
+        // Expected
+        return;
+      }
+
+      fail("DS should not reply an ack in safe data mode, however, it replied: " +
+        ackMsg);
+    } finally
+    {
+      endTest();
+    }
+  }
+
+  /**
    * DS performs many successive modifications in safe data mode and receives RS
    * acks with various errors. Check for monitoring right errors
    */
@@ -1155,7 +1484,7 @@ public class AssuredReplicationPluginTest
     {
       // Create and start a RS expecting clients in safe data assured mode with
       // safe data level 3
-      replicationServer = new FakeReplicationServer(replServerPort, RS_SERVER_ID,
+      replicationServer = new FakeReplicationServer((byte)1, replServerPort, RS_SERVER_ID,
         3);
       replicationServer.start(SAFE_DATA_MANY_ERRORS);
 
@@ -1184,6 +1513,7 @@ public class AssuredReplicationPluginTest
       // The expected ack for the first update is:
       // - timeout error
       // - server 10 error
+      sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
       DN baseDn = DN.decode(SAFE_DATA_DN);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-sent-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-acknowledged-updates"), 0);
@@ -1218,6 +1548,7 @@ public class AssuredReplicationPluginTest
       // The expected ack for the second update is:
       // - timeout error
       // - server 10 error, server 20 error
+      sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
       baseDn = DN.decode(SAFE_DATA_DN);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-sent-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-acknowledged-updates"), 0);
@@ -1254,6 +1585,7 @@ public class AssuredReplicationPluginTest
 
       // Check monitoring values
       // No ack should have comen back, so timeout incremented (flag and error for rs)
+      sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
       baseDn = DN.decode(SAFE_DATA_DN);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-sent-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-acknowledged-updates"), 0);
@@ -1298,7 +1630,7 @@ public class AssuredReplicationPluginTest
     try
     {
       // Create and start a RS expecting clients in safe read assured mode
-      replicationServer = new FakeReplicationServer(replServerPort, RS_SERVER_ID,
+      replicationServer = new FakeReplicationServer((byte)1, replServerPort, RS_SERVER_ID,
         true);
       replicationServer.start(SAFE_READ_MANY_ERRORS);
 
@@ -1327,6 +1659,7 @@ public class AssuredReplicationPluginTest
       // The expected ack for the first update is:
       // - replay error
       // - server 10 error, server 20 error
+      sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
       DN baseDn = DN.decode(SAFE_READ_DN);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-sent-updates"), 1);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-acknowledged-updates"), 0);
@@ -1366,6 +1699,7 @@ public class AssuredReplicationPluginTest
       // - wrong status error
       // - replay error
       // - server 10 error, server 20 error, server 30 error
+      sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-sent-updates"), 2);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-acknowledged-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-not-acknowledged-updates"), 2);
@@ -1404,6 +1738,7 @@ public class AssuredReplicationPluginTest
 
       // Check monitoring values
       // No ack should have comen back, so timeout incremented (flag and error for rs)
+      sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-sent-updates"), 3);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-acknowledged-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-not-acknowledged-updates"), 3);

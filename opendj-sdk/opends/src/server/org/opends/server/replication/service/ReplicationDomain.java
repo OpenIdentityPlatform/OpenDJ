@@ -831,7 +831,7 @@ public abstract class ReplicationDomain
                   broker.getRsServerId());
                 break;
               default:
-              // Should no happen
+              // Should not happen
             }
 
             throw new TimeoutException("No ack received for message cn: " + cn +
@@ -914,8 +914,8 @@ public abstract class ReplicationDomain
       {
         // Some problems detected: message not correclty reached every requested
         // servers. Log problem
-        Message errorMsg = ERR_DS_RECEIVED_ACK_ERROR.get(serviceID,
-          update.toString(), ack.errorsToString());
+        Message errorMsg = NOTE_DS_RECEIVED_ACK_ERROR.get(serviceID,
+          Short.toString(serverID), update.toString(), ack.errorsToString());
         logError(errorMsg);
 
         List<Short> failedServers = ack.getFailedServers();
@@ -954,7 +954,7 @@ public abstract class ReplicationDomain
             }
             break;
           default:
-          // Should no happen
+          // Should not happen
         }
       } else
       {
@@ -969,7 +969,7 @@ public abstract class ReplicationDomain
             assuredSdAcknowledgedUpdates.incrementAndGet();
             break;
           default:
-          // Should no happen
+          // Should not happen
         }
       }
     }
@@ -2393,7 +2393,7 @@ public abstract class ReplicationDomain
           assuredSdSentUpdates.incrementAndGet();
           break;
         default:
-          // Should no happen
+          // Should not happen
       }
 
       // Now wait for ack matching the sent assured update

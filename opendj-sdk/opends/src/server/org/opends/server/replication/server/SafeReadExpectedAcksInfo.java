@@ -30,9 +30,7 @@ package org.opends.server.replication.server;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import org.opends.server.loggers.debug.DebugTracer;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.AckMsg;
@@ -65,18 +63,6 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
   private List<Short> failedServers = null;
 
   /**
-   * This gives the list of servers we are willing to wait acks from and the
-   * information about the ack from the servers.
-   * key: the id of the server.
-   * value: a boolean true if we received the ack from the server,
-   * false otherwise.
-   * This must not include servers we already identified they are in wrong
-   * status, but just servers that are in normal status.
-   */
-  private Map<Short,Boolean> expectedServersAckStatus =
-    new HashMap<Short,Boolean>();
-
-  /**
    * Number of servers we want an ack from and from which we received the ack.
    * Said differently: the number of servers in expectedServersAckStatus whose
    * value is true. When this value reaches the size of expectedServersAckStatus
@@ -100,19 +86,14 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
     ServerHandler requesterServerHandler, List<Short> expectedServers,
     List<Short> wrongStatusServers)
   {
-    super(changeNumber, requesterServerHandler, AssuredMode.SAFE_READ_MODE);
+    super(changeNumber, requesterServerHandler, AssuredMode.SAFE_READ_MODE,
+      expectedServers);
 
     // Keep track of potential servers detected in wrong status
     if (wrongStatusServers.size() > 0)
     {
       hasWrongStatus = true;
       failedServers = wrongStatusServers;
-    }
-
-    // Initialize list of servers we expect acks from
-    for (Short serverId : expectedServers)
-    {
-      expectedServersAckStatus.put(serverId, false);
     }
   }
 
