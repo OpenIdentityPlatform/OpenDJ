@@ -27,6 +27,9 @@
 
 package org.opends.server.replication.server;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.AckMsg;
@@ -66,18 +69,36 @@ public abstract class ExpectedAcksInfo
   private boolean completed = false;
 
   /**
+   * This gives the list of servers we are willing to wait acks from and the
+   * information about the ack from the servers.
+   * key: the id of the server.
+   * value: a boolean true if we received the ack from the server,
+   * false otherwise.
+   */
+  protected Map<Short,Boolean> expectedServersAckStatus =
+    new HashMap<Short,Boolean>();
+
+  /**
    * Creates a new ExpectedAcksInfo.
    * @param changeNumber The change number of the assured update message
    * @param requesterServerHandler The server handler of the server that sent
    * the assured update message
    * @param assuredMode The assured mode requested by the assured update message
+   * @param expectedServers The list of servers we want an ack from
    */
   protected ExpectedAcksInfo(ChangeNumber changeNumber,
-    ServerHandler requesterServerHandler, AssuredMode assuredMode)
+    ServerHandler requesterServerHandler, AssuredMode assuredMode,
+    List<Short> expectedServers)
   {
     this.requesterServerHandler = requesterServerHandler;
     this.assuredMode = assuredMode;
     this.changeNumber = changeNumber;
+
+    // Initialize list of servers we expect acks from
+    for (Short serverId : expectedServers)
+    {
+      expectedServersAckStatus.put(serverId, false);
+    }
   }
 
   /**
