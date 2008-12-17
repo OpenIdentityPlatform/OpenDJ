@@ -29,13 +29,14 @@ package org.opends.server.controls;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.schema.BooleanEqualityMatchingRule;
-import org.opends.server.schema.DistinguishedNameEqualityMatchingRule;
-import org.opends.server.schema.IntegerEqualityMatchingRule;
+import org.opends.server.schema.BooleanEqualityMatchingRuleFactory;
+import org.opends.server.schema.DistinguishedNameEqualityMatchingRuleFactory;
+import org.opends.server.schema.IntegerEqualityMatchingRuleFactory;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
@@ -853,14 +854,23 @@ public class MatchedValuesControlTest
   }
 
   @DataProvider(name = "extensibleMatchFilterData")
-  public Object[][] createExtensibleMatchFilterData()
+  public Object[][] createExtensibleMatchFilterData() throws Exception
   {
+    MatchingRuleFactory<?> factory = new BooleanEqualityMatchingRuleFactory();
+    factory.initializeMatchingRule(null);
+    MatchingRule booleanEquality = factory.getMatchingRules().iterator().next();
+    factory = new IntegerEqualityMatchingRuleFactory();
+    factory.initializeMatchingRule(null);
+    MatchingRule integerEquality = factory.getMatchingRules().iterator().next();
+    factory = new DistinguishedNameEqualityMatchingRuleFactory();
+    factory.initializeMatchingRule(null);
+    MatchingRule distinguishedEquality = factory.getMatchingRules().iterator().next();
 
     return new Object[][]
     {
-    { "description", new BooleanEqualityMatchingRule(), "description" },
-    { "objectclass", new IntegerEqualityMatchingRule() ,"top" },
-    { "fakeobjecttype", new DistinguishedNameEqualityMatchingRule(), "fakevalue" }, };
+    { "description", booleanEquality, "description" },
+    { "objectclass", integerEquality ,"top" },
+    { "fakeobjecttype", distinguishedEquality, "fakevalue" }, };
   }
 
   /**

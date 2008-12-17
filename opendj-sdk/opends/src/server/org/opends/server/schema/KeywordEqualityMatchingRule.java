@@ -28,12 +28,9 @@ package org.opends.server.schema;
 
 
 
-import org.opends.server.admin.std.server.EqualityMatchingRuleCfg;
-import org.opends.server.config.ConfigException;
-import org.opends.server.types.InitializationException;
-
+import java.util.Collection;
+import java.util.Collections;
 import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -42,7 +39,7 @@ import static org.opends.server.util.StaticUtils.*;
  * document defines "keyword" as implementation-specific, but in this case we
  * will interpret it in the same way as "word" for the wordMatch rule.
  */
-public class KeywordEqualityMatchingRule
+class KeywordEqualityMatchingRule
        extends WordEqualityMatchingRule
 {
   /**
@@ -58,10 +55,9 @@ public class KeywordEqualityMatchingRule
   /**
    * {@inheritDoc}
    */
-  public void initializeMatchingRule(EqualityMatchingRuleCfg configuration)
-         throws ConfigException, InitializationException
+  public Collection<String> getAllNames()
   {
-    // No initialization is required.
+    return Collections.singleton(getName());
   }
 
 
@@ -72,6 +68,7 @@ public class KeywordEqualityMatchingRule
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
    * it does not have a name.
    */
+  @Override
   public String getName()
   {
     return EMR_KEYWORD_NAME;
@@ -84,6 +81,7 @@ public class KeywordEqualityMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return EMR_KEYWORD_OID;

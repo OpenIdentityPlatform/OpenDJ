@@ -26,7 +26,8 @@
  */
 package org.opends.server.replication.plugin;
 
-import org.opends.server.admin.std.server.OrderingMatchingRuleCfg;
+import java.util.Collection;
+import java.util.Collections;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
@@ -74,14 +75,16 @@ public class HistoricalCsnOrderingMatchingRule
     return token1[1].compareTo(token2[1]);
   }
 
+
   /**
    * {@inheritDoc}
    */
-  @Override
-  public void initializeMatchingRule(OrderingMatchingRuleCfg configuration)
+  public Collection<String> getAllNames()
   {
-    // No implementation needed here.
+    return Collections.singleton(getName());
   }
+
+
 
   /**
    * Get the name of this class.

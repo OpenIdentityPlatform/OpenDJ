@@ -125,7 +125,7 @@ public class GenericSchemaTestCase
     TreeSet<String> invalidOIDs = new TreeSet<String>();
 
     Schema schema = DirectoryServer.getSchema();
-    for (MatchingRule<?> mr : schema.getMatchingRules().values())
+    for (MatchingRule mr : schema.getMatchingRules().values())
     {
       if (! isNumericOID(mr.getOID()))
       {

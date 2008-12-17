@@ -28,13 +28,12 @@ package org.opends.server.schema;
 
 
 
-import org.opends.server.admin.std.server.OrderingMatchingRuleCfg;
+import java.util.Collections;
+import java.util.Collection;
 import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
 
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -71,10 +70,9 @@ public class CaseIgnoreOrderingMatchingRule
   /**
    * {@inheritDoc}
    */
-  public void initializeMatchingRule(OrderingMatchingRuleCfg configuration)
-         throws ConfigException, InitializationException
+  public Collection<String> getAllNames()
   {
-    // No initialization is required.
+    return Collections.singleton(getName());
   }
 
 

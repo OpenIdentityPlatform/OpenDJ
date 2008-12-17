@@ -2110,7 +2110,7 @@ public final class SearchFilter
       }
       else
       {
-        MatchingRule<?> mr = DirectoryServer.getMatchingRule(
+        MatchingRule mr = DirectoryServer.getMatchingRule(
                                toLowerCase(matchingRuleID));
         if (mr == null)
         {
@@ -3306,8 +3306,8 @@ public final class SearchFilter
     }
 
 
-    // We must have a matching rule to use in the determination.
-    MatchingRule<?> matchingRule = null;
+    MatchingRule matchingRule = null;
+
     if (matchingRuleID != null)
     {
       matchingRule =
@@ -3383,8 +3383,9 @@ public final class SearchFilter
     ByteString normalizedValue;
     try
     {
-      normalizedValue =
-           matchingRule.normalizeValue(assertionValue.getValue());
+        normalizedValue =
+              matchingRule.
+               normalizeAssertionValue(assertionValue.getValue());
     }
     catch (Exception e)
     {
@@ -3895,7 +3896,7 @@ outerComponentLoop:
           }
           else
           {
-            MatchingRule<?> mr =
+            MatchingRule mr =
                  DirectoryServer.getMatchingRule(
                       toLowerCase(matchingRuleID));
             if (mr == null)

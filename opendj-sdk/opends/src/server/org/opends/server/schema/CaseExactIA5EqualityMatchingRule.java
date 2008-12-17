@@ -31,14 +31,13 @@ import org.opends.messages.Message;
 
 import java.util.Arrays;
 
-import org.opends.server.admin.std.server.EqualityMatchingRuleCfg;
+import java.util.Collection;
+import java.util.Collections;
 import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.messages.SchemaMessages.*;
@@ -50,7 +49,7 @@ import org.opends.server.loggers.ErrorLogger;
  * This class implements the caseExactIA5Match matching rule defined in RFC
  * 2252.
  */
-public class CaseExactIA5EqualityMatchingRule
+class CaseExactIA5EqualityMatchingRule
        extends EqualityMatchingRule
 {
   /**
@@ -64,17 +63,6 @@ public class CaseExactIA5EqualityMatchingRule
 
 
   /**
-   * {@inheritDoc}
-   */
-  public void initializeMatchingRule(EqualityMatchingRuleCfg configuration)
-         throws ConfigException, InitializationException
-  {
-    // No initialization is required.
-  }
-
-
-
-  /**
    * Retrieves the common name for this matching rule.
    *
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
@@ -83,6 +71,16 @@ public class CaseExactIA5EqualityMatchingRule
   public String getName()
   {
     return EMR_CASE_EXACT_IA5_NAME;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Collection<String> getAllNames()
+  {
+    return Collections.singleton(getName());
   }
 
 

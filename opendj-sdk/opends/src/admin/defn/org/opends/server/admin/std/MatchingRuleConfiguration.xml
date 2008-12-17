@@ -26,7 +26,7 @@
   !      Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="matching-rule" plural-name="matching-rules"
-  package="org.opends.server.admin.std" abstract="true"
+  package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
@@ -73,7 +73,7 @@
     <adm:syntax>
       <adm:java-class>
         <adm:instance-of>
-          org.opends.server.api.MatchingRule
+          org.opends.server.api.MatchingRuleFactory
         </adm:instance-of>
       </adm:java-class>
     </adm:syntax>

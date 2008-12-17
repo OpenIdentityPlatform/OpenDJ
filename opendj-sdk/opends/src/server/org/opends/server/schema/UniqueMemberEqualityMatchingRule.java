@@ -31,15 +31,14 @@ import org.opends.messages.Message;
 
 import java.util.Arrays;
 
-import org.opends.server.admin.std.server.EqualityMatchingRuleCfg;
+import java.util.Collection;
+import java.util.Collections;
 import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
-import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -58,7 +57,7 @@ import static org.opends.server.util.StaticUtils.*;
  * and will compare values with a distinguished name and optional bit string
  * suffix.
  */
-public class UniqueMemberEqualityMatchingRule
+class UniqueMemberEqualityMatchingRule
        extends EqualityMatchingRule
 {
   /**
@@ -81,10 +80,9 @@ public class UniqueMemberEqualityMatchingRule
   /**
    * {@inheritDoc}
    */
-  public void initializeMatchingRule(EqualityMatchingRuleCfg configuration)
-         throws ConfigException, InitializationException
+  public Collection<String> getAllNames()
   {
-    // No initialization is required.
+    return Collections.singleton(getName());
   }
 
 

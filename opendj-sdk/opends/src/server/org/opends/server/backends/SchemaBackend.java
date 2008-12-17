@@ -1639,7 +1639,7 @@ public class SchemaBackend
 
 
     // Make sure that none of the associated matching rules are marked OBSOLETE.
-    MatchingRule<?> mr = attributeType.getEqualityMatchingRule();
+    MatchingRule mr = attributeType.getEqualityMatchingRule();
     if ((mr != null) && mr.isObsolete())
     {
       Message message = ERR_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR.get(
@@ -3058,7 +3058,7 @@ public class SchemaBackend
     // matching rule.  If there is, then it will only be acceptable if it's the
     // matching rule use that we are replacing (in which case we really do want
     // to use the "!=" operator).
-    MatchingRule<?> matchingRule = matchingRuleUse.getMatchingRule();
+    MatchingRule matchingRule = matchingRuleUse.getMatchingRule();
     MatchingRuleUse existingMRUForRule =
          schema.getMatchingRuleUse(matchingRule);
     if ((existingMRUForRule != null) && (existingMRUForRule != existingMRU))

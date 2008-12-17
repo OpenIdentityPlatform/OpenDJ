@@ -25,18 +25,11 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
-import org.opends.messages.Message;
 
-
-
-import java.util.List;
-
-import org.opends.server.admin.std.server.MatchingRuleCfg;
-import org.opends.server.config.ConfigException;
+import java.util.Collection;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
 
 
 
@@ -44,80 +37,14 @@ import org.opends.server.types.InitializationException;
  * This class defines the set of methods and structures that must be
  * implemented by a Directory Server module that implements a matching
  * rule.
- *
- * @param  <T>  The type of configuration handled by this matching
- *              rule.
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.VOLATILE,
      mayInstantiate=false,
      mayExtend=true,
      mayInvoke=false)
-public abstract class MatchingRule<T extends MatchingRuleCfg>
+public abstract class MatchingRule
 {
-  /**
-   * Initializes this matching rule based on the information in the
-   * provided configuration entry.
-   *
-   * @param  configuration  The configuration to use to intialize this
-   *                        matching rule.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in
-   *                           the process of performing the
-   *                           initialization.
-   *
-   * @throws  InitializationException  If a problem that is not
-   *                                   configuration-related occurs
-   *                                   during initialization.
-   */
-  public abstract void initializeMatchingRule(T configuration)
-         throws ConfigException, InitializationException;
-
-
-
-  /**
-   * Indicates whether the provided configuration is acceptable for
-   * this matching rule.  It should be possible to call this method on
-   * an uninitialized matching rule instance in order to determine
-   * whether the matching rule would be able to use the provided
-   * configuration.
-   * <BR><BR>
-   * Note that implementations which use a subclass of the provided
-   * configuration class will likely need to cast the configuration
-   * to the appropriate subclass type.
-   *
-   * @param  configuration        The matching rule configuration for
-   *                              which to make the determination.
-   * @param  unacceptableReasons  A list that may be used to hold the
-   *                              reasons that the provided
-   *                              configuration is not acceptable.
-   *
-   * @return  {@code true} if the provided configuration is acceptable
-   *          for this matching rule, or {@code false} if not.
-   */
-  public boolean isConfigurationAcceptable(
-                      MatchingRuleCfg configuration,
-                      List<Message> unacceptableReasons)
-  {
-    // This default implementation does not perform any special
-    // validation.  It should be overridden by matching rule
-    // implementations that wish to perform more detailed validation.
-    return true;
-  }
-
-
-
-  /**
-   * Performs any finalization that may be needed whenever this
-   * matching rule is taken out of service.
-   */
-  public void finalizeMatchingRule()
-  {
-    // No implementation is required by default.
-  }
-
-
-
   /**
    * Retrieves the common name for this matching rule.
    *
@@ -129,11 +56,42 @@ public abstract class MatchingRule<T extends MatchingRuleCfg>
 
 
   /**
+   * Retrieves all names for this matching rule.
+   *
+   * @return  All names for this matching rule.
+   */
+  public abstract Collection<String> getAllNames();
+
+
+
+  /**
    * Retrieves the OID for this matching rule.
    *
    * @return  The OID for this matching rule.
    */
   public abstract String getOID();
+
+
+
+ /**
+   * Retrieves the normalized form of the provided assertion value,
+   * which is best suite for efficiently performing matching
+   * operations on that value.
+   *
+   * @param  value  The assertion value to be normalized.
+   *
+   * @return  The normalized version of the provided value.
+   *
+   * @throws  DirectoryException  If the provided value is invalid
+   *                              according to the associated
+   *                              attribute syntax.
+   */
+  public ByteString normalizeAssertionValue(ByteString value)
+         throws DirectoryException
+  {
+    // Default implementation is to use attribute value normalization.
+     return normalizeValue(value);
+  }
 
 
 
@@ -322,7 +280,7 @@ public abstract class MatchingRule<T extends MatchingRuleCfg>
     buffer.append("( ");
     buffer.append(getOID());
     buffer.append(" NAME '");
-    buffer.append(getName());
+      buffer.append(getName());
 
     String description = getDescription();
     if ((description != null) && (description.length() > 0))

@@ -2093,7 +2093,7 @@ public class LDAPFilter
       }
       else
       {
-        MatchingRule<?> mr =
+        MatchingRule mr =
              DirectoryServer.getMatchingRule(toLowerCase(matchingRuleID));
         if (mr == null)
         {

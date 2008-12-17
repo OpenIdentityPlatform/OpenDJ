@@ -99,7 +99,7 @@ public final class Schema
 
   // The matching rule that will be used to normalize schema element
   // definitions.
-  private EqualityMatchingRule normalizationMatchingRule;
+  private MatchingRule normalizationMatchingRule;
 
   // The set of subordinate attribute types registered within the
   // server schema.
@@ -1019,32 +1019,36 @@ public final class Schema
                            ResultCode.CONSTRAINT_VIOLATION, message);
           }
 
-          String name = matchingRule.getName();
-          if (name != null)
+          for(String name:matchingRule.getAllNames())
           {
-            name = toLowerCase(name);
-            if (matchingRules.containsKey(name))
+            if (name != null)
             {
-              MatchingRule conflictingRule = matchingRules.get(name);
+              name = toLowerCase(name);
+              if (matchingRules.containsKey(name))
+              {
+                MatchingRule conflictingRule =
+                        matchingRules.get(name);
 
-              Message message = ERR_SCHEMA_CONFLICTING_MR_NAME.
-                  get(matchingRule.getOID(), name,
-                      conflictingRule.getOID());
-              throw new DirectoryException(
-                            ResultCode.CONSTRAINT_VIOLATION, message);
+                Message message = ERR_SCHEMA_CONFLICTING_MR_NAME.
+                    get(matchingRule.getOID(), name,
+                        conflictingRule.getOID());
+                throw new DirectoryException(
+                              ResultCode.CONSTRAINT_VIOLATION,
+                              message);
+              }
             }
           }
         }
-
         matchingRules.put(toLowerCase(matchingRule.getOID()),
                           matchingRule);
 
-        String name = matchingRule.getName();
-        if (name != null)
+        for(String name:matchingRule.getAllNames())
         {
-          matchingRules.put(toLowerCase(name), matchingRule);
+          if (name != null)
+          {
+            matchingRules.put(toLowerCase(name), matchingRule);
+          }
         }
-
         // We'll use an attribute value including the normalized value
         // rather than the attribute type because otherwise it would
         // use a very expensive matching rule (OID first component
@@ -1097,12 +1101,13 @@ public final class Schema
         matchingRules.remove(toLowerCase(matchingRule.getOID()),
                              matchingRule);
 
-        String name = matchingRule.getName();
-        if (name != null)
+        for(String name:matchingRule.getAllNames())
         {
-          matchingRules.remove(toLowerCase(name), matchingRule);
+          if (name != null)
+          {
+            matchingRules.remove(toLowerCase(name), matchingRule);
+          }
         }
-
 
         // We'll use an attribute value including the normalized value
         // rather than the attribute type because otherwise it would
@@ -1208,7 +1213,8 @@ public final class Schema
                          ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
-        String name = matchingRule.getName();
+       for(String name:matchingRule.getAllNames())
+       {
         if (name != null)
         {
           name = toLowerCase(name);
@@ -1223,20 +1229,22 @@ public final class Schema
                            ResultCode.CONSTRAINT_VIOLATION, message);
           }
         }
+       }
       }
 
       String oid = toLowerCase(matchingRule.getOID());
       approximateMatchingRules.put(oid, matchingRule);
       matchingRules.put(oid, matchingRule);
 
-      String name = matchingRule.getName();
-      if (name != null)
+      for(String name:matchingRule.getAllNames())
       {
-        name = toLowerCase(name);
-        approximateMatchingRules.put(name, matchingRule);
-        matchingRules.put(name, matchingRule);
+        if (name != null)
+        {
+          name = toLowerCase(name);
+          approximateMatchingRules.put(name, matchingRule);
+          matchingRules.put(name, matchingRule);
+        }
       }
-
       // We'll use an attribute value including the normalized value
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
@@ -1267,14 +1275,15 @@ public final class Schema
       approximateMatchingRules.remove(oid, matchingRule);
       matchingRules.remove(oid, matchingRule);
 
-      String name = matchingRule.getName();
-      if (name != null)
+      for(String name:matchingRule.getAllNames())
       {
-        name = toLowerCase(name);
-        approximateMatchingRules.remove(name, matchingRule);
-        matchingRules.remove(name, matchingRule);
+        if (name != null)
+        {
+          name = toLowerCase(name);
+          approximateMatchingRules.remove(name, matchingRule);
+          matchingRules.remove(name, matchingRule);
+        }
       }
-
       // We'll use an attribute value including the normalized value
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
@@ -1376,20 +1385,24 @@ public final class Schema
                          ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
-        String name = matchingRule.getName();
-        if (name != null)
+        for(String name:matchingRule.getAllNames())
         {
-          name = toLowerCase(name);
-          if (matchingRules.containsKey(name))
-          {
-            MatchingRule conflictingRule = matchingRules.get(name);
+           if (name != null)
+           {
+              name = toLowerCase(name);
+              if (matchingRules.containsKey(name))
+              {
+                MatchingRule conflictingRule =
+                        matchingRules.get(name);
 
-            Message message = ERR_SCHEMA_CONFLICTING_MR_NAME.
-                get(matchingRule.getOID(), name,
-                    conflictingRule.getOID());
-            throw new DirectoryException(
-                           ResultCode.CONSTRAINT_VIOLATION, message);
-          }
+                Message message = ERR_SCHEMA_CONFLICTING_MR_NAME.
+                    get(matchingRule.getOID(), name,
+                        conflictingRule.getOID());
+                throw new DirectoryException(
+                               ResultCode.CONSTRAINT_VIOLATION,
+                               message);
+              }
+           }
         }
       }
 
@@ -1397,14 +1410,15 @@ public final class Schema
       equalityMatchingRules.put(oid, matchingRule);
       matchingRules.put(oid, matchingRule);
 
-      String name = matchingRule.getName();
-      if (name != null)
+      for(String name:matchingRule.getAllNames())
       {
-        name = toLowerCase(name);
-        equalityMatchingRules.put(name, matchingRule);
-        matchingRules.put(name, matchingRule);
+        if (name != null)
+        {
+          name = toLowerCase(name);
+          equalityMatchingRules.put(name, matchingRule);
+          matchingRules.put(name, matchingRule);
+        }
       }
-
       // We'll use an attribute value including the normalized value
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
@@ -1435,14 +1449,15 @@ public final class Schema
       equalityMatchingRules.remove(oid, matchingRule);
       matchingRules.remove(oid, matchingRule);
 
-      String name = matchingRule.getName();
-      if (name != null)
+      for(String name:matchingRule.getAllNames())
       {
-        name = toLowerCase(name);
-        equalityMatchingRules.remove(name, matchingRule);
-        matchingRules.remove(name, matchingRule);
+        if (name != null)
+        {
+          name = toLowerCase(name);
+          equalityMatchingRules.remove(name, matchingRule);
+          matchingRules.remove(name, matchingRule);
+        }
       }
-
 
       // We'll use an attribute value including the normalized value
       // rather than the attribute type because otherwise it would use
@@ -1545,19 +1560,22 @@ public final class Schema
                          ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
-        String name = matchingRule.getName();
-        if (name != null)
+        for(String name:matchingRule.getAllNames())
         {
-          name = toLowerCase(name);
-          if (matchingRules.containsKey(name))
+          if (name != null)
           {
-            MatchingRule conflictingRule = matchingRules.get(name);
+            name = toLowerCase(name);
+            if (matchingRules.containsKey(name))
+            {
+              MatchingRule conflictingRule = matchingRules.get(name);
 
-            Message message = ERR_SCHEMA_CONFLICTING_MR_NAME.
-                get(matchingRule.getOID(), name,
-                    conflictingRule.getOID());
-            throw new DirectoryException(
-                           ResultCode.CONSTRAINT_VIOLATION, message);
+              Message message = ERR_SCHEMA_CONFLICTING_MR_NAME.
+                  get(matchingRule.getOID(), name,
+                      conflictingRule.getOID());
+              throw new DirectoryException(
+                             ResultCode.CONSTRAINT_VIOLATION,
+                             message);
+            }
           }
         }
       }
@@ -1566,14 +1584,15 @@ public final class Schema
       orderingMatchingRules.put(oid, matchingRule);
       matchingRules.put(oid, matchingRule);
 
-      String name = matchingRule.getName();
-      if (name != null)
+      for(String name:matchingRule.getAllNames())
       {
-        name = toLowerCase(name);
-        orderingMatchingRules.put(name, matchingRule);
-        matchingRules.put(name, matchingRule);
+        if (name != null)
+        {
+          name = toLowerCase(name);
+          orderingMatchingRules.put(name, matchingRule);
+          matchingRules.put(name, matchingRule);
+        }
       }
-
       // We'll use an attribute value including the normalized value
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
@@ -1604,14 +1623,15 @@ public final class Schema
       orderingMatchingRules.remove(oid, matchingRule);
       matchingRules.remove(oid, matchingRule);
 
-      String name = matchingRule.getName();
-      if (name != null)
+      for(String name:matchingRule.getAllNames())
       {
-        name = toLowerCase(name);
-        orderingMatchingRules.remove(name, matchingRule);
-        matchingRules.remove(name, matchingRule);
+        if (name != null)
+        {
+          name = toLowerCase(name);
+          orderingMatchingRules.remove(name, matchingRule);
+          matchingRules.remove(name, matchingRule);
+        }
       }
-
       // We'll use an attribute value including the normalized value
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
@@ -1713,19 +1733,22 @@ public final class Schema
                          ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
-        String name = matchingRule.getName();
-        if (name != null)
+        for(String name:matchingRule.getAllNames())
         {
-          name = toLowerCase(name);
-          if (matchingRules.containsKey(name))
+          if (name != null)
           {
-            MatchingRule conflictingRule = matchingRules.get(name);
+            name = toLowerCase(name);
+            if (matchingRules.containsKey(name))
+            {
+              MatchingRule conflictingRule = matchingRules.get(name);
 
-            Message message = ERR_SCHEMA_CONFLICTING_MR_NAME.
-                get(matchingRule.getOID(), name,
-                    conflictingRule.getOID());
-            throw new DirectoryException(
-                           ResultCode.CONSTRAINT_VIOLATION, message);
+              Message message = ERR_SCHEMA_CONFLICTING_MR_NAME.
+                  get(matchingRule.getOID(), name,
+                      conflictingRule.getOID());
+              throw new DirectoryException(
+                             ResultCode.CONSTRAINT_VIOLATION,
+                             message);
+            }
           }
         }
       }
@@ -1734,14 +1757,15 @@ public final class Schema
       substringMatchingRules.put(oid, matchingRule);
       matchingRules.put(oid, matchingRule);
 
-      String name = matchingRule.getName();
-      if (name != null)
+      for(String name:matchingRule.getAllNames())
       {
-        name = toLowerCase(name);
-        substringMatchingRules.put(name, matchingRule);
-        matchingRules.put(name, matchingRule);
+        if (name != null)
+        {
+          name = toLowerCase(name);
+          substringMatchingRules.put(name, matchingRule);
+          matchingRules.put(name, matchingRule);
+        }
       }
-
       // We'll use an attribute value including the normalized value
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
@@ -1772,14 +1796,15 @@ public final class Schema
       substringMatchingRules.remove(oid, matchingRule);
       matchingRules.remove(oid, matchingRule);
 
-      String name = matchingRule.getName();
-      if (name != null)
+      for(String name:matchingRule.getAllNames())
       {
-        name = toLowerCase(name);
-        substringMatchingRules.remove(name, matchingRule);
-        matchingRules.remove(name, matchingRule);
+        if (name != null)
+        {
+          name = toLowerCase(name);
+          substringMatchingRules.remove(name, matchingRule);
+          matchingRules.remove(name, matchingRule);
+        }
       }
-
       // We'll use an attribute value including the normalized value
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)

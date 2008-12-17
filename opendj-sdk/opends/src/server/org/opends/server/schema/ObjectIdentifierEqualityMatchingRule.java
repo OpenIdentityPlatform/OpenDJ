@@ -31,16 +31,15 @@ import org.opends.messages.MessageBuilder;
 
 import java.util.Arrays;
 
-import org.opends.server.admin.std.server.EqualityMatchingRuleCfg;
+import java.util.Collections;
+import java.util.Collection;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types. AttributeType;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ResultCode;
@@ -56,7 +55,7 @@ import org.opends.server.loggers.ErrorLogger;
  * and referenced in RFC 2252.  This expects to work on OIDs and will match
  * either an attribute/objectclass name or a numeric OID.
  */
-public class ObjectIdentifierEqualityMatchingRule
+class ObjectIdentifierEqualityMatchingRule
        extends EqualityMatchingRule
 {
   /**
@@ -72,10 +71,9 @@ public class ObjectIdentifierEqualityMatchingRule
   /**
    * {@inheritDoc}
    */
-  public void initializeMatchingRule(EqualityMatchingRuleCfg configuration)
-         throws ConfigException, InitializationException
+  public Collection<String> getAllNames()
   {
-    // No initialization is required.
+    return Collections.singleton(getName());
   }
 
 
