@@ -75,6 +75,7 @@ public class GenericDialog extends JDialog
   private final static Color buttonPanelBackground =
     ColorAndFontConstants.greyBackground;
   private JButton okButton;
+
   /**
    * The close button.
    */
@@ -282,7 +283,7 @@ public class GenericDialog extends JDialog
    * Updates the title of the dialog using the title of the panel.
    *
    */
-  void updateTitle()
+  public void updateTitle()
   {
     if (panel.getTitle() != null)
     {
