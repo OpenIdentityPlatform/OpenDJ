@@ -579,6 +579,13 @@ implements EntryReadListener
         saveChanges.setEnabled(false);
         dlg.setVisible(true);
       }
+      else if (errors.size() == 0)
+      {
+        // Mark the panel as it has no changes.  This can happen because every
+        // time the user types something the saveChanges button is enabled
+        // (for performance reasons with huge entries).
+        saveChanges.setEnabled(false);
+      }
     }
     catch (OpenDsException ode)
     {
