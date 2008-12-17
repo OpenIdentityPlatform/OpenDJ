@@ -118,9 +118,7 @@ public class MainActionsPane extends StatusGenericPanel
                 {
                   panel.setInfo(getInfo());
                 }
-                dlg = new GenericDialog(
-                    Utilities.getFrame(MainActionsPane.this),
-                    panel);
+                dlg = createDialog(panel);
 
                 dialogs.put(action, dlg);
                 Utilities.centerGoldenMean(dlg,
@@ -172,6 +170,18 @@ public class MainActionsPane extends StatusGenericPanel
   public Component getPreferredFocusComponent()
   {
     return null;
+  }
+
+  /**
+   * Creates the dialog to be displayed using the provided panel.
+   * @param panel the panel that will be contained in the dialog.
+   * @return the dialog to be displayed using the provided panel.
+   */
+  protected GenericDialog createDialog(StatusGenericPanel panel)
+  {
+    return new GenericDialog(
+        Utilities.getFrame(MainActionsPane.this),
+        panel);
   }
 
   /**
