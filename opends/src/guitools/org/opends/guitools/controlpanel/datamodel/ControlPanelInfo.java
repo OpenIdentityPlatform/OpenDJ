@@ -893,7 +893,7 @@ public class ControlPanelInfo
           {
             InetAddress address = addresses.first();
             url = sProtocol +"://"+
-            ConnectionUtils.getHostNameForLdapUrl(address.toString())+":"+
+            ConnectionUtils.getHostNameForLdapUrl(address.getHostAddress())+":"+
             port;
           }
         }
