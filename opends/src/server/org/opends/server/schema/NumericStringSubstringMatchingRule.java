@@ -25,20 +25,20 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+
+import java.util.Collections;
+import java.util.Collection;
 import org.opends.messages.Message;
 
 
 
 import java.util.List;
 
-import org.opends.server.admin.std.server.SubstringMatchingRuleCfg;
 import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.messages.SchemaMessages.*;
@@ -51,7 +51,7 @@ import org.opends.server.loggers.ErrorLogger;
  * This class implements the numericStringSubstringsMatch matching rule defined
  * in X.520 and referenced in RFC 2252.
  */
-public class NumericStringSubstringMatchingRule
+class NumericStringSubstringMatchingRule
        extends SubstringMatchingRule
 {
   /**
@@ -67,10 +67,9 @@ public class NumericStringSubstringMatchingRule
   /**
    * {@inheritDoc}
    */
-  public void initializeMatchingRule(SubstringMatchingRuleCfg configuration)
-         throws ConfigException, InitializationException
+  public Collection<String> getAllNames()
   {
-    // No initialization is required.
+    return Collections.singleton(getName());
   }
 
 

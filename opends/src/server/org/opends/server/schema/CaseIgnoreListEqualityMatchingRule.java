@@ -30,13 +30,12 @@ package org.opends.server.schema;
 
 import java.util.Arrays;
 
-import org.opends.server.admin.std.server.EqualityMatchingRuleCfg;
+import java.util.Collections;
+import java.util.Collection;
 import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
 
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -47,7 +46,7 @@ import static org.opends.server.util.StaticUtils.*;
  * This class implements the caseIgnoreListMatch matching rule defined in X.520
  * and referenced in RFC 2252.
  */
-public class CaseIgnoreListEqualityMatchingRule
+class CaseIgnoreListEqualityMatchingRule
        extends EqualityMatchingRule
 {
   /**
@@ -63,10 +62,9 @@ public class CaseIgnoreListEqualityMatchingRule
   /**
    * {@inheritDoc}
    */
-  public void initializeMatchingRule(EqualityMatchingRuleCfg configuration)
-         throws ConfigException, InitializationException
+  public Collection<String> getAllNames()
   {
-    // No initialization is required.
+    return Collections.singleton(getName());
   }
 
 

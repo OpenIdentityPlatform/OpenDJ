@@ -30,13 +30,12 @@ package org.opends.server.schema;
 
 import java.util.Arrays;
 
-import org.opends.server.admin.std.server.EqualityMatchingRuleCfg;
+import java.util.Collections;
+import java.util.Collection;
 import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
 
 import static org.opends.server.schema.SchemaConstants.*;
 
@@ -46,7 +45,7 @@ import static org.opends.server.schema.SchemaConstants.*;
  * This class defines the caseExactMatch matching rule defined in X.520 and
  * referenced in RFC 4519.
  */
-public class CaseExactEqualityMatchingRule
+class CaseExactEqualityMatchingRule
        extends EqualityMatchingRule
 {
   /**
@@ -62,23 +61,19 @@ public class CaseExactEqualityMatchingRule
   /**
    * {@inheritDoc}
    */
-  public void initializeMatchingRule(EqualityMatchingRuleCfg configuration)
-         throws ConfigException, InitializationException
+  public String getName()
   {
-    // No initialization is required.
+    return EMR_CASE_EXACT_NAME;
   }
 
 
 
   /**
-   * Retrieves the common name for this matching rule.
-   *
-   * @return  The common name for this matching rule, or <CODE>null</CODE> if
-   * it does not have a name.
+   * {@inheritDoc}
    */
-  public String getName()
+  public Collection<String> getAllNames()
   {
-    return EMR_CASE_EXACT_NAME;
+    return Collections.singleton(getName());
   }
 
 

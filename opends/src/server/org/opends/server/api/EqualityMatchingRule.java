@@ -28,7 +28,6 @@ package org.opends.server.api;
 
 
 
-import org.opends.server.admin.std.server.EqualityMatchingRuleCfg;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
@@ -49,8 +48,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
      mayInstantiate=false,
      mayExtend=true,
      mayInvoke=false)
-public abstract class EqualityMatchingRule
-       extends MatchingRule<EqualityMatchingRuleCfg>
+public abstract class EqualityMatchingRule extends MatchingRule
 {
   /**
    * The tracer object for the debug logger.

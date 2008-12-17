@@ -30,13 +30,12 @@ package org.opends.server.schema;
 
 import java.util.Arrays;
 
-import org.opends.server.admin.std.server.ApproximateMatchingRuleCfg;
+import java.util.Collection;
+import java.util.Collections;
 import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
 import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -64,7 +63,7 @@ import static org.opends.server.schema.SchemaConstants.*;
  * updated to always only generate a single value rather than one or possibly
  * two values.
  */
-public class DoubleMetaphoneApproximateMatchingRule
+class DoubleMetaphoneApproximateMatchingRule
        extends ApproximateMatchingRule
 {
   /**
@@ -87,10 +86,9 @@ public class DoubleMetaphoneApproximateMatchingRule
   /**
    * {@inheritDoc}
    */
-  public void initializeMatchingRule(ApproximateMatchingRuleCfg configuration)
-         throws ConfigException, InitializationException
+  public Collection<String> getAllNames()
   {
-    // No initialization is required.
+    return Collections.singleton(getName());
   }
 
 

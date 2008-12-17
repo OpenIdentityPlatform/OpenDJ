@@ -28,28 +28,26 @@ package org.opends.server.schema;
 
 
 
-import org.opends.server.admin.std.server.EqualityMatchingRuleCfg;
+import java.util.Collections;
+import java.util.Collection;
 import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.ServerConstants.*;
 
 
 /**
  * This class defines the generalizedTimeMatch matching rule defined in X.520
  * and referenced in RFC 2252.
  */
-public class GeneralizedTimeEqualityMatchingRule
+class GeneralizedTimeEqualityMatchingRule
        extends EqualityMatchingRule
 {
   /**
@@ -72,10 +70,9 @@ public class GeneralizedTimeEqualityMatchingRule
   /**
    * {@inheritDoc}
    */
-  public void initializeMatchingRule(EqualityMatchingRuleCfg configuration)
-         throws ConfigException, InitializationException
+  public Collection<String> getAllNames()
   {
-    // No initialization is required.
+    return Collections.singleton(getName());
   }
 
 

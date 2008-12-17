@@ -70,10 +70,13 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IdentifiedException;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RDN;
+import org.opends.server.types.ResultCode;
+import static org.opends.messages.CoreMessages.*;
 
 
 /**
@@ -4114,6 +4117,165 @@ public final class StaticUtils
     // might want to be stricter about this.
     return addr != null && addr.contains("@") && addr.contains(".");
 
+  }
+
+
+
+   /**
+    * Evaluates  and converts 2 consequetive characters  of the provided
+    * string starting at startPos and converts them into a single escaped char.
+    *
+    * @param  hexString  The hexadecimal string containing
+    *                 the escape sequence.
+    * @param startPos The starting position of the hexadecimal escape
+    *                  sequence.
+    *
+    * @return The escaped character
+    *
+    * @throws  DirectoryException  If the provided string contains invalid
+    *                          hexadecimal digits .
+   */
+  public static char hexToEscapedChar(String hexString,int startPos)
+          throws DirectoryException
+  {
+
+    // The two positions  must be the hex characters that
+    // comprise the escaped value.
+    if ((startPos+ 1) >= hexString.length())
+    {
+      Message message =
+          ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
+            get(hexString, startPos+1);
+
+      throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                                   message);
+    }
+    byte byteValue = 0;
+    switch(hexString.charAt(startPos))
+    {
+      case 0x30: // '0'
+        break;
+      case 0x31: // '1'
+        byteValue = (byte) 0x10;
+        break;
+      case 0x32: // '2'
+        byteValue = (byte) 0x20;
+        break;
+      case 0x33: // '3'
+        byteValue = (byte) 0x30;
+        break;
+      case 0x34: // '4'
+        byteValue = (byte) 0x40;
+        break;
+      case 0x35: // '5'
+        byteValue = (byte) 0x50;
+        break;
+      case 0x36: // '6'
+        byteValue = (byte) 0x60;
+        break;
+      case 0x37: // '7'
+        byteValue = (byte) 0x70;
+        break;
+      case 0x38: // '8'
+        byteValue = (byte) 0x80;
+        break;
+      case 0x39: // '9'
+        byteValue = (byte) 0x90;
+        break;
+      case 0x41: // 'A'
+      case 0x61: // 'a'
+        byteValue = (byte) 0xA0;
+        break;
+      case 0x42: // 'B'
+      case 0x62: // 'b'
+        byteValue = (byte) 0xB0;
+        break;
+      case 0x43: // 'C'
+      case 0x63: // 'c'
+        byteValue = (byte) 0xC0;
+        break;
+      case 0x44: // 'D'
+      case 0x64: // 'd'
+        byteValue = (byte) 0xD0;
+        break;
+      case 0x45: // 'E'
+      case 0x65: // 'e'
+        byteValue = (byte) 0xE0;
+        break;
+      case 0x46: // 'F'
+      case 0x66: // 'f'
+        byteValue = (byte) 0xF0;
+        break;
+      default:
+        Message message =
+                      ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
+                        get(hexString, startPos);
+        throw new DirectoryException(
+                                 ResultCode.PROTOCOL_ERROR, message);
+    }
+
+    switch (hexString.charAt(++startPos))
+    {
+      case 0x30: // '0'
+        break;
+      case 0x31: // '1'
+        byteValue |= (byte) 0x01;
+        break;
+      case 0x32: // '2'
+        byteValue |= (byte) 0x02;
+        break;
+      case 0x33: // '3'
+        byteValue |= (byte) 0x03;
+        break;
+      case 0x34: // '4'
+        byteValue |= (byte) 0x04;
+        break;
+      case 0x35: // '5'
+        byteValue |= (byte) 0x05;
+        break;
+      case 0x36: // '6'
+        byteValue |= (byte) 0x06;
+        break;
+      case 0x37: // '7'
+        byteValue |= (byte) 0x07;
+        break;
+      case 0x38: // '8'
+        byteValue |= (byte) 0x08;
+        break;
+      case 0x39: // '9'
+        byteValue |= (byte) 0x09;
+        break;
+      case 0x41: // 'A'
+      case 0x61: // 'a'
+        byteValue |= (byte) 0x0A;
+        break;
+      case 0x42: // 'B'
+      case 0x62: // 'b'
+        byteValue |= (byte) 0x0B;
+        break;
+      case 0x43: // 'C'
+      case 0x63: // 'c'
+        byteValue |= (byte) 0x0C;
+        break;
+      case 0x44: // 'D'
+      case 0x64: // 'd'
+        byteValue |= (byte) 0x0D;
+        break;
+      case 0x45: // 'E'
+      case 0x65: // 'e'
+        byteValue |= (byte) 0x0E;
+        break;
+      case 0x46: // 'F'
+      case 0x66: // 'f'
+        byteValue |= (byte) 0x0F;
+        break;
+      default:
+        Message message =ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
+                        get(hexString, startPos);
+        throw new DirectoryException(
+                                 ResultCode.PROTOCOL_ERROR, message);
+    }
+    return (char)byteValue;
   }
 }
 

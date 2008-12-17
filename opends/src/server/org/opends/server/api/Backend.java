@@ -284,7 +284,7 @@ public abstract class Backend
    *          {@code false} if not.
    */
   public boolean isIndexed(AttributeType attributeType,
-                           MatchingRule<?> matchingRule)
+                           MatchingRule matchingRule)
   {
     return false;
   }
@@ -379,7 +379,7 @@ public abstract class Backend
           return false;
         }
 
-        MatchingRule<?> matchingRule;
+        MatchingRule matchingRule;
         String matchingRuleID = filter.getMatchingRuleID();
         if (matchingRuleID != null)
         {

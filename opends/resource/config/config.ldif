@@ -832,7 +832,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Auth Password Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.AuthPasswordEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.AuthPasswordEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Auth Password Exact Equality Matching Rule,cn=Matching Rules,cn=config
@@ -840,7 +840,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Auth Password Exact Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.AuthPasswordExactEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.AuthPasswordExactEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Bit String Equality Matching Rule,cn=Matching Rules,cn=config
@@ -848,7 +848,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Bit String Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.BitStringEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.BitStringEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Boolean Equality Matching Rule,cn=Matching Rules,cn=config
@@ -856,7 +856,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Boolean Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.BooleanEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.BooleanEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Case Exact Equality Matching Rule,cn=Matching Rules,cn=config
@@ -864,7 +864,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Case Exact Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.CaseExactEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.CaseExactEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Case Exact Ordering Matching Rule,cn=Matching Rules,cn=config
@@ -872,7 +872,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-ordering-matching-rule
 cn: Case Exact Ordering Matching Rule
-ds-cfg-java-class: org.opends.server.schema.CaseExactOrderingMatchingRule
+ds-cfg-java-class: org.opends.server.schema.CaseExactOrderingMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Case Exact Substring Matching Rule,cn=Matching Rules,cn=config
@@ -880,7 +880,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-substring-matching-rule
 cn: Case Exact Substring Matching Rule
-ds-cfg-java-class: org.opends.server.schema.CaseExactSubstringMatchingRule
+ds-cfg-java-class: org.opends.server.schema.CaseExactSubstringMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Case Exact IA5 Equality Matching Rule,cn=Matching Rules,cn=config
@@ -888,7 +888,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Case Exact IA5 Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.CaseExactIA5EqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.CaseExactIA5EqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Case Exact IA5 Substring Matching Rule,cn=Matching Rules,cn=config
@@ -896,7 +896,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-substring-matching-rule
 cn: Case Exact IA5 Substring Matching Rule
-ds-cfg-java-class: org.opends.server.schema.CaseExactIA5SubstringMatchingRule
+ds-cfg-java-class: org.opends.server.schema.CaseExactIA5SubstringMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Case Ignore Equality Matching Rule,cn=Matching Rules,cn=config
@@ -904,7 +904,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Case Ignore Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.CaseIgnoreEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.CaseIgnoreEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Case Ignore Ordering Matching Rule,cn=Matching Rules,cn=config
@@ -912,7 +912,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-ordering-matching-rule
 cn: Case Ignore Ordering Matching Rule
-ds-cfg-java-class: org.opends.server.schema.CaseIgnoreOrderingMatchingRule
+ds-cfg-java-class: org.opends.server.schema.CaseIgnoreOrderingMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Case Ignore Substring Matching Rule,cn=Matching Rules,cn=config
@@ -920,7 +920,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-substring-matching-rule
 cn: Case Ignore Substring Matching Rule
-ds-cfg-java-class: org.opends.server.schema.CaseIgnoreSubstringMatchingRule
+ds-cfg-java-class: org.opends.server.schema.CaseIgnoreSubstringMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Case Ignore IA5 Equality Matching Rule,cn=Matching Rules,cn=config
@@ -928,7 +928,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Case Ignore IA5 Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.CaseIgnoreIA5EqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.CaseIgnoreIA5EqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Case Ignore IA5 Substring Matching Rule,cn=Matching Rules,cn=config
@@ -936,7 +936,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-substring-matching-rule
 cn: Case Ignore IA5 Substring Matching Rule
-ds-cfg-java-class: org.opends.server.schema.CaseIgnoreIA5SubstringMatchingRule
+ds-cfg-java-class: org.opends.server.schema.CaseIgnoreIA5SubstringMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Case Ignore List Equality Matching Rule,cn=Matching Rules,cn=config
@@ -944,7 +944,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Case Ignore List Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.CaseIgnoreListEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.CaseIgnoreListEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Case Ignore List Substring Matching Rule,cn=Matching Rules,cn=config
@@ -952,15 +952,188 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-substring-matching-rule
 cn: Case Ignore List Substring Matching Rule
-ds-cfg-java-class: org.opends.server.schema.CaseIgnoreListSubstringMatchingRule
+ds-cfg-java-class: org.opends.server.schema.CaseIgnoreListSubstringMatchingRuleFactory
 ds-cfg-enabled: true
+
+dn: cn=Collation Matching Rule,cn=Matching Rules,cn=config
+objectClass: top
+objectClass: ds-cfg-matching-rule
+objectClass: ds-cfg-collation-matching-rule
+cn: Collation Matching Rule
+ds-cfg-java-class: org.opends.server.schema.CollationMatchingRuleFactory
+ds-cfg-enabled: true
+ds-cfg-matching-rule-type: equality
+ds-cfg-matching-rule-type: less-than
+ds-cfg-matching-rule-type: less-than-or-equal-to
+ds-cfg-matching-rule-type: greater-than
+ds-cfg-matching-rule-type: greater-than-or-equal-to
+ds-cfg-matching-rule-type: substring
+#ds-cfg-collation: af:1.3.6.1.4.1.42.2.27.9.4.1.1
+#ds-cfg-collation: am:1.3.6.1.4.1.42.2.27.9.4.2.1
+ds-cfg-collation: ar:1.3.6.1.4.1.42.2.27.9.4.3.1
+ds-cfg-collation: ar-AE:1.3.6.1.4.1.42.2.27.9.4.4.1
+ds-cfg-collation: ar-BH:1.3.6.1.4.1.42.2.27.9.4.5.1
+ds-cfg-collation: ar-DZ:1.3.6.1.4.1.42.2.27.9.4.6.1
+ds-cfg-collation: ar-EG:1.3.6.1.4.1.42.2.27.9.4.7.1
+#ds-cfg-collation: ar-IN:1.3.6.1.4.1.42.2.27.9.4.8.1
+ds-cfg-collation: ar-IQ:1.3.6.1.4.1.42.2.27.9.4.9.1
+ds-cfg-collation: ar-JO:1.3.6.1.4.1.42.2.27.9.4.10.1
+ds-cfg-collation: ar-KW:1.3.6.1.4.1.42.2.27.9.4.11.1
+ds-cfg-collation: ar-LB:1.3.6.1.4.1.42.2.27.9.4.12.1
+ds-cfg-collation: ar-LY:1.3.6.1.4.1.42.2.27.9.4.13.1
+ds-cfg-collation: ar-MA:1.3.6.1.4.1.42.2.27.9.4.14.1
+ds-cfg-collation: ar-OM:1.3.6.1.4.1.42.2.27.9.4.15.1
+ds-cfg-collation: ar-QA:1.3.6.1.4.1.42.2.27.9.4.16.1
+ds-cfg-collation: ar-SA:1.3.6.1.4.1.42.2.27.9.4.17.1
+ds-cfg-collation: ar-SD:1.3.6.1.4.1.42.2.27.9.4.18.1
+ds-cfg-collation: ar-SY:1.3.6.1.4.1.42.2.27.9.4.19.1
+ds-cfg-collation: ar-TN:1.3.6.1.4.1.42.2.27.9.4.20.1
+ds-cfg-collation: ar-YE:1.3.6.1.4.1.42.2.27.9.4.21.1
+ds-cfg-collation: be:1.3.6.1.4.1.42.2.27.9.4.22.1
+ds-cfg-collation: bg:1.3.6.1.4.1.42.2.27.9.4.23.1
+#ds-cfg-collation: bn:1.3.6.1.4.1.42.2.27.9.4.24.1
+ds-cfg-collation: ca:1.3.6.1.4.1.42.2.27.9.4.25.1
+ds-cfg-collation: cs:1.3.6.1.4.1.42.2.27.9.4.26.1
+ds-cfg-collation: da:1.3.6.1.4.1.42.2.27.9.4.27.1
+ds-cfg-collation: de:1.3.6.1.4.1.142.2.27.9.4.28.1
+ds-cfg-collation: de-DE:1.3.6.1.4.1.142.2.27.9.4.28.1
+ds-cfg-collation: de-AT:1.3.6.1.4.1.42.2.27.9.4.29.1
+#ds-cfg-collation: de-BE:1.3.6.1.4.1.42.2.27.9.4.30.1
+ds-cfg-collation: de-CH:1.3.6.1.4.1.42.2.27.9.4.31.1
+ds-cfg-collation: de-LU:1.3.6.1.4.1.42.2.27.9.4.32.1
+ds-cfg-collation: el:1.3.6.1.4.1.42.2.27.9.4.33.1
+ds-cfg-collation: en:1.3.6.1.4.1.42.2.27.9.4.34.1
+ds-cfg-collation: en-US:1.3.6.1.4.1.42.2.27.9.4.34.1
+ds-cfg-collation: en-AU:1.3.6.1.4.1.42.2.27.9.4.35.1
+ds-cfg-collation: en-CA:1.3.6.1.4.1.42.2.27.9.4.36.1
+ds-cfg-collation: en-GB:1.3.6.1.4.1.42.2.27.9.4.37.1
+#ds-cfg-collation: en-HK:1.3.6.1.4.1.42.2.27.9.4.38.1
+ds-cfg-collation: en-IE:1.3.6.1.4.1.42.2.27.9.4.39.1
+ds-cfg-collation: en-IN:1.3.6.1.4.1.42.2.27.9.4.40.1
+#ds-cfg-collation: en-MT:1.3.6.1.4.1.42.2.27.9.4.41.1
+ds-cfg-collation: en-NZ:1.3.6.1.4.1.42.2.27.9.4.42.1
+#ds-cfg-collation: en-PH:1.3.6.1.4.1.42.2.27.9.4.43.1
+#ds-cfg-collation: en-SG:1.3.6.1.4.1.42.2.27.9.4.44.1
+#ds-cfg-collation: en-VI:1.3.6.1.4.1.42.2.27.9.4.45.1
+ds-cfg-collation: en-ZA:1.3.6.1.4.1.42.2.27.9.4.46.1
+#ds-cfg-collation: en-ZW:1.3.6.1.4.1.42.2.27.9.4.47.1
+#ds-cfg-collation: eo:1.3.6.1.4.1.42.2.27.9.4.48.1
+ds-cfg-collation: es:1.3.6.1.4.1.42.2.27.9.4.49.1
+ds-cfg-collation: es-ES:1.3.6.1.4.1.42.2.27.9.4.49.1
+ds-cfg-collation: es-AR:1.3.6.1.4.1.42.2.27.9.4.50.1
+ds-cfg-collation: es-BO:1.3.6.1.4.1.42.2.27.9.4.51.1
+ds-cfg-collation: es-CL:1.3.6.1.4.1.42.2.27.9.4.52.1
+ds-cfg-collation: es-CO:1.3.6.1.4.1.42.2.27.9.4.53.1
+ds-cfg-collation: es-CR:1.3.6.1.4.1.42.2.27.9.4.54.1
+ds-cfg-collation: es-DO:1.3.6.1.4.1.42.2.27.9.4.55.1
+ds-cfg-collation: es-EC:1.3.6.1.4.1.42.2.27.9.4.56.1
+ds-cfg-collation: es-GT:1.3.6.1.4.1.42.2.27.9.4.57.1
+ds-cfg-collation: es-HN:1.3.6.1.4.1.42.2.27.9.4.58.1
+ds-cfg-collation: es-MX:1.3.6.1.4.1.42.2.27.9.4.59.1
+ds-cfg-collation: es-NI:1.3.6.1.4.1.42.2.27.9.4.60.1
+ds-cfg-collation: es-PA:1.3.6.1.4.1.42.2.27.9.4.61.1
+ds-cfg-collation: es-PE:1.3.6.1.4.1.42.2.27.9.4.62.1
+ds-cfg-collation: es-PR:1.3.6.1.4.1.42.2.27.9.4.63.1
+ds-cfg-collation: es-PY:1.3.6.1.4.1.42.2.27.9.4.64.1
+ds-cfg-collation: es-SV:1.3.6.1.4.1.42.2.27.9.4.65.1
+#ds-cfg-collation: es-US:1.3.6.1.4.1.42.2.27.9.4.66.1
+ds-cfg-collation: es-UY:1.3.6.1.4.1.42.2.27.9.4.67.1
+ds-cfg-collation: es-VE:1.3.6.1.4.1.42.2.27.9.4.68.1
+ds-cfg-collation: et:1.3.6.1.4.1.42.2.27.9.4.69.1
+#ds-cfg-collation: eu:1.3.6.1.4.1.42.2.27.9.4.70.1
+#ds-cfg-collation: fa:1.3.6.1.4.1.42.2.27.9.4.71.1
+#ds-cfg-collation: fa-IN:1.3.6.1.4.1.42.2.27.9.4.72.1
+#ds-cfg-collation: fa-IR:1.3.6.1.4.1.42.2.27.9.4.73.1
+ds-cfg-collation: fi:1.3.6.1.4.1.42.2.27.9.4.74.1
+#ds-cfg-collation: fo:1.3.6.1.4.1.42.2.27.9.4.75.1
+ds-cfg-collation: fr:1.3.6.1.4.1.42.2.27.9.4.76.1
+ds-cfg-collation: fr-FR:1.3.6.1.4.1.42.2.27.9.4.76.1
+ds-cfg-collation: fr-BE:1.3.6.1.4.1.42.2.27.9.4.77.1
+ds-cfg-collation: fr-CA:1.3.6.1.4.1.42.2.27.9.4.78.1
+ds-cfg-collation: fr-CH:1.3.6.1.4.1.42.2.27.9.4.79.1
+ds-cfg-collation: fr-LU:1.3.6.1.4.1.42.2.27.9.4.80.1
+#ds-cfg-collation: ga:1.3.6.1.4.1.42.2.27.9.4.81.1
+#ds-cfg-collation: gl:1.3.6.1.4.1.42.2.27.9.4.82.1
+#ds-cfg-collation: gu:1.3.6.1.4.1.42.2.27.9.4.83.1
+#ds-cfg-collation: gv:1.3.6.1.4.1.42.2.27.9.4.84.1
+ds-cfg-collation: he:1.3.6.1.4.1.42.2.27.9.4.85.1
+#ds-cfg-collation: hi:1.3.6.1.4.1.42.2.27.9.4.86.1
+ds-cfg-collation: hr:1.3.6.1.4.1.42.2.27.9.4.87.1
+ds-cfg-collation: hu:1.3.6.1.4.1.42.2.27.9.4.88.1
+#ds-cfg-collation: hy:1.3.6.1.4.1.42.2.27.9.4.89.1
+#ds-cfg-collation: id:1.3.6.1.4.1.42.2.27.9.4.90.1
+ds-cfg-collation: is:1.3.6.1.4.1.42.2.27.9.4.91.1
+ds-cfg-collation: it:1.3.6.1.4.1.42.2.27.9.4.92.1
+ds-cfg-collation: it-CH:1.3.6.1.4.1.42.2.27.9.4.93.1
+ds-cfg-collation: ja:1.3.6.1.4.1.42.2.27.9.4.94.1
+#ds-cfg-collation: kl:1.3.6.1.4.1.42.2.27.9.4.95.1
+#ds-cfg-collation: kn:1.3.6.1.4.1.42.2.27.9.4.96.1
+ds-cfg-collation: ko:1.3.6.1.4.1.42.2.27.9.4.97.1
+#ds-cfg-collation: kok:1.3.6.1.4.1.42.2.27.9.4.98.1
+#ds-cfg-collation: kw:1.3.6.1.4.1.42.2.27.9.4.99.1
+ds-cfg-collation: lt:1.3.6.1.4.1.42.2.27.9.4.100.1
+ds-cfg-collation: lv:1.3.6.1.4.1.42.2.27.9.4.101.1
+ds-cfg-collation: mk:1.3.6.1.4.1.42.2.27.9.4.102.1
+#ds-cfg-collation: mr:1.3.6.1.4.1.42.2.27.9.4.103.1
+#ds-cfg-collation: mt:1.3.6.1.4.1.42.2.27.9.4.104.1
+ds-cfg-collation: nl:1.3.6.1.4.1.42.2.27.9.4.105.1
+ds-cfg-collation: nl-NL:1.3.6.1.4.1.42.2.27.9.4.105.1
+ds-cfg-collation: nl-BE:1.3.6.1.4.1.42.2.27.9.4.106.1
+ds-cfg-collation: no:1.3.6.1.4.1.42.2.27.9.4.107.1
+ds-cfg-collation: no-NO:1.3.6.1.4.1.42.2.27.9.4.107.1
+ds-cfg-collation: no-NO-NY:1.3.6.1.4.1.42.2.27.9.4.108.1
+#ds-cfg-collation: nn:1.3.6.1.4.1.42.2.27.9.4.109.1
+#ds-cfg-collation: nb:1.3.6.1.4.1.42.2.27.9.4.110.1
+#ds-cfg-collation: no-NO-B:1.3.6.1.4.1.42.2.27.9.4.110.1
+#ds-cfg-collation: om:1.3.6.1.4.1.42.2.27.9.4.111.1
+#ds-cfg-collation: om-ET:1.3.6.1.4.1.42.2.27.9.4.112.1
+#ds-cfg-collation: om-KE:1.3.6.1.4.1.42.2.27.9.4.113.1
+ds-cfg-collation: pl:1.3.6.1.4.1.42.2.27.9.4.114.1
+ds-cfg-collation: pt:1.3.6.1.4.1.42.2.27.9.4.115.1
+ds-cfg-collation: pt-PT:1.3.6.1.4.1.42.2.27.9.4.115.1
+ds-cfg-collation: pt-BR:1.3.6.1.4.1.42.2.27.9.4.116.1
+ds-cfg-collation: ro:1.3.6.1.4.1.42.2.27.9.4.117.1
+ds-cfg-collation: ru:1.3.6.1.4.1.42.2.27.9.4.118.1
+ds-cfg-collation: ru-RU:1.3.6.1.4.1.42.2.27.9.4.118.1
+#ds-cfg-collation: ru-UA:1.3.6.1.4.1.42.2.27.9.4.119.1
+#ds-cfg-collation: sh:1.3.6.1.4.1.42.2.27.9.4.120.1
+ds-cfg-collation: sk:1.3.6.1.4.1.42.2.27.9.4.121.1
+ds-cfg-collation: sl:1.3.6.1.4.1.42.2.27.9.4.122.1
+#ds-cfg-collation: so:1.3.6.1.4.1.42.2.27.9.4.123.1
+#ds-cfg-collation: so-SO:1.3.6.1.4.1.42.2.27.9.4.123.1
+#ds-cfg-collation: so-DJ:1.3.6.1.4.1.42.2.27.9.4.124.1
+#ds-cfg-collation: so-ET:1.3.6.1.4.1.42.2.27.9.4.125.1
+#ds-cfg-collation: so-KE:1.3.6.1.4.1.42.2.27.9.4.126.1
+ds-cfg-collation: sq:1.3.6.1.4.1.42.2.27.9.4.127.1
+ds-cfg-collation: sr:1.3.6.1.4.1.42.2.27.9.4.128.1
+ds-cfg-collation: sv:1.3.6.1.4.1.42.2.27.9.4.129.1
+ds-cfg-collation: sv-SE:1.3.6.1.4.1.42.2.27.9.4.129.1
+#ds-cfg-collation: sv-FI:1.3.6.1.4.1.42.2.27.9.4.130.1
+#ds-cfg-collation: sw:1.3.6.1.4.1.42.2.27.9.4.131.1
+#ds-cfg-collation: sw-KE:1.3.6.1.4.1.42.2.27.9.4.132.1
+#ds-cfg-collation: sw-TZ:1.3.6.1.4.1.42.2.27.9.4.133.1
+#ds-cfg-collation: ta:1 3  1.3.6.1.4.1.42.2.27.9.4.134.1
+#ds-cfg-collation: te:1.3.6.1.4.1.42.2.27.9.4.135.1
+ds-cfg-collation: th:1.3.6.1.4.1.42.2.27.9.4.136.1
+#ds-cfg-collation: ti:1.3.6.1.4.1.42.2.27.9.4.137.1
+#ds-cfg-collation: ti-ER:1.3.6.1.4.1.42.2.27.9.4.138.1
+#ds-cfg-collation: ti-ET:1.3.6.1.4.1.42.2.27.9.4.139.1
+ds-cfg-collation: tr:1.3.6.1.4.1.42.2.27.9.4.140.1
+ds-cfg-collation: uk:1.3.6.1.4.1.42.2.27.9.4.141.1
+ds-cfg-collation: vi:1.3.6.1.4.1.42.2.27.9.4.142.1
+ds-cfg-collation: zh:1.3.6.1.4.1.42.2.27.9.4.143.1
+ds-cfg-collation: zh-CN:1.3.6.1.4.1.42.2.27.9.4.144.1
+ds-cfg-collation: zh-HK:1.3.6.1.4.1.42.2.27.9.4.145.1
+#ds-cfg-collation: zh-MO:1.3.6.1.4.1.42.2.27.9.4.146.1
+#ds-cfg-collation: zh-SG:1.3.6.1.4.1.42.2.27.9.4.147.1
+ds-cfg-collation: zh-TW:1.3.6.1.4.1.42.2.27.9.4.148.1
 
 dn: cn=Directory String First Component Equality Matching Rule,cn=Matching Rules,cn=config
 objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Directory String First Component Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.DirectoryStringFirstComponentEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.DirectoryStringFirstComponentEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Distinguished Name Equality Matching Rule,cn=Matching Rules,cn=config
@@ -968,7 +1141,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Distinguished Name Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.DistinguishedNameEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.DistinguishedNameEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Double Metaphone Approximate Matching Rule,cn=Matching Rules,cn=config
@@ -976,7 +1149,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-approximate-matching-rule
 cn: Double Metaphone Approximate Matching Rule
-ds-cfg-java-class: org.opends.server.schema.DoubleMetaphoneApproximateMatchingRule
+ds-cfg-java-class: org.opends.server.schema.DoubleMetaphoneApproximateMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Generalized Time Equality Matching Rule,cn=Matching Rules,cn=config
@@ -984,7 +1157,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Generalized Time Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.GeneralizedTimeEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.GeneralizedTimeEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Generalized Time Ordering Matching Rule,cn=Matching Rules,cn=config
@@ -992,14 +1165,14 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-ordering-matching-rule
 cn: Generalized Time Ordering Matching Rule
-ds-cfg-java-class: org.opends.server.schema.GeneralizedTimeOrderingMatchingRule
+ds-cfg-java-class: org.opends.server.schema.GeneralizedTimeOrderingMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Historical CSN Ordering Matching Rule,cn=Matching Rules,cn=config
 objectClass: ds-cfg-ordering-matching-rule
 objectClass: top
 objectClass: ds-cfg-matching-rule
-ds-cfg-java-class: org.opends.server.replication.plugin.HistoricalCsnOrderingMatchingRule
+ds-cfg-java-class: org.opends.server.replication.plugin.HistoricalCsnOrderingMatchingRuleFactory
 ds-cfg-enabled: true
 cn: Historical CSN Ordering Matching Rule
 
@@ -1008,7 +1181,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Integer Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.IntegerEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.IntegerEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Integer Ordering Matching Rule,cn=Matching Rules,cn=config
@@ -1016,7 +1189,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-ordering-matching-rule
 cn: Integer Ordering Matching Rule
-ds-cfg-java-class: org.opends.server.schema.IntegerOrderingMatchingRule
+ds-cfg-java-class: org.opends.server.schema.IntegerOrderingMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Integer First Component Equality Matching Rule,cn=Matching Rules,cn=config
@@ -1024,7 +1197,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Integer First Component Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.IntegerFirstComponentEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.IntegerFirstComponentEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Keyword Equality Matching Rule,cn=Matching Rules,cn=config
@@ -1032,7 +1205,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Keyword Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.KeywordEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.KeywordEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Numeric String Equality Matching Rule,cn=Matching Rules,cn=config
@@ -1040,7 +1213,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Numeric String Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.NumericStringEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.NumericStringEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Numeric String Ordering Matching Rule,cn=Matching Rules,cn=config
@@ -1048,7 +1221,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-ordering-matching-rule
 cn: Numeric String Ordering Matching Rule
-ds-cfg-java-class: org.opends.server.schema.NumericStringOrderingMatchingRule
+ds-cfg-java-class: org.opends.server.schema.NumericStringOrderingMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Numeric String Substring Matching Rule,cn=Matching Rules,cn=config
@@ -1056,7 +1229,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-substring-matching-rule
 cn: Numeric String Substring Matching Rule
-ds-cfg-java-class: org.opends.server.schema.NumericStringSubstringMatchingRule
+ds-cfg-java-class: org.opends.server.schema.NumericStringSubstringMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Object Identifier Equality Matching Rule,cn=Matching Rules,cn=config
@@ -1064,7 +1237,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Object Identifier Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.ObjectIdentifierEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.ObjectIdentifierEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Object Identifier First Component Equality Matching Rule,cn=Matching Rules,cn=config
@@ -1072,7 +1245,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Object Identifier First Component Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.ObjectIdentifierFirstComponentEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.ObjectIdentifierFirstComponentEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Octet String Equality Matching Rule,cn=Matching Rules,cn=config
@@ -1080,7 +1253,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Octet String Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.OctetStringEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.OctetStringEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Octet String Ordering Matching Rule,cn=Matching Rules,cn=config
@@ -1088,7 +1261,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-ordering-matching-rule
 cn: Octet String Ordering Matching Rule
-ds-cfg-java-class: org.opends.server.schema.OctetStringOrderingMatchingRule
+ds-cfg-java-class: org.opends.server.schema.OctetStringOrderingMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Octet String Substring Matching Rule,cn=Matching Rules,cn=config
@@ -1096,7 +1269,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-substring-matching-rule
 cn: Octet String Substring Matching Rule
-ds-cfg-java-class: org.opends.server.schema.OctetStringSubstringMatchingRule
+ds-cfg-java-class: org.opends.server.schema.OctetStringSubstringMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Presentation Address Equality Matching Rule,cn=Matching Rules,cn=config
@@ -1104,7 +1277,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Presentation Address Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.PresentationAddressEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.PresentationAddressEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Protocol Information Equality Matching Rule,cn=Matching Rules,cn=config
@@ -1112,7 +1285,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Protocol Information Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.ProtocolInformationEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.ProtocolInformationEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Telephone Number Equality Matching Rule,cn=Matching Rules,cn=config
@@ -1120,7 +1293,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Telephone Number Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.TelephoneNumberEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.TelephoneNumberEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Telephone Number Substring Matching Rule,cn=Matching Rules,cn=config
@@ -1128,7 +1301,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-substring-matching-rule
 cn: Telephone Number Substring Matching Rule
-ds-cfg-java-class: org.opends.server.schema.TelephoneNumberSubstringMatchingRule
+ds-cfg-java-class: org.opends.server.schema.TelephoneNumberSubstringMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Unique Member Equality Matching Rule,cn=Matching Rules,cn=config
@@ -1136,7 +1309,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Unique Member Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.UniqueMemberEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.UniqueMemberEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=User Password Equality Matching Rule,cn=Matching Rules,cn=config
@@ -1144,7 +1317,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: User Password Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.UserPasswordEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.UserPasswordEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=User Password Exact Equality Matching Rule,cn=Matching Rules,cn=config
@@ -1152,7 +1325,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: User Password Exact Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.UserPasswordExactEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.UserPasswordExactEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=UUID Equality Matching Rule,cn=Matching Rules,cn=config
@@ -1160,7 +1333,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: UUID Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.UUIDEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.UUIDEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=UUID Ordering Matching Rule,cn=Matching Rules,cn=config
@@ -1168,7 +1341,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-ordering-matching-rule
 cn: UUID Ordering Matching Rule
-ds-cfg-java-class: org.opends.server.schema.UUIDOrderingMatchingRule
+ds-cfg-java-class: org.opends.server.schema.UUIDOrderingMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Word Equality Matching Rule,cn=Matching Rules,cn=config
@@ -1176,7 +1349,7 @@ objectClass: top
 objectClass: ds-cfg-matching-rule
 objectClass: ds-cfg-equality-matching-rule
 cn: Word Equality Matching Rule
-ds-cfg-java-class: org.opends.server.schema.WordEqualityMatchingRule
+ds-cfg-java-class: org.opends.server.schema.WordEqualityMatchingRuleFactory
 ds-cfg-enabled: true
 
 dn: cn=Monitor Providers,cn=config

@@ -120,7 +120,6 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
     // Create and register the approximate matching rule for testing purposes.
     EqualLengthApproximateMatchingRule testApproxRule =
          new EqualLengthApproximateMatchingRule();
-    testApproxRule.initializeMatchingRule(null);
     DirectoryServer.registerApproximateMatchingRule(testApproxRule, false);
 
 

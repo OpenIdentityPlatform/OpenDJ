@@ -28,14 +28,13 @@ package org.opends.server.schema;
 
 
 
-import org.opends.server.admin.std.server.EqualityMatchingRuleCfg;
+import java.util.Collection;
+import java.util.Collections;
 import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
 
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -62,7 +61,7 @@ import static org.opends.server.util.StaticUtils.*;
  *   <LI>An equal sign</LI>
  * </UL>
  */
-public class WordEqualityMatchingRule
+class WordEqualityMatchingRule
        extends EqualityMatchingRule
 {
   /**
@@ -78,10 +77,9 @@ public class WordEqualityMatchingRule
   /**
    * {@inheritDoc}
    */
-  public void initializeMatchingRule(EqualityMatchingRuleCfg configuration)
-         throws ConfigException, InitializationException
+  public Collection<String> getAllNames()
   {
-    // No initialization is required.
+    return Collections.singleton(getName());
   }
 
 

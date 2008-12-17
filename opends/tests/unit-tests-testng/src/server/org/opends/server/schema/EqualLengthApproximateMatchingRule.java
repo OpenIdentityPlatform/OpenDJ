@@ -28,14 +28,12 @@ package org.opends.server.schema;
 
 
 
-import org.opends.server.admin.std.server.ApproximateMatchingRuleCfg;
+import java.util.Collection;
+import java.util.Collections;
 import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.ConfigException;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
 
 import static org.opends.server.schema.SchemaConstants.*;
 
@@ -46,7 +44,7 @@ import static org.opends.server.schema.SchemaConstants.*;
  * consider two values approximately equal only if they have the same length.
  * It is intended purely for testing purposes.
  */
-public class EqualLengthApproximateMatchingRule
+class EqualLengthApproximateMatchingRule
        extends ApproximateMatchingRule
 {
   /**
@@ -62,10 +60,9 @@ public class EqualLengthApproximateMatchingRule
   /**
    * {@inheritDoc}
    */
-  public void initializeMatchingRule(ApproximateMatchingRuleCfg configuration)
-         throws ConfigException, InitializationException
+  public Collection<String> getAllNames()
   {
-    // No initialization is required.
+    return Collections.singleton(getName());
   }
 
 

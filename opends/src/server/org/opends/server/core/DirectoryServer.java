@@ -103,38 +103,38 @@ import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.monitors.ConnectionHandlerMonitor;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.BinarySyntax;
-import org.opends.server.schema.BooleanEqualityMatchingRule;
+import org.opends.server.schema.BooleanEqualityMatchingRuleFactory;
 import org.opends.server.schema.BooleanSyntax;
-import org.opends.server.schema.CaseExactEqualityMatchingRule;
-import org.opends.server.schema.CaseExactIA5EqualityMatchingRule;
-import org.opends.server.schema.CaseExactIA5SubstringMatchingRule;
-import org.opends.server.schema.CaseExactOrderingMatchingRule;
-import org.opends.server.schema.CaseExactSubstringMatchingRule;
-import org.opends.server.schema.CaseIgnoreEqualityMatchingRule;
-import org.opends.server.schema.CaseIgnoreIA5EqualityMatchingRule;
-import org.opends.server.schema.CaseIgnoreIA5SubstringMatchingRule;
-import org.opends.server.schema.CaseIgnoreOrderingMatchingRule;
-import org.opends.server.schema.CaseIgnoreSubstringMatchingRule;
+import org.opends.server.schema.CaseExactEqualityMatchingRuleFactory;
+import org.opends.server.schema.CaseExactIA5EqualityMatchingRuleFactory;
+import org.opends.server.schema.CaseExactIA5SubstringMatchingRuleFactory;
+import org.opends.server.schema.CaseExactOrderingMatchingRuleFactory;
+import org.opends.server.schema.CaseExactSubstringMatchingRuleFactory;
+import org.opends.server.schema.CaseIgnoreEqualityMatchingRuleFactory;
+import org.opends.server.schema.CaseIgnoreIA5EqualityMatchingRuleFactory;
+import org.opends.server.schema.CaseIgnoreIA5SubstringMatchingRuleFactory;
+import org.opends.server.schema.CaseIgnoreOrderingMatchingRuleFactory;
+import org.opends.server.schema.CaseIgnoreSubstringMatchingRuleFactory;
 import org.opends.server.schema.DirectoryStringSyntax;
-import org.opends.server.schema.DistinguishedNameEqualityMatchingRule;
+import org.opends.server.schema.DistinguishedNameEqualityMatchingRuleFactory;
 import org.opends.server.schema.DistinguishedNameSyntax;
-import org.opends.server.schema.DoubleMetaphoneApproximateMatchingRule;
-import org.opends.server.schema.GeneralizedTimeEqualityMatchingRule;
-import org.opends.server.schema.GeneralizedTimeOrderingMatchingRule;
+import org.opends.server.schema.DoubleMetaphoneApproximateMatchingRuleFactory;
+import org.opends.server.schema.GeneralizedTimeEqualityMatchingRuleFactory;
+import org.opends.server.schema.GeneralizedTimeOrderingMatchingRuleFactory;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.IA5StringSyntax;
-import org.opends.server.schema.IntegerEqualityMatchingRule;
-import org.opends.server.schema.IntegerOrderingMatchingRule;
+import org.opends.server.schema.IntegerEqualityMatchingRuleFactory;
+import org.opends.server.schema.IntegerOrderingMatchingRuleFactory;
 import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.schema.OIDSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
-import org.opends.server.schema.ObjectIdentifierEqualityMatchingRule;
-import org.opends.server.schema.OctetStringEqualityMatchingRule;
-import org.opends.server.schema.OctetStringOrderingMatchingRule;
-import org.opends.server.schema.OctetStringSubstringMatchingRule;
+import org.opends.server.schema.ObjectIdentifierEqualityMatchingRuleFactory;
+import org.opends.server.schema.OctetStringEqualityMatchingRuleFactory;
+import org.opends.server.schema.OctetStringOrderingMatchingRuleFactory;
+import org.opends.server.schema.OctetStringSubstringMatchingRuleFactory;
 import static org.opends.server.schema.SchemaConstants.*;
-import org.opends.server.schema.TelephoneNumberEqualityMatchingRule;
-import org.opends.server.schema.TelephoneNumberSubstringMatchingRule;
+import org.opends.server.schema.TelephoneNumberEqualityMatchingRuleFactory;
+import org.opends.server.schema.TelephoneNumberSubstringMatchingRuleFactory;
 import org.opends.server.schema.TelephoneNumberSyntax;
 import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.types.AbstractOperation;
@@ -208,6 +208,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
+import org.opends.server.api.MatchingRuleFactory;
 
 
 /**
@@ -1526,12 +1527,44 @@ public class DirectoryServer
    */
   private void bootstrapMatchingRules()
   {
+    MatchingRuleFactory<?>[] factories =
+            new MatchingRuleFactory<?>[] {
+              new DoubleMetaphoneApproximateMatchingRuleFactory(),
+              new BooleanEqualityMatchingRuleFactory(),
+              new CaseExactEqualityMatchingRuleFactory(),
+              new CaseExactIA5EqualityMatchingRuleFactory(),
+              new CaseIgnoreEqualityMatchingRuleFactory(),
+              new CaseIgnoreIA5EqualityMatchingRuleFactory(),
+              new DistinguishedNameEqualityMatchingRuleFactory(),
+              new GeneralizedTimeEqualityMatchingRuleFactory(),
+              new IntegerEqualityMatchingRuleFactory(),
+              new OctetStringEqualityMatchingRuleFactory(),
+              new ObjectIdentifierEqualityMatchingRuleFactory(),
+              new TelephoneNumberEqualityMatchingRuleFactory(),
+              new CaseExactOrderingMatchingRuleFactory(),
+              new CaseIgnoreOrderingMatchingRuleFactory(),
+              new GeneralizedTimeOrderingMatchingRuleFactory(),
+              new IntegerOrderingMatchingRuleFactory(),
+              new OctetStringOrderingMatchingRuleFactory(),
+              new CaseExactSubstringMatchingRuleFactory(),
+              new CaseExactIA5SubstringMatchingRuleFactory(),
+              new CaseIgnoreSubstringMatchingRuleFactory(),
+              new CaseIgnoreIA5SubstringMatchingRuleFactory(),
+              new OctetStringSubstringMatchingRuleFactory(),
+              new TelephoneNumberSubstringMatchingRuleFactory()};
+
+    MatchingRuleFactory<?> currentFactory = null;
     try
     {
-      ApproximateMatchingRule matchingRule =
-           new DoubleMetaphoneApproximateMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerApproximateMatchingRule(matchingRule, true);
+      for(MatchingRuleFactory<?> factory: factories)
+      {
+        currentFactory = factory;
+        currentFactory.initializeMatchingRule(null);
+        for(MatchingRule matchingRule: currentFactory.getMatchingRules())
+        {
+         registerMatchingRule(matchingRule, true);
+        }
+      }
     }
     catch (Exception e)
     {
@@ -1541,459 +1574,7 @@ public class DirectoryServer
       }
 
       Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(DoubleMetaphoneApproximateMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      EqualityMatchingRule matchingRule = new BooleanEqualityMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerEqualityMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(BooleanEqualityMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      EqualityMatchingRule matchingRule = new CaseExactEqualityMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerEqualityMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(CaseExactEqualityMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      EqualityMatchingRule matchingRule =
-           new CaseExactIA5EqualityMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerEqualityMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(CaseExactIA5EqualityMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      EqualityMatchingRule matchingRule = new CaseIgnoreEqualityMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerEqualityMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(CaseIgnoreEqualityMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      EqualityMatchingRule matchingRule =
-           new CaseIgnoreIA5EqualityMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerEqualityMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(CaseIgnoreIA5EqualityMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      EqualityMatchingRule matchingRule =
-           new DistinguishedNameEqualityMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerEqualityMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(DistinguishedNameEqualityMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      EqualityMatchingRule matchingRule =
-           new GeneralizedTimeEqualityMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerEqualityMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(GeneralizedTimeEqualityMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      EqualityMatchingRule matchingRule = new IntegerEqualityMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerEqualityMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(IntegerEqualityMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      EqualityMatchingRule matchingRule = new OctetStringEqualityMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerEqualityMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(OctetStringEqualityMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      EqualityMatchingRule matchingRule =
-           new ObjectIdentifierEqualityMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerEqualityMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(ObjectIdentifierEqualityMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      EqualityMatchingRule matchingRule =
-           new TelephoneNumberEqualityMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerEqualityMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(TelephoneNumberEqualityMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      OrderingMatchingRule matchingRule = new CaseExactOrderingMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerOrderingMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(CaseExactOrderingMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      OrderingMatchingRule matchingRule = new CaseIgnoreOrderingMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerOrderingMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(CaseIgnoreOrderingMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      OrderingMatchingRule matchingRule =
-           new GeneralizedTimeOrderingMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerOrderingMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(GeneralizedTimeOrderingMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      OrderingMatchingRule matchingRule = new IntegerOrderingMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerOrderingMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(IntegerOrderingMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      OrderingMatchingRule matchingRule = new OctetStringOrderingMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerOrderingMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(OctetStringOrderingMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      SubstringMatchingRule matchingRule = new CaseExactSubstringMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerSubstringMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(CaseExactSubstringMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      SubstringMatchingRule matchingRule =
-           new CaseExactIA5SubstringMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerSubstringMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(CaseExactIA5SubstringMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      SubstringMatchingRule matchingRule =
-           new CaseIgnoreSubstringMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerSubstringMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(CaseIgnoreSubstringMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      SubstringMatchingRule matchingRule =
-           new CaseIgnoreIA5SubstringMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerSubstringMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(CaseIgnoreIA5SubstringMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      SubstringMatchingRule matchingRule =
-           new OctetStringSubstringMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerSubstringMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(OctetStringSubstringMatchingRule.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      SubstringMatchingRule matchingRule =
-           new TelephoneNumberSubstringMatchingRule();
-      matchingRule.initializeMatchingRule(null);
-      registerSubstringMatchingRule(matchingRule, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_MATCHING_RULE.
-          get(TelephoneNumberSubstringMatchingRule.class.getName(),
+          get(currentFactory.getClass().getName(),
               stackTraceToSingleLineString(e));
       logError(message);
     }

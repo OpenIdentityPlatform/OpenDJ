@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<adm:managed-object name="collation-matching-rule"
+ plural-name="collation-matching-rules"
+ package="org.opends.server.admin.std" extends="matching-rule"
+ xmlns:adm="http://www.opends.org/admin"
+ xmlns:ldap="http://www.opends.org/admin-ldap">
+ <adm:synopsis>
+   <adm:user-friendly-plural-name />
+   provide support for locale-specific filtering and indexing.
+ </adm:synopsis>
+ <adm:profile name="ldap">
+   <ldap:object-class>
+     <ldap:name>ds-cfg-collation-matching-rule</ldap:name>
+     <ldap:superior>ds-cfg-matching-rule</ldap:superior>
+   </ldap:object-class>
+ </adm:profile>
+ <adm:property name="matching-rule-type" multi-valued="true" mandatory="true">
+   <adm:synopsis>
+     the types of matching rules that should be supported for each locale
+   </adm:synopsis>
+   <adm:syntax>
+     <adm:enumeration>
+        <adm:value name="equality">
+          <adm:synopsis>
+            Specifies if equality type collation matching rule needs to
+            be created for each locale.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="less-than">
+          <adm:synopsis>
+            Specifies if less-than type collation matching rule needs to
+            be created for each locale.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="less-than-or-equal-to">
+          <adm:synopsis>
+            Specifies if less-than-or-equal-to type collation matching rule
+            needs to be created for each locale.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="greater-than">
+          <adm:synopsis>
+            Specifies if greater-than type collation matching rule needs
+            to be created for each locale.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="greater-than-or-equal-to">
+          <adm:synopsis>
+            Specifies if greater-than-or-equal-to type collation matching rule
+            needs to be created for each locale.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="substring">
+          <adm:synopsis>
+            Specifies if substring type collation matching rule needs to be
+            created for each locale.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+   </adm:syntax>
+   <adm:profile name="ldap">
+     <ldap:attribute>
+       <ldap:name>ds-cfg-matching-rule-type</ldap:name>
+     </ldap:attribute>
+   </adm:profile>
+ </adm:property>
+   <adm:property name="collation" multi-valued="true" mandatory="true">
+   <adm:synopsis>
+     the set of supported locales
+   </adm:synopsis>
+   <adm:description>
+      Collation must be specified using the syntax: LOCALE:OID
+    </adm:description>
+   <adm:syntax>
+     <adm:string>
+       <adm:pattern>
+          <adm:regex>^[a-z-A-Z]+:[0-9.]+\\d$</adm:regex>
+          <adm:usage>LOCALE:OID</adm:usage>
+          <adm:synopsis>
+            A Locale followed by a ":" and an OID.
+          </adm:synopsis>
+        </adm:pattern>
+       </adm:string>
+   </adm:syntax>
+   <adm:profile name="ldap">
+     <ldap:attribute>
+       <ldap:name>ds-cfg-collation</ldap:name>
+     </ldap:attribute>
+   </adm:profile>
+ </adm:property>
+ <adm:property-override name="java-class" advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.schema.CollationMatchingRuleFactory
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+</adm:managed-object>

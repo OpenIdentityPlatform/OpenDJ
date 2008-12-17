@@ -28,13 +28,13 @@ package org.opends.server.backends;
 
 
 
-import org.opends.server.admin.std.server.EqualityMatchingRuleCfg;
+import java.util.Collection;
+import java.util.Collections;
 import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.config.ConfigException;
-import org.opends.server.schema.CaseIgnoreEqualityMatchingRule;
+import org.opends.server.api.MatchingRule;
+import org.opends.server.schema.CaseIgnoreEqualityMatchingRuleFactory;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
 
 
 
@@ -51,7 +51,7 @@ public class SchemaTestMatchingRule
   private boolean isObsolete;
 
   // The matching rule that will do all the real work behind the scenes.
-  private CaseIgnoreEqualityMatchingRule caseIgnoreMatchingRule;
+  private EqualityMatchingRule caseIgnoreMatchingRule;
 
   // The name for this matching rule.
   private String name;
@@ -77,8 +77,11 @@ public class SchemaTestMatchingRule
     this.name = name;
     this.oid  = oid;
 
-    caseIgnoreMatchingRule = new CaseIgnoreEqualityMatchingRule();
-    caseIgnoreMatchingRule.initializeMatchingRule(null);
+    CaseIgnoreEqualityMatchingRuleFactory factory =
+            new CaseIgnoreEqualityMatchingRuleFactory();
+    factory.initializeMatchingRule(null);
+    caseIgnoreMatchingRule = (EqualityMatchingRule)factory.
+            getMatchingRules().iterator().next();
     isObsolete = false;
   }
 
@@ -103,8 +106,11 @@ public class SchemaTestMatchingRule
     this.oid        = oid;
     this.isObsolete = isObsolete;
 
-    caseIgnoreMatchingRule = new CaseIgnoreEqualityMatchingRule();
-    caseIgnoreMatchingRule.initializeMatchingRule(null);
+    CaseIgnoreEqualityMatchingRuleFactory factory =
+            new CaseIgnoreEqualityMatchingRuleFactory();
+    factory.initializeMatchingRule(null);
+    caseIgnoreMatchingRule = (EqualityMatchingRule)factory.
+            getMatchingRules().iterator().next();
   }
 
 
@@ -112,10 +118,9 @@ public class SchemaTestMatchingRule
   /**
    * {@inheritDoc}
    */
-  public void initializeMatchingRule(EqualityMatchingRuleCfg configuration)
-         throws ConfigException, InitializationException
+  public Collection<String> getAllNames()
   {
-    // No initialization is required.
+    return Collections.singleton(getName());
   }
 
 

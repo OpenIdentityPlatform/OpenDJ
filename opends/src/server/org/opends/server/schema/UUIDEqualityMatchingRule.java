@@ -30,15 +30,14 @@ package org.opends.server.schema;
 
 import java.util.Arrays;
 
-import org.opends.server.admin.std.server.EqualityMatchingRuleCfg;
+import java.util.Collection;
+import java.util.Collections;
 import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -52,7 +51,7 @@ import static org.opends.server.schema.SchemaConstants.*;
  * This class defines the uuidMatch matching rule defined in RFC 4530.  It will
  * be used as the default equality matching rule for the UUID syntax.
  */
-public class UUIDEqualityMatchingRule
+class UUIDEqualityMatchingRule
        extends EqualityMatchingRule
 {
   /**
@@ -68,10 +67,9 @@ public class UUIDEqualityMatchingRule
   /**
    * {@inheritDoc}
    */
-  public void initializeMatchingRule(EqualityMatchingRuleCfg configuration)
-         throws ConfigException, InitializationException
+  public Collection<String> getAllNames()
   {
-    // No initialization is required.
+    return Collections.singleton(getName());
   }
 
 

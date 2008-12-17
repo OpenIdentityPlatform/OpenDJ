@@ -28,18 +28,16 @@ package org.opends.server.schema;
 
 
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
-import org.opends.server.admin.std.server.SubstringMatchingRuleCfg;
 import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
 
 import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -48,7 +46,7 @@ import static org.opends.server.util.StaticUtils.*;
  * X.520.  It will be used as the default substring matching rule for the binary
  * and octet string syntaxes.
  */
-public class OctetStringSubstringMatchingRule
+class OctetStringSubstringMatchingRule
        extends SubstringMatchingRule
 {
   /**
@@ -64,10 +62,9 @@ public class OctetStringSubstringMatchingRule
   /**
    * {@inheritDoc}
    */
-  public void initializeMatchingRule(SubstringMatchingRuleCfg configuration)
-         throws ConfigException, InitializationException
+  public Collection<String> getAllNames()
   {
-    // No initialization is required.
+    return Collections.singleton(getName());
   }
 
 
