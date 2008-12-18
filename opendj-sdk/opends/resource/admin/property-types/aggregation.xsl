@@ -45,10 +45,10 @@
     <xsl:if test="../../@multi-valued = 'true'">
       <import>java.util.TreeSet</import>
     </xsl:if>
-    <xsl:if test="adm:target-needs-enabling-condition">
+    <xsl:if test="adm:constraint/adm:target-needs-enabling-condition">
       <import>org.opends.server.admin.condition.Conditions</import>
     </xsl:if>
-    <xsl:if test="adm:target-is-enabled-condition">
+    <xsl:if test="adm:constraint/adm:target-is-enabled-condition">
       <import>org.opends.server.admin.condition.Conditions</import>
     </xsl:if>
     <import>
@@ -92,18 +92,18 @@
     <xsl:value-of
       select="concat('      builder.setRelationDefinition(&quot;',
                      normalize-space(@relation-name), '&quot;);&#xa;')" />
-    <xsl:if test="adm:target-needs-enabling-condition">
+    <xsl:if test="adm:constraint/adm:target-needs-enabling-condition">
       <xsl:value-of
         select="'      builder.setTargetNeedsEnablingCondition('" />
       <xsl:apply-templates
-        select="adm:target-needs-enabling-condition/*"
+        select="adm:constraint/adm:target-needs-enabling-condition/*"
         mode="compile-condition" />
       <xsl:value-of select="');&#xa;'" />
     </xsl:if>
-    <xsl:if test="adm:target-is-enabled-condition">
+    <xsl:if test="adm:constraint/adm:target-is-enabled-condition">
       <xsl:value-of
         select="'      builder.setTargetIsEnabledCondition('" />
-      <xsl:apply-templates select="adm:target-is-enabled-condition/*"
+      <xsl:apply-templates select="adm:constraint/adm:target-is-enabled-condition/*"
         mode="compile-condition" />
       <xsl:value-of select="');&#xa;'" />
     </xsl:if>
