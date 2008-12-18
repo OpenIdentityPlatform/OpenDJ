@@ -1,0 +1,420 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=iso-8859-15">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="StarOffice 8  (Solaris Sparc)">
+	<META NAME="CREATED" CONTENT="20081208;17270700">
+	<META NAME="CHANGED" CONTENT="20081218;12554600">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<P><FONT SIZE=5 STYLE="font-size: 20pt"><U><B>Control Panel Sanity
+Check</B></U></FONT></P>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=3 STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP>
+			<P><I><B>Test purpose:</B></I> Test the main functionality of the
+			Control Panel</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP>
+			<P><I><B>Test summary:</B></I> Set up OpenDS instance with data
+			load and run through the various tasks accessible via the console,
+			such as: back-up; restore; export; import; entry, schema and index
+			management.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP>
+			<P><I><B>Test steps:</B></I></P>
+			<OL>
+				<LI><P><A HREF="#Set up server using GUI">Set up server using GUI</A></P>
+				<LI><P><A HREF="#Launch Control Panel">Launch Control Panel</A></P>
+				<LI><P><A HREF="#Backup userRoot">Backup userRoot</A></P>
+				<LI><P><A HREF="#Create New AttributeType and ObjectClass">Create
+				New AttributeType and ObjectClass</A></P>
+				<LI><P><A HREF="#Add Entry">Add Entry</A></P>
+				<LI><P><A HREF="#Export userRoot">Export userRoot</A></P>
+				<LI><P><A HREF="#Delete o=example">Delete o=example</A></P>
+				<LI><P><A HREF="#Create new base DN">Create new base DN</A></P>
+				<LI><P><A HREF="#Add new index">Add new index</A></P>
+				<LI><P><A HREF="#Verify indexes">Verify indexes</A></P>
+				<LI><P><A HREF="#Rebuild indexes">Rebuild indexes</A></P>
+				<LI><P><A HREF="#Search Entry">Search Entry</A></P>
+				<LI><P><A HREF="#Delete cptBackend">Delete cptBackend</A></P>
+				<LI><P><A HREF="#Search Entry 2">Search Entry 2</A></P>
+				<LI><P><A HREF="#Restore backup">Restore backup</A></P>
+				<LI><P><A HREF="#Create new base DN 2">Create new base DN 2</A></P>
+				<LI><P><A HREF="#Restore backup 2">Restore backup 2</A></P>
+			</OL>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><B>1. Set up server using GUI</B></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#e1e9ff" STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP BGCOLOR="#e1e9ff">
+			<P STYLE="margin-left: 0.5in; background: transparent"><I>Settings:</I><BR>-
+			ldap: <FONT FACE="Cumberland, monospace">1389</FONT><BR>- admin
+			port: <FONT FACE="Cumberland, monospace">1444</FONT><BR><BR><I>Topology
+			options:</I><BR>- stand-alone instance</P>
+			<P STYLE="margin-left: 0.5in; background: transparent"><I>Directory
+			Data:</I><BR>- base DN: o=example<BR>- automatically load with 100
+			entries</P>
+		</TD>
+	</TR>
+</TABLE>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><A NAME="1 Set up server using GUI"></A>
+<BR>
+</P>
+<P><BR><BR>
+</P>
+<P><B>2. Launch Control Panel</B></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#e1e9ff" STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP BGCOLOR="#e1e9ff">
+			<P STYLE="margin-left: 0.5in; background: transparent">Authenticate
+			as Directory Manager</P>
+		</TD>
+	</TR>
+</TABLE>
+<P STYLE="margin-left: 0.5in"><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><B>3. Backup userRoot</B></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#e1e9ff" STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP BGCOLOR="#e1e9ff">
+			<UL>
+				<LI><P STYLE="background: transparent"><I><B>Backup...</B></I><BR><I>Backend:</I>
+				<FONT FACE="Cumberland, monospace"><B>userRoot</B></FONT><BR><I><SPAN STYLE="font-weight: medium">Backup
+				Type:</SPAN></I> <FONT FACE="Cumberland, monospace"><B>Full
+				backup</B></FONT><BR><I>Backup ID:</I> <FONT FACE="Cumberland, monospace"><B>example-backup</B></FONT><BR><I>Backup
+				path:</I> (default)<BR><I>Backup options</I>: <FONT FACE="Cumberland, monospace"><B>Compress
+				data (.gzip)</B></FONT></P>
+			</UL>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><B>4. Create New AttributeType and ObjectClass</B></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#e1e9ff" STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP BGCOLOR="#e1e9ff">
+			<UL>
+				<LI><P><I><B>Schema -&gt; Manage Schema</B></I></P>
+				<LI><P><I><B>New Attrtibute...</B></I><BR><I>Name:</I>
+				<FONT FACE="Cumberland, monospace"><B>cpTestAttr</B></FONT><BR><I>OID:</I>
+				<FONT FACE="Cumberland, monospace"><B>fake-oid</B></FONT><BR><I>Description:</I>
+				<FONT FACE="Cumberland, monospace"><B>Fake attribute for Control
+				Panel test</B></FONT><BR><I>Syntax:</I> <FONT FACE="Cumberland, monospace"><B>DirectoryString</B></FONT><BR><I>Attribute
+				Type Options</I> <FONT FACE="Cumberland, monospace"><B>-&gt;
+				Single Valued</B></FONT></P>
+				<LI><P STYLE="background: transparent"><I><B>New Object
+				Class...</B></I><BR><I>Name:</I> <FONT FACE="Cumberland, monospace"><B>cpTestPerson</B></FONT><BR><I>OID:</I>
+				<FONT FACE="Cumberland, monospace"><B>fake-oid-2</B></FONT><BR><I>Description:</I>
+				<FONT FACE="Cumberland, monospace"><B>Fake objectclass for
+				Control Panel test</B></FONT><BR><I>Parent:</I>
+				<FONT FACE="Cumberland, monospace"><B>inetOrgPerson</B></FONT><BR><I>Required
+				Attributes</I> <FONT FACE="Cumberland, monospace"><B>-&gt; Add:
+				cpTestAttr</B></FONT></P>
+			</UL>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><B>5. Add Entry</B></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#e1e9ff" STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP BGCOLOR="#e1e9ff">
+			<UL>
+				<LI><P><I><B>Manage Entries</B></I><BR><I>Base DN:</I> <FONT FACE="Cumberland, monospace"><B>o=example</B></FONT></P>
+				<LI><P><I><B>Entries -&gt; New from LDIF...</B></I><BR><FONT FACE="Cumberland, monospace"><SPAN STYLE="font-weight: medium">dn:
+				uid=cpt-user,ou=People,o=example<BR>objectClass: top<BR>objectClass:
+				inetOrgPerson<BR>objectClass: cpTestPerson<BR>cn: CP Test
+				User<BR>sn: User<BR>givenname: CP Test<BR>uid:
+				cpt-user<BR>userpassword: testpwd<BR>cptestattr: This is a
+				Control Panel test<BR>cptestattr: bla bla bla bla</SPAN></FONT></P>
+				<UL>
+					<UL>
+						<LI><P STYLE="background: transparent"><I><B>Check Syntax<BR></B></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: medium">----&gt;
+						Check for Error because of <BR></SPAN></SPAN><B><FONT FACE="Cumberland, monospace"><SPAN STYLE="font-style: normal">&ldquo;multiple
+						values for single-valued attribute cptestattr&rdquo;</SPAN></FONT></B><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: medium"><BR>==&gt;
+						Remove '</SPAN></SPAN><B><FONT FACE="Cumberland, monospace"><SPAN STYLE="font-style: normal">cptestattr:
+						bla bla bla bla</SPAN></FONT></B><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: medium">'
+						---&gt; </SPAN></SPAN><I><B>Check Syntax</B></I></P>
+					</UL>
+				</UL>
+			</UL>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><B>6. Export userRoot</B></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#e1e9ff" STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP BGCOLOR="#e1e9ff">
+			<UL>
+				<LI><P STYLE="background: transparent"><I><B>Export
+				LDIF...</B></I><BR><I>Backend:</I> <FONT FACE="Cumberland, monospace"><B>userRoot</B></FONT><BR><I>Export
+				to File:</I> <FONT FACE="Cumberland, monospace"><B>&lt;instance_root&gt;/ldif/cpt-example.ldif</B></FONT></P>
+			</UL>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><B>7. Delete o=example</B></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#e1e9ff" STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP BGCOLOR="#e1e9ff">
+			<UL>
+				<LI><P><I><B>Manage Entries</B></I></P>
+				<LI><P STYLE="background: transparent"><I><B>Entries-&gt; Delete
+				Base DN...</B></I><BR>-&gt; Select <FONT FACE="Cumberland, monospace"><B>o=example</B></FONT></P>
+			</UL>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><B>8. Create new base DN</B></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#e1e9ff" STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP BGCOLOR="#e1e9ff">
+			<UL>
+				<LI><P STYLE="background: transparent"><I><B>New Base
+				DN...</B></I><BR><I>Backend:</I> <FONT FACE="Cumberland, monospace"><B>New
+				Backend: cptBackend</B></FONT><BR><I>Base DN:</I>
+				<FONT FACE="Cumberland, monospace"><B>o=example</B></FONT><BR><I>Directory
+				Data </I><FONT FACE="Cumberland, monospace"><B>-&gt; Import Data
+				From LDIF File: &lt;instance_root&gt;/ldif/cpt-example.ldif</B></FONT></P>
+			</UL>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><B>9. Add new index</B></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#e1e9ff" STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP BGCOLOR="#e1e9ff">
+			<UL>
+				<LI><P><I><B>Indexes -&gt; Manage Indexes</B></I><BR><I>Backend:</I>
+				<FONT FACE="Cumberland, monospace"><B>cptBackend</B></FONT></P>
+				<LI><P STYLE="background: transparent"><I><B>New
+				Index...</B></I><BR><I>Attribute:</I> <FONT FACE="Cumberland, monospace"><B>cpTestAttr</B></FONT><BR><I>Backend:</I>
+				<FONT FACE="Cumberland, monospace"><B>cptBackend</B></FONT><BR><I>Entry
+				Limit:</I> <FONT FACE="Cumberland, monospace"><B>4000</B></FONT><BR><I>Index
+				Type</I> <FONT FACE="Cumberland, monospace"><B>-&gt; equality /
+				presence / substring</B></FONT><BR>-&gt; Index Rebuild Required
+				<FONT FACE="Cumberland, monospace"><B>-&gt; No</B></FONT></P>
+			</UL>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><B>10. Verify indexes</B></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#e1e9ff" STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP BGCOLOR="#e1e9ff">
+			<UL>
+				<LI><P STYLE="background: transparent"><I><B>Indexes -&gt; Verify
+				Indexes...</B></I><BR><I>Base DN:</I> <FONT FACE="Cumberland, monospace"><B>o=example</B></FONT><BR><I>Action</I>
+				<FONT FACE="Cumberland, monospace"><B>-&gt; Verify Entry Contents
+				are Properly Indexed</B></FONT><BR><I>Selected Indexes</I> <FONT FACE="Cumberland, monospace"><B>-&gt;
+				Add: cpTestAttr</B></FONT></P>
+			</UL>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><B>11. Rebuild indexes</B></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#e1e9ff" STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP BGCOLOR="#e1e9ff">
+			<UL>
+				<LI><P STYLE="background: transparent"><I><B>Indexes -&gt;
+				Rebuild Indexes...</B></I><BR><I>Base DN:</I> <FONT FACE="Cumberland, monospace"><B>o=example</B></FONT><BR><I>Selected
+				Indexes</I> <FONT FACE="Cumberland, monospace"><B>-&gt; Add:
+				cpTestAttr</B></FONT></P>
+			</UL>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><B>12. Search Entry</B></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#e1e9ff" STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP BGCOLOR="#e1e9ff">
+			<UL>
+				<LI><P><I><B>Manage Entries</B></I><BR><I>Base DN:</I> <FONT FACE="Cumberland, monospace"><B>All
+				Base DNs</B></FONT><BR><I>Filter:</I> <FONT FACE="Cumberland, monospace"><B>cpTestAttr
+				= *</B></FONT><BR>-&gt; Select <FONT FACE="Cumberland, monospace"><B>cpt-user</B></FONT></P>
+				<UL>
+					<UL>
+						<LI><P STYLE="background: transparent"><I><B>View -&gt;
+						Attribute View</B></I></P>
+					</UL>
+				</UL>
+			</UL>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><B>13. Delete cptBackend</B></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#e1e9ff" STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP BGCOLOR="#e1e9ff">
+			<UL>
+				<LI><P><I><B>Manage Entries</B></I></P>
+				<LI><P STYLE="background: transparent"><I><B>Entries -&gt; Delete
+				Backend</B></I> <BR>-&gt; Select <FONT FACE="Cumberland, monospace"><B>cptBackend</B></FONT></P>
+			</UL>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><B>14. Search Entry</B></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#e1e9ff" STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP BGCOLOR="#e1e9ff">
+			<UL>
+				<LI><P STYLE="background: transparent"><I><B>Manage Entries</B></I><BR><I>Base
+				DN:</I> <FONT FACE="Cumberland, monospace"><B>All Base
+				DNs</B></FONT><BR><I>Filter:</I> <FONT FACE="Cumberland, monospace"><B>LDAP
+				Filter: cptTestAttr=*</B></FONT><BR>----&gt; Check 'No matches
+				Found' returned</P>
+			</UL>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><B>15. Restore backup</B></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#e1e9ff" STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP BGCOLOR="#e1e9ff">
+			<UL>
+				<LI><P><I><B>Restore...</B></I><BR><I>Backup Path:</I>
+				(default)<BR><I>Available Backups:</I> <FONT FACE="Cumberland, monospace"><B>example-backup</B></FONT></P>
+				<UL>
+					<UL>
+						<LI><P STYLE="background: transparent"><I><B>Verify
+						Backup</B></I><BR>----&gt; Check verify fails with error code 1</P>
+					</UL>
+				</UL>
+			</UL>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><B>16. Create new base DN</B></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#e1e9ff" STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP BGCOLOR="#e1e9ff">
+			<UL>
+				<LI><P STYLE="background: transparent"><I><B>New Base DN</B></I><BR><I>Backend:</I>
+				<FONT FACE="Cumberland, monospace"><B>New backend: userRoot</B></FONT><BR><I>Base
+				DN:</I> <FONT FACE="Cumberland, monospace"><B>o=example</B></FONT><BR><I>Directory
+				Data</I> <FONT FACE="Cumberland, monospace"><B>-&gt; Leave
+				Database empty</B></FONT></P>
+			</UL>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><B>17. Restore backup</B></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#e1e9ff" STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP BGCOLOR="#e1e9ff">
+			<UL>
+				<LI><P><I><B>Restore...</B></I><BR><I>Backup Path:</I>
+				(default)<BR><I>Available Backups:</I> <FONT FACE="Cumberland, monospace"><B>example-backup</B></FONT></P>
+				<UL>
+					<UL>
+						<LI><P STYLE="background: transparent"><I><B>Verify Backup</B></I></P>
+					</UL>
+				</UL>
+			</UL>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+</BODY>
+</HTML>
