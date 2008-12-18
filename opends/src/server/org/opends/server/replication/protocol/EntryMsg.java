@@ -107,7 +107,7 @@ public class EntryMsg extends RoutableMsg
       pos += length +1;
 
       // entry
-      length = getNextLength(in, pos);
+      length = in.length - (pos + 1);
       this.entryByteArray = new byte[length];
       for (int i=0; i<length; i++)
       {
