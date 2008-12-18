@@ -153,7 +153,7 @@ extends InputStream
     }
 
     byte[] b = new byte[1];
-    
+
     if (read(b, 0, 1) == 0) {
       throw new IOException();
     }
