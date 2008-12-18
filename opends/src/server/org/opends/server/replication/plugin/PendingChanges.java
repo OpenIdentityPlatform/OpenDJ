@@ -26,15 +26,11 @@
  */
 package org.opends.server.replication.plugin;
 
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
 
 import java.util.NoSuchElementException;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import java.util.concurrent.TimeoutException;
-import org.opends.messages.Message;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
@@ -183,18 +179,8 @@ public class PendingChanges
       {
         numSentUpdates++;
         LDAPUpdateMsg updateMsg = firstChange.getMsg();
-          try
-          {
-            domain.publish(updateMsg);
-          } catch (TimeoutException ex) {
-            // This exception may only be raised if assured replication is
-            // enabled
-            Message errorMsg = ERR_DS_ACK_TIMEOUT.get(
-              domain.getServiceID(), Long.toString(domain.getAssuredTimeout()),
-              updateMsg.toString());
-            logError(errorMsg);
-          }
-        }
+        domain.publish(updateMsg);
+      }
       pendingChanges.remove(firstChangeNumber);
 
       if (pendingChanges.isEmpty())

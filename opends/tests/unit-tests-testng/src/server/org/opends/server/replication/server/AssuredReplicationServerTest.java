@@ -622,7 +622,9 @@ public class AssuredReplicationServerTest
         UUID.randomUUID().toString());
 
       // Send it (this uses the defined assured conf at constructor time)
+      prepareWaitForAckIfAssuredEnabled(delMsg);
       publish(delMsg);
+      waitForAckIfAssuredEnabled(delMsg);
     }
   }
 

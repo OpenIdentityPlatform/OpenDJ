@@ -656,6 +656,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     }
 
     rcvWindow = configuration.getWindowSize();
+    assuredTimeout = configuration.getAssuredTimeout();
 
     // changing the listen port requires to stop the listen thread
     // and restart it.

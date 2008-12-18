@@ -210,6 +210,15 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
       attributes.add(builder.toAttribute());
     }
 
+    addMonitorData(attributes, "received-assured-sr-updates",
+      domain.getReceivedAssuredSrUpdates());
+
+    addMonitorData(attributes, "received-assured-sr-updates-acked",
+      domain.getReceivedAssuredSrUpdatesAcked());
+
+    addMonitorData(attributes, "received-assured-sr-updates-not-acked",
+      domain.getReceivedAssuredSrUpdatesNotAcked());
+
     addMonitorData(attributes, "assured-sd-sent-updates",
       domain.getAssuredSdSentUpdates());
 
