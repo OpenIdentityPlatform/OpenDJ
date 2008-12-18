@@ -146,11 +146,18 @@ extends InputStream
    *                       use by this input stream.
    */
   public int read()
-         throws IOException
+          throws IOException
   {
-    // This method is not supposed to be called to make an LDIF import
-    // for replication.
-    throw new IOException("Not implemented");
+    if (closed) {
+      return -1;
+    }
+
+    byte[] b = new byte[1];
+    
+    if (read(b, 0, 1) == 0) {
+      throw new IOException();
+    }
+
+    return ((int)b[0]);
   }
 }
-

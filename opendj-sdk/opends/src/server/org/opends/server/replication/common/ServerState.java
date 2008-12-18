@@ -172,6 +172,31 @@ public class ServerState implements Iterable<Short>
   }
 
   /**
+   * Replace the Server State with another ServerState.
+   *
+   * @param serverState The ServerState.
+   *
+   * @return a boolean indicating if the update was meaningful.
+   */
+  public boolean reload(ServerState serverState) {
+    if (serverState == null) {
+      return false;
+    }
+
+    boolean result = false;
+
+    clear();
+    for (Short id : serverState) {
+      ChangeNumber maxChangeNumber = getMaxChangeNumber(id);
+      if (update(maxChangeNumber)) {
+        result = true;
+      }
+    }
+
+    return (result);
+  }
+
+  /**
    * return a Set of String usable as a textual representation of
    * a Server state.
    * format : time seqnum id
