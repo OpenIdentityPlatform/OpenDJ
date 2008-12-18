@@ -51,7 +51,6 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.util.Validator;
 
 
-
 /**
  * This class provides an interface for creating new non-virtual
  * {@link Attribute}s, or "real" attributes.
@@ -71,10 +70,12 @@ import org.opends.server.util.Validator;
  * the attribute before retrieving the updated attribute using the
  * {@link #toAttribute()} method.
  * <p>
- * The {@link Attributes} class contains convenience factory methods,
- * e.g. {@link Attributes#empty(String)} for creating empty
- * attributes, and {@link Attributes#create(String, String)} for
- * creating single-valued attributes.
+ * The {@link org.opends.server.types.Attributes} class contains
+ * convenience factory methods,
+ * e.g. {@link org.opends.server.types.Attributes#empty(String)} for
+ * creating empty attributes, and
+ * {@link org.opends.server.types.Attributes#create(String, String)}
+ * for  creating single-valued attributes.
  * <p>
  * <code>AttributeBuilder</code>s can be re-used. Once an
  * <code>AttributeBuilder</code> has been converted to an

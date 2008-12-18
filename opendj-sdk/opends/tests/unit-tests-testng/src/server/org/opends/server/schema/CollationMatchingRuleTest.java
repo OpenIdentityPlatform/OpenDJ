@@ -273,7 +273,7 @@ public final class CollationMatchingRuleTest
               Integer.MAX_VALUE,
               false,
               LDAPFilter.
-              decode("carLicense:fr.5:=ébe1"),
+              decode("carLicense:fr.5:=ebe1"),
               null, null);
 
     searchOperation.run();
