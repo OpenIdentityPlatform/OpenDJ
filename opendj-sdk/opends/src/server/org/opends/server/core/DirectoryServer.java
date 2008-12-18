@@ -55,6 +55,7 @@ import org.opends.server.api.ExportTaskListener;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.api.ImportTaskListener;
+import org.opends.server.api.InitializationCompletedListener;
 import org.opends.server.api.InvokableComponent;
 import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.api.Extension;
@@ -500,6 +501,11 @@ public class DirectoryServer
   // The set of restore task listeners registered with the Directory Server.
   private CopyOnWriteArrayList<RestoreTaskListener> restoreTaskListeners;
 
+  // The set of initialization completed listeners that have been registered
+  // with the Directory Server.
+  private CopyOnWriteArrayList<InitializationCompletedListener>
+          initializationCompletedListeners;
+
   // The set of shutdown listeners that have been registered with the Directory
   // Server.
   private CopyOnWriteArrayList<ServerShutdownListener> shutdownListeners;
@@ -934,6 +940,8 @@ public class DirectoryServer
       directoryServer.baseDnRegistry = new BaseDnRegistry();
       directoryServer.changeNotificationListeners =
            new CopyOnWriteArrayList<ChangeNotificationListener>();
+      directoryServer.initializationCompletedListeners =
+           new CopyOnWriteArrayList<InitializationCompletedListener>();
       directoryServer.shutdownListeners =
            new CopyOnWriteArrayList<ServerShutdownListener>();
       directoryServer.synchronizationProviders =
@@ -1442,7 +1450,6 @@ public class DirectoryServer
       // startup plugins.
       initializePlugins();
 
-
       // Initialize any synchronization providers that may be defined.
       if (!environmentConfig.disableSynchronization())
       {
@@ -1451,8 +1458,6 @@ public class DirectoryServer
         synchronizationProviderConfigManager
             .initializeSynchronizationProviders();
       }
-
-
 
       // Create and initialize the work queue.
       workQueue = new WorkQueueConfigManager().initializeWorkQueue();
@@ -1468,6 +1473,22 @@ public class DirectoryServer
         throw new InitializationException(message);
       }
 
+     // Notify all the initialization completed listeners.
+      for (InitializationCompletedListener initializationCompletedListener :
+        directoryServer.initializationCompletedListeners)
+        {
+        try
+        {
+          initializationCompletedListener.initializationCompleted();
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+      }
 
       // Start administration connector and connection handlers
       if (startConnectionHandlers)
@@ -7894,7 +7915,30 @@ public class DirectoryServer
     }
   }
 
+  /**
+   * Registers the provided initialization completed listener with the
+   * Directory Server so that it will be notified when the server
+   * initialization completes.
+   *
+   * @param  listener  The initialization competed listener to register with
+   *                   the Directory Server.
+   */
+  public static void registerInitializationCompletedListener(
+          InitializationCompletedListener listener) {
+    directoryServer.initializationCompletedListeners.add(listener);
+  }
 
+  /**
+   * Deregisters the provided nitialization completed listener with the
+   * Directory Server.
+   *
+   * @param  listener  The nitialization completed listener to deregister with
+   *                   the Directory Server.
+   */
+  public static void deregisterInitializationCompletedListener(
+          InitializationCompletedListener listener) {
+    directoryServer.initializationCompletedListeners.remove(listener);
+  }
 
   /**
    * Registers the provided shutdown listener with the Directory Server so that
