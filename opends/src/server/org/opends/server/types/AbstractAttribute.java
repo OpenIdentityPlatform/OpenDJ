@@ -62,7 +62,7 @@ public abstract class AbstractAttribute implements Attribute
    * <p>
    * This implementation iterates through each attribute value in the
    * provided collection, checking to see if this attribute contains
-   * the value using {@link Attribute#contains(AttributeValue)}.
+   * the value using {@link #contains(AttributeValue)}.
    */
   public boolean containsAll(Collection<AttributeValue> values)
   {
@@ -172,7 +172,7 @@ public abstract class AbstractAttribute implements Attribute
    * collection is non-empty and this attribute does not have any
    * options then it returns <code>false</code>. Otherwise, each
    * option in the provided collection is checked using
-   * {@link Attribute#hasOption(String)} and <code>true</code> is
+   * {@link #hasOption(String)} and <code>true</code> is
    * returned if all the provided options are present.
    */
   public boolean hasAllOptions(Collection<String> options)
@@ -221,7 +221,7 @@ public abstract class AbstractAttribute implements Attribute
   /**
    * {@inheritDoc}
    * <p>
-   * This implementation calls {@link Attribute#getOptions()} to
+   * This implementation calls {@link #getOptions()} to
    * retrieve this attribute's set of options and then compares them
    * one at a time against the provided option. All comparisons are
    * case insensitive (this is why we iterate through the set of
@@ -263,7 +263,7 @@ public abstract class AbstractAttribute implements Attribute
    * {@inheritDoc}
    * <p>
    * This implementation returns <code>true</code> if the
-   * {@link Attribute#size()} of this attribute is zero.
+   * {@link #size()} of this attribute is zero.
    */
   public boolean isEmpty()
   {
@@ -281,7 +281,7 @@ public abstract class AbstractAttribute implements Attribute
    * the size of this attribute's options, return <code>false</code>
    * if the sizes differ. If the sizes are the same then each option
    * in the provided set is checked using
-   * {@link Attribute#hasOption(String)} and <code>true</code> is
+   * {@link #hasOption(String)} and <code>true</code> is
    * returned if all the provided options are present.
    */
   public boolean optionsEqual(Set<String> options)
