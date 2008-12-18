@@ -213,40 +213,6 @@ public class ReplicationServerDomain
       generationId = sourceHandler.getGenerationId();
     }
 
-    // look for the dbHandler that is responsible for the LDAP server which
-    // generated the change.
-    DbHandler dbHandler = null;
-    synchronized (sourceDbHandlers)
-    {
-      dbHandler = sourceDbHandlers.get(id);
-      if (dbHandler == null)
-      {
-        try
-        {
-          dbHandler = replicationServer.newDbHandler(id, baseDn);
-          generationIdSavedStatus = true;
-        } catch (DatabaseException e)
-        {
-          /*
-           * Because of database problem we can't save any more changes
-           * from at least one LDAP server.
-           * This replicationServer therefore can't do it's job properly anymore
-           * and needs to close all its connections and shutdown itself.
-           */
-          MessageBuilder mb = new MessageBuilder();
-          mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
-          mb.append(stackTraceToSingleLineString(e));
-          logError(mb.toMessage());
-          replicationServer.shutdown();
-          return;
-        }
-        sourceDbHandlers.put(id, dbHandler);
-      }
-    }
-
-    // Publish the messages to the source handler
-    dbHandler.add(update);
-
     /**
      * If this is an assured message (a message requesting ack), we must
      * construct the ExpectedAcksInfo object with the right number of expected
@@ -296,6 +262,40 @@ public class ReplicationServerDomain
         assuredMessage = false;
       }
     }
+
+    // look for the dbHandler that is responsible for the LDAP server which
+    // generated the change.
+    DbHandler dbHandler = null;
+    synchronized (sourceDbHandlers)
+    {
+      dbHandler = sourceDbHandlers.get(id);
+      if (dbHandler == null)
+      {
+        try
+        {
+          dbHandler = replicationServer.newDbHandler(id, baseDn);
+          generationIdSavedStatus = true;
+        } catch (DatabaseException e)
+        {
+          /*
+           * Because of database problem we can't save any more changes
+           * from at least one LDAP server.
+           * This replicationServer therefore can't do it's job properly anymore
+           * and needs to close all its connections and shutdown itself.
+           */
+          MessageBuilder mb = new MessageBuilder();
+          mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
+          mb.append(stackTraceToSingleLineString(e));
+          logError(mb.toMessage());
+          replicationServer.shutdown();
+          return;
+        }
+        sourceDbHandlers.put(id, dbHandler);
+      }
+    }
+
+    // Publish the messages to the source handler
+    dbHandler.add(update);
 
     List<Short> expectedServers = null;
     if (assuredMessage)

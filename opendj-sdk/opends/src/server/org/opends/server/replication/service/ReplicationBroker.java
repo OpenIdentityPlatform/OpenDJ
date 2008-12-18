@@ -1548,9 +1548,11 @@ public class ReplicationBroker
    *
    * @return                    A boolean indicating if the changes
    *                            requires to restart the service.
+   * @param groupId            The new group id to use
    */
   public boolean changeConfig(
-      Collection<String> replicationServers, int window, long heartbeatInterval)
+      Collection<String> replicationServers, int window, long heartbeatInterval,
+      byte groupId)
   {
     // These parameters needs to be renegociated with the ReplicationServer
     // so if they have changed, that requires restarting the session with
@@ -1563,7 +1565,8 @@ public class ReplicationBroker
         (!(replicationServers.size() == servers.size()
         && replicationServers.containsAll(servers))) ||
         window != this.maxRcvWindow  ||
-        heartbeatInterval != this.heartbeatInterval)
+        heartbeatInterval != this.heartbeatInterval ||
+        (groupId != this.groupId))
     {
       needToRestartSession = true;
     }
@@ -1573,6 +1576,7 @@ public class ReplicationBroker
     this.maxRcvWindow = window;
     this.halfRcvWindow = window / 2;
     this.heartbeatInterval = heartbeatInterval;
+    this.groupId = groupId;
 
     return needToRestartSession;
   }
