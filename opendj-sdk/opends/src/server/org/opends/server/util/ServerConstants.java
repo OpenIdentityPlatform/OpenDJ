@@ -2352,6 +2352,14 @@ public final class ServerConstants
 
 
   /**
+   * The base filename to use for the archive file containing a backup of the
+   * task backend.
+   */
+  public static final String TASKS_BACKUP_BASE_FILENAME = "tasks-backup-";
+
+
+
+  /**
    * The name of the directory in which lock files will be placed.
    */
   public static final String LOCKS_DIRECTORY = "locks";
