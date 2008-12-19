@@ -79,12 +79,12 @@ public class LDAPModifyTestCase
          throws Exception
   {
     TestCaseUtils.startServer();
-    
+
     TestCaseUtils.dsconfig(
             "set-sasl-mechanism-handler-prop",
             "--handler-name", "DIGEST-MD5",
             "--set", "server-fqdn:" + "127.0.0.1");
-    
+
     File pwFile = File.createTempFile("valid-bind-password-", ".txt");
     pwFile.deleteOnExit();
     FileWriter fileWriter = new FileWriter(pwFile);
@@ -108,7 +108,7 @@ public class LDAPModifyTestCase
 
   @AfterClass
   public void tearDown() throws Exception {
-   
+
     TestCaseUtils.dsconfig(
             "set-sasl-mechanism-handler-prop",
             "--handler-name", "DIGEST-MD5",
@@ -857,6 +857,8 @@ public class LDAPModifyTestCase
   public void testPLAIN()
          throws Exception
   {
+    TestCaseUtils.initializeTestBackend(true);
+
     String[] args =
     {
       "-h", "127.0.0.1",
