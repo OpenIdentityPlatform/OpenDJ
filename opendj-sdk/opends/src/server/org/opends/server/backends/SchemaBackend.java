@@ -4855,9 +4855,54 @@ public class SchemaBackend
                            String backupID)
          throws DirectoryException
   {
-    // This backend does not provide a backup/restore mechanism.
-    Message message = ERR_SCHEMA_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    BackupInfo backupInfo = backupDirectory.getBackupInfo(backupID);
+    if (backupInfo == null)
+    {
+      Message message = ERR_BACKUP_MISSING_BACKUPID.get(
+        backupDirectory.getPath(), backupID);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message);
+    }
+
+    HashMap<String,String> backupProperties = backupInfo.getBackupProperties();
+
+    String archiveFilename =
+         backupProperties.get(BACKUP_PROPERTY_ARCHIVE_FILENAME);
+    File archiveFile = new File(backupDirectory.getPath(), archiveFilename);
+
+    try
+    {
+      backupDirectory.removeBackup(backupID);
+    }
+    catch (ConfigException e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   e.getMessageObject());
+    }
+
+    try
+    {
+      backupDirectory.writeBackupDirectoryDescriptor();
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      Message message = ERR_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
+        backupDirectory.getDescriptorPath(), stackTraceToSingleLineString(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, e);
+    }
+
+    // Remove the archive file.
+    archiveFile.delete();
   }
 
 
