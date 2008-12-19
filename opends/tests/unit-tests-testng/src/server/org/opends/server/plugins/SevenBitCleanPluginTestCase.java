@@ -33,9 +33,6 @@ import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.types.ResultCode;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.tools.LDAPModify;
 
 import static org.testng.Assert.*;
@@ -630,7 +627,7 @@ public class SevenBitCleanPluginTestCase
       String path = TestCaseUtils.createTempFile(
         "dn: uid=test.user,o=test",
         "changetype: modrdn",
-        "newrdn: uid=p\\e4ssw\\f6rd",
+        "newrdn: uid=Lu\\C4\\8Di\\C4\\87",
         "deleteoldrdn: 1");
 
       String[] args =
