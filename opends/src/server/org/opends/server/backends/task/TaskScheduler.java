@@ -1986,7 +1986,6 @@ public class TaskScheduler
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
-
     // Try to load the specified class.
     Class<?> taskClass;
     try
@@ -2007,7 +2006,6 @@ public class TaskScheduler
                                    message);
     }
 
-
     // Instantiate the class as a task.
     Task task;
     try
@@ -2026,7 +2024,6 @@ public class TaskScheduler
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
     }
-
 
     // Perform the necessary internal and external initialization for the task.
     try
@@ -2053,10 +2050,14 @@ public class TaskScheduler
                                    message);
     }
 
-
     task.setOperation(operation);
-    task.initializeTask();
+
+    // Avoid task specific initialization for completed tasks.
+    if (!TaskState.isDone(task.getTaskState())) {
+      task.initializeTask();
+    }
     task.setOperation(null);
+
     return task;
   }
 
