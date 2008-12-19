@@ -634,8 +634,9 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   public ConfigChangeResult applyConfigurationChange(
       ReplicationServerCfg configuration)
   {
-    // Changing those properties don't need specific code.
-    // They will be applied for next connections.
+    // Some of those properties change don't need specific code.
+    // They will be applied for next connections. Some others have immediate
+    // effect
 
     disconnectRemovedReplicationServers(configuration.getReplicationServer());
 
@@ -721,6 +722,18 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
           if (rsd.getConnectedDSs().size() > 0)
             rsd.startStatusAnalyzer();
         }
+      }
+    }
+
+    // Changed the group id ?
+    byte newGroupId = (byte)configuration.getGroupId();
+    if (newGroupId != groupId)
+    {
+      groupId = newGroupId;
+      // Have a new group id: Disconnect every servers.
+      for (ReplicationServerDomain replicationServerDomain : baseDNs.values())
+      {
+        replicationServerDomain.stopAllServers();
       }
     }
 
@@ -1127,7 +1140,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
 
     for (ReplicationServerDomain replicationServerDomain: baseDNs.values())
     {
-      replicationServerDomain.stopServers(serversToDisconnect);
+      replicationServerDomain.stopReplicationServers(serversToDisconnect);
     }
   }
 }

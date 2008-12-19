@@ -886,17 +886,35 @@ public class ReplicationServerDomain
   }
 
   /**
-   * Stop operations with a list of servers.
+   * Stop operations with a list of replication servers.
    *
    * @param replServers the replication servers for which
    * we want to stop operations
    */
-  public void stopServers(Collection<String> replServers)
+  public void stopReplicationServers(Collection<String> replServers)
   {
     for (ServerHandler handler : replicationServers.values())
     {
       if (replServers.contains(handler.getServerAddressURL()))
         stopServer(handler);
+    }
+  }
+
+  /**
+   * Stop operations with all servers this domain is connected with (RS and DS).
+   */
+  public void stopAllServers()
+  {
+    // Close session with other replication servers
+    for (ServerHandler serverHandler : replicationServers.values())
+    {
+      stopServer(serverHandler);
+    }
+
+    // Close session with other LDAP servers
+    for (ServerHandler serverHandler : directoryServers.values())
+    {
+      stopServer(serverHandler);
     }
   }
 
@@ -1478,17 +1496,7 @@ public class ReplicationServerDomain
     // Terminate the assured timer
     assuredTimeoutTimer.cancel();
 
-    // Close session with other changelogs
-    for (ServerHandler serverHandler : replicationServers.values())
-    {
-      stopServer(serverHandler);
-    }
-
-    // Close session with other LDAP servers
-    for (ServerHandler serverHandler : directoryServers.values())
-    {
-      stopServer(serverHandler);
-    }
+    stopAllServers();
 
     // Shutdown the dbHandlers
     synchronized (sourceDbHandlers)

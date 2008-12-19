@@ -461,6 +461,10 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
    * (not their group id)
    * - Restart RS2 and RS3, DS1 should reconnect to RS2 (with GID=2, his GID)
    * and DS2 should connect to RS3 (with GID=3, his GID)
+   * - Change group id of DS1 and DS2 to 1 : they should reconnect to RS1
+   * - Change group id of RS3 to 1
+   * - Change group id of RS1 to 3: DS1 and DS2 should reconnect to RS3
+   * - Change group id of DS1 and DS2 to 3 : they should reconnect to RS1
    * @throws Exception If a problem occurred
    */
   @Test (groups = "slow")
@@ -540,9 +544,62 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
       checkConnection(30, DS2_ID, RS3_ID,
         "Restart RS2 and RS3, DS2 should reconnect to RS3 (with GID=3, his GID)");
 
-    // TODO: when dynamic change of configuration for group id is done. One could
-    // add here change of DS1 and DS2 GID to 1 and check they both come back
-    // to rs1.
+      //
+      // ENTERING CHANGE CONFIG TEST PART
+      //
+
+      /**
+       * Change group id of DS1 and DS2 to 1 and see them reconnect to RS1
+       */
+      SortedSet<String> replServers = createRSListForTestCase(testCase);
+      DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+      DomainFakeCfg domainConfWithNewGid =  new DomainFakeCfg(baseDn, DS1_ID, replServers, 1);
+      rd1.applyConfigurationChange(domainConfWithNewGid);
+      domainConfWithNewGid = new DomainFakeCfg(baseDn, DS2_ID, replServers, 1);
+      rd2.applyConfigurationChange(domainConfWithNewGid);
+      checkConnection(30, DS1_ID, RS1_ID,
+        "Change GID of DS1 to 1, it should reconnect to RS1 with GID=1");
+      checkConnection(30, DS2_ID, RS1_ID,
+        "Change GID of DS2 to 1, it should reconnect to RS1 with GID=1");
+
+      /**
+       * Change group id of RS3 to 1
+       */
+      SortedSet<String> otherReplServers = new TreeSet<String>();
+      otherReplServers.add("localhost:" + rs1Port);
+      otherReplServers.add("localhost:" + rs2Port);
+      String dir = "groupIdHandshakeTest" + RS3_ID + testCase + "Db";
+      ReplServerFakeConfiguration rsConfWithNewGid =
+        new ReplServerFakeConfiguration(rs3Port, dir, 0, RS3_ID, 0, 100,
+        otherReplServers, 1, 1000, 5000);
+      rs3.applyConfigurationChange(rsConfWithNewGid);
+
+      /**
+       * Change group id of RS1 to 3: DS1 and DS2 should reconnect to RS3
+       */
+      otherReplServers = new TreeSet<String>();
+      otherReplServers.add("localhost:" + rs2Port);
+      otherReplServers.add("localhost:" + rs3Port);
+      dir = "groupIdHandshakeTest" + RS1_ID + testCase + "Db";
+      rsConfWithNewGid = new ReplServerFakeConfiguration(rs1Port, dir, 0, RS1_ID,
+        0, 100, otherReplServers, 3, 1000, 5000);
+      rs1.applyConfigurationChange(rsConfWithNewGid);
+      checkConnection(30, DS1_ID, RS3_ID,
+        "Change GID of RS3 to 1 and RS1 to 3, DS1 should reconnect to RS3 with GID=1");
+      checkConnection(30, DS2_ID, RS3_ID,
+        "Change GID of RS3 to 1 and RS1 to 3, DS2 should reconnect to RS3 with GID=1");
+      
+      /**
+       * Change group id of DS1 and DS2 to 3 : they should reconnect to RS1
+       */
+      domainConfWithNewGid = new DomainFakeCfg(baseDn, DS1_ID, replServers, 3);
+      rd1.applyConfigurationChange(domainConfWithNewGid);      
+      domainConfWithNewGid = new DomainFakeCfg(baseDn, DS2_ID, replServers, 3);
+      rd2.applyConfigurationChange(domainConfWithNewGid);
+      checkConnection(30, DS1_ID, RS1_ID,
+        "Change GID of DS1 to 3, it should reconnect to RS1 with GID=3");
+      checkConnection(30, DS2_ID, RS1_ID,
+        "Change GID of DS2 to 3, it should reconnect to RS1 with GID=3");
 
     } finally
     {
