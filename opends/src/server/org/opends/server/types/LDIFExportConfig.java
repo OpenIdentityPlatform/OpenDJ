@@ -909,18 +909,18 @@ public final class LDIFExportConfig extends OperationConfig
     // FIXME -- Need to add code to generate a signed hash of the LDIF
     //          content.
 
-    try
-    {
-      writer.close();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
+    if (writer != null) {
+      try
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        writer.close();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
       }
     }
   }
 }
-
-
