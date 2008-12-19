@@ -575,7 +575,7 @@ public class SevenBitCleanPluginTestCase
     String path = TestCaseUtils.createTempFile(
       "dn: uid=test.user,o=test",
       "changetype: modrdn",
-      "newrdn: uid=p\\e4ssw\\f6rd",
+      "newrdn: uid=Lu\\C4\\8Di\\C4\\87",
       "deleteoldrdn: 1");
 
     String[] args =
@@ -666,12 +666,12 @@ public class SevenBitCleanPluginTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     TestCaseUtils.addEntry(
-      "dn: uid=p\\e4ssw\\f6rd,o=test",
+      "dn: uid=Lu\\C4\\8Di\\C4\\87,o=test",
       "objectClass: top",
       "objectClass: person",
       "objectClass: organizationalPerson",
       "objectClass: inetOrgPerson",
-      "uid:: " + BASE64_DIRTY_PASSWORD,
+      //"uid:: " + BASE64_DIRTY_PASSWORD,
       "givenName: Test",
       "sn: User",
       "cn: Test User",
@@ -686,7 +686,7 @@ public class SevenBitCleanPluginTestCase
     try
     {
       String path = TestCaseUtils.createTempFile(
-        "dn: uid=p\\e4ssw\\f6rd,o=test",
+        "dn: uid=Lu\\C4\\8Di\\C4\\87,o=test",
         "changetype: modrdn",
         "newrdn: uid=test.user",
         "deleteoldrdn: 1");
