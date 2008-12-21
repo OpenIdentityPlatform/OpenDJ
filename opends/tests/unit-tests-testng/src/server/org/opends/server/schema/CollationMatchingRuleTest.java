@@ -80,11 +80,11 @@ public final class CollationMatchingRuleTest
             "objectClass: organizationalPerson",
             "objectClass: inetorgperson",
             "objectClass: top",
-            "departmentNumber:: w4NiYzExMQ==", //Ãbc111
-            "carLicense:: w6liZTI=", //ébe2
+            "departmentNumber:: w4NiYzExMQ==",
+            "carLicense:: w6liZTI=",
             "uid: user",
-            "cn:: U8ODbmNoZXo=", //SÃnchez
-            "sn:: UXXDqWJlYw=="); //Québec
+            "cn:: U8ODbmNoZXo=", 
+            "sn:: UXXDqWJlYw==");
     String[] args = new String []
     {
       "-h", "127.0.0.1",
@@ -197,7 +197,7 @@ public final class CollationMatchingRuleTest
               Integer.MAX_VALUE,
               false,
               LDAPFilter.
-              decode("departmentnumber:1.3.6.1.4.1.42.2.27.9.4.49.1.1:=Ãbc120"),
+              decode("departmentnumber:1.3.6.1.4.1.42.2.27.9.4.49.1.1:=abc120"),
               null, null);
 
     searchOperation.run();
