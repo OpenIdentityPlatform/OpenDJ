@@ -913,7 +913,7 @@ public final class LDIFReader
       }
 
        //The attribute is not being ignored so check for binary option.
-      if(!attrType.isBinary())
+      if(checkSchema && !attrType.isBinary())
       {
        if(attribute.hasOption("binary"))
         {
