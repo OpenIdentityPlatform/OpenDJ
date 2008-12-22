@@ -32,6 +32,7 @@ import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.WizardStep;
+import org.opends.quicksetup.LicenseFile;
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
 
@@ -121,6 +122,11 @@ public class ButtonsPanel extends QuickSetupPanel
     // is only enabled once progress has finished or cancelled.
     closeButton.setVisible(step.isProgressStep() || step.isFinishedStep());
     closeButton.setEnabled(application.getCurrentProgressStep().isLast());
+
+    // The next button is always enabled in all steps except the license step.
+    // In that step, the next button will be enabled only if the user has
+    // approved the license
+    nextButton.setEnabled(!step.isLicenseStep() || LicenseFile.getApproval());
   }
 
   /**

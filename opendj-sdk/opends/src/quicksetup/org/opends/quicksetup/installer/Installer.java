@@ -63,6 +63,7 @@ import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.LicenseFile;
 import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.ReturnCode;
@@ -87,6 +88,7 @@ import org.opends.quicksetup.installer.ui.DataReplicationPanel;
 import org.opends.quicksetup.installer.ui.GlobalAdministratorPanel;
 import org.opends.quicksetup.installer.ui.InstallReviewPanel;
 import org.opends.quicksetup.installer.ui.InstallWelcomePanel;
+import org.opends.quicksetup.installer.ui.InstallLicensePanel;
 import org.opends.quicksetup.installer.ui.RemoteReplicationPortsPanel;
 import org.opends.quicksetup.installer.ui.ServerSettingsPanel;
 import org.opends.quicksetup.installer.ui.SuffixesToReplicatePanel;
@@ -192,6 +194,9 @@ public abstract class Installer extends GuiApplication {
    */
   public Installer() {
     lstSteps.add(WELCOME);
+    if (LicenseFile.exists()) {
+        lstSteps.add(LICENSE);
+    }
     lstSteps.add(SERVER_SETTINGS);
     lstSteps.add(REPLICATION_OPTIONS);
     lstSteps.add(CREATE_GLOBAL_ADMINISTRATOR);
@@ -511,6 +516,8 @@ public abstract class Installer extends GuiApplication {
     QuickSetupStepPanel p = null;
     if (step == WELCOME) {
         p = new InstallWelcomePanel(this);
+    } else if (step == LICENSE) {
+        p = new InstallLicensePanel(this);
     } else if (step == SERVER_SETTINGS) {
         p = new ServerSettingsPanel(this);
     } else if (step == REPLICATION_OPTIONS) {
@@ -716,6 +723,9 @@ public abstract class Installer extends GuiApplication {
   {
     LinkedHashSet<WizardStep> orderedSteps = new LinkedHashSet<WizardStep>();
     orderedSteps.add(WELCOME);
+    if (lstSteps.contains(LICENSE)) {
+       orderedSteps.add(LICENSE);
+    }
     orderedSteps.add(SERVER_SETTINGS);
     orderedSteps.add(REPLICATION_OPTIONS);
     orderedSteps.add(CREATE_GLOBAL_ADMINISTRATOR);

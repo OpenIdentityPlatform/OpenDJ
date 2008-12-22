@@ -82,6 +82,14 @@ public enum UpgradeWizardStep implements WizardStep {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  public boolean isLicenseStep() {
+    // Irrelevant here
+    return false;
+  }
+
+  /**
    * Returns an String representation of this object.
    * @return an String representation of this object.  This method is
    * overwritten in order to be able to use this objects as keys in Maps and
