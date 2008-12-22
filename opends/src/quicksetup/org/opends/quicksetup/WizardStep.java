@@ -56,4 +56,11 @@ public interface WizardStep {
    */
   boolean isFinishedStep();
 
+  /**
+   * Indicates whether this is the license approval step.
+   * @return <CODE>true</CODE> if this is the license approval step
+   * and <CODE>false</CODE> otherwise.
+   */
+  boolean isLicenseStep();
+
 }

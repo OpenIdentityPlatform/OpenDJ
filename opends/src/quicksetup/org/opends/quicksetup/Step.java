@@ -44,6 +44,11 @@ public enum Step implements WizardStep
   WELCOME(INFO_WELCOME_STEP.get()),
 
   /**
+   * License approval step for the installation.
+   */
+  LICENSE(INFO_LICENSE_STEP.get()),
+
+  /**
    * Confirmation panel for the uninstallation.
    */
   CONFIRM_UNINSTALL(INFO_CONFIRM_UNINSTALL_STEP.get()),
@@ -122,6 +127,13 @@ public enum Step implements WizardStep
    */
   public boolean isFinishedStep() {
     return this == FINISHED;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isLicenseStep() {
+    return this == LICENSE;
   }
 
 }
