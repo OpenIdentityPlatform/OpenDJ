@@ -90,7 +90,7 @@ import static org.opends.server.util.StaticUtils.*;
  *
  * * Bind operations fail with invalid credentials.
  *
- * * Compare operations are only possible on objectclass and returns true
+ * * Compare operations are only possible on objectclass and return true
  *   for the following objeclasses only: top, nullbackendobject,
  *   extensibleobject. Otherwise comparison result is false or comparison
  *   fails altogether.
@@ -99,7 +99,7 @@ import static org.opends.server.util.StaticUtils.*;
  *   any specific emulation for controls. Generally known request controls
  *   are accepted and default response controls returned where applicable.
  *
- * * Searches withing this backend are always considered as indexed.
+ * * Searches within this backend are always considered indexed.
  *
  * * Backend Import is supported by iterating over ldif reader on a single
  *   thread and issuing add operations which essentially do nothing at all.
