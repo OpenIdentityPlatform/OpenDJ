@@ -2412,7 +2412,7 @@
             #@TestResult        Success if sasl bind fails with 49.
         -->
         <testcase name=
-                 "getTestCaseName('DIGEST-MD5 - FQDN {hostname!=fqdn')">
+                 "getTestCaseName('DIGEST-MD5 - FQDN {hostname!=fqdn}')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -2455,7 +2455,7 @@
             #@TestResult        Success if sasl bind succeeds.
         -->
         <testcase name=
-            "getTestCaseName('DIGEST-MD5 - FQDN {hostname!=fqdn ; uri=fqdn')">
+            "getTestCaseName('DIGEST-MD5 - FQDN {hostname!=fqdn ; uri=fqdn}')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -2497,7 +2497,7 @@
             #@TestResult        Success if sasl bind fails with 49.
         -->
         <testcase name=
-            "getTestCaseName('DIGEST-MD5 - FQDN {hostname!=fqdn ; uri!=fqdn')">
+            "getTestCaseName('DIGEST-MD5 - FQDN {hostname!=fqdn ; uri!=fqdn}')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -2575,7 +2575,7 @@
             #@TestResult        Success if sasl bind succeeds.
         -->
         <testcase name=
-                 "getTestCaseName('DIGEST-MD5 - FQDN {hostname=fqdn')">
+                 "getTestCaseName('DIGEST-MD5 - FQDN {hostname=fqdn}')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -2617,7 +2617,7 @@
             #@TestResult        Success if sasl bind succeeds.
         -->
         <testcase name=
-            "getTestCaseName('DIGEST-MD5 - FQDN {hostname=fqdn ; uri=fqdn')">
+            "getTestCaseName('DIGEST-MD5 - FQDN {hostname=fqdn ; uri=fqdn}')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -2659,7 +2659,7 @@
             #@TestResult        Success if sasl bind fails with 49.
         -->
         <testcase name=
-            "getTestCaseName('DIGEST-MD5 - FQDN {hostname=fqdn ; uri!=fqdn')">
+            "getTestCaseName('DIGEST-MD5 - FQDN {hostname=fqdn ; uri!=fqdn}')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -2687,7 +2687,454 @@
         </testcase>
         
 
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          QOP {client:auth-int ; server:none}
+            #@TestIssue         
+            #@TestPurpose       Test the quality-of-protection
+            #@TestPreamble      none
+            #@TestStep          SASL bind with qop=auth-int, server qop=none
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind fails with 89.
+        -->
+        <testcase name=
+           "getTestCaseName('DIGEST-MD5 - QOP {client:auth-int ; server:none}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: QOP {client:auth-int ; server:none}'
+            </message>
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'password'         : 'newleg',
+                'protection'       : 'auth-int',
+                'expectedRC'       : 89
+              }
+            </call>
+                        
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
         
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          QOP {client:auth-conf ; server:none}
+            #@TestIssue         
+            #@TestPurpose       Test the quality-of-protection
+            #@TestPreamble      none
+            #@TestStep          SASL bind with qop=auth-conf, server qop=none
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind fails with 89.
+        -->
+        <testcase name=
+          "getTestCaseName('DIGEST-MD5 - QOP {client:auth-conf ; server:none}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: QOP {client:auth-conf ; server:none}'
+            </message>
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'password'         : 'newleg',
+                'protection'       : 'auth-conf',
+                'expectedRC'       : 89
+              }
+            </call>
+                        
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+
+
+        <!--- Test case: Admin set qop -->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          Set qop = integrity
+            #@TestIssue         
+            #@TestPurpose       Admin set QOP in SASL DIGEST-MD5 mechanism.
+            #@TestPreamble      none
+            #@TestStep          ldapmodify used to set qop.
+            #@TestPostamble     none
+            #@TestResult        Success if OpenDS returns 0.
+        -->
+        <testcase name="getTestCaseName('DIGEST-MD5 - Set QOP = integrity')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL DIGEST-MD5: Set QOP = integrity'
+            </message>
+
+            <call function="'modifySaslMech'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'handlerName'    : 'DIGEST-MD5',
+                'propertyName'   : 'quality-of-protection',
+                'propertyValue'  : 'integrity'
+              }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          QOP {client:auth ; server:integrity}
+            #@TestIssue         
+            #@TestPurpose       Test the quality-of-protection
+            #@TestPreamble      none
+            #@TestStep          SASL bind with qop=auth, server qop=int
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind fails with 89.
+        -->
+        <testcase name=
+               "getTestCaseName('DIGEST-MD5 - QOP {client:auth ; server:int}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: QOP {client:auth ; server:int}'
+            </message>
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'password'         : 'newleg',
+                'protection'       : 'auth',
+                'expectedRC'       : 89
+              }
+            </call>
+                        
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          QOP {client:auth-int ; server:integrity}
+            #@TestIssue         
+            #@TestPurpose       Test the quality-of-protection
+            #@TestPreamble      none
+            #@TestStep          SASL bind with qop=auth-int, server qop=int
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind fails with 89.
+        -->
+        <testcase name=
+           "getTestCaseName('DIGEST-MD5 - QOP {client:auth-int ; server:int}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: QOP {client:auth-int ; server:int}'
+            </message>
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'password'         : 'newleg',
+                'protection'       : 'auth-int'
+              }
+            </call>
+                        
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          QOP {client:auth-conf ; server:integrity}
+            #@TestIssue         
+            #@TestPurpose       Test the quality-of-protection
+            #@TestPreamble      none
+            #@TestStep          SASL bind with qop=auth-conf, server qop=int
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind fails with 89.
+        -->
+        <testcase name=
+          "getTestCaseName('DIGEST-MD5 - QOP {client:auth-conf ; server:int}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: QOP {client:auth-conf ; server:int}'
+            </message>
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'password'         : 'newleg',
+                'protection'       : 'auth-conf',
+                'expectedRC'       : 89
+              }
+            </call>
+                        
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+
+        <!--- Test case: Admin set qop -->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          Set qop = confidentiality
+            #@TestIssue         
+            #@TestPurpose       Admin set QOP in SASL DIGEST-MD5 mechanism.
+            #@TestPreamble      none
+            #@TestStep          ldapmodify used to set qop.
+            #@TestPostamble     none
+            #@TestResult        Success if OpenDS returns 0.
+        -->
+        <testcase name=
+                    "getTestCaseName('DIGEST-MD5 - Set QOP = confidentiality')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL DIGEST-MD5: Set QOP = confidentiality'
+            </message>
+
+            <call function="'modifySaslMech'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'handlerName'    : 'DIGEST-MD5',
+                'propertyName'   : 'quality-of-protection',
+                'propertyValue'  : 'confidentiality'
+              }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          QOP {client:auth ; server:confidentiality}
+            #@TestIssue         
+            #@TestPurpose       Test the quality-of-protection
+            #@TestPreamble      none
+            #@TestStep          SASL bind with qop=auth, server qop=conf
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind fails with 89.
+        -->
+        <testcase name=
+              "getTestCaseName('DIGEST-MD5 - QOP {client:auth ; server:conf}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: QOP {client:auth ; server:conf}'
+            </message>
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'password'         : 'newleg',
+                'protection'       : 'auth',
+                'expectedRC'       : 89
+              }
+            </call>
+                        
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          QOP {client:auth-int ; server:confidentiality}
+            #@TestIssue         
+            #@TestPurpose       Test the quality-of-protection
+            #@TestPreamble      none
+            #@TestStep          SASL bind with qop=auth-int, server qop=conf
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind fails with 89.
+        -->
+        <testcase name=
+          "getTestCaseName('DIGEST-MD5 - QOP {client:auth-int ; server:conf}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: QOP {client:auth-int ; server:conf}'
+            </message>
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'password'         : 'newleg',
+                'protection'       : 'auth-int',
+                'expectedRC'       : 89
+              }
+            </call>
+                        
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+        
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          QOP {client:auth-conf ; server:confidentiality}
+            #@TestIssue         
+            #@TestPurpose       Test the quality-of-protection
+            #@TestPreamble      none
+            #@TestStep          SASL bind with qop=auth-conf, server qop=conf
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind fails with 89.
+        -->
+        <testcase name=
+         "getTestCaseName('DIGEST-MD5 - QOP {client:auth-conf ; server:conf}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: QOP {client:auth-conf ; server:conf}'
+            </message>
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'password'         : 'newleg',
+                'protection'       : 'auth-conf'
+              }
+            </call>
+                        
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+        <!--- Test case: Admin unset qop -->
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          Set qop = none
+            #@TestIssue         
+            #@TestPurpose       Admin set QOP in SASL DIGEST-MD5 mechanism.
+            #@TestPreamble      none
+            #@TestStep          ldapmodify used to set qop.
+            #@TestPostamble     none
+            #@TestResult        Success if OpenDS returns 0.
+        -->
+        <testcase name=
+                    "getTestCaseName('DIGEST-MD5 - Set QOP = none')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: SASL DIGEST-MD5: Set QOP = none'
+            </message>
+
+            <call function="'modifySaslMech'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'handlerName'    : 'DIGEST-MD5',
+                'propertyName'   : 'quality-of-protection',
+                'propertyValue'  : 'none'
+              }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
         <!--- Test case: DIGEST-MD5 SASL Mechanism -->
         <!---
             Place test-specific test information here.

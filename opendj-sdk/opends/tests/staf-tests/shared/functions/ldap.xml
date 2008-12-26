@@ -3186,4 +3186,223 @@
       </return>
     </sequence>
   </function>
+  
+  
+  
+  <!-- Modify an attribute -->
+  <function name="saslSearch">
+    <function-prolog>
+      This function searches the Directory Server using SASL authentication
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+    
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+    
+      <function-arg-def name="dsInstanceHost" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+    
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>      
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+
+      <function-arg-def name="dsScope" type="optional">
+        <function-arg-description>
+          Search scope
+        </function-arg-description>      
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    
+      <function-arg-def name="dsBaseDN" type="required">
+        <function-arg-description>
+          Search base dn
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+    
+      <function-arg-def name="dsFilter" type="required">
+        <function-arg-description>
+          Search filter
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+
+      <function-arg-def name="mechanism" type="required">
+        <function-arg-description>
+          SASL mechanism
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+
+      <function-arg-def name="authenticationId" type="required">
+        <function-arg-description>
+          Authentication ID
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+    
+      <function-arg-def name="password" type="required">
+        <function-arg-description>
+          Authentication password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+    
+     <function-arg-def name="authorizationId" type="optional">
+        <function-arg-description>
+          Authorization ID
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      
+      <function-arg-def name="realm" type="optional">
+        <function-arg-description>
+          Attribute to modify
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    
+     <function-arg-def name="protection" type="optional">
+        <function-arg-description>
+          Quality of protection (auth / auth-int / auth-conf)
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      
+     <function-arg-def name="strength" type="optional">
+       <function-arg-description>
+         Cipher strength (low / medium / high)
+       </function-arg-description>
+       <function-arg-property name="type" value="string"/>       
+     </function-arg-def>
+    
+    <function-arg-def name="maxbuffersize" type="optional">
+        <function-arg-description>
+          Maximum receive buffer size.
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+    </function-arg-def>
+   
+    <function-arg-def name="suppressTestStatus" type="optional" default="0">
+        <function-arg-description>
+          Supress the call to checkTestRC
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+    </function-arg-def>
+
+    <function-arg-def name="expectedRC" type="optional" default="0">
+      <function-arg-description>
+        Expected return code value. Default value is 0
+        Wildcard 'noCheck' to not check the RC
+      </function-arg-description>
+      <function-arg-property name="type" value="string"/>
+    </function-arg-def>      
+
+    <function-arg-def name="knownIssue" type="optional" default="None">
+      <function-arg-description>
+        Known issue. Corresponds to an issue number.
+      </function-arg-description>
+      <function-arg-property name="type" value="string" />
+    </function-arg-def>
+  
+    </function-map-args>
+    <sequence>
+    
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+      
+    
+      <!-- Build the Command -->
+      
+        STAFCmdParamsList=[]
+        STAFCmdParams=''  
+        STAFCmd=''          
+    </script>
+      
+     <!-- Set common ldap arguments -->      
+      <call function="'_ldapCommonArgs'"/>
+
+      <script>
+        if dsScope:
+          STAFCmdParamsList.append('-s "%s"' % dsScope)
+
+        if dsBaseDN:
+          STAFCmdParamsList.append('-b "%s"' % dsBaseDN)
+
+        if dsFilter:
+          STAFCmdParamsList.append('-f "%s"' % dsFilter)
+
+        if mechanism:
+          STAFCmdParamsList.append('--mech "%s"' % mechanism)
+
+        if authenticationId:
+          STAFCmdParamsList.append('--authid "%s"' % authenticationId)
+
+        if password:
+          STAFCmdParamsList.append('-w "%s"' % password)
+
+        if authorizationId:
+          STAFCmdParamsList.append('--authorizationId "%s"' % authorizationId)
+
+        if realm:
+          STAFCmdParamsList.append('--realm "%s"' % realm)      
+
+        if protection:
+          STAFCmdParamsList.append('--qop "%s"' % protection)
+
+        if strength:
+          STAFCmdParamsList.append('--strength "%s"' % strength)
+
+        if maxbuffersize:
+          STAFCmdParamsList.append('--maxbufsize "%s"' % maxbufsize)
+
+
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+        
+        STAFCmd='saslSearchClient' 
+      </script>
+      
+      <if expr="suppressTestStatus == '1'">
+        <script>
+          expectedRC = 'noCheck'
+        </script>
+      </if>
+      
+      <call function="'runCommand'" >
+        { 'name'      : 'Modify An Attribute value',
+          'command'   : '%s/bin/java' % JAVA_HOME,
+          'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
+          'location'  : location,
+          'envCmd'    : ['CLASSPATH=%s/../%s/ldap' % (dsPath,remote.reljavadir)],
+          'path'      : '%s/../%s/ldap' % (dsPath,remote.reljavadir),
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
+        }
+      </call>
+      
+      <return>
+        [RC,STAXResult]
+      </return>
+    </sequence>
+    
+  </function>  
+  
 </stax>
