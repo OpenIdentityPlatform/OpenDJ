@@ -334,7 +334,7 @@ public final class CollationMatchingRuleTest
   {
     /*Search the collation rule with tag of en and suffix in the filter.
      *It searches for string quebec against the value of sn which is
-     *Québec.
+     * Qu\u00e9bec.
      */
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
