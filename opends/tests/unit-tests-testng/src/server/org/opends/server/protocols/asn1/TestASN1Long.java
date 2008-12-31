@@ -135,6 +135,55 @@ public class TestASN1Long
 
 
   /**
+   * Tests that negative integers are encoded according
+   * to ASN.1 BER specification.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testNegativeLongEncoding()
+         throws Exception
+  {
+    byte[] value = null;
+    // Some negative integers of interest
+    // to test specific ranges/boundaries.
+    value = ASN1Long.encodeLongValue(-1L);
+    assertEquals(value[0], (byte) 0xFF);
+    value = ASN1Long.encodeLongValue(-2L);
+    assertEquals(value[0], (byte) 0xFE);
+    value = ASN1Long.encodeLongValue(-127L);
+    assertEquals(value[0], (byte) 0x81);
+    value = ASN1Long.encodeLongValue(-128L);
+    assertEquals(value[0], (byte) 0x80);
+    value = ASN1Long.encodeLongValue(-255L);
+    assertEquals(value[0], (byte) 0xFF);
+    assertEquals(value[1], (byte) 0x01);
+    value = ASN1Long.encodeLongValue(-256L);
+    assertEquals(value[0], (byte) 0xFF);
+    assertEquals(value[1], (byte) 0x00);
+    value = ASN1Long.encodeLongValue(-65535L);
+    assertEquals(value[0], (byte) 0xFF);
+    assertEquals(value[1], (byte) 0x00);
+    assertEquals(value[2], (byte) 0x01);
+    value = ASN1Long.encodeLongValue(-65536L);
+    assertEquals(value[0], (byte) 0xFF);
+    assertEquals(value[1], (byte) 0x00);
+    assertEquals(value[2], (byte) 0x00);
+    value = ASN1Long.encodeLongValue(-2147483647L);
+    assertEquals(value[0], (byte) 0x80);
+    assertEquals(value[1], (byte) 0x00);
+    assertEquals(value[2], (byte) 0x00);
+    assertEquals(value[3], (byte) 0x01);
+    value = ASN1Long.encodeLongValue(-2147483648L);
+    assertEquals(value[0], (byte) 0x80);
+    assertEquals(value[1], (byte) 0x00);
+    assertEquals(value[2], (byte) 0x00);
+    assertEquals(value[3], (byte) 0x00);
+  }
+
+
+
+  /**
    * Tests the <CODE>setValue</CODE> method that takes a long argument.
    *
    * @param  l  The long value to use for the test.

@@ -159,6 +159,7 @@ public final class ASN1Long
    * @throws  ASN1Exception  If the provided array is null or is not between one
    *                         and four bytes in length.
    */
+  @Override
   public void setValue(byte[] value)
          throws ASN1Exception
   {
@@ -214,6 +215,12 @@ public final class ASN1Long
     }
 
     long longValue = 0;
+
+    if (value[0] < 0)
+    {
+      longValue = 0xFFFFFFFFFFFFFFFFL;
+    }
+
     for (byte b : value)
     {
       longValue = (longValue << 8) | (b & 0xFF);
@@ -304,6 +311,12 @@ public final class ASN1Long
     System.arraycopy(encodedElement, valueStartPos, value, 0, length);
 
     long longValue = 0;
+
+    if (value[0] < 0)
+    {
+      longValue = 0xFFFFFFFFFFFFFFFFL;
+    }
+
     for (byte b : value)
     {
       longValue = (longValue << 8) | (b & 0xFF);
@@ -320,6 +333,7 @@ public final class ASN1Long
    *
    * @param  buffer  The buffer to which the information should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("ASN1Long(type=");
@@ -340,6 +354,7 @@ public final class ASN1Long
    * @param  indent  The number of spaces that should be used to indent the
    *                 resulting string representation.
    */
+  @Override
   public void toString(StringBuilder buffer, int indent)
   {
     StringBuilder indentBuf = new StringBuilder(indent);
