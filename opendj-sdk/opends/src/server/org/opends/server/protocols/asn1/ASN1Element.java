@@ -382,39 +382,79 @@ public class ASN1Element
    */
   public static byte[] encodeValue(int intValue)
   {
-    if ((intValue & 0x0000007F) == intValue)
+    if (intValue < 0)
     {
-      return new byte[]
+      if ((intValue & 0xFFFFFF80) == 0xFFFFFF80)
       {
-        (byte) (intValue & 0xFF)
-      };
-    }
-    else if ((intValue & 0x00007FFF) == intValue)
-    {
-      return new byte[]
+        return new byte[]
+        {
+          (byte) (intValue & 0xFF)
+        };
+      }
+      else if ((intValue & 0xFFFF8000) == 0xFFFF8000)
       {
-        (byte) ((intValue >> 8) & 0xFF),
-        (byte) (intValue & 0xFF)
-      };
-    }
-    else if ((intValue & 0x007FFFFF) == intValue)
-    {
-      return new byte[]
+        return new byte[]
+        {
+          (byte) ((intValue >> 8) & 0xFF),
+          (byte) (intValue & 0xFF)
+        };
+      }
+      else if ((intValue & 0xFF800000) == 0xFF800000)
       {
-        (byte) ((intValue >> 16) & 0xFF),
-        (byte) ((intValue >>  8) & 0xFF),
-        (byte) (intValue & 0xFF)
-      };
+        return new byte[]
+        {
+          (byte) ((intValue >> 16) & 0xFF),
+          (byte) ((intValue >>  8) & 0xFF),
+          (byte) (intValue & 0xFF)
+        };
+      }
+      else
+      {
+        return new byte[]
+        {
+          (byte) ((intValue >> 24) & 0xFF),
+          (byte) ((intValue >> 16) & 0xFF),
+          (byte) ((intValue >>  8) & 0xFF),
+          (byte) (intValue & 0xFF)
+        };
+      }
     }
     else
     {
-      return new byte[]
+      if ((intValue & 0x0000007F) == intValue)
       {
-        (byte) ((intValue >> 24) & 0xFF),
-        (byte) ((intValue >> 16) & 0xFF),
-        (byte) ((intValue >>  8) & 0xFF),
-        (byte) (intValue & 0xFF)
-      };
+        return new byte[]
+        {
+          (byte) (intValue & 0xFF)
+        };
+      }
+      else if ((intValue & 0x00007FFF) == intValue)
+      {
+        return new byte[]
+        {
+          (byte) ((intValue >> 8) & 0xFF),
+          (byte) (intValue & 0xFF)
+        };
+      }
+      else if ((intValue & 0x007FFFFF) == intValue)
+      {
+        return new byte[]
+        {
+          (byte) ((intValue >> 16) & 0xFF),
+          (byte) ((intValue >>  8) & 0xFF),
+          (byte) (intValue & 0xFF)
+        };
+      }
+      else
+      {
+        return new byte[]
+        {
+          (byte) ((intValue >> 24) & 0xFF),
+          (byte) ((intValue >> 16) & 0xFF),
+          (byte) ((intValue >>  8) & 0xFF),
+          (byte) (intValue & 0xFF)
+        };
+      }
     }
   }
 
@@ -431,89 +471,179 @@ public class ASN1Element
    */
   public static byte[] encodeLongValue(long longValue)
   {
-    if ((longValue & 0x000000000000007FL) == longValue)
+    if (longValue < 0)
     {
-      return new byte[]
+      if ((longValue & 0xFFFFFFFFFFFFFF80L) == 0xFFFFFFFFFFFFFF80L)
       {
-        (byte) (longValue & 0xFF)
-      };
-    }
-    else if ((longValue & 0x0000000000007FFFL) == longValue)
-    {
-      return new byte[]
+        return new byte[]
+        {
+          (byte) (longValue & 0xFF)
+        };
+      }
+      else if ((longValue & 0xFFFFFFFFFFFF8000L) == 0xFFFFFFFFFFFF8000L)
       {
-        (byte) ((longValue >> 8) & 0xFF),
-        (byte) (longValue & 0xFF)
-      };
-    }
-    else if ((longValue & 0x00000000007FFFFFL) == longValue)
-    {
-      return new byte[]
+        return new byte[]
+        {
+          (byte) ((longValue >> 8) & 0xFF),
+          (byte) (longValue & 0xFF)
+        };
+      }
+      else if ((longValue & 0xFFFFFFFFFF800000L) == 0xFFFFFFFFFF800000L)
       {
-        (byte) ((longValue >> 16) & 0xFF),
-        (byte) ((longValue >>  8) & 0xFF),
-        (byte) (longValue & 0xFF)
-      };
-    }
-    else if ((longValue & 0x000000007FFFFFFFL) == longValue)
-    {
-      return new byte[]
+        return new byte[]
+        {
+          (byte) ((longValue >> 16) & 0xFF),
+          (byte) ((longValue >>  8) & 0xFF),
+          (byte) (longValue & 0xFF)
+        };
+      }
+      else if ((longValue & 0xFFFFFFFF80000000L) == 0xFFFFFFFF80000000L)
       {
-        (byte) ((longValue >> 24) & 0xFF),
-        (byte) ((longValue >> 16) & 0xFF),
-        (byte) ((longValue >>  8) & 0xFF),
-        (byte) (longValue & 0xFF)
-      };
-    }
-    else if ((longValue & 0x0000007FFFFFFFFFL) == longValue)
-    {
-      return new byte[]
+        return new byte[]
+        {
+          (byte) ((longValue >> 24) & 0xFF),
+          (byte) ((longValue >> 16) & 0xFF),
+          (byte) ((longValue >>  8) & 0xFF),
+          (byte) (longValue & 0xFF)
+        };
+      }
+      else if ((longValue & 0xFFFFFF8000000000L) == 0xFFFFFF8000000000L)
       {
-        (byte) ((longValue >> 32) & 0xFF),
-        (byte) ((longValue >> 24) & 0xFF),
-        (byte) ((longValue >> 16) & 0xFF),
-        (byte) ((longValue >>  8) & 0xFF),
-        (byte) (longValue & 0xFF)
-      };
-    }
-    else if ((longValue & 0x00007FFFFFFFFFFFL) == longValue)
-    {
-      return new byte[]
+        return new byte[]
+        {
+          (byte) ((longValue >> 32) & 0xFF),
+          (byte) ((longValue >> 24) & 0xFF),
+          (byte) ((longValue >> 16) & 0xFF),
+          (byte) ((longValue >>  8) & 0xFF),
+          (byte) (longValue & 0xFF)
+        };
+      }
+      else if ((longValue & 0xFFFF800000000000L) == 0xFFFF800000000000L)
       {
-        (byte) ((longValue >> 40) & 0xFF),
-        (byte) ((longValue >> 32) & 0xFF),
-        (byte) ((longValue >> 24) & 0xFF),
-        (byte) ((longValue >> 16) & 0xFF),
-        (byte) ((longValue >>  8) & 0xFF),
-        (byte) (longValue & 0xFF)
-      };
-    }
-    else if ((longValue & 0x007FFFFFFFFFFFFFL) == longValue)
-    {
-      return new byte[]
+        return new byte[]
+        {
+          (byte) ((longValue >> 40) & 0xFF),
+          (byte) ((longValue >> 32) & 0xFF),
+          (byte) ((longValue >> 24) & 0xFF),
+          (byte) ((longValue >> 16) & 0xFF),
+          (byte) ((longValue >>  8) & 0xFF),
+          (byte) (longValue & 0xFF)
+        };
+      }
+      else if ((longValue & 0xFF80000000000000L) == 0xFF80000000000000L)
       {
-        (byte) ((longValue >> 48) & 0xFF),
-        (byte) ((longValue >> 40) & 0xFF),
-        (byte) ((longValue >> 32) & 0xFF),
-        (byte) ((longValue >> 24) & 0xFF),
-        (byte) ((longValue >> 16) & 0xFF),
-        (byte) ((longValue >>  8) & 0xFF),
-        (byte) (longValue & 0xFF)
-      };
+        return new byte[]
+        {
+          (byte) ((longValue >> 48) & 0xFF),
+          (byte) ((longValue >> 40) & 0xFF),
+          (byte) ((longValue >> 32) & 0xFF),
+          (byte) ((longValue >> 24) & 0xFF),
+          (byte) ((longValue >> 16) & 0xFF),
+          (byte) ((longValue >>  8) & 0xFF),
+          (byte) (longValue & 0xFF)
+        };
+      }
+      else
+      {
+        return new byte[]
+        {
+          (byte) ((longValue >> 56) & 0xFF),
+          (byte) ((longValue >> 48) & 0xFF),
+          (byte) ((longValue >> 40) & 0xFF),
+          (byte) ((longValue >> 32) & 0xFF),
+          (byte) ((longValue >> 24) & 0xFF),
+          (byte) ((longValue >> 16) & 0xFF),
+          (byte) ((longValue >>  8) & 0xFF),
+          (byte) (longValue & 0xFF)
+        };
+      }
     }
     else
     {
-      return new byte[]
+      if ((longValue & 0x000000000000007FL) == longValue)
       {
-        (byte) ((longValue >> 56) & 0xFF),
-        (byte) ((longValue >> 48) & 0xFF),
-        (byte) ((longValue >> 40) & 0xFF),
-        (byte) ((longValue >> 32) & 0xFF),
-        (byte) ((longValue >> 24) & 0xFF),
-        (byte) ((longValue >> 16) & 0xFF),
-        (byte) ((longValue >>  8) & 0xFF),
-        (byte) (longValue & 0xFF)
-      };
+        return new byte[]
+        {
+          (byte) (longValue & 0xFF)
+        };
+      }
+      else if ((longValue & 0x0000000000007FFFL) == longValue)
+      {
+        return new byte[]
+        {
+          (byte) ((longValue >> 8) & 0xFF),
+          (byte) (longValue & 0xFF)
+        };
+      }
+      else if ((longValue & 0x00000000007FFFFFL) == longValue)
+      {
+        return new byte[]
+        {
+          (byte) ((longValue >> 16) & 0xFF),
+          (byte) ((longValue >>  8) & 0xFF),
+          (byte) (longValue & 0xFF)
+        };
+      }
+      else if ((longValue & 0x000000007FFFFFFFL) == longValue)
+      {
+        return new byte[]
+        {
+          (byte) ((longValue >> 24) & 0xFF),
+          (byte) ((longValue >> 16) & 0xFF),
+          (byte) ((longValue >>  8) & 0xFF),
+          (byte) (longValue & 0xFF)
+        };
+      }
+      else if ((longValue & 0x0000007FFFFFFFFFL) == longValue)
+      {
+        return new byte[]
+        {
+          (byte) ((longValue >> 32) & 0xFF),
+          (byte) ((longValue >> 24) & 0xFF),
+          (byte) ((longValue >> 16) & 0xFF),
+          (byte) ((longValue >>  8) & 0xFF),
+          (byte) (longValue & 0xFF)
+        };
+      }
+      else if ((longValue & 0x00007FFFFFFFFFFFL) == longValue)
+      {
+        return new byte[]
+        {
+          (byte) ((longValue >> 40) & 0xFF),
+          (byte) ((longValue >> 32) & 0xFF),
+          (byte) ((longValue >> 24) & 0xFF),
+          (byte) ((longValue >> 16) & 0xFF),
+          (byte) ((longValue >>  8) & 0xFF),
+          (byte) (longValue & 0xFF)
+        };
+      }
+      else if ((longValue & 0x007FFFFFFFFFFFFFL) == longValue)
+      {
+        return new byte[]
+        {
+          (byte) ((longValue >> 48) & 0xFF),
+          (byte) ((longValue >> 40) & 0xFF),
+          (byte) ((longValue >> 32) & 0xFF),
+          (byte) ((longValue >> 24) & 0xFF),
+          (byte) ((longValue >> 16) & 0xFF),
+          (byte) ((longValue >>  8) & 0xFF),
+          (byte) (longValue & 0xFF)
+        };
+      }
+      else
+      {
+        return new byte[]
+        {
+          (byte) ((longValue >> 56) & 0xFF),
+          (byte) ((longValue >> 48) & 0xFF),
+          (byte) ((longValue >> 40) & 0xFF),
+          (byte) ((longValue >> 32) & 0xFF),
+          (byte) ((longValue >> 24) & 0xFF),
+          (byte) ((longValue >> 16) & 0xFF),
+          (byte) ((longValue >>  8) & 0xFF),
+          (byte) (longValue & 0xFF)
+        };
+      }
     }
   }
 
@@ -947,6 +1077,7 @@ public class ASN1Element
    *          object will be considered equal if it is an ASN.1 element (or a
    *          subclass) with the same type and encoded value.
    */
+  @Override
   public final boolean equals(Object o)
   {
     if (this == o)
@@ -1031,6 +1162,7 @@ public class ASN1Element
    *
    * @return  The hash code for this ASN.1 element.
    */
+  @Override
   public final int hashCode()
   {
     int hashCode = type;
@@ -1050,6 +1182,7 @@ public class ASN1Element
    *
    * @return  A string representation of this ASN.1 element.
    */
+  @Override
   public final String toString()
   {
     StringBuilder buffer = new StringBuilder();
