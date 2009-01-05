@@ -31,9 +31,9 @@ import java.awt.Color;
 import java.awt.Font;
 
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
+import javax.swing.plaf.metal.MetalBorders;
 
 import org.opends.guitools.controlpanel.util.Utilities;
 
@@ -59,7 +59,6 @@ public class ColorAndFontConstants
   public static final Border textAreaBorder;
   static
   {
-    Border border = new javax.swing.border.EmptyBorder(0, 0, 0, 0);
     Color bg = Color.white;
     try
     {
@@ -78,16 +77,29 @@ public class ColorAndFontConstants
       {
         toggleButtonColor = new Color(200, 200, 200);
       }
-
-      JScrollPane scroll = new JScrollPane(new JTextArea());
-      border = scroll.getViewportBorder();
-      if (border == null)
+    }
+    catch (Throwable t)
+    {
+    }
+    Border border = null;
+    try
+    {
+      JScrollPane scroll = new JScrollPane();
+      border = scroll.getBorder();
+      // If the border is of class MetalBorders$ScrollPaneBorder it cannot
+      // be used.
+      if (border instanceof MetalBorders.ScrollPaneBorder)
       {
-        border = scroll.getBorder();
+        border = null;
       }
     }
     catch (Throwable t)
     {
+      border = null;
+    }
+    if (border == null)
+    {
+      border = new MetalBorders.Flush3DBorder();
     }
     textAreaBorder = border;
     background = bg;

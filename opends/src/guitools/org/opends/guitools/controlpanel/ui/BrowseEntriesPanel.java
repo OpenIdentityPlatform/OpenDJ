@@ -222,7 +222,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         new Dimension((treeScroll.getPreferredSize().width * 5) / 2,
             treeScroll.getPreferredSize().height));
 
-    entryPane.setBorder(treeScroll.getBorder());
+    entryPane.setBorder(getRightPanelBorder());
 
     addPopupMenu();
 
