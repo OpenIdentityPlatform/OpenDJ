@@ -579,7 +579,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
         new Dimension((3 * treeScroll.getPreferredSize().width) / 2,
             5 * treeScroll.getPreferredSize().height));
     entryPane.displayMessage(NO_SCHEMA_ITEM_SELECTED);
-    entryPane.setBorder(treeScroll.getBorder());
+    entryPane.setBorder(getRightPanelBorder());
     entryPane.setPreferredSize(
         new Dimension(treeScroll.getPreferredSize().width,
         treeScroll.getPreferredSize().height));

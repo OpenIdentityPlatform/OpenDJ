@@ -437,7 +437,7 @@ implements IndexModifiedListener
     treeScroll.setPreferredSize(
         new Dimension(2 * treeScroll.getPreferredSize().width,
             8 * treeScroll.getPreferredSize().height));
-    entryPane.setBorder(treeScroll.getBorder());
+    entryPane.setBorder(getRightPanelBorder());
     entryPane.setPreferredSize(
         new Dimension((treeScroll.getPreferredSize().width * 5) / 2,
         treeScroll.getPreferredSize().height));

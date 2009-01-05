@@ -64,6 +64,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
 
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.browser.BrowserController;
@@ -1939,5 +1940,16 @@ implements ConfigChangeListener
     {
     }
     return hasObjectClass;
+  }
+
+  /**
+   * Returns the border to be used in the right panel of the dialog with a tree
+   * on the left (for instance the schema browser, entry browser and index
+   * browser).
+   * @return the border to be used in the right panel.
+   */
+  protected Border getRightPanelBorder()
+  {
+    return ColorAndFontConstants.textAreaBorder;
   }
 }
