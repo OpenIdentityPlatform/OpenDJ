@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.dsreplication;
@@ -33,7 +33,7 @@ package org.opends.server.tools.dsreplication;
  * mode the ReplicationCliArgumentParser is not enough.
  *
  */
-class DisableReplicationUserData extends ReplicationUserData
+public class DisableReplicationUserData extends ReplicationUserData
 {
   private String hostName;
   private int port;
@@ -46,7 +46,7 @@ class DisableReplicationUserData extends ReplicationUserData
    * Returns the host name of the server.
    * @return the host name of the server.
    */
-  String getHostName()
+  public String getHostName()
   {
     return hostName;
   }
@@ -55,7 +55,7 @@ class DisableReplicationUserData extends ReplicationUserData
    * Sets the host name of the server.
    * @param hostName the host name of the server.
    */
-  void setHostName(String hostName)
+  public void setHostName(String hostName)
   {
     this.hostName = hostName;
   }
@@ -64,7 +64,7 @@ class DisableReplicationUserData extends ReplicationUserData
    * Returns the port of the server.
    * @return the port of the server.
    */
-  int getPort()
+  public int getPort()
   {
     return port;
   }
@@ -73,7 +73,7 @@ class DisableReplicationUserData extends ReplicationUserData
    * Sets the port of the server.
    * @param port the port of the server.
    */
-  void setPort(int port)
+  public void setPort(int port)
   {
     this.port = port;
   }

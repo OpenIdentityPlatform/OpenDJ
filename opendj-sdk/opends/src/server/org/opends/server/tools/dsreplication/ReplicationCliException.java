@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.dsreplication;
@@ -44,7 +44,8 @@ public class ReplicationCliException extends OpenDsException {
    * @param errorCode the error code associated with this exception.
    * @param cause the cause that generated this exception.
    */
-  ReplicationCliException(Message message, ReplicationCliReturnCode errorCode,
+  public ReplicationCliException(Message message,
+      ReplicationCliReturnCode errorCode,
       Throwable cause)
   {
     super(message, cause);

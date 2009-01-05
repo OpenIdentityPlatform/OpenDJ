@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2009 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="local-backend-workflow-element"
   plural-name="local-backend-workflow-elements"
@@ -57,14 +57,6 @@
     </adm:synopsis>
     <adm:syntax>
       <adm:aggregation relation-name="backend" parent-path="/">
-        <adm:constraint>
-          <adm:synopsis>
-            The referenced backend must be enabled.
-          </adm:synopsis>
-          <adm:target-is-enabled-condition>
-            <adm:contains property="enabled" value="true" />
-          </adm:target-is-enabled-condition>
-        </adm:constraint>
       </adm:aggregation>
     </adm:syntax>
     <adm:profile name="ldap">
