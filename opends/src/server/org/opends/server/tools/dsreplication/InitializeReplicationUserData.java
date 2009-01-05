@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.dsreplication;
@@ -33,7 +33,7 @@ package org.opends.server.tools.dsreplication;
  * mode the ReplicationCliArgumentParser is not enough.
  *
  */
-class InitializeReplicationUserData extends ReplicationUserData
+public class InitializeReplicationUserData extends ReplicationUserData
 {
   private String hostNameSource;
   private int portSource;
@@ -44,7 +44,7 @@ class InitializeReplicationUserData extends ReplicationUserData
    * Returns the host name of the source server.
    * @return the host name of the source server.
    */
-  String getHostNameSource()
+  public String getHostNameSource()
   {
     return hostNameSource;
   }
@@ -53,7 +53,7 @@ class InitializeReplicationUserData extends ReplicationUserData
    * Sets the host name of the source server.
    * @param hostNameSource the host name of the source server.
    */
-  void setHostNameSource(String hostNameSource)
+  public void setHostNameSource(String hostNameSource)
   {
     this.hostNameSource = hostNameSource;
   }
@@ -62,7 +62,7 @@ class InitializeReplicationUserData extends ReplicationUserData
    * Returns the port of the source server.
    * @return the port of the source server.
    */
-  int getPortSource()
+  public int getPortSource()
   {
     return portSource;
   }
@@ -71,7 +71,7 @@ class InitializeReplicationUserData extends ReplicationUserData
    * Sets the port of the source server.
    * @param portSource the port of the source server.
    */
-  void setPortSource(int portSource)
+  public void setPortSource(int portSource)
   {
     this.portSource = portSource;
   }
@@ -80,7 +80,7 @@ class InitializeReplicationUserData extends ReplicationUserData
    * Returns the host name of the destination server.
    * @return the host name of the destination server.
    */
-  String getHostNameDestination()
+  public String getHostNameDestination()
   {
     return hostNameDestination;
   }
@@ -89,7 +89,7 @@ class InitializeReplicationUserData extends ReplicationUserData
    * Sets the host name of the destination server.
    * @param hostNameDestination the host name of the destination server.
    */
-  void setHostNameDestination(String hostNameDestination)
+  public void setHostNameDestination(String hostNameDestination)
   {
     this.hostNameDestination = hostNameDestination;
   }
@@ -98,7 +98,7 @@ class InitializeReplicationUserData extends ReplicationUserData
    * Returns the port of the destination server.
    * @return the port of the destination server.
    */
-  int getPortDestination()
+  public int getPortDestination()
   {
     return portDestination;
   }
@@ -107,7 +107,7 @@ class InitializeReplicationUserData extends ReplicationUserData
    * Sets the port of the destination server.
    * @param portDestination the port of the destination server.
    */
-  void setPortDestination(int portDestination)
+  public void setPortDestination(int portDestination)
   {
     this.portDestination = portDestination;
   }

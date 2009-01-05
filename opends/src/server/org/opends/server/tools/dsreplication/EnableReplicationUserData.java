@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.dsreplication;
@@ -33,7 +33,7 @@ package org.opends.server.tools.dsreplication;
  * ReplicationCliArgumentParser is not enough.
  *
  */
-class EnableReplicationUserData extends ReplicationUserData
+public class EnableReplicationUserData extends ReplicationUserData
 {
   private String hostName1;
   private int port1;
@@ -53,7 +53,7 @@ class EnableReplicationUserData extends ReplicationUserData
    * Returns the host name of the first server.
    * @return the host name of the first server.
    */
-  String getHostName1()
+  public String getHostName1()
   {
     return hostName1;
   }
@@ -62,7 +62,7 @@ class EnableReplicationUserData extends ReplicationUserData
    * Sets the host name of the first server.
    * @param hostName1 the host name of the first server.
    */
-  void setHostName1(String hostName1)
+  public void setHostName1(String hostName1)
   {
     this.hostName1 = hostName1;
   }
@@ -71,7 +71,7 @@ class EnableReplicationUserData extends ReplicationUserData
    * Returns the port of the first server.
    * @return the port of the first server.
    */
-  int getPort1()
+  public int getPort1()
   {
     return port1;
   }
@@ -80,7 +80,7 @@ class EnableReplicationUserData extends ReplicationUserData
    * Sets the port of the first server.
    * @param port1 the port of the first server.
    */
-  void setPort1(int port1)
+  public void setPort1(int port1)
   {
     this.port1 = port1;
   }
@@ -89,7 +89,7 @@ class EnableReplicationUserData extends ReplicationUserData
    * Returns the password for the first server.
    * @return the password for the first server.
    */
-  String getPwd1()
+  public String getPwd1()
   {
     return pwd1;
   }
@@ -98,7 +98,7 @@ class EnableReplicationUserData extends ReplicationUserData
    * Sets the password for the first server.
    * @param pwd1 the password for the first server.
    */
-  void setPwd1(String pwd1)
+  public void setPwd1(String pwd1)
   {
     this.pwd1 = pwd1;
   }
@@ -107,7 +107,7 @@ class EnableReplicationUserData extends ReplicationUserData
    * Returns the host name of the second server.
    * @return the host name of the second server.
    */
-  String getHostName2()
+  public String getHostName2()
   {
     return hostName2;
   }
@@ -116,7 +116,7 @@ class EnableReplicationUserData extends ReplicationUserData
    * Sets the host name of the second server.
    * @param host2Name the host name of the second server.
    */
-  void setHostName2(String host2Name)
+  public void setHostName2(String host2Name)
   {
     this.hostName2 = host2Name;
   }
@@ -125,7 +125,7 @@ class EnableReplicationUserData extends ReplicationUserData
    * Returns the port of the second server.
    * @return the port of the second server.
    */
-  int getPort2()
+  public int getPort2()
   {
     return port2;
   }
@@ -134,7 +134,7 @@ class EnableReplicationUserData extends ReplicationUserData
    * Sets the port of the second server.
    * @param port2 the port of the second server.
    */
-  void setPort2(int port2)
+  public void setPort2(int port2)
   {
     this.port2 = port2;
   }
@@ -143,7 +143,7 @@ class EnableReplicationUserData extends ReplicationUserData
    * Returns the password for the second server.
    * @return the password for the second server.
    */
-  String getPwd2()
+  public String getPwd2()
   {
     return pwd2;
   }
@@ -152,7 +152,7 @@ class EnableReplicationUserData extends ReplicationUserData
    * Sets the password for the second server.
    * @param pwd2 the password for the second server.
    */
-  void setPwd2(String pwd2)
+  public void setPwd2(String pwd2)
   {
     this.pwd2 = pwd2;
   }
@@ -161,7 +161,7 @@ class EnableReplicationUserData extends ReplicationUserData
    * Returns the dn to be used to bind to the first server.
    * @return the dn to be used to bind to the first server.
    */
-  String getBindDn1()
+  public String getBindDn1()
   {
     return bindDn1;
   }
@@ -170,7 +170,7 @@ class EnableReplicationUserData extends ReplicationUserData
    * Sets the dn to be used to bind to the first server.
    * @param bindDn1 the dn to be used to bind to the first server.
    */
-  void setBindDn1(String bindDn1)
+  public void setBindDn1(String bindDn1)
   {
     this.bindDn1 = bindDn1;
   }
@@ -179,7 +179,7 @@ class EnableReplicationUserData extends ReplicationUserData
    * Returns the dn to be used to bind to the second server.
    * @return the dn to be used to bind to the second server.
    */
-  String getBindDn2()
+  public String getBindDn2()
   {
     return bindDn2;
   }
@@ -188,7 +188,7 @@ class EnableReplicationUserData extends ReplicationUserData
    * Sets the dn to be used to bind to the second server.
    * @param bindDn2 the dn to be used to bind to the second server.
    */
-  void setBindDn2(String bindDn2)
+  public void setBindDn2(String bindDn2)
   {
     this.bindDn2 = bindDn2;
   }
@@ -199,7 +199,7 @@ class EnableReplicationUserData extends ReplicationUserData
    * @return the replication port to be used on the first server if it is not
    * defined yet.
    */
-  int getReplicationPort1()
+  public int getReplicationPort1()
   {
     return replicationPort1;
   }
@@ -210,7 +210,7 @@ class EnableReplicationUserData extends ReplicationUserData
    * @param replicationPort1 the replication port to be used on the first server
    * if it is not defined yet.
    */
-  void setReplicationPort1(int replicationPort1)
+  public void setReplicationPort1(int replicationPort1)
   {
     this.replicationPort1 = replicationPort1;
   }
@@ -221,7 +221,7 @@ class EnableReplicationUserData extends ReplicationUserData
    * @return the replication port to be used on the second server if it is not
    * defined yet.
    */
-  int getReplicationPort2()
+  public int getReplicationPort2()
   {
     return replicationPort2;
   }
@@ -232,7 +232,7 @@ class EnableReplicationUserData extends ReplicationUserData
    * @param replicationPort2 the replication port to be used on the second
    * server if it is not defined yet.
    */
-  void setReplicationPort2(int replicationPort2)
+  public void setReplicationPort2(int replicationPort2)
   {
     this.replicationPort2 = replicationPort2;
   }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.dsreplication;
@@ -1883,7 +1883,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @return the SecureConnectionCliArgs object containing the arguments
    * of this parser.
    */
-  SecureConnectionCliArgs getSecureArgsList()
+  public SecureConnectionCliArgs getSecureArgsList()
   {
     return secureArgsList;
   }

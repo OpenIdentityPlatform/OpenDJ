@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.dsreplication;
@@ -35,7 +35,7 @@ import java.util.LinkedList;
  * mode the ReplicationCliArgumentParser is not enough.
  *
  */
-abstract class ReplicationUserData
+public abstract class ReplicationUserData
 {
   private LinkedList<String> baseDNs = new LinkedList<String>();
   private String adminUid;
@@ -45,7 +45,7 @@ abstract class ReplicationUserData
    * Returns the Global Administrator password.
    * @return the Global Administrator password.
    */
-  String getAdminPwd()
+  public String getAdminPwd()
   {
     return adminPwd;
   }
@@ -54,7 +54,7 @@ abstract class ReplicationUserData
    * Sets the Global Administrator password.
    * @param adminPwd the Global Administrator password.
    */
-  void setAdminPwd(String adminPwd)
+  public void setAdminPwd(String adminPwd)
   {
     this.adminPwd = adminPwd;
   }
@@ -63,7 +63,7 @@ abstract class ReplicationUserData
    * Returns the Global Administrator UID.
    * @return the Global Administrator UID.
    */
-  String getAdminUid()
+  public String getAdminUid()
   {
     return adminUid;
   }
@@ -72,7 +72,7 @@ abstract class ReplicationUserData
    * Sets the Global Administrator UID.
    * @param adminUid the Global Administrator UID.
    */
-  void setAdminUid(String adminUid)
+  public void setAdminUid(String adminUid)
   {
     this.adminUid = adminUid;
   }
@@ -81,7 +81,7 @@ abstract class ReplicationUserData
    * Returns the Base DNs to replicate.
    * @return the Base DNs to replicate.
    */
-  LinkedList<String> getBaseDNs()
+  public LinkedList<String> getBaseDNs()
   {
     return new LinkedList<String>(baseDNs);
   }
@@ -90,7 +90,7 @@ abstract class ReplicationUserData
    * Sets the Base DNs to replicate.
    * @param baseDNs the Base DNs to replicate.
    */
-  void setBaseDNs(LinkedList<String> baseDNs)
+  public void setBaseDNs(LinkedList<String> baseDNs)
   {
     this.baseDNs.clear();
     this.baseDNs.addAll(baseDNs);

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.dsreplication;
@@ -33,7 +33,7 @@ package org.opends.server.tools.dsreplication;
  * interactive mode the ReplicationCliArgumentParser is not enough.
  *
  */
-class StatusReplicationUserData extends InitializeAllReplicationUserData
+public class StatusReplicationUserData extends InitializeAllReplicationUserData
 {
   private boolean scriptFriendly;
 
