@@ -68,6 +68,20 @@ import org.opends.server.util.cli.CommandBuilder;
  */
 public abstract class Task
 {
+  private static String localHostName = null;
+  static
+  {
+    // Do this since by default the hostname used by the connection is
+    // 0.0.0.0, so try to figure the name of the host.  This is used to
+    // display the equivalent command-line.
+    try
+    {
+      localHostName = java.net.InetAddress.getLocalHost().getHostName();
+    }
+    catch (Throwable t)
+    {
+    }
+  }
   /**
    * The different task types.
    *
@@ -709,7 +723,11 @@ public abstract class Task
     }
     if (isServerRunning() && (ctx != null))
     {
-      String hostName = ConnectionUtils.getHostName(ctx);
+      String hostName = localHostName;
+      if (hostName == null)
+      {
+        hostName = ConnectionUtils.getHostName(ctx);
+      }
       int port = ConnectionUtils.getPort(ctx);
       boolean isSSL = ConnectionUtils.isSSL(ctx);
       boolean isStartTLS = ConnectionUtils.isStartTLS(ctx);
