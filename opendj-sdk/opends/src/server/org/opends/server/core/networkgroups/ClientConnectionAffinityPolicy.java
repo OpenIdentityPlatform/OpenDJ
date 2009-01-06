@@ -43,7 +43,7 @@ public enum ClientConnectionAffinityPolicy
   NONE,
 
   /**
-   * Routes all the read requests to the data source to which
+   * Routes the first read request to the data source to which
    * a previous write request has been routed to. This affinity
    * is useful when a client application performs a read request
    * after a write request and the read request should return
