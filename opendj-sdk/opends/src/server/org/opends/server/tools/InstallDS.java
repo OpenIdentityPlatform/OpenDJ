@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools;
@@ -32,7 +32,9 @@ import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.UtilityMessages.*;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -48,6 +50,7 @@ import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.LicenseFile;
 import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.SecurityOptions;
@@ -139,7 +142,11 @@ public class InstallDS extends ConsoleApplication
     /**
      * The user cancelled the setup.
      */
-    ERROR_USER_CANCELLED(6);
+    ERROR_USER_CANCELLED(6),
+    /**
+     * The user doesn't accept the license.
+     */
+    ERROR_LICENSE_NOT_ACCEPTED(7);
 
     private int returnCode;
     private ErrorReturnCode(int returnCode)
@@ -401,6 +408,52 @@ public class InstallDS extends ConsoleApplication
     {
       println(ie.getMessageObject());
       return ErrorReturnCode.ERROR_SERVER_ALREADY_INSTALLED.getReturnCode();
+    }
+
+    // Check license
+    if (LicenseFile.exists())
+    {
+      PrintStream printStreamOut = getOutputStream();
+      String licenseString = LicenseFile.getText();
+      printStreamOut.println(licenseString);
+      if (! argParser.noPromptArg.isPresent())
+      {
+        // If the user asks for no-prompt. We just display the license text.
+        // User doesn't asks for no-prompt. We just display the license text
+        // and force to accept it.
+        String yes = INFO_LICENSE_CLI_ACCEPT_YES.get().toString();
+        String no = INFO_LICENSE_CLI_ACCEPT_NO.get().toString();
+        println(INFO_LICENSE_DETAILS_LABEL.get());
+
+        BufferedReader in = getInputStream();
+        while (true)
+        {
+          print(INFO_LICENSE_CLI_ACCEPT_QUESTION.get(yes,no,no));
+          try
+          {
+            String response = in.readLine();
+            if ((response == null)
+                || (response.toLowerCase().equals(no.toLowerCase()))
+                || (response.length() == 0))
+            {
+              return ErrorReturnCode.ERROR_LICENSE_NOT_ACCEPTED.getReturnCode();
+            }
+            else
+            if (response.toLowerCase().equals(yes.toLowerCase()))
+            {
+              break ;
+            }
+            else
+            {
+              println(INFO_LICENSE_CLI_ACCEPT_INVALID_RESPONSE.get());
+            }
+          }
+          catch (IOException e)
+          {
+            println(INFO_LICENSE_CLI_ACCEPT_INVALID_RESPONSE.get());
+          }
+        }
+      }
     }
 
     if (initializeServer)
