@@ -294,7 +294,7 @@
              !   in the messages directory
              ! -->
             <mkdir dir="${classes.dir}/messages" />
-            <for param="file" delimiter=":" list="${msg.dir.list}">
+            <for param="file" delimiter="${path.separator}" list="${msg.dir.list}">
               <sequential>
                 <genmsg sourceProps="@{file}" />
                 <copy file="@{file}" todir="${classes.dir}/messages"/>
