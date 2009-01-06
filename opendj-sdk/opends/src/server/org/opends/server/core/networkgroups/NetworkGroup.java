@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core.networkgroups;
 
@@ -140,6 +140,13 @@ public class NetworkGroup
 
   // The statistics
   private NetworkGroupStatistics stats;
+
+  // The client connection affinity policy.
+  private ClientConnectionAffinityPolicy affinityPolicy = null;
+
+  // The client connection affinity timeout (number of seconds).
+  private long affinityTimeout = 0;
+
 
   /**
    * Creates a new instance of the network group.
@@ -731,6 +738,34 @@ public class NetworkGroup
   }
 
   /**
+   * Sets the affinity policy. The client connection affinity is the ability
+   * for the server to bypass a route algorithm like "load balancing" so
+   * that a request is always sent to the same data source regardless the
+   * route algorithm.
+   *
+   * @param  affinityPolicy
+   *         The client connection affinity policy of the network group.
+   */
+  public void setAffinityPolicy(
+      ClientConnectionAffinityPolicy affinityPolicy)
+  {
+    this.affinityPolicy = affinityPolicy;
+  }
+
+  /**
+   * Sets the affinity timeout value. The client connection affinity, when
+   * set, remains active until the time out expires. When the time out
+   * value is set to 0 then an active affinity never expires.
+   *
+   * @param timeout
+   *        The affinity timeout value (0 means never expire).
+   */
+  public void setAffinityTimeout(long timeout)
+  {
+    this.affinityTimeout = timeout;
+  }
+
+  /**
    * Gets the highest priority matching network group.
    *
    * @param connection the client connection
@@ -896,6 +931,32 @@ public class NetworkGroup
       return resourceLimits.getReferralHopLimit();
     }
     return 0;
+  }
+
+  /**
+   * Gets the affinity policy. The client connection affinity is the ability
+   * for the server to bypass a route algorithm like "load balancing" so
+   * that a request is always sent to the same data source regardless the
+   * route algorithm.
+   *
+   * @return the client connection affinity policy of the network group
+   */
+  public ClientConnectionAffinityPolicy getAffinityPolicy()
+  {
+    return this.affinityPolicy;
+  }
+
+  /**
+   * Gets the affinity timeout value. The client connection affinity, when
+   * set, is active for a period of time. Once that period of time has
+   * expired, the client connection affinity is reset. A value of 0 means
+   * "no limit" - when an affinity is set it remains active for ever.
+   *
+   * @return the affinity timeout value (0 means no limit).
+   */
+  public long getAffinityTimeout()
+  {
+    return this.affinityTimeout;
   }
 
   /**

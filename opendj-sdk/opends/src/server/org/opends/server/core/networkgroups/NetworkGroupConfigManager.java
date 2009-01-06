@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core.networkgroups;
 
@@ -32,7 +32,9 @@ import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -222,8 +224,38 @@ public class NetworkGroupConfigManager
       NetworkGroupCfg configuration,
       List<Message>   unacceptableReasons)
   {
-    // Nothing to check.
-    return true;
+    // If the network group is disabled then there is nothing to check.
+    if (! configuration.isEnabled())
+    {
+      return true;
+    }
+
+    // Check that all the workflows in the network group have a
+    // different base DN.
+
+    boolean result = true;
+    Set<String> allBaseDNs = new HashSet<String>();
+    for (String workflowId : configuration.getWorkflow())
+    {
+      WorkflowImpl workflow =
+        (WorkflowImpl) WorkflowImpl.getWorkflow(workflowId);
+      String baseDN = workflow.getBaseDN().toNormalizedString();
+      if (allBaseDNs.contains(baseDN))
+      {
+        // This baseDN is duplicated
+        Message message = ERR_WORKFLOW_BASE_DN_DUPLICATED_IN_NG.get(
+          baseDN, configuration.getNetworkGroupId());
+        unacceptableReasons.add(message);
+        result = false;
+        break;
+      }
+      else
+      {
+        allBaseDNs.add(baseDN);
+      }
+    }
+
+    return result;
   }
 
 
@@ -424,6 +456,15 @@ public class NetworkGroupConfigManager
               ex.getMessageObject());
     }
 
+    // Set the client connection affinity policy.
+    ClientConnectionAffinityPolicy affinityPolicy =
+      ClientConnectionAffinityPolicy.toClientConnectionAffinityPolicy(
+        networkGroupCfg.getAffinityPolicy());
+    networkGroup.setAffinityPolicy(affinityPolicy);
+
+    // Set the client connection affinity timeout
+    long affinityTimeout = networkGroupCfg.getAffinityTimeout();
+    networkGroup.setAffinityTimeout(affinityTimeout);
   }
 
 }
