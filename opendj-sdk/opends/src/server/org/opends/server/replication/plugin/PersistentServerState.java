@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 import org.opends.messages.Message;
@@ -36,6 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Iterator;
 
+import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -80,6 +81,16 @@ public class PersistentServerState
     * The attribute name used to store the state in the backend.
     */
    protected static final String REPLICATION_STATE = "ds-sync-state";
+
+   /**
+    * The attribute name used to store the entryUUID.
+    */
+   private static final String ENTRY_UUID = "entryUUID";
+
+   /**
+    * The attribute name used to store the RUV elements.
+    */
+   private static final String REPLICATION_RUV_ELEMENT = "nsds50ruv";
 
   /**
    * create a new ServerState.
@@ -469,6 +480,191 @@ public class PersistentServerState
         }
       }
     }
+  }
+
+/**
+ * Check if a ReplicaUpdateVector entry is present
+ * if so, translate the ruv into a serverState and
+ * a generationId.
+ * @return the generationId translated from the RUV
+ * entry, 0 if no RUV is present
+ */
+  public Long checkRUVCompat() {
+
+   Long genId = null;
+   SearchResultEntry ruvEntry = null;
+
+   // Search the RUV in the DB
+   ruvEntry = searchRUVEntry();
+
+   if (ruvEntry == null)
+     return null;
+
+   // Check if the serverState is already initialized
+
+   if( !isServerStateInitilized())
+   {
+     // Translate the ruv to serverState
+     // and GenerationId
+     genId = initializeStateWithRUVEntry(ruvEntry);
+   }
+
+   // In any case, remove the RUV entry
+   // if it exists
+   DeleteOperationBasis del =  new DeleteOperationBasis(conn,
+       InternalClientConnection.nextOperationID(),
+       InternalClientConnection.nextMessageID(), null,
+       new ASN1OctetString(ruvEntry.getDN().toNormalizedString()));
+
+   // Run the internal operation
+   del.setInternalOperation(true);
+   del.setSynchronizationOperation(true);
+   del.setDontSynchronize(true);
+   del.run();
+
+   return genId;
+  }
+
+  /**
+   * Initialize the serverState and the GenerationId based on a RUV
+   * entry.
+   * @param ruvEntry the entry to translate into a serverState.
+   * @return the generationId translated from the RUV entry.
+   */
+  private Long initializeStateWithRUVEntry(SearchResultEntry ruvEntry) {
+
+    Long genId = null;
+    String value = null;
+    String csn = null;
+
+    AttributeType ruvElementType =
+      DirectoryServer.getAttributeType(REPLICATION_RUV_ELEMENT);
+
+    if (ruvElementType == null)
+      return null;
+
+    for (Attribute attr : ruvEntry.getAttribute(ruvElementType))
+    {
+      Iterator<AttributeValue> it = attr.iterator();
+      while (it.hasNext())
+      {
+        value = it.next().toString();
+        // Search for the GenerationId
+        if (value.startsWith("{replicageneration} "))
+        {
+          // Get only the timestamp present in the CSN
+          String replicaGen = value.substring(20, 28);
+          genId = Long.parseLong(replicaGen,16);
+        }
+        else
+        {
+          // Translate the other elements into serverState
+          if (value.startsWith("{replica "))
+          {
+            String[] bits = value.split(" ");
+
+            if (bits.length > 3)
+            {
+              csn = bits[4];
+
+              String temp = csn.substring(0, 8);
+              Long timeStamp = Long.parseLong(temp, 16);
+
+              temp = csn.substring(8, 12);
+              Integer seqNum = Integer.parseInt(temp, 16);
+
+              temp = csn.substring(12, 16);
+              Integer replicaId = Integer.parseInt(temp, 16);
+
+              // No need to take into account the subSeqNum
+              ChangeNumber cn = new ChangeNumber(timeStamp*1000, seqNum,
+                  replicaId.shortValue());
+
+              this.update(cn);
+            }
+          }
+        }
+      }
+    }
+
+    return genId;
+}
+
+  /**
+   * Check if the server State is initialized by searching
+   * the attribute type REPLICATION_STATE in the root entry.
+   * @return true if the serverState is initialized, false
+   * otherwise
+   */
+  private boolean isServerStateInitilized() {
+    SearchResultEntry resultEntry = searchBaseEntry();
+
+    AttributeType synchronizationStateType =
+      DirectoryServer.getAttributeType(REPLICATION_STATE);
+    List<Attribute> attrs =
+      resultEntry.getAttribute(synchronizationStateType);
+
+    return (attrs != null);
+  }
+
+/**
+ * Search the database entry that represent a serverState
+ * using the RUV format (compatibility mode).
+ * @return the corresponding RUV entry, null otherwise
+ */
+  private SearchResultEntry searchRUVEntry() {
+    LDAPFilter filter;
+    SearchResultEntry ruvEntry = null;
+
+    // Search the RUV entry
+    try
+    {
+      filter = LDAPFilter.decode("objectclass=ldapSubEntry");
+    } catch (LDAPException e)
+    {
+      // can not happen
+      return null;
+    }
+
+    LinkedHashSet<String> attributes = new LinkedHashSet<String>(1);
+    attributes.add(ENTRY_UUID);
+    attributes.add(REPLICATION_RUV_ELEMENT);
+    InternalSearchOperation search = conn.processSearch(asn1BaseDn,
+        SearchScope.SUBORDINATE_SUBTREE,
+        DereferencePolicy.DEREF_ALWAYS, 0, 0, false,
+        filter,attributes);
+    if (((search.getResultCode() != ResultCode.SUCCESS)) &&
+        ((search.getResultCode() != ResultCode.NO_SUCH_OBJECT)))
+      return null;
+
+    if (search.getResultCode() == ResultCode.SUCCESS)
+    {
+      /*
+       * Search the ldapSubEntry with the entryUUID equals
+       * to "ffffffff-ffff-ffff-ffff-ffffffffffff"
+       */
+      LinkedList<SearchResultEntry> result = search.getSearchEntries();
+      if (!result.isEmpty())
+      {
+        for (SearchResultEntry ldapSubEntry : result)
+        {
+          List<Attribute> attrs =
+            ldapSubEntry.getAttribute(ENTRY_UUID.toLowerCase());
+          if (attrs != null)
+          {
+            Iterator<AttributeValue> iav = attrs.get(0).iterator();
+            AttributeValue attrVal = iav.next();
+            if (attrVal.getStringValue().
+                equalsIgnoreCase("ffffffff-ffff-ffff-ffff-ffffffffffff"))
+            {
+              ruvEntry = ldapSubEntry;
+              break;
+            }
+          }
+        }
+      }
+    }
+    return ruvEntry;
   }
 
   /**

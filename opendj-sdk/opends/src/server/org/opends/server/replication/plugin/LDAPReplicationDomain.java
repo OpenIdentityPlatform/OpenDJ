@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -363,6 +363,18 @@ public class LDAPReplicationDomain extends ReplicationDomain
      * the last ChangeNmber seen from all LDAP servers in the topology.
      */
     state = new PersistentServerState(baseDn, serverId, getServerState());
+
+    /* Check if a ReplicaUpdateVector entry is present
+     * if so, and no state is already initialized
+     * translate the ruv into a serverState and
+     * a generationId
+     */
+    Long compatGenId  = state.checkRUVCompat();
+    if (compatGenId != null)
+    {
+      generationId = compatGenId;
+      saveGenerationId(generationId);
+    }
 
     startPublishService(replicationServers, window, heartbeatInterval);
 
@@ -1878,16 +1890,32 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   /**
    * Do what necessary when the data have changed : load state, load
    * generation Id.
+   * If there is no such information check if there is a
+   * ReplicaUpdateVector entry and translate it into a state
+   * and generationId.
    * @exception DirectoryException Thrown when an error occurs.
-  */
+   */
   protected void loadDataState()
   throws DirectoryException
   {
+    Long compatGenId = null;
+
     state.clearInMemory();
     state.loadState();
+
+    // Check to see if a Ruv needs to be translated
+    compatGenId  = state.checkRUVCompat();
+
     generator.adjust(state.getMaxChangeNumber(serverId));
     // Retrieves the generation ID associated with the data imported
-    generationId = loadGenerationId();
+
+    if (compatGenId != null)
+    {
+      generationId = compatGenId;
+      saveGenerationId(generationId);
+    }
+    else
+      generationId = loadGenerationId();
   }
 
   /**
