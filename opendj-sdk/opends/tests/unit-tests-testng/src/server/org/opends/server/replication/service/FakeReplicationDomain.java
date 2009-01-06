@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.service;
 
@@ -55,6 +55,8 @@ public class FakeReplicationDomain extends ReplicationDomain
   StringBuilder importString = null;
 
   private int exportedEntryCount;
+
+  private long generationID = 1;
 
   public FakeReplicationDomain(
       String serviceID,
@@ -114,7 +116,7 @@ public class FakeReplicationDomain extends ReplicationDomain
   @Override
   public long getGenerationID()
   {
-    return 1;
+    return generationID;
   }
 
   @Override
@@ -145,5 +147,10 @@ public class FakeReplicationDomain extends ReplicationDomain
     if (queue != null)
       queue.add(updateMsg);
     return true;
+  }
+
+  public void setGenerationID(long newGenerationID)
+  {
+    generationID = newGenerationID;
   }
 }

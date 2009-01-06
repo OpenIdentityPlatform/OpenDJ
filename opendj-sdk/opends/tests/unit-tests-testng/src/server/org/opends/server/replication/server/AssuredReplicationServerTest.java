@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -231,7 +231,7 @@ public class AssuredReplicationServerTest
       fakeRs2.shutdown();
       fakeRs2 = null;
     }
-    
+
     if (fakeRs3 != null)
     {
       fakeRs3.shutdown();
@@ -400,7 +400,7 @@ public class AssuredReplicationServerTest
       {
         port = rs3Port;
         if (testCase.equals("testSafeDataManyRealRSs"))
-        {          
+        {
           // Every 3 RSs connected together
           replServers.add("localhost:" + rs1Port);
           replServers.add("localhost:" + rs2Port);
@@ -603,7 +603,7 @@ public class AssuredReplicationServerTest
         debugInfo("Fake DS " + getServerId() + " received update assured sd level is wrong: " + updateMsg);
         ok = false;
       }
-      
+
       if (ok)
         debugInfo("Fake DS " + getServerId() + " received update assured parameters are ok: " + updateMsg);
       else
@@ -739,7 +739,7 @@ public class AssuredReplicationServerTest
 
     /**
      * Connect to RS
-     * Returns true if connection was made successfuly
+     * Returns true if connection was made successfully
      */
     public boolean connect()
     {
@@ -941,7 +941,7 @@ public class AssuredReplicationServerTest
     {
       return everyUpdatesAreOk;
     }
-    
+
     public int nReceivedUpdates()
     {
       return nReceivedUpdates;
@@ -1166,7 +1166,7 @@ public class AssuredReplicationServerTest
   {
     return new Object[][]
     {
-      
+
       { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
       { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
       { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
@@ -1329,7 +1329,7 @@ public class AssuredReplicationServerTest
 
     if (objectArrayList.size() == 0)
     {
-      // First time we add some parameters, create first object arrays      
+      // First time we add some parameters, create first object arrays
       // Add each possible parameter as initial parameter lists
       for (Object possibleParameter : possibleParameters)
       {
@@ -1388,7 +1388,7 @@ public class AssuredReplicationServerTest
     String testCase = "testSafeDataLevelHigh";
 
     debugInfo("Starting " + testCase);
-    
+
     assertTrue(sdLevel > 1);
     int nWishedServers = sdLevel - 1; // Number of fake RSs we want an ack from
 
@@ -1449,7 +1449,7 @@ public class AssuredReplicationServerTest
         fakeRs3GenId, ((fakeRs3Gid == DEFAULT_GID) ? true : false), AssuredMode.SAFE_DATA_MODE, sdLevel,
         fakeRs3Scen);
       assertNotNull(fakeRs3);
-      
+
       // Wait for connections to be finished
       // DS must see expected numbers of fake DSs and RSs
       waitForStableTopo(fakeRd1, (otherFakeDS ? 1 : 0), 3);
@@ -1477,7 +1477,7 @@ public class AssuredReplicationServerTest
         fail("No timeout is expected here");
       }
       long sendUpdateTime = System.currentTimeMillis() - startTime;
-      
+
       // Check
       sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked and let time the update to reach other servers
       checkTimeAndMonitoringSafeData(1, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime, nWishedServers, elligibleServers, expectedServers);
@@ -1551,7 +1551,7 @@ public class AssuredReplicationServerTest
         fail("No timeout is expected here");
       }
       sendUpdateTime = System.currentTimeMillis() - startTime;
-      
+
       // Check
       sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked and let time the update to reach other servers
       checkTimeAndMonitoringSafeData(3, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime, nWishedServers, elligibleServers, expectedServers);
@@ -1587,8 +1587,8 @@ public class AssuredReplicationServerTest
       {
         fail("No timeout is expected here");
       }
-      sendUpdateTime = System.currentTimeMillis() - startTime;      
-            
+      sendUpdateTime = System.currentTimeMillis() - startTime;
+
       // Check
       sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked and let time the update to reach other servers
       checkTimeAndMonitoringSafeData(4, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime, nWishedServers, elligibleServers, expectedServers);
@@ -1962,7 +1962,7 @@ public class AssuredReplicationServerTest
       /*
        * Send an assured update using configured assured parameters
        */
-      
+
       long startTime = System.currentTimeMillis();
       AckMsg ackMsg = null;
       boolean timeout = false;
@@ -1997,7 +1997,7 @@ public class AssuredReplicationServerTest
         assertFalse(ackMsg.hasWrongStatus());
         assertEquals(ackMsg.getFailedServers().size(), 0);
       }
-      
+
    } finally
     {
       endTest();
@@ -2054,7 +2054,7 @@ public class AssuredReplicationServerTest
       rs3 = createReplicationServer(RS3_ID, DEFAULT_GID, SMALL_TIMEOUT,
         testCase);
       assertNotNull(rs3);
-      
+
       /*
        * Start DS that will send updates
        */
