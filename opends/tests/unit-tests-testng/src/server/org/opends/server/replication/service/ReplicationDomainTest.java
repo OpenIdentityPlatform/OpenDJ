@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.service;
 
@@ -59,8 +59,10 @@ public class ReplicationDomainTest extends ReplicationTestCase
   public void publishAndReceive() throws Exception
   {
     String testService = "test";
-    ReplicationServer replServer = null;
-    int replServerID = 10;
+    ReplicationServer replServer1 = null;
+    ReplicationServer replServer2 = null;
+    int replServerID1 = 10;
+    int replServerID2 = 20;
     FakeReplicationDomain domain1 = null;
     FakeReplicationDomain domain2 = null;
 
@@ -68,17 +70,33 @@ public class ReplicationDomainTest extends ReplicationTestCase
     {
       // find  a free port for the replicationServer
       ServerSocket socket = TestCaseUtils.bindFreePort();
-      int replServerPort = socket.getLocalPort();
+      int replServerPort1 = socket.getLocalPort();
       socket.close();
 
-      ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(
-            replServerPort, "ReplicationDomainTestDb",
-            0, replServerID, 0, 100, null);
+      socket = TestCaseUtils.bindFreePort();
+      int replServerPort2 = socket.getLocalPort();
+      socket.close();
 
-      replServer = new ReplicationServer(conf);
+      TreeSet<String> replserver1 = new TreeSet<String>();
+      replserver1.add("localhost:" + replServerPort1);
+
+      TreeSet<String> replserver2 = new TreeSet<String>();
+      replserver2.add("localhost:" + replServerPort2);
+
+      ReplServerFakeConfiguration conf1 =
+        new ReplServerFakeConfiguration(
+            replServerPort1, "ReplicationDomainTestDb",
+            0, replServerID1, 0, 100, replserver2);
+
+      ReplServerFakeConfiguration conf2 =
+        new ReplServerFakeConfiguration(
+            replServerPort2, "ReplicationDomainTestDb",
+            0, replServerID2, 0, 100, replserver1);
+
+      replServer1 = new ReplicationServer(conf1);;
+      replServer2 = new ReplicationServer(conf2);
       ArrayList<String> servers = new ArrayList<String>(1);
-      servers.add("localhost:" + replServerPort);
+      servers.add("localhost:" + replServerPort1);
 
       BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
       domain1 = new FakeReplicationDomain(
@@ -99,32 +117,27 @@ public class ReplicationDomainTest extends ReplicationTestCase
       assertNotNull(rcvdMsg);
       assertEquals(test, rcvdMsg.getPayload());
 
-
       /*
        * Now test the resetReplicationLog() method.
        */
       List<RSInfo> replServers = domain1.getRsList();
 
-      // There should be one and only one server in the list.
-      assertTrue(replServers.size() == 1);
+      for (RSInfo replServerInfo : replServers)
+      {
+        // The generation Id of the remote should be 1
+        assertTrue(replServerInfo.getGenerationId() == 1);
+      }
 
-      RSInfo replServerInfo = replServers.get(0);
-
-      // The generation Id of the remote should be 1
-      assertTrue(replServerInfo.getGenerationId() == 1);
-
+      domain1.setGenerationID(2);
       domain1.resetReplicationLog();
-      Thread.sleep(1000);
 
       replServers = domain1.getRsList();
 
-      // There should be one and only one server in the list.
-      assertTrue(replServers.size() == 1);
-
-      replServerInfo = replServers.get(0);
-
-      // The generation Id of the remote should now be -1
-      assertTrue(replServerInfo.getGenerationId() == -1);
+      for (RSInfo replServerInfo : replServers)
+      {
+        // The generation Id of the remote should now be 2
+        assertTrue(replServerInfo.getGenerationId() == 2);
+      }
     }
     finally
     {
@@ -134,8 +147,11 @@ public class ReplicationDomainTest extends ReplicationTestCase
       if (domain2 != null)
         domain2.disableService();
 
-      if (replServer != null)
-        replServer.remove();
+      if (replServer1 != null)
+        replServer1.remove();
+
+      if (replServer2 != null)
+        replServer2.remove();
     }
   }
 
