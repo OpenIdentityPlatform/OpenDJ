@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2009 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="network-group" plural-name="network-groups"
   package="org.opends.server.admin.std"
@@ -172,6 +172,96 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-workflow</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="affinity-policy" mandatory="true" advanced="true">
+    <adm:synopsis>
+      Defines the client connection affinity policy.
+    </adm:synopsis>
+    <adm:description>
+      A client connection affinity allows some requests to be routed
+      to a specific data source regardless the regular routing
+      process. For example, we can requires all the requests to be
+      routed to a data source after a write has been complete on
+      that data source. That way, a read request would return data
+      that are consistent with a previous write request. By default,
+      the client connection affinity is disabled.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>none</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="none">
+          <adm:synopsis>
+            Disables the client connection affinity.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="first-read-request-after-write-request">
+          <adm:synopsis>
+            Routes the first read request to the data source to which
+            a previous write request has been routed to. This affinity
+            is useful when a client application performs a read request
+            after a write request and the read request should return
+            consistent data.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="all-requests-after-first-write-request">
+          <adm:synopsis>
+            Routes all the requests to the data source to which a
+            previous write request has been routed to.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="all-write-requests-after-first-write-request">
+          <adm:synopsis>
+            Routes all the write requests to the data source to which
+            a previous write request has been routed to. This affinity
+            policy is useful for batch update where a parent entry and
+            its subordinates must be sent to the same data source.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="all-requests-after-first-request">
+          <adm:synopsis>
+            Routes all the requests to the data source to which a
+            previous request has been routed to. This affinity policy
+            allows to create a kind of tunnel between a client application
+            and a data source.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-affinity-policy</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="affinity-timeout" mandatory="true" advanced="true">
+    <adm:synopsis>
+      The period of time by which an affinity route remains active.
+      The timeout value is a number of seconds and when the value is
+      set to 0 (default value) then the route remains active forever.
+    </adm:synopsis>
+    <adm:description>
+      When the client connection affinity is enabled, an affinity route
+      might be elected in accordance with the affinity policy. The affinity
+      route is then used until the timeout value expires unless the timeout
+      value is 0 in which case the route remains active forever.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>0</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+    	<adm:duration base-unit="s" lower-limit="0" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-affinity-timeout</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

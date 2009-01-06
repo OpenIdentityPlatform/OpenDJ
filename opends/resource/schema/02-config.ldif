@@ -21,7 +21,7 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2006-2008 Sun Microsystems, Inc.
+#      Copyright 2006-2009 Sun Microsystems, Inc.
 #
 #
 # This file contains the attribute type and objectclass definitions for use
@@ -2377,6 +2377,16 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.513
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( ds-cfg-affinity-policy-OID
+  NAME 'ds-cfg-affinity-policy'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( ds-cfg-affinity-timeout-OID
+  NAME 'ds-cfg-affinity-timeout'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -3862,6 +3872,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.176
   SUP top
   STRUCTURAL
   MUST ( ds-cfg-network-group-id $
+         ds-cfg-affinity-policy $
+         ds-cfg-affinity-timeout $
          ds-cfg-priority $
          ds-cfg-enabled )
   MAY ds-cfg-workflow
