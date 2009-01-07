@@ -243,17 +243,17 @@
     <adm:synopsis>
       The period of time by which an affinity route remains active.
       The timeout value is a number of seconds and when the value is
-      set to 0.0s (default value) then the route remains active forever.
+      set to 0s (default value) then the route remains active forever.
     </adm:synopsis>
     <adm:description>
       When the client connection affinity is enabled, an affinity route
       might be elected in accordance with the affinity policy. The affinity
       route is then used until the timeout value expires unless the timeout
-      value is 0.0s in which case the route remains active forever.
+      value is 0s in which case the route remains active forever.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>0.0s</adm:value>
+        <adm:value>0s</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
