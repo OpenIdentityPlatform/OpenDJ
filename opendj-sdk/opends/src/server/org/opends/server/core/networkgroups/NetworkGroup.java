@@ -142,7 +142,8 @@ public class NetworkGroup
   private NetworkGroupStatistics stats;
 
   // The client connection affinity policy.
-  private ClientConnectionAffinityPolicy affinityPolicy = null;
+  private ClientConnectionAffinityPolicy affinityPolicy =
+    ClientConnectionAffinityPolicy.NONE;
 
   // The client connection affinity timeout (number of seconds).
   private long affinityTimeout = 0;
