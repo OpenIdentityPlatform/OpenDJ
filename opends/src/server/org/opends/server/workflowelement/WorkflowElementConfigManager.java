@@ -22,13 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement;
 
 
 
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import java.lang.reflect.InvocationTargetException;
 import static org.opends.messages.ConfigMessages.*;
 
 import java.lang.reflect.Method;
@@ -471,10 +471,15 @@ public class WorkflowElementConfigManager
     }
     catch (Exception e)
     {
+      Throwable t = e;
+      if (e instanceof InvocationTargetException && e.getCause() != null) {
+        t = e.getCause();
+      }
+
       Message message =
         ERR_CONFIG_WORKFLOW_ELEMENT_CANNOT_INITIALIZE.get(
             className, String.valueOf(configuration.dn()),
-            stackTraceToSingleLineString(e));
+            t.getMessage());
       throw new InitializationException(message);
     }
   }
