@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.tasks;
@@ -133,7 +133,7 @@ public class TaskClient {
         taskID + "," + RECURRING_TASK_BASE_RDN + "," + DN_TASK_ROOT);
     } else {
       // Use a formatted time/date for the ID so that is remotely useful
-      SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmssMM");
+      SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS");
       taskID = df.format(new Date());
 
       entryDN = new ASN1OctetString(ATTR_TASK_ID + "=" + taskID + "," +
@@ -347,7 +347,7 @@ public class TaskClient {
             Integer.MAX_VALUE,
             Integer.MAX_VALUE,
             false,
-            LDAPFilter.decode("(ds-task-id=" + id + ")"),
+            LDAPFilter.decode("(" + ATTR_TASK_ID + "=" + id + ")"),
             new LinkedHashSet<String>()));
 
     LDAPReader reader = connection.getLDAPReader();
