@@ -37,6 +37,9 @@ import javax.naming.directory.BasicAttributes;
 import javax.naming.CommunicationException;
 import javax.naming.directory.InvalidSearchFilterException;
 import javax.security.sasl.AuthenticationException;
+import javax.naming.NamingEnumeration;
+import javax.naming.directory.SearchResult;
+import javax.naming.directory.SearchControls;
 import java.util.HashSet;
 import java.util.Iterator;
 
@@ -57,9 +60,9 @@ public class saslSearchClient {
 	// Ldapsearch parameters
     String hostname = null;
     String ldapPort = null;
-    String scope = null;
     String basedn = null;
     String filter = null;
+    int scope;
     
 
     // SASL options
@@ -80,6 +83,8 @@ public class saslSearchClient {
 
     Hashtable envLdap  = new Hashtable();
     LdapContext ctx = null;
+    SearchControls searchControls = null;
+    NamingEnumeration results = null;
 
 
 
@@ -95,7 +100,16 @@ public class saslSearchClient {
         ldapPort = val1;
       }
       if (opt1.equals("-s")) {
-    	scope = val1;
+    	if (val1.equals("base")) {
+    	  scope = SearchControls.OBJECT_SCOPE;
+    	} else if (opt1.equals("one")) {
+    	  scope = SearchControls.ONELEVEL_SCOPE;
+    	} else {
+          // default scope: "sub"
+    	  scope = SearchControls.SUBTREE_SCOPE;
+    	}
+    	searchControls = new SearchControls();
+    	searchControls.setSearchScope(scope);
       }
       if (opt1.equals("-b")) {
     	basedn = val1;
@@ -178,7 +192,7 @@ public class saslSearchClient {
       ctx = new InitialLdapContext(envLdap, null);
 
       // issue ldapsearch
-      ctx.search(basedn, filter, null);
+      results = ctx.search(basedn, filter, searchControls);
       
       ctx.close();
     } catch (CommunicationException e1) {
@@ -229,6 +243,18 @@ public class saslSearchClient {
       }
     }
 
+    try {
+      if ((errorCode.equals("0")) && (results != null)) {
+        while (results.hasMore()) {
+          SearchResult searchResult = (SearchResult) results.next();
+          System.out.println(searchResult.toString());
+        }
+        results.close();    	
+      }
+    } catch (NamingException ne) {
+      ne.printStackTrace();
+    }
+    
     int RC = Integer.parseInt(errorCode);
     System.exit(RC);
   }
