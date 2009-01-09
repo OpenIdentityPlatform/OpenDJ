@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -329,7 +329,7 @@ public class ReplicationServerDomain
     /**
      * The update message equivalent to the originally received update message,
      * but with assured flag disabled. This message is the one that should be
-     * sent to non elligible servers for assured mode.
+     * sent to non eligible servers for assured mode.
      * We need a clone like of the original message with assured flag off, to be
      * posted to servers we don't want to wait the ack from (not normal status
      * servers or servers with different group id). This must be done because
@@ -479,7 +479,7 @@ public class ReplicationServerDomain
        * The list of servers identified as servers we are interested in
        * receiving acks from. If this list is not null, then expectedAcksInfo
        * should be not null.
-       * Servers that are not in this list are servers not elligible for an ack
+       * Servers that are not in this list are servers not eligible for an ack
        * request.
        *
        */
@@ -496,7 +496,7 @@ public class ReplicationServerDomain
    * Process a just received assured update message in Safe Read mode. If the
    * ack can be sent immediately, it is done here. This will also determine to
    * which suitable servers an ack should be requested from, and which ones are
-   * not elligible for an ack request.
+   * not eligible for an ack request.
    * This method is an helper method for the put method. Have a look at the put
    * method for a better understanding.
    * @param update The just received assured update to process.
@@ -516,12 +516,12 @@ public class ReplicationServerDomain
     List<Short> expectedServers = new ArrayList<Short>();
     List<Short> wrongStatusServers = new ArrayList<Short>();
 
-    if (sourceGroupId != groupId)
+    if (sourceGroupId == groupId)
       // Assured feature does not cross different group ids
     {
       if (sourceHandler.isLDAPserver())
       {
-        // Look for RS elligible for assured
+        // Look for RS eligible for assured
         for (ServerHandler handler : replicationServers.values())
         {
           if (handler.getGroupId() == groupId)
@@ -537,7 +537,7 @@ public class ReplicationServerDomain
         }
       }
 
-      // Look for DS elligible for assured
+      // Look for DS eligible for assured
       for (ServerHandler handler : directoryServers.values())
       {
         // Don't forward the change to the server that just sent it
@@ -560,10 +560,10 @@ public class ReplicationServerDomain
               wrongStatusServers.add(handler.getServerId());
             } else
             {
-              /*
+              /**
                * BAD_GEN_ID_STATUS or FULL_UPDATE_STATUS:
                * We do not want this to be reported as an error to the update
-               * maker -> no pollution or potential missunderstanding when
+               * maker -> no pollution or potential misunderstanding when
                * reading logs or monitoring and it was just administration (for
                * instance new server is being configured in topo: it goes in bad
                * gen then then full full update).
@@ -586,7 +586,7 @@ public class ReplicationServerDomain
 
     if (preparedAssuredInfo.expectedServers == null)
     {
-      // No elligible servers found, send the ack immediatly
+      // No eligible servers found, send the ack immediately
       AckMsg ack = new AckMsg(cn);
       sourceHandler.sendAck(ack);
     }
@@ -598,7 +598,7 @@ public class ReplicationServerDomain
    * Process a just received assured update message in Safe Data mode. If the
    * ack can be sent immediately, it is done here. This will also determine to
    * which suitable servers an ack should be requested from, and which ones are
-   * not elligible for an ack request.
+   * not eligible for an ack request.
    * This method is an helper method for the put method. Have a look at the put
    * method for a better understanding.
    * @param update The just received assured update to process.
@@ -637,20 +637,24 @@ public class ReplicationServerDomain
         {
           if (safeDataLevel == (byte) 1)
           {
-            // Immediatly return the ack for an assured message in safe data
-            // mode with safe data level 1, coming from a DS. No need to wait
-            // for more acks
+            /**
+             * Immediately return the ack for an assured message in safe data
+             * mode with safe data level 1, coming from a DS. No need to wait
+             * for more acks
+             */
             AckMsg ack = new AckMsg(cn);
             sourceHandler.sendAck(ack);
           } else
           {
             if (safeDataLevel != (byte) 0)
             {
-              // level > 1 : We need further acks
-              // The message will be posted in assured mode to elligible
-              // servers. The embedded safe data level is not changed, and his
-              // value will be used by a remote RS to determine if he must send
-              // an ack (level > 1) or not (level = 1)
+              /**
+               * level > 1 : We need further acks
+               * The message will be posted in assured mode to eligible
+               * servers. The embedded safe data level is not changed, and his
+               * value will be used by a remote RS to determine if he must send
+               * an ack (level > 1) or not (level = 1)
+               */
               interestedInAcks = true;
             } else
             {
@@ -661,12 +665,14 @@ public class ReplicationServerDomain
         { // A RS sent us the safe data message, for sure no futher acks to wait
           if (safeDataLevel == (byte) 1)
           {
-            // The original level was 1 so the RS that sent us this message
-            // should have already sent his ack to the sender DS. Level 1 has
-            // already been reached so no further acks to wait.
-            // This should not happen in theory as the sender RS server should
-            // have sent us a matching not assured message so we should not come
-            // to here.
+            /**
+             * The original level was 1 so the RS that sent us this message
+             * should have already sent his ack to the sender DS. Level 1 has
+             * already been reached so no further acks to wait.
+             * This should not happen in theory as the sender RS server should
+             * have sent us a matching not assured message so we should not come
+             * to here.
+             */
           } else
           {
             // level > 1, so Ack this message to originator RS
@@ -682,7 +688,7 @@ public class ReplicationServerDomain
     {
       if (sourceHandler.isLDAPserver())
       {
-        // Look for RS elligible for assured
+        // Look for RS eligible for assured
         for (ServerHandler handler : replicationServers.values())
         {
           if (handler.getGroupId() == groupId)
@@ -709,7 +715,7 @@ public class ReplicationServerDomain
         // Some other acks to wait for
         int sdl = update.getSafeDataLevel();
         int neededAdditionalServers = sdl - 1;
-        // Change the number of expected acks if not enough available elligible
+        // Change the number of expected acks if not enough available eligible
         // servers: the level is a best effort thing, we do not want to timeout
         // at every assured SD update for instance if a RS has had his gen id
         // resetted
@@ -721,8 +727,8 @@ public class ReplicationServerDomain
         preparedAssuredInfo.expectedServers = expectedServers;
       } else
       {
-        // level > 1 and source is a DS but no elligible servers found, send the
-        // ack immediatly
+        // level > 1 and source is a DS but no eligible servers found, send the
+        // ack immediately
         AckMsg ack = new AckMsg(cn);
         sourceHandler.sendAck(ack);
       }
@@ -755,8 +761,11 @@ public class ReplicationServerDomain
           // remove object from the map
           return;
         }
-        // If this is the last ack we were waiting from, immediatly create and
-        // send the final ack to the original server
+        /**
+         *
+         * If this is the last ack we were waiting from, immediately create and
+         * send the final ack to the original server
+         */
         if (expectedAcksInfo.processReceivedAck(ackingServer, ack))
         {
           // Remove the object from the map as no more needed
@@ -768,7 +777,7 @@ public class ReplicationServerDomain
             origServer.sendAck(finalAck);
           } catch (IOException e)
           {
-            /*
+            /**
              * An error happened trying the send back an ack to the server.
              * Log an error and close the connection to this server.
              */
@@ -794,7 +803,7 @@ public class ReplicationServerDomain
 
   /**
    * The code run when the timeout occurs while waiting for acks of the
-   * elligible servers. This basically sends a timeout ack (with any additional
+   * eligible servers. This basically sends a timeout ack (with any additional
    * error info) to the original server that sent an assured update message.
    */
   private class AssuredTimeoutTask extends TimerTask
@@ -846,7 +855,7 @@ public class ReplicationServerDomain
             origServer.sendAck(finalAck);
           } catch (IOException e)
           {
-            /*
+            /**
              * An error happened trying the send back an ack to the server.
              * Log an error and close the connection to this server.
              */
@@ -2408,7 +2417,7 @@ public class ReplicationServerDomain
 
   /**
    * Set the purge delay on all the db Handlers for this Domain
-   * of Replicaiton.
+   * of Replication.
    *
    * @param delay The new purge delay to use.
    */

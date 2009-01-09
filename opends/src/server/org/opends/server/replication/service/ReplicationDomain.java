@@ -331,6 +331,29 @@ public abstract class ReplicationDomain
   }
 
   /**
+   * Creates a ReplicationDomain with the provided parameters.
+   * (for unit test purpose only)
+   *
+   * @param serviceID  The identifier of the Replication Domain to which
+   *                   this object is participating.
+   * @param serverID   The identifier of the server that is participating
+   *                   to the Replication Domain.
+   *                   This identifier should be different for each server that
+   *                   is participating to a given Replication Domain.
+   * @param serverState The serverState to use
+   */
+  public ReplicationDomain(String serviceID, short serverID,
+    ServerState serverState)
+  {
+    this.serviceID = serviceID;
+    this.serverID = serverID;
+    this.state = serverState;
+    this.generator = new ChangeNumberGenerator(serverID, state);
+
+    domains.put(serviceID, this);
+  }
+
+  /**
    * Set the initial status of the domain and perform necessary initializations.
    * This method will be called by the Broker each time the ReplicationBroker
    * establish a new session to a Replication Server.
@@ -773,8 +796,9 @@ public abstract class ReplicationDomain
     }
 
     numRcvdUpdates.incrementAndGet();
-    if (update.isAssured() && (update.getAssuredMode() ==
-      AssuredMode.SAFE_READ_MODE))
+     byte rsGroupId = broker.getRsGroupId();
+    if ( update.isAssured() && (update.getAssuredMode() ==
+      AssuredMode.SAFE_READ_MODE) && (rsGroupId == groupId) )
     {
       receivedAssuredSrUpdates.incrementAndGet();
     }

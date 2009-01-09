@@ -22,15 +22,17 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.replication.server;
 
+import java.util.ArrayList;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import org.opends.server.loggers.debug.DebugTracer;
 import java.util.List;
+import java.util.Set;
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.AckMsg;
@@ -60,7 +62,7 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
   // The list of server ids that had errors for the sent matching update
   // Each server id of the list had one of the
   // 3 possible errors (timeout, wrong status or replay error)
-  private List<Short> failedServers = null;
+  private List<Short> failedServers = new ArrayList<Short>();
 
   /**
    * Number of servers we want an ack from and from which we received the ack.
@@ -210,11 +212,26 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
     ack.setHasTimeout(hasTimeout);
     ack.setHasWrongStatus(hasWrongStatus);
     ack.setHasReplayError(hasReplayError);
-    ack.setFailedServers(failedServers);
 
-    // Force anyway timeout flag if requested
     if (timeout)
+    {
+      // Force anyway timeout flag if requested
       ack.setHasTimeout(true);
+
+      // Add servers that did not respond in time
+      Set<Short> serverIds = expectedServersAckStatus.keySet();
+      for (Short serverId : serverIds)
+      {
+        boolean ackReceived = expectedServersAckStatus.get(serverId);
+        if (!ackReceived)
+        {
+          if (!failedServers.contains(serverId))
+            failedServers.add(serverId);
+        }
+      }
+    }
+
+    ack.setFailedServers(failedServers);
 
     return ack;
   }
