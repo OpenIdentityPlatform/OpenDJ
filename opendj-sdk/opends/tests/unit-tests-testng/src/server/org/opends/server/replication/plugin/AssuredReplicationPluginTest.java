@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -935,6 +935,9 @@ public class AssuredReplicationPluginTest
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
         Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
         assertTrue(errorsByServer.isEmpty());
+        assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-acked"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-not-acked"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sd-sent-updates"), 1);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sd-acknowledged-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 1);
@@ -961,6 +964,9 @@ public class AssuredReplicationPluginTest
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
         Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
         assertTrue(errorsByServer.isEmpty());
+        assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-acked"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-not-acked"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sd-sent-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sd-acknowledged-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 0);
@@ -1032,6 +1038,9 @@ public class AssuredReplicationPluginTest
         Integer nError = errorsByServer.get((short)RS_SERVER_ID);
         assertNotNull(nError);
         assertEquals(nError.intValue(), 1);
+        assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-acked"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-not-acked"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sd-sent-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sd-acknowledged-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 0);
@@ -1054,6 +1063,9 @@ public class AssuredReplicationPluginTest
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
         Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
         assertTrue(errorsByServer.isEmpty());
+        assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-acked"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-not-acked"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sd-sent-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sd-acknowledged-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 0);
@@ -1208,6 +1220,9 @@ public class AssuredReplicationPluginTest
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
       Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
       assertTrue(errorsByServer.isEmpty());
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates"), 0);
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-acked"), 0);
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-not-acked"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-sent-updates"), 1);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-acknowledged-updates"), 1);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 0);
@@ -1269,6 +1284,9 @@ public class AssuredReplicationPluginTest
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
       Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
       assertTrue(errorsByServer.isEmpty());
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates"), 0);
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-acked"), 0);
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-not-acked"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-sent-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-acknowledged-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 0);
@@ -1389,6 +1407,25 @@ public class AssuredReplicationPluginTest
         assertFalse(ackMsg.hasReplayError());
         assertFalse(ackMsg.hasWrongStatus());
         assertEquals(ackMsg.getFailedServers().size(), 0);
+
+        // Check for monitoring data
+        DN baseDn = DN.decode(SAFE_READ_DN);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-sent-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-acknowledged-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-not-acknowledged-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-timeout-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-wrong-status-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
+        Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
+        assertTrue(errorsByServer.isEmpty());
+        assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates"), 1);
+        assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-acked"), 1);
+        assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-not-acked"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sd-sent-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sd-acknowledged-updates"), 0);
+        assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 0);
+        errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_DATA_MODE);
+        assertTrue(errorsByServer.isEmpty());
       } catch (SocketTimeoutException e)
       {
         // Expected
@@ -1523,6 +1560,9 @@ public class AssuredReplicationPluginTest
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
       Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
       assertTrue(errorsByServer.isEmpty());
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates"), 0);
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-acked"), 0);
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-not-acked"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-sent-updates"), 1);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-acknowledged-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 1);
@@ -1558,6 +1598,9 @@ public class AssuredReplicationPluginTest
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
       errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
       assertTrue(errorsByServer.isEmpty());
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates"), 0);
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-acked"), 0);
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-not-acked"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-sent-updates"), 2);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-acknowledged-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 2);
@@ -1595,6 +1638,9 @@ public class AssuredReplicationPluginTest
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
       errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
       assertTrue(errorsByServer.isEmpty());
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates"), 0);
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-acked"), 0);
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-not-acked"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-sent-updates"), 3);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-acknowledged-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 3);
@@ -1676,6 +1722,9 @@ public class AssuredReplicationPluginTest
       nError = errorsByServer.get((short)20);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 1);
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates"), 0);
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-acked"), 0);
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-not-acked"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-sent-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-acknowledged-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 0);
@@ -1718,6 +1767,9 @@ public class AssuredReplicationPluginTest
       nError = errorsByServer.get((short)30);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 1);
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates"), 0);
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-acked"), 0);
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-not-acked"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-sent-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-acknowledged-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 0);
@@ -1760,6 +1812,9 @@ public class AssuredReplicationPluginTest
       nError = errorsByServer.get((short)RS_SERVER_ID);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 1);
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates"), 0);
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-acked"), 0);
+      assertEquals(getMonitorAttrValue(baseDn, "received-assured-sr-updates-not-acked"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-sent-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-acknowledged-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 0);
