@@ -55,6 +55,7 @@ import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
+import org.opends.guitools.controlpanel.ui.StatusGenericPanel;
 import org.opends.guitools.controlpanel.ui.ViewEntryPanel;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
@@ -84,6 +85,7 @@ public class ModifyEntryTask extends Task
   private CustomSearchResult oldEntry;
   private DN oldDn;
   private ArrayList<ModificationItem> modifications;
+  private ModificationItem passwordModification;
   private Entry newEntry;
   private BrowserController controller;
   private TreePath treePath;
@@ -132,8 +134,22 @@ public class ModifyEntryTask extends Task
           ode);
     }
     modifications = getModifications(newEntry, oldEntry, getInfo());
+    // Find password modifications
+    for (ModificationItem mod : modifications)
+    {
+      if (mod.getAttribute().getID().equalsIgnoreCase("userPassword"))
+      {
+        passwordModification = mod;
+        break;
+      }
+    }
+    if (passwordModification != null)
+    {
+      modifications.remove(passwordModification);
+    }
     hasModifications = modifications.size() > 0 ||
-    !oldDn.equals(newEntry.getDN());
+    !oldDn.equals(newEntry.getDN()) ||
+    (passwordModification != null);
   }
 
   /**
@@ -283,6 +299,60 @@ public class ModifyEntryTask extends Task
     {
       lastException = t;
       state = State.FINISHED_WITH_ERROR;
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void postOperation()
+  {
+    if ((lastException == null) && (state == State.FINISHED_SUCCESSFULLY) &&
+        (passwordModification != null))
+    {
+      try
+      {
+        Object o = passwordModification.getAttribute().get();
+        String sPwd;
+        if (o instanceof byte[])
+        {
+          try
+          {
+            sPwd = new String((byte[])o, "UTF-8");
+          }
+          catch (Throwable t)
+          {
+            throw new IllegalStateException("Unexpected error: "+t, t);
+          }
+        }
+        else
+        {
+          sPwd = String.valueOf(o);
+        }
+        ResetUserPasswordTask newTask = new ResetUserPasswordTask(getInfo(),
+            getProgressDialog(), (BasicNode)treePath.getLastPathComponent(),
+            controller, sPwd.toCharArray());
+        if ((modifications.size() > 0) || mustRename)
+        {
+          getProgressDialog().appendProgressHtml("<br><br>");
+        }
+        StatusGenericPanel.launchOperation(newTask,
+            INFO_CTRL_PANEL_RESETTING_USER_PASSWORD_SUMMARY.get(),
+            INFO_CTRL_PANEL_RESETTING_USER_PASSWORD_SUCCESSFUL_SUMMARY.get(),
+            INFO_CTRL_PANEL_RESETTING_USER_PASSWORD_SUCCESSFUL_DETAILS.get(),
+            ERR_CTRL_PANEL_RESETTING_USER_PASSWORD_ERROR_SUMMARY.get(),
+            ERR_CTRL_PANEL_RESETTING_USER_PASSWORD_ERROR_DETAILS.get(),
+            null,
+            getProgressDialog(),
+            false,
+            getInfo());
+        getProgressDialog().setVisible(true);
+      }
+      catch (NamingException ne)
+      {
+        // This should not happen
+        throw new IllegalStateException("Unexpected exception: "+ne, ne);
+      }
     }
   }
 

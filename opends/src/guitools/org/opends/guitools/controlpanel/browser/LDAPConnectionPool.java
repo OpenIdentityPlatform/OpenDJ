@@ -180,7 +180,7 @@ public class LDAPConnectionPool {
    * If authentication data available for this protocol/host/port,
    * getConnection() call bind() on the new connection.
    * If connect() or bind() failed, getConnection() forward the
-   * LDAPException.
+   * NamingException.
    * When getConnection() succeeds, the returned connection must
    * be passed to releaseConnection() after use.
    * @param ldapUrl the LDAP URL to which the connection must connect.
