@@ -1561,6 +1561,41 @@ implements ConfigChangeListener
       final MessageDescriptor.Arg1<Number> errorDetailCode,
       final ProgressDialog dialog, boolean resetLogs)
   {
+    launchOperation(task, initialSummary, successSummary, successDetail,
+        errorSummary, errorDetail, errorDetailCode, dialog, resetLogs,
+        getInfo());
+  }
+
+  /**
+   * Launch an task.
+   * @param task the task to be launched.
+   * @param initialSummary the initial summary to be displayed in the progress
+   * dialog.
+   * @param successSummary the success summary to be displayed in the progress
+   * dialog if the task is successful.
+   * @param successDetail the success details to be displayed in the progress
+   * dialog if the task is successful.
+   * @param errorSummary the error summary to be displayed in the progress
+   * dialog if the task ended with error.
+   * @param errorDetail error details to be displayed in the progress
+   * dialog if the task ended with error.
+   * @param errorDetailCode error detail message to be displayed in the progress
+   * dialog if the task ended with error and we have an exit error code (for
+   * instance if the error occurred when launching a script we will have an
+   * error code).
+   * @param dialog the progress dialog.
+   * @param resetLogs whether the contents of the progress dialog should be
+   * reset or not.
+   * @param info the ControlPanelInfo.
+   */
+  public static void launchOperation(final Task task, Message initialSummary,
+      final Message successSummary, final Message successDetail,
+      final Message errorSummary,
+      final Message errorDetail,
+      final MessageDescriptor.Arg1<Number> errorDetailCode,
+      final ProgressDialog dialog, boolean resetLogs,
+      final ControlPanelInfo info)
+  {
     dialog.setTaskIsOver(false);
     dialog.getProgressBar().setIndeterminate(true);
     dialog.addPrintStreamListeners(task.getOutPrintStream(),
@@ -1592,7 +1627,7 @@ implements ConfigChangeListener
         task.runTask();
         if (task.regenerateDescriptor())
         {
-          getInfo().regenerateDescriptor();
+          info.regenerateDescriptor();
         }
         return task;
       }
@@ -1676,7 +1711,7 @@ implements ConfigChangeListener
         task.postOperation();
       }
     };
-    getInfo().registerTask(task);
+    info.registerTask(task);
     worker.startBackgroundTask();
   }
 

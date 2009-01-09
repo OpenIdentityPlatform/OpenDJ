@@ -657,12 +657,18 @@ public abstract class Task
   protected List<String> getObfuscatedCommandLineArguments(
       List<String> clearArgs)
   {
+    String[] toObfuscate = {"--bindPassword", "--currentPassword",
+        "--newPassword"};
     ArrayList<String> args = new ArrayList<String>(clearArgs);
     for (int i=1; i<args.size(); i++)
     {
-      if (args.get(i-1).equalsIgnoreCase("--bindPassword"))
+      for (String argName : toObfuscate)
       {
-        args.set(i, Utilities.OBFUSCATED_VALUE);
+        if (args.get(i-1).equalsIgnoreCase(argName))
+        {
+          args.set(i, Utilities.OBFUSCATED_VALUE);
+          break;
+        }
       }
     }
     return args;

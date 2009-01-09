@@ -35,27 +35,25 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.ModificationItem;
+import javax.naming.Context;
+import javax.naming.NamingEnumeration;
+import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
-import javax.swing.SwingUtilities;
-import javax.swing.tree.TreePath;
 
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
-import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
-import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
+import org.opends.server.config.ConfigConstants;
+import org.opends.server.tools.LDAPPasswordModify;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.util.ServerConstants;
-import org.opends.server.util.cli.CommandBuilder;
 
 /**
  * The task called when we want to reset the password of the user.
@@ -65,8 +63,8 @@ public class ResetUserPasswordTask extends Task
 {
   private Set<String> backendSet;
   private BasicNode node;
+  private char[] currentPassword;
   private char[] newPassword;
-  private BrowserController controller;
   private DN dn;
   private boolean useAdminCtx;
 
@@ -86,7 +84,6 @@ public class ResetUserPasswordTask extends Task
     backendSet = new HashSet<String>();
     this.node = node;
     this.newPassword = pwd;
-    this.controller = controller;
     try
     {
       dn = DN.decode(node.getDN());
@@ -105,6 +102,19 @@ public class ResetUserPasswordTask extends Task
     {
       throw new IllegalStateException("Could not parse DN: "+node.getDN(), ode);
     }
+    try
+    {
+      InitialLdapContext ctx =
+        controller.findConnectionForDisplayedEntry(node);
+      if ((ctx != null) && isBoundAs(dn, ctx))
+      {
+        currentPassword = ConnectionUtils.getBindPassword(ctx).toCharArray();
+      }
+    }
+    catch (Throwable t)
+    {
+    }
+    useAdminCtx = controller.isConfigurationNode(node);
   }
 
   /**
@@ -145,7 +155,7 @@ public class ResetUserPasswordTask extends Task
    */
   protected String getCommandLinePath()
   {
-    return null;
+    return getCommandLinePath("ldappasswordmodify");
   }
 
   /**
@@ -153,7 +163,22 @@ public class ResetUserPasswordTask extends Task
    */
   protected ArrayList<String> getCommandLineArguments()
   {
-    return new ArrayList<String>();
+    ArrayList<String> args = new ArrayList<String>();
+    if (currentPassword == null)
+    {
+      args.add("--authzID");
+      args.add("dn:"+dn);
+    }
+    else
+    {
+      args.add("--currentPassword");
+      args.add(String.valueOf(currentPassword));
+    }
+    args.add("--newPassword");
+    args.add(String.valueOf(newPassword));
+    args.addAll(getConnectionCommandLineArguments(useAdminCtx, true));
+    args.add(getNoPropertiesFileArgument());
+    return args;
   }
 
   /**
@@ -191,57 +216,40 @@ public class ResetUserPasswordTask extends Task
   {
     state = State.RUNNING;
     lastException = null;
-
     try
     {
-      useAdminCtx = controller.isConfigurationNode(node);
-      InitialLdapContext ctx =
-        controller.findConnectionForDisplayedEntry(node);
-      BasicAttribute attr =
-        new BasicAttribute(ServerConstants.ATTR_USER_PASSWORD);
-      attr.add(new String(newPassword));
-      ModificationItem mod =
-        new ModificationItem(DirContext.REPLACE_ATTRIBUTE, attr);
-      ModificationItem[] mods = {mod};
-      final ArrayList<ModificationItem> modifications =
-        new ArrayList<ModificationItem>();
-      modifications.add(mod);
+      ArrayList<String> arguments = getCommandLineArguments();
 
-      SwingUtilities.invokeLater(new Runnable()
+      String[] args = new String[arguments.size()];
+
+      arguments.toArray(args);
+
+      returnCode = LDAPPasswordModify.mainPasswordModify(args, false,
+            outPrintStream, errorPrintStream);
+
+      if (returnCode != 0)
       {
-        public void run()
-        {
-          printEquivalentCommand(dn, newPassword, useAdminCtx);
-          getProgressDialog().appendProgressHtml(
-              Utilities.getProgressWithPoints(
-                  INFO_CTRL_PANEL_RESETTING_USER_PASSWORD.get(node.getDN()),
-                  ColorAndFontConstants.progressFont));
-        }
-      });
-
-      ctx.modifyAttributes(Utilities.getJNDIName(node.getDN()), mods);
-
-      SwingUtilities.invokeLater(new Runnable()
+        state = State.FINISHED_WITH_ERROR;
+      }
+      else
       {
-        public void run()
+        if ((lastException == null) && (currentPassword != null))
         {
-          getProgressDialog().appendProgressHtml(
-              Utilities.getProgressDone(ColorAndFontConstants.progressFont));
-          TreePath treePath =
-            new TreePath(controller.getTreeModel().getPathToRoot(node));
-          if (treePath != null)
+          // The connections must be updated, just update the environment, which
+          // is what we use to clone connections and to launch scripts.
+          // The environment will also be used if we want to reconnect.
+          getInfo().getDirContext().addToEnvironment(
+              Context.SECURITY_CREDENTIALS,
+              String.valueOf(newPassword));
+          if (getInfo().getUserDataDirContext() != null)
           {
-            BrowserNodeInfo nodeInfo = controller.getNodeInfoFromPath(treePath);
-            if (nodeInfo != null)
-            {
-              controller.notifyEntryChanged(nodeInfo);
-            }
-            controller.getTree().removeSelectionPath(treePath);
-            controller.getTree().setSelectionPath(treePath);
+            getInfo().getUserDataDirContext().addToEnvironment(
+                Context.SECURITY_CREDENTIALS,
+                String.valueOf(newPassword));
           }
         }
-      });
-      state = State.FINISHED_SUCCESSFULLY;
+        state = State.FINISHED_SUCCESSFULLY;
+      }
     }
     catch (Throwable t)
     {
@@ -251,31 +259,59 @@ public class ResetUserPasswordTask extends Task
   }
 
   /**
-   * Prints the equivalent modify command line in the progress dialog.
-   * @param dn the dn of the modified entry.
-   * @param newPassword the new password.
-   * @param useAdminCtx use the administration connector.
+   * Returns <CODE>true</CODE> if we are bound using the provided entry.  In
+   * the case of root entries this is not necessarily the same as using that
+   * particular DN (we might be binding using a value specified in
+   * ds-cfg-alternate-bind-dn).
+   * @param dn the DN.
+   * @param ctx the connection that we are using to modify the password.
+   * @return <CODE>true</CODE> if we are bound using the provided entry.
    */
-  private void printEquivalentCommand(DN dn, char[] newPassword,
-      boolean useAdminCtx)
+  private boolean isBoundAs(DN dn, InitialLdapContext ctx)
   {
-    ArrayList<String> args = new ArrayList<String>();
-    args.add(getCommandLinePath("ldappasswordmodify"));
-    args.add("--authzID");
-    args.add("dn:"+dn);
-    args.add("--newPassword");
-    args.add(Utilities.OBFUSCATED_VALUE);
-    args.addAll(getObfuscatedCommandLineArguments(
-        getConnectionCommandLineArguments(useAdminCtx, true)));
-    args.add(getNoPropertiesFileArgument());
-    StringBuilder sb = new StringBuilder();
-    for (String arg : args)
+    boolean isBoundAs = false;
+    DN bindDN = DN.nullDN();
+    try
     {
-      sb.append(" "+CommandBuilder.escapeValue(arg));
+      String b = ConnectionUtils.getBindDN(ctx);
+      bindDN = DN.decode(b);
+      isBoundAs = dn.equals(bindDN);
     }
-    getProgressDialog().appendProgressHtml(Utilities.applyFont(
-        INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_RESET_PASSWORD.get().toString()+
-        "<br><b>"+sb.toString()+"</b><br><br>",
-        ColorAndFontConstants.progressFont));
+    catch (Throwable t)
+    {
+      // Ignore
+    }
+    if (!isBoundAs)
+    {
+      try
+      {
+        SearchControls ctls = new SearchControls();
+        ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
+        String filter =
+          "(|(objectClass=*)(objectclass=ldapsubentry))";
+        String attrName = ConfigConstants.ATTR_ROOTDN_ALTERNATE_BIND_DN;
+        ctls.setReturningAttributes(new String[] {attrName});
+        NamingEnumeration<SearchResult> entries =
+          ctx.search(Utilities.getJNDIName(dn.toString()), filter, ctls);
+
+        while (entries.hasMore())
+        {
+          SearchResult sr = entries.next();
+          Set<String> dns = ConnectionUtils.getValues(sr, attrName);
+          for (String sDn : dns)
+          {
+            if (bindDN.equals(DN.decode(sDn)))
+            {
+              isBoundAs = true;
+              break;
+            }
+          }
+        }
+      }
+      catch (Throwable t)
+      {
+      }
+    }
+    return isBoundAs;
   }
 }
