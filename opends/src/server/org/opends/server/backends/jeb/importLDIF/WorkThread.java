@@ -37,6 +37,7 @@ import static org.opends.messages.JebMessages.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.*;
+import org.opends.server.util.*;
 
 import com.sleepycat.je.*;
 
@@ -70,6 +71,7 @@ public class WorkThread extends DirectoryThread {
    */
   private boolean stopRequested = false;
 
+  private Transaction txn = null;
 
   //The substring buffer manager to use.
   private BufferManager bufferMgr;
@@ -195,7 +197,7 @@ public class WorkThread extends DirectoryThread {
   private void
   processIndexesEntryDelete(WorkElement element, Entry existingEntry,
                             EntryID entryID)
-          throws DatabaseException {
+          throws DatabaseException, DirectoryException, JebException {
     DNContext context = element.getContext();
     Map<AttributeType, AttributeIndex> attrIndexMap =
             context.getAttrIndexMap();
@@ -221,8 +223,12 @@ public class WorkThread extends DirectoryThread {
           delete(index, existingEntry, entryID);
         }
       }
+      for(VLVIndex vlvIdx : context.getEntryContainer().getVLVIndexes()) {
+          vlvIdx.removeEntry(txn, entryID, existingEntry);
+      }
     }
   }
+
 
   /**
    * Process all indexes using the specified entry ID.
@@ -233,7 +239,7 @@ public class WorkThread extends DirectoryThread {
    */
   private void
   processIndexesEntry(WorkElement element, EntryID entryID)
-          throws DatabaseException {
+          throws DatabaseException, DirectoryException, JebException {
     Entry entry = element.getEntry();
     DNContext context = element.getContext();
     LDIFImportConfig ldifImportConfig = context.getLDIFImportConfig();
@@ -266,6 +272,9 @@ public class WorkThread extends DirectoryThread {
         }
         if((index=attributeIndex.getApproximateIndex()) != null) {
           insert(index, entry, entryID);
+        }
+        for(VLVIndex vlvIdx : context.getEntryContainer().getVLVIndexes()) {
+            vlvIdx.addEntry(txn, entryID, entry);
         }
       }
     }
