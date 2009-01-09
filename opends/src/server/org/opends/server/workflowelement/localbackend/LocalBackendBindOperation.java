@@ -391,6 +391,10 @@ bindProcessing:
         {
           addResponseControl(new PasswordExpiringControl(pwPolicyWarningValue));
         }
+        else if (mustChangePassword)
+        {
+          addResponseControl(new PasswordExpiredControl());
+        }
       }
     }
     else
