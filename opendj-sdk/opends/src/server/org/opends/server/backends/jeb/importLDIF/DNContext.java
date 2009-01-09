@@ -433,6 +433,9 @@ public class DNContext {
           index.setTrusted(null, true);
         }
       }
+      for(VLVIndex vlvIdx : entryContainer.getVLVIndexes()) {
+          vlvIdx.setTrusted(null, true);
+      }
     }
 
 
