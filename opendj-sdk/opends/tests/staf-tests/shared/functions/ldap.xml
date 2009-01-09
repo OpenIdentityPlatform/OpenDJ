@@ -3399,7 +3399,7 @@
       </call>
       
       <return>
-        [RC,STAXResult]
+        STAXResult
       </return>
     </sequence>
     
