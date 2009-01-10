@@ -932,17 +932,6 @@ public abstract class Installer extends GuiApplication {
         argList.add(baseDn);
       }
     }
-    else
-    {
-      Set<SuffixDescriptor> suffixesToReplicate =
-        getUserData().getSuffixesToReplicateOptions().getSuffixes();
-
-      for (SuffixDescriptor suffix: suffixesToReplicate)
-      {
-        argList.add("-b");
-        argList.add(suffix.getDN());
-      }
-    }
 
     argList.add("-R");
     argList.add(getInstallation().getRootDirectory().getAbsolutePath());
@@ -1604,6 +1593,151 @@ public abstract class Installer extends GuiApplication {
   }
 
   /**
+   * This method configures the backends and suffixes that must be replicated.
+   * The setup uses the same backend names as in the remote servers.  If
+   * userRoot is not one of the backends defined in the remote servers, it
+   * deletes it from the configuration.
+   * NOTE: this method assumes that the server is running.
+   * @throws ApplicationException if something goes wrong.
+   */
+  protected void createReplicatedBackends() throws ApplicationException
+  {
+    notifyListeners(getFormattedWithPoints(
+        INFO_PROGRESS_CREATING_REPLICATED_BACKENDS.get()));
+    // The keys are the backend IDs and the values the list of base DNs.
+    Map<String, Set<String>> hmBackendSuffix =
+      new HashMap<String, Set<String>>();
+    boolean deleteUserRoot = false;
+    if (getUserData().getReplicationOptions().getType()
+        == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY)
+    {
+      Set<String> baseDns = new HashSet<String>(
+        getUserData().getNewSuffixOptions().getBaseDns());
+      hmBackendSuffix.put(getBackendName(), baseDns);
+    }
+    else
+    {
+      Set<SuffixDescriptor> suffixes =
+        getUserData().getSuffixesToReplicateOptions().getSuffixes();
+
+      // The criteria to choose the name of the backend is to try to have the
+      // configuration of the other server.  The algorithm consists on putting
+      // the remote servers in a list and pick the backend as they appear on the
+      // list.
+      LinkedHashSet<ServerDescriptor> serverList =
+        new LinkedHashSet<ServerDescriptor>();
+      for (SuffixDescriptor suffix : suffixes)
+      {
+        for (ReplicaDescriptor replica : suffix.getReplicas())
+        {
+          serverList.add(replica.getServer());
+        }
+      }
+
+      for (SuffixDescriptor suffix : suffixes)
+      {
+        String backendName = null;
+        for (ServerDescriptor server : serverList)
+        {
+          for (ReplicaDescriptor replica : suffix.getReplicas())
+          {
+            if (replica.getServer() == server)
+            {
+              backendName = replica.getBackendName();
+              break;
+            }
+          }
+          if (backendName != null)
+          {
+            break;
+          }
+        }
+        boolean found = false;
+        for (String storedBackend : hmBackendSuffix.keySet())
+        {
+          if (storedBackend.equalsIgnoreCase(backendName))
+          {
+            found = true;
+            hmBackendSuffix.get(storedBackend).add(suffix.getDN());
+            break;
+          }
+        }
+        if (!found)
+        {
+          Set<String> baseDns = new HashSet<String>();
+          baseDns.add(suffix.getDN());
+          hmBackendSuffix.put(backendName, baseDns);
+        }
+      }
+      deleteUserRoot = true;
+      for (String backendName : hmBackendSuffix.keySet())
+      {
+        if (backendName.equalsIgnoreCase(getBackendName()))
+        {
+          deleteUserRoot = false;
+          break;
+        }
+      }
+    }
+
+    InstallerHelper helper = new InstallerHelper();
+
+    InitialLdapContext ctx = null;
+    try
+    {
+      ctx = createLocalContext();
+      if (deleteUserRoot)
+      {
+        // Delete the userRoot backend.
+        helper.deleteBackend(ctx, getBackendName(),
+            ConnectionUtils.getHostPort(ctx));
+      }
+      for (String backendName : hmBackendSuffix.keySet())
+      {
+        if (backendName.equalsIgnoreCase(getBackendName()))
+        {
+          helper.setBaseDns(
+              ctx, backendName, hmBackendSuffix.get(backendName),
+              ConnectionUtils.getHostPort(ctx));
+        }
+        else
+        {
+          helper.createLocalDBBackend(
+              ctx, backendName, hmBackendSuffix.get(backendName),
+              ConnectionUtils.getHostPort(ctx));
+        }
+      }
+    }
+    catch (ApplicationException ae)
+    {
+      throw ae;
+    }
+    catch (NamingException ne)
+    {
+      Message failedMsg = getThrowableMsg(
+              INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne);
+      throw new ApplicationException(
+          ReturnCode.CONFIGURATION_ERROR, failedMsg, ne);
+    }
+    finally
+    {
+      try
+      {
+        if (ctx != null)
+        {
+          ctx.close();
+        }
+      }
+      catch (Throwable t)
+      {
+      }
+    }
+
+    notifyListeners(getFormattedDoneWithLineBreak());
+    checkAbort();
+  }
+
+  /**
    * This method creates the replication configuration for the suffixes on the
    * the local server (and eventually in the remote servers) to synchronize
    * things.
@@ -2062,7 +2196,7 @@ public abstract class Installer extends GuiApplication {
    * Returns the default backend name (the one that will be created).
    * @return the default backend name (the one that will be created).
    */
-  protected String getBackendName()
+  private String getBackendName()
   {
     return "userRoot";
   }

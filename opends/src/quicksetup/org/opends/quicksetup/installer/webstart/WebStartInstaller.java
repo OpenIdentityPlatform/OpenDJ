@@ -224,6 +224,7 @@ public class WebStartInstaller extends Installer {
           notifyListeners(getTaskSeparator());
         }
         setCurrentProgressStep(InstallProgressStep.CONFIGURING_REPLICATION);
+        createReplicatedBackends();
         configureReplication();
         checkAbort();
       }
