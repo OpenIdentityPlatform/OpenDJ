@@ -43,6 +43,7 @@ public class ReplicaDescriptor
   private int replicationId = -1;
   private int missingChanges = -1;
   private long ageOfOldestMissingChange = -1;
+  private String backendName;
 
   /**
    * Returns the number of entries contained in the replica.
@@ -197,5 +198,23 @@ public class ReplicaDescriptor
   public void setMissingChanges(int missingChanges)
   {
     this.missingChanges = missingChanges;
+  }
+
+  /**
+   * Returns the name of the backend where this replica is defined.
+   * @return the name of the backend where this replica is defined.
+   */
+  public String getBackendName()
+  {
+    return backendName;
+  }
+
+  /**
+   * Sets the name of the backend where this replica is defined.
+   * @param backendName the name of the backend.
+   */
+  public void setBackendName(String backendName)
+  {
+    this.backendName = backendName;
   }
 }

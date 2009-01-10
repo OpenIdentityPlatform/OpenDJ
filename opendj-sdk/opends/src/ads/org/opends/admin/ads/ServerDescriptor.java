@@ -923,6 +923,7 @@ public class ServerDescriptor
             suffix.setDN(baseDn);
             ReplicaDescriptor replica = new ReplicaDescriptor();
             replica.setServer(desc);
+            replica.setBackendName(id);
             replicas.add(replica);
             HashSet<ReplicaDescriptor> r = new HashSet<ReplicaDescriptor>();
             r.add(replica);

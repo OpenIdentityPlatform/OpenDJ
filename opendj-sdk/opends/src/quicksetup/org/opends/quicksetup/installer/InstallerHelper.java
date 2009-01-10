@@ -222,6 +222,117 @@ public class InstallerHelper {
   }
 
   /**
+   * Deletes a backend on the server.
+   * @param ctx the connection to the server.
+   * @param backendName the name of the backend to be deleted.
+   * @param serverDisplay the server display.
+   * @throws ApplicationException if something goes wrong.
+   */
+  public void deleteBackend(InitialLdapContext ctx, String backendName,
+      String serverDisplay)
+  throws ApplicationException
+  {
+    try
+    {
+      ManagementContext mCtx = LDAPManagementContext.createFromContext(
+          JNDIDirContextAdaptor.adapt(ctx));
+      RootCfgClient root = mCtx.getRootConfiguration();
+      root.removeBackend(backendName);
+    }
+    catch (Throwable t)
+    {
+      Message errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
+              serverDisplay, t.toString());
+      throw new ApplicationException(
+          ReturnCode.CONFIGURATION_ERROR, errorMessage,
+          t);
+    }
+  }
+
+
+  /**
+   * Creates a local database backend on the server.
+   * @param ctx the connection to the server.
+   * @param backendName the name of the backend to be created.
+   * @param baseDNs the list of base DNs to be defined on the server.
+   * @param serverDisplay the server display.
+   * @throws ApplicationException if something goes wrong.
+   */
+  public void createLocalDBBackend(InitialLdapContext ctx,
+      String backendName,
+      Set<String> baseDNs,
+      String serverDisplay)
+  throws ApplicationException
+  {
+    try
+    {
+      ManagementContext mCtx = LDAPManagementContext.createFromContext(
+          JNDIDirContextAdaptor.adapt(ctx));
+      RootCfgClient root = mCtx.getRootConfiguration();
+      LocalDBBackendCfgDefn provider = LocalDBBackendCfgDefn.getInstance();
+      LocalDBBackendCfgClient backend = root.createBackend(provider,
+          backendName, null);
+      backend.setEnabled(true);
+      Set<DN> setBaseDNs = new HashSet<DN>();
+      for (String baseDN : baseDNs)
+      {
+        setBaseDNs.add(DN.decode(baseDN));
+      }
+      backend.setBaseDN(setBaseDNs);
+      backend.setBackendId(backendName);
+      backend.setWritabilityMode(BackendCfgDefn.WritabilityMode.ENABLED);
+      backend.commit();
+    }
+    catch (Throwable t)
+    {
+      Message errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
+              serverDisplay, t.toString());
+      throw new ApplicationException(
+          ReturnCode.CONFIGURATION_ERROR, errorMessage,
+          t);
+    }
+  }
+
+  /**
+   * Sets the base DNs on a given backend.
+   * @param ctx the connection to the server.
+   * @param backendName the name of the backend where the base Dns must be
+   * defined.
+   * @param baseDNs the list of base DNs to be defined on the server.
+   * @param serverDisplay the server display.
+   * @throws ApplicationException if something goes wrong.
+   */
+  public void setBaseDns(InitialLdapContext ctx,
+      String backendName,
+      Set<String> baseDNs,
+      String serverDisplay)
+  throws ApplicationException
+  {
+    try
+    {
+      ManagementContext mCtx = LDAPManagementContext.createFromContext(
+          JNDIDirContextAdaptor.adapt(ctx));
+      RootCfgClient root = mCtx.getRootConfiguration();
+      BackendCfgClient backend = root.getBackend(backendName);
+      Set<DN> setBaseDNs = new HashSet<DN>();
+      for (String baseDN : baseDNs)
+      {
+        setBaseDNs.add(DN.decode(baseDN));
+      }
+      backend.setBaseDN(setBaseDNs);
+      backend.commit();
+    }
+    catch (Throwable t)
+    {
+      Message errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
+              serverDisplay, t.toString());
+      throw new ApplicationException(
+          ReturnCode.CONFIGURATION_ERROR, errorMessage,
+          t);
+    }
+  }
+
+  /**
    * Configures the replication on a given server.
    * @param remoteCtx the conection to the server where we want to configure
    * the replication.
