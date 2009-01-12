@@ -35,6 +35,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -82,11 +84,13 @@ class StatusPanel extends StatusGenericPanel
   private JLabel hostName;
   private JLabel administrativeUsers;
   private JLabel installPath;
+  private JLabel instancePath;
   private JLabel opendsVersion;
   private LabelWithHelpIcon javaVersion;
   private JLabel adminConnector;
   private JLabel dbTableEmpty;
   private JLabel connectionHandlerTableEmpty;
+  private JLabel lInstancePath;
   private JButton stopButton;
   private JButton startButton;
   private JButton restartButton;
@@ -315,7 +319,25 @@ class StatusPanel extends StatusGenericPanel
         administrativeUsers.getFont());
     administrativeUsers.setText(htmlString);
 
-    installPath.setText(desc.getInstallPath().getAbsolutePath());
+    File install = desc.getInstallPath();
+    installPath.setText(install.getAbsolutePath());
+
+    File instance = desc.getInstancePath();
+
+    instancePath.setText(instance.getAbsolutePath());
+
+    boolean sameInstallAndInstance;
+    try
+    {
+      sameInstallAndInstance = instance.getCanonicalFile().equals(install);
+    }
+    catch (IOException ioe)
+    {
+      // Best effort
+      sameInstallAndInstance = instance.getAbsoluteFile().equals(install);
+    }
+    instancePath.setVisible(!sameInstallAndInstance);
+    lInstancePath.setVisible(!sameInstallAndInstance);
 
     opendsVersion.setText(desc.getOpenDSVersion());
 
@@ -546,23 +568,27 @@ class StatusPanel extends StatusGenericPanel
         Utilities.createPrimaryLabel(
             INFO_CTRL_PANEL_INSTALLATION_PATH_LABEL.get()),
         Utilities.createPrimaryLabel(
+            INFO_CTRL_PANEL_INSTANCE_PATH_LABEL.get()),
+        Utilities.createPrimaryLabel(
             INFO_CTRL_PANEL_OPENDS_VERSION_LABEL.get()),
         Utilities.createPrimaryLabel(
             INFO_CTRL_PANEL_JAVA_VERSION_LABEL.get()),
         Utilities.createPrimaryLabel(
             INFO_CTRL_PANEL_ADMIN_CONNECTOR_LABEL.get())
       };
+    lInstancePath = leftLabels[3];
 
     hostName = Utilities.createDefaultLabel();
     administrativeUsers = Utilities.createDefaultLabel();
     installPath = Utilities.createDefaultLabel();
+    instancePath = Utilities.createDefaultLabel();
     opendsVersion = Utilities.createDefaultLabel();
     javaVersion = new LabelWithHelpIcon(Message.EMPTY, null);
     adminConnector = Utilities.createDefaultLabel();
 
     JComponent[] rightLabels =
       {
-        hostName, administrativeUsers, installPath, opendsVersion,
+        hostName, administrativeUsers, installPath, instancePath, opendsVersion,
         javaVersion, adminConnector
       };
 

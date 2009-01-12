@@ -58,6 +58,7 @@ public class ServerDescriptor
   private ConnectionHandlerDescriptor adminConnector;
   private Set<DN> administrativeUsers = new HashSet<DN>();
   private File installPath;
+  private File instancePath;
   private String openDSVersion;
   private String javaVersion;
   private ArrayList<OpenDsException> exceptions =
@@ -151,6 +152,28 @@ public class ServerDescriptor
   public void setSchemaEnabled(boolean isSchemaEnabled)
   {
     this.isSchemaEnabled = isSchemaEnabled;
+  }
+
+  /**
+   * Return the instance path where the server databases and configuration is
+   * located.
+   * @return the instance path where the server databases and configuration is
+   * located
+   */
+  public File getInstancePath()
+  {
+    return instancePath;
+  }
+
+  /**
+   * Sets the instance path where the server databases and configuration is
+   * located.
+   * @param instancePath the instance path where the server databases and
+   * configuration is located.
+   */
+  public void setInstancePath(File instancePath)
+  {
+    this.instancePath = instancePath;
   }
 
   /**
@@ -269,6 +292,11 @@ public class ServerDescriptor
         if (equals)
         {
           equals = desc.getInstallPath().equals(getInstallPath());
+        }
+
+        if (equals)
+        {
+          equals = desc.getInstancePath().equals(getInstancePath());
         }
 
         if (equals)

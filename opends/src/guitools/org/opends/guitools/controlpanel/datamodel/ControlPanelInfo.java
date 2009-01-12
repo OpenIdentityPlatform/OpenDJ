@@ -432,6 +432,8 @@ public class ControlPanelInfo
     ServerDescriptor desc = createNewServerDescriptorInstance();
     InitialLdapContext ctx = getDirContext();
     desc.setInstallPath(Utilities.getServerRootDirectory());
+    desc.setInstancePath(Utilities.getInstanceRootDirectory(
+        Utilities.getServerRootDirectory().getAbsolutePath()));
     boolean windowsServiceEnabled = false;
     if (Utilities.isWindows())
     {
