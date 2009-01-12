@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.admin.ads;
@@ -268,11 +268,14 @@ public class ADSContextHelper
         ctx.createSubcontext(keyDn, keyAttrs).close();
       }
 
-      /* associate server entry with certificate entry via key ID attribute */
-      ctx.modifyAttributes(serverEntryDn,
+      if (serverEntryDn != null)
+      {
+        /* associate server entry with certificate entry via key ID attribute */
+        ctx.modifyAttributes(serverEntryDn,
           InitialLdapContext.REPLACE_ATTRIBUTE,
           (new BasicAttributes(
               ServerProperty.INSTANCE_KEY_ID.getAttributeName(), keyID)));
+      }
     }
     catch (NamingException ne)
     {

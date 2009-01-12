@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.dsreplication;
@@ -63,10 +63,12 @@ import javax.naming.directory.DirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
+import javax.naming.ldap.LdapName;
 import javax.net.ssl.TrustManager;
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
+import org.opends.admin.ads.ADSContextHelper;
 import org.opends.admin.ads.ReplicaDescriptor;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
@@ -75,6 +77,7 @@ import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.TopologyCacheFilter;
 import org.opends.admin.ads.ADSContext.ADSPropertySyntax;
 import org.opends.admin.ads.ADSContext.AdministratorProperty;
+import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.PreferredConnection;
@@ -4909,10 +4912,18 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
+    boolean recreateServerKey = false ;
+    Object keyId = null ;
+    Object certValue = null ;
     if (disableAllBaseDns)
     {
       // Unregister the server from the ADS
       server.updateAdsPropertiesWithServerProperties();
+      recreateServerKey = true ;
+      keyId = server.getAdsProperties().
+          get(ADSContext.ServerProperty.INSTANCE_KEY_ID);
+      certValue = server.getAdsProperties().
+          get(ADSContext.ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE);
       try
       {
         adsCtx.unregisterServer(server.getAdsProperties());
@@ -4924,6 +4935,7 @@ public class ReplicationCliMain extends ConsoleApplication
         catch (Throwable t)
         {
         }
+        recreateServerKey = true ;
       }
       catch (ADSContextException adce)
       {
@@ -5033,6 +5045,25 @@ public class ReplicationCliMain extends ConsoleApplication
           }
         }
       }
+    }
+    if (recreateServerKey)
+    {
+      Map<ServerProperty, Object> serverProperties =
+        new HashMap<ServerProperty, Object>();
+      serverProperties.put(ServerProperty.INSTANCE_KEY_ID, keyId);
+      serverProperties.put(ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE,
+          certValue);
+      LdapName ldapName = null ;
+      ADSContextHelper helper = new ADSContextHelper();
+      try
+      {
+        helper.registerInstanceKeyCertificate(
+            adsCtx.getDirContext(),serverProperties,ldapName);
+      }
+      catch (ADSContextException e)
+      {
+      }
+
     }
   }
 
