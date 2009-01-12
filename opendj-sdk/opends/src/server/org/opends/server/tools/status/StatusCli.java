@@ -28,6 +28,7 @@
 package org.opends.server.tools.status;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -486,6 +487,22 @@ class StatusCli extends ConsoleApplication
     writeHostnameContents(desc, labelWidth);
     writeAdministrativeUserContents(desc, labelWidth);
     writeInstallPathContents(desc, labelWidth);
+    boolean sameInstallAndInstance = true;
+    try
+    {
+      sameInstallAndInstance = desc.getInstancePath().getCanonicalFile().equals(
+          desc.getInstallPath().getCanonicalFile());
+    }
+    catch (IOException ioe)
+    {
+      // Best effort
+      sameInstallAndInstance = desc.getInstancePath().getAbsoluteFile().equals(
+          desc.getInstallPath().getAbsoluteFile());
+    }
+    if (!sameInstallAndInstance)
+    {
+      writeInstancePathContents(desc, labelWidth);
+    }
     writeVersionContents(desc, labelWidth);
     writeJavaVersionContents(desc, labelWidth);
     writeAdminConnectorContents(desc, labelWidth);
@@ -675,6 +692,21 @@ class StatusCli extends ConsoleApplication
   {
     File path = desc.getInstallPath();
     writeLabelValue(INFO_INSTALLATION_PATH_LABEL.get(),
+            Message.raw(path.toString()),
+            maxLabelWidth);
+  }
+
+  /**
+   * Writes the instance path contents displaying with what is specified in the
+   * provided ServerDescriptor object.
+   * @param desc the ServerDescriptor object.
+   * @param maxLabelWidth the maximum label width of the left label.
+   */
+  private void writeInstancePathContents(ServerDescriptor desc,
+      int maxLabelWidth)
+  {
+    File path = desc.getInstallPath();
+    writeLabelValue(INFO_CTRL_PANEL_INSTANCE_PATH_LABEL.get(),
             Message.raw(path.toString()),
             maxLabelWidth);
   }
