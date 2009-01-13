@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -1298,12 +1298,12 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
         return msgQueue.count();
       else
       {
-        /*
+        /**
          * When the server  is not able to follow, the msgQueue
          * may become too large and therefore won't contain all the
          * changes. Some changes may only be stored in the backing DB
          * of the servers.
-         * The total size of teh receieve queue is calculated by doing
+         * The total size of the receive queue is calculated by doing
          * the sum of the number of missing changes for every dbHandler.
          */
         ServerState dbState = replicationServerDomain.getDbServerState();
@@ -1316,7 +1316,7 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
    * Get an approximation of the delay by looking at the age of the oldest
    * message that has not been sent to this server.
    * This is an approximation because the age is calculated using the
-   * clock of the servee where the replicationServer is currently running
+   * clock of the server where the replicationServer is currently running
    * while it should be calculated using the clock of the server
    * that originally processed the change.
    *
