@@ -22,10 +22,10 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 
 /**
  * Defines the specific classes that are used by the configurator.
  */
-package org.opends.quicksetup.configurator;
+package org.opends.server.tools.configurator;
