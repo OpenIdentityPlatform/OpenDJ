@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.uninstaller;
@@ -87,7 +87,7 @@ import javax.net.ssl.TrustManager;
  * and launches it.
  *
  */
-class UninstallCliHelper extends ConsoleApplication {
+public class UninstallCliHelper extends ConsoleApplication {
 
   static private final Logger LOG =
           Logger.getLogger(UninstallCliHelper.class.getName());
