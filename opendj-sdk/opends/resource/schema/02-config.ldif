@@ -2313,7 +2313,7 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.479
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.480
   NAME 'ds-cfg-assured-timeout'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.481

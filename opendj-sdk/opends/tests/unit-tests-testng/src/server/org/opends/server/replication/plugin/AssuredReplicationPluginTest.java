@@ -1104,7 +1104,7 @@ public class AssuredReplicationPluginTest
         "objectClass: top\n" +
         "objectClass: organizationalUnit\n";
       addEntry(TestCaseUtils.entryFromLdifString(entry));
-      
+
       // Wait for entry received by RS
       waitForScenarioExecutedOnRs(testcase, replicationServer);
 
@@ -1362,7 +1362,7 @@ public class AssuredReplicationPluginTest
    * Tests that a DS receiving an update from a RS in safe read mode effectively
    * sends an ack back (with or without error)
    */
-  @Test(dataProvider = "rsGroupIdProvider")
+  @Test(dataProvider = "rsGroupIdProvider", groups = "slow")
   public void testSafeReadModeReply(byte rsGroupId) throws Exception
   {
 
@@ -1462,7 +1462,7 @@ public class AssuredReplicationPluginTest
    * Tests that a DS receiving an update from a RS in safe data mode does not
    * send back and ack (only safe read is taken into account in DS replay)
    */
-  @Test(dataProvider = "rsGroupIdProvider")
+  @Test(dataProvider = "rsGroupIdProvider", groups = "slow")
   public void testSafeDataModeReply(byte rsGroupId) throws Exception
   {
 
@@ -1511,7 +1511,7 @@ public class AssuredReplicationPluginTest
    * DS performs many successive modifications in safe data mode and receives RS
    * acks with various errors. Check for monitoring right errors
    */
-  @Test
+  @Test(groups = "slow")
   public void testSafeDataManyErrors() throws Exception
   {
 
@@ -1667,7 +1667,7 @@ public class AssuredReplicationPluginTest
    * DS performs many successive modifications in safe read mode and receives RS
    * acks with various errors. Check for monitoring right errors
    */
-  @Test
+  @Test(groups = "slow")
   public void testSafeReadManyErrors() throws Exception
   {
 

@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2009 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="replication-domain"
   plural-name="replication-domains"
@@ -212,23 +212,23 @@
           <adm:synopsis>
             Updates sent for replication (for being replayed on other LDAP
             servers of the topology) are sent without waiting for any
-            aknowledgement and the LDAP client call returns immediately.
+            acknowledgment and the LDAP client call returns immediately.
           </adm:synopsis>
         </adm:value>
         <adm:value name="safe-data">
           <adm:synopsis>
             Assured mode is enabled in Safe Data sub mode: updates sent for
-            replication are subject to acknowledgement defined by the
-            assured-sd-level property. After acknowlegement is received, LDAP
+            replication are subject to acknowledgment defined by the
+            assured-sd-level property. After acknowledgment is received, LDAP
             client call returns.
           </adm:synopsis>
         </adm:value>
         <adm:value name="safe-read">
           <adm:synopsis>
             Assured mode is enabled in Safe Read sub mode: updates sent for
-            replication are subject to acknowledgement of LDAP servers of the
+            replication are subject to acknowledgment of LDAP servers of the
             topology having the same group id than us (defined with
-            assured-sr-group-id property). After acknowlegement is received,
+            assured-sr-group-id property). After acknowledgment is received,
             LDAP client call returns.
           </adm:synopsis>
         </adm:value>
@@ -265,11 +265,11 @@
   </adm:property>
   <adm:property name="assured-timeout" mandatory="false" advanced="true">
     <adm:synopsis>
-      The timeout value when waiting for assured mode acknowledgements.
+      The timeout value when waiting for assured mode acknowledgments.
     </adm:synopsis>
     <adm:description>
       Defines the amount of milliseconds the server will wait for assured
-      acknowledgements (in either Safe Data or Safe Read assured sub modes)
+      acknowledgments (in either Safe Data or Safe Read assured sub modes)
       before returning anyway the LDAP client call.
     </adm:description>
     <adm:default-behavior>

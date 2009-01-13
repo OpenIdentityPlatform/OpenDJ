@@ -95,29 +95,46 @@ public class AssuredReplicationServerTest
   private int rs1Port = -1;
   private int rs2Port = -1;
   private int rs3Port = -1;
+  private int rs4Port = -1;
   private static final short FDS1_ID = 1;
   private static final short FDS2_ID = 2;
   private static final short FDS3_ID = 3;
   private static final short FDS4_ID = 4;
   private static final short FDS5_ID = 5;
-  private static final short FRS1_ID = 11;
-  private static final short FRS2_ID = 12;
-  private static final short FRS3_ID = 13;
+  private static final short FDS6_ID = 6;
+  private static final short FDS7_ID = 7;
+  private static final short FDS8_ID = 8;
+  private static final short FDS9_ID = 9;
+  private static final short FDS10_ID = 10;
+  private static final short FDS11_ID = 11;
+  private static final short FDS12_ID = 12;
+  private static final short FRS1_ID = 51;
+  private static final short FRS2_ID = 52;
+  private static final short FRS3_ID = 53;
   private static final short DS_FRS2_ID = FRS2_ID + 10;
   private static final short RS1_ID = 101;
   private static final short RS2_ID = 102;
   private static final short RS3_ID = 103;
+  private static final short RS4_ID = 104;
   private FakeReplicationDomain fakeRd1 = null;
   private FakeReplicationDomain fakeRd2 = null;
   private FakeReplicationDomain fakeRd3 = null;
   private FakeReplicationDomain fakeRd4 = null;
   private FakeReplicationDomain fakeRd5 = null;
+  private FakeReplicationDomain fakeRd6 = null;
+  private FakeReplicationDomain fakeRd7 = null;
+  private FakeReplicationDomain fakeRd8 = null;
+  private FakeReplicationDomain fakeRd9 = null;
+  private FakeReplicationDomain fakeRd10 = null;
+  private FakeReplicationDomain fakeRd11 = null;
+  private FakeReplicationDomain fakeRd12 = null;
   private FakeReplicationServer fakeRs1 = null;
   private FakeReplicationServer fakeRs2 = null;
   private FakeReplicationServer fakeRs3 = null;
   private ReplicationServer rs1 = null;
   private ReplicationServer rs2 = null;
   private ReplicationServer rs3 = null;
+  private ReplicationServer rs4 = null;
 
   // Small assured timeout value (timeout to be used in first RS receiving an
   // assured update from a DS)
@@ -131,8 +148,9 @@ public class AssuredReplicationServerTest
 
   // Default group id
   private static final int DEFAULT_GID = 1;
-  // Other group id
+  // Other group ids
   private static final int OTHER_GID = 2;
+  private static final int OTHER_GID_BIS = 3;
 
   // Default generation id
   private static long DEFAULT_GENID = EMPTY_DN_GENID;
@@ -188,12 +206,15 @@ public class AssuredReplicationServerTest
     ServerSocket socket1 = TestCaseUtils.bindFreePort();
     ServerSocket socket2 = TestCaseUtils.bindFreePort();
     ServerSocket socket3 = TestCaseUtils.bindFreePort();
+    ServerSocket socket4 = TestCaseUtils.bindFreePort();
     rs1Port = socket1.getLocalPort();
     rs2Port = socket2.getLocalPort();
     rs3Port = socket3.getLocalPort();
+    rs4Port = socket4.getLocalPort();
     socket1.close();
     socket2.close();
     socket3.close();
+    socket4.close();
   }
 
   private void initTest()
@@ -203,12 +224,20 @@ public class AssuredReplicationServerTest
     fakeRd3 = null;
     fakeRd4 = null;
     fakeRd5 = null;
+    fakeRd6 = null;
+    fakeRd7 = null;
+    fakeRd8 = null;
+    fakeRd9 = null;
+    fakeRd10 = null;
+    fakeRd11 = null;
+    fakeRd12 = null;
     fakeRs1 = null;
     fakeRs2 = null;
     fakeRs3 = null;
     rs1 = null;
     rs2 = null;
     rs3 = null;
+    rs4 = null;
   }
 
   private void endTest()
@@ -243,6 +272,48 @@ public class AssuredReplicationServerTest
     {
       fakeRd5.disableService();
       fakeRd5 = null;
+    }
+
+    if (fakeRd6 != null)
+    {
+      fakeRd6.disableService();
+      fakeRd6 = null;
+    }
+
+    if (fakeRd7 != null)
+    {
+      fakeRd7.disableService();
+      fakeRd7 = null;
+    }
+
+    if (fakeRd8 != null)
+    {
+      fakeRd8.disableService();
+      fakeRd8 = null;
+    }
+
+    if (fakeRd9 != null)
+    {
+      fakeRd9.disableService();
+      fakeRd9 = null;
+    }
+
+    if (fakeRd10 != null)
+    {
+      fakeRd10.disableService();
+      fakeRd10 = null;
+    }
+
+    if (fakeRd11 != null)
+    {
+      fakeRd11.disableService();
+      fakeRd11 = null;
+    }
+
+    if (fakeRd12 != null)
+    {
+      fakeRd12.disableService();
+      fakeRd12 = null;
     }
 
     // Shutdown fake RSs
@@ -286,6 +357,12 @@ public class AssuredReplicationServerTest
       rs3.remove();
       rs3 = null;
     }
+    if (rs4 != null)
+    {
+      rs4.clearDb();
+      rs4.remove();
+      rs4 = null;
+    }
   }
   /**
    * Creates and connects a new fake replication domain, using the passed scenario
@@ -297,7 +374,7 @@ public class AssuredReplicationServerTest
     int scenario)
   {
     return createFakeReplicationDomain(serverId, groupId, rsId, generationId, assured,
-      assuredMode, safeDataLevel, assuredTimeout, scenario, new ServerState());
+      assuredMode, safeDataLevel, assuredTimeout, scenario, new ServerState(), true, 100);
   }
 
   /**
@@ -307,6 +384,21 @@ public class AssuredReplicationServerTest
     int groupId, short rsId, long generationId, boolean assured,
     AssuredMode assuredMode, int safeDataLevel, long assuredTimeout,
     int scenario, ServerState serverState)
+  {
+   return createFakeReplicationDomain(serverId, groupId, rsId, generationId, assured,
+    assuredMode, safeDataLevel, assuredTimeout, scenario, serverState, true, 100);
+  }
+
+  /**
+   * Creates a new fake replication domain, using the passed scenario.
+   * If connect = true , we start both publish and listen service and publish
+   * service uses the default window value. If false, we only start publish
+   * service and use the passed window value
+   */
+  private FakeReplicationDomain createFakeReplicationDomain(short serverId,
+    int groupId, short rsId, long generationId, boolean assured,
+    AssuredMode assuredMode, int safeDataLevel, long assuredTimeout,
+    int scenario, ServerState serverState, boolean startListen, int window)
   {
     try
     {
@@ -323,14 +415,23 @@ public class AssuredReplicationServerTest
         case RS3_ID:
           rsPort = rs3Port;
           break;
+        case RS4_ID:
+          rsPort = rs4Port;
+          break;
         default:
           fail("Unknown RS id: " + rsId);
       }
 
       FakeReplicationDomain fakeReplicationDomain = new FakeReplicationDomain(
-        TEST_ROOT_DN_STRING, serverId, "localhost:" + rsPort, generationId,
+        TEST_ROOT_DN_STRING, serverId, generationId,
         (byte)groupId, assured, assuredMode, (byte)safeDataLevel, assuredTimeout,
         scenario, serverState);
+
+      List<String> replicationServers = new ArrayList<String>();
+      replicationServers.add("localhost:" + rsPort);
+      fakeReplicationDomain.startPublishService(replicationServers, window, 1000);
+      if (startListen)
+        fakeReplicationDomain.startListenService();
 
       // Test connection
       assertTrue(fakeReplicationDomain.isConnected());
@@ -415,11 +516,20 @@ public class AssuredReplicationServerTest
       if (serverId == RS1_ID)
       {
         port = rs1Port;
-        if (testCase.equals("testSafeDataManyRealRSs") || testCase.equals("testSafeReadOneManyRSsAndDSs"))
+        if (testCase.equals("testSafeDataManyRealRSs") || testCase.equals("testSafeReadManyRSsAndDSs"))
         {
           // Every 3 RSs connected together
           replServers.add("localhost:" + rs2Port);
           replServers.add("localhost:" + rs3Port);
+          if (testCase.equals("testSafeReadManyRSsAndDSs"))
+          {
+           // Every 4 RSs connected together
+           replServers.add("localhost:" + rs4Port);
+          }
+        } else if (testCase.equals("testSafeReadMultiGroups") || testCase.equals("testSafeReadTwoRSs"))
+        {
+          // Every 2 RSs connected together
+          replServers.add("localhost:" + rs2Port);
         } else
         {
           // Let this server alone
@@ -427,11 +537,20 @@ public class AssuredReplicationServerTest
       } else if (serverId == RS2_ID)
       {
         port = rs2Port;
-        if (testCase.equals("testSafeDataManyRealRSs") || testCase.equals("testSafeReadOneManyRSsAndDSs"))
+        if (testCase.equals("testSafeDataManyRealRSs") || testCase.equals("testSafeReadManyRSsAndDSs"))
         {
           // Every 3 RSs connected together
           replServers.add("localhost:" + rs1Port);
           replServers.add("localhost:" + rs3Port);
+          if (testCase.equals("testSafeReadManyRSsAndDSs"))
+          {
+           // Every 4 RSs connected together
+           replServers.add("localhost:" + rs4Port);
+          }
+        } else if (testCase.equals("testSafeReadMultiGroups") || testCase.equals("testSafeReadTwoRSs"))
+        {
+          // Every 2 RSs connected together
+          replServers.add("localhost:" + rs1Port);
         } else
         {
           // Let this server alone
@@ -439,11 +558,29 @@ public class AssuredReplicationServerTest
       } else if (serverId == RS3_ID)
       {
         port = rs3Port;
-        if (testCase.equals("testSafeDataManyRealRSs") || testCase.equals("testSafeReadOneManyRSsAndDSs"))
+        if (testCase.equals("testSafeDataManyRealRSs") || testCase.equals("testSafeReadManyRSsAndDSs"))
         {
           // Every 3 RSs connected together
           replServers.add("localhost:" + rs1Port);
           replServers.add("localhost:" + rs2Port);
+          if (testCase.equals("testSafeReadManyRSsAndDSs"))
+          {
+           // Every 4 RSs connected together
+           replServers.add("localhost:" + rs4Port);
+          }
+        } else
+        {
+          // Let this server alone
+        }
+      } else if (serverId == RS4_ID)
+      {
+        port = rs4Port;
+        if (testCase.equals("testSafeReadManyRSsAndDSs"))
+        {
+          // Every 4 RSs connected together
+          replServers.add("localhost:" + rs1Port);
+          replServers.add("localhost:" + rs2Port);
+          replServers.add("localhost:" + rs3Port);
         } else
         {
           // Let this server alone
@@ -490,6 +627,8 @@ public class AssuredReplicationServerTest
 
     private boolean sameGidAsRs = true;
 
+    private int nWrongReceivedUpdates = 0;
+
     /**
      * Creates a fake replication domain (DS)
      * @param serviceID The base dn used at connection to RS
@@ -508,7 +647,6 @@ public class AssuredReplicationServerTest
     public FakeReplicationDomain(
       String serviceID,
       short serverID,
-      String replicationServer,
       long generationId,
       byte groupId,
       boolean assured,
@@ -519,8 +657,6 @@ public class AssuredReplicationServerTest
       ServerState serverState) throws ConfigException
     {
       super(serviceID, serverID, serverState);
-      List<String> replicationServers = new ArrayList<String>();
-      replicationServers.add(replicationServer);
       this.generationId = generationId;
       setGroupId(groupId);
       setAssured(assured);
@@ -530,9 +666,6 @@ public class AssuredReplicationServerTest
       this.scenario = scenario;
 
       gen = new ChangeNumberGenerator(serverID, 0L);
-
-      startPublishService(replicationServers, 100, 1000);
-      startListenService();
     }
 
     public boolean receivedUpdatesOk()
@@ -540,9 +673,14 @@ public class AssuredReplicationServerTest
       return everyUpdatesAreOk;
     }
 
-    public int nReceivedUpdates()
+    public int getReceivedUpdates()
     {
       return nReceivedUpdates;
+    }
+
+    public int getWrongReceivedUpdates()
+    {
+      return nWrongReceivedUpdates;
     }
 
     /**
@@ -648,7 +786,10 @@ public class AssuredReplicationServerTest
       if (ok)
         debugInfo("Fake DS " + getServerId() + " received update assured parameters are ok: " + updateMsg);
       else
+      {
         everyUpdatesAreOk = false;
+        nWrongReceivedUpdates++;
+      }
     }
 
     /**
@@ -657,20 +798,31 @@ public class AssuredReplicationServerTest
      */
     public void sendNewFakeUpdate() throws TimeoutException
     {
+      sendNewFakeUpdate(true);
+    }
+
+    /**
+     * Sends a new update from this DS using configured assured parameters or not
+     * @throws TimeoutException If timeout waiting for an assured ack
+     */
+    public void sendNewFakeUpdate(boolean useAssured) throws TimeoutException
+    {
 
       // Create a new delete update message (the simplest to create)
       DeleteMsg delMsg = new DeleteMsg(getServiceID(), gen.newChangeNumber(),
         UUID.randomUUID().toString());
 
       // Send it (this uses the defined assured conf at constructor time)
-      prepareWaitForAckIfAssuredEnabled(delMsg);
+      if (useAssured)
+        prepareWaitForAckIfAssuredEnabled(delMsg);
       publish(delMsg);
-      waitForAckIfAssuredEnabled(delMsg);
+      if (useAssured)
+        waitForAckIfAssuredEnabled(delMsg);
     }
   }
 
   /**
-   * The fake replication server used to emulate RS behaviour the way we want
+   * The fake replication server used to emulate RS behavior the way we want
    * for assured features test.
    * This fake replication server is able to receive another RS connection only.
    * According to the configured scenario, it will answer to updates with acks
@@ -1024,7 +1176,7 @@ public class AssuredReplicationServerTest
       return everyUpdatesAreOk;
     }
 
-    public int nReceivedUpdates()
+    public int getReceivedUpdates()
     {
       return nReceivedUpdates;
     }
@@ -1222,16 +1374,16 @@ public class AssuredReplicationServerTest
 
       // Sanity check
       sleep(500); // Let time to update to reach other servers
-      assertEquals(fakeRd1.nReceivedUpdates(), 0);
+      assertEquals(fakeRd1.getReceivedUpdates(), 0);
       assertTrue(fakeRd1.receivedUpdatesOk());
       if (otherFakeDS)
       {
-        assertEquals(fakeRd2.nReceivedUpdates(), 1);
+        assertEquals(fakeRd2.getReceivedUpdates(), 1);
         assertTrue(fakeRd2.receivedUpdatesOk());
       }
       if (fakeRS)
       {
-        assertEquals(fakeRs1.nReceivedUpdates(), 1);
+        assertEquals(fakeRs1.getReceivedUpdates(), 1);
         assertTrue(fakeRs1.receivedUpdatesOk());
       }
     } finally
@@ -1265,7 +1417,7 @@ public class AssuredReplicationServerTest
   /**
    * See testSafeDataLevelHigh comment.
    */
-  @Test(dataProvider = "testSafeDataLevelHighPrecommitProvider", enabled = true)
+  @Test(dataProvider = "testSafeDataLevelHighPrecommitProvider", groups = "slow", enabled = true)
   public void testSafeDataLevelHighPrecommit(int sdLevel, boolean otherFakeDS, int otherFakeDsGid, long otherFakeDsGenId,
     int fakeRs1Gid, long fakeRs1GenId, int fakeRs1Scen, int fakeRs2Gid, long fakeRs2GenId, int fakeRs2Scen,
     int fakeRs3Gid, long fakeRs3GenId, int fakeRs3Scen) throws Exception
@@ -1688,7 +1840,7 @@ public class AssuredReplicationServerTest
   {
 
     // We should not receive our own update
-    assertEquals(fakeRd1.nReceivedUpdates(), 0);
+    assertEquals(fakeRd1.getReceivedUpdates(), 0);
     assertTrue(fakeRd1.receivedUpdatesOk());
 
     // Check what received other fake DS
@@ -1697,11 +1849,11 @@ public class AssuredReplicationServerTest
       if (otherFakeDsGenId == DEFAULT_GENID)
       {
         // Update should have been received
-        assertEquals(fakeRd2.nReceivedUpdates(), nSentUpdates);
+        assertEquals(fakeRd2.getReceivedUpdates(), nSentUpdates);
         assertTrue(fakeRd2.receivedUpdatesOk());
       } else
       {
-        assertEquals(fakeRd2.nReceivedUpdates(), 0);
+        assertEquals(fakeRd2.getReceivedUpdates(), 0);
         assertTrue(fakeRd2.receivedUpdatesOk());
       }
     }
@@ -1711,9 +1863,9 @@ public class AssuredReplicationServerTest
     if (nSentUpdates < 4)  // Fake RS 3 is stopped after 3 updates sent
     {
       if (fakeRs1GenId != DEFAULT_GENID)
-        assertEquals(fakeRs1.nReceivedUpdates(), 0);
+        assertEquals(fakeRs1.getReceivedUpdates(), 0);
       else
-        assertEquals(fakeRs1.nReceivedUpdates(), nSentUpdates);
+        assertEquals(fakeRs1.getReceivedUpdates(), nSentUpdates);
       assertTrue(fakeRs1.receivedUpdatesOk());
       if (expectedServers.contains(FRS1_ID))
         assertTrue(fakeRs1.ackReplied());
@@ -1724,9 +1876,9 @@ public class AssuredReplicationServerTest
     if (nSentUpdates < 3)  // Fake RS 3 is stopped after 2 updates sent
     {
       if (fakeRs2GenId != DEFAULT_GENID)
-        assertEquals(fakeRs2.nReceivedUpdates(), 0);
+        assertEquals(fakeRs2.getReceivedUpdates(), 0);
       else
-        assertEquals(fakeRs2.nReceivedUpdates(), nSentUpdates);
+        assertEquals(fakeRs2.getReceivedUpdates(), nSentUpdates);
       assertTrue(fakeRs2.receivedUpdatesOk());
       if (expectedServers.contains(FRS2_ID))
         assertTrue(fakeRs2.ackReplied());
@@ -1737,9 +1889,9 @@ public class AssuredReplicationServerTest
     if (nSentUpdates < 2) // Fake RS 3 is stopped after 1 update sent
     {
       if (fakeRs3GenId != DEFAULT_GENID)
-        assertEquals(fakeRs3.nReceivedUpdates(), 0);
+        assertEquals(fakeRs3.getReceivedUpdates(), 0);
       else
-        assertEquals(fakeRs3.nReceivedUpdates(), nSentUpdates);
+        assertEquals(fakeRs3.getReceivedUpdates(), nSentUpdates);
       assertTrue(fakeRs3.receivedUpdatesOk());
       if (expectedServers.contains(FRS3_ID))
         assertTrue(fakeRs3.ackReplied());
@@ -2247,9 +2399,8 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd1.getReceivedAssuredSrUpdatesAcked(), 0);
       assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
 
-         // Sanity check
-      sleep(500); // Let time to update to reach servers
-      assertEquals(fakeRd1.nReceivedUpdates(), 0);
+      // Sanity check
+      assertEquals(fakeRd1.getReceivedUpdates(), 0);
       assertTrue(fakeRd1.receivedUpdatesOk());
 
       /*******************
@@ -2309,11 +2460,10 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd2.getReceivedAssuredSrUpdatesNotAcked(), 0);
 
       // Sanity check
-      sleep(500); // Let time to update to reach servers
-      assertEquals(fakeRd1.nReceivedUpdates(), 0);
+      assertEquals(fakeRd1.getReceivedUpdates(), 0);
       assertTrue(fakeRd1.receivedUpdatesOk());
 
-      assertEquals(fakeRd2.nReceivedUpdates(), 1);
+      assertEquals(fakeRd2.getReceivedUpdates(), 1);
       assertTrue(fakeRd2.receivedUpdatesOk());
 
       /*******************
@@ -2370,14 +2520,13 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd2.getReceivedAssuredSrUpdatesNotAcked(), 0);
 
       // Sanity check
-      sleep(500); // Let time to update to reach servers
-      assertEquals(fakeRd1.nReceivedUpdates(), 0);
+      assertEquals(fakeRd1.getReceivedUpdates(), 0);
       assertTrue(fakeRd1.receivedUpdatesOk());
 
-      assertEquals(fakeRd2.nReceivedUpdates(), 2);
+      assertEquals(fakeRd2.getReceivedUpdates(), 2);
       assertTrue(fakeRd2.receivedUpdatesOk());
 
-      assertEquals(fakeRs1.nReceivedUpdates(), 1);
+      assertEquals(fakeRs1.getReceivedUpdates(), 1);
       assertTrue(fakeRs1.receivedUpdatesOk());
 
       /*******************
@@ -2422,11 +2571,10 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
 
       // Sanity check
-      sleep(500); // Let time to update to reach servers
-      assertEquals(fakeRd1.nReceivedUpdates(), 0);
+      assertEquals(fakeRd1.getReceivedUpdates(), 0);
       assertTrue(fakeRd1.receivedUpdatesOk());
 
-      assertEquals(fakeRs1.nReceivedUpdates(), 2);
+      assertEquals(fakeRs1.getReceivedUpdates(), 2);
       assertTrue(fakeRs1.receivedUpdatesOk());
 
       /*******************
@@ -2471,8 +2619,7 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
 
       // Sanity check
-      sleep(500); // Let time to update to reach servers
-      assertEquals(fakeRd1.nReceivedUpdates(), 0);
+      assertEquals(fakeRd1.getReceivedUpdates(), 0);
       assertTrue(fakeRd1.receivedUpdatesOk());
     } finally
     {
@@ -2503,7 +2650,7 @@ public class AssuredReplicationServerTest
   /**
    * See testSafeReadOneRSComplex comment.
    */
-  @Test(dataProvider = "testSafeReadOneRSComplexPrecommitProvider", enabled = true)
+  @Test(dataProvider = "testSafeReadOneRSComplexPrecommitProvider", groups = "slow", enabled = true)
   public void testSafeReadOneRSComplexPrecommit(int otherFakeDsGid, long otherFakeDsGenId, int otherFakeDsScen,
     int otherFakeRsGid, long otherFakeRsGenId, int otherFakeRsScen) throws Exception
   {
@@ -2819,25 +2966,25 @@ public class AssuredReplicationServerTest
 
       // Sanity check
       //
-      assertEquals(fakeRd1.nReceivedUpdates(), 0);
+      assertEquals(fakeRd1.getReceivedUpdates(), 0);
       assertTrue(fakeRd1.receivedUpdatesOk());
 
-      assertEquals(fakeRd2.nReceivedUpdates(), 1);
+      assertEquals(fakeRd2.getReceivedUpdates(), 1);
       assertTrue(fakeRd2.receivedUpdatesOk());
 
       if (otherFakeDsGenId == DEFAULT_GENID)
-        assertEquals(fakeRd3.nReceivedUpdates(), 1);
+        assertEquals(fakeRd3.getReceivedUpdates(), 1);
       else
-        assertEquals(fakeRd3.nReceivedUpdates(), 0);
+        assertEquals(fakeRd3.getReceivedUpdates(), 0);
       assertTrue(fakeRd3.receivedUpdatesOk());
 
-      assertEquals(fakeRs1.nReceivedUpdates(), 1);
+      assertEquals(fakeRs1.getReceivedUpdates(), 1);
       assertTrue(fakeRs1.receivedUpdatesOk());
 
       if (otherFakeRsGenId == DEFAULT_GENID)
-        assertEquals(fakeRs2.nReceivedUpdates(), 1);
+        assertEquals(fakeRs2.getReceivedUpdates(), 1);
       else
-        assertEquals(fakeRs2.nReceivedUpdates(), 0);
+        assertEquals(fakeRs2.getReceivedUpdates(), 0);
       assertTrue(fakeRs2.receivedUpdatesOk());
 
     } finally
@@ -2857,6 +3004,978 @@ public class AssuredReplicationServerTest
     for (Short s : list1.keySet())
     {
       assertEquals(list1.get(s), list2.get(s));
+    }
+  }
+
+  /**
+   * Test safe read mode with some real RSs and some fake DSs connected to each one of them.
+   * Every other fake DSs should receive and ack the update sent from the main fake DS
+   * Includes some RSs and DSs with wrong group id or gen id that should not receive
+   * an assured version of the update
+   * Topology:
+   * - 4 real RSs (RS1,RS2,RS3 with same GID and RS4 with different GID 2), connected together
+   * - + 1 fake RS1 connected to RS1 with different GENID
+   * - + 1 fake RS2 connected to RS1 with different GID 2
+   * - connected to RS1:
+   *   - fake DS1 (main one that will send the assured update)
+   *   - fake DS2
+   *   - fake DS6 with different GID
+   *   - fake DS10 with different GENID
+   * - connected to RS2:
+   *   - fake DS3
+   *   - fake DS7 with different GID
+   *   - fake DS11 with different GENID
+   * - connected to RS3:
+   *   - fake DS4
+   *   - fake DS5
+   *   - fake DS8 with different GID
+   *   - fake DS12 with different GENID
+   * - connected to RS4:
+   *   - fake DS9 with different GID 2
+   */
+  @Test(enabled = true)
+  public void testSafeReadManyRSsAndDSs() throws Exception
+  {
+    String testCase = "testSafeReadManyRSsAndDSs";
+
+    debugInfo("Starting " + testCase);
+
+    initTest();
+
+    try
+    {
+      /*
+       * Start 4 real RSs
+       */
+
+      // Create real RS 1
+      rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT,
+        testCase);
+      assertNotNull(rs1);
+
+      // Create real RS 2
+      rs2 = createReplicationServer(RS2_ID, DEFAULT_GID, SMALL_TIMEOUT,
+        testCase);
+      assertNotNull(rs2);
+
+      // Create real RS 3
+      rs3 = createReplicationServer(RS3_ID, DEFAULT_GID, SMALL_TIMEOUT,
+        testCase);
+      assertNotNull(rs3);
+
+      // Create real RS 4 (different GID 2)
+      rs4 = createReplicationServer(RS4_ID, OTHER_GID_BIS, SMALL_TIMEOUT,
+        testCase);
+      assertNotNull(rs4);
+
+      /*
+       * Start DS 1 that will send assured updates
+       */
+
+      // Wait for RSs to connect together
+      // Create and connect fake domain 1 to RS 1
+      fakeRd1 = createFakeReplicationDomain(FDS1_ID, DEFAULT_GID, RS1_ID,
+        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
+        TIMEOUT_DS_SCENARIO);
+      assertNotNull(fakeRd1);
+
+      // Wait for connections to be finished
+      // DS must see expected numbers of DSs/RSs
+      // -> if everybody is connected we are sure a GENID is set in every RSs and
+      // we can connect the fake RS with a different GENID
+      waitForStableTopo(fakeRd1, 0, 4);
+
+      /*
+       * Start 2 fake RSs
+       */
+
+      // Put a fake RS 1 connected to real RS 2 (different GENID)
+      fakeRs1 = createFakeReplicationServer(FRS1_ID, DEFAULT_GID, RS1_ID,
+        OTHER_GENID, false, AssuredMode.SAFE_READ_MODE, 1, new ServerState(),
+        TIMEOUT_RS_SCENARIO);
+      assertNotNull(fakeRs1);
+
+      // Put a fake RS 2 connected to real RS 3 (different GID 2)
+      fakeRs2 = createFakeReplicationServer(FRS2_ID, OTHER_GID_BIS, RS1_ID,
+        DEFAULT_GENID, false, AssuredMode.SAFE_READ_MODE, 1, new ServerState(),
+        TIMEOUT_RS_SCENARIO);
+      assertNotNull(fakeRs2);
+
+      /*
+       * Start DSs that will receive and ack the updates from DS 1
+       */
+
+      // DS 2 connected to RS 1
+      fakeRd2 = createFakeReplicationDomain(FDS2_ID, DEFAULT_GID, RS1_ID,
+        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
+        REPLY_OK_DS_SCENARIO);
+      assertNotNull(fakeRd2);
+
+      // DS 3 connected to RS 2
+      fakeRd3 = createFakeReplicationDomain(FDS3_ID, DEFAULT_GID, RS2_ID,
+        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
+        REPLY_OK_DS_SCENARIO);
+      assertNotNull(fakeRd3);
+
+      // DS 4 connected to RS 3
+      fakeRd4 = createFakeReplicationDomain(FDS4_ID, DEFAULT_GID, RS3_ID,
+        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
+        REPLY_OK_DS_SCENARIO);
+      assertNotNull(fakeRd4);
+
+      // DS 5 connected to RS 3
+      fakeRd5 = createFakeReplicationDomain(FDS5_ID, DEFAULT_GID, RS3_ID,
+        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
+        REPLY_OK_DS_SCENARIO);
+      assertNotNull(fakeRd5);
+
+      /*
+       * Start DSs that will not receive updates from DS 1 as assured because
+       * they have different GID
+       */
+
+      // DS 6 connected to RS 1
+      fakeRd6 = createFakeReplicationDomain(FDS6_ID, OTHER_GID, RS1_ID,
+        DEFAULT_GENID, false, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
+        TIMEOUT_DS_SCENARIO);
+      assertNotNull(fakeRd6);
+
+      // DS 7 connected to RS 2
+      fakeRd7 = createFakeReplicationDomain(FDS7_ID, OTHER_GID, RS2_ID,
+        DEFAULT_GENID, false, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
+        TIMEOUT_DS_SCENARIO);
+      assertNotNull(fakeRd7);
+
+      // DS 8 connected to RS 3
+      fakeRd8 = createFakeReplicationDomain(FDS8_ID, OTHER_GID, RS3_ID,
+        DEFAULT_GENID, false, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
+        TIMEOUT_DS_SCENARIO);
+      assertNotNull(fakeRd8);
+
+      // DS 9 (GID 2) connected to RS 4
+      fakeRd9 = createFakeReplicationDomain(FDS9_ID, OTHER_GID_BIS, RS4_ID,
+        DEFAULT_GENID, false, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
+        TIMEOUT_DS_SCENARIO);
+      assertNotNull(fakeRd9);
+
+      /*
+       * Start DSs that will not receive updates from DS 1 because
+       * they have different GENID
+       */
+
+      // DS 10 connected to RS 1
+      fakeRd10 = createFakeReplicationDomain(FDS10_ID, DEFAULT_GID, RS1_ID,
+        OTHER_GENID, false, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
+        TIMEOUT_DS_SCENARIO);
+      assertNotNull(fakeRd10);
+
+      // DS 11 connected to RS 2
+      fakeRd11 = createFakeReplicationDomain(FDS11_ID, DEFAULT_GID, RS2_ID,
+        OTHER_GENID, false, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
+        TIMEOUT_DS_SCENARIO);
+      assertNotNull(fakeRd11);
+
+      // DS 12 connected to RS 3
+      fakeRd12 = createFakeReplicationDomain(FDS12_ID, DEFAULT_GID, RS3_ID,
+        OTHER_GENID, false, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
+        TIMEOUT_DS_SCENARIO);
+      assertNotNull(fakeRd12);
+
+      // Wait for connections to be finished
+      // DS must see expected numbers of DSs/RSs
+      waitForStableTopo(fakeRd1, 11, 6);
+
+      /*
+       * Send update from DS 1 and check result
+       */
+
+      long startTime = System.currentTimeMillis();
+      try
+      {
+        fakeRd1.sendNewFakeUpdate();
+      } catch (TimeoutException e)
+      {
+        fail("No timeout is expected here");
+      }
+      long sendUpdateTime = System.currentTimeMillis() - startTime;
+
+      // Check call time
+      assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+
+      // Check monitoring values (check that ack has been correctly received)
+      sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+
+      checkDSSentAndAcked(fakeRd1, 1);
+
+      //   normal DSs
+      checkDSReceivedAndAcked(fakeRd2, 1);
+      checkDSReceivedAndAcked(fakeRd3, 1);
+      checkDSReceivedAndAcked(fakeRd4, 1);
+      checkDSReceivedAndAcked(fakeRd5, 1);
+
+      //   different GID DSs
+      checkDSReceivedAndAcked(fakeRd6, 0);
+      checkDSReceivedAndAcked(fakeRd7, 0);
+      checkDSReceivedAndAcked(fakeRd8, 0);
+      checkDSReceivedAndAcked(fakeRd9, 0);
+
+      //   different GENID DSs
+      checkDSReceivedAndAcked(fakeRd10, 0);
+      checkDSReceivedAndAcked(fakeRd11, 0);
+      checkDSReceivedAndAcked(fakeRd12, 0);
+
+      // Sanity check
+      assertEquals(fakeRd1.getReceivedUpdates(), 0);
+      assertTrue(fakeRd1.receivedUpdatesOk());
+
+      //   normal DSs
+      assertEquals(fakeRd2.getReceivedUpdates(), 1);
+      assertTrue(fakeRd2.receivedUpdatesOk());
+      assertEquals(fakeRd3.getReceivedUpdates(), 1);
+      assertTrue(fakeRd3.receivedUpdatesOk());
+      assertEquals(fakeRd4.getReceivedUpdates(), 1);
+      assertTrue(fakeRd4.receivedUpdatesOk());
+      assertEquals(fakeRd5.getReceivedUpdates(), 1);
+      assertTrue(fakeRd5.receivedUpdatesOk());
+
+      //   different GID DSs
+      assertEquals(fakeRd6.getReceivedUpdates(), 1);
+      assertTrue(fakeRd6.receivedUpdatesOk());
+      assertEquals(fakeRd7.getReceivedUpdates(), 1);
+      assertTrue(fakeRd7.receivedUpdatesOk());
+      assertEquals(fakeRd8.getReceivedUpdates(), 1);
+      assertTrue(fakeRd8.receivedUpdatesOk());
+      assertEquals(fakeRd9.getReceivedUpdates(), 1);
+      assertTrue(fakeRd9.receivedUpdatesOk());
+
+      //   different GENID DSs
+      assertEquals(fakeRd10.getReceivedUpdates(), 0);
+      assertTrue(fakeRd10.receivedUpdatesOk());
+      assertEquals(fakeRd11.getReceivedUpdates(), 0);
+      assertTrue(fakeRd11.receivedUpdatesOk());
+      assertEquals(fakeRd12.getReceivedUpdates(), 0);
+      assertTrue(fakeRd12.receivedUpdatesOk());
+
+      //   fake RSs
+      assertEquals(fakeRs1.getReceivedUpdates(), 0);
+      assertTrue(fakeRs1.receivedUpdatesOk());
+      assertFalse(fakeRs1.ackReplied());
+      assertEquals(fakeRs2.getReceivedUpdates(), 1);
+      assertTrue(fakeRs2.receivedUpdatesOk());
+      assertFalse(fakeRs2.ackReplied());
+
+      /*
+       * Send a second update from DS 1 and check result
+       */
+
+      startTime = System.currentTimeMillis();
+      try
+      {
+        fakeRd1.sendNewFakeUpdate();
+      } catch (TimeoutException e)
+      {
+        fail("No timeout is expected here");
+      }
+      sendUpdateTime = System.currentTimeMillis() - startTime;
+
+      // Check call time
+      assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+
+      // Check monitoring values (check that ack has been correctly received)
+      sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+
+      checkDSSentAndAcked(fakeRd1, 2);
+
+      //   normal DSs
+      checkDSReceivedAndAcked(fakeRd2, 2);
+      checkDSReceivedAndAcked(fakeRd3, 2);
+      checkDSReceivedAndAcked(fakeRd4, 2);
+      checkDSReceivedAndAcked(fakeRd5, 2);
+
+      //   different GID DSs
+      checkDSReceivedAndAcked(fakeRd6, 0);
+      checkDSReceivedAndAcked(fakeRd7, 0);
+      checkDSReceivedAndAcked(fakeRd8, 0);
+      checkDSReceivedAndAcked(fakeRd9, 0);
+
+      //   different GENID DSs
+      checkDSReceivedAndAcked(fakeRd10, 0);
+      checkDSReceivedAndAcked(fakeRd11, 0);
+      checkDSReceivedAndAcked(fakeRd12, 0);
+
+      // Sanity check
+      assertEquals(fakeRd1.getReceivedUpdates(), 0);
+      assertTrue(fakeRd1.receivedUpdatesOk());
+
+      //   normal DSs
+      assertEquals(fakeRd2.getReceivedUpdates(), 2);
+      assertTrue(fakeRd2.receivedUpdatesOk());
+      assertEquals(fakeRd3.getReceivedUpdates(), 2);
+      assertTrue(fakeRd3.receivedUpdatesOk());
+      assertEquals(fakeRd4.getReceivedUpdates(), 2);
+      assertTrue(fakeRd4.receivedUpdatesOk());
+      assertEquals(fakeRd5.getReceivedUpdates(), 2);
+      assertTrue(fakeRd5.receivedUpdatesOk());
+
+      //   different GID DSs
+      assertEquals(fakeRd6.getReceivedUpdates(), 2);
+      assertTrue(fakeRd6.receivedUpdatesOk());
+      assertEquals(fakeRd7.getReceivedUpdates(), 2);
+      assertTrue(fakeRd7.receivedUpdatesOk());
+      assertEquals(fakeRd8.getReceivedUpdates(), 2);
+      assertTrue(fakeRd8.receivedUpdatesOk());
+      assertEquals(fakeRd9.getReceivedUpdates(), 2);
+      assertTrue(fakeRd9.receivedUpdatesOk());
+
+      //   different GENID DSs
+      assertEquals(fakeRd10.getReceivedUpdates(), 0);
+      assertTrue(fakeRd10.receivedUpdatesOk());
+      assertEquals(fakeRd11.getReceivedUpdates(), 0);
+      assertTrue(fakeRd11.receivedUpdatesOk());
+      assertEquals(fakeRd12.getReceivedUpdates(), 0);
+      assertTrue(fakeRd12.receivedUpdatesOk());
+
+      //   fake RSs
+      assertEquals(fakeRs1.getReceivedUpdates(), 0);
+      assertTrue(fakeRs1.receivedUpdatesOk());
+      assertFalse(fakeRs1.ackReplied());
+      assertEquals(fakeRs2.getReceivedUpdates(), 2);
+      assertTrue(fakeRs2.receivedUpdatesOk());
+      assertFalse(fakeRs2.ackReplied());
+    } finally
+    {
+      endTest();
+    }
+  }
+
+  // Helper method for some safe read test methods
+  private void checkDSReceivedAndAcked(FakeReplicationDomain fakeRd, int nPacket)
+  {
+    assertEquals(fakeRd.getAssuredSrSentUpdates(), 0);
+    assertEquals(fakeRd.getAssuredSrAcknowledgedUpdates(), 0);
+    assertEquals(fakeRd.getAssuredSrNotAcknowledgedUpdates(), 0);
+    assertEquals(fakeRd.getAssuredSrTimeoutUpdates(), 0);
+    assertEquals(fakeRd.getAssuredSrWrongStatusUpdates(), 0);
+    assertEquals(fakeRd.getAssuredSrReplayErrorUpdates(), 0);
+    assertEquals(fakeRd.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
+    assertEquals(fakeRd.getReceivedAssuredSrUpdates(), nPacket);
+    assertEquals(fakeRd.getReceivedAssuredSrUpdatesAcked(), nPacket);
+    assertEquals(fakeRd.getReceivedAssuredSrUpdatesNotAcked(), 0);
+  }
+
+  // Helper method for some safe read test methods
+  private void checkDSSentAndAcked(FakeReplicationDomain fakeRd, int nPacket)
+  {
+    assertEquals(fakeRd.getAssuredSrSentUpdates(), nPacket);
+    assertEquals(fakeRd.getAssuredSrAcknowledgedUpdates(), nPacket);
+    assertEquals(fakeRd.getAssuredSrNotAcknowledgedUpdates(), 0);
+    assertEquals(fakeRd.getAssuredSrTimeoutUpdates(), 0);
+    assertEquals(fakeRd.getAssuredSrWrongStatusUpdates(), 0);
+    assertEquals(fakeRd.getAssuredSrReplayErrorUpdates(), 0);
+    assertEquals(fakeRd.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
+    assertEquals(fakeRd.getReceivedAssuredSrUpdates(), 0);
+    assertEquals(fakeRd.getReceivedAssuredSrUpdatesAcked(), 0);
+    assertEquals(fakeRd.getReceivedAssuredSrUpdatesNotAcked(), 0);
+  }
+
+  /**
+   * Test that a safe read update does not cross different group id topologies
+   * in assured mode.
+   * Topology:
+   * DS1(GID=1)---RS1(GID=1)---RS2(GID=2)---DS3(GID=2)
+   * DS2(GID=1)---/                     \---DS4(GID=2)
+   *
+   */
+  @Test(enabled = true)
+  public void testSafeReadMultiGroups() throws Exception
+  {
+    String testCase = "testSafeReadMultiGroups";
+
+    debugInfo("Starting " + testCase);
+
+    initTest();
+
+    try
+    {
+      /*
+       * Start 2 real RSs
+       */
+
+      // Create real RS 1
+      rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT,
+        testCase);
+      assertNotNull(rs1);
+
+      // Create real RS 2
+      rs2 = createReplicationServer(RS2_ID, OTHER_GID, SMALL_TIMEOUT,
+        testCase);
+      assertNotNull(rs2);
+
+      /*
+       * Start DSs with GID=DEFAULT_GID, connected to RS1
+       */
+
+      // DS 1 connected to RS 1
+      fakeRd1 = createFakeReplicationDomain(FDS1_ID, DEFAULT_GID, RS1_ID,
+        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
+        TIMEOUT_DS_SCENARIO);
+      assertNotNull(fakeRd1);
+
+      // DS 2 connected to RS 1
+      fakeRd2 = createFakeReplicationDomain(FDS2_ID, DEFAULT_GID, RS1_ID,
+        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
+        REPLY_OK_DS_SCENARIO);
+      assertNotNull(fakeRd2);
+
+      /*
+       * Start DSs with GID=OTHER_GID, connected to RS2
+       */
+
+      // DS 3 connected to RS 2
+      fakeRd3 = createFakeReplicationDomain(FDS3_ID, OTHER_GID, RS2_ID,
+        DEFAULT_GENID, false, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
+        REPLY_OK_DS_SCENARIO);
+      assertNotNull(fakeRd3);
+
+      // DS 4 connected to RS 3
+      fakeRd4 = createFakeReplicationDomain(FDS4_ID, OTHER_GID, RS2_ID,
+        DEFAULT_GENID, false, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
+        REPLY_OK_DS_SCENARIO);
+      assertNotNull(fakeRd4);
+
+      // Wait for connections to be finished
+      // DS must see expected numbers of DSs/RSs
+      waitForStableTopo(fakeRd1, 3, 2);
+
+      /*
+       * Send update from DS 1 and check result
+       */
+
+      long startTime = System.currentTimeMillis();
+      try
+      {
+        fakeRd1.sendNewFakeUpdate();
+      } catch (TimeoutException e)
+      {
+        fail("No timeout is expected here");
+      }
+      long sendUpdateTime = System.currentTimeMillis() - startTime;
+
+      // Check call time
+      assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+
+      // Check monitoring values (check that ack has been correctly received)
+      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+
+      checkDSSentAndAcked(fakeRd1, 1);
+
+      checkDSReceivedAndAcked(fakeRd2, 1);
+
+      assertEquals(fakeRd3.getAssuredSrSentUpdates(), 0);
+      assertEquals(fakeRd3.getAssuredSrAcknowledgedUpdates(), 0);
+      assertEquals(fakeRd3.getAssuredSrNotAcknowledgedUpdates(), 0);
+      assertEquals(fakeRd3.getAssuredSrTimeoutUpdates(), 0);
+      assertEquals(fakeRd3.getAssuredSrWrongStatusUpdates(), 0);
+      assertEquals(fakeRd3.getAssuredSrReplayErrorUpdates(), 0);
+      assertEquals(fakeRd3.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
+      assertEquals(fakeRd3.getReceivedAssuredSrUpdates(), 0);
+      assertEquals(fakeRd3.getReceivedAssuredSrUpdatesAcked(), 0);
+      assertEquals(fakeRd3.getReceivedAssuredSrUpdatesNotAcked(), 0);
+
+      assertEquals(fakeRd4.getAssuredSrSentUpdates(), 0);
+      assertEquals(fakeRd4.getAssuredSrAcknowledgedUpdates(), 0);
+      assertEquals(fakeRd4.getAssuredSrNotAcknowledgedUpdates(), 0);
+      assertEquals(fakeRd4.getAssuredSrTimeoutUpdates(), 0);
+      assertEquals(fakeRd4.getAssuredSrWrongStatusUpdates(), 0);
+      assertEquals(fakeRd4.getAssuredSrReplayErrorUpdates(), 0);
+      assertEquals(fakeRd4.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
+      assertEquals(fakeRd4.getReceivedAssuredSrUpdates(), 0);
+      assertEquals(fakeRd4.getReceivedAssuredSrUpdatesAcked(), 0);
+      assertEquals(fakeRd4.getReceivedAssuredSrUpdatesNotAcked(), 0);
+
+      assertEquals(fakeRd1.getReceivedUpdates(), 0);
+      assertTrue(fakeRd1.receivedUpdatesOk());
+      assertEquals(fakeRd2.getReceivedUpdates(), 1);
+      assertTrue(fakeRd2.receivedUpdatesOk());
+      assertEquals(fakeRd3.getReceivedUpdates(), 1);
+      assertTrue(fakeRd3.receivedUpdatesOk());
+      assertEquals(fakeRd4.getReceivedUpdates(), 1);
+      assertTrue(fakeRd4.receivedUpdatesOk());
+      } finally
+    {
+      endTest();
+    }
+  }
+
+  /**
+   * Returns possible combinations of parameters for testSafeReadTwoRSsProvider test
+   */
+  @DataProvider(name = "testSafeReadTwoRSsProvider")
+  private Object[][] testSafeReadTwoRSsProvider()
+  {
+    return new Object[][]
+    {
+      {DEFAULT_GID, DEFAULT_GENID, REPLY_OK_DS_SCENARIO},
+      {DEFAULT_GID, DEFAULT_GENID, TIMEOUT_DS_SCENARIO},
+      {DEFAULT_GID, DEFAULT_GENID, REPLAY_ERROR_DS_SCENARIO},
+      {OTHER_GID, DEFAULT_GENID, TIMEOUT_DS_SCENARIO},
+      {DEFAULT_GID, OTHER_GENID, TIMEOUT_DS_SCENARIO}
+    };
+  }
+
+  /**
+   * Test that a safe read update is correctly handled on a DS located on
+   * another RS and according to the remote DS configuration
+   * Topology:
+   * DS1---RS1---RS2---DS2 (DS2 with changing configuration)
+   *
+   */
+  @Test(dataProvider = "testSafeReadTwoRSsProvider", groups = "slow", enabled = true)
+  public void testSafeReadTwoRSs(int fakeDsGid, long fakeDsGenId, int fakeDsScen) throws Exception
+  {
+    String testCase = "testSafeReadTwoRSs";
+
+    debugInfo("Starting " + testCase);
+
+    initTest();
+
+    try
+    {
+      /*
+       * Start 2 real RSs
+       */
+
+      // Create real RS 1
+      rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT + 1000, // Be sure DS2 timeout is seen from DS1
+        testCase);
+      assertNotNull(rs1);
+
+      // Create real RS 2
+      rs2 = createReplicationServer(RS2_ID, DEFAULT_GID, SMALL_TIMEOUT,
+        testCase);
+      assertNotNull(rs2);
+
+      /*
+       * Start 2 fake DSs
+       */
+
+      // DS 1 connected to RS 1
+      fakeRd1 = createFakeReplicationDomain(FDS1_ID, DEFAULT_GID, RS1_ID,
+        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
+        TIMEOUT_DS_SCENARIO);
+      assertNotNull(fakeRd1);
+
+      // DS 2 connected to RS 2
+      fakeRd2 = createFakeReplicationDomain(FDS2_ID, fakeDsGid, RS2_ID,
+        fakeDsGenId, (fakeDsGid == DEFAULT_GID ? true : false),
+        AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT, fakeDsScen);
+      assertNotNull(fakeRd2);
+
+      // Wait for connections to be finished
+      // DS must see expected numbers of DSs/RSs
+      waitForStableTopo(fakeRd1, 1, 2);
+
+      /*
+       * Send update from DS 1 and check result
+       */
+
+      long startTime = System.currentTimeMillis();
+      try
+      {
+        fakeRd1.sendNewFakeUpdate();
+      } catch (TimeoutException e)
+      {
+        fail("No timeout is expected here");
+      }
+      long sendUpdateTime = System.currentTimeMillis() - startTime;
+
+      boolean fakeDsIsEligible = areGroupAndGenerationIdOk(fakeDsGid,
+        fakeDsGenId);
+
+      // Check call time
+      if (fakeDsIsEligible && (fakeDsScen == TIMEOUT_DS_SCENARIO))
+        assertTrue((SMALL_TIMEOUT <= sendUpdateTime) && (sendUpdateTime <=
+          (SMALL_TIMEOUT + 1000)));
+      else
+        assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+
+      // Check monitoring values (check that ack has been correctly received)
+      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+
+      if (fakeDsIsEligible)
+      {
+        switch (fakeDsScen)
+        {
+          case REPLY_OK_DS_SCENARIO:
+            checkDSSentAndAcked(fakeRd1, 1);
+            checkDSReceivedAndAcked(fakeRd2, 1);
+            break;
+          case TIMEOUT_DS_SCENARIO:
+            assertEquals(fakeRd1.getAssuredSrSentUpdates(), 1);
+            assertEquals(fakeRd1.getAssuredSrAcknowledgedUpdates(), 0);
+            assertEquals(fakeRd1.getAssuredSrNotAcknowledgedUpdates(), 1);
+            assertEquals(fakeRd1.getAssuredSrTimeoutUpdates(), 1);
+            assertEquals(fakeRd1.getAssuredSrWrongStatusUpdates(), 0);
+            assertEquals(fakeRd1.getAssuredSrReplayErrorUpdates(), 0);
+            Map<Short, Integer> failedServer = fakeRd1.getAssuredSrServerNotAcknowledgedUpdates();
+            assertEquals(failedServer.size(), 1);
+            Integer nError = failedServer.get(FDS2_ID);
+            assertNotNull(nError);
+            assertEquals(nError.intValue(), 1);
+            assertEquals(fakeRd1.getReceivedAssuredSrUpdates(), 0);
+            assertEquals(fakeRd1.getReceivedAssuredSrUpdatesAcked(), 0);
+            assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
+
+            assertEquals(fakeRd2.getAssuredSrSentUpdates(), 0);
+            assertEquals(fakeRd2.getAssuredSrAcknowledgedUpdates(), 0);
+            assertEquals(fakeRd2.getAssuredSrNotAcknowledgedUpdates(), 0);
+            assertEquals(fakeRd2.getAssuredSrTimeoutUpdates(), 0);
+            assertEquals(fakeRd2.getAssuredSrWrongStatusUpdates(), 0);
+            assertEquals(fakeRd2.getAssuredSrReplayErrorUpdates(), 0);
+            assertEquals(fakeRd2.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
+            assertEquals(fakeRd2.getReceivedAssuredSrUpdates(), 1);
+            assertEquals(fakeRd2.getReceivedAssuredSrUpdatesAcked(), 0);
+            assertEquals(fakeRd2.getReceivedAssuredSrUpdatesNotAcked(), 0);
+            break;
+          case REPLAY_ERROR_DS_SCENARIO:
+            assertEquals(fakeRd1.getAssuredSrSentUpdates(), 1);
+            assertEquals(fakeRd1.getAssuredSrAcknowledgedUpdates(), 0);
+            assertEquals(fakeRd1.getAssuredSrNotAcknowledgedUpdates(), 1);
+            assertEquals(fakeRd1.getAssuredSrTimeoutUpdates(), 0);
+            assertEquals(fakeRd1.getAssuredSrWrongStatusUpdates(), 0);
+            assertEquals(fakeRd1.getAssuredSrReplayErrorUpdates(), 1);
+            failedServer = fakeRd1.getAssuredSrServerNotAcknowledgedUpdates();
+            assertEquals(failedServer.size(), 1);
+            nError = failedServer.get(FDS2_ID);
+            assertNotNull(nError);
+            assertEquals(nError.intValue(), 1);
+            assertEquals(fakeRd1.getReceivedAssuredSrUpdates(), 0);
+            assertEquals(fakeRd1.getReceivedAssuredSrUpdatesAcked(), 0);
+            assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
+
+            assertEquals(fakeRd2.getAssuredSrSentUpdates(), 0);
+            assertEquals(fakeRd2.getAssuredSrAcknowledgedUpdates(), 0);
+            assertEquals(fakeRd2.getAssuredSrNotAcknowledgedUpdates(), 0);
+            assertEquals(fakeRd2.getAssuredSrTimeoutUpdates(), 0);
+            assertEquals(fakeRd2.getAssuredSrWrongStatusUpdates(), 0);
+            assertEquals(fakeRd2.getAssuredSrReplayErrorUpdates(), 0);
+            assertEquals(fakeRd2.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
+            assertEquals(fakeRd2.getReceivedAssuredSrUpdates(), 1);
+            assertEquals(fakeRd2.getReceivedAssuredSrUpdatesAcked(), 0);
+            assertEquals(fakeRd2.getReceivedAssuredSrUpdatesNotAcked(), 1);
+            break;
+          default:
+            fail("Unknown scenario: " + fakeDsScen);
+        }
+      } else
+      {
+        checkDSSentAndAcked(fakeRd1, 1);
+        checkDSReceivedAndAcked(fakeRd2, 0);
+      }
+
+      assertEquals(fakeRd1.getReceivedUpdates(), 0);
+      assertTrue(fakeRd1.receivedUpdatesOk());
+      if (fakeDsGenId == DEFAULT_GENID)
+        assertEquals(fakeRd2.getReceivedUpdates(), 1);
+      else
+        assertEquals(fakeRd2.getReceivedUpdates(), 0);
+      assertTrue(fakeRd2.receivedUpdatesOk());
+    } finally
+    {
+      endTest();
+    }
+  }
+
+  /**
+   * Test that a DS is no more eligible for safe read assured updates when it
+   * is degraded (has wrong status)
+   * Topology:
+   * DS1---RS1---DS2 (DS2 going degraded)
+   *
+   */
+  @Test(groups = "slow", enabled = true)
+  public void testSafeReadWrongStatus() throws Exception
+  {
+    String testCase = "testSafeReadWrongStatus";
+
+    debugInfo("Starting " + testCase);
+
+    initTest();
+
+    try
+    {
+      /*
+       * Start 1 real RS with threshold value 1 to easily put DS2 in DEGRADED status
+       */
+      try
+      {
+        // Create real RS
+        String dir = testName + RS1_ID + testCase + "Db";
+        ReplServerFakeConfiguration conf =
+          new ReplServerFakeConfiguration(rs1Port, dir, 0, RS1_ID, 0, 100,
+          new TreeSet<String>(), DEFAULT_GID, SMALL_TIMEOUT, 1);
+        rs1 = new ReplicationServer(conf);
+      } catch (Exception e)
+      {
+        fail("createReplicationServer " + e.getMessage());
+      }
+
+      /*
+       * Start 2 fake DSs
+       */
+
+      // DS 1 connected to RS 1
+      fakeRd1 = createFakeReplicationDomain(FDS1_ID, DEFAULT_GID, RS1_ID,
+        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
+        TIMEOUT_DS_SCENARIO);
+      assertNotNull(fakeRd1);
+
+      // DS 2 connected to RS 1 with low window to easily put it in DEGRADED status
+      fakeRd2 = createFakeReplicationDomain(FDS2_ID, DEFAULT_GID, RS1_ID,
+        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
+        REPLY_OK_DS_SCENARIO, new ServerState(), false, 2);
+      assertNotNull(fakeRd2);
+
+      // Wait for connections to be finished
+      // DS must see expected numbers of DSs/RSs
+      waitForStableTopo(fakeRd1, 1, 1);
+      List<DSInfo> dsInfos = fakeRd1.getDsList();
+      DSInfo dsInfo = dsInfos.get(0);
+      assertEquals(dsInfo.getDsId(), FDS2_ID);
+      assertEquals(dsInfo.getStatus(), ServerStatus.NORMAL_STATUS);
+
+      /*
+       * Put DS2 in degraded status sending 4 safe read assured updates from DS1
+       * - 3 for window being full
+       * - 1 that is enqueued and makes the threshold value (1) reached and thus
+       * DS2 go into degraded status
+       */
+
+      for (int i=1 ; i<=4 ; i++)
+      {
+        long startTime = System.currentTimeMillis();
+        try
+        {
+          fakeRd1.sendNewFakeUpdate();
+        } catch (TimeoutException e)
+        {
+          fail("No timeout is expected here");
+        }
+        long sendUpdateTime = System.currentTimeMillis() - startTime;
+        // RS should timeout as no listener in DS2
+        assertTrue((SMALL_TIMEOUT <= sendUpdateTime) && (sendUpdateTime <=
+          LONG_TIMEOUT));
+      }
+
+      // Check DS2 is degraded
+      sleep(7000);
+      dsInfos = fakeRd1.getDsList();
+      dsInfo = dsInfos.get(0);
+      assertEquals(dsInfo.getDsId(), FDS2_ID);
+      assertEquals(dsInfo.getStatus(), ServerStatus.DEGRADED_STATUS);
+
+      assertEquals(fakeRd1.getAssuredSrSentUpdates(), 4);
+      assertEquals(fakeRd1.getAssuredSrAcknowledgedUpdates(), 0);
+      assertEquals(fakeRd1.getAssuredSrNotAcknowledgedUpdates(), 4);
+      assertEquals(fakeRd1.getAssuredSrTimeoutUpdates(), 4);
+      assertEquals(fakeRd1.getAssuredSrWrongStatusUpdates(), 0);
+      assertEquals(fakeRd1.getAssuredSrReplayErrorUpdates(), 0);
+      Map<Short, Integer> failedServer = fakeRd1.getAssuredSrServerNotAcknowledgedUpdates();
+      assertEquals(failedServer.size(), 1);
+      Integer nError = failedServer.get(FDS2_ID);
+      assertNotNull(nError);
+      assertEquals(nError.intValue(), 4);
+      assertEquals(fakeRd1.getReceivedAssuredSrUpdates(), 0);
+      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesAcked(), 0);
+      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
+
+      assertEquals(fakeRd2.getAssuredSrSentUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrAcknowledgedUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrNotAcknowledgedUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrTimeoutUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrWrongStatusUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrReplayErrorUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
+      assertEquals(fakeRd2.getReceivedAssuredSrUpdates(), 0);
+      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesAcked(), 0);
+      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesNotAcked(), 0);
+
+      assertEquals(fakeRd1.getReceivedUpdates(), 0);
+      assertEquals(fakeRd1.getWrongReceivedUpdates(), 0);
+
+      assertEquals(fakeRd2.getReceivedUpdates(), 0);
+      assertEquals(fakeRd2.getWrongReceivedUpdates(), 0);
+      assertTrue(fakeRd2.receivedUpdatesOk());
+
+      /*
+       * Send an assured update from DS 1 : should be acked as DS2 is degraded
+       * and RS should not consider it as eligible for assured
+       */
+
+      long startTime = System.currentTimeMillis();
+      try
+      {
+        fakeRd1.sendNewFakeUpdate();
+      } catch (TimeoutException e)
+      {
+        fail("No timeout is expected here");
+      }
+      long sendUpdateTime = System.currentTimeMillis() - startTime;
+      // RS should ack quickly as DS2 degraded and not eligible for assured
+      assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+
+      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      assertEquals(fakeRd1.getAssuredSrSentUpdates(), 5);
+      assertEquals(fakeRd1.getAssuredSrAcknowledgedUpdates(), 1);
+      assertEquals(fakeRd1.getAssuredSrNotAcknowledgedUpdates(), 4);
+      assertEquals(fakeRd1.getAssuredSrTimeoutUpdates(), 4);
+      assertEquals(fakeRd1.getAssuredSrWrongStatusUpdates(), 0);
+      assertEquals(fakeRd1.getAssuredSrReplayErrorUpdates(), 0);
+      failedServer = fakeRd1.getAssuredSrServerNotAcknowledgedUpdates();
+      assertEquals(failedServer.size(), 1);
+      nError = failedServer.get(FDS2_ID);
+      assertNotNull(nError);
+      assertEquals(nError.intValue(), 4);
+      assertEquals(fakeRd1.getReceivedAssuredSrUpdates(), 0);
+      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesAcked(), 0);
+      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
+
+      assertEquals(fakeRd2.getAssuredSrSentUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrAcknowledgedUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrNotAcknowledgedUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrTimeoutUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrWrongStatusUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrReplayErrorUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
+      assertEquals(fakeRd2.getReceivedAssuredSrUpdates(), 0);
+      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesAcked(), 0);
+      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesNotAcked(), 0);
+
+      assertEquals(fakeRd1.getReceivedUpdates(), 0);
+      assertEquals(fakeRd1.getWrongReceivedUpdates(), 0);
+
+      assertEquals(fakeRd2.getReceivedUpdates(), 0);
+      assertEquals(fakeRd2.getWrongReceivedUpdates(), 0);
+      assertTrue(fakeRd2.receivedUpdatesOk());
+
+      /*
+       * Put DS2 in normal status again (start listen service)
+       */
+
+      fakeRd2.startListenService();
+
+      // Wait for DS2 being degraded
+      boolean error = true;
+      for (int count = 0; count < 12; count++)
+      {
+        dsInfos = fakeRd1.getDsList();
+        if (dsInfos == null)
+          continue;
+        if (dsInfos.size() == 0)
+          continue;
+        dsInfo = dsInfos.get(0);
+        if ( (dsInfo.getDsId() == FDS2_ID) &&
+            (dsInfo.getStatus() == ServerStatus.NORMAL_STATUS) )
+        {
+          error = false;
+          break;
+        }
+        else
+        {
+          sleep(1000);
+        }
+      }
+      if (error)
+        fail("DS2 not back to normal status");
+
+      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      // DS2 should also change status so reset its assured monitoring data so no received sr updates
+      assertEquals(fakeRd1.getAssuredSrSentUpdates(), 5);
+      assertEquals(fakeRd1.getAssuredSrAcknowledgedUpdates(), 1);
+      assertEquals(fakeRd1.getAssuredSrNotAcknowledgedUpdates(), 4);
+      assertEquals(fakeRd1.getAssuredSrTimeoutUpdates(), 4);
+      assertEquals(fakeRd1.getAssuredSrWrongStatusUpdates(), 0);
+      assertEquals(fakeRd1.getAssuredSrReplayErrorUpdates(), 0);
+      failedServer = fakeRd1.getAssuredSrServerNotAcknowledgedUpdates();
+      assertEquals(failedServer.size(), 1);
+      nError = failedServer.get(FDS2_ID);
+      assertNotNull(nError);
+      assertEquals(nError.intValue(), 4);
+      assertEquals(fakeRd1.getReceivedAssuredSrUpdates(), 0);
+      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesAcked(), 0);
+      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
+
+      assertEquals(fakeRd2.getAssuredSrSentUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrAcknowledgedUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrNotAcknowledgedUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrTimeoutUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrWrongStatusUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrReplayErrorUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
+      assertEquals(fakeRd2.getReceivedAssuredSrUpdates(), 0); // status changed to normal so reset of monitoring data
+      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesAcked(), 0);
+      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesNotAcked(), 0);
+
+      assertEquals(fakeRd1.getReceivedUpdates(), 0);
+      assertEquals(fakeRd1.getWrongReceivedUpdates(), 0);
+
+      // DS2 should have received the 5 updates (one with not assured)
+      assertEquals(fakeRd2.getReceivedUpdates(), 5);
+      assertEquals(fakeRd2.getWrongReceivedUpdates(), 1);
+      assertFalse(fakeRd2.receivedUpdatesOk());
+
+      /*
+       * Send again an assured update, DS2 should be taken into account for ack
+       */
+
+      startTime = System.currentTimeMillis();
+      try
+      {
+        fakeRd1.sendNewFakeUpdate();
+      } catch (TimeoutException e)
+      {
+        fail("No timeout is expected here");
+      }
+      sendUpdateTime = System.currentTimeMillis() - startTime;
+      // RS should ack quickly as DS2 degraded and not eligible for assured
+      assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+
+      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      assertEquals(fakeRd1.getAssuredSrSentUpdates(), 6);
+      assertEquals(fakeRd1.getAssuredSrAcknowledgedUpdates(), 2);
+      assertEquals(fakeRd1.getAssuredSrNotAcknowledgedUpdates(), 4);
+      assertEquals(fakeRd1.getAssuredSrTimeoutUpdates(), 4);
+      assertEquals(fakeRd1.getAssuredSrWrongStatusUpdates(), 0);
+      assertEquals(fakeRd1.getAssuredSrReplayErrorUpdates(), 0);
+      failedServer = fakeRd1.getAssuredSrServerNotAcknowledgedUpdates();
+      assertEquals(failedServer.size(), 1);
+      nError = failedServer.get(FDS2_ID);
+      assertNotNull(nError);
+      assertEquals(nError.intValue(), 4);
+      assertEquals(fakeRd1.getReceivedAssuredSrUpdates(), 0);
+      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesAcked(), 0);
+      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
+
+      assertEquals(fakeRd2.getAssuredSrSentUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrAcknowledgedUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrNotAcknowledgedUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrTimeoutUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrWrongStatusUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrReplayErrorUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
+      assertEquals(fakeRd2.getReceivedAssuredSrUpdates(), 1);
+      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesAcked(), 1);
+      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesNotAcked(), 0);
+
+      assertEquals(fakeRd1.getReceivedUpdates(), 0);
+      assertEquals(fakeRd1.getWrongReceivedUpdates(), 0);
+
+      assertEquals(fakeRd2.getReceivedUpdates(), 6);
+      assertEquals(fakeRd2.getWrongReceivedUpdates(), 1);
+      assertFalse(fakeRd2.receivedUpdatesOk());
+    } finally
+    {
+      endTest();
     }
   }
 }
