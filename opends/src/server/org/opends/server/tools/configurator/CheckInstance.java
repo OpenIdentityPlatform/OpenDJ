@@ -22,12 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
-package org.opends.quicksetup.configurator;
+package org.opends.server.tools.configurator;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import org.opends.quicksetup.ReturnCode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
@@ -36,7 +38,6 @@ import java.io.InputStreamReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.opends.messages.Message;
-import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Installation;
 import org.opends.server.util.args.BooleanArgument;
 import java.util.StringTokenizer;
@@ -46,6 +47,8 @@ import org.opends.quicksetup.QuickSetupLog;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.messages.QuickSetupMessages.*;
+
+import static org.opends.server.util.DynamicConstants.*;
 
 /**
  * This class is called by the configure command line to move the default
@@ -217,18 +220,39 @@ public class CheckInstance {
 
     // Check version
     if (checkVersionArg.isPresent()) {
+        BuildInformation installBi =
+                  BuildInformation.fromBuildString(VERSION_NUMBER_STRING +
+                                                   "." + REVISION_NUMBER);
+      BuildInformation instanceBi = installBi;
+
       try {
-        BuildInformation installBi = installation.getBuildInformation();
-        BuildInformation instanceBi = installation.
-                getInstanceBuildInformation();
+        File bif = new File(installation.getConfigurationDirectory(),
+          Installation.BUILDINFO_RELATIVE_PATH);
+
+        if (bif.exists()) {
+          BufferedReader breader = new BufferedReader(new FileReader(bif));
+
+          // Read the first line and close the file.
+          String line;
+          try {
+            line = breader.readLine();
+            instanceBi = BuildInformation.fromBuildString(line);
+          } finally {
+            try {
+              breader.close();
+            } catch (Exception e) {
+            }
+          }
+        }
+      } catch (Exception e) {
+        LOG.log(Level.SEVERE, "error getting build information for " +
+                "current instance", e);
+      }
+
         if (!installBi.equals(instanceBi)) {
           System.err.println(ERR_CHECK_VERSION_NOT_MATCH.get());
           System.exit(VERSION_ERROR);
         }
-      } catch (ApplicationException ae) {
-        System.err.println(ae.getMessageObject());
-        System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
-      }
     } else {
       LOG.log(Level.FINEST, "checkVersion not specified");
     }
