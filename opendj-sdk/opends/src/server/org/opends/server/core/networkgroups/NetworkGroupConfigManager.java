@@ -337,6 +337,15 @@ public class NetworkGroupConfigManager
           }
         }
       }
+
+      // Update the client connection affinity policy.
+      existingNetworkGroup.setAffinityPolicy(
+        ClientConnectionAffinityPolicy.toClientConnectionAffinityPolicy(
+          configuration.getAffinityPolicy()));
+
+      // Update the client connection affinity timeout
+      existingNetworkGroup.setAffinityTimeout(
+        configuration.getAffinityTimeout());
     }
 
     configChangeResult =
