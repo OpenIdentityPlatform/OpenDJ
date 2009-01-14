@@ -626,12 +626,12 @@ public class ReplicationServerDomain
       logError(errorMsg);
     } else if (sourceGroupId != groupId)
     {
-      // Assured feature does not cross different group ids
+      // Assured feature does not cross different group IDS
     } else
     {
       if ((generationId > 0) &&
         (generationId == sourceHandler.getGenerationId()))
-        // Ignore assured updates from wrong generationid servers
+        // Ignore assured updates from wrong generationId servers
       {
         if (sourceHandler.isLDAPserver())
         {
@@ -662,7 +662,7 @@ public class ReplicationServerDomain
             }
           }
         } else
-        { // A RS sent us the safe data message, for sure no futher acks to wait
+        { // A RS sent us the safe data message, for sure no further ack to wait
           if (safeDataLevel == (byte) 1)
           {
             /**

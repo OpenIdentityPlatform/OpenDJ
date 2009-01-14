@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -258,34 +258,41 @@ public class AddMsg extends LDAPUpdateMsg
   @Override
   public byte[] getBytes() throws UnsupportedEncodingException
   {
-    int length = encodedAttributes.length;
-    byte[] byteParentId = null;
-    if (parentUniqueId != null)
+    if (bytes == null)
     {
-      byteParentId = parentUniqueId.getBytes("UTF-8");
-      length += byteParentId.length + 1;
+      int length = encodedAttributes.length;
+      byte[] byteParentId = null;
+      if (parentUniqueId != null)
+      {
+        byteParentId = parentUniqueId.getBytes("UTF-8");
+        length += byteParentId.length + 1;
+      }
+      else
+      {
+        length += 1;
+      }
+
+      /* encode the header in a byte[] large enough to also contain the mods */
+      byte [] resultByteArray = encodeHeader(MSG_TYPE_ADD, length);
+
+      int pos = resultByteArray.length - length;
+
+      if (byteParentId != null)
+        pos = addByteArray(byteParentId, resultByteArray, pos);
+      else
+        resultByteArray[pos++] = 0;
+
+      /* put the attributes */
+      for (int i=0; i<encodedAttributes.length; i++,pos++)
+      {
+        resultByteArray[pos] = encodedAttributes[i];
+      }
+      return resultByteArray;
     }
     else
     {
-      length += 1;
+      return bytes;
     }
-
-    /* encode the header in a byte[] large enough to also contain the mods */
-    byte [] resultByteArray = encodeHeader(MSG_TYPE_ADD, length);
-
-    int pos = resultByteArray.length - length;
-
-    if (byteParentId != null)
-      pos = addByteArray(byteParentId, resultByteArray, pos);
-    else
-      resultByteArray[pos++] = 0;
-
-    /* put the attributes */
-    for (int i=0; i<encodedAttributes.length; i++,pos++)
-    {
-      resultByteArray[pos] = encodedAttributes[i];
-    }
-    return resultByteArray;
   }
 
   /**

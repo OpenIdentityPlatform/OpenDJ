@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -106,7 +106,14 @@ public class DeleteMsg extends LDAPUpdateMsg
   @Override
   public byte[] getBytes() throws UnsupportedEncodingException
   {
-    return encodeHeader(MSG_TYPE_DELETE, 0);
+    if (bytes == null)
+    {
+     return encodeHeader(MSG_TYPE_DELETE, 0);
+    }
+    else
+    {
+      return bytes;
+    }
   }
 
   /**

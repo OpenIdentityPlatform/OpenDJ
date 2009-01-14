@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.common;
 
@@ -35,9 +35,13 @@ public class ChangeNumber implements java.io.Serializable,
                                      java.lang.Comparable<ChangeNumber>
 {
   private static final long serialVersionUID = -8802722277749190740L;
-  private long timeStamp;
-  private int seqnum;
-  private short serverId;
+  private final long timeStamp;
+  private final int seqnum;
+  private final short serverId;
+
+  // A String representation of the ChangeNumber suitable for network
+  // transmission.
+  private String formatedString = null;;
 
   /**
    * Create a new ChangeNumber from a String.
@@ -54,6 +58,8 @@ public class ChangeNumber implements java.io.Serializable,
 
     temp = str.substring(20, 28);
     seqnum = Integer.parseInt(temp, 16);
+
+    formatedString = str;
   }
 
   /**
@@ -141,11 +147,27 @@ public class ChangeNumber implements java.io.Serializable,
    */
   public String toString()
   {
+    return format();
+  }
+
+  /**
+   * Convert the ChangeNumber to a String that is suitable for network
+   * transmission.
+   *
+   * @return the string
+   */
+  public String format()
+  {
+    if (formatedString != null)
+      return formatedString;
+
     return String.format("%016x%04x%08x", timeStamp, serverId, seqnum);
   }
 
   /**
-   * Convert the ChangeNumber to a printable String that is .
+   * Convert the ChangeNumber to a printable String with a user friendly
+   * format.
+   *
    * @return the string
    */
   public String toStringUI()
