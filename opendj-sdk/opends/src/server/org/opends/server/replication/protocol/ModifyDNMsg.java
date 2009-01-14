@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -524,56 +524,63 @@ public class ModifyDNMsg extends ModifyCommonMsg
    */
   public byte[] getBytes_V1() throws UnsupportedEncodingException
   {
-    byte[] byteNewRdn = newRDN.getBytes("UTF-8");
-    byte[] byteNewSuperior = null;
-    byte[] byteNewSuperiorId = null;
-
-    // calculate the length necessary to encode the parameters
-    int length = byteNewRdn.length + 1 + 1;
-    if (newSuperior != null)
+    if (bytes == null)
     {
-      byteNewSuperior = newSuperior.getBytes("UTF-8");
-      length += byteNewSuperior.length + 1;
+      byte[] byteNewRdn = newRDN.getBytes("UTF-8");
+      byte[] byteNewSuperior = null;
+      byte[] byteNewSuperiorId = null;
+
+      // calculate the length necessary to encode the parameters
+      int length = byteNewRdn.length + 1 + 1;
+      if (newSuperior != null)
+      {
+        byteNewSuperior = newSuperior.getBytes("UTF-8");
+        length += byteNewSuperior.length + 1;
+      }
+      else
+        length += 1;
+
+      if (newSuperiorId != null)
+      {
+        byteNewSuperiorId = newSuperiorId.getBytes("UTF-8");
+        length += byteNewSuperiorId.length + 1;
+      }
+      else
+        length += 1;
+
+      byte[] resultByteArray = encodeHeader_V1(MSG_TYPE_MODIFYDN_V1, length);
+      int pos = resultByteArray.length - length;
+
+      /* put the new RDN and a terminating 0 */
+      pos = addByteArray(byteNewRdn, resultByteArray, pos);
+
+      /* put the newsuperior and a terminating 0 */
+      if (newSuperior != null)
+      {
+        pos = addByteArray(byteNewSuperior, resultByteArray, pos);
+      }
+      else
+        resultByteArray[pos++] = 0;
+
+      /* put the newsuperiorId and a terminating 0 */
+      if (newSuperiorId != null)
+      {
+        pos = addByteArray(byteNewSuperiorId, resultByteArray, pos);
+      }
+      else
+        resultByteArray[pos++] = 0;
+
+      /* put the deleteoldrdn flag */
+      if (deleteOldRdn)
+        resultByteArray[pos++] = 1;
+      else
+        resultByteArray[pos++] = 0;
+
+      return resultByteArray;
     }
     else
-      length += 1;
-
-    if (newSuperiorId != null)
     {
-      byteNewSuperiorId = newSuperiorId.getBytes("UTF-8");
-      length += byteNewSuperiorId.length + 1;
+      return bytes;
     }
-    else
-      length += 1;
-
-    byte[] resultByteArray = encodeHeader_V1(MSG_TYPE_MODIFYDN_V1, length);
-    int pos = resultByteArray.length - length;
-
-    /* put the new RDN and a terminating 0 */
-    pos = addByteArray(byteNewRdn, resultByteArray, pos);
-
-    /* put the newsuperior and a terminating 0 */
-    if (newSuperior != null)
-    {
-      pos = addByteArray(byteNewSuperior, resultByteArray, pos);
-    }
-    else
-      resultByteArray[pos++] = 0;
-
-    /* put the newsuperiorId and a terminating 0 */
-    if (newSuperiorId != null)
-    {
-      pos = addByteArray(byteNewSuperiorId, resultByteArray, pos);
-    }
-    else
-      resultByteArray[pos++] = 0;
-
-    /* put the deleteoldrdn flag */
-    if (deleteOldRdn)
-      resultByteArray[pos++] = 1;
-    else
-      resultByteArray[pos++] = 0;
-
-    return resultByteArray;
   }
 }

@@ -49,6 +49,7 @@ import org.opends.server.types.Attributes;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -869,7 +870,18 @@ public class LDAPReplicationDomain extends ReplicationDomain
         }
         else
         {
-          pendingChanges.commit(curChangeNumber, msg);
+          // If assured replication is configured, this will prepare blocking
+          // mechanism. If assured replication is disabled, this returns
+          // immediately
+          prepareWaitForAckIfAssuredEnabled(msg);
+          try
+          {
+            msg.encode();
+          } catch (UnsupportedEncodingException e)
+          {
+            // will be caught at publish time.
+          }
+          pendingChanges.commitAndPushCommittedChanges(curChangeNumber, msg);
         }
       }
       catch  (NoSuchElementException e)
@@ -892,18 +904,12 @@ public class LDAPReplicationDomain extends ReplicationDomain
       if (curChangeNumber != null)
       {
         pendingChanges.remove(curChangeNumber);
+        pendingChanges.pushCommittedChanges();
       }
     }
 
     if (!op.isSynchronizationOperation())
     {
-      // If assured replication is configured, this will prepare blocking
-      // mechanism. If assured replication is disabled, this returns
-      // immediately
-      prepareWaitForAckIfAssuredEnabled(msg);
-
-      pendingChanges.pushCommittedChanges();
-
       // If assured replication is enabled, this will wait for the matching
       // ack or time out. If assured replication is disabled, this returns
       // immediately

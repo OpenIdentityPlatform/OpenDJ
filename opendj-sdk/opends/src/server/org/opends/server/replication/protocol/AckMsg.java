@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -241,13 +241,13 @@ public class AckMsg extends ReplicationMsg
        * error><failed server ids>
        */
 
-      ByteArrayOutputStream oStream = new ByteArrayOutputStream();
+      ByteArrayOutputStream oStream = new ByteArrayOutputStream(200);
 
       /* Put the type of the operation */
       oStream.write(MSG_TYPE_ACK);
 
       /* Put the ChangeNumber */
-      byte[] changeNumberByte = changeNumber.toString().getBytes("UTF-8");
+      byte[] changeNumberByte = changeNumber.format().getBytes("UTF-8");
       oStream.write(changeNumberByte);
       oStream.write(0);
 

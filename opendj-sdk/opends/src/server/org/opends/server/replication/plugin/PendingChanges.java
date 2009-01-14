@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -113,6 +113,18 @@ public class PendingChanges
   public synchronized void commit(ChangeNumber changeNumber,
       LDAPUpdateMsg msg)
   {
+    _commit(changeNumber, msg);
+  }
+  /**
+   * Mark an update message as committed.
+   *
+   * @param changeNumber The ChangeNumber of the update message that must be
+   *                     set as committed.
+   * @param msg          The message associated to the update.
+   */
+  public void _commit(ChangeNumber changeNumber,
+      LDAPUpdateMsg msg)
+  {
     PendingChange curChange = pendingChanges.get(changeNumber);
     if (curChange == null)
     {
@@ -149,6 +161,18 @@ public class PendingChanges
    */
   public synchronized ChangeNumber putLocalOperation(PluginOperation operation)
   {
+    return _putLocalOperation(operation);
+  }
+  /**
+   * Add a new UpdateMsg to the pending list from the provided local
+   * operation.
+   *
+   * @param operation The local operation for which an UpdateMsg must
+   *                  be added in the pending list.
+   * @return The ChangeNumber now associated to the operation.
+   */
+  public  ChangeNumber _putLocalOperation(PluginOperation operation)
+  {
     ChangeNumber changeNumber;
 
     changeNumber = changeNumberGenerator.newChangeNumber();
@@ -164,6 +188,15 @@ public class PendingChanges
    * @return The number of pushed updates.
    */
   public synchronized int pushCommittedChanges()
+  {
+    return _pushCommittedChanges();
+  }
+  /**
+   * Push all committed local changes to the replicationServer service.
+   *
+   * @return The number of pushed updates.
+   */
+  public int _pushCommittedChanges()
   {
     int numSentUpdates = 0;
     if (pendingChanges.isEmpty())
@@ -194,5 +227,25 @@ public class PendingChanges
       }
     }
     return numSentUpdates;
+  }
+
+  /**
+   * Mark an update message as committed, then
+   * push all committed local changes to the replicationServer service
+   * in a single atomic operation.
+   *
+   *
+   * @param changeNumber The ChangeNumber of the update message that must be
+   *                     set as committed.
+   * @param msg          The message associated to the update.
+   *
+   * @return The number of pushed updates.
+   */
+  public synchronized int commitAndPushCommittedChanges(
+      ChangeNumber changeNumber,
+      LDAPUpdateMsg msg)
+  {
+    _commit(changeNumber, msg);
+    return _pushCommittedChanges();
   }
 }

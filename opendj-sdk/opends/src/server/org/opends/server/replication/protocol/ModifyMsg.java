@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -92,6 +92,8 @@ public class ModifyMsg extends ModifyCommonMsg
   public ModifyMsg(byte[] in) throws DataFormatException,
                                      UnsupportedEncodingException
   {
+    bytes = in;
+
     // Decode header
     byte[] allowedPduTypes = new byte[2];
     allowedPduTypes[0] = MSG_TYPE_MODIFY;
@@ -117,19 +119,44 @@ public class ModifyMsg extends ModifyCommonMsg
   }
 
   /**
+   * Creates a new Modify message from a V1 byte[].
+   *
+   * @param in The byte[] from which the operation must be read.
+   * @throws DataFormatException If the input byte[] is not a valid ModifyMsg
+   * @throws UnsupportedEncodingException If UTF8 is not supported by the JVM.
+   *
+   * @return The created ModifyMsg.
+   */
+  public static ModifyMsg createV1(byte[] in) throws DataFormatException,
+                                     UnsupportedEncodingException
+  {
+    ModifyMsg msg = new ModifyMsg(in);
+    msg.bytes = null;
+
+    return msg;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
   public byte[] getBytes() throws UnsupportedEncodingException
   {
-    /* encode the header in a byte[] large enough to also contain the mods */
-    byte[] encodedMsg = encodeHeader(MSG_TYPE_MODIFY, encodedMods.length + 1);
+    if (bytes == null)
+    {
+      /* encode the header in a byte[] large enough to also contain the mods */
+      byte[] mybytes = encodeHeader(MSG_TYPE_MODIFY, encodedMods.length + 1);
 
-    /* add the mods */
-    int pos = encodedMsg.length - (encodedMods.length + 1);
-    addByteArray(encodedMods, encodedMsg, pos);
+      /* add the mods */
+      int pos = mybytes.length - (encodedMods.length + 1);
+      addByteArray(encodedMods, mybytes, pos);
 
-    return encodedMsg;
+      return mybytes;
+    }
+    else
+    {
+      return bytes;
+    }
   }
 
   /**

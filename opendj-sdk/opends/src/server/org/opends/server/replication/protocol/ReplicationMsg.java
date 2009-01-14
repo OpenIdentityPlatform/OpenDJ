@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -143,8 +143,10 @@ public abstract class ReplicationMsg
         throw new NotSupportedOldVersionPDUException("Replication Server Info",
           ProtocolVersion.REPLICATION_PROTOCOL_V1, buffer[0]);
       case MSG_TYPE_MODIFY:
+        msg = new ModifyMsg(buffer);
+      break;
       case MSG_TYPE_MODIFY_V1:
-          msg = new ModifyMsg(buffer);
+          msg = ModifyMsg.createV1(buffer);
       break;
       case MSG_TYPE_ADD:
       case MSG_TYPE_ADD_V1:

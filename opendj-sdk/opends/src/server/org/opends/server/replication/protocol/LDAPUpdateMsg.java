@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -56,6 +56,11 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * The uniqueId of the entry that was updated.
    */
   protected String uniqueId;
+
+  /**
+   * Encoded form of the LDAPUpdateMsg.
+   */
+  protected byte[] bytes = null;
 
   /**
    * Creates a new UpdateMsg.
@@ -158,6 +163,20 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
     return uniqueId;
   }
 
+  /**
+   * Do all the work necessary for the encoding.
+   *
+   * This is useful in case when one wants to perform this outside
+   * of a synchronized portion of code.
+   *
+   * This method is not synchronized and therefore not MT safe.
+   *
+   * @throws UnsupportedEncodingException when encoding fails.
+   */
+  public void encode() throws UnsupportedEncodingException
+  {
+    bytes = getBytes();
+  }
 
   /**
    * Create and Operation from the message.
