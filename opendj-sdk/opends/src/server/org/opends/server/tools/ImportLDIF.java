@@ -22,11 +22,18 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
 
+
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.tools.ToolConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -36,50 +43,42 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
-import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.api.DebugLogPublisher;
+import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
-import static org.opends.server.config.ConfigConstants.*;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.loggers.TextWriter;
-import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.TextDebugLogPublisher;
+import org.opends.server.loggers.TextErrorLogPublisher;
+import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.debug.DebugLogger;
-
+import org.opends.server.loggers.debug.TextDebugLogPublisher;
+import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.tasks.ImportTask;
 import org.opends.server.tools.makeldif.TemplateFile;
+import org.opends.server.tools.tasks.TaskTool;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.NullOutputStream;
-import org.opends.server.types.SearchFilter;
 import org.opends.server.types.RawAttribute;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.IntegerArgument;
-import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
-
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.messages.ToolMessages.*;
-import org.opends.messages.Message;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.tools.ToolConstants.*;
-import org.opends.server.tools.tasks.TaskTool;
-import org.opends.server.tasks.ImportTask;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.util.args.StringArgument;
 
 
 /**
@@ -448,6 +447,19 @@ public class ImportLDIF extends TaskTool {
       return 1;
     }
 
+    // Count rejects option requires the ability to return result codes
+    // which are potentially greater than 1. This is not supported by
+    // the task framework.
+    if (countRejects.isPresent()
+        && argParser.connectionArgumentsPresent())
+    {
+      Message message =
+          ERR_LDIFIMPORT_COUNT_REJECTS_REQUIRES_OFFLINE
+              .get(countRejects.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
     // Don't write non-error messages to console if quite
     if (quietMode.isPresent()) {
       out = new PrintStream(NullOutputStream.instance());
@@ -653,6 +665,7 @@ public class ImportLDIF extends TaskTool {
   /**
    * {@inheritDoc}
    */
+  @Override
   protected int processLocal(boolean initializeServer,
                            PrintStream out,
                            PrintStream err) {
