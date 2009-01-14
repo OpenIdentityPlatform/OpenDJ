@@ -1138,7 +1138,7 @@ public abstract class ReplicationDomain
    * @return The source as a short value
    * @throws DirectoryException if the string is not valid
    */
-  short decodeTarget(String targetString)
+  public short decodeTarget(String targetString)
   throws DirectoryException
   {
     short  target = 0;
