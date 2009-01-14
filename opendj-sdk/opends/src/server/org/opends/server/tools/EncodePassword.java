@@ -33,27 +33,46 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.server.BackendCfg;
+import org.opends.server.admin.std.server.LDIFBackendCfg;
+import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.admin.std.server.TrustStoreBackendCfg;
+import org.opends.server.api.Backend;
 import org.opends.server.api.PasswordStorageScheme;
+import org.opends.server.api.plugin.PluginType;
+import org.opends.server.config.ConfigConstants;
+import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordStorageSchemeConfigManager;
+import org.opends.server.crypto.CryptoManagerSync;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
+import org.opends.server.types.WritabilityMode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.StringArgument;
+import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+
+import org.opends.server.loggers.debug.DebugTracer;
+import static org.opends.messages.ConfigMessages.*;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -72,6 +91,13 @@ import static org.opends.server.tools.ToolConstants.*;
  */
 public class EncodePassword
 {
+
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
+
   /**
    * Processes the command-line arguments and performs the requested action.
    *
@@ -450,6 +476,9 @@ public class EncodePassword
       }
 
 
+      if(!initializeServerComponents(directoryServer, err))
+          return -1;
+
       // Initialize the password storage schemes.
       try
       {
@@ -792,6 +821,147 @@ public class EncodePassword
 
     // If we've gotten here, then all processing completed successfully.
     return 0;
+  }
+
+
+
+  private static boolean
+          initializeServerComponents(DirectoryServer directoryServer,
+                                     PrintStream err) {
+
+      // Initialize the Directory Server crypto manager.
+      try
+      {
+        directoryServer.initializeCryptoManager();
+      }
+      catch (ConfigException ce)
+      {
+        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+                ce.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return false;
+      }
+      catch (InitializationException ie)
+      {
+        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+                ie.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return false;
+      }
+      catch (Exception e)
+      {
+        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+                getExceptionMessage(e));
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return false;
+      }
+      //Attempt to bring up enough of the server to process schemes requiring
+      //secret keys from the trust store backend (3DES, BLOWFISH, AES, RC4) via
+      //the crypto-manager.
+      try {
+          // Initialize the root DNs.
+          directoryServer.initializeRootDNConfigManager();
+          //Initialize plugins.
+          HashSet<PluginType> pluginTypes = new HashSet<PluginType>(1);
+          directoryServer.initializePlugins(pluginTypes);
+          //Initialize Trust Backend.
+          initializeServerBackends(directoryServer);
+          //Initialize PWD policy components.
+          directoryServer.initializePasswordPolicyComponents();
+          //Load the crypto-manager key cache among other things.
+         new CryptoManagerSync();
+    } catch (InitializationException ie) {
+        Message message = ERR_ENCPW_CANNOT_INITIALIZE_SERVER_COMPONENTS.get(
+                getExceptionMessage(ie));
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return false;
+    } catch (ConfigException ce) {
+        Message message = ERR_ENCPW_CANNOT_INITIALIZE_SERVER_COMPONENTS.get(
+                getExceptionMessage(ce));
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return false;
+    }
+    return true;
+  }
+
+  private static void initializeServerBackends(DirectoryServer directoryServer)
+  throws InitializationException, ConfigException {
+    directoryServer.initializeRootDSE();
+    ServerManagementContext context = ServerManagementContext.getInstance();
+    RootCfg root = context.getRootConfiguration();
+    ConfigEntry backendRoot;
+    try {
+      DN configEntryDN = DN.decode(ConfigConstants.DN_BACKEND_BASE);
+      backendRoot   = DirectoryServer.getConfigEntry(configEntryDN);
+    } catch (Exception e) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      Message message = ERR_CONFIG_BACKEND_CANNOT_GET_CONFIG_BASE.get(
+          getExceptionMessage(e));
+      throw new ConfigException(message, e);
+    }
+    if (backendRoot == null) {
+      Message message = ERR_CONFIG_BACKEND_BASE_DOES_NOT_EXIST.get();
+      throw new ConfigException(message);
+    }
+    for (String name : root.listBackends()) {
+      BackendCfg backendCfg = root.getBackend(name);
+      String backendID = backendCfg.getBackendId();
+      if(backendCfg instanceof TrustStoreBackendCfg ||
+          backendCfg instanceof LDIFBackendCfg) {
+        if(backendCfg.isEnabled()) {
+          String className = backendCfg.getJavaClass();
+          Class backendClass;
+          Backend backend;
+          try {
+            backendClass = DirectoryServer.loadClass(className);
+            backend = (Backend) backendClass.newInstance();
+          } catch (Exception e) {
+            if (debugEnabled()) {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+            Message message =
+              ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
+                  String.valueOf(className),
+                  String.valueOf(backendCfg.dn()),
+                  stackTraceToSingleLineString(e));
+            logError(message);
+            continue;
+          }
+          backend.setBackendID(backendID);
+          backend.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
+          try {
+            backend.configureBackend(backendCfg);
+            backend.initializeBackend();
+          } catch (Exception e) {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+            Message message =
+              ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(
+                  String.valueOf(className),
+                  String.valueOf(backendCfg.dn()),
+                  stackTraceToSingleLineString(e));
+            logError(message);
+          }
+          try {
+            DirectoryServer.registerBackend(backend);
+          } catch (Exception e)
+          {
+            if (debugEnabled()) {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+            Message message =
+              WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND.get(
+                  backendCfg.getBackendId(),
+                  getExceptionMessage(e));
+            logError(message);
+          }
+        }
+      }
+    }
   }
 }
 
