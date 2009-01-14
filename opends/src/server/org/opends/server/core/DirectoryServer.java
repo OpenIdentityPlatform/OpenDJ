@@ -2921,6 +2921,52 @@ public class DirectoryServer
 
 
   /**
+   *  Initializes the root DN Config Manager in the Directory Server.
+   *
+   * @throws ConfigException If a problem occurs registering a DN.
+   * @throws InitializationException If a problem occurs initializing the root
+   *                                 DN manager.
+   */
+  public void initializeRootDNConfigManager()
+         throws ConfigException, InitializationException{
+    rootDNConfigManager = new RootDNConfigManager();
+    rootDNConfigManager.initializeRootDNs();
+  }
+
+
+
+  /**
+   * Initialize the root DSE in the Directory Server.
+   *
+   * @throws ConfigException If a problem occurs retrieving the root DSE backend
+   *                         configuration.
+   * @throws InitializationException If a problem occurs initializing the root
+   *                                 root DSE backend.
+   */
+  public void initializeRootDSE()
+         throws ConfigException, InitializationException {
+  RootDSEBackendCfg rootDSECfg;
+  try {
+    RootCfg root =
+         ServerManagementContext.getInstance().getRootConfiguration();
+    rootDSECfg = root.getRootDSEBackend();
+  }  catch (Exception e) {
+    if (debugEnabled())
+    {
+      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+    }
+    Message message = ERR_CANNOT_GET_ROOT_DSE_CONFIG_ENTRY.get(
+        stackTraceToSingleLineString(e));
+    throw new InitializationException(message, e);
+  }
+  rootDSEBackend = new RootDSEBackend();
+  rootDSEBackend.configureBackend(rootDSECfg);
+  rootDSEBackend.initializeBackend();
+}
+
+
+
+  /**
    * Retrieves a reference to the Directory Server plugin configuration manager.
    *
    * @return  A reference to the Directory Server plugin configuration manager.
