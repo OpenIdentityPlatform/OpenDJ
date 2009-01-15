@@ -244,9 +244,11 @@ public class ReplicationServerDomain
         AssuredMode assuredMode = update.getAssuredMode();
         if (assuredMode == AssuredMode.SAFE_DATA_MODE)
         {
+          sourceHandler.incrementAssuredSdReceivedUpdates();
           preparedAssuredInfo = processSafeDataUpdateMsg(update, sourceHandler);
         } else if (assuredMode == AssuredMode.SAFE_READ_MODE)
         {
+          sourceHandler.incrementAssuredSrReceivedUpdates();
           preparedAssuredInfo = processSafeReadUpdateMsg(update, sourceHandler);
         } else
         {
@@ -866,6 +868,58 @@ public class ReplicationServerDomain
             mb.append(stackTraceToSingleLineString(e));
             logError(mb.toMessage());
             stopServer(origServer);
+          }
+          // Increment assured counters
+          boolean safeRead =
+            (expectedAcksInfo instanceof SafeReadExpectedAcksInfo)
+            ? true : false;
+          if (safeRead)
+          {
+            origServer.incrementAssuredSrReceivedUpdatesTimeout();
+          } else
+          {
+            if (origServer.isLDAPserver())
+            {
+              origServer.incrementAssuredSdReceivedUpdatesTimeout();
+            }
+          }
+          //   retrieve expected servers in timeout to increment their counter
+          List<Short> serversInTimeout = expectedAcksInfo.getTimeoutServers();
+          for (Short serverId : serversInTimeout)
+          {
+            ServerHandler expectedServerInTimeout =
+              directoryServers.get(serverId);
+            if (expectedServerInTimeout != null)
+            {
+              // Was a DS
+              if (safeRead)
+              {
+                expectedServerInTimeout.incrementAssuredSrSentUpdatesTimeout();
+              } else
+              {
+                // No SD update sent to a DS (meaningless)
+              }
+            } else
+            {
+              expectedServerInTimeout =
+                replicationServers.get(serverId);
+              if (expectedServerInTimeout != null)
+              {
+                // Was a RS
+                if (safeRead)
+                {
+                  expectedServerInTimeout.
+                    incrementAssuredSrSentUpdatesTimeout();
+                } else
+                {
+                  expectedServerInTimeout.
+                    incrementAssuredSdSentUpdatesTimeout();
+                }
+              } else
+              {
+                // Server disappeared ? Let's forget about it.
+              }
+            }
           }
           // Mark the ack info object as completed to prevent potential
           // processAck() code parallel run

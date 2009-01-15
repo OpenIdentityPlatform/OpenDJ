@@ -2395,9 +2395,9 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd1.getAssuredSrWrongStatusUpdates(), 0);
       assertEquals(fakeRd1.getAssuredSrReplayErrorUpdates(), 0);
       assertEquals(fakeRd1.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdates(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesAcked(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdates(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdatesAcked(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       // Sanity check
       assertEquals(fakeRd1.getReceivedUpdates(), 0);
@@ -2444,9 +2444,9 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd1.getAssuredSrWrongStatusUpdates(), 0);
       assertEquals(fakeRd1.getAssuredSrReplayErrorUpdates(), 0);
       assertEquals(fakeRd1.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdates(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesAcked(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdates(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdatesAcked(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       assertEquals(fakeRd2.getAssuredSrSentUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrAcknowledgedUpdates(), 0);
@@ -2455,9 +2455,9 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd2.getAssuredSrWrongStatusUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrReplayErrorUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdates(), 1);
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesAcked(), 1);
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesNotAcked(), 0);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdates(), 1);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdatesAcked(), 1);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       // Sanity check
       assertEquals(fakeRd1.getReceivedUpdates(), 0);
@@ -2504,9 +2504,9 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd1.getAssuredSrWrongStatusUpdates(), 0);
       assertEquals(fakeRd1.getAssuredSrReplayErrorUpdates(), 0);
       assertEquals(fakeRd1.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdates(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesAcked(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdates(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdatesAcked(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       assertEquals(fakeRd2.getAssuredSrSentUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrAcknowledgedUpdates(), 0);
@@ -2515,9 +2515,9 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd2.getAssuredSrWrongStatusUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrReplayErrorUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdates(), 2);
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesAcked(), 2);
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesNotAcked(), 0);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdates(), 2);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdatesAcked(), 2);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       // Sanity check
       assertEquals(fakeRd1.getReceivedUpdates(), 0);
@@ -2566,9 +2566,9 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd1.getAssuredSrWrongStatusUpdates(), 0);
       assertEquals(fakeRd1.getAssuredSrReplayErrorUpdates(), 0);
       assertEquals(fakeRd1.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdates(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesAcked(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdates(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdatesAcked(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       // Sanity check
       assertEquals(fakeRd1.getReceivedUpdates(), 0);
@@ -2614,9 +2614,9 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd1.getAssuredSrWrongStatusUpdates(), 0);
       assertEquals(fakeRd1.getAssuredSrReplayErrorUpdates(), 0);
       assertEquals(fakeRd1.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdates(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesAcked(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdates(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdatesAcked(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       // Sanity check
       assertEquals(fakeRd1.getReceivedUpdates(), 0);
@@ -2910,9 +2910,9 @@ public class AssuredReplicationServerTest
         expectedErrors.put(DS_FRS2_ID, 1);
       checkServerErrorListsAreEqual(fakeRd1.getAssuredSrServerNotAcknowledgedUpdates(), expectedErrors);
       
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdates(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesAcked(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdates(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdatesAcked(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       // Check monitoring values in DS 2
       //
@@ -2923,9 +2923,9 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd2.getAssuredSrWrongStatusUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrReplayErrorUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdates(), 1);
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesAcked(), 1);
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesNotAcked(), 0);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdates(), 1);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdatesAcked(), 1);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       // Check monitoring values in DS 3
       //
@@ -2938,30 +2938,30 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd3.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
       if (dsIsEligible)
       {
-        assertEquals(fakeRd3.getReceivedAssuredSrUpdates(), 1);
+        assertEquals(fakeRd3.getAssuredSrReceivedUpdates(), 1);
         if (dsIsExpected)
         {
-          assertEquals(fakeRd3.getReceivedAssuredSrUpdatesAcked(), 1);
-          assertEquals(fakeRd3.getReceivedAssuredSrUpdatesNotAcked(), 0);
+          assertEquals(fakeRd3.getAssuredSrReceivedUpdatesAcked(), 1);
+          assertEquals(fakeRd3.getAssuredSrReceivedUpdatesNotAcked(), 0);
         } else
         {
           if (shouldSeeReplayError && (otherFakeDsScen == REPLAY_ERROR_DS_SCENARIO))
           {
             // Replay error for the other DS
-            assertEquals(fakeRd3.getReceivedAssuredSrUpdatesAcked(), 0);
-            assertEquals(fakeRd3.getReceivedAssuredSrUpdatesNotAcked(), 1);
+            assertEquals(fakeRd3.getAssuredSrReceivedUpdatesAcked(), 0);
+            assertEquals(fakeRd3.getAssuredSrReceivedUpdatesNotAcked(), 1);
           } else
           {
-            assertEquals(fakeRd3.getReceivedAssuredSrUpdatesAcked(), 0);
-            assertEquals(fakeRd3.getReceivedAssuredSrUpdatesNotAcked(), 0);
+            assertEquals(fakeRd3.getAssuredSrReceivedUpdatesAcked(), 0);
+            assertEquals(fakeRd3.getAssuredSrReceivedUpdatesNotAcked(), 0);
           }
         }
       }
       else
       {
-        assertEquals(fakeRd3.getReceivedAssuredSrUpdates(), 0);
-        assertEquals(fakeRd3.getReceivedAssuredSrUpdatesAcked(), 0);
-        assertEquals(fakeRd3.getReceivedAssuredSrUpdatesNotAcked(), 0);
+        assertEquals(fakeRd3.getAssuredSrReceivedUpdates(), 0);
+        assertEquals(fakeRd3.getAssuredSrReceivedUpdatesAcked(), 0);
+        assertEquals(fakeRd3.getAssuredSrReceivedUpdatesNotAcked(), 0);
       }
 
       // Sanity check
@@ -3358,9 +3358,9 @@ public class AssuredReplicationServerTest
     assertEquals(fakeRd.getAssuredSrWrongStatusUpdates(), 0);
     assertEquals(fakeRd.getAssuredSrReplayErrorUpdates(), 0);
     assertEquals(fakeRd.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
-    assertEquals(fakeRd.getReceivedAssuredSrUpdates(), nPacket);
-    assertEquals(fakeRd.getReceivedAssuredSrUpdatesAcked(), nPacket);
-    assertEquals(fakeRd.getReceivedAssuredSrUpdatesNotAcked(), 0);
+    assertEquals(fakeRd.getAssuredSrReceivedUpdates(), nPacket);
+    assertEquals(fakeRd.getAssuredSrReceivedUpdatesAcked(), nPacket);
+    assertEquals(fakeRd.getAssuredSrReceivedUpdatesNotAcked(), 0);
   }
 
   // Helper method for some safe read test methods
@@ -3373,9 +3373,9 @@ public class AssuredReplicationServerTest
     assertEquals(fakeRd.getAssuredSrWrongStatusUpdates(), 0);
     assertEquals(fakeRd.getAssuredSrReplayErrorUpdates(), 0);
     assertEquals(fakeRd.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
-    assertEquals(fakeRd.getReceivedAssuredSrUpdates(), 0);
-    assertEquals(fakeRd.getReceivedAssuredSrUpdatesAcked(), 0);
-    assertEquals(fakeRd.getReceivedAssuredSrUpdatesNotAcked(), 0);
+    assertEquals(fakeRd.getAssuredSrReceivedUpdates(), 0);
+    assertEquals(fakeRd.getAssuredSrReceivedUpdatesAcked(), 0);
+    assertEquals(fakeRd.getAssuredSrReceivedUpdatesNotAcked(), 0);
   }
 
   /**
@@ -3478,9 +3478,9 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd3.getAssuredSrWrongStatusUpdates(), 0);
       assertEquals(fakeRd3.getAssuredSrReplayErrorUpdates(), 0);
       assertEquals(fakeRd3.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
-      assertEquals(fakeRd3.getReceivedAssuredSrUpdates(), 0);
-      assertEquals(fakeRd3.getReceivedAssuredSrUpdatesAcked(), 0);
-      assertEquals(fakeRd3.getReceivedAssuredSrUpdatesNotAcked(), 0);
+      assertEquals(fakeRd3.getAssuredSrReceivedUpdates(), 0);
+      assertEquals(fakeRd3.getAssuredSrReceivedUpdatesAcked(), 0);
+      assertEquals(fakeRd3.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       assertEquals(fakeRd4.getAssuredSrSentUpdates(), 0);
       assertEquals(fakeRd4.getAssuredSrAcknowledgedUpdates(), 0);
@@ -3489,9 +3489,9 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd4.getAssuredSrWrongStatusUpdates(), 0);
       assertEquals(fakeRd4.getAssuredSrReplayErrorUpdates(), 0);
       assertEquals(fakeRd4.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
-      assertEquals(fakeRd4.getReceivedAssuredSrUpdates(), 0);
-      assertEquals(fakeRd4.getReceivedAssuredSrUpdatesAcked(), 0);
-      assertEquals(fakeRd4.getReceivedAssuredSrUpdatesNotAcked(), 0);
+      assertEquals(fakeRd4.getAssuredSrReceivedUpdates(), 0);
+      assertEquals(fakeRd4.getAssuredSrReceivedUpdatesAcked(), 0);
+      assertEquals(fakeRd4.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       assertEquals(fakeRd1.getReceivedUpdates(), 0);
       assertTrue(fakeRd1.receivedUpdatesOk());
@@ -3622,9 +3622,9 @@ public class AssuredReplicationServerTest
             Integer nError = failedServer.get(FDS2_ID);
             assertNotNull(nError);
             assertEquals(nError.intValue(), 1);
-            assertEquals(fakeRd1.getReceivedAssuredSrUpdates(), 0);
-            assertEquals(fakeRd1.getReceivedAssuredSrUpdatesAcked(), 0);
-            assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
+            assertEquals(fakeRd1.getAssuredSrReceivedUpdates(), 0);
+            assertEquals(fakeRd1.getAssuredSrReceivedUpdatesAcked(), 0);
+            assertEquals(fakeRd1.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
             assertEquals(fakeRd2.getAssuredSrSentUpdates(), 0);
             assertEquals(fakeRd2.getAssuredSrAcknowledgedUpdates(), 0);
@@ -3633,9 +3633,9 @@ public class AssuredReplicationServerTest
             assertEquals(fakeRd2.getAssuredSrWrongStatusUpdates(), 0);
             assertEquals(fakeRd2.getAssuredSrReplayErrorUpdates(), 0);
             assertEquals(fakeRd2.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
-            assertEquals(fakeRd2.getReceivedAssuredSrUpdates(), 1);
-            assertEquals(fakeRd2.getReceivedAssuredSrUpdatesAcked(), 0);
-            assertEquals(fakeRd2.getReceivedAssuredSrUpdatesNotAcked(), 0);
+            assertEquals(fakeRd2.getAssuredSrReceivedUpdates(), 1);
+            assertEquals(fakeRd2.getAssuredSrReceivedUpdatesAcked(), 0);
+            assertEquals(fakeRd2.getAssuredSrReceivedUpdatesNotAcked(), 0);
             break;
           case REPLAY_ERROR_DS_SCENARIO:
             assertEquals(fakeRd1.getAssuredSrSentUpdates(), 1);
@@ -3649,9 +3649,9 @@ public class AssuredReplicationServerTest
             nError = failedServer.get(FDS2_ID);
             assertNotNull(nError);
             assertEquals(nError.intValue(), 1);
-            assertEquals(fakeRd1.getReceivedAssuredSrUpdates(), 0);
-            assertEquals(fakeRd1.getReceivedAssuredSrUpdatesAcked(), 0);
-            assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
+            assertEquals(fakeRd1.getAssuredSrReceivedUpdates(), 0);
+            assertEquals(fakeRd1.getAssuredSrReceivedUpdatesAcked(), 0);
+            assertEquals(fakeRd1.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
             assertEquals(fakeRd2.getAssuredSrSentUpdates(), 0);
             assertEquals(fakeRd2.getAssuredSrAcknowledgedUpdates(), 0);
@@ -3660,9 +3660,9 @@ public class AssuredReplicationServerTest
             assertEquals(fakeRd2.getAssuredSrWrongStatusUpdates(), 0);
             assertEquals(fakeRd2.getAssuredSrReplayErrorUpdates(), 0);
             assertEquals(fakeRd2.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
-            assertEquals(fakeRd2.getReceivedAssuredSrUpdates(), 1);
-            assertEquals(fakeRd2.getReceivedAssuredSrUpdatesAcked(), 0);
-            assertEquals(fakeRd2.getReceivedAssuredSrUpdatesNotAcked(), 1);
+            assertEquals(fakeRd2.getAssuredSrReceivedUpdates(), 1);
+            assertEquals(fakeRd2.getAssuredSrReceivedUpdatesAcked(), 0);
+            assertEquals(fakeRd2.getAssuredSrReceivedUpdatesNotAcked(), 1);
             break;
           default:
             fail("Unknown scenario: " + fakeDsScen);
@@ -3785,9 +3785,9 @@ public class AssuredReplicationServerTest
       Integer nError = failedServer.get(FDS2_ID);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 4);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdates(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesAcked(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdates(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdatesAcked(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       assertEquals(fakeRd2.getAssuredSrSentUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrAcknowledgedUpdates(), 0);
@@ -3796,9 +3796,9 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd2.getAssuredSrWrongStatusUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrReplayErrorUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdates(), 0);
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesAcked(), 0);
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesNotAcked(), 0);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdatesAcked(), 0);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       assertEquals(fakeRd1.getReceivedUpdates(), 0);
       assertEquals(fakeRd1.getWrongReceivedUpdates(), 0);
@@ -3836,9 +3836,9 @@ public class AssuredReplicationServerTest
       nError = failedServer.get(FDS2_ID);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 4);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdates(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesAcked(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdates(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdatesAcked(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       assertEquals(fakeRd2.getAssuredSrSentUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrAcknowledgedUpdates(), 0);
@@ -3847,9 +3847,9 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd2.getAssuredSrWrongStatusUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrReplayErrorUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdates(), 0);
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesAcked(), 0);
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesNotAcked(), 0);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdates(), 0);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdatesAcked(), 0);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       assertEquals(fakeRd1.getReceivedUpdates(), 0);
       assertEquals(fakeRd1.getWrongReceivedUpdates(), 0);
@@ -3901,9 +3901,9 @@ public class AssuredReplicationServerTest
       nError = failedServer.get(FDS2_ID);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 4);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdates(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesAcked(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdates(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdatesAcked(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       assertEquals(fakeRd2.getAssuredSrSentUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrAcknowledgedUpdates(), 0);
@@ -3912,9 +3912,9 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd2.getAssuredSrWrongStatusUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrReplayErrorUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdates(), 0); // status changed to normal so reset of monitoring data
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesAcked(), 0);
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesNotAcked(), 0);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdates(), 0); // status changed to normal so reset of monitoring data
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdatesAcked(), 0);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       assertEquals(fakeRd1.getReceivedUpdates(), 0);
       assertEquals(fakeRd1.getWrongReceivedUpdates(), 0);
@@ -3952,9 +3952,9 @@ public class AssuredReplicationServerTest
       nError = failedServer.get(FDS2_ID);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 4);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdates(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesAcked(), 0);
-      assertEquals(fakeRd1.getReceivedAssuredSrUpdatesNotAcked(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdates(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdatesAcked(), 0);
+      assertEquals(fakeRd1.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       assertEquals(fakeRd2.getAssuredSrSentUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrAcknowledgedUpdates(), 0);
@@ -3963,9 +3963,9 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd2.getAssuredSrWrongStatusUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrReplayErrorUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdates(), 1);
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesAcked(), 1);
-      assertEquals(fakeRd2.getReceivedAssuredSrUpdatesNotAcked(), 0);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdates(), 1);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdatesAcked(), 1);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       assertEquals(fakeRd1.getReceivedUpdates(), 0);
       assertEquals(fakeRd1.getWrongReceivedUpdates(), 0);

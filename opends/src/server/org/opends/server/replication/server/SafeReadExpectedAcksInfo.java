@@ -220,13 +220,17 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
 
       // Add servers that did not respond in time
       Set<Short> serverIds = expectedServersAckStatus.keySet();
+      serversInTimeout = new ArrayList<Short>(); // Use next loop to fill it
       for (Short serverId : serverIds)
       {
         boolean ackReceived = expectedServersAckStatus.get(serverId);
         if (!ackReceived)
         {
           if (!failedServers.contains(serverId))
+          {
             failedServers.add(serverId);
+            serversInTimeout.add(serverId);
+          }
         }
       }
     }

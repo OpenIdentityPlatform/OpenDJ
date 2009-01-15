@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.service;
 
@@ -210,14 +210,14 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
       attributes.add(builder.toAttribute());
     }
 
-    addMonitorData(attributes, "received-assured-sr-updates",
-      domain.getReceivedAssuredSrUpdates());
+    addMonitorData(attributes, "assured-sr-received-updates",
+      domain.getAssuredSrReceivedUpdates());
 
-    addMonitorData(attributes, "received-assured-sr-updates-acked",
-      domain.getReceivedAssuredSrUpdatesAcked());
+    addMonitorData(attributes, "assured-sr-received-updates-acked",
+      domain.getAssuredSrReceivedUpdatesAcked());
 
-    addMonitorData(attributes, "received-assured-sr-updates-not-acked",
-      domain.getReceivedAssuredSrUpdatesNotAcked());
+    addMonitorData(attributes, "assured-sr-received-updates-not-acked",
+      domain.getAssuredSrReceivedUpdatesNotAcked());
 
     addMonitorData(attributes, "assured-sd-sent-updates",
       domain.getAssuredSdSentUpdates());
