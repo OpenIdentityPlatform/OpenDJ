@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.replication;
@@ -265,7 +265,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
     InternalSearchOperation op = connection.processSearch(
         new ASN1OctetString("cn=monitor"),
         SearchScope.WHOLE_SUBTREE,
-        LDAPFilter.decode("(update-sent=" + WINDOW_SIZE + ")"));
+        LDAPFilter.decode("(sent-updates=" + WINDOW_SIZE + ")"));
 
     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
     assertEquals(op.getEntriesSent(), 1,

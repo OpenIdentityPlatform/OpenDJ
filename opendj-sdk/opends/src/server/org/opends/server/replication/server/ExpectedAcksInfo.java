@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.replication.server;
@@ -79,6 +79,17 @@ public abstract class ExpectedAcksInfo
     new HashMap<Short,Boolean>();
 
   /**
+   * Facility for monitoring:
+   * If the timeout occurs for the original update, we call createAck(true)
+   * in the timeout code for sending back an error ack to the original server.
+   * We use this call to also save the list of server ids for server we did not
+   * have time to receive an ack from. For updating its counters, the timeout
+   * code can then call getTimeoutServers() method to now which servers did not
+   * respond in time.
+   */
+  protected List<Short> serversInTimeout = null;
+
+  /**
    * Creates a new ExpectedAcksInfo.
    * @param changeNumber The change number of the assured update message
    * @param requesterServerHandler The server handler of the server that sent
@@ -109,6 +120,15 @@ public abstract class ExpectedAcksInfo
   public ServerHandler getRequesterServer()
   {
     return requesterServerHandler;
+  }
+
+  /**
+   * Gets the list of expected servers that did not respond in time.
+   * @return The list of expected servers that did not respond in time.
+   */
+  public List<Short> getTimeoutServers()
+  {
+    return serversInTimeout;
   }
 
   /**
