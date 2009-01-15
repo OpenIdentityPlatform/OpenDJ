@@ -62,6 +62,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.util.ServerConstants;
 import org.opends.server.util.cli.CommandBuilder;
 
 /**
@@ -457,7 +458,8 @@ public class DeleteEntryTask extends Task
       ctx1 = ConnectionUtils.cloneInitialLdapContext(ctx,
           ConnectionUtils.getDefaultLDAPTimeout(),
           getInfo().getTrustManager(), null);
-      Control[] ctls = {new BasicControl(Utilities.SUBTREE_CTRL_OID)};
+      Control[] ctls = {
+          new BasicControl(ServerConstants.OID_SUBTREE_DELETE_CONTROL)};
       ctx1.setRequestControls(ctls);
       ctx1.destroySubcontext(Utilities.getJNDIName(dn.toString()));
     }
@@ -518,7 +520,7 @@ public class DeleteEntryTask extends Task
     if (usingControl)
     {
       args.add("-J");
-      args.add(Utilities.SUBTREE_CTRL_OID);
+      args.add(ServerConstants.OID_SUBTREE_DELETE_CONTROL);
     }
     args.add(dn.toString());
     StringBuilder sb = new StringBuilder();

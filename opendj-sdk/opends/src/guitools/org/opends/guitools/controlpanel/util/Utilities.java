@@ -82,7 +82,6 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
-import org.opends.admin.ads.SubtreeDeleteControl;
 import org.opends.guitools.controlpanel.ControlPanel;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.ConfigReadException;
@@ -2072,12 +2071,6 @@ public class Utilities
       confHandler.deleteEntry(dn, null);
     }
   }
-
-  /**
-   * The OID of the delete subtree control.
-   */
-  public static final String SUBTREE_CTRL_OID =
-    (new SubtreeDeleteControl()).getID();
 
 
   /**
