@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.replication;
@@ -1120,6 +1120,8 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
     // add domain1 entry with 2 children : domain2 and domain3
     addEntry(domain1);
+    ChangeNumber olderCn = gen.newChangeNumber();
+    Thread.sleep(1000);
     domain1uid = getEntryUUID(DN.decode(domain1dn));
     addEntry(domain2);
     domain2uid = getEntryUUID(DN.decode(domain2dn));
@@ -1134,7 +1136,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
     AlertCount = DummyAlertHandler.getAlertCount();
 
     // delete domain1
-    delMsg = new DeleteMsg(domain1dn, gen.newChangeNumber(), domain1uid);
+    delMsg = new DeleteMsg(domain1dn, olderCn, domain1uid);
     broker.publish(delMsg);
 
     // check that the domain1 has correctly been deleted
@@ -1165,6 +1167,36 @@ public class  UpdateOperationTest extends ReplicationTestCase
     // delete the resulting entries for the next test
     delEntry(conflictDomain2dn);
     delEntry(conflictDomain3dn);
+
+    //
+    // Check that when a delete is replayed over an entry which has child
+    // those child are also deleted
+    //
+    // add domain1 entry with 2 children : domain2 and domain3
+    addEntry(domain1);
+    domain1uid = getEntryUUID(DN.decode(domain1dn));
+    addEntry(domain2);
+    domain2uid = getEntryUUID(DN.decode(domain2dn));
+    addEntry(domain3);
+    domain3uid = getEntryUUID(DN.decode(domain3dn));
+
+    updateMonitorCount(baseDn, unresolvedMonitorAttr);
+    AlertCount = DummyAlertHandler.getAlertCount();
+
+    // delete domain1
+    delMsg = new DeleteMsg(domain1dn, gen.newChangeNumber(), domain1uid);
+    broker.publish(delMsg);
+
+    // check that the domain1 has correctly been deleted
+    assertNull(getEntry(DN.decode(domain1dn), 10000, false),
+        "The DELETE replication message was not replayed");
+
+    // check that domain2 and domain3 have not been renamed as conflicting
+    assertNull(getEntry(conflictDomain2dn, 1000, true),
+        "The conflicting entries were not created");
+    assertNull(getEntry(conflictDomain3dn, 1000, true),
+        "The conflicting entries were not created");
+
 
     //
     // Check that when an entry is added on one master below an entry
