@@ -41,6 +41,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
+import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
@@ -128,6 +129,11 @@ public class ReplicationDomainTest extends ReplicationTestCase
         assertTrue(replServerInfo.getGenerationId() == 1);
       }
 
+      for (DSInfo serverInfo : domain1.getDsList())
+      {
+        assertTrue(serverInfo.getStatus() == ServerStatus.NORMAL_STATUS);
+      }
+
       domain1.setGenerationID(2);
       domain1.resetReplicationLog();
 
@@ -137,6 +143,28 @@ public class ReplicationDomainTest extends ReplicationTestCase
       {
         // The generation Id of the remote should now be 2
         assertTrue(replServerInfo.getGenerationId() == 2);
+      }
+
+      for (DSInfo serverInfo : domain1.getDsList())
+      {
+        if (serverInfo.getDsId() == 2)
+          assertTrue(serverInfo.getStatus() == ServerStatus.BAD_GEN_ID_STATUS);
+        else
+        {
+          assertTrue(serverInfo.getDsId() == 1);
+          assertTrue(serverInfo.getStatus() == ServerStatus.NORMAL_STATUS);
+        }
+      }
+
+      for (DSInfo serverInfo : domain2.getDsList())
+      {
+        if (serverInfo.getDsId() == 2)
+          assertTrue(serverInfo.getStatus() == ServerStatus.BAD_GEN_ID_STATUS);
+        else
+        {
+          assertTrue(serverInfo.getDsId() == 1);
+          assertTrue(serverInfo.getStatus() == ServerStatus.NORMAL_STATUS);
+        }
       }
     }
     finally

@@ -64,6 +64,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.CheckedOutputStream;
 import java.util.zip.DataFormatException;
+
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -75,6 +76,7 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.config.ConfigException;
+import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -1069,6 +1071,8 @@ public class LDAPReplicationDomain extends ReplicationDomain
                * different operation.
                */
               op = msg.createOperation(conn);
+              if (op instanceof DeleteOperation)
+                op.addRequestControl(new SubtreeDeleteControl());
             }
           }
           else
@@ -1407,9 +1411,11 @@ public class LDAPReplicationDomain extends ReplicationDomain
       * The action taken here must be consistent with the actions
       * done in the solveNamingConflict(AddOperation) method
       * when we are adding an entry whose parent entry has already been deleted.
+      *
       */
-     findAndRenameChild(entryUid, op.getEntryDN(), op);
-     numUnresolvedNamingConflicts.incrementAndGet();
+     if (findAndRenameChild(entryUid, op.getEntryDN(), op))
+       numUnresolvedNamingConflicts.incrementAndGet();
+
      return false;
    }
    else
@@ -1652,17 +1658,25 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @param entryDN    The DN of the entry whose child must be renamed.
    * @param conflictOp The Operation that generated the conflict.
    */
-  private void findAndRenameChild(
+  private boolean findAndRenameChild(
       String entryUid, DN entryDN, Operation conflictOp)
   {
+    boolean conflict = false;
+
     // Find an rename child entries.
     InternalClientConnection conn =
       InternalClientConnection.getRootConnection();
+    DeleteContext ctx =
+      (DeleteContext) conflictOp.getAttachment(SYNCHROCONTEXT);
+    ChangeNumber cn = null;
+    if (ctx != null)
+      cn = ctx.getChangeNumber();
 
     try
     {
       LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
       attrs.add(ENTRYUIDNAME);
+      attrs.add(Historical.HISTORICALATTRIBUTENAME);
 
       SearchFilter ALLMATCH;
       ALLMATCH = SearchFilter.createFilterFromString("(objectClass=*)");
@@ -1678,9 +1692,22 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         {
           for (SearchResultEntry entry : entries)
           {
-            markConflictEntry(conflictOp, entry.getDN(), entryDN);
-            renameConflictEntry(conflictOp, entry.getDN(),
+            /*
+             * Check the ADD and ModRDN date of the child entry. If it is after
+             * the delete date then keep the entry as a conflicting entry,
+             * otherwise delete the entry with the operation.
+             */
+            if (cn != null)
+            {
+              Historical hist = Historical.load(entry);
+              if (hist.AddedOrRenamedAfter(cn))
+              {
+                conflict = true;
+                markConflictEntry(conflictOp, entry.getDN(), entryDN);
+                renameConflictEntry(conflictOp, entry.getDN(),
                                 Historical.getEntryUuid(entry));
+              }
+            }
           }
         }
       }
@@ -1708,6 +1735,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       mb.append(e.getLocalizedMessage());
       logError(mb.toMessage());
     }
+
+    return conflict;
   }
 
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -431,6 +431,26 @@ public class Historical
     }
 
     return builder.toAttribute();
+  }
+
+  /**
+   * Indicates if the Entry was renamed or added after the ChangeNumber
+   * that is given as a parameter.
+   *
+   * @param cn The ChangeNumber with which the ADD or Rename date must be
+   *           compared.
+   *
+   * @return A boolean indicating if the Entry was renamed or added after
+   *                   the ChangeNumber that is given as a parameter.
+   */
+  public boolean AddedOrRenamedAfter(ChangeNumber cn)
+  {
+    if (cn.older(ADDDate) || cn.older(MODDNDate))
+    {
+      return true;
+    }
+    else
+      return false;
   }
 
 
