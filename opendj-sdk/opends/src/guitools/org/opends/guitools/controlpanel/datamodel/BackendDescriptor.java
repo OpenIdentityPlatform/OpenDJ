@@ -45,6 +45,7 @@ public class BackendDescriptor
   private int entries;
   private boolean isConfigBackend;
   private boolean isEnabled;
+  private CustomSearchResult monitoringEntry;
   private Type type;
   private int hashCode;
 
@@ -186,6 +187,19 @@ public class BackendDescriptor
         {
           equals = desc.getVLVIndexes().equals(getVLVIndexes());
         }
+
+        if (equals)
+        {
+          // Compare monitoring entries
+          if (getMonitoringEntry() == null)
+          {
+            equals = desc.getMonitoringEntry() == null;
+          }
+          else
+          {
+            equals = getMonitoringEntry().equals(desc.getMonitoringEntry());
+          }
+        }
       }
     }
     else
@@ -193,6 +207,15 @@ public class BackendDescriptor
       equals = true;
     }
     return equals;
+  }
+
+  /**
+   * Returns the monitoring entry information.
+   * @return the monitoring entry information.
+   */
+  public CustomSearchResult getMonitoringEntry()
+  {
+    return monitoringEntry;
   }
 
   /**
@@ -287,6 +310,15 @@ public class BackendDescriptor
 
     // Recalculate hashCode
     recalculateHashCode();
+  }
+
+  /**
+   * Sets the monitoring entry corresponding to this backend.
+   * @param monitoringEntry the monitoring entry corresponding to this backend.
+   */
+  public void setMonitoringEntry(CustomSearchResult monitoringEntry)
+  {
+    this.monitoringEntry = monitoringEntry;
   }
 
   /**
