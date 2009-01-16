@@ -1164,6 +1164,21 @@ implements ConfigChangeListener
       lastDisplayedError = text;
       pane.setText(text);
     }
+    final Window window =
+      Utilities.getParentDialog(StatusGenericPanel.this);
+    if (window != null)
+    {
+      SwingUtilities.invokeLater(new Runnable()
+      {
+        /**
+         * {@inheritDoc}
+         */
+        public void run()
+        {
+          window.validate();
+        }
+      });
+    }
   }
 
   /**
