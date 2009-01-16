@@ -52,6 +52,7 @@ import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
+import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
@@ -71,6 +72,8 @@ import org.opends.server.types.OpenDsException;
  */
 public class ConfigFromDirContext extends ConfigReader
 {
+  private static final String DATABASE_ENVIRONMENT_SUFFIX =
+    "Database Environment";
   private static final Logger LOG =
     Logger.getLogger(ConfigFromDirContext.class.getName());
 
@@ -356,6 +359,7 @@ public class ConfigFromDirContext extends ConfigReader
     }
     catch (Throwable t)
     {
+      LOG.log(Level.WARNING, "Error reading configuration: "+t, t);
       OnlineUpdateException oupe = new OnlineUpdateException(
           ERR_READING_CONFIG_LDAP.get(t.toString()), t);
       ex.add(oupe);
@@ -483,6 +487,24 @@ public class ConfigFromDirContext extends ConfigReader
                   }
                 }
               }
+            }
+          }
+        }
+      }
+      else
+      {
+        // Check if it is the DB monitor entry
+        String cn = ConnectionUtils.getFirstValue(sr, "cn");
+        if ((cn != null) && cn.endsWith(DATABASE_ENVIRONMENT_SUFFIX))
+        {
+          String monitorBackendID = cn.substring(0, cn.length() -
+              DATABASE_ENVIRONMENT_SUFFIX.length());
+          for (BackendDescriptor backend : backends)
+          {
+            if (backend.getBackendID().equalsIgnoreCase(monitorBackendID))
+            {
+              CustomSearchResult csr = new CustomSearchResult(sr, searchBaseDN);
+              backend.setMonitoringEntry(csr);
             }
           }
         }
