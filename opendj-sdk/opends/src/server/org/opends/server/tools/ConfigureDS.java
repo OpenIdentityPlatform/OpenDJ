@@ -35,6 +35,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 import java.io.File;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.StringReader;
 
 import javax.crypto.Cipher;
@@ -60,6 +62,7 @@ import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.args.ArgumentException;
@@ -159,7 +162,7 @@ public class ConfigureDS
    */
   public static void main(String[] args)
   {
-    int exitCode = configMain(args);
+    int exitCode = configMain(args, System.out, System.err);
     if (exitCode != 0)
     {
       System.exit(filterExitCode(exitCode));
@@ -174,11 +177,14 @@ public class ConfigureDS
    *
    * @param  args  The command-line arguments provided to this program.
    *
+   * @param outStream Output stream.
+   * @param errStream Error stream.
    * @return  The exit code from the configuration processing.  A nonzero value
    *          indicates that there was some kind of problem during the
    *          configuration processing.
    */
-  public static int configMain(String[] args)
+  public static int configMain(String[] args,
+    OutputStream outStream, OutputStream errStream)
   {
     BooleanArgument   showUsage;
     BooleanArgument   enableStartTLS;
@@ -197,7 +203,19 @@ public class ConfigureDS
     StringArgument    certNickName;
     StringArgument    keyManagerPath;
     StringArgument    serverRoot;
+    PrintStream       out, err;
 
+    if (outStream != null) {
+      out = new PrintStream(outStream);
+    } else {
+      out = NullOutputStream.printStream();
+    }
+
+    if (errStream != null) {
+      err = new PrintStream(errStream);
+    } else {
+      err = NullOutputStream.printStream();
+    }
     Message toolDescription = INFO_CONFIGDS_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false);
@@ -342,7 +360,7 @@ public class ConfigureDS
     catch (ArgumentException ae)
     {
       Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -356,8 +374,8 @@ public class ConfigureDS
     {
       Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.err.println(argParser.getUsage());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(argParser.getUsage());
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -375,8 +393,8 @@ public class ConfigureDS
         jmxPort.isPresent() || rootDNString.isPresent()))
     {
       Message message = ERR_CONFIGDS_NO_CONFIG_CHANGES.get();
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.err.println(argParser.getUsage());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(argParser.getUsage());
       return 1;
     }
 
@@ -393,8 +411,8 @@ public class ConfigureDS
         {
           Message message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
                   String.valueOf(adminConnectorPort.getIntValue()));
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
-          System.err.println(argParser.getUsage());
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(argParser.getUsage());
           return 1;
         }
         else
@@ -408,8 +426,8 @@ public class ConfigureDS
         {
           Message message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
                   String.valueOf(ldapsPort.getIntValue()));
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
-          System.err.println(argParser.getUsage());
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(argParser.getUsage());
           return 1;
         }
         else
@@ -423,8 +441,8 @@ public class ConfigureDS
         {
           Message message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
                   String.valueOf(jmxPort.getIntValue()));
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
-          System.err.println(argParser.getUsage());
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(argParser.getUsage());
           return 1;
         }
         else
@@ -436,7 +454,7 @@ public class ConfigureDS
     catch (ArgumentException ae)
     {
       Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -464,7 +482,7 @@ public class ConfigureDS
       Message message = ERR_CONFIGDS_CANNOT_INITIALIZE_JMX.get(
               String.valueOf(configFile.getValue()),
               e.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -478,7 +496,7 @@ public class ConfigureDS
       Message message = ERR_CONFIGDS_CANNOT_INITIALIZE_CONFIG.get(
               String.valueOf(configFile.getValue()),
               e.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -491,7 +509,7 @@ public class ConfigureDS
       Message message = ERR_CONFIGDS_CANNOT_INITIALIZE_SCHEMA.get(
               String.valueOf(configFile.getValue()),
               e.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -506,7 +524,7 @@ public class ConfigureDS
       Message message = ERR_CONFIGDS_CANNOT_ACQUIRE_SERVER_LOCK.get(
               String.valueOf(serverLockFileName),
               String.valueOf(failureReason));
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -530,7 +548,7 @@ public class ConfigureDS
             Message message = ERR_CONFIGDS_CANNOT_PARSE_BASE_DN.get(
                     String.valueOf(dnString),
                     de.getMessageObject());
-            System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
         }
@@ -552,7 +570,7 @@ public class ConfigureDS
           Message message = ERR_CONFIGDS_CANNOT_PARSE_ROOT_DN.get(
                   String.valueOf(rootDNString.getValue()),
                   de.getMessageObject());
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
 
@@ -567,7 +585,7 @@ public class ConfigureDS
         else
         {
           Message message = ERR_CONFIGDS_NO_ROOT_PW.get();
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -595,7 +613,7 @@ public class ConfigureDS
                   ERR_CONFIGDS_CANNOT_PARSE_KEYMANAGER_PROVIDER_DN.get(
                           keyManagerProviderDN.getValue(),
                           de.getMessageObject());
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
 
@@ -630,7 +648,7 @@ public class ConfigureDS
             Message message =
               ERR_CONFIG_KEYMANAGER_CANNOT_CREATE_JCEKS_PROVIDER.get(
                 String.valueOf(e));
-            System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
         }
@@ -644,7 +662,7 @@ public class ConfigureDS
           {
             Message message = ERR_CONFIG_KEYMANAGER_CANNOT_GET_BASE.get(
                 String.valueOf(e));
-            System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
         }
@@ -665,7 +683,7 @@ public class ConfigureDS
         {
           Message message = ERR_CONFIGDS_CANNOT_PARSE_TRUSTMANAGER_PROVIDER_DN.
                   get(trustManagerProviderDN.getValue(), de.getMessageObject());
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
 
@@ -697,7 +715,7 @@ public class ConfigureDS
           {
             Message message = ERR_CONFIG_KEYMANAGER_CANNOT_GET_BASE.get(
                 String.valueOf(e));
-            System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
         }
@@ -711,7 +729,7 @@ public class ConfigureDS
           {
             Message message = ERR_CONFIG_TRUSTMANAGER_CANNOT_GET_BASE.get(
                 String.valueOf(e));
-            System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
         }
@@ -725,7 +743,7 @@ public class ConfigureDS
           Message message = ERR_CONFIGDS_KEYMANAGER_PROVIDER_DN_REQUIRED.get(
                   keyManagerProviderDN.getLongIdentifier(),
               keyManagerPath.getLongIdentifier());
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -750,7 +768,7 @@ public class ConfigureDS
         {
           Message message = ERR_CONFIGDS_CANNOT_UPDATE_BASE_DN.get(
                   String.valueOf(e));
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -777,7 +795,7 @@ public class ConfigureDS
         {
           Message message = ERR_CONFIGDS_CANNOT_UPDATE_LDAP_PORT.get(
                   String.valueOf(e));
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -805,7 +823,7 @@ public class ConfigureDS
         {
           Message message = ERR_CONFIGDS_CANNOT_UPDATE_ADMIN_CONNECTOR_PORT.get(
                   String.valueOf(e));
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -837,7 +855,7 @@ public class ConfigureDS
         {
           Message message = ERR_CONFIGDS_CANNOT_UPDATE_LDAPS_PORT.get(
                   String.valueOf(e));
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -869,7 +887,7 @@ public class ConfigureDS
         {
           Message message = ERR_CONFIGDS_CANNOT_UPDATE_JMX_PORT.get(
                   String.valueOf(e));
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -894,7 +912,7 @@ public class ConfigureDS
         {
           Message message = ERR_CONFIGDS_CANNOT_ENABLE_STARTTLS.get(
                   String.valueOf(e));
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -920,7 +938,7 @@ public class ConfigureDS
           {
             Message message = ERR_CONFIGDS_CANNOT_ENABLE_KEYMANAGER.get(
                     String.valueOf(e));
-            System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
         }
@@ -960,7 +978,7 @@ public class ConfigureDS
         {
           Message message = ERR_CONFIGDS_CANNOT_UPDATE_KEYMANAGER_REFERENCE.get(
                   String.valueOf(e));
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
 
@@ -981,7 +999,7 @@ public class ConfigureDS
           catch (Exception e)
           {
             String message = String.valueOf(e);
-            System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
         }
@@ -1006,7 +1024,7 @@ public class ConfigureDS
           {
             Message message = ERR_CONFIGDS_CANNOT_ENABLE_TRUSTMANAGER.get(
                     String.valueOf(e));
-            System.err.println(wrapText(message, MAX_LINE_WIDTH));
+            err.println(wrapText(message, MAX_LINE_WIDTH));
             return 1;
           }
         }
@@ -1048,7 +1066,7 @@ public class ConfigureDS
           Message message =
                   ERR_CONFIGDS_CANNOT_UPDATE_TRUSTMANAGER_REFERENCE.get(
                           String.valueOf(e));
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -1101,7 +1119,7 @@ public class ConfigureDS
         {
           Message message = ERR_CONFIGDS_CANNOT_UPDATE_CERT_NICKNAME.get(
                   String.valueOf(e));
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -1135,7 +1153,7 @@ public class ConfigureDS
         {
           Message message = ERR_CONFIGDS_CANNOT_UPDATE_ROOT_USER.get(
                   String.valueOf(e));
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          err.println(wrapText(message, MAX_LINE_WIDTH));
           return 1;
         }
       }
@@ -1187,7 +1205,7 @@ public class ConfigureDS
             {
               Message message = ERR_CONFIGDS_CANNOT_UPDATE_CRYPTO_MANAGER.get(
                   String.valueOf(e));
-              System.err.println(wrapText(message, MAX_LINE_WIDTH));
+              err.println(wrapText(message, MAX_LINE_WIDTH));
               return 1;
             }
           }
@@ -1200,13 +1218,13 @@ public class ConfigureDS
         configHandler.writeUpdatedConfig();
 
         Message message = INFO_CONFIGDS_WROTE_UPDATED_CONFIG.get();
-        System.out.println(wrapText(message, MAX_LINE_WIDTH));
+        out.println(wrapText(message, MAX_LINE_WIDTH));
       }
       catch (DirectoryException de)
       {
         Message message = ERR_CONFIGDS_CANNOT_WRITE_UPDATED_CONFIG.get(
                 de.getMessageObject());
-        System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
     }

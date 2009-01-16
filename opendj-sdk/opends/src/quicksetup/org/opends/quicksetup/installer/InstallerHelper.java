@@ -105,7 +105,7 @@ public class InstallerHelper {
    * @see org.opends.server.tools.ConfigureDS#configMain(String[]).
    */
   public int invokeConfigureServer(String[] args) throws ApplicationException {
-    return ConfigureDS.configMain(args);
+    return ConfigureDS.configMain(args, System.out, System.err);
   }
 
   /**
