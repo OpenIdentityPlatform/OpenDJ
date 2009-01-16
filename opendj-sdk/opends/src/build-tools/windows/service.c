@@ -528,7 +528,7 @@ ServiceReturnCode doStartApplication()
       }
       else
       {
-        debug("OPENDS_WINDOWS_SERVICE_START_NTRIES is not set.  Using default 50 tries.");
+        debug("OPENDS_WINDOWS_SERVICE_START_NTRIES is not set.  Using default 100 tries.");
       }	
 
       debug(
