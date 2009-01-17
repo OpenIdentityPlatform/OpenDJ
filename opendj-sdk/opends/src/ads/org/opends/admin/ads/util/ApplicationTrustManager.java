@@ -30,7 +30,6 @@ package org.opends.admin.ads.util;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -39,6 +38,7 @@ import java.util.logging.Logger;
 
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
@@ -75,7 +75,7 @@ public class ApplicationTrustManager implements X509TrustManager
   static private final Logger LOG =
     Logger.getLogger(ApplicationTrustManager.class.getName());
 
-  private X509TrustManager sunJSSEX509TrustManager;
+  private X509TrustManager trustManager;
   private String lastRefusedAuthType;
   private X509Certificate[] lastRefusedChain;
   private Cause lastRefusedCause = null;
@@ -100,15 +100,21 @@ public class ApplicationTrustManager implements X509TrustManager
   public ApplicationTrustManager(KeyStore keystore)
   {
     TrustManagerFactory tmf = null;
-    String algo = "SunX509";
-    String provider = "SunJSSE";
     this.keystore = keystore;
     try
     {
-      tmf = TrustManagerFactory.getInstance(algo, provider);
+      String algo = TrustManagerFactory.getDefaultAlgorithm();
+      tmf = TrustManagerFactory.getInstance(algo);
       tmf.init(keystore);
-      sunJSSEX509TrustManager =
-        (X509TrustManager)(tmf.getTrustManagers())[0];
+      TrustManager[] trustManagers = tmf.getTrustManagers();
+      for (int i=0; i < trustManagers.length; i++)
+      {
+        if (trustManagers[i] instanceof X509TrustManager)
+        {
+          trustManager = (X509TrustManager)trustManagers[i];
+          break;
+        }
+      }
     }
     catch (NoSuchAlgorithmException e)
     {
@@ -116,13 +122,6 @@ public class ApplicationTrustManager implements X509TrustManager
       // certificates.  Maybe we should avoid this and be strict, but we are
       // in a best effor mode.
       LOG.log(Level.WARNING, "Error with the algorithm", e);
-    }
-    catch (NoSuchProviderException e)
-    {
-      // Nothing to do: if this occurs we will systematically refuse the
-      // certificates.  Maybe we should avoid this and be strict, but we are
-      // in a best effor mode.
-      LOG.log(Level.WARNING, "Error with the provider", e);
     }
     catch (KeyStoreException e)
     {
@@ -142,11 +141,11 @@ public class ApplicationTrustManager implements X509TrustManager
     boolean explicitlyAccepted = false;
     try
     {
-      if (sunJSSEX509TrustManager != null)
+      if (trustManager != null)
       {
         try
         {
-          sunJSSEX509TrustManager.checkClientTrusted(chain, authType);
+          trustManager.checkClientTrusted(chain, authType);
         }
         catch (CertificateException ce)
         {
@@ -199,11 +198,11 @@ public class ApplicationTrustManager implements X509TrustManager
     boolean explicitlyAccepted = false;
     try
     {
-      if (sunJSSEX509TrustManager != null)
+      if (trustManager != null)
       {
         try
         {
-          sunJSSEX509TrustManager.checkServerTrusted(chain, authType);
+          trustManager.checkServerTrusted(chain, authType);
         }
         catch (CertificateException ce)
         {
@@ -251,9 +250,9 @@ public class ApplicationTrustManager implements X509TrustManager
    */
   public X509Certificate[] getAcceptedIssuers()
   {
-    if (sunJSSEX509TrustManager != null)
+    if (trustManager != null)
     {
-      return sunJSSEX509TrustManager.getAcceptedIssuers();
+      return trustManager.getAcceptedIssuers();
     }
     else
     {
