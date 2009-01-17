@@ -80,6 +80,12 @@ public class SSFTestCase extends AciTestCase {
 
 
     private static final
+    String medStrengthNEACI = "(targetattr=\"" + "*" + "\")" +
+            "(version 3.0; acl \"NE 56 bit key aci\";" +
+            "allow(all) (userdn=\"ldap:///self\" and ssf != \"56\");)";
+
+    
+    private static final
     String hiStrengthACI = "(targetattr=\"" + "*" + "\")" +
             "(version 3.0; acl \"128 bit key aci\";" +
             "allow(all) (userdn=\"ldap:///self\" and ssf = \"128\");)";
@@ -272,6 +278,14 @@ public class SSFTestCase extends AciTestCase {
         env.put("javax.security.sasl.strength", "medium");
         JNDIModify(env, newUser, "description", descriptionStr,
                 LDAPResultCode.SUCCESS);
+        deleteAttrFromEntry(newUser, "aci");
+        deleteAttrFromEntry(newUser, "description");
+        //Test medium strength "!="
+        addACILDIF = makeAddLDIF("aci", newUser, medStrengthNEACI);
+        LDIFModify(addACILDIF, DIR_MGR_DN, PWD);
+        env.put("javax.security.sasl.strength", "medium");
+        JNDIModify(env, newUser, "description", descriptionStr,
+                LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS);
         deleteAttrFromEntry(newUser, "aci");
         deleteAttrFromEntry(newUser, "description");
         //Test high strength.
