@@ -87,12 +87,8 @@ public class SSF implements KeywordBindRule {
         int currentSSF = evalCtx.getCurrentSSF();
         switch (type) {
         case EQUAL_BINDRULE_TYPE:
-            if (currentSSF == ssf)
-                matched=EnumEvalResult.TRUE;
-            break;
-
         case NOT_EQUAL_BINDRULE_TYPE:
-            if (currentSSF != ssf)
+            if (currentSSF == ssf)
                 matched=EnumEvalResult.TRUE;
             break;
 

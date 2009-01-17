@@ -107,12 +107,6 @@ public class TimeOfDay implements KeywordBindRule {
         //check the type
         switch (type) {
         case EQUAL_BINDRULE_TYPE:
-            if (currentTime == timeRef)
-            {
-                matched=EnumEvalResult.TRUE;
-            }
-            break;
-
         case NOT_EQUAL_BINDRULE_TYPE:
             if (currentTime != timeRef)
             {
