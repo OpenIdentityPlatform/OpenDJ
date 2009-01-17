@@ -73,7 +73,7 @@ import org.opends.server.types.OpenDsException;
 public class ConfigFromDirContext extends ConfigReader
 {
   private static final String DATABASE_ENVIRONMENT_SUFFIX =
-    "Database Environment";
+    " Database Environment";
   private static final Logger LOG =
     Logger.getLogger(ConfigFromDirContext.class.getName());
 
