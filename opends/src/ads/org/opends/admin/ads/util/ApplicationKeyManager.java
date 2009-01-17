@@ -31,7 +31,6 @@ import java.net.Socket;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
@@ -64,7 +63,7 @@ public class ApplicationKeyManager implements X509KeyManager
   /**
    * The default keyManager.
    */
-  private X509KeyManager sunJSSEX509KeyManager = null ;
+  private X509KeyManager keyManager = null ;
 
   /**
    * The default constructor.
@@ -74,11 +73,10 @@ public class ApplicationKeyManager implements X509KeyManager
   public ApplicationKeyManager(KeyStore keystore, char[] password)
   {
     KeyManagerFactory kmf = null;
-    String algo = "SunX509";
-    String provider = "SunJSSE";
     try
     {
-      kmf = KeyManagerFactory.getInstance(algo, provider);
+      String algo = KeyManagerFactory.getDefaultAlgorithm();
+      kmf = KeyManagerFactory.getInstance(algo);
       kmf.init(keystore, password);
       KeyManager kms[] = kmf.getKeyManagers();
 
@@ -91,23 +89,16 @@ public class ApplicationKeyManager implements X509KeyManager
       {
         if (kms[i] instanceof X509KeyManager)
         {
-          sunJSSEX509KeyManager = (X509KeyManager) kms[i];
+          keyManager = (X509KeyManager) kms[i];
           break;
         }
       }
-
     }
     catch (NoSuchAlgorithmException e)
     {
       // Nothing to do. Maybe we should avoid this and be strict, but we are
       // in a best effor mode.
       LOG.log(Level.WARNING, "Error with the algorithm", e);
-    }
-    catch (NoSuchProviderException e)
-    {
-      // Nothing to do. Maybe we should avoid this and be strict, but we are
-      // in a best effor mode.
-      LOG.log(Level.WARNING, "Error with the provider", e);
     }
     catch (KeyStoreException e)
     {
@@ -145,9 +136,9 @@ public class ApplicationKeyManager implements X509KeyManager
   public String chooseClientAlias(String[] keyType, Principal[] issuers,
       Socket socket)
   {
-    if (sunJSSEX509KeyManager != null)
+    if (keyManager != null)
     {
-      return sunJSSEX509KeyManager.chooseClientAlias(keyType, issuers, socket);
+      return keyManager.chooseClientAlias(keyType, issuers, socket);
     }
     else
     {
@@ -176,9 +167,9 @@ public class ApplicationKeyManager implements X509KeyManager
   public String chooseServerAlias(String keyType, Principal[] issuers,
       Socket socket)
   {
-    if (sunJSSEX509KeyManager != null)
+    if (keyManager != null)
     {
-      return sunJSSEX509KeyManager.chooseServerAlias(keyType, issuers, socket);
+      return keyManager.chooseServerAlias(keyType, issuers, socket);
     }
     else
     {
@@ -197,9 +188,9 @@ public class ApplicationKeyManager implements X509KeyManager
    */
   public X509Certificate[] getCertificateChain(String alias)
   {
-    if (sunJSSEX509KeyManager != null)
+    if (keyManager != null)
     {
-      return sunJSSEX509KeyManager.getCertificateChain(alias);
+      return keyManager.getCertificateChain(alias);
     }
     else
     {
@@ -222,9 +213,9 @@ public class ApplicationKeyManager implements X509KeyManager
    */
   public String[] getClientAliases(String keyType, Principal[] issuers)
   {
-    if (sunJSSEX509KeyManager != null)
+    if (keyManager != null)
     {
-      return sunJSSEX509KeyManager.getClientAliases(keyType, issuers);
+      return keyManager.getClientAliases(keyType, issuers);
     }
     else
     {
@@ -241,9 +232,9 @@ public class ApplicationKeyManager implements X509KeyManager
    */
   public PrivateKey getPrivateKey(String alias)
   {
-    if (sunJSSEX509KeyManager != null)
+    if (keyManager != null)
     {
-      return sunJSSEX509KeyManager.getPrivateKey(alias);
+      return keyManager.getPrivateKey(alias);
     }
     else
     {
@@ -266,9 +257,9 @@ public class ApplicationKeyManager implements X509KeyManager
    */
   public String[] getServerAliases(String keyType, Principal[] issuers)
   {
-    if (sunJSSEX509KeyManager != null)
+    if (keyManager != null)
     {
-      return sunJSSEX509KeyManager.getServerAliases(keyType, issuers);
+      return keyManager.getServerAliases(keyType, issuers);
     }
     else
     {
