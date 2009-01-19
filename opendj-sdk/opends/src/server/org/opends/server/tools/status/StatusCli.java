@@ -705,7 +705,7 @@ class StatusCli extends ConsoleApplication
   private void writeInstancePathContents(ServerDescriptor desc,
       int maxLabelWidth)
   {
-    File path = desc.getInstallPath();
+    File path = desc.getInstancePath();
     writeLabelValue(INFO_CTRL_PANEL_INSTANCE_PATH_LABEL.get(),
             Message.raw(path.toString()),
             maxLabelWidth);
