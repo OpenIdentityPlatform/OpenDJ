@@ -3098,6 +3098,265 @@
         </testcase>
 
 
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          Cipher Strength: high
+            #@TestIssue         
+            #@TestPurpose       Test the cipher strength
+            #@TestPreamble      none
+            #@TestStep          SASL bind with qop=auth-conf, request cipher
+                                strength: high
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind succeeds.
+        -->
+        <testcase name=
+         "getTestCaseName('DIGEST-MD5 - Cipher Strenght: high')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: Cipher Strength: high'
+            </message>
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'strength'         : 'high',
+                'password'         : 'newleg',
+                'protection'       : 'auth-conf'
+              }
+            </call>
+                        
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          Cipher Strength: medium
+            #@TestIssue         
+            #@TestPurpose       Test the cipher strength
+            #@TestPreamble      none
+            #@TestStep          SASL bind with qop=auth-conf, request cipher
+                                strength: medium
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind succeeds.
+        -->
+        <testcase name=
+         "getTestCaseName('DIGEST-MD5 - Cipher Strenght: medium')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: Cipher Strength: medium'
+            </message>
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'strength'         : 'medium',
+                'password'         : 'newleg',
+                'protection'       : 'auth-conf'
+              }
+            </call>
+                        
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          Cipher Strength: low
+            #@TestIssue         
+            #@TestPurpose       Test the cipher strength
+            #@TestPreamble      none
+            #@TestStep          SASL bind with qop=auth-conf, request cipher
+                                strength: low
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind succeeds.
+        -->
+        <testcase name=
+         "getTestCaseName('DIGEST-MD5 - Cipher Strenght: low')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: Cipher Strength: low'
+            </message>
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'strength'         : 'low',
+                'password'         : 'newleg',
+                'protection'       : 'auth-conf'
+              }
+            </call>
+                        
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          Max. recv. buffer size lower than result size
+            #@TestIssue         
+            #@TestPurpose       Test the maximum receive buffer size
+            #@TestPreamble      none
+            #@TestStep          SASL bind with qop=auth-conf, max. recv. buffer
+                                size = 5000 bytes (expected result=11000 bytes)
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind succeeds and result entries
+                                returned all right.
+        -->
+        <testcase name=
+         "getTestCaseName('DIGEST-MD5 - Max. recv. buffer size lower than result size')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: Max. recv. buffer size lower than \
+              result size'
+            </message>
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsScope'          : 'sub',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'maxbuffersize'    : '5000',
+                'password'         : 'newleg',
+                'protection'       : 'auth-conf'
+              }
+            </call>
+
+            <script> 
+              returnString = STAXResult[0][1]
+            </script>
+
+            <message>
+              'Search result:   %s' % returnString
+            </message>
+
+            <call function="'searchStringForSubstring'">
+              { 'returnString' : returnString,
+                'testString'   : 'uid=tmorris,ou=People'
+              }
+            </call>
+                
+            <if expr="returnCode != '1'">
+              <tcstatus result="'fail'"/>
+            </if>
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          Max. recv. buffer size > result size
+            #@TestIssue         
+            #@TestPurpose       Test the maximum receive buffer size
+            #@TestPreamble      none
+            #@TestStep          SASL bind with qop=auth-conf, max. recv. buffer
+                                size = 25000 bytes (expected result=11000 bytes)
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind succeeds and result entries
+                                returned all right.
+        -->
+        <testcase name=
+         "getTestCaseName('DIGEST-MD5 - Max. recv. buffer size > result size')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: Max. recv. buffer size > result size'
+            </message>
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsScope'          : 'sub',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'maxbuffersize'    : '25000',
+                'password'         : 'newleg',
+                'protection'       : 'auth-conf'
+              }
+            </call>
+
+            <script> 
+              returnString = STAXResult[0][1]
+            </script>
+
+            <message>
+              'Search result:   %s' % returnString
+            </message>
+
+            <call function="'searchStringForSubstring'">
+              { 'returnString' : returnString,
+                'testString'   : 'uid=tmorris,ou=People'
+              }
+            </call>
+                
+            <if expr="returnCode != '1'">
+              <tcstatus result="'fail'"/>
+            </if>
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+
+
+
         <!--- Test case: Admin remove global read access ACI -->
         <!---
             Place test-specific test information here.
@@ -3256,6 +3515,804 @@
             
           </sequence>
         </testcase>
+
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          SSF {ssf>40 ; qop=confidentiality ; str=low}
+            #@TestIssue         
+            #@TestPurpose       Test the ssf bind rule
+            #@TestPreamble      none
+            #@TestStep          Add ssf bind rule aci: ssf>40
+            #@TestStep          SASL bind with confidentiality and strength low
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind succeeds but access is
+                                NOT granted.
+        -->
+        <testcase name=
+         "getTestCaseName('DIGEST-MD5 - SSF {ssf>40 ; qop=conf ; str=low}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: SSF {ssf>40 ; qop=conf ; str=low}'
+            </message>
+
+
+            <message>
+              'Adding ACI with ssf bind rule: ssf > 40'
+            </message>
+
+            <script>
+              ssf_aci="(targetattr=\"*\")(version 3.0; acl \"ssf-aci\"; allow (read,search,compare) userdn=\"ldap:///anyone\" and ssf > \"40\";)"
+            </script>
+                
+            <call function="'modifyAnAttribute'">
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : 'o=SASL Tests,dc=example,dc=com' ,
+                'attributeName'     : 'aci' ,
+                'newAttributeValue' : ssf_aci ,
+                'changetype'        : 'replace'
+              }
+             </call>
+                
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsScope'          : 'sub',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'strength'         : 'low',
+                'password'         : 'newleg',
+                'protection'       : 'auth-conf'
+              }
+            </call>
+
+            <script> 
+              returnString = STAXResult[0][1]
+            </script> 
+
+            <message>
+              'Search result:   %s' % returnString
+            </message>
+
+            <call function="'searchStringForSubstring'">
+              { 'returnString' : returnString,
+                'testString'   : 'uid=tmorris,ou=People'
+              }
+            </call>
+                
+            <if expr="returnCode != '0'">
+              <tcstatus result="'fail'"/>
+            </if>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          SSF {ssf>40 ; qop=confidentiality ; str=medium}
+            #@TestIssue         
+            #@TestPurpose       Test the ssf bind rule
+            #@TestPreamble      none
+            #@TestStep          Add ssf bind rule aci: ssf>40
+            #@TestStep          SASL bind with confidentiality and strength 
+                                medium
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind succeeds and access is
+                                granted.
+        -->
+        <testcase name=
+         "getTestCaseName('DIGEST-MD5 - SSF {ssf>40 ; qop=conf ; str=medium}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: SSF {ssf>40 ; qop=conf ; str=medium}'
+            </message>
+
+
+            <message>
+              'Adding ACI with ssf bind rule: ssf > 40'
+            </message>
+
+            <script>
+              ssf_aci="(targetattr=\"*\")(version 3.0; acl \"ssf-aci\"; allow (read,search,compare) userdn=\"ldap:///anyone\" and ssf > \"40\";)"
+            </script>
+                
+            <call function="'modifyAnAttribute'">
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : 'o=SASL Tests,dc=example,dc=com' ,
+                'attributeName'     : 'aci' ,
+                'newAttributeValue' : ssf_aci ,
+                'changetype'        : 'replace'
+              }
+             </call>
+                
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsScope'          : 'sub',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'strength'         : 'medium',
+                'password'         : 'newleg',
+                'protection'       : 'auth-conf'
+              }
+            </call>
+
+            <script> 
+              returnString = STAXResult[0][1]
+            </script> 
+
+            <message>
+              'Search result:   %s' % returnString
+            </message>
+
+            <call function="'searchStringForSubstring'">
+              { 'returnString' : returnString,
+                'testString'   : 'uid=tmorris,ou=People'
+              }
+            </call>
+                
+            <if expr="returnCode != '1'">
+              <tcstatus result="'fail'"/>
+            </if>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          SSF {ssf>=128 ; qop=confidentiality ;str=medium}
+            #@TestIssue         
+            #@TestPurpose       Test the ssf bind rule
+            #@TestPreamble      none
+            #@TestStep          Add ssf bind rule aci: ssf>=128
+            #@TestStep          SASL bind with confidentiality and strength 
+                                medium
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind succeeds but access is
+                                NOT granted.
+        -->
+        <testcase name=
+         "getTestCaseName('DIGEST-MD5 - SSF {ssf>=128 ; qop=conf;str=medium}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: SSF {ssf>=128 ; qop=conf ;str=medium}'
+            </message>
+
+
+            <message>
+              'Adding ACI with ssf bind rule: ssf >= 128'
+            </message>
+
+            <script>
+              ssf_aci="(targetattr=\"*\")(version 3.0; acl \"ssf-aci\"; allow (read,search,compare) userdn=\"ldap:///anyone\" and ssf >= \"128\";)"
+            </script>
+                
+            <call function="'modifyAnAttribute'">
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : 'o=SASL Tests,dc=example,dc=com' ,
+                'attributeName'     : 'aci' ,
+                'newAttributeValue' : ssf_aci ,
+                'changetype'        : 'replace'
+              }
+             </call>
+                
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsScope'          : 'sub',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'strength'         : 'medium',
+                'password'         : 'newleg',
+                'protection'       : 'auth-conf'
+              }
+            </call>
+
+            <script> 
+              returnString = STAXResult[0][1]
+            </script> 
+
+            <message>
+              'Search result:   %s' % returnString
+            </message>
+
+            <call function="'searchStringForSubstring'">
+              { 'returnString' : returnString,
+                'testString'   : 'uid=tmorris,ou=People'
+              }
+            </call>
+                
+            <if expr="returnCode != '0'">
+              <tcstatus result="'fail'"/>
+            </if>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          SSF {ssf>=128 ; qop=confidentiality ; str=high}
+            #@TestIssue         
+            #@TestPurpose       Test the ssf bind rule
+            #@TestPreamble      none
+            #@TestStep          Add ssf bind rule aci: ssf>=128
+            #@TestStep          SASL bind with confidentiality and strength 
+                                high
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind succeeds and access is
+                                granted.
+        -->
+        <testcase name=
+         "getTestCaseName('DIGEST-MD5 - SSF {ssf>=128 ; qop=conf ; str=high}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: SSF {ssf>=128 ; qop=conf ; str=high}'
+            </message>
+
+
+            <message>
+              'Adding ACI with ssf bind rule: ssf >= 128'
+            </message>
+
+            <script>
+              ssf_aci="(targetattr=\"*\")(version 3.0; acl \"ssf-aci\"; allow (read,search,compare) userdn=\"ldap:///anyone\" and ssf >= \"128\";)"
+            </script>
+                
+            <call function="'modifyAnAttribute'">
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : 'o=SASL Tests,dc=example,dc=com' ,
+                'attributeName'     : 'aci' ,
+                'newAttributeValue' : ssf_aci ,
+                'changetype'        : 'replace'
+              }
+             </call>
+                
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsScope'          : 'sub',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'strength'         : 'high',
+                'password'         : 'newleg',
+                'protection'       : 'auth-conf'
+              }
+            </call>
+
+            <script> 
+              returnString = STAXResult[0][1]
+            </script> 
+
+            <message>
+              'Search result:   %s' % returnString
+            </message>
+
+            <call function="'searchStringForSubstring'">
+              { 'returnString' : returnString,
+                'testString'   : 'uid=tmorris,ou=People'
+              }
+            </call>
+                
+            <if expr="returnCode != '1'">
+              <tcstatus result="'fail'"/>
+            </if>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          SSF {ssf=56 ; qop=confidentiality ; str=high}
+            #@TestIssue         
+            #@TestPurpose       Test the ssf bind rule
+            #@TestPreamble      none
+            #@TestStep          Add ssf bind rule aci: ssf=56
+            #@TestStep          SASL bind with confidentiality and strength high
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind succeeds but access is
+                                NOT granted.
+        -->
+        <testcase name=
+         "getTestCaseName('DIGEST-MD5 - SSF {ssf=56 ; qop=conf ; str=high}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: SSF {ssf=56 ; qop=conf ; str=high}'
+            </message>
+
+
+            <message>
+              'Adding ACI with ssf bind rule: ssf = 56'
+            </message>
+
+            <script>
+              ssf_aci="(targetattr=\"*\")(version 3.0; acl \"ssf-aci\"; allow (read,search,compare) userdn=\"ldap:///anyone\" and ssf = \"56\";)"
+            </script>
+                
+            <call function="'modifyAnAttribute'">
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : 'o=SASL Tests,dc=example,dc=com' ,
+                'attributeName'     : 'aci' ,
+                'newAttributeValue' : ssf_aci ,
+                'changetype'        : 'replace'
+              }
+             </call>
+                
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsScope'          : 'sub',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'strength'         : 'high',
+                'password'         : 'newleg',
+                'protection'       : 'auth-conf'
+              }
+            </call>
+
+            <script> 
+              returnString = STAXResult[0][1]
+            </script> 
+
+            <message>
+              'Search result:   %s' % returnString
+            </message>
+
+            <call function="'searchStringForSubstring'">
+              { 'returnString' : returnString,
+                'testString'   : 'uid=tmorris,ou=People'
+              }
+            </call>
+                
+            <if expr="returnCode != '0'">
+              <tcstatus result="'fail'"/>
+            </if>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          SSF {ssf=56 ; qop=confidentiality ; str=medium}
+            #@TestIssue         
+            #@TestPurpose       Test the ssf bind rule
+            #@TestPreamble      none
+            #@TestStep          Add ssf bind rule aci: ssf=56
+            #@TestStep          SASL bind with confidentiality and strength 
+                                medium
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind succeeds and access is
+                                granted.
+        -->
+        <testcase name=
+         "getTestCaseName('DIGEST-MD5 - SSF {ssf=56 ; qop=conf ; str=medium}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: SSF {ssf=56 ; qop=conf ; str=medium}'
+            </message>
+
+
+            <message>
+              'Adding ACI with ssf bind rule: ssf = 56'
+            </message>
+
+            <script>
+              ssf_aci="(targetattr=\"*\")(version 3.0; acl \"ssf-aci\"; allow (read,search,compare) userdn=\"ldap:///anyone\" and ssf = \"56\";)"
+            </script>
+                
+            <call function="'modifyAnAttribute'">
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : 'o=SASL Tests,dc=example,dc=com' ,
+                'attributeName'     : 'aci' ,
+                'newAttributeValue' : ssf_aci ,
+                'changetype'        : 'replace'
+              }
+             </call>
+                
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsScope'          : 'sub',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'strength'         : 'medium',
+                'password'         : 'newleg',
+                'protection'       : 'auth-conf'
+              }
+            </call>
+
+            <script> 
+              returnString = STAXResult[0][1]
+            </script> 
+
+            <message>
+              'Search result:   %s' % returnString
+            </message>
+
+            <call function="'searchStringForSubstring'">
+              { 'returnString' : returnString,
+                'testString'   : 'uid=tmorris,ou=People'
+              }
+            </call>
+                
+            <if expr="returnCode != '1'">
+              <tcstatus result="'fail'"/>
+            </if>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          SSF {ssf!=56 ; qop=confidentiality ;str=medium}
+            #@TestIssue         
+            #@TestPurpose       Test the ssf bind rule
+            #@TestPreamble      none
+            #@TestStep          Add ssf bind rule aci: ssf!=56
+            #@TestStep          SASL bind with confidentiality and strength
+                                medium
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind succeeds but access is
+                                NOT granted.
+        -->
+        <testcase name=
+         "getTestCaseName('DIGEST-MD5 - SSF {ssf!=56 ; qop=conf; str=medium}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: SSF {ssf!=56 ; qop=conf ;str=medium}'
+            </message>
+
+
+            <message>
+              'Adding ACI with ssf bind rule: ssf != 56'
+            </message>
+
+            <script>
+              ssf_aci="(targetattr=\"*\")(version 3.0; acl \"ssf-aci\"; allow (read,search,compare) userdn=\"ldap:///anyone\" and ssf != \"56\";)"
+            </script>
+                
+            <call function="'modifyAnAttribute'">
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : 'o=SASL Tests,dc=example,dc=com' ,
+                'attributeName'     : 'aci' ,
+                'newAttributeValue' : ssf_aci ,
+                'changetype'        : 'replace'
+              }
+             </call>
+                
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsScope'          : 'sub',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'strength'         : 'medium',
+                'password'         : 'newleg',
+                'protection'       : 'auth-conf'
+              }
+            </call>
+
+            <script> 
+              returnString = STAXResult[0][1]
+            </script> 
+
+            <message>
+              'Search result:   %s' % returnString
+            </message>
+
+            <call function="'searchStringForSubstring'">
+              { 'returnString' : returnString,
+                'testString'   : 'uid=tmorris,ou=People'
+              }
+            </call>
+                
+            <if expr="returnCode != '0'">
+              <tcstatus result="'fail'"/>
+            </if>
+            
+            <!-- #3723: SSF bind rule: != operator not working -->
+            <call function="'setKnownIssue'">
+              { 'issueId' : '3723' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          SSF {ssf!=56 ; qop=confidentiality ; str=high}
+            #@TestIssue         
+            #@TestPurpose       Test the ssf bind rule
+            #@TestPreamble      none
+            #@TestStep          Add ssf bind rule aci: ssf!=56
+            #@TestStep          SASL bind with confidentiality and strength 
+                                high
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind succeeds and access is
+                                granted.
+        -->
+        <testcase name=
+         "getTestCaseName('DIGEST-MD5 - SSF {ssf!=56 ; qop=conf ; str=high}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: SSF {ssf!=56 ; qop=conf ; str=high}'
+            </message>
+
+
+            <message>
+              'Adding ACI with ssf bind rule: ssf != 56'
+            </message>
+
+            <script>
+              ssf_aci="(targetattr=\"*\")(version 3.0; acl \"ssf-aci\"; allow (read,search,compare) userdn=\"ldap:///anyone\" and ssf != \"56\";)"
+            </script>
+                
+            <call function="'modifyAnAttribute'">
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : 'o=SASL Tests,dc=example,dc=com' ,
+                'attributeName'     : 'aci' ,
+                'newAttributeValue' : ssf_aci ,
+                'changetype'        : 'replace'
+              }
+             </call>
+                
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsScope'          : 'sub',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'strength'         : 'high',
+                'password'         : 'newleg',
+                'protection'       : 'auth-conf'
+              }
+            </call>
+
+            <script> 
+              returnString = STAXResult[0][1]
+            </script> 
+
+            <message>
+              'Search result:   %s' % returnString
+            </message>
+
+            <call function="'searchStringForSubstring'">
+              { 'returnString' : returnString,
+                'testString'   : 'uid=tmorris,ou=People'
+              }
+            </call>
+                
+            <if expr="returnCode != '1'">
+              <tcstatus result="'fail'"/>
+            </if>
+
+            <!-- #3723: SSF bind rule: != operator not working -->
+            <call function="'setKnownIssue'">
+              { 'issueId' : '3723' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
+
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker        SASL DIGEST-MD5 Tests
+            #@TestName          SSF {ssf!=56 ; qop=confidentiality ; str=low}
+            #@TestIssue         
+            #@TestPurpose       Test the ssf bind rule
+            #@TestPreamble      none
+            #@TestStep          Add ssf bind rule aci: ssf!=56
+            #@TestStep          SASL bind with confidentiality and strength 
+                                low
+            #@TestPostamble     none
+            #@TestResult        Success if sasl bind succeeds and access is
+                                granted.
+        -->
+        <testcase name=
+         "getTestCaseName('DIGEST-MD5 - SSF {ssf!=56 ; qop=conf ; str=low}')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: SASL DIGEST-MD5: SSF {ssf!=56 ; qop=conf ; str=low}'
+            </message>
+
+
+            <message>
+              'Adding ACI with ssf bind rule: ssf != 56'
+            </message>
+
+            <script>
+              ssf_aci="(targetattr=\"*\")(version 3.0; acl \"ssf-aci\"; allow (read,search,compare) userdn=\"ldap:///anyone\" and ssf != \"56\";)"
+            </script>
+                
+            <call function="'modifyAnAttribute'">
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : 'o=SASL Tests,dc=example,dc=com' ,
+                'attributeName'     : 'aci' ,
+                'newAttributeValue' : ssf_aci ,
+                'changetype'        : 'replace'
+              }
+             </call>
+                
+            
+            <script>
+              test_user = 'uid=test-user, ou=People, o=SASL Tests, dc=example,dc=com'
+            </script>
+            <call function="'saslSearch'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsBaseDN'         : 'dc=example,dc=com',
+                'dsScope'          : 'sub',
+                'dsFilter'         : 'objectclass=*',
+                'mechanism'        : 'DIGEST-MD5',
+                'authenticationId' : 'dn:%s' % test_user,
+                'strength'         : 'low',
+                'password'         : 'newleg',
+                'protection'       : 'auth-conf'
+              }
+            </call>
+
+            <script> 
+              returnString = STAXResult[0][1]
+            </script> 
+
+            <message>
+              'Search result:   %s' % returnString
+            </message>
+
+            <call function="'searchStringForSubstring'">
+              { 'returnString' : returnString,
+                'testString'   : 'uid=tmorris,ou=People'
+              }
+            </call>
+                
+            <if expr="returnCode != '1'">
+              <tcstatus result="'fail'"/>
+            </if>
+
+            <!-- #3723: SSF bind rule: != operator not working -->
+            <call function="'setKnownIssue'">
+              { 'issueId' : '3723' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+
 
 
         <!--- Test case: Admin set qop=integrity -->
