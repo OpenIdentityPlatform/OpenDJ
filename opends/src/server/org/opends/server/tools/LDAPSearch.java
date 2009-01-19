@@ -173,7 +173,8 @@ public class LDAPSearch
                                     searchOptions.getDereferencePolicy(),
                                     searchOptions.getSizeLimit(),
                                     searchOptions.getTimeLimit(),
-                              false, filter, attributes);
+                                    searchOptions.getTypesOnly(),
+                                    filter, attributes);
       if(!searchOptions.showOperations())
       {
         try
