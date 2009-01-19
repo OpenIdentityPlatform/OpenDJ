@@ -3372,7 +3372,7 @@
           STAFCmdParamsList.append('--strength "%s"' % strength)
 
         if maxbuffersize:
-          STAFCmdParamsList.append('--maxbufsize "%s"' % maxbufsize)
+          STAFCmdParamsList.append('--maxbufsize "%s"' % maxbuffersize)
 
 
         STAFCmdParams=' '.join(STAFCmdParamsList)
