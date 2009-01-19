@@ -3767,13 +3767,31 @@ public class AssuredReplicationServerTest
           LONG_TIMEOUT));
       }
 
-      // Check DS2 is degraded
-      sleep(7000);
-      dsInfos = fakeRd1.getDsList();
-      dsInfo = dsInfos.get(0);
-      assertEquals(dsInfo.getDsId(), FDS2_ID);
-      assertEquals(dsInfo.getStatus(), ServerStatus.DEGRADED_STATUS);
+      // Wait for DS2 being degraded
+      boolean error = true;
+      for (int count = 0; count < 12; count++)
+      {
+        dsInfos = fakeRd1.getDsList();
+        if (dsInfos == null)
+          continue;
+        if (dsInfos.size() == 0)
+          continue;
+        dsInfo = dsInfos.get(0);
+        if ( (dsInfo.getDsId() == FDS2_ID) &&
+            (dsInfo.getStatus() == ServerStatus.DEGRADED_STATUS) )
+        {
+          error = false;
+          break;
+        }
+        else
+        {
+          sleep(1000);
+        }
+      }
+      if (error)
+        fail("DS2 not in degraded status");
 
+      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
       assertEquals(fakeRd1.getAssuredSrSentUpdates(), 4);
       assertEquals(fakeRd1.getAssuredSrAcknowledgedUpdates(), 0);
       assertEquals(fakeRd1.getAssuredSrNotAcknowledgedUpdates(), 4);
@@ -3864,8 +3882,8 @@ public class AssuredReplicationServerTest
 
       fakeRd2.startListenService();
 
-      // Wait for DS2 being degraded
-      boolean error = true;
+      // Wait for DS2 being back to normal
+      error = true;
       for (int count = 0; count < 12; count++)
       {
         dsInfos = fakeRd1.getDsList();
@@ -3888,7 +3906,6 @@ public class AssuredReplicationServerTest
       if (error)
         fail("DS2 not back to normal status");
 
-      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
       // DS2 should also change status so reset its assured monitoring data so no received sr updates
       assertEquals(fakeRd1.getAssuredSrSentUpdates(), 5);
       assertEquals(fakeRd1.getAssuredSrAcknowledgedUpdates(), 1);
@@ -3912,8 +3929,8 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd2.getAssuredSrWrongStatusUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrReplayErrorUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
-      assertEquals(fakeRd2.getAssuredSrReceivedUpdates(), 0); // status changed to normal so reset of monitoring data
-      assertEquals(fakeRd2.getAssuredSrReceivedUpdatesAcked(), 0);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdates(), 4);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdatesAcked(), 4);
       assertEquals(fakeRd2.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       assertEquals(fakeRd1.getReceivedUpdates(), 0);
@@ -3963,8 +3980,8 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd2.getAssuredSrWrongStatusUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrReplayErrorUpdates(), 0);
       assertEquals(fakeRd2.getAssuredSrServerNotAcknowledgedUpdates().size(), 0);
-      assertEquals(fakeRd2.getAssuredSrReceivedUpdates(), 1);
-      assertEquals(fakeRd2.getAssuredSrReceivedUpdatesAcked(), 1);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdates(), 5);
+      assertEquals(fakeRd2.getAssuredSrReceivedUpdatesAcked(), 5);
       assertEquals(fakeRd2.getAssuredSrReceivedUpdatesNotAcked(), 0);
 
       assertEquals(fakeRd1.getReceivedUpdates(), 0);
