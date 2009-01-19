@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.common;
 
@@ -127,7 +127,7 @@ public class ChangeNumberGenerator
       if (lastTime > rcvdTime)
         return;
       else
-        lastTime = rcvdTime++;
+        lastTime = ++rcvdTime;
     }
   }
 }
