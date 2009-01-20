@@ -94,6 +94,14 @@ public class WelcomePanel extends QuickSetupStepPanel {
   /**
    * {@inheritDoc}
    */
+  protected boolean hasCheckingLabel()
+  {
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public Object getFieldValue(FieldName fieldName) {
     Object v = null;
     if (FieldName.SERVER_TO_UPGRADE_LOCATION.equals(fieldName)) {

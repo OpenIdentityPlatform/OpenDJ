@@ -251,6 +251,18 @@ public class Installation {
     "control-panel.bat";
 
   /**
+   * The UNIX dsjavaproperties script file name.
+   */
+  public static final String UNIX_DSJAVAPROPERTIES_FILE_NAME =
+    "dsjavaproperties";
+
+  /**
+   * The Windows dsjavaproperties batch file name.
+   */
+  public static final String WINDOWS_DSJAVAPROPERTIES_FILE_NAME =
+    "dsjavaproperties.bat";
+
+  /**
    * The MacOS X Java application stub name.
    */
   public static final String MAC_JAVA_APP_STUB_NAME = "JavaApplicationStub";
@@ -1042,6 +1054,23 @@ public class Installation {
               UNIX_STATUSCLI_FILE_NAME);
     }
     return statusPanelCommandFile;
+  }
+
+  /**
+   * Gets the dsjavaproperties file appropriate for the current operating
+   * system.
+   * @return File object representing the dsjavaproperties command
+   */
+  public File getJavaPropertiesCommandFile() {
+    File javaPropertiesCommandFile;
+    if (Utils.isWindows()) {
+      javaPropertiesCommandFile = new File(getBinariesDirectory(),
+          WINDOWS_DSJAVAPROPERTIES_FILE_NAME);
+    } else {
+      javaPropertiesCommandFile = new File(getBinariesDirectory(),
+          UNIX_DSJAVAPROPERTIES_FILE_NAME);
+    }
+    return javaPropertiesCommandFile;
   }
 
   /**

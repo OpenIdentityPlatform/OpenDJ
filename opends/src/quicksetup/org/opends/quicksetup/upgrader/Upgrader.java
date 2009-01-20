@@ -215,11 +215,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
   private BuildInformation stagedVersion = null;
 
   /**
-   * Information on the staged instance.
-   */
-  private BuildInformation stagedInstanceVersion = null;
-
-  /**
    * New OpenDS bits.
    */
   private Installation stagedInstallation = null;
@@ -661,6 +656,43 @@ public class Upgrader extends GuiApplication implements CliApplication {
               Installation installation = new Installation(serverLocation,
                   serverLocation);
               setInstallation(installation);
+              try
+              {
+                // Try to see if there is a problem with the build information,
+                // we might be trying to do the upgrade with a JVM that is not
+                // compatible with the java arguments used by the server
+                // scripts (see issue ).
+                installation.getBuildInformation(true);
+              }
+              catch (ApplicationException ae)
+              {
+                if (ae.getMessageObject().getDescriptor().equals(
+                    INFO_ERROR_CREATING_BUILD_INFO_MSG))
+                {
+                  // This is the message thrown when there was a problem with
+                  // the binary.  The details content is on the scripts and not
+                  // localized, we can assume that if there is a mention to
+                  // OPENDS_JAVA_HOME in the message there is an error with the
+                  // script.
+                  if (ae.getMessageObject().toString().indexOf(
+                      "OPENDS_JAVA_HOME") != -1)
+                  {
+                    String javaBin = System.getProperty("java.home")+
+                    File.separator+
+                    "bin"+File.separator+"java";
+                    String setJavaHome =
+                      installation.getSetJavaHomeFile().getAbsolutePath();
+                    String dsJavaProperties =
+                      installation.getJavaPropertiesCommandFile().
+                      getAbsolutePath();
+                    errorMsgs.add(ERR_INVALID_JAVA_ARGS.get(
+                        serverLocationString,
+                        javaBin,
+                        setJavaHome,
+                        dsJavaProperties));
+                  }
+                }
+              }
             }
 
             uud.setServerLocation(serverLocationString);
