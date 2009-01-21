@@ -779,7 +779,7 @@ public class ModifyDNOperationBasis
     {
       // Construct the new DN to use for the entry.
       DN parentDN = null;
-      if (newSuperior == null)
+      if (getNewSuperior() == null)
       {
         if (getEntryDN() != null)
         {
@@ -796,7 +796,7 @@ public class ModifyDNOperationBasis
         setResultCode(ResultCode.UNWILLING_TO_PERFORM);
         appendErrorMessage(ERR_MODDN_NO_PARENT.get(String.valueOf(entryDN)));
       }
-      newDN = parentDN.concat(newRDN);
+      newDN = parentDN.concat(getNewRDN());
     }
     return newDN;
   }
