@@ -32,6 +32,8 @@ import static org.opends.messages.AdminToolMessages.*;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -48,6 +50,7 @@ import java.util.TreeSet;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -100,8 +103,53 @@ public class JavaPropertiesPanel extends StatusGenericPanel
 
   private JLabel lInitContents;
 
+  private JCheckBox showAll;
+
   private Set<JavaArgumentsDescriptor> readJavaArguments =
     new HashSet<JavaArgumentsDescriptor>();
+
+  private Set<JavaArgumentsDescriptor> currentJavaArguments =
+    new HashSet<JavaArgumentsDescriptor>();
+
+  private Set<String> allScriptNames =
+    new HashSet<String>();
+  {
+    String[] names =
+    {
+        "start-ds", "import-ldif.offline", "backup.online", "base64",
+        "create-rc-script", "dsconfig", "dsreplication", "dsframework",
+        "export-ldif.online", "import-ldif.online", "ldapcompare",
+        "ldapdelete", "ldapmodify", "ldappasswordmodify", "ldapsearch",
+        "list-backends", "manage-account", "manage-tasks", "restore.online",
+        "stop-ds", "status", "control-panel", "uninstall", "setup",
+        "backup.offline", "encode-password", "export-ldif.offline",
+        "ldif-diff", "ldifmodify", "ldifsearch", "make-ldif",
+        "rebuild-index", "restore.offline", "upgrade",
+        "verify-index", "dbtest"
+    };
+    for (String name : names)
+    {
+      allScriptNames.add(name);
+    }
+  }
+
+  private Set<String> relevantScriptNames =
+    new HashSet<String>();
+
+  {
+    String[] relevantNames =
+    {
+        "start-ds", "import-ldif.offline", "backup.offline",
+        "export-ldif.offline",
+        "ldif-diff", "make-ldif", "rebuild-index", "restore.offline",
+        "verify-index", "dbtest"
+    };
+    for (String name : relevantNames)
+    {
+      relevantScriptNames.add(name);
+    }
+  }
+
   private String readJavaHome;
   private boolean readUseOpenDSJavaHome;
   private boolean readUseOpenDSJavaArgs;
@@ -316,6 +364,23 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     gbc.weightx = 1.0;
     gbc.anchor = GridBagConstraints.WEST;
 
+    showAll =
+      Utilities.createCheckBox(INFO_CTRL_PANEL_DISPLAY_ALL_COMMAND_LINES.get());
+    showAll.addActionListener(new ActionListener()
+    {
+      public void actionPerformed(ActionEvent ev)
+      {
+        editor.stopCellEditing();
+        currentJavaArguments = getCurrentJavaArguments();
+        argumentsTableModel.setData(filterJavaArguments(currentJavaArguments));
+        Utilities.updateTableSizes(argumentsTable, 7);
+      }
+    });
+
+    gbc.gridy ++;
+    gbc.insets.top = 5;
+    p.add(showAll, gbc);
+
     JLabel inlineHelp = Utilities.createInlineHelpLabel(
         INFO_CTRL_PANEL_ONLINE_COMMAND_HELP.get());
     gbc.insets.top = 3;
@@ -370,6 +435,30 @@ public class JavaPropertiesPanel extends StatusGenericPanel
   }
 
   /**
+   * Returns the names of all the command-line that can be displayed by this
+   * panel.
+   * @return the names of all the command-line that can be displayed by this
+   * panel.
+   */
+  protected Set<String> getAllCommandLineNames()
+  {
+    return allScriptNames;
+  }
+
+  /**
+   * Returns the names of the most important command-line to be displayed by
+   * this panel.
+   * @return the names of the most important command-line to be displayed by
+   * this panel.
+   */
+  protected Set<String> getRelevantCommandLineNames()
+  {
+    return relevantScriptNames;
+  }
+
+
+
+  /**
    * Returns <CODE>true</CODE> if the user updated the contents and
    * <CODE>false</CODE> otherwise.
    * @return <CODE>true</CODE> if the user updated the contents and
@@ -380,24 +469,79 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     boolean updatedByUser = !javaHome.getText().equals(readJavaHome) ||
     useOpenDSJavaHome.isSelected() != readUseOpenDSJavaHome ||
     useOpenDSJavaArgs.isSelected() != readUseOpenDSJavaArgs ||
-    !readJavaArguments.equals(getJavaArguments());
+    !readJavaArguments.equals(getCurrentJavaArguments());
 
     return updatedByUser;
   }
 
   /**
-   * Returns the java arguments specified in the table.
-   * @return the java arguments specified in the table.
+   * Returns the java arguments specified by the user.
+   * @return the java arguments specified by the user.
    */
-  private Set<JavaArgumentsDescriptor> getJavaArguments()
+  private Set<JavaArgumentsDescriptor> getCurrentJavaArguments()
   {
     HashSet<JavaArgumentsDescriptor> args =
+      new HashSet<JavaArgumentsDescriptor>(currentJavaArguments);
+
+    HashSet<JavaArgumentsDescriptor> tableArgs =
       new HashSet<JavaArgumentsDescriptor>();
     for (int i=0; i<argumentsTableModel.getRowCount(); i++)
     {
-      args.add(argumentsTableModel.getJavaArguments(i));
+      tableArgs.add(argumentsTableModel.getJavaArguments(i));
+    }
+    for (JavaArgumentsDescriptor arg : tableArgs)
+    {
+      JavaArgumentsDescriptor foundJavaArgument = null;
+      for (JavaArgumentsDescriptor arg1 : args)
+      {
+        if (arg1.getCommandName().equals(arg.getCommandName()))
+        {
+          foundJavaArgument = arg1;
+          break;
+        }
+      }
+      if (foundJavaArgument != null)
+      {
+        args.remove(foundJavaArgument);
+      }
+      args.add(arg);
     }
     return args;
+  }
+
+
+  /**
+   * Filters the provided list of java arguments depending on the showing
+   * options (basically whether the 'Show All Command-lines' is selected or
+   * not).
+   * @param args the list of java arguments.
+   * @return a list of filtered java arguments (the ones that must be displayed
+   * in the table).
+   */
+  private Set<JavaArgumentsDescriptor> filterJavaArguments(
+      Set<JavaArgumentsDescriptor> args)
+  {
+    if (showAll.isSelected())
+    {
+      return args;
+    }
+    else
+    {
+      Set<JavaArgumentsDescriptor> filteredArgs =
+        new HashSet<JavaArgumentsDescriptor>();
+      for (String relevantName : getRelevantCommandLineNames())
+      {
+        for (JavaArgumentsDescriptor arg : args)
+        {
+          if (arg.getCommandName().equals(relevantName))
+          {
+            filteredArgs.add(arg);
+            break;
+          }
+        }
+      }
+      return filteredArgs;
+    }
   }
 
   /**
@@ -440,19 +584,6 @@ public class JavaPropertiesPanel extends StatusGenericPanel
           }
         }
 
-        String[] scripts =
-        {
-            "start-ds", "import-ldif.offline", "backup.online", "base64",
-            "create-rc-script", "dsconfig", "dsreplication", "dsframework",
-            "export-ldif.online", "import-ldif.online", "ldapcompare",
-            "ldapdelete", "ldapmodify", "ldappasswordmodify", "ldapsearch",
-            "list-backends", "manage-account", "manage-tasks", "restore.online",
-            "stop-ds", "status", "status-panel", "uninstall", "setup",
-            "backup.offline", "encode-password", "export-ldif.offline",
-            "ldif-diff", "ldifmodify", "ldifsearch", "make-ldif",
-            "rebuild-index", "restore.offline", "upgrade",
-            "verify-index", "dbtest"
-        };
         String v = properties.getProperty("overwrite-env-java-home");
         readUseOpenDSJavaHome =
           (v == null) || ("false".equalsIgnoreCase(v.trim()));
@@ -463,7 +594,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
         readJavaHome = properties.getProperty("default.java-home");
         if (readJavaHome == null)
         {
-          for (String script : scripts)
+          for (String script : getAllCommandLineNames())
           {
             readJavaHome = properties.getProperty(script+".java-home");
             if (readJavaHome != null)
@@ -474,7 +605,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
         }
 
         readJavaArguments.clear();
-        for (String script : scripts)
+        for (String script : getAllCommandLineNames())
         {
           v = properties.getProperty(script+".java-args");
           if (v != null)
@@ -502,7 +633,10 @@ public class JavaPropertiesPanel extends StatusGenericPanel
           useSpecifiedJavaHome.setSelected(!readUseOpenDSJavaHome);
           useOpenDSJavaArgs.setSelected(readUseOpenDSJavaArgs);
           useSpecifiedJavaArgs.setSelected(!readUseOpenDSJavaArgs);
-          argumentsTableModel.setData(readJavaArguments);
+          currentJavaArguments.clear();
+          currentJavaArguments.addAll(readJavaArguments);
+          argumentsTableModel.setData(
+              filterJavaArguments(currentJavaArguments));
           Utilities.updateTableSizes(argumentsTable, 7);
         }
         else
@@ -597,7 +731,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     if (errors.size() == 0)
     {
       final Set<String> providedArguments = new HashSet<String>();
-      for (JavaArgumentsDescriptor cmd : getJavaArguments())
+      for (JavaArgumentsDescriptor cmd : getCurrentJavaArguments())
       {
         String args = cmd.getJavaArguments().trim();
         if (args.length() > 0)
@@ -749,7 +883,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       readJavaHome = javaHome.getText();
       readUseOpenDSJavaHome = useOpenDSJavaHome.isSelected();
       readUseOpenDSJavaArgs = useOpenDSJavaArgs.isSelected();
-      readJavaArguments = getJavaArguments();
+      readJavaArguments = getCurrentJavaArguments();
     }
     else
     {
@@ -1108,7 +1242,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       defaultJavaHome = javaHome.getText().trim();
       overwriteOpenDSJavaHome = useSpecifiedJavaHome.isSelected();
       overwriteOpenDSJavaArgs = useSpecifiedJavaArgs.isSelected();
-      arguments = getJavaArguments();
+      arguments = getCurrentJavaArguments();
     }
 
     /**
