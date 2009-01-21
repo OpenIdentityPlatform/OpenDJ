@@ -30,6 +30,7 @@ package org.opends.admin.ads.util;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -95,40 +96,79 @@ public class ApplicationTrustManager implements X509TrustManager
 
   /**
    * The default constructor.
+   *
    * @param keystore The keystore to use for this trustmanager.
    */
   public ApplicationTrustManager(KeyStore keystore)
   {
     TrustManagerFactory tmf = null;
     this.keystore = keystore;
-    try
+    String userSpecifiedAlgo =
+      System.getProperty("org.opends.admin.trustmanageralgo");
+    String userSpecifiedProvider =
+      System.getProperty("org.opends.admin.trustmanagerprovider");
+    LOG.log(Level.INFO, "User specified algo: "+userSpecifiedAlgo);
+    LOG.log(Level.INFO, "User specified provider: "+userSpecifiedProvider);
+
+    // Have some fallbacks to choose the provider and algorith of the key
+    // manager.  First see if the user wanted to use something specific,
+    // then try with the SunJSSE provider and SunX509 algorithm. Finally,
+    // fallback to the default algorithm of the JVM.
+    String[] preferredProvider =
     {
-      String algo = TrustManagerFactory.getDefaultAlgorithm();
-      tmf = TrustManagerFactory.getInstance(algo);
-      tmf.init(keystore);
-      TrustManager[] trustManagers = tmf.getTrustManagers();
-      for (int i=0; i < trustManagers.length; i++)
+        userSpecifiedProvider,
+        "SunJSSE",
+        null,
+        null
+    };
+    String[] preferredAlgo =
+    {
+        userSpecifiedAlgo,
+        "SunX509",
+        "SunX509",
+        TrustManagerFactory.getDefaultAlgorithm()
+    };
+    for (int i=0; i<preferredProvider.length && trustManager == null; i++)
+    {
+      String provider = preferredProvider[i];
+      String algo = preferredAlgo[i];
+      if (algo == null)
       {
-        if (trustManagers[i] instanceof X509TrustManager)
+        continue;
+      }
+      try
+      {
+        if (provider != null)
         {
-          trustManager = (X509TrustManager)trustManagers[i];
-          break;
+          tmf = TrustManagerFactory.getInstance(algo, provider);
+        }
+        else
+        {
+          tmf = TrustManagerFactory.getInstance(algo);
+        }
+        tmf.init(keystore);
+        TrustManager[] trustManagers = tmf.getTrustManagers();
+        for (int j=0; j < trustManagers.length; j++)
+        {
+          if (trustManagers[j] instanceof X509TrustManager)
+          {
+            trustManager = (X509TrustManager)trustManagers[j];
+            break;
+          }
         }
       }
-    }
-    catch (NoSuchAlgorithmException e)
-    {
-      // Nothing to do: if this occurs we will systematically refuse the
-      // certificates.  Maybe we should avoid this and be strict, but we are
-      // in a best effor mode.
-      LOG.log(Level.WARNING, "Error with the algorithm", e);
-    }
-    catch (KeyStoreException e)
-    {
-      // Nothing to do: if this occurs we will systematically refuse the
-      // certificates.  Maybe we should avoid this and be strict, but we are
-      // in a best effor mode.
-      LOG.log(Level.WARNING, "Error with the keystore", e);
+      catch (NoSuchProviderException e)
+      {
+        LOG.log(Level.WARNING, "Error with the provider: "+provider, e);
+      }
+      catch (NoSuchAlgorithmException e)
+      {
+        LOG.log(Level.WARNING, "Error with the algorithm: "+algo, e);
+      }
+      catch (KeyStoreException e)
+      {
+        LOG.log(Level.WARNING, "Error with the keystore", e);
+      }
     }
   }
 
