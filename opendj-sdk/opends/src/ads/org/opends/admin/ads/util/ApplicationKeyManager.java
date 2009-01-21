@@ -31,6 +31,7 @@ import java.net.Socket;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
@@ -40,6 +41,7 @@ import java.util.logging.Logger;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509KeyManager;
 
 
@@ -73,44 +75,89 @@ public class ApplicationKeyManager implements X509KeyManager
   public ApplicationKeyManager(KeyStore keystore, char[] password)
   {
     KeyManagerFactory kmf = null;
-    try
-    {
-      String algo = KeyManagerFactory.getDefaultAlgorithm();
-      kmf = KeyManagerFactory.getInstance(algo);
-      kmf.init(keystore, password);
-      KeyManager kms[] = kmf.getKeyManagers();
+    String userSpecifiedAlgo =
+      System.getProperty("org.opends.admin.keymanageralgo");
+    String userSpecifiedProvider =
+      System.getProperty("org.opends.admin.keymanagerprovider");
+    LOG.log(Level.INFO, "User specified algo: "+userSpecifiedAlgo);
+    LOG.log(Level.INFO, "User specified provider: "+userSpecifiedProvider);
 
-      /*
-       * Iterate over the returned keymanagers, look for an instance
-       * of X509KeyManager. If found, use that as our "default" key
-       * manager.
-       */
-      for (int i = 0; i < kms.length; i++)
+    // Have some fallbacks to choose the provider and algorith of the key
+    // manager.  First see if the user wanted to use something specific,
+    // then try with the SunJSSE provider and SunX509 algorithm. Finally,
+    // fallback to the default algorithm of the JVM.
+    String[] preferredProvider =
+    {
+        userSpecifiedProvider,
+        "SunJSSE",
+        null,
+        null
+    };
+    String[] preferredAlgo =
+    {
+        userSpecifiedAlgo,
+        "SunX509",
+        "SunX509",
+        TrustManagerFactory.getDefaultAlgorithm()
+    };
+    for (int i=0; i<preferredProvider.length && keyManager == null; i++)
+    {
+      String provider = preferredProvider[i];
+      String algo = preferredAlgo[i];
+      if (algo == null)
       {
-        if (kms[i] instanceof X509KeyManager)
+        continue;
+      }
+      try
+      {
+        if (provider != null)
         {
-          keyManager = (X509KeyManager) kms[i];
-          break;
+          kmf = KeyManagerFactory.getInstance(algo, provider);
+        }
+        else
+        {
+          kmf = KeyManagerFactory.getInstance(algo);
+        }
+        kmf.init(keystore, password);
+        KeyManager kms[] = kmf.getKeyManagers();
+        /*
+         * Iterate over the returned keymanagers, look for an instance
+         * of X509KeyManager. If found, use that as our "default" key
+         * manager.
+         */
+        for (int j = 0; j < kms.length; j++)
+        {
+          if (kms[i] instanceof X509KeyManager)
+          {
+            keyManager = (X509KeyManager) kms[j];
+            break;
+          }
         }
       }
-    }
-    catch (NoSuchAlgorithmException e)
-    {
-      // Nothing to do. Maybe we should avoid this and be strict, but we are
-      // in a best effor mode.
-      LOG.log(Level.WARNING, "Error with the algorithm", e);
-    }
-    catch (KeyStoreException e)
-    {
-      // Nothing to do. Maybe we should avoid this and be strict, but we are
-      // in a best effor mode..
-      LOG.log(Level.WARNING, "Error with the keystore", e);
-    }
-    catch (UnrecoverableKeyException e)
-    {
-      // Nothing to do. Maybe we should avoid this and be strict, but we are
-      // in a best effor mode.
-      LOG.log(Level.WARNING, "Error with the key", e);
+      catch (NoSuchAlgorithmException e)
+      {
+        // Nothing to do. Maybe we should avoid this and be strict, but we are
+        // in a best effor mode.
+        LOG.log(Level.WARNING, "Error with the algorithm", e);
+      }
+      catch (KeyStoreException e)
+      {
+        // Nothing to do. Maybe we should avoid this and be strict, but we are
+        // in a best effor mode..
+        LOG.log(Level.WARNING, "Error with the keystore", e);
+      }
+      catch (UnrecoverableKeyException e)
+      {
+        // Nothing to do. Maybe we should avoid this and be strict, but we are
+        // in a best effor mode.
+        LOG.log(Level.WARNING, "Error with the key", e);
+      }
+      catch (NoSuchProviderException e)
+      {
+        // Nothing to do. Maybe we should avoid this and be strict, but we are
+        // in a best effor mode.
+        LOG.log(Level.WARNING, "Error with the provider", e);
+      }
     }
   }
 
