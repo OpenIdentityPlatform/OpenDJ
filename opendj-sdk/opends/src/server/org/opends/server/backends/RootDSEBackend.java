@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
 
@@ -51,6 +51,8 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.WorkflowTopologyNode;
+import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.*;
@@ -769,6 +771,34 @@ public class RootDSEBackend
 
 
   /**
+   * Retrieves the root DSE entry for the given network group.
+   *
+   * @param   ng  The network group for which we want the root DSE entry
+   * @return  The root DSE entry for the given network group.
+   */
+  public Entry getRootDSE(NetworkGroup ng)
+  {
+    Entry e = getRootDSE();
+
+    // Simply replace the list of naming contexts with those known by
+    // the provided network group.
+    TreeSet<DN> dn = new TreeSet<DN>();
+    for (WorkflowTopologyNode node :
+        ng.getNamingContexts().getPublicNamingContexts()) {
+      dn.add(node.getBaseDN());
+    }
+
+    Attribute publicNamingContextAttr =
+         createDNAttribute(ATTR_NAMING_CONTEXTS, ATTR_NAMING_CONTEXTS_LC, dn);
+
+    e.replaceAttribute(publicNamingContextAttr);
+    return e;
+  }
+
+
+
+  /**
+   * }
    * Creates an attribute for the root DSE with the following criteria.
    *
    * @param  name       The name for the attribute.
@@ -969,7 +999,8 @@ public class RootDSEBackend
     switch (searchOperation.getScope())
     {
       case BASE_OBJECT:
-        Entry dseEntry = getRootDSE();
+        Entry dseEntry = getRootDSE(
+            searchOperation.getClientConnection().getNetworkGroup());
         if (filter.matchesEntry(dseEntry))
         {
           searchOperation.returnEntry(dseEntry, null);
