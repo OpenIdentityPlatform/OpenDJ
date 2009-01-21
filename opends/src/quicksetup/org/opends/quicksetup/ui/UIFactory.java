@@ -613,10 +613,6 @@ public class UIFactory
      */
     INFORMATION_LARGE,
     /**
-     * Icon of OpenDS.
-     */
-    OPENDS_SMALL,
-    /**
      * Icon to create subsection title in Status Panel.
      */
     SUBSECTION_LEFT,
@@ -1516,10 +1512,6 @@ public class UIFactory
       key = INFO_INFORMATION_LARGE_ICON.get();
       break;
 
-    case OPENDS_SMALL:
-      key = INFO_OPENDS_SMALL_ICON.get();
-      break;
-
     case SUBSECTION_LEFT:
       key = INFO_SUBSECTION_LEFT_ICON.get();
       break;
@@ -1608,10 +1600,6 @@ public class UIFactory
       description = INFO_INFORMATION_ICON_DESCRIPTION.get();
       break;
 
-    case OPENDS_SMALL:
-      description = INFO_OPENDS_SMALL_ICON_DESCRIPTION.get();
-      break;
-
     case SUBSECTION_LEFT:
       description = INFO_SUBSECTION_LEFT_ICON_DESCRIPTION.get();
       break;
@@ -1698,10 +1686,6 @@ public class UIFactory
 
     case INFORMATION_LARGE:
       tooltip = INFO_INFORMATION_ICON_TOOLTIP.get();
-      break;
-
-    case OPENDS_SMALL:
-      tooltip = null;
       break;
 
     case SUBSECTION_LEFT:

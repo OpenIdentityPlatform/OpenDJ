@@ -608,7 +608,7 @@ public class SecurityOptionsDialog extends JDialog
     gbc.gridwidth = 4;
     gbc.insets = UIFactory.getEmptyInsets();
     gbc.insets.left = UIFactory.getCurrentStepPanelInsets().left;
-    buttonsPanel.add(UIFactory.makeJLabel(UIFactory.IconType.OPENDS_SMALL,
+    buttonsPanel.add(UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
         null, UIFactory.TextStyle.NO_STYLE), gbc);
     gbc.weightx = 1.0;
     gbc.gridwidth--;
