@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 import static org.opends.messages.ReplicationMessages.*;
@@ -645,14 +645,14 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
       replicationServers = new ArrayList<String>();
 
     queueSize = configuration.getQueueSize();
-    long newPurgeDelay = configuration.getReplicationPurgeDelay()*1000;
+    long newPurgeDelay = configuration.getReplicationPurgeDelay();
     if (newPurgeDelay != purgeDelay)
     {
       purgeDelay = newPurgeDelay;
       // propagate
       for (ReplicationServerDomain domain : baseDNs.values())
       {
-        domain.setPurgeDelay(purgeDelay);
+        domain.setPurgeDelay(purgeDelay*1000);
       }
     }
 
