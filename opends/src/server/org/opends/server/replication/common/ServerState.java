@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.common;
 
@@ -431,7 +431,7 @@ public class ServerState implements Iterable<Short>
    */
   public void setSaved(boolean b)
   {
-    saved = false;
+    saved = b;
   }
 
   /**

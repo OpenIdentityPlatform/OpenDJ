@@ -398,7 +398,7 @@ public class DbHandler implements Runnable
           {
             try
             {
-              msgQueue.wait(10000);
+              msgQueue.wait(1000);
             } catch (InterruptedException e)
             { }
           }
