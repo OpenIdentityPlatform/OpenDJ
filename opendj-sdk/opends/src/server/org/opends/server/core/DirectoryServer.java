@@ -245,6 +245,11 @@ public class DirectoryServer
    */
   private static boolean serverLocked = false;
 
+  /**
+   * The message to be displayed on the command-line when the user asks for the
+   * usage.
+   */
+  private static Message toolDescription = INFO_DSCORE_TOOL_DESCRIPTION.get();
 
   /**
    * Return codes used when the hidden option --checkStartability is used.
@@ -8920,6 +8925,16 @@ public class DirectoryServer
   }
 
 
+  /**
+   * Sets the message to be displayed on the command-line when the user asks for
+   * the usage.
+   * @param msg the message to be displayed on the command-line when the user
+   * asks for the usage.
+   */
+  public static void setToolDescription (Message msg)
+  {
+    toolDescription = msg;
+  }
 
   /**
    * Retrieves the DN of the configuration entry with which this alert generator
@@ -9056,7 +9071,7 @@ public class DirectoryServer
 
 
     // Create the command-line argument parser for use with this program.
-    Message toolDescription = INFO_DSCORE_TOOL_DESCRIPTION.get();
+    Message toolDescription = DirectoryServer.toolDescription;
     ArgumentParser argParser =
          new ArgumentParser("org.opends.server.core.DirectoryServer",
                             toolDescription, false);
