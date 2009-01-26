@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -282,6 +282,7 @@ public class LocalBackendModifyOperation
    * @throws  DirectoryException  If an unexpected problem occurs while applying
    *                              the modification to the entry.
    */
+  @Override
   public void addModification(Modification modification)
     throws DirectoryException
   {
@@ -529,15 +530,18 @@ modifyProcessing:
         }
 
 
-        if ((! passwordChanged) && (! isInternalOperation()) &&
-            pwPolicyState.mustChangePassword())
+        DN authzDN = getAuthorizationDN();
+        if ((!passwordChanged) && (!isInternalOperation())
+            && pwPolicyState.mustChangePassword())
         {
-          // The user will not be allowed to do anything else before the
-          // password gets changed.
-          pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
-          setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-          appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD.get());
-          break modifyProcessing;
+          if (authzDN != null && authzDN.equals(entryDN))
+          {
+            // The user did not attempt to change their password.
+            pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
+            setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+            appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD.get());
+            break modifyProcessing;
+          }
         }
 
 
