@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 
@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
@@ -653,17 +654,64 @@ public class PasswordPolicyControlTestCase
 
 
 
+
   /**
-   * Tests that an appropriate password policy response control is returned for
-   * a modify operation when the user's password is in a "must change" state.
+   * Creates test data for testModifyMustChange.
    *
-   * @throws  Exception  If an unexpected problem occurs.
+   * Fields:
+   *   <userDN> <entryDN> <changeAfterReset>
+   *
+   * @return Returns test data for testModifyMustChange.
    */
-  @Test()
-  public void testModifyMustChange()
+  @DataProvider(name = "testModifyMustChange")
+  public Object[][] createTestModifyMustChange() {
+    return new Object[][] {
+        // User does not need to change their password.
+        { "uid=test.admin,o=test", "uid=test.admin,o=test", false },
+        { "uid=test.admin,o=test", "uid=test.user,o=test",  false },
+        { "uid=test.admin,o=test", "o=test",                false },
+
+        // User does need to change their password.
+        { "uid=test.user,o=test",  "uid=test.admin,o=test", true },
+        { "uid=test.user,o=test",  "uid=test.user,o=test",  true },
+        { "uid=test.user,o=test",  "o=test",                true }
+    };
+  }
+
+
+
+  /**
+   * Tests that an appropriate password policy response control is
+   * returned for a modify operation when the user's password is in a
+   * "must change" state.
+   *
+   * @param userDN
+   *          The name of the user to bind as.
+   * @param entryDN
+   *          The name of the entry to modify.
+   * @param changeAfterReset
+   *          {@code true} if change after reset is expected.
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test(dataProvider="testModifyMustChange")
+  public void testModifyMustChange(String userDN, String entryDN, boolean changeAfterReset)
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
+
+    TestCaseUtils.addEntry(
+        "dn: uid=test.admin,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.admin",
+        "givenName: Test Admin",
+        "sn: Admin",
+        "cn: Test Admin",
+        "userPassword: password",
+        "ds-privilege-name: bypass-acl");
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -690,7 +738,7 @@ public class PasswordPolicyControlTestCase
     try
     {
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           new ASN1OctetString("uid=test.user,o=test"), 3,
+           new ASN1OctetString(userDN), 3,
            new ASN1OctetString("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeElement(message.encode());
@@ -705,7 +753,7 @@ public class PasswordPolicyControlTestCase
                                       "foo"));
 
       ModifyRequestProtocolOp modifyRequest =
-           new ModifyRequestProtocolOp(new ASN1OctetString("o=test"), mods);
+           new ModifyRequestProtocolOp(new ASN1OctetString(entryDN), mods);
 
       ArrayList<LDAPControl> controls = new ArrayList<LDAPControl>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
@@ -716,7 +764,17 @@ public class PasswordPolicyControlTestCase
       message = LDAPMessage.decode(r.readElement().decodeAsSequence());
       ModifyResponseProtocolOp modifyResponse =
            message.getModifyResponseProtocolOp();
-      assertFalse(modifyResponse.getResultCode() == LDAPResultCode.SUCCESS);
+
+      if (changeAfterReset)
+      {
+        assertEquals(modifyResponse.getResultCode(),
+            LDAPResultCode.UNWILLING_TO_PERFORM);
+      }
+      else
+      {
+        assertEquals(modifyResponse.getResultCode(),
+            LDAPResultCode.SUCCESS);
+      }
 
       controls = message.getControls();
       assertNotNull(controls);
@@ -729,8 +787,12 @@ public class PasswordPolicyControlTestCase
         {
           PasswordPolicyResponseControl pwpControl =
                PasswordPolicyResponseControl.decodeControl(c.getControl());
-          assertEquals(pwpControl.getErrorType(),
-                       PasswordPolicyErrorType.CHANGE_AFTER_RESET);
+          if (changeAfterReset) {
+            assertEquals(pwpControl.getErrorType(),
+                         PasswordPolicyErrorType.CHANGE_AFTER_RESET);
+          } else {
+            assertNull(pwpControl.getErrorType());
+          }
           found = true;
         }
       }
@@ -759,7 +821,7 @@ public class PasswordPolicyControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyCannotChange()
          throws Exception
   {
