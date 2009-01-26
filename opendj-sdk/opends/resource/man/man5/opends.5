@@ -1,0 +1,105 @@
+'\" te
+.\" Copyright (c) 2008, Sun Microsystems Inc. All
+.\" Rights Reserved.
+.TH opends 5 "December 2008" "1.1" "&man5;"
+.SH NAME
+OpenDS \- a high-performance, highly-extensible,
+LDAPv3 compliant directory server
+.SH DESCRIPTION
+.sp
+.LP
+OpenDS is a high-performance, highly-extensible, pure Java directory
+server. The server is fully compliant with the LDAPv3 standard, and passes
+all of the compliance, interoperability and security tests suites. The 
+directory server implements most of the standard and experimental LDAP extensions
+defined in the IETF as RFCs or Internet-Drafts, ensuring maximum
+interoperability with LDAP client applications.
+.sp
+.LP
+The OpenDS software includes a rich set of APIs making the directory
+server easy to extend. The directory server supports a loosely consistent
+multi-master replication model that guarantees high availability of data for
+all operations, searches or updates. While theoretically unlimited with regard
+to the number of masters, the directory server has been stressed under heavy
+and durable load with four masters.
+.sp
+.LP
+The OpenDS software includes:
+.RS +4
+.TP
+.ie t \(bu
+.el o
+A graphical installation tool (QuickSetup) that enables you
+to have a server configured, and up and running in less than 3 minutes.
+.RE
+.RS +4
+.TP
+.ie t \(bu
+.el o
+A graphical control panel (\fBbin/control-panel\fR)
+that displays server status information and enables you to perform basic directory
+server administration
+.RE
+.RS +4
+.TP
+.ie t \(bu
+.el o
+A rich set of command-line utilities to perform all online
+administrative tasks both interactively and scripted
+.RE
+.RS +4
+.TP
+.ie t \(bu
+.el o
+Advanced security and password policies
+.RE
+.RS +4
+.TP
+.ie t \(bu
+.el o
+Advanced backup and restore capabilities
+.RE
+.RS +4
+.TP
+.ie t \(bu
+.el o
+Extensive user documentation at http://docs.opends.org/1.2\&.
+.RE
+.LP
+Note - 
+.sp
+.RS 2
+The default settings for the directory server are targeted
+at the initial evaluator or developer, running on a machine with a limited
+amount of resources. To scale the server, it is important to do initial tuning
+of the Java VM and of the server itself.
+.RE
+.sp
+.LP
+A Sun-supported version of OpenDS is available
+at http://wikis.sun.com/display/sunopends/Home\&.
+.SH USAGE
+.sp
+.LP
+To install the directory server from IPS packages perform the following
+steps:
+.RS +4
+.TP
+.ie t \(bu
+.el o
+As the root user, run the \fBconfigure\fR 
+command to create an instance of the directory server in a specific location, 
+running as a specific user. For more information, see the configure (1) man page.
+.RE
+.RS +4
+.TP
+.ie t \(bu
+.el o
+Run the \fBsetup\fR command as this user to 
+install and configure the directory server instance. For more information,
+see http://docs.opends.org/1.2/page/Setup\&.
+.RE
+.sp
+.LP
+For additional configuration of the directory server, use the \fBcontrol-panel\fR or the \fBdsconfig\fR command. For more information,
+see http://docs.opends.org/1.2/page/ControlPanel and http://docs.opends.org/1.2/page/Dsconfig\&.

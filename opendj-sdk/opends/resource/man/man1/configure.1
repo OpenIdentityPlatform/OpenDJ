@@ -1,0 +1,118 @@
+'\" te
+.\" Copyright (c) 2008, Sun Microsystems Inc. All
+.\" Rights Reserved.
+.TH configure 1 "December 2008" "1.1" "User Commands"
+.SH NAME
+configure \- sets the instance location of an OpenDS package installation
+.SH SYNOPSIS
+.LP
+.nf
+\fBconfigure\fR \fIoptions\fR
+.fi
+
+.SH DESCRIPTION
+.sp
+.LP
+The \fBconfigure\fR command configures an OpenDS package installation. The command registers the directory server as an SMF service,  specifies where the directory server instance will be located, and specifies  the user and group names of the instance owner.
+.sp
+.LP
+This command is available in the OpenSolaris\u\s-2TM\s+2\d package installation only.
+.sp
+.LP
+Run \fBconfigure --help\fR for more information.
+.SH OPTIONS
+.sp
+.LP
+The following options are supported:
+.sp
+.ne 2
+.mk
+.na
+\fB\fB-?\fR, \fB-H\fR, \fB--help\fR\fR
+.ad
+.RS 25n
+.rt  
+Displays usage information.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fB--groupName\fR \fIgroupName\fR\fR
+.ad
+.RS 25n
+.rt  
+The group name of the instance owner. If no group name is specified, the primary group of the \fIuserName\fR is used.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fB--instancePath\fR \fIpath\fR\fR
+.ad
+.RS 25n
+.rt  
+The path where the instance will be located. If no path is specified, the default \fB/var/opends\fR is used.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fB--userName\fR \fIuserName\fR\fR
+.ad
+.RS 25n
+.rt  
+The user name of the instance owner. If no user name is specified, the default \fBldap\fR is used.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fB-V\fR, \fB--version\fR\fR
+.ad
+.RS 25n
+.rt  
+Displays directory server version information.
+.RE
+
+.SH EXAMPLES
+.LP
+\fBExample 1 \fRConfiguring a Directory Server Package Installation
+.sp
+.LP
+The following example configures the instance path, user name and group name for a directory server package installation:
+
+.sp
+.in +2
+.nf
+$ /usr/opends/configure --instancePath /var/opends --userName myUser \
+  --groupName myGroup
+.fi
+.in -2
+.sp
+
+.sp
+.LP
+For more information, see "Running OpenDS as a Non-Root User" at http://docs.opends.org/1.2/page/RunningTheServerAsANonRootUser
+
+.SH ATTRIBUTES
+.sp
+.LP
+See \fBattributes\fR(5) for descriptions of the following attributes:
+.sp
+
+.sp
+.TS
+tab() box;
+cw(2.75i) |cw(2.75i) 
+lw(2.75i) |lw(2.75i) 
+.
+ATTRIBUTE TYPEATTRIBUTE VALUE
+_
+Interface StabilityUncommitted
+.TE
+

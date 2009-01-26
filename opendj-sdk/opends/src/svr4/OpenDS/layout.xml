@@ -22,7 +22,7 @@
  ! CDDL HEADER END
  !
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 
 <project name="OpenDS SVR4 layout" basedir=".">
@@ -44,7 +44,9 @@
     </classpath>
   </taskdef>
 
-  <getversionnumber property="pkg.version" />
+  <getversionnumber property="pkg.fullversion" />
+  <property name="pkg.version" 
+    value="${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}" />
   </target>
 
   <property name="resource.dir"      location="src/resource" />
@@ -68,7 +70,7 @@
     <getsvnrevision property="REVISION_NUMBER" /> 
 
     <property name="zip.dir"
-        location="${pkg.dir}/${product}-${pkg.version}" />
+        location="${pkg.dir}/${product}-${pkg.fullversion}" />
     
 	<echo 
         message="Building layout for ${pkg.name} pkg based on ${zip.dir}" />
@@ -96,11 +98,6 @@
 	<delete file="${svr4.layout.pkg.dir}/instance.loc" />
 	<!-- Remove uninstall file -->
 	<delete file="${svr4.layout.pkg.dir}/uninstall" />
-        <!-- Remove ldaptools -->
-        <delete file="${svr4.layout.pkg.dir}/bin/ldapcompare" />
-        <delete file="${svr4.layout.pkg.dir}/bin/ldapdelete" />
-        <delete file="${svr4.layout.pkg.dir}/bin/ldapmodify" />
-        <delete file="${svr4.layout.pkg.dir}/bin/ldapsearch" />
 	<!-- Remove ZIP README / install files -->
 	<delete file="${svr4.layout.pkg.dir}/README" />
 	<delete file="${svr4.layout.pkg.dir}/install.txt" />
@@ -126,6 +123,14 @@
 	<copy file="${resource.dir}/configure"
         tofile="${svr4.layout.pkg.dir}/configure" />
 	<chmod file="${svr4.layout.pkg.dir}/configure" perm="744" />
+        <!-- Add unconfigure script -->
+        <copy file="${resource.dir}/unconfigure"
+          tofile="${svr4.layout.pkg.dir}/unconfigure" />
+        <chmod file="${svr4.layout.pkg.dir}/unconfigure" perm="744" />
+        <!-- Add man pages -->
+        <copy todir="${svr4.layout.pkg.dir}/man">
+          <fileset dir="${resource.dir}/man"/>
+        </copy>
   	<!-- Replace zip upgrade script by svr4 upgrade script -->
 	<delete file="${svr4.layout.pkg.dir}/upgrade" />
 	<copy file="${resource.dir}/upgrade_svr4"

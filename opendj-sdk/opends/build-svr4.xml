@@ -22,7 +22,7 @@
  ! CDDL HEADER END
  !
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 
 <project name="SVR4 Packaging" basedir="." default="package-svr4">
@@ -42,7 +42,8 @@
   <property name="pkg.dir"           location="${build.dir}/package" />
   <property name="svr4.dir"          location="${build.dir}/package/svr4" />
 
-  <!-- Product specific properties: pkg.name / pkg.fullname / pkg.arch / pkg.desc / pkg.vendor / pkg.basedir / pkg.prefix -->
+  <!-- Product specific properties: pkg.name / pkg.fullname / pkg.arch /
+       pkg.desc / pkg.vendor / pkg.basedir / pkg.prefix / pkg.type -->
   <property file="${svr4.src.dir}/pkg.properties" />
 
   <!-- Default values for product specific properties -->
@@ -106,8 +107,9 @@ NAME=${pkg.fullname}
 ARCH=${pkg.arch}
 VERSION=${pkg.version},REV=${rev}
 SUNW_PRODNAME=${pkg.desc}
-SUNW_PRODVERS=${pkg.version}
+SUNW_PRODVERS=${pkg.fullversion}
 SUNW_PKGVERS=1.0
+SUNW_PKGTYPE=${pkg.type}
 MAXINST=1000
 CATEGORY=application
 DESC=${pkg.desc}
