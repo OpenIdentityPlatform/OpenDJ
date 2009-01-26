@@ -221,7 +221,9 @@ public class CheckInstance {
     // Check version
     if (checkVersionArg.isPresent()) {
         BuildInformation installBi =
-                  BuildInformation.fromBuildString(VERSION_NUMBER_STRING +
+                  BuildInformation.fromBuildString(MAJOR_VERSION +
+                                                   "." + MINOR_VERSION +
+                                                   "." + POINT_VERSION +
                                                    "." + REVISION_NUMBER);
       BuildInformation instanceBi = installBi;
 

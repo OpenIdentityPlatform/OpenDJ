@@ -60,7 +60,7 @@
             name='start'
             exec='/usr/opends/lib/_svc-opends.sh start'
             timeout_seconds='60'>
-                <method_context>
+                <method_context working_directory='/usr/opends'>
                     <method_credential
                    user='ldap' group='ldap'
 privileges='basic,net_privaddr,sys_resource,!proc_info,!file_link_any'
@@ -73,7 +73,7 @@ limit_privileges='basic,net_privaddr,sys_resource,!proc_info,!file_link_any'
             name='stop'
             exec='/usr/opends/lib/_svc-opends.sh stop'
             timeout_seconds='60'>
-                <method_context>
+                <method_context working_directory='/usr/opends'>
                     <method_credential user='ldap' group='ldap' />
                 </method_context>
             </exec_method>
@@ -81,6 +81,13 @@ limit_privileges='basic,net_privaddr,sys_resource,!proc_info,!file_link_any'
             <!-- core dumps shouldn't restart session -->
                 <propval name='ignore_error' type='astring'
                 value='core,signal' />
+            </property_group>
+            <property_group name='general' type='framework'>
+            <!-- autorizations required to start stop opends -->
+                <propval name='action_authorization' type='astring'
+                    value='solaris.smf.manage.opends' />
+                <propval name='value_authorization' type='astring'
+                    value='solaris.smf.manage.opends' />
             </property_group>
             <template>
                 <common_name>

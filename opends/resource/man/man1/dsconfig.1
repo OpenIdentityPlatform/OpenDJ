@@ -1,0 +1,48 @@
+'\" te
+.\" Copyright (c) 2008, Sun Microsystems Inc. All
+.\" Rights Reserved.
+.TH dsconfig 1 "December 2008" "1.1" "User Commands"
+.SH NAME
+dsconfig \- configures a directory server instance
+.SH SYNOPSIS
+.LP
+.nf
+\fBdsconfig\fR \fIsubcommand\fR \fIoptions\fR
+.fi
+
+.SH DESCRIPTION
+.sp
+.LP
+The \fBdsconfig\fR command enables you to create, manage,
+and remove the base configuration for a directory server instance. The directory
+server configuration is organized as a set of components that \fBdsconfig\fR can
+access by using one or more subcommands. All components have zero or more
+configurable properties. These properties can be queried and modified to change
+the behavior of the component.
+.sp
+.LP
+Unless you specify all configuration parameters and the \fB-n\fR (\fB--no-prompt\fR) option, \fBdsconfig\fR runs in interactive
+mode. Interactive mode works much like a wizard, walking you through every
+aspect of the server configuration.
+.sp
+.LP
+Run \fBdsconfig --help\fR for more information,
+or use the dsconfig online documentation at http://docs.opends.org/1.2/page/Dsconfig\&.
+.SH ATTRIBUTES
+.sp
+.LP
+See \fBattributes\fR(5) for
+descriptions of the following attributes:
+.sp
+
+.sp
+.TS
+tab() box;
+cw(2.75i) |cw(2.75i) 
+lw(2.75i) |lw(2.75i) 
+.
+ATTRIBUTE TYPEATTRIBUTE VALUE
+_
+Interface StabilityUncommitted
+.TE
+

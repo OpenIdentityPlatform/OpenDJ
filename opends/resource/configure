@@ -57,17 +57,28 @@ fi
 
 # return part
 RETURN_CODE=$?
-if test ${RETURN_CODE} -eq 50
+if test ${RETURN_CODE} -eq 50 -o ${RETURN_CODE} -eq 51
 then
-  # Version info was on requested
+  # Version or help info was on requested
   exit 0
+else
+if test ${RETURN_CODE} -eq 10
+then
+  # Syntax error
+  exit 1
 else
   if test ${RETURN_CODE} -eq 0
   then
+    # Retrieve INSTANCE_ROOT
+    INSTANCE_ROOT=`cat /etc/opends/instance.loc`
     # Now update SMF manifest, cp it to the right place and import it
-    USER_GROUP=`ls -ld ${INSTANCE_ROOT} | cut -c16-33`
-    USERNAME=`echo ${USER_GROUP} | cut -c1-8`
-    GROUPNAME=`echo ${USER_GROUP} | cut -c9-16`
+    OWNER=`ls -ld ${INSTANCE_ROOT}`
+    CURRENT_IFS=${IFS}
+    IFS=" "
+    set -- ${OWNER}
+    USERNAME=`echo $3`
+    GROUPNAME=`echo $4`
+    IFS=${CURRENT_IFS}
     if test "${USERNAME}" = "ldap" -a "$GROUPNAME" = "ldap"
     then
         cp ${INSTALL_ROOT}/resources/opends-manifest.xml /var/svc/manifest/network/ldap/
@@ -79,4 +90,5 @@ else
     /usr/sbin/svccfg import /var/svc/manifest/network/ldap/opends-manifest.xml
   fi
   exit ${RETURN_CODE}
+fi
 fi

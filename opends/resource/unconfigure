@@ -1,0 +1,115 @@
+#!/bin/sh
+#
+# CDDL HEADER START
+#
+# The contents of this file are subject to the terms of the
+# Common Development and Distribution License, Version 1.0 only
+# (the "License").  You may not use this file except in compliance
+# with the License.
+#
+# You can obtain a copy of the license at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE
+# or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+# See the License for the specific language governing permissions
+# and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL HEADER in each
+# file and include the License file at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+# add the following below this CDDL HEADER, with the fields enclosed
+# by brackets "[]" replaced with your own identifying information:
+#      Portions Copyright [yyyy] [name of copyright owner]
+#
+# CDDL HEADER END
+#
+#
+#      Copyright 2008-2009 Sun Microsystems, Inc.
+
+
+# Capture the current working directory so that we can change to it later.
+# Then capture the location of this script and the Directory Server instance
+# root so that we can use them to create appropriate paths.
+WORKING_DIR=`pwd`
+
+cd "`dirname "${0}"`"
+SCRIPT_DIR=`pwd`
+
+INSTALL_ROOT=${SCRIPT_DIR}
+export INSTALL_ROOT
+
+SCRIPT_NAME=unconfigure
+export SCRIPT_NAME
+
+cd "${WORKING_DIR}"
+
+# Set environment variables
+SCRIPT_UTIL_CMD=set-full-environment-and-test-java
+export SCRIPT_UTIL_CMD
+.  "${INSTALL_ROOT}/lib/_script-util.sh"
+RETURN_CODE=$?
+if test ${RETURN_CODE} -ne 0
+then
+  exit ${RETURN_CODE}
+fi
+
+# Check options
+# An exit code of 0 means options are correct => continue unconfiguration
+# An exit code of 51 means --help or --version option has been specified => do not unconfigure
+# An exit code of 10 means syntax error => do not unconfigure
+"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.server.tools.configurator.Unconfigurator --checkOptions "${@}"
+EC=${?}
+if test ${EC} -eq 10
+then
+   exit 1
+fi
+if test ${EC} -eq 51
+then
+   exit 0
+fi
+
+# Launch the unconfiguration
+# Stop the server if needed
+# Check server status: an exit code of 98  means that the server is running
+${OPENDS_JAVA_BIN} ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
+            --configClass org.opends.server.extensions.ConfigFileHandler \
+            --configFile "${CONFIG_FILE}" --checkStartability "${@}" > /dev/null 2>&1
+EC=${?}
+if test ${EC} -eq 98
+then
+  echo "Stopping the server ..."
+  ${INSTALL_ROOT}/bin/stop-ds
+  EC=${?}
+  if test ${EC} -eq 0
+  then
+    EC=98
+    while test ${EC} -eq 98
+    do
+      ${OPENDS_JAVA_BIN} ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
+            --configClass org.opends.server.extensions.ConfigFileHandler \
+            --configFile "${CONFIG_FILE}" --checkStartability "${@}" > /dev/null 2>&1
+      EC=${?}
+      sleep 1 
+    done
+  else
+    echo "Unable to stop the server: ${EC}"
+    exit ${EC}
+  fi
+fi
+
+echo "Disabling SMF service ..."
+# Now update SMF manifest, delete it and remove the file from  /var/svc/manifest
+echo select network/ldap/server >  /tmp/opends-unconfigure.$$
+echo delete opends >> /tmp/opends-unconfigure.$$
+/usr/sbin/svccfg -f /tmp/opends-unconfigure.$$
+rm /tmp/opends-unconfigure.$$
+rm /var/svc/manifest/network/ldap/opends-manifest.xml
+
+echo "Resetting instance location ..."
+# Launch the unconfigure process.
+"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.server.tools.configurator.Unconfigurator "${@}"
+EC=${?}
+if test ${EC} -eq 10
+then
+   exit 1
+fi
+

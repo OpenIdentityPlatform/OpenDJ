@@ -1,0 +1,540 @@
+'\" te
+.\" Copyright (c) 2008, Sun Microsystems Inc. All
+.\" Rights Reserved.
+.TH dsreplication 1 "December 2008" "1.1" "User Commands"
+.SH NAME
+dsreplication \- configures replication between
+directory servers so that the data of the servers is synchronized
+.SH SYNOPSIS
+.LP
+.nf
+\fBdsreplication\fR \fIsubcommand\fR \fIoptions\fR
+.fi
+
+.SH DESCRIPTION
+.sp
+.LP
+The \fBdsreplication\fR command can be used to configure
+replication between directory servers so that the data of the servers is synchronized.
+First enable replication by using the \fBenable\fR subcommand
+and then initialize the contents of one directory server with the contents
+of another server by using the \fBinitialize\fR subcommand.
+.sp
+.LP
+Like the \fBdsconfig\fR command, \fBdsreplication\fR can
+be run in interactive mode, which walks you through the replication setup
+process.  To run \fBdsreplication\fR in interactive mode, type
+the command name with no parameters.
+.sp
+.LP
+Run \fBdsreplication --help\fR for more information, or
+use the dsreplication online documentation at http://docs.opends.org/1.2/page/Dsreplication\&.
+.SH SUB-COMMANDS
+.sp
+.LP
+The following subcommands are used with the \fBdsreplication\fR command.
+.sp
+.ne 2
+.mk
+.na
+\fB\fBdisable\fR\fR
+.ad
+.sp .6
+.RS 4n
+Disable replication on the specified directory server for
+the specified base DN. This subcommand removes references to the specified
+server in the configuration of the servers with which this server is replicating
+data. Suboptions are as follows:
+.sp
+\fB-D, --bindDN \fIbindDN\fR\fR. The
+DN used to bind to the server on which replication will be disabled. This
+option must be used if no global administrator has been defined on the server
+or if you do not want to remove references in the other replicated servers.
+The password provided for the global administrator is used when this option
+is specified.
+.sp
+\fB-h, --hostname \fIhost\fR\fR. Directory
+server host name or IP address.
+.sp
+\fB-p, --port \fIport\fR\fR. Directory
+server administration port number.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fBenable\fR\fR
+.ad
+.sp .6
+.RS 4n
+Update the configuration of the directory servers to replicate
+data under the specified base DN. If one of the specified servers is already
+replicating the data under the base DN to other servers, executing this subcommand
+updates the configuration of all the servers. It is therefore sufficient to
+execute the subcommand once for each server that is added to the replication
+topology. Suboptions are as follows:
+.sp
+\fB--bindDN2 \fIbindDN\fR\fR. The
+DN used to bind to the second server whose contents will be replicated. If
+no bind DN is specified, the global administrator is used to bind.
+.sp
+\fB--bindPassword1 \fIbindPassword\fR\fR.
+The password used to bind to the first server whose contents will be replicated.
+If no bind DN was specified for the first server, the password of the global
+administrator is used to bind.
+.sp
+\fB--bindPassword2 \fIpassword\fR\fR.
+The password used to bind to the second server whose contents will be replicated.
+If no bind DN was specified for the second server, the password of the global
+administrator is used to bind.
+.sp
+\fB--bindPasswordFile1 \fIfilename\fR\fR \fB\fR.
+The file containing the password used to bind to the first server whose contents
+will be replicated. If no bind DN was specified for the first server, the
+password of the global administrator is used to bind.
+.sp
+\fB-D, --bindDN1 \fIbindDN\fR\fR.
+The DN used to bind to the first server whose contents will be replicated.
+If no bind DN is specified, the global administrator is used to bind.
+.sp
+\fB-F, --bindPasswordFile2 \fIfilename\fR\fR.
+The file containing the password used to bind to the second server whose contents
+will be replicated. If no bind DN was specified for the second server, the
+password of the global administrator is used to bind.
+.sp
+\fB-h, --host1 \fIhost\fR\fR. Host
+name or IP address of the first server whose contents will be replicated.
+.sp
+\fB--noSchemaReplication\fR. Do not replicate the schema
+between the servers. Note that schema replication is enabled by default. Use
+this option if you do not want the schema to be synchronized between servers.
+.sp
+\fB-O, --host2 \fIhost\fR\fR. Hostname
+or IP address of the second server whose contents will be replicated. 
+.sp
+\fB-p, --port1 \fIport\fR\fR. Directory
+server administration port number of the first server whose contents will
+be replicated.
+.sp
+\fB--port2 \fIport\fR\fR. Directory
+server administration port number of the second server whose contents will
+be replicated.
+.sp
+\fB-r, --replicationPort1 \fIport\fR\fR.
+The port that will be used by the replication mechanism in the first directory
+server to communicate with other servers. Only specify this option if replication
+was not previously configured on the first directory server.
+.sp
+\fB-R, --replicationPort2 \fIport\fR\fR.
+The port that will be used by the replication mechanism in the second directory
+server to communicate with other servers. Only specify this option if replication
+was not previously configured in the second server.
+.sp
+\fB-S, --skipPortCheck\fR. Skip the check to determine
+whether the specified replication ports are usable. If this argument is not
+specified, the server checks that the port is available only if you are configuring
+the local host.
+.sp
+\fB--secureReplication1\fR. Specifies whether communication
+through the replication port of the first server is encrypted. This option
+is only taken into account the first time replication is configured on the
+first server.
+.sp
+\fB--secureReplication2\fR. Specifies whether communication
+through the replication port of the second server is encrypted. This option
+is only taken into account the first time replication is configured on the
+second server.
+.sp
+\fB--useSecondServerAsSchemaSource\fR. Use the second server
+to initialize the schema of the first server. If neither this option nor the \fB--noSchemaReplication\fR option is specified, the schema of the first
+server is used to initialize the schema of the second server.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fBinitialize\fR\fR
+.ad
+.sp .6
+.RS 4n
+Initialize the contents of the data under the specified base
+DN on the destination directory server with the contents on the source server.
+This operation is required after enabling replication. Suboptions are as follows:
+.sp
+\fB-h, --hostSource \fIhost\fR\fR.
+Directory server host name or IP address of the source server whose contents
+will be used to initialize the destination server.
+.sp
+\fB-O, --hostDestination \fIhost\fR\fR \fBhost\fR. Directory server hostname or IP address of the destination
+server whose contents will be initialized.
+.sp
+\fB-p, --portSource\fR \fBport\fR. Directory
+server administration port number of the source server whose contents will
+be used to initialize the destination server.
+.sp
+\fB--portDestination\fR \fBport\fR. Directory
+server administration port number of the destination server whose contents
+will be initialized.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fBinitialize-all\fR\fR
+.ad
+.sp .6
+.RS 4n
+Initialize the data under the specified base DN, on all the
+directory servers in the topology, with the data on the specified server.
+This operation is required after enabling replication for replication to work.
+Alternatively, you can use the \fBinitialize\fR sub-command on
+each individual server in the topology. Suboptions are as follows:
+.sp
+\fB-h, --hostname \fIhost\fR\fR. Directory
+server host name or IP address of the source server.
+.sp
+\fB-p, --port \fIport\fR\fR. Directory
+server administration port number of the source server.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fBpost-external-initialization\fR\fR
+.ad
+.sp .6
+.RS 4n
+Enable replication to work after the entire topology has been
+reinitialized by using \fBimport-ldif\fR or binary copy. This
+subcommand must be called after you initialize the contents of all directory
+servers in a topology by using \fBimport-ldif\fR or binary copy.
+If you do not run this subcommand, replication will no longer work after the
+initialization. Suboptions are as follows:
+.sp
+\fB-h, --hostname \fIhost\fR\fR. Directory
+server host name or IP address.
+.sp
+\fB-p, --port \fIport\fR\fR. Directory
+server administration port number.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fBpre-external-initialization\fR\fR
+.ad
+.sp .6
+.RS 4n
+Prepare a replication topology for initialization by using \fBimport-ldif\fR or binary copy. This subcommand must be called before
+you initialize the contents of all directory servers in a topology by using \fBimport-ldif\fR or binary copy. If you do not run this subcommand, replication
+will no longer work after the initialization. After running this subcommand,
+initialize the contents of all the servers in the topology, then run the subcommand \fBpost-external-initialization\fR. Suboptions are as follows:
+.sp
+\fB-h, --hostname \fIhost\fR\fR. Directory
+server host name or IP address.
+.sp
+\fB-l, --local-only\fR. Use this option when the contents
+of only the specified directory server will be initialized with an external
+method.
+.sp
+\fB-p, --port \fIport\fR\fR. Directory
+server administration port number.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fBstatus\fR\fR
+.ad
+.sp .6
+.RS 4n
+List the replication configuration for the specified base
+DNs of all directory servers defined in the registration information. If no
+base DNs are specified, the information for all base DNs is displayed. Suboptions
+are as follows:
+.sp
+\fB-h, --hostname \fIhost\fR\fR. Directory
+server host name or IP address.
+.sp
+\fB-p, --port \fIport\fR\fR. Directory
+server administration port number.
+.sp
+\fB-s, --script-friendly\fR. Display the status in a format
+that can be parsed by a script.
+.RE
+
+.SH OPTIONS
+.sp
+.LP
+The following global options are supported:
+.sp
+.ne 2
+.mk
+.na
+\fB\fB-b, --baseDN \fIbaseDN\fR\fR\fR
+.ad
+.sp .6
+.RS 4n
+Specify the base DN of the data to be replicated or initialized,
+or for which replication should be disabled. Multiple base DNs can be specified
+by using this option multiple times.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fB-j, --adminPasswordFile \fIfilename\fR\fR\fR
+.ad
+.sp .6
+.RS 4n
+Use the global administrator password in the specified file
+when authenticating to the directory server. This option must not be used
+in conjunction with \fB--adminPassword\fR.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fB-w, --adminPassword \fIpassword\fR\fR\fR
+.ad
+.sp .6
+.RS 4n
+Use the global administrator password when authenticating
+to the directory server.
+.RE
+
+.sp
+.LP
+The following LDAP connection options are supported:
+.sp
+.ne 2
+.mk
+.na
+\fB\fB-I, --adminUID \fIUID\fR\fR\fR
+.ad
+.sp .6
+.RS 4n
+Specify the User ID of the global administrator to bind to
+the server. If no global administrator was defined previously for any of the
+servers, this option creates a global administrator by using the data provided.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fB-K, --keyStorePath \fIpath\fR\fR\fR
+.ad
+.sp .6
+.RS 4n
+Use the client keystore certificate in the specified path.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fB-N, --certNickname \fInickname\fR\fR\fR
+.ad
+.sp .6
+.RS 4n
+Use the specified certificate for authentication.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fB-o, --saslOption \fIname\fR=\fIvalue\fR\fR\fR
+.ad
+.sp .6
+.RS 4n
+Use the specified options for  SASL authentication.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fB-P, --trustStorePath \fIpath\fR\fR\fR
+.ad
+.sp .6
+.RS 4n
+Use the client trust store certificate in the specified path.
+This option is not needed if \fB--trustAll\fR is used, although
+a trust store should be used when working in a production environment.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fB-T, --trustStorePassword \fIpassword\fR\fR\fR
+.ad
+.sp .6
+.RS 4n
+Use the password needed to access the certificates in the
+client trust store. This option is only required if \fB--trustStorePath\fR is
+used and the specified trust store requires a password in order to access
+its contents (which most trust stores do not require). This option must not
+be used in conjunction with \fB--trustStorePasswordFile\fR.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fB-u, --keyStorePasswordFile \fIfilename\fR\fR\fR
+.ad
+.sp .6
+.RS 4n
+Use the password in the specified file to access the certificates
+in the client keystore. This option is only required if \fB--keyStorePath\fR is
+used. This option must not be used in conjunction with \fB--keyStorePassword\fR.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fB-U, --TrustStorePasswordFile \fIfilename\fR\fR\fR
+.ad
+.sp .6
+.RS 4n
+Use the password in the specified file to access the certificates
+in the client trust store. This option is only required if \fB--trustStorePath\fR is used and the specified trust store requires a password in order
+to access its contents (most trust stores do not require this). This option
+must not be used in conjunction with \fB--trustStorePassword\fR.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fB-W, --keyStorePassword \fIpassword\fR\fR\fR
+.ad
+.sp .6
+.RS 4n
+Use the password needed to access the certificates in the
+client keystore. This option is only required if \fB--keyStorePath\fR is
+used. This option must not be used in conjunction with \fB--keyStorePasswordFile\fR.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fB-X, --trustAll\fR\fR
+.ad
+.sp .6
+.RS 4n
+Trust any certificate that the directory server might present
+during SSL or StartTLS negotiation. This option can be used for convenience
+and testing purposes, but for security reasons a trust store should be used
+to determine whether the client should accept the server certificate.
+.RE
+
+.sp
+.LP
+The following input/output options are supported:
+.sp
+.ne 2
+.mk
+.na
+\fB\fB-n, --no-prompt\fR\fR
+.ad
+.RS 29n
+.rt  
+Run in non-interactive mode.  If some data in the command
+is missing, the user will not be prompted and the tool will fail.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fB--noPropertiesFile\fR\fR
+.ad
+.RS 29n
+.rt  
+Indicate that the utility will not use a properties file to
+get the default command-line options.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fB--propertiesFilePath \fIpath\fR\fR\fR
+.ad
+.RS 29n
+.rt  
+Specify the path to the properties file that contains the
+default command-line options.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fB-Q, --quiet\fR\fR
+.ad
+.RS 29n
+.rt  
+Run in quiet mode. No output will be generated unless a significant
+error occurs during the process.
+.RE
+
+.sp
+.LP
+The following general options are supported:
+.sp
+.ne 2
+.mk
+.na
+\fB\fB-?, -H, --help\fR\fR
+.ad
+.RS 18n
+.rt  
+Display command-line usage information for the utility and
+exit without making any attempt to stop or restart the directory server.
+.RE
+
+.sp
+.ne 2
+.mk
+.na
+\fB\fB-V, --version\fR\fR
+.ad
+.RS 18n
+.rt  
+Display the version information for the directory server and
+exit rather than attempting to run this command.
+.RE
+
+.SH ATTRIBUTES
+.sp
+.LP
+See \fBattributes\fR(5) for
+descriptions of the following attributes:
+.sp
+
+.sp
+.TS
+tab() box;
+cw(2.75i) |cw(2.75i) 
+lw(2.75i) |lw(2.75i) 
+.
+ATTRIBUTE TYPEATTRIBUTE VALUE
+_
+Interface StabilityUncommitted
+.TE
+

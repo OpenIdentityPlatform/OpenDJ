@@ -23,7 +23,7 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2006-2008 Sun Microsystems, Inc.
+#      Copyright 2006-2009 Sun Microsystems, Inc.
 
 
 # This script may be used to request that the Directory Server shut down.
@@ -72,7 +72,18 @@ then
         "$1" != "-H" -a "$1" != "--help" ]
 #These options are not stopping the server, but checking version and help
     then
-        exec /usr/sbin/svcadm disable -t svc:/network/ldap/server:opends
+        if [ "$1" = "-R" -o "$1" = "--restart" ]
+        then
+            /usr/sbin/svcadm disable -t svc:/network/ldap/server:opends
+            RETURN_CODE=$?
+            if test ${RETURN_CODE} -ne 0
+            then
+                exit ${RETURN_CODE}
+            fi
+            exec /usr/sbin/svcadm enable -t svc:/network/ldap/server:opends
+        else
+            exec /usr/sbin/svcadm disable -t svc:/network/ldap/server:opends
+        fi
     fi
 fi
 
