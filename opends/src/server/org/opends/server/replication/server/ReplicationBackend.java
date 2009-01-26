@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 import static org.opends.messages.BackendMessages.*;
@@ -1018,7 +1018,7 @@ public class ReplicationBackend
             entry.addObjectClass(objectclass);
           Attribute changeNumber =
             Attributes.create(CHANGE_NUMBER,
-                msg.getChangeNumber().toStringUI());
+                msg.getChangeNumber().toString());
           addAttribute(entry.getUserAttributes(), changeNumber);
           Attribute domain = Attributes.create("replicationDomain", baseDN);
           addAttribute(entry.getUserAttributes(), domain);

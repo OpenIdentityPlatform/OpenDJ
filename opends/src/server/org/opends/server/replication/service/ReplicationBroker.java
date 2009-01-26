@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.service;
 
@@ -502,7 +502,8 @@ public class ReplicationBroker
         {
           sendWindow.release(Integer.MAX_VALUE);
         }
-        this.sendWindow = new Semaphore(maxSendWindow);
+        sendWindow = new Semaphore(maxSendWindow);
+        rcvWindow = maxRcvWindow;
         connectPhaseLock.notify();
 
         if ((replServerStartMsg.getGenerationId() == this.getGenerationID()) ||
