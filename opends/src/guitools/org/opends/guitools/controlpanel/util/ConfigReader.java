@@ -324,4 +324,15 @@ public abstract class ConfigReader
     return AdministrationConnectorCfgDefn.getInstance().
     getListenAddressPropertyDefinition();
   }
+
+  /**
+   * Returns <CODE>true</CODE> if the schema must be read and
+   * <CODE>false</CODE> otherwise.
+   * @return <CODE>true</CODE> if the schema must be read and
+   * <CODE>false</CODE> otherwise.
+   */
+  protected boolean mustReadSchema()
+  {
+    return true;
+  }
 }
