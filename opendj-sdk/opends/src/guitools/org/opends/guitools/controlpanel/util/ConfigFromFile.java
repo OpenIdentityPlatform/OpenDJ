@@ -109,7 +109,7 @@ public class ConfigFromFile extends ConfigReader
     try
     {
       DirectoryServer.getInstance().initializeConfiguration();
-      // Get the Directory Server configuration handler and use it.ad
+      // Get the Directory Server configuration handler and use it.
       RootCfg root =
         ServerManagementContext.getInstance().getRootConfiguration();
       try
@@ -341,13 +341,16 @@ public class ConfigFromFile extends ConfigReader
         ex.add(oe);
       }
 
-      try
+      if (mustReadSchema())
       {
-        readSchema();
-      }
-      catch (OpenDsException oe)
-      {
-        ex.add(oe);
+        try
+        {
+          readSchema();
+        }
+        catch (OpenDsException oe)
+        {
+          ex.add(oe);
+        }
       }
     }
     catch (OpenDsException oe)
