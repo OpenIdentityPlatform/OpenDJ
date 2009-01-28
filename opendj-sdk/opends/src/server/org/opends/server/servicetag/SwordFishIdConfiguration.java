@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.servicetag;
 
@@ -42,8 +42,8 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 public class SwordFishIdConfiguration {
 
     /**
-    * The tracer object for the debug logger.
-    */
+     * The tracer object for the debug logger.
+     */
     private static final DebugTracer TRACER = getTracer();
 
     // Singleton
@@ -56,21 +56,31 @@ public class SwordFishIdConfiguration {
 
     // Private constructor
     private SwordFishIdConfiguration() {
-        // Build the full path to the properties files
-        String confDir =
-                DirectoryServer.getInstanceRoot() +
-                File.separatorChar +
-                "config" +
-                File.separatorChar +
-                "servicetag";
 
-        File config = new File(confDir);
-        if (!config.exists() || (!config.isDirectory())) {
-            return;
-        }
-        if (config.isDirectory()) {
+        try {
 
-            this.listProperties = config.listFiles();
+            // Build the full path to the properties files
+            // if resources dir exists then read the property files
+            // else use the default in config dir
+            File serviceTag = new File(
+                    DirectoryServer.getServerRoot() +
+                    File.separatorChar +
+                    "resources" +
+                    File.separatorChar +
+                    "servicetag");
+
+            if ((!serviceTag.exists()) || (!serviceTag.isDirectory())) {
+                serviceTag = new File(DirectoryServer.getInstanceRoot() +
+                        File.separatorChar +
+                        "config" +
+                        File.separatorChar +
+                        "servicetag");
+                if ((!serviceTag.exists()) || (!serviceTag.isDirectory())) {
+                    return;
+                }
+            }
+
+            this.listProperties = serviceTag.listFiles();
             for (int i = 0; i < listProperties.length; i++) {
                 try {
                     if (listProperties[i].getAbsolutePath().
@@ -80,9 +90,13 @@ public class SwordFishIdConfiguration {
                     }
                 } catch (Throwable t) {
                     if (debugEnabled()) {
-                       TRACER.debugCaught(DebugLogLevel.WARNING, t);
+                        TRACER.debugCaught(DebugLogLevel.WARNING, t);
                     }
                 }
+            }
+        } catch (Exception ex) {
+            if (debugEnabled()) {
+                TRACER.debugCaught(DebugLogLevel.WARNING, ex);
             }
         }
     }
