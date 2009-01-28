@@ -1084,6 +1084,20 @@ implements ConfigChangeListener
   }
 
   /**
+   * Updates the contents of an editor pane using the warning format.
+   * @param pane the editor pane to be updated.
+   * @param title the title.
+   * @param titleFont the font to be used for the title.
+   * @param details the details message.
+   * @param detailsFont the font to be used for the details.
+   */
+  protected void updateWarningPane(JEditorPane pane, Message title,
+      Font titleFont, Message details, Font detailsFont)
+  {
+    updatePane(pane, title, titleFont, details, detailsFont, PanelType.WARNING);
+  }
+
+  /**
    * Updates the contents of an editor pane using the confirmation format.
    * @param pane the editor pane to be updated.
    * @param title the title.
@@ -1099,12 +1113,27 @@ implements ConfigChangeListener
   }
 
   /**
-   * The different types of panel that are handled.
+   * The different types of error panels that are handled.
    *
    */
-  private enum PanelType
+  protected enum PanelType
   {
-    ERROR, CONFIRMATION, INFORMATION
+    /**
+     * The message in the panel is an error.
+     */
+    ERROR,
+    /**
+     * The message in the panel is a confirmation.
+     */
+    CONFIRMATION,
+    /**
+     * The message in the panel is an information message.
+     */
+    INFORMATION,
+    /**
+     * The message in the panel is a warning message.
+     */
+    WARNING
   };
 
   /**
@@ -1128,6 +1157,10 @@ implements ConfigChangeListener
       break;
     case CONFIRMATION:
       text = Utilities.getFormattedConfirmation(title, titleFont, details,
+          detailsFont);
+      break;
+    case WARNING:
+      text = Utilities.getFormattedWarning(title, titleFont, details,
           detailsFont);
       break;
     default:
