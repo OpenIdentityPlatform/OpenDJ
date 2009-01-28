@@ -638,7 +638,11 @@
                       
                                   
 
-
+<if expr="0">
+  <!-- Due to the impossibility to ensure all the restore operations (of both
+       db and changelogs) are done at the very same time, there's no controlling
+       the output of this testcase.
+  -->
           <!--- Test Case information
           #@TestMarker          Replication Changelog Tests
           #@TestName            Replication: Changelog: Backup-restore (on-line)
@@ -939,7 +943,7 @@
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>                     
-                      
+</if>    
 
           <!--- Test Case information
           #@TestMarker          Replication Changelog Tests
@@ -1317,8 +1321,6 @@
                       # => len(searchResult) > 0 => resultLength = 1
                       myExpectedRC = 1
                   </script>
-                  <!-- expect NO entry returned => len(searchResult) = 0 
-                    =====> resultLength = 0 -->
                   <call function="'checktestRC'">
                     { 'returncode' : resultLength ,
                       'result'     : searchResult ,
@@ -1333,16 +1335,23 @@
                 the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
-              </call>                            
-                                
+              </call>
+
+              <!-- #3736: Dynamic purge delay change not properly taken into 
+                   account -->
+              <call function="'setKnownIssue'">
+                { 'issueId' : '3736' }
+              </call>
+             
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>                        
-          
+        
           <import machine="STAF_LOCAL_HOSTNAME"
                   file="'%s/testcases/replication/replication_cleanup.xml' 
                         % (TESTS_DIR)"/>
           <call function="'replication_cleanup'" />
+
           <call function="'testSuite_Postamble'"/>
         </sequence>
       </block>
