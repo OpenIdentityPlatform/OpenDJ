@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
@@ -714,10 +715,13 @@ public class SearchOperationBasis
     // Make a copy of the entry and pare it down to only include the set
     // of requested attributes.
     Entry entryToReturn;
+    boolean omitReal = isVirtualAttributesOnly();
+    boolean omitVirtual = isRealAttributesOnly();
     if ((getAttributes() == null) || getAttributes().isEmpty())
     {
-      entryToReturn = entry.duplicateWithoutOperationalAttributes(typesOnly,
-                                                                  true);
+      entryToReturn =
+          entry.duplicateWithoutOperationalAttributes(typesOnly,
+              omitReal, omitVirtual);
     }
     else
     {
@@ -729,22 +733,26 @@ public class SearchOperationBasis
         {
           // This is a special placeholder indicating that all user attributes
           // should be returned.
-          if (typesOnly)
+          if (!omitReal)
           {
-            // First, add the placeholder for the objectclass attribute.
-            AttributeType ocType =
-                 DirectoryServer.getObjectClassAttributeType();
-            List<Attribute> ocList = new ArrayList<Attribute>(1);
-            ocList.add(Attributes.empty(ocType));
-            entryToReturn.putAttribute(ocType, ocList);
-          }
-          else
-          {
-            // First, add the objectclass attribute.
-            Attribute ocAttr = entry.getObjectClassAttribute();
-            if (ocAttr != null)
+            if (typesOnly)
             {
-              entryToReturn.replaceAttribute(ocAttr);
+              // First, add the placeholder for the objectclass
+              // attribute.
+              AttributeType ocType =
+                  DirectoryServer.getObjectClassAttributeType();
+              List<Attribute> ocList = new ArrayList<Attribute>(1);
+              ocList.add(Attributes.empty(ocType));
+              entryToReturn.putAttribute(ocType, ocList);
+            }
+            else
+            {
+              // First, add the objectclass attribute.
+              Attribute ocAttr = entry.getObjectClassAttribute();
+              if (ocAttr != null)
+              {
+                entryToReturn.replaceAttribute(ocAttr);
+              }
             }
           }
 
@@ -752,8 +760,12 @@ public class SearchOperationBasis
           for (AttributeType t : entry.getUserAttributes().keySet())
           {
             List<Attribute> attrList =
-                 entry.duplicateUserAttribute(t, null, typesOnly);
-            entryToReturn.putAttribute(t, attrList);
+                duplicateUserAttribute(entry, t, null, typesOnly,
+                    omitReal, omitVirtual);
+            if (attrList != null)
+            {
+              entryToReturn.putAttribute(t, attrList);
+            }
           }
 
           continue;
@@ -765,8 +777,12 @@ public class SearchOperationBasis
           for (AttributeType t : entry.getOperationalAttributes().keySet())
           {
             List<Attribute> attrList =
-                 entry.duplicateOperationalAttribute(t, null, typesOnly);
-            entryToReturn.putAttribute(t, attrList);
+                duplicateOperationalAttribute(entry, t, null,
+                    typesOnly, omitReal, omitVirtual);
+            if (attrList != null)
+            {
+              entryToReturn.putAttribute(t, attrList);
+            }
           }
 
           continue;
@@ -787,7 +803,6 @@ public class SearchOperationBasis
             semicolonPos = nextPos;
             nextPos = attrName.indexOf(';', semicolonPos+1);
           }
-
           options.add(attrName.substring(semicolonPos+1));
         }
         else
@@ -795,7 +810,6 @@ public class SearchOperationBasis
           lowerName = toLowerCase(attrName);
           options = null;
         }
-
 
         AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
         if (attrType == null)
@@ -806,11 +820,11 @@ public class SearchOperationBasis
             if (t.hasNameOrOID(lowerName))
             {
               List<Attribute> attrList =
-                   entry.duplicateUserAttribute(t, options, typesOnly);
+                  duplicateUserAttribute(entry, t, options, typesOnly,
+                      omitReal, omitVirtual);
               if (attrList != null)
               {
                 entryToReturn.putAttribute(t, attrList);
-
                 added = true;
                 break;
               }
@@ -827,11 +841,11 @@ public class SearchOperationBasis
             if (t.hasNameOrOID(lowerName))
             {
               List<Attribute> attrList =
-                   entry.duplicateOperationalAttribute(t, options, typesOnly);
+                  duplicateOperationalAttribute(entry, t, options,
+                      typesOnly, omitReal, omitVirtual);
               if (attrList != null)
               {
                 entryToReturn.putAttribute(t, attrList);
-
                 break;
               }
             }
@@ -840,30 +854,34 @@ public class SearchOperationBasis
         else
         {
           if (attrType.isObjectClassType()) {
-            if (typesOnly)
+            if (!omitReal)
             {
-              AttributeType ocType =
-                   DirectoryServer.getObjectClassAttributeType();
-              List<Attribute> ocList = new ArrayList<Attribute>(1);
-              ocList.add(Attributes.empty(ocType));
-              entryToReturn.putAttribute(ocType, ocList);
-            }
-            else
-            {
-              List<Attribute> attrList = new ArrayList<Attribute>(1);
-              attrList.add(entry.getObjectClassAttribute());
-              entryToReturn.putAttribute(attrType, attrList);
+              if (typesOnly)
+              {
+                AttributeType ocType =
+                    DirectoryServer.getObjectClassAttributeType();
+                List<Attribute> ocList = new ArrayList<Attribute>(1);
+                ocList.add(Attributes.empty(ocType));
+                entryToReturn.putAttribute(ocType, ocList);
+              }
+              else
+              {
+                List<Attribute> attrList = new ArrayList<Attribute>(1);
+                attrList.add(entry.getObjectClassAttribute());
+                entryToReturn.putAttribute(attrType, attrList);
+              }
             }
           }
           else
           {
             List<Attribute> attrList =
-                 entry.duplicateOperationalAttribute(attrType, options,
-                                                     typesOnly);
+                duplicateOperationalAttribute(entry, attrType, options,
+                    typesOnly, omitReal, omitVirtual);
             if (attrList == null)
             {
-              attrList = entry.duplicateUserAttribute(attrType, options,
-                                                      typesOnly);
+              attrList =
+                  duplicateUserAttribute(entry, attrType, options,
+                      typesOnly, omitReal, omitVirtual);
             }
             if (attrList != null)
             {
@@ -872,15 +890,6 @@ public class SearchOperationBasis
           }
         }
       }
-    }
-
-    if (isRealAttributesOnly())
-    {
-      entryToReturn.stripVirtualAttributes();
-    }
-    else if (isVirtualAttributesOnly())
-    {
-      entryToReturn.stripRealAttributes();
     }
 
     // If there is a matched values control, then further pare down the entry
@@ -1466,6 +1475,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void run()
   {
     setResultCode(ResultCode.UNDEFINED);
@@ -1617,4 +1627,91 @@ public class SearchOperationBasis
     appendErrorMessage(message);
   }
 
+
+  // Copies non-empty attributes.
+  private List<Attribute> duplicateAttribute(
+       List<Attribute> attrList,
+       Set<String> options,
+       boolean omitValues,
+       boolean omitReal,
+       boolean omitVirtual)
+  {
+    if (attrList == null)
+    {
+      return null;
+    }
+
+    ArrayList<Attribute> duplicateList =
+         new ArrayList<Attribute>(attrList.size());
+    for (Attribute a : attrList)
+    {
+      if (a.hasAllOptions(options))
+      {
+        if (omitReal && !a.isVirtual())
+        {
+          continue;
+        }
+        else if (omitVirtual && a.isVirtual())
+        {
+          continue;
+        }
+        else if (a.isEmpty())
+        {
+          continue;
+        }
+        else if (omitValues)
+        {
+          duplicateList.add(Attributes.empty(a));
+        }
+        else
+        {
+          duplicateList.add(a);
+        }
+      }
+    }
+
+    if (duplicateList.isEmpty())
+    {
+      return null;
+    }
+    else
+    {
+      return duplicateList;
+    }
+  }
+
+
+
+  // Copy a user attribute - may return null if the attribute was
+  // not found or if it was empty.
+  private List<Attribute> duplicateUserAttribute(
+       Entry entry,
+       AttributeType attributeType,
+       Set<String> options,
+       boolean omitValues,
+       boolean omitReal,
+       boolean omitVirtual)
+  {
+    List<Attribute> currentList = entry.getUserAttribute(attributeType);
+    return duplicateAttribute(currentList, options, omitValues,
+        omitReal, omitVirtual);
+  }
+
+
+
+  // Copy an operational attribute - may return null if the
+  // attribute was not found or if it was empty.
+  private List<Attribute> duplicateOperationalAttribute(
+       Entry entry,
+       AttributeType attributeType,
+       Set<String> options,
+       boolean omitValues,
+       boolean omitReal,
+       boolean omitVirtual)
+  {
+    List<Attribute> currentList =
+         entry.getOperationalAttribute(attributeType);
+    return duplicateAttribute(currentList, options, omitValues,
+        omitReal, omitVirtual);
+  }
 }

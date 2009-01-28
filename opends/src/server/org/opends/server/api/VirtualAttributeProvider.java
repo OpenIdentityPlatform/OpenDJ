@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 import org.opends.messages.Message;
@@ -31,8 +31,8 @@ import org.opends.messages.Message;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.opends.server.admin.std.server.VirtualAttributeCfg;
 import org.opends.server.config.ConfigException;
@@ -147,19 +147,18 @@ public abstract class VirtualAttributeProvider
 
 
   /**
-   * Generates a set of values for the provided entry.
+   * Generates an unmodifiable set of values for the provided entry.
    *
-   * @param  entry  The entry for which the values are to be
-   *                generated.
-   * @param  rule   The virtual attribute rule which defines the
-   *                constraints for the virtual attribute.
-   *
-   * @return  The set of values generated for the provided entry.  It
-   *          may be empty, but it must not be {@code null}.
+   * @param entry
+   *          The entry for which the values are to be generated.
+   * @param rule
+   *          The virtual attribute rule which defines the constraints
+   *          for the virtual attribute.
+   * @return The unmodifiable set of values generated for the provided
+   *         entry. It may be empty, but it must not be {@code null}.
    */
-  public abstract LinkedHashSet<AttributeValue>
-                       getValues(Entry entry,
-                                 VirtualAttributeRule rule);
+  public abstract Set<AttributeValue> getValues(
+      Entry entry, VirtualAttributeRule rule);
 
 
 
@@ -221,15 +220,8 @@ public abstract class VirtualAttributeProvider
   public boolean hasAllValues(Entry entry, VirtualAttributeRule rule,
                               Collection<AttributeValue> values)
   {
-    for (AttributeValue value : values)
-    {
-      if (! getValues(entry, rule).contains(value))
-      {
-        return false;
-      }
-    }
-
-    return true;
+    Set<AttributeValue> virtualValues = getValues(entry, rule);
+    return virtualValues.containsAll(values);
   }
 
 
@@ -251,9 +243,10 @@ public abstract class VirtualAttributeProvider
   public boolean hasAnyValue(Entry entry, VirtualAttributeRule rule,
                              Collection<AttributeValue> values)
   {
+    Set<AttributeValue> virtualValues = getValues(entry, rule);
     for (AttributeValue value : values)
     {
-      if (getValues(entry, rule).contains(value))
+      if (virtualValues.contains(value))
       {
         return true;
       }

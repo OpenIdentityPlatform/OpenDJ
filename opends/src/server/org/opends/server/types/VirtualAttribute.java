@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -126,18 +126,6 @@ public final class VirtualAttribute
   public AttributeType getAttributeType()
   {
     return attributeType;
-  }
-
-
-
-  /**
-   * Retrieves the entry in which this virtual attribute exists.
-   *
-   * @return The entry in which this virtual attribute exists.
-   */
-  public Entry getEntry()
-  {
-    return entry;
   }
 
 
@@ -247,7 +235,7 @@ public final class VirtualAttribute
   public Iterator<AttributeValue> iterator()
   {
     Set<AttributeValue> values = provider.getValues(entry, rule);
-    return Collections.unmodifiableSet(values).iterator();
+    return values.iterator();
   }
 
 

@@ -22,14 +22,15 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
 
 
-import java.util.LinkedHashSet;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.SubschemaSubentryVirtualAttributeCfg;
@@ -37,7 +38,6 @@ import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
@@ -46,9 +46,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.VirtualAttributeRule;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.util.ServerConstants.*;
 
 
 
@@ -59,13 +57,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class SubschemaSubentryVirtualAttributeProvider
        extends VirtualAttributeProvider<SubschemaSubentryVirtualAttributeCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
-
-
   /**
    * Creates a new instance of this subschemaSubentry virtual attribute
    * provider.
@@ -108,15 +99,13 @@ public class SubschemaSubentryVirtualAttributeProvider
    * {@inheritDoc}
    */
   @Override()
-  public LinkedHashSet<AttributeValue> getValues(Entry entry,
-                                                 VirtualAttributeRule rule)
+  public Set<AttributeValue> getValues(Entry entry,
+                                       VirtualAttributeRule rule)
   {
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-
-    values.add(new AttributeValue(rule.getAttributeType(),
-                                  DirectoryServer.getSchemaDN().toString()));
-
-    return values;
+    AttributeValue value =
+        new AttributeValue(rule.getAttributeType(),
+                           DirectoryServer.getSchemaDN().toString());
+    return Collections.singleton(value);
   }
 
 

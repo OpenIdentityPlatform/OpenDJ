@@ -22,14 +22,15 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
 
 
-import java.util.LinkedHashSet;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.HasSubordinatesVirtualAttributeCfg;
@@ -109,11 +110,9 @@ public class HasSubordinatesVirtualAttributeProvider
    * {@inheritDoc}
    */
   @Override()
-  public LinkedHashSet<AttributeValue> getValues(Entry entry,
-                                                 VirtualAttributeRule rule)
+  public Set<AttributeValue> getValues(Entry entry,
+                                       VirtualAttributeRule rule)
   {
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-
     Backend backend = DirectoryServer.getBackend(entry.getDN());
 
     try
@@ -124,7 +123,7 @@ public class HasSubordinatesVirtualAttributeProvider
         AttributeValue value =
             new AttributeValue(ByteStringFactory.create(ret.toString()),
                                ByteStringFactory.create(ret.toString()));
-        values.add(value);
+        return Collections.singleton(value);
       }
     }
     catch(DirectoryException de)
@@ -135,7 +134,7 @@ public class HasSubordinatesVirtualAttributeProvider
       }
     }
 
-    return values;
+    return Collections.emptySet();
   }
 
 
