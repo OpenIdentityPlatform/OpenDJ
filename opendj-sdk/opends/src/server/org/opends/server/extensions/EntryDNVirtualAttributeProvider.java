@@ -22,15 +22,17 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
 
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.opends.server.admin.std.server.EntryDNVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
@@ -109,16 +111,14 @@ public class EntryDNVirtualAttributeProvider
    * {@inheritDoc}
    */
   @Override()
-  public LinkedHashSet<AttributeValue> getValues(Entry entry,
-                                                 VirtualAttributeRule rule)
+  public Set<AttributeValue> getValues(Entry entry,
+                                       VirtualAttributeRule rule)
   {
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-
     String normDNString = entry.getDN().toNormalizedString();
-    values.add(new AttributeValue(ByteStringFactory.create(normDNString),
-                                  ByteStringFactory.create(normDNString)));
-
-    return values;
+    AttributeValue value = new AttributeValue(
+                                  ByteStringFactory.create(normDNString),
+                                  ByteStringFactory.create(normDNString));
+    return Collections.singleton(value);
   }
 
 

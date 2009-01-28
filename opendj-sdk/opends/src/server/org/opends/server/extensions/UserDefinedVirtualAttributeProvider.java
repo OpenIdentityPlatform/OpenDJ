@@ -22,14 +22,15 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
 
 
 
-import java.util.LinkedHashSet;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -124,20 +125,27 @@ public class UserDefinedVirtualAttributeProvider
    * {@inheritDoc}
    */
   @Override()
-  public LinkedHashSet<AttributeValue> getValues(Entry entry,
-                                                 VirtualAttributeRule rule)
+  public Set<AttributeValue> getValues(Entry entry,
+                                       VirtualAttributeRule rule)
   {
     AttributeType attributeType = rule.getAttributeType();
     Set<String> userDefinedValues = currentConfig.getValue();
-
-    LinkedHashSet<AttributeValue> values =
-         new LinkedHashSet<AttributeValue>(userDefinedValues.size());
-    for (String valueString : userDefinedValues)
-    {
-      values.add(new AttributeValue(attributeType, valueString));
+    switch (userDefinedValues.size()) {
+    case 0:
+      return Collections.emptySet();
+    case 1:
+      String valueString = userDefinedValues.iterator().next();
+      AttributeValue value = new AttributeValue(attributeType, valueString);
+      return Collections.singleton(value);
+    default:
+      HashSet<AttributeValue> values =
+          new HashSet<AttributeValue>(userDefinedValues.size());
+      for (String valueString2 : userDefinedValues)
+      {
+        values.add(new AttributeValue(attributeType, valueString2));
+      }
+      return Collections.unmodifiableSet(values);
     }
-
-    return values;
   }
 
 

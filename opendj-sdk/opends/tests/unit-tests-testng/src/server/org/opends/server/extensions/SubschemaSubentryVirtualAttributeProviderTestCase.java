@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -45,9 +46,6 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringFactory;
-import org.opends.server.types.ConditionResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DN;
@@ -559,7 +557,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    LinkedHashSet<AttributeValue> values = provider.getValues(entry, rule);
+    Set<AttributeValue> values = provider.getValues(entry, rule);
     assertNotNull(values);
     assertEquals(values.size(), 1);
     assertTrue(values.contains(new AttributeValue(subschemaSubentryType,

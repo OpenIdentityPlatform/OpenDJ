@@ -22,15 +22,17 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
 
 
 import java.util.Collection;
-import java.util.LinkedHashSet;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.opends.server.admin.std.server.IsMemberOfVirtualAttributeCfg;
 import org.opends.server.api.Group;
@@ -112,11 +114,11 @@ public class IsMemberOfVirtualAttributeProvider
    * {@inheritDoc}
    */
   @Override()
-  public LinkedHashSet<AttributeValue> getValues(Entry entry,
-                                                 VirtualAttributeRule rule)
+  public Set<AttributeValue> getValues(Entry entry,
+                                       VirtualAttributeRule rule)
   {
     // FIXME -- This probably isn't the most efficient implementation.
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
+    HashSet<AttributeValue> values = new HashSet<AttributeValue>();
     for (Group g : DirectoryServer.getGroupManager().getGroupInstances())
     {
       try
@@ -136,7 +138,7 @@ public class IsMemberOfVirtualAttributeProvider
       }
     }
 
-    return values;
+    return Collections.unmodifiableSet(values);
   }
 
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -31,7 +31,6 @@ package org.opends.server.extensions;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.List;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -49,7 +48,6 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.ConditionResult;
-import org.opends.server.types.Control;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -60,8 +58,6 @@ import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
 
 import static org.testng.Assert.*;
-
-import static org.opends.server.util.ServerConstants.*;
 
 
 
@@ -1107,8 +1103,10 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                                     conn.nextMessageID(), null,
+         new InternalSearchOperation(conn,
+                                     InternalClientConnection.nextOperationID(),
+                                     InternalClientConnection.nextMessageID(),
+                                     null,
                                      DN.decode("o=test"),
                                      SearchScope.WHOLE_SUBTREE,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
@@ -1232,8 +1230,10 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                                     conn.nextMessageID(), null,
+         new InternalSearchOperation(conn,
+                                     InternalClientConnection.nextOperationID(),
+                                     InternalClientConnection.nextMessageID(),
+                                     null,
                                      DN.decode("o=test"),
                                      SearchScope.WHOLE_SUBTREE,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,

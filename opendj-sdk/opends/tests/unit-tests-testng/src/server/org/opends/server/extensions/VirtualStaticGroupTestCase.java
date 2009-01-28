@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -658,7 +659,7 @@ public class VirtualStaticGroupTestCase
 
     assertTrue(provider.isMultiValued());
 
-    LinkedHashSet<AttributeValue> values = provider.getValues(entry, rule);
+    Set<AttributeValue> values = provider.getValues(entry, rule);
     assertNotNull(values);
     assertFalse(values.isEmpty());
     assertTrue(provider.hasValue(entry, rule));
@@ -737,7 +738,7 @@ public class VirtualStaticGroupTestCase
 
     assertTrue(provider.isMultiValued());
 
-    LinkedHashSet<AttributeValue> values = provider.getValues(entry, rule);
+    Set<AttributeValue> values = provider.getValues(entry, rule);
     assertNotNull(values);
     assertTrue(values.isEmpty());
     assertFalse(provider.hasValue(entry, rule));

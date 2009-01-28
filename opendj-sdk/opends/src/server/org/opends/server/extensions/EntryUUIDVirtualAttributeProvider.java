@@ -22,14 +22,15 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
 
 
-import java.util.LinkedHashSet;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.opends.messages.Message;
@@ -50,7 +51,6 @@ import org.opends.server.types.VirtualAttributeRule;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -112,18 +112,16 @@ public class EntryUUIDVirtualAttributeProvider
    * {@inheritDoc}
    */
   @Override()
-  public LinkedHashSet<AttributeValue> getValues(Entry entry,
-                                                 VirtualAttributeRule rule)
+  public Set<AttributeValue> getValues(Entry entry,
+                                       VirtualAttributeRule rule)
   {
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-
     String normDNString = entry.getDN().toNormalizedString();
     String uuidString =
          UUID.nameUUIDFromBytes(getBytes(normDNString)).toString();
-    values.add(new AttributeValue(ByteStringFactory.create(uuidString),
-                                  ByteStringFactory.create(uuidString)));
-
-    return values;
+    AttributeValue value = new AttributeValue(
+        ByteStringFactory.create(uuidString),
+        ByteStringFactory.create(uuidString));
+    return Collections.singleton(value);
   }
 
 

@@ -96,10 +96,6 @@ public class Entry
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // Indicates whether virtual attribute processing has been performed
-  // for this entry.
-  private boolean virtualAttributeProcessingPerformed;
-
   // The set of operational attributes for this entry.
   private Map<AttributeType,List<Attribute>> operationalAttributes;
 
@@ -120,7 +116,7 @@ public class Entry
   private transient Object attachment;
 
   // The schema used to govern this entry.
-  private Schema schema;
+  private final Schema schema;
 
 
 
@@ -149,12 +145,8 @@ public class Entry
   {
     attachment                          = null;
     schema                              = DirectoryServer.getSchema();
-    virtualAttributeProcessingPerformed = false;
-
-
     suppressedAttributes =
          new LinkedHashMap<AttributeType,List<Attribute>>();
-
 
     if (dn == null)
     {
@@ -1211,114 +1203,6 @@ public class Entry
     }
   }
 
-
-
-  /**
-   * Makes a copy of attributes matching the specified options.
-   *
-   * @param  attrList       The attributes to be copied.
-   * @param  options        The set of attribute options to include in
-   *                        matching elements.
-   * @param  omitValues     <CODE>true</CODE> if the values are to be
-   *                        omitted.
-   *
-   * @return  A copy of the attributes matching the specified options,
-   *          or <CODE>null</CODE> if there is no such attribute with
-   *          the specified set of options.
-   */
-  private static List<Attribute> duplicateAttribute(
-       List<Attribute> attrList,
-       Set<String> options,
-       boolean omitValues)
-  {
-    if (attrList == null)
-    {
-      return null;
-    }
-
-    ArrayList<Attribute> duplicateList =
-         new ArrayList<Attribute>(attrList.size());
-    for (Attribute a : attrList)
-    {
-      if (a.hasAllOptions(options))
-      {
-        if (omitValues && !a.isVirtual())
-        {
-          duplicateList.add(Attributes.empty(a));
-        }
-        else
-        {
-          duplicateList.add(a);
-        }
-      }
-    }
-
-    if (duplicateList.isEmpty())
-    {
-      return null;
-    }
-    else
-    {
-      return duplicateList;
-    }
-  }
-
-
-
-  /**
-   * Retrieves a copy of the requested user attribute element(s) for
-   * the specified attribute type.  The list returned may include
-   * multiple elements if the same attribute exists in the entry
-   * multiple times with different sets of options.
-   *
-   * @param  attributeType  The attribute type to retrieve.
-   * @param  options        The set of attribute options to include in
-   *                        matching elements.
-   * @param  omitValues     <CODE>true</CODE> if the values are to be
-   *                        omitted.
-   *
-   * @return  A copy of the requested attribute element(s) for the
-   *          specified attribute type, or <CODE>null</CODE> if there
-   *          is no such user attribute with the specified set of
-   *          options.
-   */
-  public List<Attribute> duplicateUserAttribute(
-       AttributeType attributeType,
-       Set<String> options,
-       boolean omitValues)
-  {
-    List<Attribute> currentList = getUserAttribute(attributeType);
-    return duplicateAttribute(currentList, options, omitValues);
-  }
-
-
-
-  /**
-   * Retrieves a copy of the requested operational attribute
-   * element(s) for the specified attribute type.  The list returned
-   * may include multiple elements if the same attribute exists in
-   * the entry multiple times with different sets of options.
-   *
-   * @param  attributeType  The attribute type to retrieve.
-   * @param  options        The set of attribute options to include in
-   *                        matching elements.
-   * @param  omitValues     <CODE>true</CODE> if the values are to be
-   *                        omitted.
-   *
-   * @return  A copy of the requested attribute element(s) for the
-   *          specified attribute type, or <CODE>null</CODE> if there
-   *          is no such user attribute with the specified set of
-   *          options.
-   */
-  public List<Attribute> duplicateOperationalAttribute(
-       AttributeType attributeType,
-       Set<String> options,
-       boolean omitValues)
-  {
-    List<Attribute> currentList =
-         getOperationalAttribute(attributeType);
-    return duplicateAttribute(currentList, options, omitValues);
-  }
 
 
   /**
@@ -2966,12 +2850,14 @@ public class Entry
     HashMap<AttributeType,List<Attribute>> userAttrsCopy =
          new HashMap<AttributeType,List<Attribute>>(
               userAttributes.size());
-    deepCopy(userAttributes, userAttrsCopy, false);
+    deepCopy(userAttributes, userAttrsCopy, false, false, false,
+        true);
 
     HashMap<AttributeType,List<Attribute>> operationalAttrsCopy =
          new HashMap<AttributeType,List<Attribute>>(
                   operationalAttributes.size());
-    deepCopy(operationalAttributes, operationalAttrsCopy, false);
+    deepCopy(operationalAttributes, operationalAttrsCopy, false,
+        false, false, true);
 
     for (AttributeType t : suppressedAttributes.keySet())
     {
@@ -2999,24 +2885,29 @@ public class Entry
 
   /**
    * Creates a duplicate of this entry without any operational
-   * attributes that may be altered without impacting the information
-   * in this entry.
+   * attributes that may be altered without impacting the
+   * information in this entry.
+   * <p>
+   * TODO: this method is very specific to search result
+   * processing but we are forced to have it here due to tight
+   * coupling and performance reasons.
    *
-   * @param  typesOnly       Indicates whether to include attribute
-   *                         types only without values.
-   * @param  processVirtual  Indicates whether virtual attribute
-   *                         processing should be performed for the
-   *                         entry.
-   *
-   * @return  A duplicate of this entry that may be altered without
-   *          impacting the information in this entry and that does
-   *          not contain any operational attributes.
+   * @param typesOnly
+   *          Indicates whether to include attribute types only
+   *          without values.
+   * @param omitReal
+   *          Indicates whether to exclude real attributes.
+   * @param omitVirtual
+   *          Indicates whether to exclude virtual attributes.
+   * @return A duplicate of this entry that may be altered without
+   *         impacting the information in this entry and that does not
+   *         contain any operational attributes.
    */
   public Entry duplicateWithoutOperationalAttributes(
-                    boolean typesOnly, boolean processVirtual)
+      boolean typesOnly, boolean omitReal, boolean omitVirtual)
   {
     HashMap<ObjectClass,String> objectClassesCopy;
-    if (typesOnly)
+    if (typesOnly || omitReal)
     {
       objectClassesCopy = new HashMap<ObjectClass,String>(0);
     }
@@ -3029,7 +2920,8 @@ public class Entry
     HashMap<AttributeType,List<Attribute>> userAttrsCopy =
          new HashMap<AttributeType,List<Attribute>>(
               userAttributes.size());
-    if (typesOnly)
+
+    if (typesOnly && !omitReal)
     {
       // Make sure to include the objectClass attribute here because
       // it won't make it in otherwise.
@@ -3040,27 +2932,14 @@ public class Entry
       userAttrsCopy.put(ocType, ocList);
     }
 
-    deepCopy(userAttributes, userAttrsCopy, typesOnly);
+    deepCopy(userAttributes, userAttrsCopy, typesOnly, true,
+        omitReal, omitVirtual);
 
     HashMap<AttributeType,List<Attribute>> operationalAttrsCopy =
          new HashMap<AttributeType,List<Attribute>>(0);
 
-    for (AttributeType t : suppressedAttributes.keySet())
-    {
-      List<Attribute> attrList = suppressedAttributes.get(t);
-      if (! t.isOperational())
-      {
-        userAttributes.put(t, attrList);
-      }
-    }
-
     Entry e = new Entry(dn, objectClassesCopy, userAttrsCopy,
                         operationalAttrsCopy);
-
-    if (processVirtual)
-    {
-      e.processVirtualAttributes(false);
-    }
 
     return e;
   }
@@ -3068,21 +2947,32 @@ public class Entry
 
 
   /**
-   * Performs a deep copy from the source map to the target map.  In
-   * this case, the attributes in the list will be duplicates rather
-   * than re-using the same reference.  Virtual attributes will not be
-   * included when making the copy.
+   * Performs a deep copy from the source map to the target map.
+   * In this case, the attributes in the list will be duplicates
+   * rather than re-using the same reference.
    *
-   * @param  source      The source map from which to obtain the
-   *                     information.
-   * @param  target      The target map into which to place the
-   *                     copied information.
-   * @param  omitValues  Indicates whether to omit attribute values
-   *                     when processing.
+   * @param source
+   *          The source map from which to obtain the information.
+   * @param target
+   *          The target map into which to place the copied
+   *          information.
+   * @param omitValues
+   *          Indicates whether to omit attribute values when
+   *          processing.
+   * @param omitEmpty
+   *          Indicates whether to omit empty attributes when
+   *          processing.
+   * @param omitReal
+   *          Indicates whether to exclude real attributes.
+   * @param omitVirtual
+   *          Indicates whether to exclude virtual attributes.
    */
   private void deepCopy(Map<AttributeType,List<Attribute>> source,
                         Map<AttributeType,List<Attribute>> target,
-                        boolean omitValues)
+                        boolean omitValues,
+                        boolean omitEmpty,
+                        boolean omitReal,
+                        boolean omitVirtual)
   {
     for (AttributeType t : source.keySet())
     {
@@ -3092,12 +2982,19 @@ public class Entry
 
       for (Attribute a : sourceList)
       {
-        if (a.isVirtual())
+        if (omitReal && !a.isVirtual())
         {
           continue;
         }
-
-        if (omitValues)
+        else if (omitVirtual && a.isVirtual())
+        {
+          continue;
+        }
+        else if (omitEmpty && a.isEmpty())
+        {
+          continue;
+        }
+        else if (omitValues)
         {
           targetList.add(Attributes.empty(a));
         }
@@ -3107,7 +3004,7 @@ public class Entry
         }
       }
 
-      if (! targetList.isEmpty())
+      if (!targetList.isEmpty())
       {
         target.put(t, targetList);
       }
@@ -3567,133 +3464,6 @@ public class Entry
                                               rule));
             break;
         }
-      }
-    }
-
-    virtualAttributeProcessingPerformed = true;
-  }
-
-
-
-  /**
-   * Indicates whether virtual attribute processing has been performed
-   * for this entry.
-   *
-   * @return  {@code true} if virtual attribute processing has been
-   *          performed for this entry, or {@code false} if not.
-   */
-  public boolean virtualAttributeProcessingPerformed()
-  {
-    return virtualAttributeProcessingPerformed;
-  }
-
-
-
-  /**
-   * Strips out all real attributes from this entry so that it only
-   * contains virtual attributes.
-   */
-  public void stripRealAttributes()
-  {
-    // The objectClass attribute will always be a real attribute.
-    objectClasses.clear();
-
-    Iterator<Map.Entry<AttributeType,List<Attribute>>>
-         attrListIterator = userAttributes.entrySet().iterator();
-    while (attrListIterator.hasNext())
-    {
-      Map.Entry<AttributeType,List<Attribute>> mapEntry =
-           attrListIterator.next();
-      Iterator<Attribute> attrIterator =
-           mapEntry.getValue().iterator();
-      while (attrIterator.hasNext())
-      {
-        Attribute a = attrIterator.next();
-        if (! a.isVirtual())
-        {
-          attrIterator.remove();
-        }
-      }
-
-      if (mapEntry.getValue().isEmpty())
-      {
-        attrListIterator.remove();
-      }
-    }
-
-    attrListIterator = operationalAttributes.entrySet().iterator();
-    while (attrListIterator.hasNext())
-    {
-      Map.Entry<AttributeType,List<Attribute>> mapEntry =
-           attrListIterator.next();
-      Iterator<Attribute> attrIterator =
-           mapEntry.getValue().iterator();
-      while (attrIterator.hasNext())
-      {
-        Attribute a = attrIterator.next();
-        if (! a.isVirtual())
-        {
-          attrIterator.remove();
-        }
-      }
-
-      if (mapEntry.getValue().isEmpty())
-      {
-        attrListIterator.remove();
-      }
-    }
-  }
-
-
-
-  /**
-   * Strips out all virtual attributes from this entry so that it only
-   * contains real attributes.
-   */
-  public void stripVirtualAttributes()
-  {
-    Iterator<Map.Entry<AttributeType,List<Attribute>>>
-         attrListIterator = userAttributes.entrySet().iterator();
-    while (attrListIterator.hasNext())
-    {
-      Map.Entry<AttributeType,List<Attribute>> mapEntry =
-           attrListIterator.next();
-      Iterator<Attribute> attrIterator =
-           mapEntry.getValue().iterator();
-      while (attrIterator.hasNext())
-      {
-        Attribute a = attrIterator.next();
-        if (a.isVirtual())
-        {
-          attrIterator.remove();
-        }
-      }
-
-      if (mapEntry.getValue().isEmpty())
-      {
-        attrListIterator.remove();
-      }
-    }
-
-    attrListIterator = operationalAttributes.entrySet().iterator();
-    while (attrListIterator.hasNext())
-    {
-      Map.Entry<AttributeType,List<Attribute>> mapEntry =
-           attrListIterator.next();
-      Iterator<Attribute> attrIterator =
-           mapEntry.getValue().iterator();
-      while (attrIterator.hasNext())
-      {
-        Attribute a = attrIterator.next();
-        if (a.isVirtual())
-        {
-          attrIterator.remove();
-        }
-      }
-
-      if (mapEntry.getValue().isEmpty())
-      {
-        attrListIterator.remove();
       }
     }
   }
@@ -5652,6 +5422,7 @@ public class Entry
    *
    * @return  A string representation of this protocol element.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();

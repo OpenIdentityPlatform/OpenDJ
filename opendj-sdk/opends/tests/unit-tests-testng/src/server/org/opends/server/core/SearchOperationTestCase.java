@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.core;
@@ -37,18 +37,20 @@ import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.types.*;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.controls.MatchedValuesFilter;
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.net.Socket;
 import java.io.IOException;
@@ -418,6 +420,7 @@ public class SearchOperationTestCase extends OperationTestCase
     Entry resultEntry = searchInternalForSingleEntry(searchOperation);
 
     assertEquals(resultEntry.getObjectClasses().size(), 0);
+
     assertEquals(resultEntry.getUserAttributes().size(),
                  testEntry.getUserAttributes().size() + 1);
     assertEquals(resultEntry.getOperationalAttributes().size(), 0);
@@ -886,5 +889,258 @@ public class SearchOperationTestCase extends OperationTestCase
 
     assertEquals(searchOperation.getResultCode(), ResultCode.NO_SUCH_OBJECT);
     assertNotNull(searchOperation.getMatchedDN());
+  }
+
+
+
+  /**
+   * Determines how attributes should be filtered in search operations.
+   */
+  private enum AttributeFilterType {
+    DEFAULT, WILDCARDS, ENUMERATED;
+  }
+
+
+
+  /**
+   * Returns test data for testSearchInternalAttributeFilters.
+   *
+   * @return The test data.
+   */
+  @DataProvider(name = "testSearchInternalAttributeFilters")
+  public Object[][] createTestSearchInternalAttributeFiltersData()
+  {
+    // It was quicker to cut n paste...
+    return new Object[][] {
+        {AttributeFilterType.DEFAULT,     false, false, false},
+        {AttributeFilterType.DEFAULT,     false, false, true},
+        {AttributeFilterType.DEFAULT,     false, true,  false},
+        {AttributeFilterType.DEFAULT,     false, true,  true},
+        {AttributeFilterType.DEFAULT,     true,  false, false},
+        {AttributeFilterType.DEFAULT,     true,  false, true},
+        {AttributeFilterType.DEFAULT,     true,  true,  false},
+        {AttributeFilterType.DEFAULT,     true,  true,  true},
+        {AttributeFilterType.WILDCARDS,   false, false, false},
+        {AttributeFilterType.WILDCARDS,   false, false, true},
+        {AttributeFilterType.WILDCARDS,   false, true,  false},
+        {AttributeFilterType.WILDCARDS,   false, true,  true},
+        {AttributeFilterType.WILDCARDS,   true,  false, false},
+        {AttributeFilterType.WILDCARDS,   true,  false, true},
+        {AttributeFilterType.WILDCARDS,   true,  true,  false},
+        {AttributeFilterType.WILDCARDS,   true,  true,  true},
+        {AttributeFilterType.ENUMERATED,  false, false, false},
+        {AttributeFilterType.ENUMERATED,  false, false, true},
+        {AttributeFilterType.ENUMERATED,  false, true,  false},
+        {AttributeFilterType.ENUMERATED,  false, true,  true},
+        {AttributeFilterType.ENUMERATED,  true,  false, false},
+        {AttributeFilterType.ENUMERATED,  true,  false, true},
+        {AttributeFilterType.ENUMERATED,  true,  true,  false},
+        {AttributeFilterType.ENUMERATED,  true,  true,  true},
+    };
+  }
+
+
+
+  /**
+   * Tests that attribute filtering is performed correctly for real and
+   * virtual attributes when various combinations of typesOnly, and the
+   * real-attributes-only and virtual-attributes-only controls are used
+   * (issues 3446 and 3726).
+   *
+   * @param filterType
+   *          Specifies how attributes should be filtered.
+   * @param typesOnly
+   *          Strip attribute values.
+   * @param stripVirtualAttributes
+   *          Strip virtual attributes.
+   * @param stripRealAttributes
+   *          Strip real attributes.
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "testSearchInternalAttributeFilters")
+  public void testSearchInternalAttributeFilters(
+      AttributeFilterType filterType, boolean typesOnly,
+      boolean stripVirtualAttributes, boolean stripRealAttributes)
+      throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    // Real attributes (these are all user attributes).
+    List<String> realAttrTypes =
+        Arrays.asList("objectclass", "uid", "cn", "sn", "givenname",
+            "userpassword");
+
+    // Virtual attributes (these are all operational attributes).
+    List<String> virtualAttrTypes =
+        Arrays.asList("numsubordinates", "hassubordinates",
+            "subschemasubentry", "entrydn", "ismemberof");
+
+    String userDNString = "uid=test.user,o=test";
+    DN userDN = DN.decode(userDNString);
+
+    TestCaseUtils.addEntry("dn: " + userDNString,
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password");
+
+    Entry userEntry = DirectoryServer.getEntry(userDN);
+    assertNotNull(userEntry);
+
+    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+    switch (filterType)
+    {
+    case DEFAULT:
+      // Only user attributes.
+      attributes = null;
+      break;
+    case WILDCARDS:
+      attributes.add("*");
+      attributes.add("+");
+      break;
+    case ENUMERATED:
+      attributes.addAll(realAttrTypes);
+      attributes.addAll(virtualAttrTypes);
+      break;
+    }
+
+    List<Control> controls = new LinkedList<Control>();
+
+    if (stripRealAttributes)
+    {
+      controls.add(new Control(ServerConstants.OID_VIRTUAL_ATTRS_ONLY,
+          false));
+    }
+
+    if (stripVirtualAttributes)
+    {
+      controls.add(new Control(ServerConstants.OID_REAL_ATTRS_ONLY,
+          false));
+    }
+
+    InternalClientConnection conn =
+        InternalClientConnection.getRootConnection();
+
+    InternalSearchOperation search =
+        conn.processSearch(userDNString, SearchScope.BASE_OBJECT,
+            DereferencePolicy.NEVER_DEREF_ALIASES, 0, // Size limit
+            0, // Time limit
+            typesOnly, // Types only
+            "(objectClass=*)", attributes, controls, null);
+
+    assertEquals(search.getResultCode(), ResultCode.SUCCESS);
+
+    LinkedList<SearchResultEntry> entries = search.getSearchEntries();
+    assertEquals(entries.size(), 1);
+
+    Entry entry = entries.getFirst();
+    assertEquals(entry.getDN(), userDN);
+
+    // Check real attributes.
+    List<String> messages = new LinkedList<String>();
+    for (String attrType : realAttrTypes)
+    {
+      List<Attribute> attrList = entry.getAttribute(attrType);
+
+      if (stripRealAttributes)
+      {
+        if (attrList != null)
+        {
+          messages.add("Unexpected real attribute: " + attrType);
+        }
+      }
+      else
+      {
+        if (attrList == null)
+        {
+          messages.add("Missing real attribute: " + attrType);
+        }
+        else
+        {
+          Attribute attr = attrList.get(0);
+          if (typesOnly)
+          {
+            if (!attr.isEmpty())
+            {
+              messages.add("Unexpected non-empty real attribute: "
+                  + attrType);
+            }
+          }
+          else
+          {
+            if (attr.isEmpty())
+            {
+              messages.add("Unexpected empty real attribute: "
+                  + attrType);
+            }
+          }
+        }
+      }
+    }
+
+    // Check virtual (operational) attributes.
+    for (String attrType : virtualAttrTypes)
+    {
+      List<Attribute> attrList = entry.getAttribute(attrType);
+
+      if (stripVirtualAttributes)
+      {
+        if (attrList != null)
+        {
+          messages.add("Unexpected virtual attribute: " + attrType);
+        }
+      }
+      else if (filterType == AttributeFilterType.DEFAULT)
+      {
+        if (attrList != null)
+        {
+          messages.add("Unexpected operational attribute: " + attrType);
+        }
+      }
+      else if (attrType.equals("ismemberof"))
+      {
+        // isMemberOf should never be returned as user is not in any
+        // groups.
+        if (attrList != null)
+        {
+          messages.add("Unexpected isMemberOf attribute");
+        }
+      }
+      else
+      {
+        if (attrList == null)
+        {
+          messages.add("Missing virtual attribute: " + attrType);
+        }
+        else
+        {
+          Attribute attr = attrList.get(0);
+          if (typesOnly)
+          {
+            if (!attr.isEmpty())
+            {
+              messages.add("Unexpected non-empty virtual attribute: "
+                  + attrType);
+            }
+          }
+          else
+          {
+            if (attr.isEmpty())
+            {
+              messages.add("Unexpected empty virtual attribute: "
+                  + attrType);
+            }
+          }
+        }
+      }
+    }
+
+    assertTrue(messages.isEmpty(), "Entry invalid: " + messages);
   }
 }

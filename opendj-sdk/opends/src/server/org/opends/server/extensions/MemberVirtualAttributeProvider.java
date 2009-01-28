@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -30,8 +30,10 @@ import org.opends.messages.Message;
 
 
 import java.util.Collection;
-import java.util.LinkedHashSet;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.MemberVirtualAttributeCfg;
@@ -40,7 +42,6 @@ import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
@@ -56,7 +57,6 @@ import org.opends.server.types.VirtualAttributeRule;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.util.ServerConstants.*;
 
 
 
@@ -73,10 +73,6 @@ public class MemberVirtualAttributeProvider
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-
-  // The attribute type used to indicate which target group should be used to
-  // obtain the member list.
-  private AttributeType targetGroupType;
 
   // The current configuration for this member virtual attribute.
   private MemberVirtualAttributeCfg currentConfig;
@@ -106,9 +102,6 @@ public class MemberVirtualAttributeProvider
   {
     configuration.addMemberChangeListener(this);
     currentConfig = configuration;
-
-    targetGroupType =
-         DirectoryServer.getAttributeType(ATTR_TARGET_GROUP_DN, true);
   }
 
 
@@ -128,21 +121,21 @@ public class MemberVirtualAttributeProvider
    * {@inheritDoc}
    */
   @Override()
-  public LinkedHashSet<AttributeValue> getValues(Entry entry,
-                                                 VirtualAttributeRule rule)
+  public Set<AttributeValue> getValues(Entry entry,
+                                       VirtualAttributeRule rule)
   {
     if (! currentConfig.isAllowRetrievingMembership())
     {
-      return new LinkedHashSet<AttributeValue>(0);
+      return Collections.emptySet();
     }
 
     Group g = DirectoryServer.getGroupManager().getGroupInstance(entry.getDN());
     if (g == null)
     {
-      return new LinkedHashSet<AttributeValue>(0);
+      return Collections.emptySet();
     }
 
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
+    HashSet<AttributeValue> values = new HashSet<AttributeValue>();
     try
     {
       MemberList memberList = g.getMembers();
@@ -174,7 +167,7 @@ public class MemberVirtualAttributeProvider
       }
     }
 
-    return values;
+    return Collections.unmodifiableSet(values);
   }
 
 
