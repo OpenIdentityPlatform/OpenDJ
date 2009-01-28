@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -32,6 +32,8 @@ import static org.opends.messages.AdminToolMessages.*;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.GridBagConstraints;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -225,28 +227,36 @@ public class StandardObjectClassPanel extends SchemaElementPanel
       gbc.gridy ++;
 
       final JList list = lists[i];
-      MouseAdapter doubleClickListener = new MouseAdapter()
+      MouseAdapter clickListener = new MouseAdapter()
       {
         /**
          * {@inheritDoc}
          */
         public void mouseClicked(MouseEvent ev)
         {
-          if (ev.getClickCount() > 1)
+          if (ev.getClickCount() == 1)
           {
-            String o = (String)list.getSelectedValue();
-            if (o != null)
-            {
-              AttributeType attr = hmAttrs.get(o);
-              if (attr != null)
-              {
-                notifySchemaSelectionListeners(attr);
-              }
-            }
+            attrSelected(list);
           }
         }
       };
-      list.addMouseListener(doubleClickListener);
+      list.addMouseListener(clickListener);
+
+      KeyAdapter keyListener = new KeyAdapter()
+      {
+        /**
+         * {@inheritDoc}
+         */
+        public void keyTyped(KeyEvent ev)
+        {
+          if ((ev.getKeyChar() == KeyEvent.VK_SPACE) ||
+              (ev.getKeyChar() == KeyEvent.VK_ENTER))
+          {
+            attrSelected(list);
+          }
+        }
+      };
+      list.addKeyListener(keyListener);
     }
   }
 
@@ -455,5 +465,18 @@ public class StandardObjectClassPanel extends SchemaElementPanel
       mb.append(OBSOLETE_VALUE);
     }
     return mb.toMessage();
+  }
+
+  private void attrSelected(JList list)
+  {
+    String o = (String)list.getSelectedValue();
+    if (o != null)
+    {
+      AttributeType attr = hmAttrs.get(o);
+      if (attr != null)
+      {
+        notifySchemaSelectionListeners(attr);
+      }
+    }
   }
 }
