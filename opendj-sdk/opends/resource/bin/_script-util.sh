@@ -23,7 +23,7 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2009 Sun Microsystems, Inc.
+#      Copyright 2008-2009 Sun Microsystems, Inc.
 
 #
 # function that sets the java home
@@ -146,6 +146,10 @@ set_environment_vars() {
 # Configure the appropriate CLASSPATH.
 set_classpath() {
   CLASSPATH=${INSTANCE_ROOT}/classes
+  for JAR in ${INSTALL_ROOT}/resources/*.jar
+  do
+    CLASSPATH=${CLASSPATH}:${JAR}
+  done
   for JAR in ${INSTALL_ROOT}/lib/*.jar
   do
     CLASSPATH=${CLASSPATH}:${JAR}

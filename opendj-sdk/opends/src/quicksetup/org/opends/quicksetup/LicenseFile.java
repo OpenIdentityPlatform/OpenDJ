@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup;
@@ -30,6 +30,7 @@ package org.opends.quicksetup;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import org.opends.server.core.DirectoryServer;
 
 /**
  * Represents information about the license file.
@@ -52,7 +53,7 @@ public class LicenseFile {
    */
   static private String getName()
   {
-    String installRootFromSystem = System.getProperty("INSTALL_ROOT");
+    String installRootFromSystem = DirectoryServer.getServerRoot();
 
     if (installRootFromSystem == null) {
       installRootFromSystem = System.getenv("INSTALL_ROOT");
@@ -62,7 +63,11 @@ public class LicenseFile {
       installRootFromSystem = "";
     }
 
-    return installRootFromSystem + "/Legal/license_to_accept.txt";
+    return installRootFromSystem +
+            File.pathSeparator +
+            "Legal" +
+            File.pathSeparator +
+            "license_to_accept.txt";
   }
 
   /**

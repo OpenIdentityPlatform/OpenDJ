@@ -22,7 +22,7 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Copyright 2008 Sun Microsystems, Inc.
+rem      Copyright 2008-2009 Sun Microsystems, Inc.
 
 set SET_JAVA_HOME_AND_ARGS_DONE=false
 set SET_ENVIRONMENT_VARS_DONE=false
@@ -57,6 +57,7 @@ goto scriptBegin
 
 :setClassPath
 if "%SET_CLASSPATH_DONE%" == "true" goto end
+FOR %%x in ("%INSTALL_ROOT%\resources\*.jar") DO call "%INSTALL_ROOT%\lib\setcp.bat" %%x
 FOR %%x in ("%INSTALL_ROOT%\lib\*.jar") DO call "%INSTALL_ROOT%\lib\setcp.bat" %%x
 if "%INSTALL_ROOT%" == "%INSTANCE_ROOT%"goto setClassPathDone
 FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
