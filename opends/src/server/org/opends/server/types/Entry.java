@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -1242,7 +1242,7 @@ public class Entry
     {
       if (a.hasAllOptions(options))
       {
-        if (omitValues)
+        if (omitValues && !a.isVirtual())
         {
           duplicateList.add(Attributes.empty(a));
         }
