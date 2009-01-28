@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -31,6 +31,8 @@ import static org.opends.messages.AdminToolMessages.*;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Comparator;
@@ -167,32 +169,36 @@ public class MatchingRulePanel extends SchemaElementPanel
     gbc.insets.top = 10;
     add(Utilities.createScrollPane(usedByAttributes), gbc);
 
-    MouseAdapter doubleClickListener = new MouseAdapter()
+    MouseAdapter clickListener = new MouseAdapter()
     {
       /**
        * {@inheritDoc}
        */
       public void mouseClicked(MouseEvent ev)
       {
-        if (ev.getClickCount() > 1)
+        if (ev.getClickCount() == 1)
         {
-          String o = (String)usedByAttributes.getSelectedValue();
-          if (o != null)
-          {
-            Schema schema = getInfo().getServerDescriptor().getSchema();
-            if (schema != null)
-            {
-              AttributeType attr = schema.getAttributeType(o.toLowerCase());
-              if (attr != null)
-              {
-                notifySchemaSelectionListeners(attr);
-              }
-            }
-          }
+          usedBySelected();
         }
       }
     };
-    usedByAttributes.addMouseListener(doubleClickListener);
+    usedByAttributes.addMouseListener(clickListener);
+
+    KeyAdapter keyListener = new KeyAdapter()
+    {
+      /**
+       * {@inheritDoc}
+       */
+      public void keyTyped(KeyEvent ev)
+      {
+        if ((ev.getKeyChar() == KeyEvent.VK_SPACE) ||
+            (ev.getKeyChar() == KeyEvent.VK_ENTER))
+        {
+          usedBySelected();
+        }
+      }
+    };
+    usedByAttributes.addKeyListener(keyListener);
     setBorder(PANEL_BORDER);
   }
 
@@ -288,5 +294,22 @@ public class MatchingRulePanel extends SchemaElementPanel
       text = NOT_APPLICABLE;
     }
     return text;
+  }
+
+  private void usedBySelected()
+  {
+    String o = (String)usedByAttributes.getSelectedValue();
+    if (o != null)
+    {
+      Schema schema = getInfo().getServerDescriptor().getSchema();
+      if (schema != null)
+      {
+        AttributeType attr = schema.getAttributeType(o.toLowerCase());
+        if (attr != null)
+        {
+          notifySchemaSelectionListeners(attr);
+        }
+      }
+    }
   }
 }
