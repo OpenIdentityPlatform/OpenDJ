@@ -1445,6 +1445,31 @@ public class Utilities
     return "<form>"+buf.toString()+"</form>";
   }
 
+
+  /**
+   * Returns the HTML representation of a warning for a given text.
+   * @param title the title.
+   * @param titleFont the font for the title.
+   * @param details the details.
+   * @param detailsFont the font to be used for the details.
+   * @return the HTML representation of a success for the given text.
+   */
+  public static String getFormattedWarning(Message title, Font titleFont,
+      Message details, Font detailsFont)
+  {
+    StringBuilder buf = new StringBuilder();
+    String space = "&nbsp;";
+    buf.append(UIFactory.getIconHtml(UIFactory.IconType.WARNING_LARGE) +
+        space + space + applyFont(title.toString(), titleFont));
+    if (details != null)
+    {
+      buf.append("<br><br>")
+      .append(applyFont(details.toString(), detailsFont));
+    }
+    return "<form>"+UIFactory.applyErrorBackgroundToHtml(buf.toString())+
+    "</form>";
+  }
+
   /**
    * Sets the not available text to a label and associates a help icon and
    * a tooltip explaining that the data is not available because the server is
