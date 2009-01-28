@@ -796,7 +796,13 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         throw new ClientException(LDAPResultCode.OTHER, msg);
       } catch (ManagedObjectAlreadyExistsException e) {
         Message msg = ERR_DSCFG_ERROR_CREATE_MOAEE.get(ufn);
-        throw new ClientException(LDAPResultCode.ENTRY_ALREADY_EXISTS, msg);
+        if (app.isInteractive()) {
+          app.println();
+          app.printVerboseMessage(msg);
+          return MenuResult.cancel();
+        } else {
+          throw new ClientException(LDAPResultCode.ENTRY_ALREADY_EXISTS, msg);
+        }
       }
     }
   }
@@ -1237,9 +1243,13 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     } catch (ManagedObjectNotFoundException e) {
       Message pufn = path.getManagedObjectDefinition().getUserFriendlyName();
       Message msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(pufn);
-      app.println();
-      app.printVerboseMessage(msg);
-      return MenuResult.cancel();
+      if (app.isInteractive()) {
+        app.println();
+        app.printVerboseMessage(msg);
+        return MenuResult.cancel();
+      } else {
+        throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
+      }
     }
 
     if (result.isQuit()) {
