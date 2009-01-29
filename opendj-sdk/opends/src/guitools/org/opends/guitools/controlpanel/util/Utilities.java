@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -757,21 +757,13 @@ public class Utilities
    */
   public static void updateTableSizes(JTable table, int rows)
   {
-    updateTableColumnWidth(table);
-    updateTableRowHeight(table, rows);
-  }
-
-
-  /**
-   * Updates the height of the table rows according to the size of the
-   * rendered component.
-   * @param table the table to handle.
-   */
-  private static void updateTableRowHeight(JTable table, int rows)
-  {
-    int headerMaxHeight = 5;
-    int margin = table.getIntercellSpacing().height;
+    int horizontalMargin = table.getIntercellSpacing().width;
+    int verticalMargin = table.getIntercellSpacing().height;
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+    int headerMaxHeight = 5;
+    int headerMaxWidth = 0;
+
     JTableHeader header = table.getTableHeader();
     if (header.isVisible())
     {
@@ -785,7 +777,7 @@ public class Utilities
         }
         Component comp = renderer.getTableCellRendererComponent(table,
             table.getModel().getColumnName(col), false, false, 0, col);
-        int colHeight = comp.getPreferredSize().height + (2 * margin);
+        int colHeight = comp.getPreferredSize().height + (2 * verticalMargin);
         if (colHeight > screenSize.height)
         {
           // There are some issues on Mac OS and sometimes the preferred size
@@ -794,11 +786,48 @@ public class Utilities
         }
         headerMaxHeight = Math.max(headerMaxHeight, colHeight);
       }
+    }
 
+    for (int col=0; col<table.getColumnCount(); col++)
+    {
+      int colMaxWidth = 8;
+      TableColumn tcol = table.getColumnModel().getColumn(col);
+      TableCellRenderer renderer = tcol.getHeaderRenderer();
+
+      if (renderer == null)
+      {
+        renderer = table.getTableHeader().getDefaultRenderer();
+      }
+
+      Component comp = renderer.getTableCellRendererComponent(table,
+            table.getModel().getColumnName(col), false, false, 0, col);
+      colMaxWidth = comp.getPreferredSize().width  + 8;
+
+      if (colMaxWidth > screenSize.width)
+      {
+        colMaxWidth = 8;
+      }
+
+      for (int row=0; row<table.getRowCount(); row++)
+      {
+        renderer = table.getCellRenderer(row, col);
+        comp = table.prepareRenderer(renderer, row, col);
+        int colWidth = comp.getPreferredSize().width + (2 * horizontalMargin);
+        colMaxWidth = Math.max(colMaxWidth, colWidth);
+      }
+      tcol.setPreferredWidth(colMaxWidth);
+      headerMaxWidth += colMaxWidth;
+    }
+
+
+    if (header.isVisible())
+    {
       header.setPreferredSize(new Dimension(
-          header.getPreferredSize().width,
+          headerMaxWidth,
           headerMaxHeight));
     }
+
+
     int maxRow = 0;
     for (int row=0; row<table.getRowCount(); row++)
     {
@@ -828,46 +857,6 @@ public class Utilities
       d1 = new Dimension(table.getPreferredSize().width, rows * maxRow);
     }
     table.setPreferredScrollableViewportSize(d1);
-  }
-
-  /**
-   * Updates the height of the table columns according to the size of the
-   * rendered component.
-   * @param table the table to handle.
-   */
-  private static void updateTableColumnWidth(JTable table)
-  {
-    int margin = table.getIntercellSpacing().width;
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    for (int col=0; col<table.getColumnCount(); col++)
-    {
-      int colMaxWidth = 8;
-      TableColumn tcol = table.getColumnModel().getColumn(col);
-      TableCellRenderer renderer = tcol.getHeaderRenderer();
-
-      if (renderer == null)
-      {
-        renderer = table.getTableHeader().getDefaultRenderer();
-      }
-
-      Component comp = renderer.getTableCellRendererComponent(table,
-            table.getModel().getColumnName(col), false, false, 0, col);
-      colMaxWidth = comp.getPreferredSize().width  + 8;
-
-      if (colMaxWidth > screenSize.width)
-      {
-        colMaxWidth = 8;
-      }
-
-      for (int row=0; row<table.getRowCount(); row++)
-      {
-        renderer = table.getCellRenderer(row, col);
-        comp = table.prepareRenderer(renderer, row, col);
-        int colWidth = comp.getPreferredSize().width + (2 * margin);
-        colMaxWidth = Math.max(colMaxWidth, colWidth);
-      }
-      tcol.setPreferredWidth(colMaxWidth);
-    }
   }
 
   /**
