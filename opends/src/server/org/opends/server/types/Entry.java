@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -2884,69 +2885,6 @@ public class Entry
 
 
   /**
-   * Creates a duplicate of this entry without any operational
-   * attributes that may be altered without impacting the
-   * information in this entry.
-   * <p>
-   * TODO: this method is very specific to search result
-   * processing but we are forced to have it here due to tight
-   * coupling and performance reasons.
-   *
-   * @param typesOnly
-   *          Indicates whether to include attribute types only
-   *          without values.
-   * @param omitReal
-   *          Indicates whether to exclude real attributes.
-   * @param omitVirtual
-   *          Indicates whether to exclude virtual attributes.
-   * @return A duplicate of this entry that may be altered without
-   *         impacting the information in this entry and that does not
-   *         contain any operational attributes.
-   */
-  public Entry duplicateWithoutOperationalAttributes(
-      boolean typesOnly, boolean omitReal, boolean omitVirtual)
-  {
-    HashMap<ObjectClass,String> objectClassesCopy;
-    if (typesOnly || omitReal)
-    {
-      objectClassesCopy = new HashMap<ObjectClass,String>(0);
-    }
-    else
-    {
-      objectClassesCopy =
-           new HashMap<ObjectClass,String>(objectClasses);
-    }
-
-    HashMap<AttributeType,List<Attribute>> userAttrsCopy =
-         new HashMap<AttributeType,List<Attribute>>(
-              userAttributes.size());
-
-    if (typesOnly && !omitReal)
-    {
-      // Make sure to include the objectClass attribute here because
-      // it won't make it in otherwise.
-      AttributeType ocType =
-           DirectoryServer.getObjectClassAttributeType();
-      ArrayList<Attribute> ocList = new ArrayList<Attribute>(1);
-      ocList.add(Attributes.empty(ocType));
-      userAttrsCopy.put(ocType, ocList);
-    }
-
-    deepCopy(userAttributes, userAttrsCopy, typesOnly, true,
-        omitReal, omitVirtual);
-
-    HashMap<AttributeType,List<Attribute>> operationalAttrsCopy =
-         new HashMap<AttributeType,List<Attribute>>(0);
-
-    Entry e = new Entry(dn, objectClassesCopy, userAttrsCopy,
-                        operationalAttrsCopy);
-
-    return e;
-  }
-
-
-
-  /**
    * Performs a deep copy from the source map to the target map.
    * In this case, the attributes in the list will be duplicates
    * rather than re-using the same reference.
@@ -3009,34 +2947,6 @@ public class Entry
         target.put(t, targetList);
       }
     }
-  }
-
-
-
-  /**
-   * Creates a duplicate of this entry without any attribute or
-   * objectclass information (i.e., it will just contain the DN and
-   * placeholders for adding attributes) and objectclasses.
-   *
-   * @return  A duplicate of this entry that may be altered without
-   *          impacting the information in this entry and that does
-   *          not contain attribute or objectclass information.
-   */
-  public Entry duplicateWithoutAttributes()
-  {
-    HashMap<ObjectClass,String> objectClassesCopy =
-         new HashMap<ObjectClass,String>(objectClasses.size());
-
-    HashMap<AttributeType,List<Attribute>> userAttrsCopy =
-         new HashMap<AttributeType,List<Attribute>>(
-              userAttributes.size());
-
-    HashMap<AttributeType,List<Attribute>> operationalAttrsCopy =
-         new HashMap<AttributeType,List<Attribute>>(
-                  operationalAttributes.size());
-
-    return new Entry(dn, objectClassesCopy, userAttrsCopy,
-                     operationalAttrsCopy);
   }
 
 
@@ -5782,7 +5692,8 @@ public class Entry
         }
       }
 
-      return;
+      // Fall through - search results have an object attribute
+      // as well.
     }
 
     List<Attribute> attributes;
@@ -5874,6 +5785,412 @@ public class Entry
     }
 
     attributes.add(attribute);
+  }
+
+
+
+  /**
+   * Returns an entry containing only those attributes of this entry
+   * which match the provided criteria.
+   *
+   * @param attrNameList
+   *          The list of attributes to include, may include wild
+   *          cards.
+   * @param omitValues
+   *          Indicates whether to omit attribute values when
+   *          processing.
+   * @param omitReal
+   *          Indicates whether to exclude real attributes.
+   * @param omitVirtual
+   *          Indicates whether to exclude virtual attributes.
+   * @return An entry containing only those attributes of this entry
+   *         which match the provided criteria.
+   */
+  public Entry filterEntry(Set<String> attrNameList,
+      boolean omitValues, boolean omitReal, boolean omitVirtual)
+  {
+    HashMap<ObjectClass, String> objectClassesCopy;
+    HashMap<AttributeType, List<Attribute>> userAttrsCopy;
+    HashMap<AttributeType, List<Attribute>> operationalAttrsCopy;
+
+    if (attrNameList == null || attrNameList.isEmpty())
+    {
+      // Common case: return filtered user attributes.
+      userAttrsCopy =
+          new HashMap<AttributeType, List<Attribute>>(userAttributes
+              .size());
+      operationalAttrsCopy =
+          new HashMap<AttributeType, List<Attribute>>(0);
+
+      if (omitReal)
+      {
+        objectClassesCopy = new HashMap<ObjectClass, String>(0);
+      }
+      else if (omitValues)
+      {
+        objectClassesCopy = new HashMap<ObjectClass, String>(0);
+
+        // Add empty object class attribute.
+        AttributeType ocType =
+            DirectoryServer.getObjectClassAttributeType();
+        ArrayList<Attribute> ocList = new ArrayList<Attribute>(1);
+        ocList.add(Attributes.empty(ocType));
+        userAttrsCopy.put(ocType, ocList);
+      }
+      else
+      {
+        objectClassesCopy =
+            new HashMap<ObjectClass, String>(objectClasses);
+
+        // First, add the objectclass attribute.
+        Attribute ocAttr = getObjectClassAttribute();
+        if (ocAttr != null)
+        {
+          AttributeType ocType =
+              DirectoryServer.getObjectClassAttributeType();
+          ArrayList<Attribute> ocList = new ArrayList<Attribute>(1);
+          ocList.add(ocAttr);
+          userAttrsCopy.put(ocType, ocList);
+        }
+      }
+
+      // Copy all user attributes.
+      deepCopy(userAttributes, userAttrsCopy, omitValues, true,
+          omitReal, omitVirtual);
+    }
+    else
+    {
+      // Incrementally build table of attributes.
+      if (omitReal || omitValues)
+      {
+        objectClassesCopy = new HashMap<ObjectClass, String>(0);
+      }
+      else
+      {
+        objectClassesCopy =
+            new HashMap<ObjectClass, String>(objectClasses.size());
+      }
+
+      userAttrsCopy =
+          new HashMap<AttributeType, List<Attribute>>(userAttributes
+              .size());
+      operationalAttrsCopy =
+          new HashMap<AttributeType, List<Attribute>>(
+              operationalAttributes.size());
+
+      for (String attrName : attrNameList)
+      {
+        if (attrName.equals("*"))
+        {
+          // This is a special placeholder indicating that all user
+          // attributes should be returned.
+          if (!omitReal)
+          {
+            if (omitValues)
+            {
+              // Add empty object class attribute.
+              AttributeType ocType =
+                  DirectoryServer.getObjectClassAttributeType();
+              ArrayList<Attribute> ocList =
+                new ArrayList<Attribute>(1);
+              ocList.add(Attributes.empty(ocType));
+              userAttrsCopy.put(ocType, ocList);
+            }
+            else
+            {
+              // Add the objectclass attribute.
+              objectClassesCopy.putAll(objectClasses);
+              Attribute ocAttr = getObjectClassAttribute();
+              if (ocAttr != null)
+              {
+                AttributeType ocType =
+                    DirectoryServer.getObjectClassAttributeType();
+                ArrayList<Attribute> ocList =
+                  new ArrayList<Attribute>(1);
+                ocList.add(ocAttr);
+                userAttrsCopy.put(ocType, ocList);
+              }
+            }
+          }
+
+          // Copy all user attributes.
+          deepCopy(userAttributes, userAttrsCopy, omitValues, true,
+              omitReal, omitVirtual);
+
+          continue;
+        }
+        else if (attrName.equals("+"))
+        {
+          // This is a special placeholder indicating that all
+          // operational attributes should be returned.
+          deepCopy(operationalAttributes, operationalAttrsCopy,
+              omitValues, true, omitReal, omitVirtual);
+
+          continue;
+        }
+
+        String lowerName;
+        HashSet<String> options;
+        int semicolonPos = attrName.indexOf(';');
+        if (semicolonPos > 0)
+        {
+          String tmpName = attrName.substring(0, semicolonPos);
+          lowerName = toLowerCase(tmpName);
+          int nextPos = attrName.indexOf(';', semicolonPos+1);
+          options = new HashSet<String>();
+          while (nextPos > 0)
+          {
+            options.add(attrName.substring(semicolonPos+1, nextPos));
+
+            semicolonPos = nextPos;
+            nextPos = attrName.indexOf(';', semicolonPos+1);
+          }
+          options.add(attrName.substring(semicolonPos+1));
+          attrName = tmpName;
+        }
+        else
+        {
+          lowerName = toLowerCase(attrName);
+          options = null;
+        }
+
+        AttributeType attrType =
+          DirectoryServer.getAttributeType(lowerName);
+        if (attrType == null)
+        {
+          // Unrecognized attribute type - do best effort search.
+          for (Map.Entry<AttributeType, List<Attribute>> e :
+            userAttributes.entrySet())
+          {
+            AttributeType t = e.getKey();
+            if (t.hasNameOrOID(lowerName))
+            {
+              mergeAttributeLists(e.getValue(), userAttrsCopy, t,
+                  attrName, options, omitValues, omitReal,
+                  omitVirtual);
+              continue;
+            }
+          }
+
+          for (Map.Entry<AttributeType, List<Attribute>> e :
+            operationalAttributes.entrySet())
+          {
+            AttributeType t = e.getKey();
+            if (t.hasNameOrOID(lowerName))
+            {
+              mergeAttributeLists(e.getValue(), userAttrsCopy, t,
+                  attrName, options, omitValues, omitReal,
+                  omitVirtual);
+              continue;
+            }
+          }
+        }
+        else
+        {
+          // Recognized attribute type.
+          if (attrType.isObjectClassType()) {
+            if (!omitReal)
+            {
+              if (omitValues)
+              {
+                AttributeType ocType =
+                    DirectoryServer.getObjectClassAttributeType();
+                List<Attribute> ocList = new ArrayList<Attribute>(1);
+                ocList.add(Attributes.empty(ocType, attrName));
+                userAttrsCopy.put(ocType, ocList);
+              }
+              else
+              {
+                Attribute ocAttr = getObjectClassAttribute();
+                if (ocAttr != null)
+                {
+                  AttributeType ocType =
+                      DirectoryServer.getObjectClassAttributeType();
+
+                  if (!attrName.equals(ocAttr.getName()))
+                  {
+                    // User requested non-default object class type
+                    // name.
+                    AttributeBuilder builder =
+                        new AttributeBuilder(ocAttr);
+                    builder.setAttributeType(ocType, attrName);
+                    ocAttr = builder.toAttribute();
+                  }
+
+                  List<Attribute> ocList =
+                    new ArrayList<Attribute>(1);
+                  ocList.add(ocAttr);
+                  userAttrsCopy.put(ocType, ocList);
+                }
+              }
+            }
+          }
+          else
+          {
+            List<Attribute> attrList = getUserAttribute(attrType);
+            if (attrList != null)
+            {
+              mergeAttributeLists(attrList, userAttrsCopy, attrType,
+                  attrName, options, omitValues, omitReal,
+                  omitVirtual);
+            }
+            else
+            {
+              attrList = getOperationalAttribute(attrType);
+              if (attrList != null)
+              {
+                mergeAttributeLists(attrList, operationalAttrsCopy,
+                    attrType, attrName, options, omitValues, omitReal,
+                    omitVirtual);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return new Entry(dn, objectClassesCopy, userAttrsCopy,
+                     operationalAttrsCopy);
+  }
+
+
+
+  /**
+   * Copies the provided list of attributes into the destination
+   * attribute map according to the provided criteria.
+   *
+   * @param sourceList
+   *          The list containing the attributes to be copied.
+   * @param destMap
+   *          The map where the attributes should be copied to.
+   * @param attrType
+   *          The attribute type.
+   * @param attrName
+   *          The user-provided attribute name.
+   * @param options
+   *          The user-provided attribute options.
+   * @param omitValues
+   *          Indicates whether to exclude attribute values.
+   * @param omitReal
+   *          Indicates whether to exclude real attributes.
+   * @param omitVirtual
+   *          Indicates whether to exclude virtual attributes.
+   */
+  private void mergeAttributeLists(List<Attribute> sourceList,
+      HashMap<AttributeType, List<Attribute>> destMap,
+      AttributeType attrType, String attrName,
+      HashSet<String> options, boolean omitValues, boolean omitReal,
+      boolean omitVirtual)
+  {
+    if (sourceList == null)
+    {
+      return;
+    }
+
+    for (Attribute attribute : sourceList)
+    {
+      if (attribute.isEmpty())
+      {
+        continue;
+      }
+      else if (omitReal && !attribute.isVirtual())
+      {
+        continue;
+      }
+      else if (omitVirtual && attribute.isVirtual())
+      {
+        continue;
+      }
+      else if (!attribute.hasAllOptions(options))
+      {
+        continue;
+      }
+      else
+      {
+        // If a non-default attribute name was provided or if the
+        // attribute has options then we will need to rebuild the
+        // attribute so that it contains the user-requested names and
+        // options.
+        AttributeType subAttrType = attribute.getAttributeType();
+
+        if ((attrName != null
+            && !attrName.equals(attribute.getName()))
+            || (options != null && !options.isEmpty()))
+        {
+          AttributeBuilder builder = new AttributeBuilder();
+
+          // We want to use the user-provided name only if this
+          // attribute has the same type as the requested type. This
+          // might not be the case for sub-types e.g. requesting
+          // "name" and getting back "cn" - we don't want to rename
+          // "name" to "cn".
+          if (attrName == null || !subAttrType.equals(attrType))
+          {
+            builder.setAttributeType(attribute.getAttributeType(),
+                attribute.getName());
+          }
+          else
+          {
+            builder.setAttributeType(attribute.getAttributeType(),
+                attrName);
+          }
+
+          if (options != null)
+          {
+            builder.setOptions(options);
+          }
+
+          // Now add in remaining options from original attribute
+          // (this will not overwrite options already present).
+          builder.setOptions(attribute.getOptions());
+
+          if (!omitValues)
+          {
+            builder.addAll(attribute);
+          }
+
+          attribute = builder.toAttribute();
+        }
+        else if (omitValues)
+        {
+          attribute = Attributes.empty(attribute);
+        }
+
+        // Now put the attribute into the destination map.
+        // Be careful of duplicates.
+        List<Attribute> attrList = destMap.get(subAttrType);
+
+        if (attrList == null)
+        {
+          // Assume that they'll all go in the one list. This isn't
+          // always the case, for example if the list contains
+          // sub-types.
+          attrList = new ArrayList<Attribute>(sourceList.size());
+          attrList.add(attribute);
+          destMap.put(subAttrType, attrList);
+        }
+        else
+        {
+          // The attribute may have already been put in the list
+          // - lets replace it assuming that the previous version
+          // was added using a wildcard and that this version has
+          // a user provided name and/or options.
+          boolean found = false;
+          for (int i = 0; i < attrList.size(); i++)
+          {
+            if (attrList.get(i).optionsEqual(attribute.getOptions()))
+            {
+              attrList.set(i, attribute);
+              found = true;
+            }
+          }
+          if (!found)
+          {
+            attrList.add(attribute);
+          }
+        }
+      }
+    }
   }
 }
 

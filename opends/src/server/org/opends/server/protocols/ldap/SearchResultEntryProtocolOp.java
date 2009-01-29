@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -148,12 +148,6 @@ public class SearchResultEntryProtocolOp
     this.dn = searchEntry.getDN();
 
     attributes = new LinkedList<LDAPAttribute>();
-
-    Attribute ocAttr = searchEntry.getObjectClassAttribute();
-    if (ocAttr != null)
-    {
-      attributes.add(new LDAPAttribute(ocAttr));
-    }
 
     if (ldapVersion == 2)
     {
@@ -281,6 +275,7 @@ public class SearchResultEntryProtocolOp
    *
    * @return  The BER type for this protocol op.
    */
+  @Override
   public byte getType()
   {
     return OP_TYPE_SEARCH_RESULT_ENTRY;
@@ -293,6 +288,7 @@ public class SearchResultEntryProtocolOp
    *
    * @return  The name for this protocol op type.
    */
+  @Override
   public String getProtocolOpName()
   {
     return "Search Result Entry";
@@ -306,6 +302,7 @@ public class SearchResultEntryProtocolOp
    *
    * @return  The ASN.1 element containing the encoded protocol op.
    */
+  @Override
   public ASN1Element encode()
   {
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
@@ -422,6 +419,7 @@ public class SearchResultEntryProtocolOp
    *
    * @param  buffer  The buffer to which the string should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("SearchResultEntry(dn=");
@@ -453,6 +451,7 @@ public class SearchResultEntryProtocolOp
    * @param  indent  The number of spaces from the margin that the lines should
    *                 be indented.
    */
+  @Override
   public void toString(StringBuilder buffer, int indent)
   {
     StringBuilder indentBuf = new StringBuilder(indent);

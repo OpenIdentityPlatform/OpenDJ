@@ -45,13 +45,16 @@ import org.opends.server.plugins.InvocationCounterPlugin;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
 import static org.testng.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.net.Socket;
 import java.io.IOException;
 
@@ -390,8 +393,11 @@ public class SearchOperationTestCase extends OperationTestCase
     Entry resultEntry = searchInternalForSingleEntry(searchOperation);
 
     assertEquals(resultEntry.getObjectClasses(), testEntry.getObjectClasses());
+
+    // Search results contain objectClass as an attribute.
     assertEquals(resultEntry.getUserAttributes().size(),
-                 testEntry.getUserAttributes().size());
+                 testEntry.getUserAttributes().size() + 1);
+
     assertEquals(resultEntry.getOperationalAttributes().size(), 0);
   }
 
@@ -485,8 +491,10 @@ public class SearchOperationTestCase extends OperationTestCase
 
     assertEquals(resultEntry.getObjectClasses(), testEntry.getObjectClasses());
     assertTrue(resultEntry.getOperationalAttributes().size() > 0);
+
+    // Search results contain objectClass as an attribute.
     assertEquals(resultEntry.getUserAttributes().size(),
-                 testEntry.getUserAttributes().size());
+                 testEntry.getUserAttributes().size() + 1);
   }
 
   @Test
@@ -517,8 +525,11 @@ public class SearchOperationTestCase extends OperationTestCase
     Entry resultEntry = searchInternalForSingleEntry(searchOperation);
 
     assertEquals(resultEntry.getObjectClasses(), testEntry.getObjectClasses());
+
+    // Search results contain objectClass as an attribute.
     assertEquals(resultEntry.getUserAttributes().size(),
-                 testEntry.getUserAttributes().size());
+                 testEntry.getUserAttributes().size() + 1);
+
     assertEquals(resultEntry.getOperationalAttributes().size(), 1);
   }
 
@@ -1142,5 +1153,188 @@ public class SearchOperationTestCase extends OperationTestCase
     }
 
     assertTrue(messages.isEmpty(), "Entry invalid: " + messages);
+  }
+
+
+
+  /**
+   * Returns test data for testSearchInternalUserAttributeNames.
+   *
+   * @return The test data.
+   */
+  @DataProvider(name = "testSearchInternalUserAttributeNames")
+  public Object[][] createTestSearchInternalUserAttributeNamesData()
+  {
+    // First array is the requested attributes.
+    // Second array is the expected attribute names in the entry.
+    return new Object[][] {
+        {
+            Arrays.<String>asList(),
+            Arrays.asList("objectClass", "cn", "cn;lang-fr") },
+        {
+            Arrays.asList("*", "+"),
+            Arrays.asList("objectClass", "cn", "cn;lang-fr", "entryDN",
+                "createTimestamp") },
+        {
+            Arrays.asList("objectClass", "cn", "cn;lang-fr", "entryDN",
+                "createTimestamp"),
+            Arrays.asList("objectClass", "cn", "cn;lang-fr", "entryDN",
+                "createTimestamp") },
+        {
+            Arrays.asList("OBJECTCLASS", "commonName", "commonName;LANG-FR", "entrydn",
+                "CREATETIMESTAMP"),
+            Arrays.asList("OBJECTCLASS", "commonName",
+                "commonName;LANG-FR", "entrydn", "CREATETIMESTAMP") },
+        {
+            Arrays.asList("*", "+", "OBJECTCLASS", "commonName",
+                "commonName;LANG-FR", "entrydn", "CREATETIMESTAMP"),
+            Arrays.asList("OBJECTCLASS", "commonName",
+                "commonName;LANG-FR", "entrydn", "CREATETIMESTAMP") },
+        { Arrays.asList("name"),
+            Arrays.asList("givenName", "sn", "cn", "cn;lang-fr") },
+        { Arrays.asList("name;lang-fr"), Arrays.asList("cn;lang-fr") },
+        { Arrays.asList("name;LANG-FR"), Arrays.asList("cn;LANG-FR") }, };
+  }
+
+
+
+  /**
+   * Tests that attributes are returned from internal searches using the
+   * attribute name requested by the user.
+   *
+   * @param requestedAttributes
+   *          The list of requested attributes names.
+   * @param expectedAttributes
+   *          The list of expected attribute names.
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "testSearchInternalUserAttributeNames")
+  public void testSearchInternalUserAttributeNames(
+      List<String> requestedAttributes, List<String> expectedAttributes)
+      throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    String userDNString = "uid=test.user,o=test";
+    DN userDN = DN.decode(userDNString);
+
+    TestCaseUtils.addEntry("dn: " + userDNString,
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "cn;lang-fr: Test Usager",
+        "userPassword: password");
+
+    Entry userEntry = DirectoryServer.getEntry(userDN);
+    assertNotNull(userEntry);
+
+    LinkedHashSet<String> attributes =
+      new LinkedHashSet<String>(requestedAttributes);
+
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+    InternalSearchOperation search =
+      conn.processSearch(userDNString, SearchScope.BASE_OBJECT,
+          DereferencePolicy.NEVER_DEREF_ALIASES, 0, // Size limit
+          0, // Time limit
+          false, // Types only
+          "(objectClass=*)", attributes);
+
+    assertEquals(search.getResultCode(), ResultCode.SUCCESS);
+
+    LinkedList<SearchResultEntry> entries = search.getSearchEntries();
+    assertEquals(entries.size(), 1);
+
+    Entry entry = entries.getFirst();
+    assertEquals(entry.getDN(), userDN);
+
+    // Check all expected attributes are present and have
+    // the user requested name.
+    List<Attribute> attrList = entry.getAttributes();
+    Set<String> actualNames = new HashSet<String>();
+    for (Attribute attribute : attrList)
+    {
+      actualNames.add(attribute.getNameWithOptions());
+    }
+
+    assertTrue(actualNames.containsAll(expectedAttributes),
+        "Expected: " + expectedAttributes + " got " + actualNames);
+  }
+
+
+
+  /**
+   * Tests that attributes are returned from external searches using the
+   * attribute name requested by the user.
+   *
+   * @param requestedAttributes
+   *          The list of requested attributes names.
+   * @param expectedAttributes
+   *          The list of expected attribute names.
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "testSearchInternalUserAttributeNames")
+  public void testSearchExternalUserAttributeNames(
+      List<String> requestedAttributes, List<String> expectedAttributes)
+      throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    String userDNString = "uid=test.user,o=test";
+    DN userDN = DN.decode(userDNString);
+
+    TestCaseUtils.addEntry("dn: " + userDNString,
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "cn;lang-fr: Test Usager",
+        "userPassword: password");
+
+    Entry userEntry = DirectoryServer.getEntry(userDN);
+    assertNotNull(userEntry);
+
+    LinkedHashSet<String> attributes =
+      new LinkedHashSet<String>(requestedAttributes);
+
+    SearchRequestProtocolOp searchRequest =
+      new SearchRequestProtocolOp(
+          new ASN1OctetString(userDNString),
+          SearchScope.BASE_OBJECT,
+          DereferencePolicy.NEVER_DEREF_ALIASES,
+          Integer.MAX_VALUE,
+          Integer.MAX_VALUE,
+          false,
+          LDAPFilter.decode("(objectclass=*)"),
+          attributes);
+
+    SearchResultEntryProtocolOp entry =
+      searchExternalForSingleEntry(searchRequest, null);
+
+    assertEquals(entry.getDN(), userDN);
+
+    // Check all expected attributes are present and have
+    // the user requested name.
+    LinkedList<LDAPAttribute> attrList = entry.getAttributes();
+    Set<String> actualNames = new HashSet<String>();
+    for (LDAPAttribute attribute : attrList)
+    {
+      actualNames.add(attribute.getAttributeType());
+    }
+
+    assertTrue(actualNames.containsAll(expectedAttributes),
+        "Expected: " + expectedAttributes + " got " + actualNames);
   }
 }
