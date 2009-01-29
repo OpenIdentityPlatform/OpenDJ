@@ -1,0 +1,1047 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2009 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <!-- Definition of Test Cases -->             
+
+  <!--- Test Case : Core : Binary Attributes : Makeldif-->          
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Core : Binary Attributes
+  #@TestID              Makeldif
+  #@TestPurpose         Test create of ldif using binary attributes
+  #@TestPreamble
+  #@TestSteps           Make an ldif containing binary attributes
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="core_binaryattr_001" scope="local">
+    <testcase name="getTestCaseName('Makeldif Binary Attributes.')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+              binaryattrLdif='%s/binaryattr.ldif' % remote.temp
+              templateName='binaryattr.template'
+                
+              dnList=dn2list(__baseDN)
+              dnList.reverse()
+            </script>
+
+            <!-- MakeLDIF template -->
+            <message>'Generating template (%s).' % templateName</message>
+            <script>
+              template=[]
+              template.append('define suffix=%s' % __baseDN)
+              template.append('define maildomain=%s' % dn2rfcmailaddr(server.suffix))
+              template.append('')
+
+              dnRelList=[]
+              for rdn in dnList:
+                dnRelList.insert(0,rdn.strip())
+                template.append('')             
+                template.append('branch: %s' % list2dn(dnRelList))
+
+              template.append('')
+              template.append('branch: ou=people,[suffix]')
+              template.append('subordinateTemplate: certificationAuthority:1')
+              template.append('subordinateTemplate: cRLDistributionPoint:1')
+              template.append('subordinateTemplate: person:100')
+              template.append('subordinateTemplate: certificatePerson:100')
+              template.append('subordinateTemplate: photoPerson:100')
+              template.append('')
+              template.append('template: certificationAuthority')
+              template.append('rdnAttr: cn')
+              template.append('objectclass: applicationProcess')
+              template.append('objectclass: certificationAuthority')
+              template.append('cn: myCA')
+              template.append('description: The authority on certificates.')
+              template.append('cACertificate;binary:: &lt;random:base64:20>')
+              template.append('certificateRevocationList;binary:: &lt;random:base64:20>')
+              template.append('authorityRevocationList;binary:: &lt;random:base64:20>')
+              template.append('crossCertificatePair;binary:: &lt;random:base64:20>')
+              template.append('')
+              template.append('template: cRLDistributionPoint')
+              template.append('rdnAttr: cn')
+              template.append('objectclass: cRLDistributionPoint')
+              template.append('cn: myCRLDP')
+              template.append('certificateRevocationList;binary:: &lt;random:base64:20>')
+              template.append('authorityRevocationList;binary:: &lt;random:base64:20>')
+              template.append('deltaRevocationList;binary:: &lt;random:base64:20>')
+              template.append('')
+              template.append('template: person')
+              template.append('rdnAttr: uid')
+              template.append('objectClass: top')
+              template.append('objectClass: person')
+              template.append('objectClass: organizationalPerson')
+              template.append('objectClass: inetOrgPerson')
+              template.append('givenName: &lt;first>')
+              template.append('sn: &lt;last>')
+              template.append('cn: {givenName} {sn}')
+              template.append('initials: {givenName:1}&lt;random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>{sn:1}')
+              template.append('employeeNumber: &lt;sequential:0>')
+              template.append('uid: user.{employeeNumber}')
+              template.append('mail: {uid}@[maildomain]')
+              template.append('userPassword: password')
+              template.append('telephoneNumber: &lt;random:telephone>')
+              template.append('homePhone: &lt;random:telephone>')
+              template.append('pager: &lt;random:telephone>')
+              template.append('mobile: &lt;random:telephone>')
+              template.append('street: &lt;random:numeric:5> &lt;file:streets> Street')
+              template.append('l: &lt;file:cities>')
+              template.append('st: &lt;file:states>')
+              template.append('postalCode: &lt;random:numeric:5>')
+              template.append('postalAddress: {cn}${street}${l}, {st}  {postalCode}')
+              template.append('description: This is the description for {cn}.')
+              template.append('')
+              template.append('template: certificatePerson')
+              template.append('rdnAttr: uid')
+              template.append('extends: person')
+              template.append('objectclass: strongauthenticationUser')
+              template.append('objectclass: userSecurityInformation')
+              template.append('userCertificate;binary:: &lt;random:base64:1000>')
+              template.append('supportedAlgorithms;binary:: &lt;random:base64:20>')
+              template.append('')
+              template.append('template: photoPerson')
+              template.append('rdnAttr: uid')
+              template.append('extends: person')
+              template.append('jpegPhoto:: &lt;random:base64:2000>')
+              template.append('')
+            </script>
+
+            <!-- Write template to file -->
+            <script>
+              ftemplate=open('%s/%s' % (local.temp,templateName),'w') 
+              for line in template:
+                ftemplate.write('%s\n' % line)
+              ftemplate.close()
+            </script>                        
+
+            <!-- Copy template to SUT -->
+            <call function="'copyFile'">
+              { 
+              'srcfile'    : '%s/%s' % (local.temp,templateName),
+              'destfile'   : '%s/%s' % (remote.temp,templateName),
+              'remotehost' : server.location
+              }
+            </call>
+
+            <!-- Generate an ldif file containing binary attributes -->
+            <call function="'runFunction'">
+              { 'functionName'      : 'MakeLdifWithScript'                ,
+                'functionMessage'   : 'Generate LDIF file.'               ,
+                'functionException' : 'Tools.MakeLdifException'           ,
+                'functionArguments' : { 'location'      : server.location ,
+                                        'templateFile'  : '%s/%s' %
+                                          (remote.temp,templateName)      ,
+                                        'ldifFile'      : binaryattrLdif }
+              }
+            </call>
+            
+          </sequence>
+          <catch exception="'STAXException.Tools.MakeLdifException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: MakeLdif failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>            
+
+  <!--- Test Case : Core : Binary Attributes : Import Binary Attributes from File -->          
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Core : Binary Attributes
+  #@TestID              Import Binary Attributes from File
+  #@TestPurpose         Test import of ldif containing binary transfer option
+  #@TestPreamble
+  #@TestSteps           Import ldif containing binary attributes
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="core_binaryattr_002" scope="local">
+    <testcase name="getTestCaseName('Import Binary Attributes from File.')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+              binaryattrLdif='%s/binaryattr.ldif' % remote.temp
+              templateName='binaryattr.template'
+            </script>
+
+            <!-- On line import of ldif file containing binary attribute -->
+            <call function="'runFunction'">
+              { 'functionName'      : 'ImportLdifWithScript'                        ,
+                'functionMessage'   : 'Import ldif file with binary entries'        ,
+                'functionException' : 'Admin.ImportException'                       ,
+                'functionArguments' : { 'location'            : server.location     ,
+                                        'dsInstanceHost'      : server.host         ,
+                                        'dsInstanceAdminPort' : server.adminport    ,
+                                        'dsInstanceDn'        : server.dn           ,
+                                        'dsInstancePswd'      : server.password     ,
+                                        'dsBackEnd'           : server.backend      ,
+                                        'dsLdifFile'          : binaryattrLdif          ,
+                                        'dsRejectFile'        : '%s/rejects.txt' % remote.temp }
+              }
+            </call>
+
+            <!--  Check that the import task is complete-->
+            <call function="'runFunction'">
+              { 'functionName'      : 'manage-tasks'                        ,
+                'functionMessage'   : 'Manage the online import task'       ,
+                'functionException' : 'Admin.ManageTaskException'           ,
+                'functionArguments' : { 'location'        : server.location ,
+                                        'dsInstanceHost'  : server.host     ,
+                                        'dsInstanceDn'    : server.dn       ,
+                                        'dsInstancePswd'  : server.password ,
+                                        'dsQuiet'         : ' ' }
+              }
+            </call>
+
+            <script>
+              _functionResult=parse_stax_result(STAXResult)
+            </script>
+
+            <call function="'runFunction'">
+              { 'functionName'      : 'searchStringForSubstring'                      ,
+                'functionMessage'   : 'Check import is completed successfully.'       ,
+                'functionException' : 'Utils.CheckStringException'                    ,
+                'functionArguments' : { 'returnString'    : _functionResult           ,
+                                        'testString'      : 'Completed successfully'  ,
+                                        'expectedResult'  : '1' }
+              }
+            </call>
+            
+            <!-- Count the number of entries in backend -->
+            <call function="'runFunction'">
+              { 'functionName'      : 'ldapSearchWithScript'                  ,
+                'functionMessage'   : 'Count number of imported entries.'     ,
+                'functionException' : 'LDAP.SearchException'                  ,
+                'functionArguments' : { 'dsInstanceHost'   : server.host      ,
+                                        'dsInstancePort'   : server.port      ,
+                                        'dsInstanceDn'     : server.dn        ,
+                                        'dsInstancePswd'   : server.password  ,
+                                        'dsBaseDN'         : __baseDN         ,
+                                        'dsFilter'         : 'objectclass=*'  ,
+                                        'dsAttributes'     : 'dn'             ,
+                                        'dsCountEntries'   : 'True'           ,
+                                        'expectedRC'       : 255 }
+              }
+            </call>
+
+            <script>
+              _functionResult=parse_stax_result(STAXResult)
+            </script>
+
+            <call function="'runFunction'">
+              { 'functionName'      : 'searchStringForSubstring'                      ,
+                'functionMessage'   : 'Check import is completed successfully.'       ,
+                'functionException' : 'Utils.CheckStringException'                    ,
+                'functionArguments' : { 'returnString'    : _functionResult           ,
+                                        'testString'      : 'Total number of matching entries: 304'  ,
+                                        'expectedResult'  : '1' }
+              }
+            </call>
+            
+            <!--  Search for the usercertificate attributes-->
+            <call function="'runFunction'">
+              { 'functionName'      : 'ldapSearchWithScript'                  ,
+                'functionMessage'   : 'Search for the usercertificate entry.' ,
+                'functionException' : 'LDAP.SearchException'                  ,
+                'functionArguments' : { 'dsInstanceHost'   : server.host      ,
+                                        'dsInstancePort'   : server.port      ,
+                                        'dsInstanceDn'     : server.dn        ,
+                                        'dsInstancePswd'   : server.password  ,
+                                        'dsBaseDN'         : __baseDN         ,
+                                        'dsFilter'         : 'objectclass=*'  ,
+                                        'dsAttributes'     : 'usercertificate' }
+              }
+            </call>
+            
+            <script>
+              _functionResult=parse_stax_result(STAXResult)
+            </script>
+
+            <!--  Check that usercertificate;binary is returned in search result -->  
+            <call function="'runFunction'">
+             { 'functionName'      : 'checktestString'                        ,
+               'functionMessage'   : 'Check usercertificate attribute is returned.' ,
+               'functionException' : 'Utils.CheckStringException'             ,
+               'functionArguments' : { 'expectedString' : 'usercertificate;binary'  ,
+                                       'returnString'   : _functionResult ,
+                                       'case'           : 'ignorecase' }
+             }
+            </call>
+          </sequence>  
+          <catch exception="'STAXException.Admin.ImportException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Import failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <catch exception="'STAXException.Admin.ManageTaskException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: ManageTask failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <catch exception="'STAXException.LDAP.SearchException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: LDAPSearch failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <catch exception="'STAXException.Utils.CheckStringException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: UtilsCheck failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch> 
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <function name="core_binaryattr_003" scope="local">
+    <testcase name="getTestCaseName('Add userCertificate no binary option.')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+              ldifFile='%s/userCertificate.ldif' % remote.temp
+              templateName='userCertificate.template'
+              targetDN='ou=core binaryattr 003,ou=people,%s' % __baseDN
+            </script>
+
+            <!-- MakeLDIF template -->
+            <message>'Generating template (%s).' % templateName</message>
+            <script>
+              ldifEntry=[]
+              ldifEntry.append('branch: %s' % targetDN)
+              ldifEntry.append('subordinateTemplate: certificatePerson:5')
+              ldifEntry.append('')
+              ldifEntry.append('template: person')
+              ldifEntry.append('rdnAttr: uid')
+              ldifEntry.append('objectClass: top')
+              ldifEntry.append('objectClass: person')
+              ldifEntry.append('objectClass: organizationalPerson')
+              ldifEntry.append('objectClass: inetOrgPerson')
+              ldifEntry.append('givenName: &lt;first>')
+              ldifEntry.append('sn: &lt;last>')
+              ldifEntry.append('cn: {givenName} {sn}')
+              ldifEntry.append('employeeNumber: &lt;sequential:0>')
+              ldifEntry.append('uid: stronguser.{employeeNumber}')
+              ldifEntry.append('')
+              ldifEntry.append('template: certificatePerson')
+              ldifEntry.append('rdnAttr: uid')
+              ldifEntry.append('extends: person')
+              ldifEntry.append('objectclass: strongauthenticationUser')
+              ldifEntry.append('userCertificate: &lt;random:base64:1000>')
+              ldifEntry.append('')
+            </script>
+
+            <!-- Write template to file -->
+            <script>
+              ftemplate=open('%s/%s' % (local.temp,templateName),'w') 
+              for line in ldifEntry:
+                ftemplate.write('%s\n' % line)
+              ftemplate.close()
+            </script>                        
+
+            <!-- Copy template to SUT -->
+            <call function="'copyFile'">
+              { 
+              'srcfile'    : '%s/%s' % (local.temp,templateName),
+              'destfile'   : '%s/%s' % (remote.temp,templateName),
+              'remotehost' : server.location
+              }
+            </call>
+
+            <!-- Generate an ldif file containing binary attributes -->
+            <call function="'runFunction'">
+              { 'functionName'      : 'MakeLdifWithScript'                ,
+                'functionMessage'   : 'Generate LDIF file.'               ,
+                'functionException' : 'Tools.MakeLdifException'           ,
+                'functionArguments' : { 'location'      : server.location ,
+                                        'templateFile'  : '%s/%s' %
+                                          (remote.temp,templateName)      ,
+                                        'ldifFile'      : ldifFile }
+              }
+            </call>
+
+            <call function="'runFunction'">
+              { 'functionName'      : 'ldapModifyWithScript'              ,
+                'functionMessage'   : 'Add ldif with userCertificate;binary entry'     ,
+                'functionException' : 'LDAP.AddException'                 ,
+                'functionArguments' : { 'location'      : server.location ,
+                                        'dsInstanceHost': server.host     ,
+                                        'dsInstancePort': server.port     ,
+                                        'dsInstanceDn'  : server.dn       ,
+                                        'dsInstancePswd': server.password ,
+                                        'dsAdd'         : 'TRUE'          ,
+                                        'dsFilename'    : ldifFile }
+              }
+            </call>
+
+            <!--  Search for the usercertificate attributes-->
+            <call function="'runFunction'">
+              { 'functionName'      : 'ldapSearchWithScript'                  ,
+                'functionMessage'   : 'Search for the userCertificate entry.'       ,
+                'functionException' : 'LDAP.SearchException'                  ,
+                'functionArguments' : { 'dsInstanceHost'   : server.host      ,
+                                        'dsInstancePort'   : server.port      ,
+                                        'dsInstanceDn'     : server.dn        ,
+                                        'dsInstancePswd'   : server.password  ,
+                                        'dsBaseDN'         : targetDN         ,
+                                        'dsFilter'         : 'objectclass=*'  ,
+                                        'dsAttributes'     : 'usercertificate' }
+              }
+            </call>
+            
+            <script>
+              _functionResult=parse_stax_result(STAXResult)
+            </script>
+
+            <!--  Check that usercertificate;binary is returned in search result -->  
+            <call function="'runFunction'">
+             { 'functionName'      : 'checktestString'                        ,
+               'functionMessage'   : 'Check userCertificate attribute is returned.' ,
+               'functionException' : 'Utils.CheckStringException'             ,
+               'functionArguments' : { 'expectedString' : 'userCertificate;binary'  ,
+                                       'returnString'   : _functionResult }
+             }
+            </call>
+
+            <!--  Search for the usercertificate attributes-->
+            <call function="'runFunction'">
+              { 'functionName'      : 'ldapSearchWithScript'                  ,
+                'functionMessage'   : 'Search for the userCertificate entry.'       ,
+                'functionException' : 'LDAP.SearchException'                  ,
+                'functionArguments' : { 'dsInstanceHost'   : server.host      ,
+                                        'dsInstancePort'   : server.port      ,
+                                        'dsInstanceDn'     : server.dn        ,
+                                        'dsInstancePswd'   : server.password  ,
+                                        'dsBaseDN'         : targetDN         ,
+                                        'dsFilter'         : 'objectclass=*'  ,
+                                        'dsAttributes'     : 'usercertificate;binary' }
+              }
+            </call>
+            
+            <script>
+              _functionResult=parse_stax_result(STAXResult)
+            </script>
+
+            <!--  Check that usercertificate;binary is returned in search result -->  
+            <call function="'runFunction'">
+             { 'functionName'      : 'checktestString'                        ,
+               'functionMessage'   : 'Check userCertificate attribute is returned.' ,
+               'functionException' : 'Utils.CheckStringException'             ,
+               'functionArguments' : { 'expectedString' : 'userCertificate;binary'  ,
+                                       'returnString'   : _functionResult }
+             }
+            </call>
+
+          </sequence>  
+          <catch exception="'STAXException.Tools.MakeLdifException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: MakeLdif failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <catch exception="'STAXException.LDAP.AddException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: LdapAdd failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <catch exception="'STAXException.LDAP.SearchException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: LDAPSearch failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <catch exception="'STAXException.Utils.CheckStringException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: UtilsCheck failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <function name="core_binaryattr_004" scope="local">
+    <testcase name="getTestCaseName('Add userCertificate with binary transfer option')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+              ldifFile='%s/userCertificate.ldif' % remote.temp
+              templateName='userCertificate.template'
+              targetDN='ou=core binaryattr 004,ou=people,%s' % __baseDN
+            </script>
+
+            <!-- MakeLDIF template -->
+            <message>'Generating template (%s).' % templateName</message>
+            <script>
+              ldifEntry=[]
+              ldifEntry.append('branch: %s' % targetDN)
+              ldifEntry.append('subordinateTemplate: certificatePerson:10')
+              ldifEntry.append('')
+              ldifEntry.append('template: person')
+              ldifEntry.append('rdnAttr: uid')
+              ldifEntry.append('objectClass: top')
+              ldifEntry.append('objectClass: person')
+              ldifEntry.append('objectClass: organizationalPerson')
+              ldifEntry.append('objectClass: inetOrgPerson')
+              ldifEntry.append('givenName: &lt;first>')
+              ldifEntry.append('sn: &lt;last>')
+              ldifEntry.append('cn: {givenName} {sn}')
+              ldifEntry.append('employeeNumber: &lt;sequential:10>')
+              ldifEntry.append('uid: stronguser.{employeeNumber}')
+              ldifEntry.append('')
+              ldifEntry.append('template: certificatePerson')
+              ldifEntry.append('rdnAttr: uid')
+              ldifEntry.append('extends: person')
+              ldifEntry.append('objectclass: strongauthenticationUser')
+              ldifEntry.append('userCertificate;binary:: &lt;random:base64:1000>')
+              ldifEntry.append('')
+            </script>
+
+            <!-- Write template to file -->
+            <script>
+              ftemplate=open('%s/%s' % (local.temp,templateName),'w') 
+              for line in ldifEntry:
+                ftemplate.write('%s\n' % line)
+              ftemplate.close()
+            </script>                        
+
+            <!-- Copy template to SUT -->
+            <call function="'copyFile'">
+              { 
+              'srcfile'    : '%s/%s' % (local.temp,templateName),
+              'destfile'   : '%s/%s' % (remote.temp,templateName),
+              'remotehost' : server.location
+              }
+            </call>
+
+            <!-- Generate an ldif file containing binary attributes -->
+            <call function="'runFunction'">
+              { 'functionName'      : 'MakeLdifWithScript'                ,
+                'functionMessage'   : 'Generate LDIF file.'               ,
+                'functionException' : 'Tools.MakeLdifException'           ,
+                'functionArguments' : { 'location'      : server.location ,
+                                        'templateFile'  : '%s/%s' %
+                                          (remote.temp,templateName)      ,
+                                        'ldifFile'      : ldifFile }
+              }
+            </call>
+
+            <call function="'runFunction'">
+              { 'functionName'      : 'ldapModifyWithScript'              ,
+                'functionMessage'   : 'Add ldif with userCertificate;binary entry'     ,
+                'functionException' : 'LDAP.AddException'                 ,
+                'functionArguments' : { 'location'      : server.location ,
+                                        'dsInstanceHost': server.host     ,
+                                        'dsInstancePort': server.port     ,
+                                        'dsInstanceDn'  : server.dn       ,
+                                        'dsInstancePswd': server.password ,
+                                        'dsAdd'         : 'TRUE'          ,
+                                        'dsFilename'    : ldifFile }
+              }
+            </call>
+
+            <!--  Search for the usercertificate attributes-->
+            <call function="'runFunction'">
+              { 'functionName'      : 'ldapSearchWithScript'                  ,
+                'functionMessage'   : 'Search for the userCertificate entry.'       ,
+                'functionException' : 'LDAP.SearchException'                  ,
+                'functionArguments' : { 'dsInstanceHost'   : server.host      ,
+                                        'dsInstancePort'   : server.port      ,
+                                        'dsInstanceDn'     : server.dn        ,
+                                        'dsInstancePswd'   : server.password  ,
+                                        'dsBaseDN'         : targetDN         ,
+                                        'dsFilter'         : 'objectclass=*'  ,
+                                        'dsAttributes'     : 'usercertificate' }
+              }
+            </call>
+            
+            <script>
+              _functionResult=parse_stax_result(STAXResult)
+            </script>
+
+            <!--  Check that usercertificate;binary is returned in search result -->  
+            <call function="'runFunction'">
+             { 'functionName'      : 'checktestString'                        ,
+               'functionMessage'   : 'Check userCertificate attribute is returned.' ,
+               'functionException' : 'Utils.CheckStringException'             ,
+               'functionArguments' : { 'expectedString' : 'userCertificate;binary'  ,
+                                       'returnString'   : _functionResult }
+             }
+            </call>
+
+            <!--  Search for the usercertificate attributes-->
+            <call function="'runFunction'">
+              { 'functionName'      : 'ldapSearchWithScript'                  ,
+                'functionMessage'   : 'Search for the userCertificate entry.'       ,
+                'functionException' : 'LDAP.SearchException'                  ,
+                'functionArguments' : { 'dsInstanceHost'   : server.host      ,
+                                        'dsInstancePort'   : server.port      ,
+                                        'dsInstanceDn'     : server.dn        ,
+                                        'dsInstancePswd'   : server.password  ,
+                                        'dsBaseDN'         : targetDN         ,
+                                        'dsFilter'         : 'objectclass=*'  ,
+                                        'dsAttributes'     : 'usercertificate;binary' }
+              }
+            </call>
+            
+            <script>
+              _functionResult=parse_stax_result(STAXResult)
+            </script>
+
+            <!--  Check that usercertificate;binary is returned in search result -->  
+            <call function="'runFunction'">
+             { 'functionName'      : 'checktestString'                        ,
+               'functionMessage'   : 'Check userCertificate attribute is returned.' ,
+               'functionException' : 'Utils.CheckStringException'             ,
+               'functionArguments' : { 'expectedString' : 'userCertificate;binary'  ,
+                                       'returnString'   : _functionResult }
+             }
+            </call>
+
+          </sequence>  
+          <catch exception="'STAXException.Tools.MakeLdifException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: MakeLdif failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <catch exception="'STAXException.LDAP.AddException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: LdapAdd failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <catch exception="'STAXException.LDAP.SearchException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: LDAPSearch failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <catch exception="'STAXException.Utils.CheckStringException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: UtilsCheck failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <function name="core_binaryattr_005" scope="local">
+    <testcase name="getTestCaseName('Add file based userCertificate with no binary transfer option')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+              ldifFile='userCertificate.ldif'
+              pemFile='user-cert.pem'
+              templateName='userCertificate.template'
+              orgUnit='core binaryattr 005'
+              targetDN='ou=%s,ou=people,%s' % (orgUnit,__baseDN)              
+            </script>
+
+            <!-- Generate Ldif file -->
+            <message>'Generating ldif (%s).' % ldifFile</message>
+            <script>
+              ldifEntry=[]
+              ldifEntry.append('dn: %s' % targetDN)
+              ldifEntry.append('objectClass: top')
+              ldifEntry.append('objectClass: organizationalUnit')
+              ldifEntry.append('ou: %s' % orgUnit)
+              ldifEntry.append('')
+              ldifEntry.append('dn: cn=Johnny Strong, %s' % targetDN)
+              ldifEntry.append('objectClass: top')
+              ldifEntry.append('objectClass: person')
+              ldifEntry.append('objectclass: strongauthenticationUser')
+              ldifEntry.append('cn: Johnny Strong')
+              ldifEntry.append('sn: Strong')
+              ldifEntry.append('userCertificate:&lt; file:///%s/%s' % (remote.temp,pemFile))
+              ldifEntry.append('')
+            </script>
+
+            <!-- Write template to file -->
+            <script>
+              fldif=open('%s/%s' % (local.temp,ldifFile),'w') 
+              for line in ldifEntry:
+                fldif.write('%s\n' % line)
+              fldif.close()
+            </script>                        
+
+            <!-- Copy ldif to SUT -->
+            <call function="'copyFile'">
+              { 
+              'srcfile'    : '%s/%s' % (local.temp,ldifFile),
+              'destfile'   : '%s/%s' % (remote.temp,ldifFile),
+              'remotehost' : server.location
+              }
+            </call>
+
+            <!-- Generate PEM file -->
+            <message>'Generating ldif (%s).' % ldifFile</message>
+            <script>
+              pemEntry=[]
+              pemEntry.append('OiBzTzJVNW12Rk1weG5pL2pXV3pzcmJ2MnBPZEM')
+            </script>
+
+            <!-- Write template to file -->
+            <script>
+              fpem=open('%s/%s' % (local.temp,pemFile),'w') 
+              for line in pemEntry:
+                fpem.write('%s\n' % line)
+              fpem.close()
+            </script>
+
+            <!-- Copy PEM to SUT -->
+            <call function="'copyFile'">
+              { 
+              'srcfile'    : '%s/%s' % (local.temp,pemFile),
+              'destfile'   : '%s/%s' % (remote.temp,pemFile),
+              'remotehost' : server.location
+              }
+            </call>
+            
+            <call function="'runFunction'">
+              { 'functionName'      : 'ldapModifyWithScript'              ,
+                'functionMessage'   : 'Add ldif with userCertificate;binary entry' ,
+                'functionException' : 'LDAP.AddException'                 ,
+                'functionArguments' : { 'location'      : server.location ,
+                                        'dsInstanceHost': server.host     ,
+                                        'dsInstancePort': server.port     ,
+                                        'dsInstanceDn'  : server.dn       ,
+                                        'dsInstancePswd': server.password ,
+                                        'dsAdd'         : 'TRUE'          ,
+                                        'dsFilename'    : '%s/%s' % (remote.temp,ldifFile) }
+              }
+            </call>
+
+            <!--  Search for the usercertificate attributes-->
+            <call function="'runFunction'">
+              { 'functionName'      : 'ldapSearchWithScript'                  ,
+                'functionMessage'   : 'Search for the userCertificate entry.'       ,
+                'functionException' : 'LDAP.SearchException'                  ,
+                'functionArguments' : { 'dsInstanceHost'   : server.host      ,
+                                        'dsInstancePort'   : server.port      ,
+                                        'dsInstanceDn'     : server.dn        ,
+                                        'dsInstancePswd'   : server.password  ,
+                                        'dsBaseDN'         : targetDN         ,
+                                        'dsFilter'         : 'objectclass=*'  ,
+                                        'dsAttributes'     : 'usercertificate' }
+              }
+            </call>
+            
+            <script>
+              _functionResult=parse_stax_result(STAXResult)
+            </script>
+
+            <!--  Check that usercertificate;binary is returned in search result -->  
+            <call function="'runFunction'">
+             { 'functionName'      : 'checktestString'                        ,
+               'functionMessage'   : 'Check userCertificate attribute is returned.' ,
+               'functionException' : 'Utils.CheckStringException'             ,
+               'functionArguments' : { 'expectedString' : 'userCertificate;binary'  ,
+                                       'returnString'   : _functionResult }
+             }
+            </call>
+
+            <!--  Search for the usercertificate attributes-->
+            <call function="'runFunction'">
+              { 'functionName'      : 'ldapSearchWithScript'                  ,
+                'functionMessage'   : 'Search for the userCertificate entry.'       ,
+                'functionException' : 'LDAP.SearchException'                  ,
+                'functionArguments' : { 'dsInstanceHost'   : server.host      ,
+                                        'dsInstancePort'   : server.port      ,
+                                        'dsInstanceDn'     : server.dn        ,
+                                        'dsInstancePswd'   : server.password  ,
+                                        'dsBaseDN'         : targetDN         ,
+                                        'dsFilter'         : 'objectclass=*'  ,
+                                        'dsAttributes'     : 'usercertificate;binary' }
+              }
+            </call>
+            
+            <script>
+              _functionResult=parse_stax_result(STAXResult)
+            </script>
+
+            <!--  Check that usercertificate;binary is returned in search result -->  
+            <call function="'runFunction'">
+             { 'functionName'      : 'checktestString'                        ,
+               'functionMessage'   : 'Check userCertificate attribute is returned.' ,
+               'functionException' : 'Utils.CheckStringException'             ,
+               'functionArguments' : { 'expectedString' : 'userCertificate;binary'  ,
+                                       'returnString'   : _functionResult }
+             }
+            </call>
+
+          </sequence>  
+          <catch exception="'STAXException.Tools.MakeLdifException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: MakeLdif failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <catch exception="'STAXException.LDAP.AddException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: LdapAdd failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <catch exception="'STAXException.LDAP.SearchException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: LDAPSearch failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <catch exception="'STAXException.Utils.CheckStringException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: UtilsCheck failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <function name="core_binaryattr_006" scope="local">
+    <testcase name="getTestCaseName('Add file based userCertificate with binary transfer option')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+              ldifFile='userCertificate.ldif'
+              pemFile='user-cert.pem'
+              templateName='userCertificate.template'
+              orgUnit='core binaryattr 006'
+              targetDN='ou=%s,ou=people,%s' % (orgUnit,__baseDN)              
+            </script>
+
+            <!-- Generate Ldif file -->
+            <message>'Generating ldif (%s).' % ldifFile</message>
+            <script>
+              ldifEntry=[]
+              ldifEntry.append('dn: %s' % targetDN)
+              ldifEntry.append('objectClass: top')
+              ldifEntry.append('objectClass: organizationalUnit')
+              ldifEntry.append('ou: %s' % orgUnit)
+              ldifEntry.append('')
+              ldifEntry.append('dn: cn=Jeff Grapes, %s' % targetDN)
+              ldifEntry.append('objectClass: top')
+              ldifEntry.append('objectClass: person')
+              ldifEntry.append('objectclass: strongauthenticationUser')
+              ldifEntry.append('cn: Jeff Grapes')
+              ldifEntry.append('sn: Grapes')
+              ldifEntry.append('userCertificate;binary:&lt; file:///%s/%s' % (remote.temp,pemFile))
+              ldifEntry.append('')
+            </script>
+
+            <!-- Write template to file -->
+            <script>
+              fldif=open('%s/%s' % (local.temp,ldifFile),'w') 
+              for line in ldifEntry:
+                fldif.write('%s\n' % line)
+              fldif.close()
+            </script>                        
+
+            <!-- Copy ldif to SUT -->
+            <call function="'copyFile'">
+              { 
+              'srcfile'    : '%s/%s' % (local.temp,ldifFile),
+              'destfile'   : '%s/%s' % (remote.temp,ldifFile),
+              'remotehost' : server.location
+              }
+            </call>
+
+            <!-- Generate PEM file -->
+            <message>'Generating ldif (%s).' % ldifFile</message>
+            <script>
+              pemEntry=[]
+              pemEntry.append('OiBzTzJVNW12Rk1weG5pL2pXV3pzcmJ2MnBPZEM')
+            </script>
+
+            <!-- Write template to file -->
+            <script>
+              fpem=open('%s/%s' % (local.temp,pemFile),'w') 
+              for line in pemEntry:
+                fpem.write('%s\n' % line)
+              fpem.close()
+            </script>
+
+            <!-- Copy PEM to SUT -->
+            <call function="'copyFile'">
+              { 
+              'srcfile'    : '%s/%s' % (local.temp,pemFile),
+              'destfile'   : '%s/%s' % (remote.temp,pemFile),
+              'remotehost' : server.location
+              }
+            </call>
+            
+            <call function="'runFunction'">
+              { 'functionName'      : 'ldapModifyWithScript'              ,
+                'functionMessage'   : 'Add ldif with userCertificate;binary entry' ,
+                'functionException' : 'LDAP.AddException'                 ,
+                'functionArguments' : { 'location'      : server.location ,
+                                        'dsInstanceHost': server.host     ,
+                                        'dsInstancePort': server.port     ,
+                                        'dsInstanceDn'  : server.dn       ,
+                                        'dsInstancePswd': server.password ,
+                                        'dsAdd'         : 'TRUE'          ,
+                                        'dsFilename'    : '%s/%s' % (remote.temp,ldifFile) }
+              }
+            </call>
+
+            <!--  Search for the usercertificate attributes-->
+            <call function="'runFunction'">
+              { 'functionName'      : 'ldapSearchWithScript'                  ,
+                'functionMessage'   : 'Search for the userCertificate entry.'       ,
+                'functionException' : 'LDAP.SearchException'                  ,
+                'functionArguments' : { 'dsInstanceHost'   : server.host      ,
+                                        'dsInstancePort'   : server.port      ,
+                                        'dsInstanceDn'     : server.dn        ,
+                                        'dsInstancePswd'   : server.password  ,
+                                        'dsBaseDN'         : targetDN         ,
+                                        'dsFilter'         : 'objectclass=*'  ,
+                                        'dsAttributes'     : 'usercertificate' }
+              }
+            </call>
+            
+            <script>
+              _functionResult=parse_stax_result(STAXResult)
+            </script>
+
+            <!--  Check that usercertificate;binary is returned in search result -->  
+            <call function="'runFunction'">
+             { 'functionName'      : 'checktestString'                        ,
+               'functionMessage'   : 'Check userCertificate attribute is returned.' ,
+               'functionException' : 'Utils.CheckStringException'             ,
+               'functionArguments' : { 'expectedString' : 'userCertificate;binary'  ,
+                                       'returnString'   : _functionResult }
+             }
+            </call>
+
+            <!--  Search for the usercertificate attributes-->
+            <call function="'runFunction'">
+              { 'functionName'      : 'ldapSearchWithScript'                  ,
+                'functionMessage'   : 'Search for the userCertificate entry.'       ,
+                'functionException' : 'LDAP.SearchException'                  ,
+                'functionArguments' : { 'dsInstanceHost'   : server.host      ,
+                                        'dsInstancePort'   : server.port      ,
+                                        'dsInstanceDn'     : server.dn        ,
+                                        'dsInstancePswd'   : server.password  ,
+                                        'dsBaseDN'         : targetDN         ,
+                                        'dsFilter'         : 'objectclass=*'  ,
+                                        'dsAttributes'     : 'usercertificate;binary' }
+              }
+            </call>
+            
+            <script>
+              _functionResult=parse_stax_result(STAXResult)
+            </script>
+
+            <!--  Check that usercertificate;binary is returned in search result -->  
+            <call function="'runFunction'">
+             { 'functionName'      : 'checktestString'                        ,
+               'functionMessage'   : 'Check userCertificate attribute is returned.' ,
+               'functionException' : 'Utils.CheckStringException'             ,
+               'functionArguments' : { 'expectedString' : 'userCertificate;binary'  ,
+                                       'returnString'   : _functionResult }
+             }
+            </call>
+
+          </sequence>  
+          <catch exception="'STAXException.Tools.MakeLdifException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: MakeLdif failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <catch exception="'STAXException.LDAP.AddException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: LdapAdd failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <catch exception="'STAXException.LDAP.SearchException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: LDAPSearch failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <catch exception="'STAXException.Utils.CheckStringException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: UtilsCheck failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+  
+</stax>

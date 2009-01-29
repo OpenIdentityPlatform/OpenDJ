@@ -23,7 +23,7 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2007-2008 Sun Microsystems, Inc.
+#      Copyright 2007-2009 Sun Microsystems, Inc.
 
 __version__ = "$Revision$"
 # $Source$
@@ -41,7 +41,11 @@ __all__ = [ "format_testcase",
             "directory_server",
             "test_env",
             "staf_service",
-            "get_test_name" ]
+            "get_test_name",
+            "parse_stax_result",
+            "dn2list",
+            "list2dn",
+            "dn2rfcmailaddr" ]
 
 class format_testcase:
   'Format the Test name objects'
@@ -247,6 +251,7 @@ class directory_server:
     self.port=''
     self.dn=''
     self.password=''
+    self.backend=''
 
   def location(self,location):
     return location
@@ -268,6 +273,9 @@ class directory_server:
 
   def suffix(self,sfx):
     return sfx
+
+  def backend(self,be):
+    return be
 
 class staf_service:  
   'Container to hold staf service instance objects'
@@ -547,5 +555,36 @@ def get_test_name(name):
     i=i+1
   return __name[0:-1].strip()
 
+def parse_stax_result(result):
 
+  import org.python.core
+
+  if result.__class__ is org.python.core.PyList:
+    _unwrapResult=result[1][0]
+    
+    try:
+      _functionString=_unwrapResult[1]
+    except AttributeError:
+      _functionString='Unable to parse result.'
+  elif result.__class__ is org.python.core.PyString:
+    _functionString=STAXResult
+  else:
+    _functionString='Unable to parse result.'
+
+  return _functionString
+
+def dn2list(dn):
+  __list=dn.split(',')
+  return __list
+
+def list2dn(list):
+  return ",".join(list)
+
+def dn2rfcmailaddr(dn):
+  __addr=[]
+  __list=dn.split(',')
+  for __rdn in __list:
+    __rhside=__rdn.split('=')[1]
+    __addr.append(__rhside)
+  return ".".join(__addr).lower()
 
