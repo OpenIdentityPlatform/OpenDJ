@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   
@@ -461,6 +461,11 @@
       <message>
         'Load environment for test suite execution.'  
       </message>    
+
+      <!-- All exceptions are logged to user log -->
+      <script>
+        STAXLogMessage = 1
+      </script>
   
       <call function="'importSharedLibraries'"/>
       

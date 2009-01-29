@@ -23,11 +23,29 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="core_setup" />
   <function name="core_setup">
+    <function-prolog>
+      Set up the core test group
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="initData" type="optional" default="True">
+        <function-arg-description>
+          Initialize the data for the core test group
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="loadData" type="optional" default="True">
+        <function-arg-description>
+          Load the data for the core test group
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+    </function-map-args>
+
     <sequence>
       <block name="'setup'">
         <sequence>
@@ -38,7 +56,7 @@
                 'Create DS topology as described in config.py'
               </message>
               <call function="'createTopology'">
-                { 'initialiseInstance' : True }
+                { 'initialiseInstance' : initData }
               </call>
               <call function="'checkRC'">
                 { 'returncode' : RC ,
@@ -68,40 +86,42 @@
             </sequence>
             <!--- End Block DS Process Active -->
           </block>
-          
-          <block name="'Block DS Load Data'">
-            <!-- Load the data needed by the test suite -->      
-            <sequence>
-              <message>
-                'Add entries that are required for the Core Tests'
-              </message>
-              <call function="'addEntry'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'entryToBeAdded' : '%s/core/ldifs/core_start.ldif'
-                                     % remote.data,
-                  'verbose'        : False
-                }
-              </call>
-              <message>
-                'Add 1000 extra entries that are required for some of the \
-                Core Tests'
-              </message>
-              <call function="'addEntry'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'entryToBeAdded' : '%s/core/ldifs/core_test_1K.ldif'
-                                     % remote.data,
-                  'verbose'        : False
-                }
-              </call>
-            </sequence>
-            <!-- End Block DS Load Data -->
-          </block>
+
+          <if expr='loadData == True'>          
+            <block name="'Block DS Load Data'">
+              <!-- Load the data needed by the test suite -->      
+              <sequence>
+                <message>
+                  'Add entries that are required for the Core Tests'
+                </message>
+                <call function="'addEntry'">
+                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                    'entryToBeAdded' : '%s/core/ldifs/core_start.ldif'
+                                       % remote.data,
+                    'verbose'        : False
+                  }
+                </call>
+                <message>
+                  'Add 1000 extra entries that are required for some of the \
+                  Core Tests'
+                </message>
+                <call function="'addEntry'">
+                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                    'entryToBeAdded' : '%s/core/ldifs/core_test_1K.ldif'
+                                       % remote.data,
+                    'verbose'        : False
+                  }
+                </call>
+              </sequence>
+              <!-- End Block DS Load Data -->
+            </block>
+          </if>
         </sequence>
       </block>
      </sequence>

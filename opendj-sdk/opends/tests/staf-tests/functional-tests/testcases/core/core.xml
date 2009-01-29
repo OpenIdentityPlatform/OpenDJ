@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="main_core" />
@@ -33,12 +33,12 @@
     </function-list-args>
     <block name="'core'">
       <sequence>
-          <!--- Load the job environment for the test group execution -->
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
-          <call function="'loadJobEnvironment'">
-               { 'parent' : STAXParentID }
-          </call>
+        <!--- Load the job environment for the test group execution -->
+        <import machine="STAF_LOCAL_HOSTNAME"
+                file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
+        <call function="'loadJobEnvironment'">
+             { 'parent' : STAXParentID }
+        </call>
         <script>
           CurrentTestPath['group']='core'
         </script>
@@ -53,6 +53,7 @@
           testList.append(['controls','core_ctrls_authorization_id'])
           testList.append(['controls','core_ctrls_assertion'])
           testList.append(['controls','core_ctrls_matched_values'])
+          testList.append(['binaryattr','core_binaryattr'])
         </script>
         <iterate var="_test" in="testList">
           <sequence>
