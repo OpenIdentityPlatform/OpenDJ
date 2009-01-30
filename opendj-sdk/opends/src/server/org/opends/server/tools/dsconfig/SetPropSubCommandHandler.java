@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -702,7 +702,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (ManagedObjectNotFoundException e) {
       throw ArgumentExceptionFactory.unknownValueForChildComponent(
-        "\"" + names.get(0) + "\"");
+        "\"" + names.get(names.size()-1) + "\"");
     }
 
     if (result.isQuit()) {
