@@ -658,8 +658,8 @@ modifyProcessing:
       }
       finally
       {
-        processPostOperation();
         LockManager.unlock(entryDN, entryLock);
+        processSynchPostOperationPlugins();
       }
     }
 
@@ -2328,7 +2328,7 @@ modifyProcessing:
       return returnVal;
   }
 
-  private void processPostOperation() {
+  private void processSynchPostOperationPlugins() {
       for (SynchronizationProvider<?> provider :
           DirectoryServer.getSynchronizationProviders()) {
           try {

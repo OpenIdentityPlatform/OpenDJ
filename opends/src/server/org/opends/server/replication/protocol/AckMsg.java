@@ -338,7 +338,7 @@ public class AckMsg extends ReplicationMsg
     String ackErrorStr = "hasTimeout: " + (hasTimeout ? "yes" : "no")  + ", " +
       "hasWrongStatus: " + (hasWrongStatus ? "yes" : "no")  + ", " +
       "hasReplayError: " + (hasReplayError ? "yes" : "no")  + ", " +
-      " concerned server ids: " + idList;
+      "concerned server ids: " + idList;
 
     return ackErrorStr;
   }
