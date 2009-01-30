@@ -48,9 +48,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.logging.FileHandler;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 import org.opends.messages.Message;
 import org.opends.quicksetup.util.Utils;
@@ -92,12 +89,6 @@ import org.opends.server.util.cli.OutputStreamConsoleApplication;
  * administrators to configure the Directory Server.
  */
 public final class DSConfig extends ConsoleApplication {
-
-  /** Prefix for log files. */
-  static public final String LOG_FILE_PREFIX = "dsconfig";
-
-  /** Suffix for log files. */
-  static public final String LOG_FILE_SUFFIX = ".log";
 
   /**
    * A menu call-back which runs a sub-command interactively.
@@ -352,13 +343,6 @@ public final class DSConfig extends ConsoleApplication {
         app.println(e.getMessageObject());
         return 1;
       }
-    }
-    try {
-      DSConfigLog.initLogFileHandler(
-          File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX));
-    } catch (Throwable t) {
-      System.err.println("Unable to initialize log");
-      t.printStackTrace();
     }
 
     // Run the application.
@@ -1142,64 +1126,5 @@ public final class DSConfig extends ConsoleApplication {
       }
       alreadyWroteEquivalentCommand = true;
     }
-  }
-}
-
-
-
-
-/**
- * Utilities for setting up DSConfig application log. This is required since
- * DSConfig is using classes (such as ApplicationTrustManager) than can log
- * messages.
- */
-class DSConfigLog
-{
-  private static String[] packages = {
-    "org.opends"
-  };
-  static private File logFile = null;
-  static private FileHandler fileHandler;
-
-  /**
-   * Creates a new file handler for writing log messages to the file indicated
-   * by <code>file</code>.
-   * @param file log file to which log messages will be written
-   * @throws IOException if something goes wrong
-   */
-  static public void initLogFileHandler(File file) throws IOException {
-    if (!isInitialized())
-    {
-      logFile = file;
-      fileHandler = new FileHandler(logFile.getCanonicalPath());
-      fileHandler.setFormatter(new SimpleFormatter());
-      for (String packageName : packages)
-      {
-        Logger logger = Logger.getLogger(packageName);
-        logger.setUseParentHandlers(false); // disable logging to console
-        logger.addHandler(fileHandler);
-      }
-    }
-  }
-
-  /**
-   * Writes messages under a given package in the file handler defined when
-   * calling initLogFileHandler.  Note that initLogFileHandler should be called
-   * before calling this method.
-   * @param packageName the package name.
-   * @throws IOException if something goes wrong
-   */
-  static public void initPackage(String packageName) throws IOException {
-    Logger logger = Logger.getLogger(packageName);
-    logger.setUseParentHandlers(false); // disable logging to console
-    logger.addHandler(fileHandler);
-  }
-
-  /**
-   * Indicates whether or not the log file has been initialized.
-   * @return true when the log file has been initialized
-   */
-  static private boolean isInitialized() {
-    return logFile != null;
   }
 }

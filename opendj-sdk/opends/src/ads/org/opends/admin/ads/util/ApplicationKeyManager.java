@@ -79,8 +79,6 @@ public class ApplicationKeyManager implements X509KeyManager
       System.getProperty("org.opends.admin.keymanageralgo");
     String userSpecifiedProvider =
       System.getProperty("org.opends.admin.keymanagerprovider");
-    LOG.log(Level.INFO, "User specified algo: "+userSpecifiedAlgo);
-    LOG.log(Level.INFO, "User specified provider: "+userSpecifiedProvider);
 
     // Have some fallbacks to choose the provider and algorith of the key
     // manager.  First see if the user wanted to use something specific,
