@@ -33,7 +33,7 @@
   
 
   <target name="pkgversion"
-	     description="Set pkg.version property" >
+	     description="Set svr4.version property" >
   <!-- Construct the version number string -->
   <taskdef name="getversionnumber"
              classname="org.opends.build.tools.CreateVersionString">
@@ -44,8 +44,8 @@
     </classpath>
   </taskdef>
 
-  <getversionnumber property="pkg.fullversion" />
-  <property name="pkg.version" 
+  <getversionnumber property="svr4.fullversion" />
+  <property name="svr4.version" 
     value="${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}" />
   </target>
 
@@ -70,10 +70,10 @@
     <getsvnrevision property="REVISION_NUMBER" /> 
 
     <property name="zip.dir"
-        location="${pkg.dir}/${product}-${pkg.fullversion}" />
+        location="${package.dir}/${product}-${svr4.fullversion}" />
     
 	<echo 
-        message="Building layout for ${pkg.name} pkg based on ${zip.dir}" />
+        message="Building layout for ${svr4.name} pkg based on ${zip.dir}" />
 	<!-- copy ZIP layout.
         Use exec instead of copy task to preserve file permissions -->
 	<mkdir dir="${svr4.layout.dir}"/>
@@ -180,7 +180,7 @@
 	  <fileset dir="${svr4.layout.pkg.dir}/logs"/>
 	</move>
         <!-- Create buildinfo file -->
-	<echo message="${pkg.version}.${REVISION_NUMBER}"
+	<echo message="${svr4.version}.${REVISION_NUMBER}"
         file="${svr4.layout.pkg.dir}/tmpl_instance/config/buildinfo" />
   </target>
 
