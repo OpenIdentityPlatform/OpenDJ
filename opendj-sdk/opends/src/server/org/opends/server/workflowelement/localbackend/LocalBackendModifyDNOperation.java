@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -605,9 +605,9 @@ modifyDNProcessing:
       }
       finally
       {
-        processPostOperation();
         LockManager.unlock(entryDN, currentLock);
         LockManager.unlock(newDN, newLock);
+        processSynchPostOperationPlugins();
       }
     }
 
@@ -1274,7 +1274,7 @@ modifyDNProcessing:
       return returnVal;
   }
 
-  private void processPostOperation() {
+  private void processSynchPostOperationPlugins() {
       for (SynchronizationProvider<?> provider : DirectoryServer
               .getSynchronizationProviders()) {
           try {

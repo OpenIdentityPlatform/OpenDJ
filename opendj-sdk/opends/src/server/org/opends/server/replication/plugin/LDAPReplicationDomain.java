@@ -898,6 +898,24 @@ public class LDAPReplicationDomain extends ReplicationDomain
       {
         this.saveGenerationId(generationId);
       }
+
+      if (!op.isSynchronizationOperation())
+      {
+        // If assured replication is enabled, this will wait for the matching
+        // ack or time out. If assured replication is disabled, this returns
+        // immediately
+        try
+        {
+          waitForAckIfAssuredEnabled(msg);
+        } catch (TimeoutException ex)
+        {
+          // This exception may only be raised if assured replication is
+          // enabled
+          Message errorMsg = NOTE_DS_ACK_TIMEOUT.get(getServiceID(),
+            Long.toString(getAssuredTimeout()), msg.toString());
+          logError(errorMsg);
+        }
+      }
     }
     else if (!op.isSynchronizationOperation())
     {
@@ -907,24 +925,6 @@ public class LDAPReplicationDomain extends ReplicationDomain
       {
         pendingChanges.remove(curChangeNumber);
         pendingChanges.pushCommittedChanges();
-      }
-    }
-
-    if (!op.isSynchronizationOperation())
-    {
-      // If assured replication is enabled, this will wait for the matching
-      // ack or time out. If assured replication is disabled, this returns
-      // immediately
-      try
-      {
-        waitForAckIfAssuredEnabled(msg);
-      } catch (TimeoutException ex)
-      {
-        // This exception may only be raised if assured replication is
-        // enabled
-        Message errorMsg = NOTE_DS_ACK_TIMEOUT.get(getServiceID(),
-          Long.toString(getAssuredTimeout()), msg.toString());
-        logError(errorMsg);
       }
     }
   }
