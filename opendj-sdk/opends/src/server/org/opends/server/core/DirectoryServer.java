@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -75,6 +75,7 @@ import org.opends.server.api.WorkQueue;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.api.ExtensibleMatchingRule;
 import org.opends.server.backends.RootDSEBackend;
 import static org.opends.server.config.ConfigConstants.DN_CONFIG_ROOT;
 import static org.opends.server.config.ConfigConstants.DN_MONITOR_ROOT;
@@ -3510,6 +3511,41 @@ public class DirectoryServer
                                                      matchingRule)
   {
     directoryServer.schema.deregisterSubstringMatchingRule(matchingRule);
+  }
+
+
+
+  /**
+   * Retrieves the set of extensible matching rules registered with the
+   * Directory Server.  The mapping will be between the lowercase name or OID
+   * for each extensible matching rule and the matching rule implementation. The
+   * same extensible matching rule instance may be included multiple times with
+   * different keys.
+   *
+   * @return  The set of extensible matching rules registered with the Directory
+   *          Server.
+   */
+  public static Map<String,ExtensibleMatchingRule>
+                     getExtensibleMatchingRules()
+  {
+    return directoryServer.schema.getExtensibleMatchingRules();
+  }
+
+
+
+  /**
+   * Retrieves the extensible matching rule with the specified name or OID.
+   *
+   * @param  lowerName  The lowercase name or OID for the extensible matching
+   *                rule  to retrieve.
+   *
+   * @return  The requested extensible matching rule, or <CODE>null</CODE> if no
+   *          such matching rule has been defined in the server.
+   */
+  public static ExtensibleMatchingRule
+          getExtensibleMatchingRule(String lowerName)
+  {
+    return directoryServer.schema.getExtensibleMatchingRule(lowerName);
   }
 
 

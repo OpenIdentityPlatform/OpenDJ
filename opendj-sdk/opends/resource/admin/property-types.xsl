@@ -22,7 +22,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2008 Sun Microsystems, Inc.
+  !      Copyright 2008-2009 Sun Microsystems, Inc.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -54,6 +54,7 @@
   <xsl:include href="property-types/password.xsl" />
   <xsl:include href="property-types/size.xsl" />
   <xsl:include href="property-types/string.xsl" />
+  <xsl:include href="property-types/extensible-matching-rule-type.xsl" />
   <!--
     
     

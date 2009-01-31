@@ -2387,6 +2387,10 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.517
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.518
+  NAME 'ds-cfg-index-extensible-matching-rule'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -2465,7 +2469,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.7
   MUST ( ds-cfg-attribute $
          ds-cfg-index-type )
   MAY ( ds-cfg-index-entry-limit $
-        ds-cfg-substring-length )
+              ds-cfg-substring-length $
+              ds-cfg-index-extensible-matching-rule )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.8
   NAME 'ds-cfg-schema-backend'

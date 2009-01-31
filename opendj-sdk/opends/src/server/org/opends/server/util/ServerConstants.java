@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
@@ -2922,6 +2922,22 @@ public final class ServerConstants
    */
   public static final String ALERT_TYPE_REPLICATION_UNRESOLVED_CONFLICT =
           "org.opends.server.replication.UnresolvedConflict";
+
+
+
+  /**
+   * The extensible indexer identifier string that will be used for a substring
+   * type.
+   */
+  public static final String EXTENSIBLE_INDEXER_ID_SUBSTRING="substring";
+
+
+
+  /**
+   * The extensible indexer identifier string that will be used for a shared
+   * type.
+   */
+  public static final String EXTENSIBLE_INDEXER_ID_SHARED="shared";
 
 
 

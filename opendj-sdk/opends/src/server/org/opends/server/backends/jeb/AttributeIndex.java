@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -42,8 +42,12 @@ import org.opends.server.types.*;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.api.ExtensibleIndexer;
+import org.opends.server.api.ExtensibleMatchingRule;
+import org.opends.server.api.IndexQueryFactory;
 import org.opends.server.config.ConfigException;
 import static org.opends.messages.JebMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.StaticUtils;
@@ -112,6 +116,12 @@ public class AttributeIndex
    * The index database for attribute approximate.
    */
   Index approximateIndex = null;
+
+  /**
+   * The ExtensibleMatchingRuleIndex instance for ExtensibleMatchingRule
+   * indexes.
+   */
+  private  ExtensibleMatchingRuleIndex extensibleIndexes = null;
 
   private State state;
 
@@ -238,7 +248,61 @@ public class AttributeIndex
                                         env,
                                         entryContainer);
     }
-
+    if (indexConfig.getIndexType().contains(
+        LocalDBIndexCfgDefn.IndexType.EXTENSIBLE))
+    {
+      Set<ExtensibleMatchingRule> extensibleRules =
+              indexConfig.getIndexExtensibleMatchingRule();
+      if(extensibleRules == null || extensibleRules.size() == 0)
+      {
+        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+            String.valueOf(attrType), "extensible");
+        throw new ConfigException(message);
+      }
+      extensibleIndexes = new ExtensibleMatchingRuleIndex();
+      //Iterate through the Set and create the index only if necessary.
+      //Collation equality and Ordering matching rules share the same
+      //indexer and index. A Collation substring matching rule is treated
+      // differently as it uses a separate indexer and index.
+      IndexConfig config = new JEIndexConfig(indexConfig.getSubstringLength());
+      for(ExtensibleMatchingRule rule:extensibleRules)
+      {
+        Map<String,Index> indexMap = new HashMap<String,Index>();
+        for(ExtensibleIndexer indexer : rule.getIndexers(config))
+        {
+          String indexerId = indexer.getExtensibleIndexID();
+          String indexID =
+                  attrType.getNameOrOID()  + "."
+                    + indexer.getPreferredIndexName()
+                    + "." + indexerId;
+          if(!extensibleIndexes.isIndexPresent(indexID))
+          {
+            //There is no index available for this index id. Create a new index.
+            Indexer extensibleIndexer =
+                    new JEExtensibleIndexer(attrType,
+                                               rule,
+                                               indexer);
+            String indexName = entryContainer.getDatabasePrefix() + "_"
+                                                  + indexID;
+            Index extensibleIndex = new Index(indexName,
+                                      extensibleIndexer,
+                                      state,
+                                      indexEntryLimit,
+                                      cursorEntryLimit,
+                                      false,
+                                      env,
+                                      entryContainer);
+              extensibleIndexes.addIndex(extensibleIndex,indexID);
+          }
+        extensibleIndexes.addRule(indexID, rule);
+        indexMap.put(indexer.getExtensibleIndexID(),
+                extensibleIndexes.getIndex(indexID));
+      }
+      IndexQueryFactory<IndexQuery> factory =
+              new IndexQueryFactoryImpl(indexMap);
+      extensibleIndexes.addQueryFactory(rule, factory);
+      }
+    }
     this.indexConfig.addChangeListener(this);
   }
 
@@ -274,6 +338,14 @@ public class AttributeIndex
     {
       approximateIndex.open();
     }
+
+    if(extensibleIndexes!=null)
+    {
+      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      {
+        extensibleIndex.open();
+      }
+    }
   }
 
   /**
@@ -307,6 +379,14 @@ public class AttributeIndex
     if (approximateIndex != null)
     {
       approximateIndex.close();
+    }
+
+    if(extensibleIndexes!=null)
+    {
+      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      {
+        extensibleIndex.close();
+      }
     }
 
     indexConfig.removeChangeListener(this);
@@ -388,6 +468,17 @@ public class AttributeIndex
       }
     }
 
+    if(extensibleIndexes!=null)
+    {
+      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      {
+        if(!extensibleIndex.addEntry(buffer, entryID,entry))
+        {
+          success = false;
+        }
+      }
+    }
+
     return success;
   }
 
@@ -448,6 +539,17 @@ public class AttributeIndex
       }
     }
 
+    if(extensibleIndexes!=null)
+    {
+      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      {
+        if(!extensibleIndex.addEntry(txn, entryID,entry))
+        {
+          success = false;
+        }
+      }
+    }
+
     return success;
   }
 
@@ -488,6 +590,14 @@ public class AttributeIndex
     {
       approximateIndex.removeEntry(buffer, entryID, entry);
     }
+
+    if(extensibleIndexes!=null)
+    {
+      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      {
+        extensibleIndex.removeEntry(buffer, entryID, entry);
+      }
+    }
   }
 
   /**
@@ -525,6 +635,14 @@ public class AttributeIndex
     if(approximateIndex != null)
     {
       approximateIndex.removeEntry(txn, entryID, entry);
+    }
+
+    if(extensibleIndexes!=null)
+    {
+      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      {
+        extensibleIndex.removeEntry(txn, entryID, entry);
+      }
     }
   }
 
@@ -571,6 +689,14 @@ public class AttributeIndex
     {
       approximateIndex.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
     }
+
+    if(extensibleIndexes!=null)
+    {
+      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      {
+        extensibleIndex.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
+      }
+    }
   }
 
   /**
@@ -615,6 +741,14 @@ public class AttributeIndex
     if (approximateIndex != null)
     {
       approximateIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
+    }
+
+    if(extensibleIndexes!=null)
+    {
+      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      {
+        extensibleIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
+      }
     }
   }
 
@@ -1249,6 +1383,14 @@ public class AttributeIndex
     {
       approximateIndex.closeCursor();
     }
+
+    if(extensibleIndexes!=null)
+    {
+      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      {
+        extensibleIndex.closeCursor();
+      }
+    }
   }
 
   /**
@@ -1287,6 +1429,14 @@ public class AttributeIndex
           approximateIndex.getEntryLimitExceededCount();
     }
 
+     if(extensibleIndexes!=null)
+    {
+      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      {
+        entryLimitExceededCount +=
+                extensibleIndex.getEntryLimitExceededCount();
+      }
+    }
     return entryLimitExceededCount;
   }
 
@@ -1319,6 +1469,14 @@ public class AttributeIndex
     if (approximateIndex != null)
     {
       dbList.add(approximateIndex);
+    }
+
+    if(extensibleIndexes!=null)
+    {
+      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      {
+        dbList.add(extensibleIndex);
+      }
     }
   }
 
@@ -1380,6 +1538,18 @@ public class AttributeIndex
       {
         Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
                 String.valueOf(attrType), "approximate");
+        unacceptableReasons.add(message);
+        return false;
+      }
+    }
+    if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.EXTENSIBLE))
+    {
+      Set<ExtensibleMatchingRule> newRules =
+              cfg.getIndexExtensibleMatchingRule();
+      if (newRules == null || newRules.size() == 0)
+      {
+        Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+                String.valueOf(attrType), "extensible");
         unacceptableReasons.add(message);
         return false;
       }
@@ -1721,6 +1891,171 @@ public class AttributeIndex
         }
       }
 
+      if (cfg.getIndexType().contains(
+              LocalDBIndexCfgDefn.IndexType.EXTENSIBLE))
+      {
+        Set<ExtensibleMatchingRule> extensibleRules =
+            cfg.getIndexExtensibleMatchingRule();
+        if(extensibleIndexes == null)
+        {
+          extensibleIndexes = new ExtensibleMatchingRuleIndex();
+        }
+        IndexConfig config = new JEIndexConfig(cfg.getSubstringLength());
+        for(ExtensibleMatchingRule rule:extensibleRules)
+        {
+          Map<String,Index> indexMap = new HashMap<String,Index>();
+          for(ExtensibleIndexer indexer: rule.getIndexers(config))
+          {
+            String indexerId = indexer.getExtensibleIndexID();
+            String indexID =
+                  attrType.getNameOrOID()  + "."
+                   + indexer.getPreferredIndexName()
+                   + "." + indexerId;
+            if(!extensibleIndexes.isIndexPresent(indexID))
+            {
+              Indexer extensibleIndexer =
+                      new JEExtensibleIndexer(attrType,
+                                                 rule,
+                                                 indexer);
+              String indexName =  entryContainer.getDatabasePrefix() + "_"
+                      + indexID;
+              Index extensibleIndex = new Index(indexName,
+                                        extensibleIndexer,
+                                        state,
+                                        indexEntryLimit,
+                                        cursorEntryLimit,
+                                        false,
+                                        env,
+                                        entryContainer);
+              extensibleIndexes.addIndex(extensibleIndex,indexID);
+            }
+            else
+            {
+              Index extensibleIndex = extensibleIndexes.getIndex(indexID);
+              if(extensibleIndex.setIndexEntryLimit(indexEntryLimit))
+              {
+                adminActionRequired = true;
+                Message message =
+                      NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
+                              extensibleIndex.getName());
+                messages.add(message);
+              }
+              if(indexConfig.getSubstringLength() !=
+              cfg.getSubstringLength())
+              {
+                Indexer extensibleIndexer =
+                      new JEExtensibleIndexer(attrType,
+                                                 rule,
+                                                 indexer);
+                extensibleIndex.setIndexer(extensibleIndexer);
+              }
+            }
+            extensibleIndexes.addRule(indexID, rule);
+            indexMap.put(indexerId,extensibleIndexes.getIndex(indexID));
+          }
+          IndexQueryFactory<IndexQuery> factory =
+                  new IndexQueryFactoryImpl(indexMap);
+          extensibleIndexes.addQueryFactory(rule, factory);
+        }
+        //Some rules might have been removed from the configuration.
+        Set<ExtensibleMatchingRule> deletedRules =
+                new HashSet<ExtensibleMatchingRule>();
+        for(ExtensibleMatchingRule r:extensibleIndexes.getRules())
+        {
+          if(!extensibleRules.contains(r))
+          {
+            deletedRules.add(r);
+          }
+        }
+        if(deletedRules.size() > 0)
+        {
+          entryContainer.exclusiveLock.lock();
+          try
+          {
+            for(ExtensibleMatchingRule rule:deletedRules)
+            {
+              Set<ExtensibleMatchingRule> rules =
+                      new HashSet<ExtensibleMatchingRule>();
+              List<String> ids = new ArrayList<String>();
+              for(ExtensibleIndexer indexer: rule.getIndexers(config))
+              {
+                String id = attrType.getNameOrOID()  + "."
+                 + indexer.getPreferredIndexName()
+                 + "." + indexer.getExtensibleIndexID();
+                rules.addAll(extensibleIndexes.getRules(id));
+                ids.add(id);
+              }
+              if(rules.isEmpty())
+              {
+                //Rule has been already deleted.
+                continue;
+              }
+              //If all the rules are part of the deletedRules, delete
+              //this index.
+              if(deletedRules.containsAll(rules))
+              {
+                //it is safe to delete this index as it is not shared.
+                for(String indexID : ids)
+                {
+                  Index extensibleIndex = extensibleIndexes.getIndex(indexID);
+                  entryContainer.deleteDatabase(extensibleIndex);
+                  extensibleIndex = null;
+                  extensibleIndexes.deleteIndex(indexID);
+                  extensibleIndexes.deleteRule(indexID);
+                }
+              }
+              else
+              {
+                for(String indexID : ids)
+                {
+                  extensibleIndexes.deleteRule(rule, indexID);
+                }
+              }
+            }
+          }
+          catch(DatabaseException de)
+          {
+            messages.add(
+                  Message.raw(StaticUtils.stackTraceToSingleLineString(de)));
+            ccr = new ConfigChangeResult(
+              DirectoryServer.getServerErrorResultCode(), false, messages);
+            return ccr;
+          }
+          finally
+          {
+            entryContainer.exclusiveLock.unlock();
+          }
+        }
+      }
+      else
+      {
+        if(extensibleIndexes != null)
+        {
+          entryContainer.exclusiveLock.lock();
+          try
+          {
+            for(Index extensibleIndex:extensibleIndexes.getIndexes())
+            {
+              entryContainer.deleteDatabase(extensibleIndex);
+              extensibleIndex =  null;
+            }
+            extensibleIndexes.deleteAll();
+          }
+          catch(DatabaseException de)
+          {
+            messages.add(
+                  Message.raw(StaticUtils.stackTraceToSingleLineString(de)));
+            ccr = new ConfigChangeResult(
+              DirectoryServer.getServerErrorResultCode(), false, messages);
+            return ccr;
+          }
+          finally
+          {
+            entryContainer.exclusiveLock.unlock();
+          }
+        }
+      }
+
       indexConfig = cfg;
 
       return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
@@ -1770,6 +2105,14 @@ public class AttributeIndex
     {
       approximateIndex.setTrusted(txn, trusted);
     }
+
+    if(extensibleIndexes!=null)
+    {
+      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      {
+        extensibleIndex.setTrusted(txn, trusted);
+      }
+    }
   }
 
   /**
@@ -1798,9 +2141,20 @@ public class AttributeIndex
       return false;
     }
 
-    if (approximateIndex != null && approximateIndex.isTrusted())
+    if (approximateIndex != null && !approximateIndex.isTrusted())
     {
       return false;
+    }
+
+    if(extensibleIndexes!=null)
+    {
+      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      {
+        if(extensibleIndex !=null && !extensibleIndex.isTrusted())
+        {
+          return false;
+        }
+      }
     }
 
     return true;
@@ -1836,6 +2190,14 @@ public class AttributeIndex
     if (approximateIndex != null)
     {
       approximateIndex.setRebuildStatus(rebuildRunning);
+    }
+
+    if(extensibleIndexes!=null)
+    {
+      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      {
+        extensibleIndex.setRebuildStatus(rebuildRunning);
+      }
     }
   }
 
@@ -1900,6 +2262,21 @@ public class AttributeIndex
   }
 
   /**
+   * Return the mapping of  extensible index types and indexes.
+   *
+   * @return The Map of extensible index types and indexes.
+   */
+  public Map<String,Collection<Index>> getExtensibleIndexes()
+  {
+    if(extensibleIndexes == null)
+    {
+      return Collections.emptyMap();
+    }
+    return extensibleIndexes.getIndexMap();
+  }
+
+
+  /**
    * Retrieves all the indexes used by this attribute index.
    *
    * @return A collection of all indexes in use by this attribute
@@ -1933,6 +2310,332 @@ public class AttributeIndex
       indexes.add(approximateIndex);
     }
 
+    if(extensibleIndexes!=null)
+    {
+      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      {
+        indexes.add(extensibleIndex);
+      }
+    }
     return indexes;
+  }
+
+
+  /**
+   * Retrieve the entry IDs that might match an extensible filter.
+   *
+   * @param extensibleFilter The extensible filter.
+   * @param debugBuffer If not null, a diagnostic string will be written
+   *                     which will help determine how the indexes contributed
+   *                     to this search.
+   * @return The candidate entry IDs that might contain the filter
+   *         assertion value.
+   */
+  public EntryIDSet evaluateExtensibleFilter(SearchFilter extensibleFilter,
+                                              StringBuilder debugBuffer)
+  {
+    //Get the Matching Rule OID of the filter.
+    String nOID  = extensibleFilter.getMatchingRuleID();
+    ExtensibleMatchingRule rule =
+            DirectoryServer.getExtensibleMatchingRule(nOID);
+    IndexQueryFactory<IndexQuery> factory = null;
+    if(extensibleIndexes == null
+            || (factory = extensibleIndexes.getQueryFactory(rule))==null)
+    {
+      // There is no index on this matching rule.
+      return IndexQuery.createNullIndexQuery().evaluate();
+    }
+
+    try
+    {
+
+      if(debugBuffer != null)
+      {
+        debugBuffer.append("[INDEX:");
+        IndexConfig config =
+                new JEIndexConfig(indexConfig.getSubstringLength());
+        for(ExtensibleIndexer indexer :  rule.getIndexers(config))
+        {
+          String indexerID = indexer.getExtensibleIndexID();
+          String indexName = indexer.getPreferredIndexName();
+          String indexID = " "
+                         + extensibleFilter.getAttributeType().getNameOrOID()
+                         + "." + indexName
+                         + "." +indexerID;
+          debugBuffer.append(indexID);
+        }
+        debugBuffer.append("]");
+      }
+      ByteString assertionValue =
+              extensibleFilter.getAssertionValue().getValue();
+      IndexQuery expression = rule.createIndexQuery(assertionValue, factory);
+      return expression.evaluate();
+    }
+    catch (DirectoryException e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      return IndexQuery.createNullIndexQuery().evaluate();
+    }
+  }
+
+  /**
+   * This class manages all the configured extensible matching rules and
+   * their corresponding indexes.
+   */
+  private class ExtensibleMatchingRuleIndex
+  {
+    /**
+      * The mapping of index ID and Index database.
+      */
+    private final Map<String,Index> id2IndexMap;
+
+    /**
+     * The mapping of Index ID and Set the matching rules.
+     */
+    private final Map<String,Set<ExtensibleMatchingRule>> id2RulesMap;
+
+    /**
+     * The Map of configured ExtensibleMatchingRule and the corresponding
+     * IndexQueryFactory.
+     */
+    private final Map<ExtensibleMatchingRule,
+            IndexQueryFactory<IndexQuery>> rule2FactoryMap;
+
+    /**
+     * Creates a new instance of ExtensibleMatchingRuleIndex.
+     */
+    private ExtensibleMatchingRuleIndex()
+    {
+      id2IndexMap = new HashMap<String,Index>();
+      id2RulesMap = new HashMap<String,Set<ExtensibleMatchingRule>>();
+      rule2FactoryMap = new HashMap<ExtensibleMatchingRule,
+              IndexQueryFactory<IndexQuery>>();
+    }
+
+    /**
+     * Returns all configured ExtensibleMatchingRule instances.
+     * @return A Set  of extensible matching rules.
+     */
+    private Set<ExtensibleMatchingRule> getRules()
+    {
+      return rule2FactoryMap.keySet();
+    }
+
+    /**
+     * Returns  ExtensibleMatchingRule instances for an index.
+     * @param indexID The index ID of an extensible matching rule index.
+     * @return A Set of extensible matching rules corresponding to
+     *                 an index ID.
+     */
+    private Set<ExtensibleMatchingRule>
+            getRules(String indexID)
+    {
+      Set<ExtensibleMatchingRule> rules = id2RulesMap.get(indexID);
+      if(rules == null)
+      {
+        return Collections.emptySet();
+      }
+      else
+      {
+        return Collections.unmodifiableSet(id2RulesMap.get(indexID));
+      }
+    }
+
+    /**
+     * Returns whether an index is present or not.
+     * @param indexID The index ID of an extensible matching rule index.
+     * @return True if an index is present. False if there is no matching index.
+     */
+    private boolean isIndexPresent(String indexID)
+    {
+      return id2IndexMap.containsKey(indexID);
+    }
+
+
+    /**
+     * Returns the index corresponding to an index ID.
+     * @param indexID The ID of an index.
+     * @return The extensible rule index corresponding to the index ID.
+     */
+    private Index getIndex(String indexID)
+    {
+      return id2IndexMap.get(indexID);
+    }
+
+
+    /**
+     * Adds a new matching Rule and the name of the associated index.
+     * @indexName Name of the index.
+     * @rule An ExtensibleMatchingRule instance that needs to be indexed.
+     */
+    private void addRule(String indexName,ExtensibleMatchingRule rule)
+    {
+      Set<ExtensibleMatchingRule> rules = id2RulesMap.get(indexName);
+      if(rules == null)
+      {
+        rules = new HashSet<ExtensibleMatchingRule>();
+        id2RulesMap.put(indexName, rules);
+      }
+      rules.add(rule);
+    }
+
+    /**
+     * Adds a new Index and its name.
+     * @param index The extensible matching rule index.
+     * @indexName The name of the index.
+     */
+    private void addIndex(Index index,String indexName)
+    {
+      id2IndexMap.put(indexName, index);
+    }
+
+    /**
+     * Returns all the configured extensible indexes.
+     * @return All the available extensible matching rule indexes.
+     */
+    private Collection<Index> getIndexes()
+    {
+      return Collections.unmodifiableCollection(id2IndexMap.values());
+    }
+
+
+    /**
+     * Returns a map of all the configured extensible indexes and their types.
+     * @return A map of all the available extensible matching rule indexes
+     *             and their types.
+     */
+    private Map<String,Collection<Index>> getIndexMap()
+    {
+      if(id2IndexMap.isEmpty())
+      {
+        return Collections.emptyMap();
+      }
+      Collection<Index> substring = new ArrayList<Index>();
+      Collection<Index> shared = new ArrayList<Index>();
+      for(Map.Entry<String,Index> entry :  id2IndexMap.entrySet())
+      {
+        String indexID = entry.getKey();
+        if(indexID.endsWith(EXTENSIBLE_INDEXER_ID_SUBSTRING))
+        {
+          substring.add(entry.getValue());
+        }
+        else
+        {
+          shared.add(entry.getValue());
+        }
+      }
+      Map<String,Collection<Index>> indexMap =
+              new HashMap<String,Collection<Index>>();
+      indexMap.put(EXTENSIBLE_INDEXER_ID_SUBSTRING, substring);
+      indexMap.put(EXTENSIBLE_INDEXER_ID_SHARED, shared);
+      return Collections.unmodifiableMap(indexMap);
+    }
+
+
+    /**
+     * Deletes an index corresponding to the index ID.
+     * @param indexID Name of the index.
+     */
+    private void deleteIndex(String indexID)
+    {
+      id2IndexMap.remove(indexID);
+    }
+
+
+    /**
+     * Deletes an extensible matching rule from the list of available rules.
+     * @param rule The ExtensibleMatchingRule that needs to be removed.
+     * @param indexID The name of the index corresponding to the rule.
+     */
+    private void deleteRule(ExtensibleMatchingRule rule,String indexID)
+    {
+      Set<ExtensibleMatchingRule> rules = id2RulesMap.get(indexID);
+      rules.remove(rule);
+      if(rules.size() == 0)
+      {
+        id2RulesMap.remove(indexID);
+      }
+      rule2FactoryMap.remove(rule);
+    }
+
+
+    /**
+     * Adds an ExtensibleMatchingRule and its corresponding IndexQueryFactory.
+     * @param rule An ExtensibleMatchingRule that needs to be added.
+     * @param query A query factory matching the rule.
+     */
+    private void addQueryFactory(ExtensibleMatchingRule rule,
+            IndexQueryFactory<IndexQuery> query)
+    {
+      rule2FactoryMap.put(rule, query);
+    }
+
+
+    /**
+     * Returns the query factory associated with the rule.
+     * @param rule An ExtensibleMatchingRule that needs to be searched.
+     * @return An IndexQueryFactory corresponding to the matching rule.
+     */
+    private IndexQueryFactory<IndexQuery> getQueryFactory(
+            ExtensibleMatchingRule rule)
+    {
+      return rule2FactoryMap.get(rule);
+    }
+
+
+    /**
+     * Deletes  extensible matching rules from the list of available rules.
+     * @param indexID The name of the index corresponding to the rules.
+     */
+    private void deleteRule(String indexID)
+    {
+      Set<ExtensibleMatchingRule> rules  = id2RulesMap.get(indexID);
+      rule2FactoryMap.remove(rules);
+      rules.clear();
+      id2RulesMap.remove(indexID);
+    }
+
+
+    /**
+     * Deletes all references to matching rules and the indexes.
+     */
+    private void deleteAll()
+    {
+      id2IndexMap.clear();
+      id2RulesMap.clear();
+      rule2FactoryMap.clear();
+    }
+  }
+
+  /**
+   * This class extends the IndexConfig for JE Backend.
+   */
+  private class JEIndexConfig extends IndexConfig
+  {
+    //The length of the substring index.
+    private int substringLength;
+
+
+    /**
+     * Creates a new JEIndexConfig instance.
+     * @param substringLength The length of the substring.
+     */
+    private JEIndexConfig(int substringLength)
+    {
+      this.substringLength = substringLength;
+    }
+
+
+    /**
+     * Returns the length of the substring.
+     * @return the length of the substring.
+     */
+   public int getSubstringLength()
+   {
+     return substringLength;
+   }
   }
 }

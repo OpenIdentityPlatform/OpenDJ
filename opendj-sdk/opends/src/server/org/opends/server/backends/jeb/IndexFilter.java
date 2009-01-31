@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -180,8 +180,15 @@ public class IndexFilter
         candidates = evaluateApproximateFilter(filter);
         break;
 
-      case NOT:
       case EXTENSIBLE_MATCH:
+         if (buffer!= null)
+        {
+          filter.toString(buffer);
+        }
+        candidates = evaluateExtensibleFilter(filter);
+        break;
+
+      case NOT:
       default:
         if (buffer != null)
         {
@@ -537,4 +544,26 @@ public class IndexFilter
     return candidates;
   }
 
+  /**
+   * Evaluate an extensible filter against the indexes.
+   *
+   * @param extensibleFilter The extensible filter to be evaluated.
+   * @return A set of entry IDs representing candidate entries.
+   */
+  private EntryIDSet evaluateExtensibleFilter(SearchFilter extensibleFilter)
+  {
+    EntryIDSet candidates;
+    AttributeIndex attributeIndex =
+         entryContainer.getAttributeIndex(extensibleFilter.getAttributeType());
+    if (attributeIndex == null)
+    {
+      candidates = IndexQuery.createNullIndexQuery().evaluate();
+    }
+    else
+    {
+      candidates =
+          attributeIndex.evaluateExtensibleFilter(extensibleFilter, buffer);
+    }
+    return candidates;
+  }
 }

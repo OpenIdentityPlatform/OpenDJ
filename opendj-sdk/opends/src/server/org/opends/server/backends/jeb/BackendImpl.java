@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -69,9 +69,10 @@ import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.api.ExtensibleIndexer;
 import org.opends.server.types.DN;
 import org.opends.server.backends.jeb.importLDIF.Importer;
-
+import org.opends.server.api.ExtensibleMatchingRule;
 /**
  * This is an implementation of a Directory Server Backend which stores entries
  * locally in a Berkeley DB JE database.
@@ -1131,13 +1132,30 @@ public class BackendImpl
       envConfig.setConfigParam("je.env.runCheckpointer", "false");
       //Loop through local indexes and see if any are substring.
       boolean hasSubIndex = false;
+subIndex:
       for (String idx : cfg.listLocalDBIndexes()) {
-        LocalDBIndexCfg indexCfg = cfg.getLocalDBIndex(idx);
+        final LocalDBIndexCfg indexCfg = cfg.getLocalDBIndex(idx);
         Set<org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType>
                                             indexType = indexCfg.getIndexType();
         if(indexType.contains(org.opends.server.admin.std.
                 meta.LocalDBIndexCfgDefn.IndexType.SUBSTRING)) {
           hasSubIndex = true;
+          break;
+        }
+        Set<ExtensibleMatchingRule> matchingRules =
+                              indexCfg.getIndexExtensibleMatchingRule();
+        for(ExtensibleMatchingRule rule: matchingRules)
+        {
+          for(ExtensibleIndexer indexer: rule.getIndexers(null))
+          {
+            String indexID = indexer.getExtensibleIndexID();
+            if(indexID.equals(EXTENSIBLE_INDEXER_ID_SUBSTRING))
+            {
+              //The ExtensibelMatchingRule is of substring type.
+              hasSubIndex = true;
+              break subIndex;
+            }
+          }
         }
       }
       Importer importer = new Importer(importConfig, hasSubIndex);
