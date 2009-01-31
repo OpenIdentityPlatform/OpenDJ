@@ -20,9 +20,9 @@
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
+ *©
  *
- *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -47,6 +47,7 @@ import org.opends.messages.Message;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.api.ExtensibleMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
@@ -149,6 +150,12 @@ public final class Schema
   private ConcurrentHashMap<String,SubstringMatchingRule>
                substringMatchingRules;
 
+  // The set of extensible matching rules for this schema, mapped
+  // between the lowercase names and OID for the definition and the
+  // matching rule itself.
+  private ConcurrentHashMap<String,ExtensibleMatchingRule>
+               extensibleMatchingRules;
+
   // The set of matching rule uses for this schema, mapped between the
   // matching rule for the definition and the matching rule use
   // itself.
@@ -242,6 +249,8 @@ public final class Schema
          new ConcurrentHashMap<String,OrderingMatchingRule>();
     substringMatchingRules =
          new ConcurrentHashMap<String,SubstringMatchingRule>();
+    extensibleMatchingRules =
+        new ConcurrentHashMap<String,ExtensibleMatchingRule>();
     matchingRuleUses =
          new ConcurrentHashMap<MatchingRule,MatchingRuleUse>();
     ditContentRules =
@@ -1001,6 +1010,11 @@ public final class Schema
       registerSubstringMatchingRule(
            (SubstringMatchingRule) matchingRule, overwriteExisting);
     }
+   else if(matchingRule instanceof ExtensibleMatchingRule)
+   {
+      registerExtensibleMatchingRule(
+           (ExtensibleMatchingRule) matchingRule,overwriteExisting);
+   }
     else
     {
       synchronized (matchingRules)
@@ -1802,6 +1816,179 @@ public final class Schema
         {
           name = toLowerCase(name);
           substringMatchingRules.remove(name, matchingRule);
+          matchingRules.remove(name, matchingRule);
+        }
+      }
+      // We'll use an attribute value including the normalized value
+      // rather than the attribute type because otherwise it would use
+      // a very expensive matching rule (OID first component match)
+      // that would kill performance.
+      try
+      {
+        String valueString = matchingRule.toString();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ByteString normValue =
+             normalizationMatchingRule.normalizeValue(
+                  new ASN1OctetString(valueString));
+        matchingRuleSet.remove(new AttributeValue(rawValue,
+                                                  normValue));
+      }
+      catch (Exception e)
+      {
+        String valueString = matchingRule.toString();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ASN1OctetString normValue =
+             new ASN1OctetString(toLowerCase(valueString));
+        matchingRuleSet.remove(new AttributeValue(rawValue,
+                                                  normValue));
+      }
+    }
+  }
+
+
+
+  /**
+   * Retrieves the extensible matching rule definitions for this
+   * schema, as a mapping between the lowercase names and OIDs for the
+   * matching rule and the matching rule itself.  Each matching rule
+   * may be associated with multiple keys (once for the OID and again
+   * for each name).
+   *
+   * @return  The extensible matching rule definitions for this
+   *          schema.
+   */
+  public Map<String,ExtensibleMatchingRule>
+              getExtensibleMatchingRules()
+  {
+    return Collections.unmodifiableMap(extensibleMatchingRules);
+  }
+
+
+
+  /**
+   * Retrieves the extensible matching rule definition with the
+   * specified name or OID.
+   *
+   * @param  lowerName  The name or OID of the matching rule to
+   *                    retrieve, formatted in all lowercase
+   *                    characters.
+   *
+   * @return  The requested matching rule, or <CODE>null</CODE> if no
+   *          extensible matching rule is registered with the
+   *          provided name or OID.
+   */
+  public ExtensibleMatchingRule getExtensibleMatchingRule(
+                                      String lowerName)
+  {
+    return extensibleMatchingRules.get(lowerName);
+  }
+
+
+
+  /**
+   * Registers the provided extensible matching rule with this
+   * schema.
+   *
+   * @param  matchingRule       The extensible matching rule to
+   *                            register.
+   * @param  overwriteExisting  Indicates whether to overwrite an
+   *                            existing mapping if there are any
+   *                            conflicts (i.e., another matching rule
+   *                            with the same OID or name).
+   *
+   * @throws  DirectoryException  If a conflict is encountered and the
+   *                              <CODE>overwriteExisting</CODE> flag
+   *                              is set to <CODE>false</CODE>
+   */
+  public void registerExtensibleMatchingRule(
+                   ExtensibleMatchingRule matchingRule,
+                   boolean overwriteExisting)
+         throws DirectoryException
+  {
+    synchronized (matchingRules)
+    {
+      if (! overwriteExisting)
+      {
+        String oid = toLowerCase(matchingRule.getOID());
+        if (matchingRules.containsKey(oid))
+        {
+          MatchingRule conflictingRule = matchingRules.get(oid);
+
+          Message message = ERR_SCHEMA_CONFLICTING_MR_OID.
+              get(matchingRule.getNameOrOID(), oid,
+                  conflictingRule.getNameOrOID());
+          throw new DirectoryException(
+                         ResultCode.CONSTRAINT_VIOLATION, message);
+        }
+
+       for(String name:matchingRule.getAllNames())
+       {
+        if (name != null)
+        {
+          name = toLowerCase(name);
+          if (matchingRules.containsKey(name))
+          {
+            MatchingRule conflictingRule = matchingRules.get(name);
+
+            Message message = ERR_SCHEMA_CONFLICTING_MR_NAME.
+                get(matchingRule.getOID(), name,
+                    conflictingRule.getOID());
+            throw new DirectoryException(
+                           ResultCode.CONSTRAINT_VIOLATION, message);
+          }
+        }
+       }
+      }
+
+      String oid = toLowerCase(matchingRule.getOID());
+      extensibleMatchingRules.put(oid, matchingRule);
+      matchingRules.put(oid, matchingRule);
+
+      for(String name:matchingRule.getAllNames())
+      {
+        if (name != null)
+        {
+          name = toLowerCase(name);
+          extensibleMatchingRules.put(name, matchingRule);
+          matchingRules.put(name, matchingRule);
+        }
+      }
+      // We'll use an attribute value including the normalized value
+      // rather than the attribute type because otherwise it would use
+      // a very expensive matching rule (OID first component match)
+      // that would kill performance.
+      String valueString = matchingRule.toString();
+      ASN1OctetString rawValue  = new ASN1OctetString(valueString);
+      ByteString normValue = normalizationMatchingRule.normalizeValue(
+                                  new ASN1OctetString(valueString));
+      matchingRuleSet.add(new AttributeValue(rawValue, normValue));
+    }
+  }
+
+
+
+  /**
+   * Deregisters the provided extensible  matching rule definition
+   * with this schema.
+   *
+   * @param  matchingRule  The extensible matching rule to deregister
+   *                       with this schema.
+   */
+    public void deregisterExtensibleMatchingRule(
+                   ExtensibleMatchingRule matchingRule)
+   {
+    synchronized (matchingRules)
+    {
+      String oid = matchingRule.getOID();
+      extensibleMatchingRules.remove(oid, matchingRule);
+      matchingRules.remove(oid, matchingRule);
+
+      for(String name:matchingRule.getAllNames())
+      {
+        if (name != null)
+        {
+          name = toLowerCase(name);
+          extensibleMatchingRules.remove(name, matchingRule);
           matchingRules.remove(name, matchingRule);
         }
       }
@@ -2942,6 +3129,7 @@ public final class Schema
     dupSchema.equalityMatchingRules.putAll(equalityMatchingRules);
     dupSchema.orderingMatchingRules.putAll(orderingMatchingRules);
     dupSchema.substringMatchingRules.putAll(substringMatchingRules);
+    dupSchema.extensibleMatchingRules.putAll(extensibleMatchingRules);
     dupSchema.matchingRuleUses.putAll(matchingRuleUses);
     dupSchema.ditContentRules.putAll(ditContentRules);
     dupSchema.ditStructureRulesByID.putAll(ditStructureRulesByID);
@@ -3579,6 +3767,13 @@ public final class Schema
       syntaxSet.clear();
       syntaxSet = null;
     }
+
+    if (extensibleMatchingRules != null)
+    {
+      extensibleMatchingRules.clear();
+      extensibleMatchingRules = null;
+    }
+
   }
 }
 

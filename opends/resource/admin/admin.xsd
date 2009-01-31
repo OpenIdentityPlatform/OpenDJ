@@ -1330,6 +1330,14 @@
         </xsd:annotation>
         <xsd:complexType />
       </xsd:element>
+      <xsd:element name="extensible-matching-rule-type">
+       <xsd:annotation>
+          <xsd:documentation>
+            Used for properties which contain Extensible matching rule type names.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType />
+      </xsd:element>
       <xsd:element name="boolean">
         <xsd:annotation>
           <xsd:documentation>

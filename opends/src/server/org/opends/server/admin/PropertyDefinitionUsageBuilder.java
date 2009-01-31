@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.admin;
 import org.opends.messages.Message;
@@ -330,6 +330,17 @@ public final class PropertyDefinitionUsageBuilder {
       } else {
         return Message.raw("STRING");
       }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+     public Message visitExtensibleMatchingRuleType(
+            ExtensibleMatchingRuleTypePropertyDefinition d, Void p) {
+        return Message.raw("LOCALE | OID");
     }
 
 

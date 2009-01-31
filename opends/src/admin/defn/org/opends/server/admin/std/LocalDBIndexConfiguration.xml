@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2009 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="local-db-index" plural-name="local-db-indexes"
   package="org.opends.server.admin.std"
@@ -110,7 +110,7 @@
     <adm:requires-admin-action>
       <adm:other>
         <adm:synopsis>
-          If any new index types are added for an attribute, and 
+          If any new index types are added for an attribute, and
           values for that attribute already exist in the
           database, the index must be rebuilt before it
           will be accurate.
@@ -150,6 +150,12 @@
             of searches using approximate matching search filters.
           </adm:synopsis>
         </adm:value>
+        <adm:value name="extensible">
+         <adm:synopsis>
+            This index type is used to improve the efficiency
+            of searches using extensible matching search filters.
+         </adm:synopsis>
+      </adm:value>
       </adm:enumeration>
     </adm:syntax>
     <adm:profile name="ldap">
@@ -181,6 +187,37 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-substring-length</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="index-extensible-matching-rule" multi-valued="true">
+    <adm:synopsis>
+      The extensible matching rule in an extensible index.
+    </adm:synopsis>
+    <adm:description>
+      An extensible matching rule must be specified using either LOCALE or OID of the matching rule.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:other>
+        <adm:synopsis>
+          The index must be rebuilt before it will reflect the
+          new value.
+        </adm:synopsis>
+      </adm:other>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          No extensible matching rules will be indexed.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:extensible-matching-rule-type/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-index-extensible-matching-rule</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

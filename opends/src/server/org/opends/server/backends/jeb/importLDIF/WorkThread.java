@@ -22,12 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.backends.jeb.importLDIF;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import  static org.opends.server.util.ServerConstants.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.api.DirectoryThread;
@@ -37,7 +38,6 @@ import static org.opends.messages.JebMessages.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.*;
-import org.opends.server.util.*;
 
 import com.sleepycat.je.*;
 
@@ -127,6 +127,7 @@ public class WorkThread extends DirectoryThread {
    * to flush and exit.
    *
    */
+  @Override
   public void run()
   {
     try {
@@ -222,6 +223,12 @@ public class WorkThread extends DirectoryThread {
         if((index=attributeIndex.getApproximateIndex()) != null) {
           delete(index, existingEntry, entryID);
         }
+        for(Collection<Index> indexes :
+                      attributeIndex.getExtensibleIndexes().values()) {
+          for(Index extensibleIndex: indexes) {
+            delete(extensibleIndex,existingEntry,entryID);
+          }
+        }
       }
       for(VLVIndex vlvIdx : context.getEntryContainer().getVLVIndexes()) {
           vlvIdx.removeEntry(txn, entryID, existingEntry);
@@ -275,6 +282,26 @@ public class WorkThread extends DirectoryThread {
         }
         for(VLVIndex vlvIdx : context.getEntryContainer().getVLVIndexes()) {
             vlvIdx.addEntry(txn, entryID, entry);
+        }
+        Map<String,Collection<Index>> extensibleMap =
+                attributeIndex.getExtensibleIndexes();
+        if(!extensibleMap.isEmpty()) {
+          Collection<Index> subIndexes =
+                attributeIndex.getExtensibleIndexes().get(
+                EXTENSIBLE_INDEXER_ID_SUBSTRING);
+          if(subIndexes != null) {
+            for(Index subIndex: subIndexes) {
+              bufferMgr.insert(subIndex, entry, entryID, insertKeySet);
+            }
+          }
+          Collection<Index> sharedIndexes =
+                attributeIndex.getExtensibleIndexes().get(
+                EXTENSIBLE_INDEXER_ID_SHARED);
+          if(sharedIndexes !=null) {
+            for(Index sharedIndex:sharedIndexes) {
+              insert(sharedIndex,entry,entryID);
+            }
+          }
         }
       }
     }

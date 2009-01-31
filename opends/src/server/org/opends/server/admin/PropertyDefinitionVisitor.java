@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin;
@@ -265,6 +265,23 @@ public abstract class PropertyDefinitionVisitor<R, P> {
   public R visitString(StringPropertyDefinition pd, P p) {
     return visitUnknown(pd, p);
   }
+
+
+
+ /**
+   * Visit an extensible matching rule property definition.
+   *
+   * @param pd
+   *          The string property definition to visit.
+   * @param p
+   *          A visitor specified parameter.
+   * @return Returns a visitor specified result.
+   */
+  public R visitExtensibleMatchingRuleType(
+          ExtensibleMatchingRuleTypePropertyDefinition pd, P p) {
+    return visitUnknown(pd, p);
+  }
+
 
 
 
