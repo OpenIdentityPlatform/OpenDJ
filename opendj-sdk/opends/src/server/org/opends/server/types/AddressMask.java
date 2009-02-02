@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -403,6 +403,7 @@ public final class AddressMask
      *
      * @return  A string representation of this address mask.
      */
+    @Override
     public String toString()
     {
         return ruleString;
@@ -492,12 +493,12 @@ public final class AddressMask
      */
     private boolean matchAddress(byte[] remoteMask)
     {
+        if(ruleType  == RuleType.ALLWILDCARD)
+            return true;
         if(prefixMask== null)
             return false;
         if(remoteMask.length != prefixMask.length)
             return false;
-        if(ruleType  == RuleType.ALLWILDCARD)
-            return true;
         for(int i=0;i < prefixMask.length; i++)
         {
             if(!wildCard.get(i))
