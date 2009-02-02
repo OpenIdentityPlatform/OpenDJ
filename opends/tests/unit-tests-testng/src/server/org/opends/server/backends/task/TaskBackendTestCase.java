@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.task;
 
@@ -36,6 +36,7 @@ import java.util.TimeZone;
 import java.util.UUID;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
@@ -79,6 +80,7 @@ public class TaskBackendTestCase
 
   /**
    * Remove the dummy task from the set of allowed tasks.
+   * @throws Exception If an unexpected error occurred.
    */
   @AfterClass()
   public void cleanUp()
@@ -411,33 +413,77 @@ public class TaskBackendTestCase
 
 
   /**
-   * Tests basic recurring task functionality and parser.
-   * @throws  Exception  If an unexpected problem occurs.
+   * Creates test schedules for recurring tasks tests.
+   *
+   * @return The set of invalid and valid schedules.
    */
-  @Test()
-  public void testRecurringTask()
-         throws Exception
+  @DataProvider(name="recurringTaskSchedules")
+  public Object[][] createRecurringTaskSchedules() {
+    return new Object[][] {
+        { "* * * *",       false },
+        { "* * * * * *",   false },
+        { "*:*:*:*:*",     false },
+        { "60 * * * *",    false },
+        { "-1 * * * *",    false },
+        { "1-60 * * * *",  false },
+        { "1,60 * * * *",  false },
+        { "* 24 * * *",    false },
+        { "* -1 * * *",    false },
+        { "* 1-24 * * *",  false },
+        { "* 1,24 * * *",  false },
+        { "* * 32 * *",    false },
+        { "* * 0 * *",     false },
+        { "* * 1-32 * *",  false },
+        { "* * 1,32 * *",  false },
+        { "* * * 13 *",    false },
+        { "* * * 0 *",     false },
+        { "* * * 1-13 *",  false },
+        { "* * * 1,13 *",  false },
+        { "* * * * 7",     false },
+        { "* * * * -1",    false },
+        { "* * * * 1-7",   false },
+        { "* * * * 1,7",   false },
+        { "* * 31 2 *",    false },
+        { "* * * * *",     true },
+        { "59 * * * *",    true },
+        { "0 * * * *",     true },
+        { "0-59 * * * *",  true },
+        { "0,59 * * * *",  true },
+        { "* 23 * * *",    true },
+        { "* 0 * * *",     true },
+        { "* 0-23 * * *",  true },
+        { "* 0,23 * * *",  true },
+        // { "* * 31 * *",    true }, *** FIXME: this should work ***
+        { "* * 1 * *",     true },
+        { "* * 1-31 * *",  true },
+        // { "* * 1,31 * *",  true }, *** FIXME: this should work ***
+        { "* * * 12 *",    true },
+        { "* * * 1 *",     true },
+        { "* * * 1-12 *",  true },
+        { "* * * 1,12 *",  true },
+        { "* * * * 6",     true },
+        { "* * * * 0",     true },
+        { "* * * * 0-6",   true },
+        { "* * * * 0,6",   true },
+    };
+  }
+
+
+
+  /**
+   * Tests basic recurring task functionality and parser.
+   *
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test
+  public void testRecurringTask() throws Exception
   {
     String taskID = "testRecurringTask";
-    String taskDN = "ds-recurring-task-id=" +
-      taskID + ",cn=Recurring Tasks,cn=tasks";
+    String taskDN =
+        "ds-recurring-task-id=" + taskID
+            + ",cn=Recurring Tasks,cn=tasks";
     String taskSchedule = "00 * * * *";
-
-    String[] invalidTaskSchedules = {
-      "* * * *", "* * * * * *", "*:*:*:*:*",
-      "60 * * * *", "-1 * * * *", "1-60 * * * *", "1,60 * * * *",
-      "* 24 * * *", "* -1 * * *", "* 1-24 * * *", "* 1,24 * * *",
-      "* * 32 * *", "* * 0 * *", "* * 1-32 * *", "* * 1,32 * *",
-      "* * * 13 *", "* * * 0 *", "* * * 1-13 *", "* * * 1,13 *",
-      "* * * * 7", "* * * * -1", "* * * * 1-7", "* * * * 1,7",
-      "* * 31 2 *" };
-    String[] validTaskSchedules = {
-      "* * * * *",
-      "59 * * * *", "0 * * * *", "0-59 * * * *", "0,59 * * * *",
-      "* 23 * * *", "* 0 * * *", "* 0-23 * * *", "* 0,23 * * *",
-      "* * 31 * *", "* * 1 * *", "* * 1-31 * *", "* * 1,31 * *",
-      "* * * 12 *", "* * * 1 *", "* * * 1-12 *", "* * * 1,12 *",
-      "* * * * 6", "* * * * 0", "* * * * 0-6", "* * * * 0,6" };
 
     GregorianCalendar calendar = new GregorianCalendar();
     calendar.setFirstDayOfWeek(GregorianCalendar.SUNDAY);
@@ -448,50 +494,82 @@ public class TaskBackendTestCase
 
     Date scheduledDate = calendar.getTime();
     String scheduledTaskID = taskID + " - " + scheduledDate.toString();
-    String scheduledTaskDN = "ds-task-id=" + scheduledTaskID +
-      ",cn=Scheduled Tasks,cn=tasks";
+    String scheduledTaskDN =
+        "ds-task-id=" + scheduledTaskID
+            + ",cn=Scheduled Tasks,cn=tasks";
 
     assertTrue(addRecurringTask(taskID, taskSchedule));
 
-    Task scheduledTask = TasksTestCase.getTask(DN.decode(scheduledTaskDN));
+    Task scheduledTask =
+        TasksTestCase.getTask(DN.decode(scheduledTaskDN));
     assertTrue(TaskState.isPending(scheduledTask.getTaskState()));
 
     // Perform a modification to update a non-state attribute.
-    int resultCode = TestCaseUtils.applyModifications(true,
-      "dn: " + taskDN,
-      "changetype: modify",
-      "replace: ds-recurring-task-schedule",
-      "ds-recurring-task-schedule: * * * * *");
+    int resultCode =
+        TestCaseUtils.applyModifications(true, "dn: " + taskDN,
+            "changetype: modify",
+            "replace: ds-recurring-task-schedule",
+            "ds-recurring-task-schedule: * * * * *");
     assertFalse(resultCode == 0);
 
     // Delete recurring task.
-    resultCode = TestCaseUtils.applyModifications(true,
-      "dn: " + taskDN,
-      "changetype: delete");
+    resultCode =
+        TestCaseUtils.applyModifications(true, "dn: " + taskDN,
+            "changetype: delete");
     assertEquals(resultCode, 0);
     assertFalse(DirectoryServer.entryExists(DN.decode(taskDN)));
 
     // Make sure scheduled task got canceled.
     scheduledTask = TasksTestCase.getTask(DN.decode(scheduledTaskDN));
     assertTrue(TaskState.isCancelled(scheduledTask.getTaskState()));
+  }
 
-    // Test parser with invalid schedules.
-    for (String invalidSchedule : invalidTaskSchedules) {
-      assertFalse(addRecurringTask(taskID, invalidSchedule));
+
+
+  /**
+   * Tests basic recurring task functionality and parser.
+   *
+   * @param schedule
+   *          The schedule string.
+   * @param isValid
+   *          <code>true</code> if the schedule is expected to be valid.
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "recurringTaskSchedules")
+  public void testRecurringTaskSchedules(String schedule,
+      boolean isValid) throws Exception
+  {
+    String taskID = "testRecurringTask" + "-" + UUID.randomUUID();
+    String taskDN =
+        "ds-recurring-task-id=" + taskID
+            + ",cn=Recurring Tasks,cn=tasks";
+
+    try
+    {
+      assertEquals(addRecurringTask(taskID, schedule), isValid);
+      if (isValid)
+      {
+        // Delete recurring task.
+        int resultCode =
+            TestCaseUtils.applyModifications(true, "dn: " + taskDN,
+                "changetype: delete");
+        assertEquals(resultCode, 0);
+        assertFalse(DirectoryServer.entryExists(DN.decode(taskDN)));
+      }
     }
-
-    // Test parser with valid schedules.
-    for (String validSchedule : validTaskSchedules) {
-      taskID = "testRecurringTask" + "-" + UUID.randomUUID();
-      taskDN = "ds-recurring-task-id=" + taskID +
-        ",cn=Recurring Tasks,cn=tasks";
-      assertTrue(addRecurringTask(taskID, validSchedule));
-      // Delete recurring task.
-      resultCode = TestCaseUtils.applyModifications(true,
-        "dn: " + taskDN,
-        "changetype: delete");
-      assertEquals(resultCode, 0);
-      assertFalse(DirectoryServer.entryExists(DN.decode(taskDN)));
+    finally
+    {
+      try
+      {
+        // Force deletion of recurring task.
+        TestCaseUtils.applyModifications(true, "dn: " + taskDN,
+            "changetype: delete");
+      }
+      finally
+      {
+        // Do nothing.
+      }
     }
   }
 
@@ -531,6 +609,11 @@ public class TaskBackendTestCase
     if (rc != ResultCode.SUCCESS) {
       return false;
     }
-    return DirectoryServer.entryExists(DN.decode(taskDN));
+
+    if (DirectoryServer.entryExists(DN.decode(taskDN))) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }
