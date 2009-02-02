@@ -22,15 +22,16 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.client.cli;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+
+
 
 import static org.opends.messages.AdminMessages.*;
 import static org.opends.messages.DSConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 import static org.opends.server.tools.ToolConstants.*;
 
 import java.io.OutputStream;
@@ -50,6 +51,8 @@ import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ADSContext.AdministratorProperty;
 import org.opends.admin.ads.ADSContextException.ErrorType;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.tools.dsconfig.ArgumentExceptionFactory;
 import org.opends.server.types.Privilege;
 import org.opends.server.util.args.Argument;
@@ -59,8 +62,6 @@ import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TextTablePrinter;
-
-import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 /**
  * This class is handling user Admin CLI.
  */
@@ -86,11 +87,6 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
    * The subcommand Parser.
    */
   private DsFrameworkCliParser argParser;
-
-  /**
-   * The verbose argument.
-   */
-  private BooleanArgument verboseArg;
 
   /**
    * The enumeration containing the different subCommand names.
@@ -140,6 +136,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
     /**
      * {@inheritDoc}
      */
+    @Override
     public String toString()
     {
       return name;
@@ -238,7 +235,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
   /**
    * The subcommand list.
    */
-  private HashSet<SubCommand> subCommands = new HashSet<SubCommand>();
+  private final HashSet<SubCommand> subCommands = new HashSet<SubCommand>();
 
   /**
    * Indicates whether this subCommand should be hidden in the usage
@@ -281,7 +278,6 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
   public void initializeCliGroup(DsFrameworkCliParser argParser,
       BooleanArgument verboseArg) throws ArgumentException
   {
-    this.verboseArg = verboseArg;
     isHidden = false;
     groupName = "admin-user";
     this.argParser = argParser;

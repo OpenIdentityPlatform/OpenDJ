@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.dsconfig;
@@ -30,13 +30,14 @@ package org.opends.server.tools.dsconfig;
 
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.opends.server.admin.AbstractManagedObjectDefinition;
-import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectDefinitionResource;
 import org.opends.server.admin.RelationDefinition;
+import org.opends.server.admin.SetRelationDefinition;
 
 
 
@@ -83,7 +84,11 @@ final class CLIProfile {
   public Set<String> getDefaultListPropertyNames(RelationDefinition<?, ?> r) {
     String s = resource.getString(r.getParentDefinition(), "relation."
         + r.getName() + ".list-properties");
-    return new LinkedHashSet<String>(Arrays.asList(s.split(",")));
+    if (s.trim().length() == 0) {
+      return Collections.emptySet();
+    } else {
+      return new LinkedHashSet<String>(Arrays.asList(s.split(",")));
+    }
   }
 
 
@@ -97,7 +102,7 @@ final class CLIProfile {
    * @return Returns the naming argument which should be used for a
    *         relation definition.
    */
-  public String getNamingArgument(InstantiableRelationDefinition<?, ?> r) {
+  public String getNamingArgument(RelationDefinition<?, ?> r) {
     String s = resource.getString(r.getParentDefinition(),
         "relation." + r.getName() + ".naming-argument-override").trim();
 
@@ -112,7 +117,16 @@ final class CLIProfile {
       } else {
         builder.append(s.substring(i + 1));
       }
-      builder.append("-name");
+
+      if (r instanceof SetRelationDefinition) {
+        // Set relations are named using their type, so be consistent
+        // with their associated create-xxx sub-command.
+        builder.append("-type");
+      } else {
+        // Other relations (instantiable) are named by the user.
+        builder.append("-name");
+      }
+
       s = builder.toString();
     }
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin;
@@ -162,11 +162,10 @@ public final class OptionalRelationDefinition
   public void toString(StringBuilder builder) {
     builder.append("name=");
     builder.append(getName());
-    builder.append(" type=composition parent=");
+    builder.append(" type=optional parent=");
     builder.append(getParentDefinition().getName());
     builder.append(" child=");
     builder.append(getChildDefinition().getName());
-    builder.append(" minOccurs=0 maxOccurs=1");
   }
 
 

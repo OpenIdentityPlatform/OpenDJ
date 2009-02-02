@@ -2103,11 +2103,6 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.434
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.435
-  NAME 'ds-cfg-network-group-id'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.436
   NAME 'ds-cfg-workflow-id'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
@@ -2225,25 +2220,16 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.461
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.462
-  NAME 'ds-cfg-allowed-ldap-port'
+  NAME 'ds-cfg-allowed-protocol'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.463
-  NAME 'ds-cfg-bind-dn-filter'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
-  X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.464
-  NAME 'ds-cfg-ip-address-filter'
+  NAME 'ds-cfg-allowed-bind-dn'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.465
   NAME 'ds-cfg-is-security-mandatory'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.466
-  NAME 'ds-cfg-user-entry-filter'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.467
@@ -2271,33 +2257,8 @@ attributeTypes: (  1.3.6.1.4.1.26027.1.1.471
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.472
-  NAME 'ds-cfg-search-size-limit'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.473
-  NAME 'ds-cfg-search-time-limit'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.474
   NAME 'ds-cfg-min-substring-length'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.475
-  NAME 'ds-cfg-referral-policy'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.476
-  NAME 'ds-cfg-referral-bind-policy'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.477
-  NAME 'ds-cfg-referral-hop-limit'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
@@ -2374,16 +2335,6 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.512
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.513
   NAME 'ds-cfg-principal-name'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.516
-  NAME 'ds-cfg-affinity-policy'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.517
-  NAME 'ds-cfg-affinity-timeout'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
@@ -3876,12 +3827,16 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.176
   NAME 'ds-cfg-network-group'
   SUP top
   STRUCTURAL
-  MUST ( ds-cfg-network-group-id $
+  MUST ( cn $
          ds-cfg-priority $
          ds-cfg-enabled )
   MAY ( ds-cfg-workflow $
-         ds-cfg-affinity-policy $
-         ds-cfg-affinity-timeout )
+        ds-cfg-allowed-auth-method $
+        ds-cfg-allowed-protocol $
+        ds-cfg-allowed-bind-dn $
+        ds-cfg-allowed-client $
+        ds-cfg-denied-client $
+        ds-cfg-is-security-mandatory )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.177
   NAME 'ds-cfg-workflow'
@@ -3941,33 +3896,24 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.183
          ds-cfg-ssl-cert-nickname )
   MAY ( ds-cfg-listen-address )
   X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.184
-  NAME 'ds-cfg-network-group-criteria'
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.199
+  NAME 'ds-cfg-qos-policy'
   SUP top
   STRUCTURAL
-  MUST (cn)
-  MAY ( ds-cfg-allowed-auth-method $
-        ds-cfg-allowed-ldap-port $
-        ds-cfg-bind-dn-filter $
-        ds-cfg-ip-address-filter $
-        ds-cfg-is-security-mandatory $
-        ds-cfg-user-entry-filter)
+  MUST ( cn $ 
+         ds-cfg-java-class)
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.185
-  NAME 'ds-cfg-network-group-resource-limits'
-  SUP top
+  NAME 'ds-cfg-resource-limits-qos-policy'
+  SUP ds-cfg-qos-policy
   STRUCTURAL
-  MUST (cn)
   MAY ( ds-cfg-max-connections $
         ds-cfg-max-connections-from-same-ip $
         ds-cfg-max-ops-per-connection $
         ds-cfg-max-concurrent-ops-per-connection $
-        ds-cfg-search-size-limit $
-        ds-cfg-search-time-limit $
-        ds-cfg-min-substring-length $
-        ds-cfg-referral-policy $
-        ds-cfg-referral-bind-policy $
-        ds-cfg-referral-hop-limit)
+        ds-cfg-size-limit $
+        ds-cfg-time-limit $
+        ds-cfg-min-substring-length)
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.186
   NAME 'ds-cfg-network-group-plugin'
@@ -3980,10 +3926,9 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.187
   STRUCTURAL
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.188
-  NAME 'ds-cfg-network-group-request-filtering-policy'
-  SUP top
+  NAME 'ds-cfg-request-filtering-qos-policy'
+  SUP ds-cfg-qos-policy
   STRUCTURAL
-  MUST (cn)
   MAY ( ds-cfg-allowed-operations $
         ds-cfg-allowed-attributes $
         ds-cfg-prohibited-attributes $

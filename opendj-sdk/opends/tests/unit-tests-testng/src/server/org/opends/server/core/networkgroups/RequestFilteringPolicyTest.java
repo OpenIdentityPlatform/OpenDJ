@@ -22,21 +22,20 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core.networkgroups;
 
 
 import java.util.ArrayList;
-import java.util.Set;
+import java.util.Collections;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import org.opends.messages.Message;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.meta.
-        NetworkGroupRequestFilteringPolicyCfgDefn.AllowedOperations;
-import org.opends.server.admin.std.meta.
-        NetworkGroupRequestFilteringPolicyCfgDefn.AllowedSearchScopes;
+import org.opends.server.admin.std.meta.RequestFilteringQOSPolicyCfgDefn.AllowedOperations;
+import org.opends.server.admin.std.meta.RequestFilteringQOSPolicyCfgDefn.AllowedSearchScopes;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
@@ -45,7 +44,6 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.OperationType;
@@ -275,6 +273,8 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
   @DataProvider (name = "ComplexSubtreesSet")
   public Object[][] initComplexSubtreesSet() throws DirectoryException
   {
+    TreeSet<DN> subtrees_empty = new TreeSet<DN>();
+
     TreeSet<DN> subtrees_root = new TreeSet<DN>();
     subtrees_root.add(DN.decode("dc=example,dc=com"));
 
@@ -289,8 +289,8 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
       {subtrees_root, subtrees_people, "dc=example,dc=com", true},
       {subtrees_root, subtrees_people, "ou=people,dc=example,dc=com", false},
       {subtrees_root, subtrees_entry, "ou=people,dc=example,dc=com", true},
-      {null, subtrees_people, "dc=example,dc=com", true},
-      {null, subtrees_people, "ou=people,dc=example,dc=com", false}
+      {subtrees_empty, subtrees_people, "dc=example,dc=com", true},
+      {subtrees_empty, subtrees_people, "ou=people,dc=example,dc=com", false}
     };
     return myData;
   }
@@ -352,14 +352,23 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
    */
   @Test (dataProvider = "AllowedAttributesSet", groups = "virtual")
   public void testAllowedAttributes(
-          Set<String> allowedAttributes,
+          final SortedSet<String> allowedAttributes,
           String searchFilter,
           boolean success)
-          throws DirectoryException, LDAPException
+          throws Exception
   {
     ArrayList<Message> messages = new ArrayList<Message>();
-    RequestFilteringPolicy policy = new RequestFilteringPolicy(null);
-    policy.setAllowedAttributes(allowedAttributes);
+
+    RequestFilteringPolicyFactory factory = new RequestFilteringPolicyFactory();
+    RequestFilteringPolicy policy = factory.createQOSPolicy(new MockRequestFilteringQOSPolicyCfg() {
+
+      @Override
+      public SortedSet<String> getAllowedAttributes()
+      {
+        return Collections.unmodifiableSortedSet(allowedAttributes);
+      }
+
+    });
 
     InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
     InternalSearchOperation search = conn.processSearch(
@@ -367,7 +376,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
         SearchScope.BASE_OBJECT,
         LDAPFilter.decode(searchFilter).toSearchFilter());
 
-    boolean check = policy.checkPolicy(search, messages);
+    boolean check = policy.isAllowed(search, messages);
     if (success) {
       assertTrue(check);
     } else {
@@ -380,14 +389,23 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
    */
   @Test (dataProvider = "ProhibitedAttributesSet", groups = "virtual")
   public void testProhibitedAttributes(
-          Set<String> prohibitedAttributes,
+          final SortedSet<String> prohibitedAttributes,
           String searchFilter,
           boolean success)
-          throws DirectoryException, LDAPException
+          throws Exception
   {
     ArrayList<Message> messages = new ArrayList<Message>();
-    RequestFilteringPolicy policy = new RequestFilteringPolicy(null);
-    policy.setProhibitedAttributes(prohibitedAttributes);
+
+    RequestFilteringPolicyFactory factory = new RequestFilteringPolicyFactory();
+    RequestFilteringPolicy policy = factory.createQOSPolicy(new MockRequestFilteringQOSPolicyCfg() {
+
+      @Override
+      public SortedSet<String> getProhibitedAttributes()
+      {
+        return Collections.unmodifiableSortedSet(prohibitedAttributes);
+      }
+
+    });
 
     InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
     InternalSearchOperation search = conn.processSearch(
@@ -395,7 +413,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
         SearchScope.BASE_OBJECT,
         LDAPFilter.decode(searchFilter).toSearchFilter());
 
-    boolean check = policy.checkPolicy(search, messages);
+    boolean check = policy.isAllowed(search, messages);
     if (success) {
       assertTrue(check);
     } else {
@@ -408,14 +426,23 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
    */
   @Test (dataProvider = "AllowedSearchScopesSet", groups = "virtual")
   public void testAllowedSearchScopes(
-          Set<AllowedSearchScopes> allowedScopes,
+          final SortedSet<AllowedSearchScopes> allowedScopes,
           SearchScope searchScope,
           boolean success)
-          throws DirectoryException, LDAPException
+          throws Exception
   {
     ArrayList<Message> messages = new ArrayList<Message>();
-    RequestFilteringPolicy policy = new RequestFilteringPolicy(null);
-    policy.setAllowedSearchScopes(allowedScopes);
+
+    RequestFilteringPolicyFactory factory = new RequestFilteringPolicyFactory();
+    RequestFilteringPolicy policy = factory.createQOSPolicy(new MockRequestFilteringQOSPolicyCfg() {
+
+      @Override
+      public SortedSet<AllowedSearchScopes> getAllowedSearchScopes()
+      {
+        return Collections.unmodifiableSortedSet(allowedScopes);
+      }
+
+    });
 
     InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
     InternalSearchOperation search = conn.processSearch(
@@ -423,7 +450,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
             searchScope,
             LDAPFilter.decode("objectclass=*").toSearchFilter());
 
-    boolean check = policy.checkPolicy(search, messages);
+    boolean check = policy.isAllowed(search, messages);
     if (success) {
       assertTrue(check);
     } else {
@@ -436,14 +463,23 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
    */
   @Test (dataProvider = "AllowedSubtreesSet", groups = "virtual")
   public void testAllowedSubtrees(
-          Set<DN> allowedSubtrees,
+          final SortedSet<DN> allowedSubtrees,
           String searchSubtree,
           boolean success)
-          throws DirectoryException, LDAPException
+          throws Exception
   {
     ArrayList<Message> messages = new ArrayList<Message>();
-    RequestFilteringPolicy policy = new RequestFilteringPolicy(null);
-    policy.setAllowedSubtrees(allowedSubtrees);
+
+    RequestFilteringPolicyFactory factory = new RequestFilteringPolicyFactory();
+    RequestFilteringPolicy policy = factory.createQOSPolicy(new MockRequestFilteringQOSPolicyCfg() {
+
+      @Override
+      public SortedSet<DN> getAllowedSubtrees()
+      {
+        return Collections.unmodifiableSortedSet(allowedSubtrees);
+      }
+
+    });
 
     InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
     InternalSearchOperation search = conn.processSearch(
@@ -451,7 +487,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
             SearchScope.WHOLE_SUBTREE,
             LDAPFilter.decode("objectclass=*").toSearchFilter());
 
-    boolean check = policy.checkPolicy(search, messages);
+    boolean check = policy.isAllowed(search, messages);
     if (success) {
       assertTrue(check);
     } else {
@@ -464,14 +500,23 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
    */
   @Test (dataProvider = "ProhibitedSubtreesSet", groups = "virtual")
   public void testProhibitedSubtrees(
-          Set<DN> prohibitedSubtrees,
+          final SortedSet<DN> prohibitedSubtrees,
           String searchSubtree,
           boolean success)
-          throws DirectoryException, LDAPException
+          throws Exception
   {
     ArrayList<Message> messages = new ArrayList<Message>();
-    RequestFilteringPolicy policy = new RequestFilteringPolicy(null);
-    policy.setProhibitedSubtrees(prohibitedSubtrees);
+
+    RequestFilteringPolicyFactory factory = new RequestFilteringPolicyFactory();
+    RequestFilteringPolicy policy = factory.createQOSPolicy(new MockRequestFilteringQOSPolicyCfg() {
+
+      @Override
+      public SortedSet<DN> getProhibitedSubtrees()
+      {
+        return Collections.unmodifiableSortedSet(prohibitedSubtrees);
+      }
+
+    });
 
     InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
     InternalSearchOperation search = conn.processSearch(
@@ -479,7 +524,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
             SearchScope.WHOLE_SUBTREE,
             LDAPFilter.decode("objectclass=*").toSearchFilter());
 
-    boolean check = policy.checkPolicy(search, messages);
+    boolean check = policy.isAllowed(search, messages);
     if (success) {
       assertTrue(check);
     } else {
@@ -492,16 +537,30 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
    */
   @Test (dataProvider = "ComplexSubtreesSet", groups = "virtual")
   public void testComplexSubtrees(
-          Set<DN> allowedSubtrees,
-          Set<DN> prohibitedSubtrees,
+          final SortedSet<DN> allowedSubtrees,
+          final SortedSet<DN> prohibitedSubtrees,
           String searchSubtree,
           boolean success)
-          throws DirectoryException, LDAPException
+          throws Exception
   {
     ArrayList<Message> messages = new ArrayList<Message>();
-    RequestFilteringPolicy policy = new RequestFilteringPolicy(null);
-    policy.setAllowedSubtrees(allowedSubtrees);
-    policy.setProhibitedSubtrees(prohibitedSubtrees);
+
+    RequestFilteringPolicyFactory factory = new RequestFilteringPolicyFactory();
+    RequestFilteringPolicy policy = factory.createQOSPolicy(new MockRequestFilteringQOSPolicyCfg() {
+
+      @Override
+      public SortedSet<DN> getAllowedSubtrees()
+      {
+        return Collections.unmodifiableSortedSet(allowedSubtrees);
+      }
+
+      @Override
+      public SortedSet<DN> getProhibitedSubtrees()
+      {
+        return Collections.unmodifiableSortedSet(prohibitedSubtrees);
+      }
+
+    });
 
     InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
     InternalSearchOperation search = conn.processSearch(
@@ -509,7 +568,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
             SearchScope.WHOLE_SUBTREE,
             LDAPFilter.decode("objectclass=*").toSearchFilter());
 
-    boolean check = policy.checkPolicy(search, messages);
+    boolean check = policy.isAllowed(search, messages);
     if (success) {
       assertTrue(check);
     } else {
@@ -522,14 +581,23 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
    */
    @Test (dataProvider = "AllowedOperationsSet", groups = "virtual")
    public void testAllowedOperations(
-           Set<AllowedOperations> allowedOps,
+           final SortedSet<AllowedOperations> allowedOps,
            OperationType type,
            boolean success)
-           throws DirectoryException, LDAPException, Exception
+           throws Exception
    {
      ArrayList<Message> messages = new ArrayList<Message>();
-     RequestFilteringPolicy policy = new RequestFilteringPolicy(null);
-     policy.setAllowedOperations(allowedOps);
+
+     RequestFilteringPolicyFactory factory = new RequestFilteringPolicyFactory();
+     RequestFilteringPolicy policy = factory.createQOSPolicy(new MockRequestFilteringQOSPolicyCfg() {
+
+       @Override
+       public SortedSet<AllowedOperations> getAllowedOperations()
+       {
+         return Collections.unmodifiableSortedSet(allowedOps);
+       }
+
+     });
 
      InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
      PreParseOperation op = null;
@@ -583,7 +651,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
          return;
      }
 
-     boolean check = policy.checkPolicy(op, messages);
+     boolean check = policy.isAllowed(op, messages);
      if (success) {
        assertTrue(check);
      } else {

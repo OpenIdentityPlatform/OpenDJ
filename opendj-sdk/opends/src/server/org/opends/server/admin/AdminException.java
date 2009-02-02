@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin;
@@ -39,6 +39,13 @@ import org.opends.server.types.OpenDsException;
  * Exceptions thrown when interacting with administration framework.
  */
 public abstract class AdminException extends OpenDsException {
+
+  /**
+   * Fake serialization ID.
+   */
+  private static final long serialVersionUID = 1L;
+
+
 
   /**
    * Create an admin exception with a message and cause.

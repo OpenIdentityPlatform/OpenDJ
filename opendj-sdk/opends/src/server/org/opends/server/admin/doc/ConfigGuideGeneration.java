@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.doc;
 
@@ -38,6 +38,7 @@ import org.opends.server.admin.ACIPropertyDefinition;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AdministratorAction.Type;
+import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.admin.AggregationPropertyDefinition;
 import org.opends.server.admin.AliasDefaultBehaviorProvider;
 import org.opends.server.admin.AttributeTypePropertyDefinition;
@@ -64,7 +65,6 @@ import org.opends.server.admin.StringPropertyDefinition;
 import org.opends.server.admin.Tag;
 import org.opends.server.admin.TopCfgDefn;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
-import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.EmbeddedUtils;
 
@@ -727,13 +727,13 @@ public class ConfigGuideGeneration {
       Message synopsis = prop.getAdministratorAction().getSynopsis();
       Type actionType = prop.getAdministratorAction().getType();
       String actionStr = "";
-      if (actionType == actionType.COMPONENT_RESTART) {
+      if (actionType == Type.COMPONENT_RESTART) {
         actionStr = "The " + mo.getUserFriendlyName() +
           " must be disabled and re-enabled for changes to this setting " +
           "to take effect";
-      } else if (actionType == actionType.SERVER_RESTART) {
+      } else if (actionType == Type.SERVER_RESTART) {
         actionStr = "Restart the server";
-      } else if (actionType == actionType.NONE) {
+      } else if (actionType == Type.NONE) {
         actionStr = "None";
       }
       String dot = (actionStr.equals("") ? "" : ". ");
@@ -1448,12 +1448,6 @@ public class ConfigGuideGeneration {
     }
   }
 
-  private void paragraph(Message description, TextStyle style) {
-    if (description != null) {
-      paragraph(description.toString(), style, null);
-    }
-  }
-
   private void paragraph(String description) {
     paragraph(description, TextStyle.STANDARD, null);
   }
@@ -1469,9 +1463,9 @@ public class ConfigGuideGeneration {
     if (getIndentPixels() > 0) {
       indentStr = "style=\"margin-left: " + getIndentPixels() + "px;\"";
     }
-    if (style == style.BOLD) {
+    if (style == TextStyle.BOLD) {
       styleStr = "style=\"font-weight: bold;\"";
-    } else if (style == style.ITALIC) {
+    } else if (style == TextStyle.ITALIC) {
       styleStr = "style=\"font-style: italic;\"";
     }
     if (pClass != null) {
@@ -1548,22 +1542,6 @@ public class ConfigGuideGeneration {
     STANDARD, BOLD, ITALIC, UNDERLINE, FIXED_WIDTH
   }
 
-  /**
-   * List style.
-   */
-  private enum ListStyle {
-
-    STANDARD, BULLET, NUMBER
-  }
-
-  private void indent() {
-    ind++;
-  }
-
-  private void outdent() {
-    ind--;
-  }
-
   private void beginList() {
     inList = true;
     listLevel++;
@@ -1584,12 +1562,6 @@ public class ConfigGuideGeneration {
     htmlBuff.append(
       "</body>\n" +
       "</html>\n");
-  }
-
-  private static void usage() {
-    System.err.println(
-      "Usage : Provide the argument : output generation directory.");
-    System.exit(1);
   }
 
   private void viewHelp(String helpStr) {
@@ -1617,21 +1589,22 @@ public class ConfigGuideGeneration {
   }
 
   // Relation List from RootConfiguration
-  private TreeMap<String, RelationDefinition> topRelList =
+  private final TreeMap<String, RelationDefinition> topRelList =
     new TreeMap<String, RelationDefinition>();
-  private TreeMap<String, RelationDefinition> relList =
+  private final TreeMap<String, RelationDefinition> relList =
     new TreeMap<String, RelationDefinition>();
-  private TreeMap<String, TreeMap<String, RelationDefinition>> catTopRelList =
-    new TreeMap<String, TreeMap<String, RelationDefinition>>();
+  private final TreeMap<String, TreeMap<String, RelationDefinition>>
+    catTopRelList = new TreeMap<String, TreeMap<String, RelationDefinition>>();
   // managed object list
-  private TreeMap<String, AbstractManagedObjectDefinition> moList =
+  private final TreeMap<String, AbstractManagedObjectDefinition> moList =
     new TreeMap<String, AbstractManagedObjectDefinition>();
-  private TreeMap<String, AbstractManagedObjectDefinition> topMoList =
+  private final TreeMap<String, AbstractManagedObjectDefinition> topMoList =
     new TreeMap<String, AbstractManagedObjectDefinition>();
-  private TreeMap<String, TreeMap<String, AbstractManagedObjectDefinition>>
+  private final TreeMap<String,
+                        TreeMap<String, AbstractManagedObjectDefinition>>
     catTopMoList =
-    new TreeMap<String, TreeMap<String, AbstractManagedObjectDefinition>>();
-  private int ind = 0;
+      new TreeMap<String, TreeMap<String, AbstractManagedObjectDefinition>>();
+  private final int ind = 0;
   private StringBuffer htmlBuff = new StringBuffer();
   private static String generationDir;
   private static boolean ldapMapping = false;

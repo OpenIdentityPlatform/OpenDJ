@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin;
@@ -68,7 +68,11 @@ import java.util.Set;
  * <li>instantiable relations (one to many): the relation is
  * represented using a child entry directly beneath the parent.
  * Referenced managed objects are represented using child entries of
- * this "relation entry".
+ * this "relation entry" and are named by the user
+ * <li>set relations (one to many): the relation is
+ * represented using a child entry directly beneath the parent.
+ * Referenced managed objects are represented using child entries of
+ * this "relation entry" whose name is the type of the managed object.
  * </ul>
  * Whereas, aggregations are represented by storing the DNs of the
  * referenced managed objects in an attribute of the aggregating

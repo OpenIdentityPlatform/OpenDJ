@@ -791,6 +791,19 @@
                 </xsd:complexType>
               </xsd:element>
             </xsd:sequence>
+            <xsd:attribute name="unique" type="xsd:boolean"
+              use="optional" default="false">
+              <xsd:annotation>
+                <xsd:documentation>
+                  Indicates whether or not this relation contains
+                  unique members. If set to true then each
+                  referenced managed object must have a distinct type.
+                  In other words, there must not be more than one
+                  referenced managed object having the same type. By
+                  default, properties are single-valued.
+                </xsd:documentation>
+              </xsd:annotation>
+            </xsd:attribute>
             <xsd:attribute name="plural-name" type="tns:name-type"
               use="optional">
               <xsd:annotation>

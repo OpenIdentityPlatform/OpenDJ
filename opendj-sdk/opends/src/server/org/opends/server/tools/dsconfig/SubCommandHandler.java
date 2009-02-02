@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -40,10 +40,10 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
+import java.util.SortedMap;
+import java.util.TreeMap;
 import org.opends.messages.Message;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.Configuration;
@@ -59,6 +59,8 @@ import org.opends.server.admin.ManagedObjectPathSerializer;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyDefinitionUsageBuilder;
+import org.opends.server.admin.RelationDefinition;
+import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
 import org.opends.server.admin.SizeUnit;
 import org.opends.server.admin.Tag;
@@ -217,6 +219,100 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
       if (result.isSuccess()) {
         try {
           ManagedObject<?> child = result.getValue().getChild(r);
+
+          // Check that child is a sub-type of the specified
+          // definition.
+          if (!child.getManagedObjectDefinition().isChildOf(d)) {
+            clie = ArgumentExceptionFactory.wrongManagedObjectType(r, child
+                .getManagedObjectDefinition(), getSubCommand().getName());
+            result = MenuResult.quit();
+          } else {
+            result = MenuResult.<ManagedObject<?>>success(child);
+          }
+        } catch (DefinitionDecodingException e) {
+          dde = e;
+          result = MenuResult.quit();
+        } catch (ManagedObjectDecodingException e) {
+          mode = e;
+          result = MenuResult.quit();
+        } catch (AuthorizationException e) {
+          authze = e;
+          result = MenuResult.quit();
+        } catch (ManagedObjectNotFoundException e) {
+          monfe = e;
+          result = MenuResult.quit();
+        } catch (ConcurrentModificationException e) {
+          cme = e;
+          result = MenuResult.quit();
+        } catch (CommunicationException e) {
+          ce = e;
+          result = MenuResult.quit();
+        }
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public <C extends ConfigurationClient, S extends Configuration>
+        void appendManagedObjectPathElement(
+        SetRelationDefinition<? super C, ? super S> r,
+        AbstractManagedObjectDefinition<C, S> d) {
+      if (result.isSuccess()) {
+        // We should ignore the "template" name here and use a path
+        // argument.
+        String childName = args.get(argIndex++);
+
+        try {
+          // If the name is null then we must be interactive - so let
+          // the user choose.
+          if (childName == null) {
+            try {
+              MenuResult<String> sresult = readChildName(app,
+                  result.getValue(), r, d);
+
+              if (sresult.isCancel()) {
+                result = MenuResult.cancel();
+                return;
+              } else if (sresult.isQuit()) {
+                result = MenuResult.quit();
+                return;
+              } else {
+                childName = sresult.getValue();
+              }
+            } catch (CLIException e) {
+              clie = e;
+              result = MenuResult.quit();
+              return;
+            }
+          } else if (childName.trim().length() == 0) {
+            IllegalManagedObjectNameException e =
+              new IllegalManagedObjectNameException(childName);
+            clie = ArgumentExceptionFactory
+                .adaptIllegalManagedObjectNameException(e, d);
+            result = MenuResult.quit();
+            return;
+          } else {
+            String name = childName.trim();
+            SortedMap<String, ManagedObjectDefinition<? extends C, ? extends S>>
+              types = getSubTypes(d);
+            ManagedObjectDefinition<?, ?> cd = types.get(name);
+            if (cd == null) {
+              // The name must be invalid.
+              String typeUsage = getSubTypesUsage(d);
+              Message msg = ERR_DSCFG_ERROR_SUB_TYPE_UNRECOGNIZED.get(
+                  name, r.getUserFriendlyName(), typeUsage);
+              clie = new CLIException(msg);
+              result = MenuResult.quit();
+              return;
+            } else {
+              childName = cd.getName();
+            }
+          }
+
+          ManagedObject<?> child = result.getValue().getChild(r, childName);
 
           // Check that child is a sub-type of the specified
           // definition.
@@ -504,6 +600,38 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         OptionalRelationDefinition<? super C, ? super S> r,
         AbstractManagedObjectDefinition<C, S> d) {
       sz--;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public <C extends ConfigurationClient, S extends Configuration>
+        void appendManagedObjectPathElement(
+        SetRelationDefinition<? super C, ? super S> r,
+        AbstractManagedObjectDefinition<C, S> d) {
+      sz--;
+
+      // The name of the managed object is determined from its type, so
+      // we don't need this argument.
+      if (isCreate && sz == 0) {
+        return;
+      }
+
+      String argName = CLIProfile.getInstance().getNamingArgument(r);
+      StringArgument arg;
+
+      try {
+        arg =
+            new StringArgument(argName, null, argName, false, true,
+                INFO_NAME_PLACEHOLDER.get(),
+                INFO_DSCFG_DESCRIPTION_NAME.get(d.getUserFriendlyName()));
+        subCommand.addArgument(arg);
+        arguments.add(arg);
+      } catch (ArgumentException e) {
+        this.e = e;
+      }
     }
 
 
@@ -997,21 +1125,22 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
    * @param parent
    *          The parent managed object.
    * @param r
-   *          The relation between the parent and the children.
+   *          The relation between the parent and the children, must be
+   *          a set or instantiable relation.
    * @param d
    *          The type of child managed object to choose from.
-   * @return Returns a {@link MenuResult#success()} containing the
-   *         name of the managed object that the user selected, or
-   *         {@link MenuResult#quit()}, or
-   *         {@link MenuResult#cancel()}, if the sub-command was run
-   *         interactive and the user chose to quit or cancel.
+   * @return Returns a {@link MenuResult#success()} containing the name
+   *         of the managed object that the user selected, or
+   *         {@link MenuResult#quit()}, or {@link MenuResult#cancel()},
+   *         if the sub-command was run interactive and the user chose
+   *         to quit or cancel.
    * @throws CommunicationException
    *           If the server cannot be contacted.
    * @throws ConcurrentModificationException
    *           If the parent managed object has been deleted.
    * @throws AuthorizationException
-   *           If the children cannot be listed due to an
-   *           authorization failure.
+   *           If the children cannot be listed due to an authorization
+   *           failure.
    * @throws CLIException
    *           If the user input can be read from the console or if
    *           there are no children.
@@ -1019,7 +1148,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
   protected final <C extends ConfigurationClient, S extends Configuration>
   MenuResult<String> readChildName(
       ConsoleApplication app, ManagedObject<?> parent,
-      InstantiableRelationDefinition<C, S> r,
+      RelationDefinition<C, S> r,
       AbstractManagedObjectDefinition<? extends C, ? extends S> d)
       throws AuthorizationException, ConcurrentModificationException,
       CommunicationException, CLIException {
@@ -1031,14 +1160,25 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     app.println();
 
     // Filter out advanced and hidden types if required.
-    String[] childNames = parent.listChildren(r, d);
-    SortedSet<String> children = new TreeSet<String>(
+    String[] childNames;
+    if (r instanceof InstantiableRelationDefinition) {
+      childNames =
+        parent.listChildren((InstantiableRelationDefinition<C,S>)r, d);
+    } else {
+      childNames = parent.listChildren((SetRelationDefinition<C,S>)r, d);
+    }
+    SortedMap<String, String> children = new TreeMap<String, String>(
         String.CASE_INSENSITIVE_ORDER);
 
     for (String childName : childNames) {
       ManagedObject<?> child;
       try {
-        child = parent.getChild(r, childName);
+        if (r instanceof InstantiableRelationDefinition) {
+          child = parent.getChild((InstantiableRelationDefinition<C,S>)r,
+              childName);
+        } else {
+          child = parent.getChild((SetRelationDefinition<C,S>)r, childName);
+        }
 
         ManagedObjectDefinition<?, ?> cd = child.getManagedObjectDefinition();
 
@@ -1051,13 +1191,18 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
           continue;
         }
 
-        children.add(childName);
+        if (r instanceof InstantiableRelationDefinition) {
+          children.put(childName, childName);
+        } else {
+          // For sets the RDN is the type string, the ufn is more friendly.
+          children.put(cd.getUserFriendlyName().toString(), childName);
+        }
       } catch (DefinitionDecodingException e) {
         // Add it anyway: maybe the user is trying to fix the problem.
-        children.add(childName);
+        children.put(childName, childName);
       } catch (ManagedObjectDecodingException e) {
         // Add it anyway: maybe the user is trying to fix the problem.
-        children.add(childName);
+        children.put(childName, childName);
       } catch (ManagedObjectNotFoundException e) {
         // Skip it - the managed object has been concurrently removed.
       }
@@ -1075,7 +1220,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
       // Only one option available so confirm that the user wishes to
       // access it.
       Message msg = INFO_DSCFG_FINDER_PROMPT_SINGLE.get(
-          d.getUserFriendlyName(), children.first());
+          d.getUserFriendlyName(), children.firstKey());
       if (app.confirmAction(msg, true)) {
         try
         {
@@ -1083,7 +1228,18 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
           StringArgument arg = new StringArgument(argName, null, argName, false,
               true, INFO_NAME_PLACEHOLDER.get(),
               INFO_DSCFG_DESCRIPTION_NAME_CREATE.get(d.getUserFriendlyName()));
-          arg.addValue(children.first());
+          if (r instanceof InstantiableRelationDefinition) {
+            arg.addValue(children.get(children.firstKey()));
+          } else {
+            // Set relation: need the short type name.
+            String longName = children.firstKey();
+            try {
+              AbstractManagedObjectDefinition<?,?> cd = d.getChild(longName);
+              arg.addValue(getShortTypeName(r.getChildDefinition(), cd));
+            } catch (IllegalArgumentException e) {
+              arg.addValue(children.get(children.firstKey()));
+            }
+          }
           getCommandBuilder().addArgument(arg);
         }
         catch (Throwable t)
@@ -1091,7 +1247,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
           // Bug
           new RuntimeException("Unexpected exception: "+t, t);
         }
-        return MenuResult.success(children.first());
+        return MenuResult.success(children.get(children.firstKey()));
       } else {
         return MenuResult.cancel();
       }
@@ -1103,9 +1259,9 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
       builder.setPrompt(INFO_DSCFG_FINDER_PROMPT_MANY.get(d
           .getUserFriendlyName()));
 
-      for (String child : children) {
-        Message option = Message.raw("%s", child);
-        builder.addNumberedOption(option, MenuResult.success(child));
+      for (Map.Entry<String, String> child : children.entrySet()) {
+        Message option = Message.raw("%s", child.getKey());
+        builder.addNumberedOption(option, MenuResult.success(child.getValue()));
       }
 
       if (app.isMenuDrivenMode()) {
@@ -1121,7 +1277,18 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         StringArgument arg = new StringArgument(argName, null, argName, false,
             true, INFO_NAME_PLACEHOLDER.get(),
             INFO_DSCFG_DESCRIPTION_NAME_CREATE.get(d.getUserFriendlyName()));
-        arg.addValue(result.getValue());
+        if (r instanceof InstantiableRelationDefinition) {
+          arg.addValue(result.getValue());
+        } else {
+          // Set relation: need the short type name.
+          String longName = result.getValue();
+          try {
+            AbstractManagedObjectDefinition<?, ?> cd = d.getChild(longName);
+            arg.addValue(getShortTypeName(r.getChildDefinition(), cd));
+          } catch (IllegalArgumentException e) {
+            arg.addValue(children.get(result.getValue()));
+          }
+        }
         getCommandBuilder().addArgument(arg);
       }
       catch (Throwable t)
@@ -1247,5 +1414,132 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
       value = String.valueOf(o);
     }
     return value;
+  }
+
+
+
+  /**
+   * Returns a mapping of subordinate managed object type argument
+   * values to their corresponding managed object definitions for the
+   * provided managed object definition.
+   *
+   * @param <C>
+   *          The type of client configuration.
+   * @param <S>
+   *          The type of server configuration.
+   * @param d
+   *          The managed object definition.
+   * @return A mapping of managed object type argument values to their
+   *         corresponding managed object definitions.
+   */
+  @SuppressWarnings("unchecked")
+  protected static <C extends ConfigurationClient, S extends Configuration>
+  SortedMap<String, ManagedObjectDefinition<? extends C, ? extends S>>
+      getSubTypes(AbstractManagedObjectDefinition<C, S> d) {
+    SortedMap<String, ManagedObjectDefinition<? extends C, ? extends S>> map;
+    map =
+      new TreeMap<String, ManagedObjectDefinition<? extends C, ? extends S>>();
+
+    // If the top-level definition is instantiable, we use the value
+    // "generic" or "custom".
+    if (!d.hasOption(ManagedObjectOption.HIDDEN)) {
+      if (d instanceof ManagedObjectDefinition) {
+        ManagedObjectDefinition<? extends C, ? extends S> mod =
+          (ManagedObjectDefinition<? extends C, ? extends S>) d;
+        map.put(getShortTypeName(d, mod), mod);
+      }
+    }
+
+    // Process its sub-definitions.
+    for (AbstractManagedObjectDefinition<? extends C, ? extends S> c : d
+        .getAllChildren()) {
+      if (d.hasOption(ManagedObjectOption.HIDDEN)) {
+        continue;
+      }
+
+      if (c instanceof ManagedObjectDefinition) {
+        ManagedObjectDefinition<? extends C, ? extends S> mod =
+          (ManagedObjectDefinition<? extends C, ? extends S>) c;
+        map.put(getShortTypeName(d, mod), mod);
+      }
+    }
+
+    return map;
+  }
+
+
+
+  /**
+   * Returns the type short name for a child managed object definition.
+   *
+   * @param <C>
+   *          The type of client configuration.
+   * @param <S>
+   *          The type of server configuration.
+   * @param d
+   *          The top level parent definition.
+   * @param c
+   *          The child definition.
+   * @return The type short name.
+   */
+  protected static  <C extends ConfigurationClient, S extends Configuration>
+      String getShortTypeName(
+      AbstractManagedObjectDefinition<C,S> d,
+      AbstractManagedObjectDefinition<?, ?> c) {
+    if (c == d) {
+      // This is the top-level definition, so use the value "generic" or
+      // "custom".
+      if (CLIProfile.getInstance().isForCustomization(c)) {
+        return DSConfig.CUSTOM_TYPE;
+      } else {
+        return DSConfig.GENERIC_TYPE;
+      }
+    } else {
+      // It's a child definition.
+      String suffix = "-" + d.getName();
+
+      // For the type name we shorten it, if possible, by stripping
+      // off the trailing part of the name which matches the
+      // base-type.
+      String name = c.getName();
+      if (name.endsWith(suffix)) {
+        name = name.substring(0, name.length() - suffix.length());
+      }
+
+      // If this type is intended for customization, prefix it with
+      // "custom".
+      if (CLIProfile.getInstance().isForCustomization(c)) {
+        name = String.format("%s-%s", DSConfig.CUSTOM_TYPE, name);
+      }
+
+      return name;
+    }
+  }
+
+
+
+  /**
+   * Returns a usage string representing the list of possible types for
+   * the provided managed object definition.
+   *
+   * @param d
+   *          The managed object definition.
+   * @return A usage string representing the list of possible types for
+   *         the provided managed object definition.
+   */
+  protected static String getSubTypesUsage(
+      AbstractManagedObjectDefinition<?, ?> d) {
+    // Build the -t option usage.
+    SortedMap<String, ?> types = getSubTypes(d);
+    StringBuilder builder = new StringBuilder();
+    boolean isFirst = true;
+    for (String s : types.keySet()) {
+      if (!isFirst) {
+        builder.append(" | ");
+      }
+      builder.append(s);
+      isFirst = false;
+    }
+    return builder.toString();
   }
 }

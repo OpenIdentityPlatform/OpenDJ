@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin.client.ldap;
@@ -54,6 +54,7 @@ import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.PropertyValueVisitor;
 import org.opends.server.admin.Reference;
 import org.opends.server.admin.RelationDefinition;
+import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.UnknownPropertyDefinitionException;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
@@ -174,16 +175,23 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
     }
 
     // We may need to create the parent "relation" entry if this is a
-    // child of an instantiable relation.
+    // child of an instantiable or set relation.
     RelationDefinition<?, ?> r = path.getRelationDefinition();
-    if (r instanceof InstantiableRelationDefinition) {
-      InstantiableRelationDefinition<?, ?> ir =
-        (InstantiableRelationDefinition<?, ?>) r;
+    if (r instanceof InstantiableRelationDefinition
+        || r instanceof SetRelationDefinition) {
 
       // TODO: this implementation does not handle relations which
       // comprise of more than one RDN arc (this will probably never
       // be required anyway).
-      LdapName dn = LDAPNameBuilder.create(parent, ir, driver.getLDAPProfile());
+      LdapName dn;
+      if (r instanceof InstantiableRelationDefinition) {
+        dn = LDAPNameBuilder.create(parent,
+            (InstantiableRelationDefinition) r, driver.getLDAPProfile());
+      } else {
+        dn = LDAPNameBuilder.create(parent,
+            (SetRelationDefinition) r, driver.getLDAPProfile());
+      }
+
       if (!driver.entryExists(dn)) {
         // We need to create the entry.
         Attributes attributes = new BasicAttributes();
@@ -191,7 +199,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
         // Create the branch's object class attribute.
         Attribute oc = new BasicAttribute("objectClass");
         for (String objectClass : driver.getLDAPProfile()
-            .getInstantiableRelationObjectClasses(ir)) {
+            .getRelationObjectClasses(r)) {
           oc.add(objectClass);
         }
         attributes.put(oc);

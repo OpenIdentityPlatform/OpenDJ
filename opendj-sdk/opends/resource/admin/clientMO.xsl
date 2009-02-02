@@ -22,7 +22,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2008 Sun Microsystems, Inc.
+  !      Copyright 2008-2009 Sun Microsystems, Inc.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
   xmlns:admpp="http://www.opends.org/admin-preprocessor"
@@ -285,34 +285,64 @@
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
-        <xsl:call-template name="add-java-comment2">
-          <xsl:with-param name="indent" select="2" />
-          <xsl:with-param name="content"
-            select="concat(
-                       'Creates a new ', $ufn,'. The new ', $ufn,' will initially ',
-                       'not contain any property values (including mandatory ',
-                       'properties). Once the ', $ufn,' has been configured it ',
-                       'can be added to the server using the {@link #commit()} ',
-                       'method.&#xa;',
-                       '&#xa;',
-                       '@param &lt;C&gt;&#xa;',
-                       '         The type of the ', $ufn,' being created.&#xa;',
-                       '@param d&#xa;',
-                       '         The definition of the ', $ufn,' to be created.&#xa;',
-                       '@param name&#xa;',
-                       '         The name of the new ', $ufn,'.&#xa;',
-                       '@param exceptions&#xa;',
-                       '         An optional collection in which to place any ',
-                       '{@link DefaultBehaviorException}s that occurred whilst ',
-                       'attempting to determine the default values of the ', $ufn,
-                       '. This argument can be &lt;code&gt;null&lt;code&gt;.&#xa;',
-                       '@return Returns a new ', $ufn,' configuration instance.&#xa;',
-                       '@throws IllegalManagedObjectNameException&#xa;',
-                       '         If the name of the new ', $ufn,' is invalid.&#xa;')" />
-        </xsl:call-template>
-        <xsl:value-of
-          select="concat('  &lt;C extends ', $java-class-name,'CfgClient&gt; C create', $java-relation-name, '(&#xa;',
-                           '      ManagedObjectDefinition&lt;C, ? extends ', $java-class-name,'Cfg&gt; d, String name, Collection&lt;DefaultBehaviorException&gt; exceptions) throws IllegalManagedObjectNameException;&#xa;')" />
+        <xsl:choose>
+          <xsl:when test="string(adm:one-to-many/@unique) != 'true'">
+            <xsl:call-template name="add-java-comment2">
+              <xsl:with-param name="indent" select="2" />
+              <xsl:with-param name="content"
+                select="concat(
+                           'Creates a new ', $ufn,'. The new ', $ufn,' will initially ',
+                           'not contain any property values (including mandatory ',
+                           'properties). Once the ', $ufn,' has been configured it ',
+                           'can be added to the server using the {@link #commit()} ',
+                           'method.&#xa;',
+                           '&#xa;',
+                           '@param &lt;C&gt;&#xa;',
+                           '         The type of the ', $ufn,' being created.&#xa;',
+                           '@param d&#xa;',
+                           '         The definition of the ', $ufn,' to be created.&#xa;',
+                           '@param name&#xa;',
+                           '         The name of the new ', $ufn,'.&#xa;',
+                           '@param exceptions&#xa;',
+                           '         An optional collection in which to place any ',
+                           '{@link DefaultBehaviorException}s that occurred whilst ',
+                           'attempting to determine the default values of the ', $ufn,
+                           '. This argument can be &lt;code&gt;null&lt;code&gt;.&#xa;',
+                           '@return Returns a new ', $ufn,' configuration instance.&#xa;',
+                           '@throws IllegalManagedObjectNameException&#xa;',
+                           '         If the name of the new ', $ufn,' is invalid.&#xa;')" />
+            </xsl:call-template>
+            <xsl:value-of
+              select="concat('  &lt;C extends ', $java-class-name,'CfgClient&gt; C create', $java-relation-name, '(&#xa;',
+                               '      ManagedObjectDefinition&lt;C, ? extends ', $java-class-name,'Cfg&gt; d, String name, Collection&lt;DefaultBehaviorException&gt; exceptions) throws IllegalManagedObjectNameException;&#xa;')" />
+          </xsl:when>
+          <xsl:when test="string(adm:one-to-many/@unique) = 'true'">
+            <xsl:call-template name="add-java-comment2">
+              <xsl:with-param name="indent" select="2" />
+              <xsl:with-param name="content"
+                select="concat(
+                           'Creates a new ', $ufn,'. The new ', $ufn,' will initially ',
+                           'not contain any property values (including mandatory ',
+                           'properties). Once the ', $ufn,' has been configured it ',
+                           'can be added to the server using the {@link #commit()} ',
+                           'method.&#xa;',
+                           '&#xa;',
+                           '@param &lt;C&gt;&#xa;',
+                           '         The type of the ', $ufn,' being created.&#xa;',
+                           '@param d&#xa;',
+                           '         The definition of the ', $ufn,' to be created.&#xa;',
+                           '@param exceptions&#xa;',
+                           '         An optional collection in which to place any ',
+                           '{@link DefaultBehaviorException}s that occurred whilst ',
+                           'attempting to determine the default values of the ', $ufn,
+                           '. This argument can be &lt;code&gt;null&lt;code&gt;.&#xa;',
+                           '@return Returns a new ', $ufn,' configuration instance.&#xa;')" />
+            </xsl:call-template>
+            <xsl:value-of
+              select="concat('  &lt;C extends ', $java-class-name,'CfgClient&gt; C create', $java-relation-name, '(&#xa;',
+                               '      ManagedObjectDefinition&lt;C, ? extends ', $java-class-name,'Cfg&gt; d, Collection&lt;DefaultBehaviorException&gt; exceptions);&#xa;')" />
+          </xsl:when>
+        </xsl:choose>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
@@ -424,7 +454,7 @@
             org.opends.server.admin.client.OperationRejectedException
           </import>
         </xsl:if>
-        <xsl:if test="$this-local-relations/adm:one-to-many">
+        <xsl:if test="$this-local-relations/adm:one-to-many[not(@unique = 'true')]">
           <import>
             org.opends.server.admin.client.IllegalManagedObjectNameException
           </import>

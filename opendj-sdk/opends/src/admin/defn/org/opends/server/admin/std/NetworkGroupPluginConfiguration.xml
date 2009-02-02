@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2009 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="network-group-plugin"
   plural-name="network-group-plugins" package="org.opends.server.admin.std"
@@ -55,7 +55,9 @@
   <adm:property-override name="java-class" advanced="true">
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>org.opends.server.plugins.NetworkGroupPlugin</adm:value>
+        <adm:value>
+          org.opends.server.core.networkgroups.NetworkGroupPlugin
+        </adm:value>
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>

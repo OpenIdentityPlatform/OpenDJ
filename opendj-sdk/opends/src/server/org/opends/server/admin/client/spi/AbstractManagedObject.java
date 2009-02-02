@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.client.spi;
 
@@ -59,7 +59,9 @@ import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.RelationDefinitionVisitor;
+import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
+import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.ClientConstraintHandler;
 import org.opends.server.admin.client.CommunicationException;
@@ -158,6 +160,25 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
         SingletonRelationDefinition<C, S> rd, Void p) {
       // Do nothing - not possible to create singletons
       // dynamically.
+      return null;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public <C extends ConfigurationClient, S extends Configuration>
+        Void visitSet(
+        SetRelationDefinition<C, S> rd, Void p) {
+      for (String name : rd.getDefaultManagedObjectNames()) {
+        DefaultManagedObject<? extends C, ? extends S> dmo = rd
+            .getDefaultManagedObject(name);
+        ManagedObjectDefinition<? extends C, ? extends S> d = dmo
+            .getManagedObjectDefinition();
+        ManagedObject<? extends C> child = createChild(rd, d, null);
+        createDefaultManagedObject(d, child, dmo);
+      }
       return null;
     }
 
@@ -411,6 +432,24 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
   /**
    * {@inheritDoc}
    */
+  public final <C extends ConfigurationClient, S extends Configuration,
+                CC extends C>
+  ManagedObject<CC> createChild(
+      SetRelationDefinition<C, S> r,
+      ManagedObjectDefinition<CC, ? extends S> d,
+      Collection<DefaultBehaviorException> exceptions)
+      throws IllegalArgumentException {
+    validateRelationDefinition(r);
+
+    ManagedObjectPath<CC, ? extends S> childPath = path.child(r, d);
+    return createNewManagedObject(d, childPath, null, null, exceptions);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public final <C extends ConfigurationClient, S extends Configuration>
   ManagedObject<? extends C> getChild(
       InstantiableRelationDefinition<C, S> r, String name)
@@ -456,6 +495,40 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
     ensureThisManagedObjectExists();
     Driver ctx = getDriver();
     return ctx.getManagedObject(path.child(r));
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final <C extends ConfigurationClient, S extends Configuration>
+  ManagedObject<? extends C> getChild(
+      SetRelationDefinition<C, S> r, String name)
+      throws IllegalArgumentException, DefinitionDecodingException,
+      ManagedObjectDecodingException, ManagedObjectNotFoundException,
+      ConcurrentModificationException, AuthorizationException,
+      CommunicationException {
+    validateRelationDefinition(r);
+    ensureThisManagedObjectExists();
+    Driver ctx = getDriver();
+
+    AbstractManagedObjectDefinition<C, S> d = r.getChildDefinition();
+    AbstractManagedObjectDefinition<? extends C, ? extends S> cd;
+
+    try
+    {
+      cd = d.getChild(name);
+    }
+    catch (IllegalArgumentException e)
+    {
+      // Unrecognized definition name - report this as a decoding
+      // exception.
+      throw new DefinitionDecodingException(d,
+          Reason.WRONG_TYPE_INFORMATION);
+    }
+
+    return ctx.getManagedObject(path.child(r, cd));
   }
 
 
@@ -590,6 +663,39 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
    * {@inheritDoc}
    */
   public final <C extends ConfigurationClient, S extends Configuration>
+  String[] listChildren(
+      SetRelationDefinition<C, S> r) throws IllegalArgumentException,
+      ConcurrentModificationException, AuthorizationException,
+      CommunicationException {
+    return listChildren(r, r.getChildDefinition());
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final <C extends ConfigurationClient, S extends Configuration>
+  String[] listChildren(
+      SetRelationDefinition<C, S> r,
+      AbstractManagedObjectDefinition<? extends C, ? extends S> d)
+      throws IllegalArgumentException, ConcurrentModificationException,
+      AuthorizationException, CommunicationException {
+    validateRelationDefinition(r);
+    Driver ctx = getDriver();
+    try {
+      return ctx.listManagedObjects(path, r, d);
+    } catch (ManagedObjectNotFoundException e) {
+      throw new ConcurrentModificationException();
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final <C extends ConfigurationClient, S extends Configuration>
   void removeChild(
       InstantiableRelationDefinition<C, S> r, String name)
       throws IllegalArgumentException, ManagedObjectNotFoundException,
@@ -627,6 +733,32 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
     try {
       found = ctx.deleteManagedObject(path, r);
+    } catch (ManagedObjectNotFoundException e) {
+      throw new ConcurrentModificationException();
+    }
+
+    if (!found) {
+      throw new ManagedObjectNotFoundException();
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final <C extends ConfigurationClient, S extends Configuration>
+  void removeChild(
+      SetRelationDefinition<C, S> r, String name)
+      throws IllegalArgumentException, ManagedObjectNotFoundException,
+      OperationRejectedException, ConcurrentModificationException,
+      AuthorizationException, CommunicationException {
+    validateRelationDefinition(r);
+    Driver ctx = getDriver();
+    boolean found;
+
+    try {
+      found = ctx.deleteManagedObject(path, r, name);
     } catch (ManagedObjectNotFoundException e) {
       throw new ConcurrentModificationException();
     }

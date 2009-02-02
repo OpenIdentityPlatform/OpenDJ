@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2009 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="global" plural-name="globals"
   package="org.opends.server.admin.std"
@@ -266,8 +266,8 @@
   </adm:property>
   <adm:property name="size-limit">
     <adm:synopsis>
-      Specifies the maximum number of entries that the Directory Server
-      should return to the client durin a search operation.
+      Specifies the maximum number of entries that can be returned
+      to the client during a single search operation.
     </adm:synopsis>
     <adm:description>
       A value of 0 indicates that no size limit is enforced. Note
@@ -291,8 +291,8 @@
   </adm:property>
   <adm:property name="time-limit">
     <adm:synopsis>
-      Specifies the maximum length of time that the Directory Server
-      should spend processing a search operation.
+      Specifies the maximum length of time that should be spent processing
+      a single search operation.
     </adm:synopsis>
     <adm:description>
       A value of 0 seconds indicates that no time limit is

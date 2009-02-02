@@ -35,13 +35,14 @@ import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.*;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.opends.messages.Message;
@@ -66,6 +67,7 @@ import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.PropertyProvider;
 import org.opends.server.admin.RelationDefinition;
+import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
@@ -397,6 +399,33 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
 
   /**
+   * Creates a new create-xxx sub-command for a sets
+   * relation.
+   *
+   * @param <C>
+   *          The type of managed object which can be created.
+   * @param <S>
+   *          The type of server managed object which can be created.
+   * @param parser
+   *          The sub-command argument parser.
+   * @param p
+   *          The parent managed object path.
+   * @param r
+   *          The set relation.
+   * @return Returns the new create-xxx sub-command.
+   * @throws ArgumentException
+   *           If the sub-command could not be created successfully.
+   */
+  public static <C extends ConfigurationClient, S extends Configuration>
+      CreateSubCommandHandler<C, S> create(
+      SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
+      SetRelationDefinition<C, S> r) throws ArgumentException {
+    return new CreateSubCommandHandler<C, S>(parser, p, r, null, p.child(r));
+  }
+
+
+
+  /**
    * Creates a new create-xxx sub-command for an optional relation.
    *
    * @param <C>
@@ -499,7 +528,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
     // First determine what type of component the user wants to create.
     MenuResult<ManagedObjectDefinition<? extends C, ? extends S>> result;
-    result = getTypeInteractively(app, d);
+    result = getTypeInteractively(app, d, Collections.<String>emptySet());
 
     ManagedObjectDefinition<? extends C, ? extends S> mod;
     if (result.isSuccess()) {
@@ -913,78 +942,56 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
 
 
-  // Generate the type name - definition mapping table.
-  @SuppressWarnings("unchecked")
-  private static <C extends ConfigurationClient, S extends Configuration>
-  SortedMap<String, ManagedObjectDefinition<? extends C, ? extends S>>
-      getSubTypes(AbstractManagedObjectDefinition<C, S> d) {
-    SortedMap<String, ManagedObjectDefinition<? extends C, ? extends S>> map;
-    map =
-      new TreeMap<String, ManagedObjectDefinition<? extends C, ? extends S>>();
-
-    // If the top-level definition is instantiable, we use the value
-    // "generic" or "custom".
-    if (!d.hasOption(ManagedObjectOption.HIDDEN)) {
-      if (d instanceof ManagedObjectDefinition) {
-        ManagedObjectDefinition<? extends C, ? extends S> mod =
-          (ManagedObjectDefinition<? extends C, ? extends S>) d;
-        if (CLIProfile.getInstance().isForCustomization(mod)) {
-          map.put(DSConfig.CUSTOM_TYPE, mod);
-        } else {
-          map.put(DSConfig.GENERIC_TYPE, mod);
-        }
-      }
-    }
-
-    // Process its sub-definitions.
-    String suffix = "-" + d.getName();
-    for (AbstractManagedObjectDefinition<? extends C, ? extends S> c : d
-        .getAllChildren()) {
-      if (d.hasOption(ManagedObjectOption.HIDDEN)) {
-        continue;
-      }
-
-      if (c instanceof ManagedObjectDefinition) {
-        ManagedObjectDefinition<? extends C, ? extends S> mod =
-          (ManagedObjectDefinition<? extends C, ? extends S>) c;
-
-        // For the type name we shorten it, if possible, by stripping
-        // off the trailing part of the name which matches the
-        // base-type.
-        String name = mod.getName();
-        if (name.endsWith(suffix)) {
-          name = name.substring(0, name.length() - suffix.length());
-        }
-
-        // If this type is intended for customization, prefix it with
-        // "custom".
-        if (CLIProfile.getInstance().isForCustomization(mod)) {
-          name = String.format("%s-%s", DSConfig.CUSTOM_TYPE, name);
-        }
-
-        map.put(name, mod);
-      }
-    }
-
-    return map;
-  }
-
-
-
   // Interactively ask the user which type of component they want to create.
   private static <C extends ConfigurationClient, S extends Configuration>
       MenuResult<ManagedObjectDefinition<? extends C, ? extends S>>
       getTypeInteractively(ConsoleApplication app,
-          AbstractManagedObjectDefinition<C, S> d) throws CLIException {
-    Collection<ManagedObjectDefinition<? extends C, ? extends S>> types;
-    types = getSubTypes(d).values();
+          AbstractManagedObjectDefinition<C, S> d,
+          Set<String> prohibitedTypes) throws CLIException {
+    // First get the list of available of sub-types.
+    List<ManagedObjectDefinition<? extends C, ? extends S>> filteredTypes =
+      new LinkedList<ManagedObjectDefinition<? extends C,? extends S>>(
+          getSubTypes(d).values());
+    boolean isOnlyOneType = filteredTypes.size() == 1;
+
+    Iterator<ManagedObjectDefinition<? extends C,? extends S>> i;
+    for (i = filteredTypes.iterator() ; i.hasNext();) {
+      ManagedObjectDefinition<? extends C,? extends S> cd = i.next();
+
+      if (prohibitedTypes.contains(cd.getName())) {
+        // Remove filtered types.
+        i.remove();
+      } else if (!app.isAdvancedMode()) {
+        // Only display advanced types and custom types in advanced mode.
+        if (cd.hasOption(ManagedObjectOption.ADVANCED)) {
+          i.remove();
+        } else if (CLIProfile.getInstance().isForCustomization(cd)) {
+          i.remove();
+        }
+      }
+    }
 
     // If there is only one choice then return immediately.
-    if (types.size() == 1) {
-      ManagedObjectDefinition<? extends C, ? extends S> type =
-        types.iterator().next();
+    if (filteredTypes.size() == 0) {
+      Message msg =
+        ERR_DSCFG_ERROR_NO_AVAILABLE_TYPES.get(d.getUserFriendlyName());
+      app.println(msg);
       return MenuResult.<ManagedObjectDefinition<? extends C,
-          ? extends S>>success(type);
+          ? extends S>>cancel();
+    } else if (filteredTypes.size() == 1) {
+      ManagedObjectDefinition<? extends C, ? extends S> type =
+        filteredTypes.iterator().next();
+      if (!isOnlyOneType) {
+        // Only one option available so confirm that the user wishes to
+        // use it.
+        Message msg = INFO_DSCFG_TYPE_PROMPT_SINGLE.get(
+            d.getUserFriendlyName(), type.getUserFriendlyName());
+        if (!app.confirmAction(msg, true)) {
+          return MenuResult.cancel();
+        }
+      }
+      return MenuResult.<ManagedObjectDefinition<? extends C, ? extends S>>
+        success(type);
     } else {
       MenuBuilder<ManagedObjectDefinition<? extends C, ? extends S>> builder =
         new MenuBuilder<ManagedObjectDefinition<? extends C, ? extends S>>(app);
@@ -992,17 +999,8 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
       builder.setPrompt(msg);
 
-      for (ManagedObjectDefinition<? extends C, ? extends S> mod : types) {
-        // Only display advanced types and custom types in advanced mode.
-        if (!app.isAdvancedMode()) {
-          if (mod.hasOption(ManagedObjectOption.ADVANCED)) {
-            continue;
-          }
-
-          if (CLIProfile.getInstance().isForCustomization(mod)) {
-            continue;
-          }
-        }
+      for (ManagedObjectDefinition<? extends C, ? extends S> mod :
+        filteredTypes) {
 
         Message option = mod.getUserFriendlyName();
         if (CLIProfile.getInstance().isForCustomization(mod)) {
@@ -1083,6 +1081,9 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     // Create the naming arguments.
     this.namingArgs = createNamingArgs(subCommand, c, true);
 
+    // Build the -t option usage.
+    this.typeUsage = getSubTypesUsage(r.getChildDefinition());
+
     // Create the --property argument which is used to specify
     // property values.
     this.propertySetArgument = new StringArgument(OPTION_DSCFG_LONG_SET,
@@ -1090,18 +1091,6 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
         INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
     this.subCommand.addArgument(this.propertySetArgument);
-
-    // Build the -t option usage.
-    StringBuilder builder = new StringBuilder();
-    boolean isFirst = true;
-    for (String s : types.keySet()) {
-      if (!isFirst) {
-        builder.append(" | ");
-      }
-      builder.append(s);
-      isFirst = false;
-    }
-    this.typeUsage = builder.toString();
 
     if (!types.containsKey(DSConfig.GENERIC_TYPE)) {
       // The option is mandatory when non-interactive.
@@ -1163,43 +1152,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
   public MenuResult<Integer> run(ConsoleApplication app,
       ManagementContextFactory factory) throws ArgumentException,
       ClientException, CLIException {
-    // Determine the type of managed object to be created.
-    ManagedObjectDefinition<? extends C, ? extends S> d;
-    if (!typeArgument.isPresent()) {
-      if (app.isInteractive()) {
-        // Let the user choose.
-        MenuResult<ManagedObjectDefinition<? extends C, ? extends S>> result;
-        app.println();
-        app.println();
-        result = getTypeInteractively(app, relation.getChildDefinition());
-
-        if (result.isSuccess()) {
-          d = result.getValue();
-        } else if (result.isCancel()) {
-          return MenuResult.cancel();
-        } else {
-          // Must be quit.
-          if (!app.isMenuDrivenMode()) {
-            app.printVerboseMessage(INFO_DSCFG_CONFIRM_CREATE_FAIL.get(relation
-                .getUserFriendlyName()));
-          }
-          return MenuResult.quit();
-        }
-      } else if (typeArgument.getDefaultValue() != null) {
-        d = types.get(typeArgument.getDefaultValue());
-      } else {
-        throw ArgumentExceptionFactory
-            .missingMandatoryNonInteractiveArgument(typeArgument);
-      }
-    } else {
-      d = types.get(typeArgument.getValue());
-      if (d == null) {
-        throw ArgumentExceptionFactory.unknownSubType(relation, typeArgument
-            .getValue(), typeUsage);
-      }
-    }
-
-    Message ufn = d.getUserFriendlyName();
+    Message ufn = relation.getUserFriendlyName();
 
     // Get the naming argument values.
     List<String> names = getNamingArgValues(app, namingArgs);
@@ -1211,11 +1164,6 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
     // Update the command builder.
     updateCommandBuilderWithSubCommand();
-
-    // Encode the provided properties.
-    List<String> propertyArgs = propertySetArgument.getValues();
-    MyPropertyProvider provider = new MyPropertyProvider(d,
-        namingPropertyDefinition, propertyArgs);
 
     // Add the child managed object.
     ManagementContext context = factory.getManagementContext(app);
@@ -1265,6 +1213,82 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     }
 
     ManagedObject<?> parent = result.getValue();
+
+    // Determine the type of managed object to be created. If we are creating
+    // a managed object beneath a set relation then prevent creation of
+    // duplicates.
+    Set<String> prohibitedTypes;
+    if (relation instanceof SetRelationDefinition) {
+      SetRelationDefinition<C, S> sr = (SetRelationDefinition<C, S>) relation;
+      prohibitedTypes = new HashSet<String>();
+      try
+      {
+        for (String child : parent.listChildren(sr)) {
+          prohibitedTypes.add(child);
+        }
+      }
+      catch (AuthorizationException e)
+      {
+        Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
+        throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+            msg);
+      }
+      catch (ConcurrentModificationException e)
+      {
+        Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
+        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
+      }
+      catch (CommunicationException e)
+      {
+        Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e
+            .getMessage());
+        throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
+      }
+    } else {
+      // No prohibited types.
+      prohibitedTypes = Collections.emptySet();
+    }
+
+    ManagedObjectDefinition<? extends C, ? extends S> d;
+    if (!typeArgument.isPresent()) {
+      if (app.isInteractive()) {
+        // Let the user choose.
+        MenuResult<ManagedObjectDefinition<? extends C, ? extends S>> dresult;
+        app.println();
+        app.println();
+        dresult = getTypeInteractively(app, relation.getChildDefinition(),
+            prohibitedTypes);
+
+        if (dresult.isSuccess()) {
+          d = dresult.getValue();
+        } else if (dresult.isCancel()) {
+          return MenuResult.cancel();
+        } else {
+          // Must be quit.
+          if (!app.isMenuDrivenMode()) {
+            app.printVerboseMessage(INFO_DSCFG_CONFIRM_CREATE_FAIL.get(ufn));
+          }
+          return MenuResult.quit();
+        }
+      } else if (typeArgument.getDefaultValue() != null) {
+        d = types.get(typeArgument.getDefaultValue());
+      } else {
+        throw ArgumentExceptionFactory
+            .missingMandatoryNonInteractiveArgument(typeArgument);
+      }
+    } else {
+      d = types.get(typeArgument.getValue());
+      if (d == null) {
+        throw ArgumentExceptionFactory.unknownSubType(relation, typeArgument
+            .getValue(), typeUsage);
+      }
+    }
+
+    // Encode the provided properties.
+    List<String> propertyArgs = propertySetArgument.getValues();
+    MyPropertyProvider provider = new MyPropertyProvider(d,
+        namingPropertyDefinition, propertyArgs);
+
     ManagedObject<? extends C> child;
     List<DefaultBehaviorException> exceptions =
       new LinkedList<DefaultBehaviorException>();
@@ -1297,6 +1321,10 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
               .adaptIllegalManagedObjectNameException(e, d);
         }
       }
+    } else if (relation instanceof SetRelationDefinition) {
+      SetRelationDefinition<C, S> srelation =
+        (SetRelationDefinition<C, S>) relation;
+      child = parent.createChild(srelation, d, exceptions);
     } else {
       OptionalRelationDefinition<C, S> orelation =
         (OptionalRelationDefinition<C, S>) relation;

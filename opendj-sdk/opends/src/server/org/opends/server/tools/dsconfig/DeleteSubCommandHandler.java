@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -31,14 +31,17 @@ package org.opends.server.tools.dsconfig;
 import static org.opends.messages.DSConfigMessages.*;
 
 import java.util.List;
+import java.util.SortedMap;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.InstantiableRelationDefinition;
+import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.RelationDefinition;
+import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
@@ -121,6 +124,29 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
       OptionalRelationDefinition<?, ?> r) throws ArgumentException {
     return new DeleteSubCommandHandler(parser, p, r, p.child(r));
   }
+
+
+
+  /**
+   * Creates a new delete-xxx sub-command for a set relation.
+   *
+   * @param parser
+   *          The sub-command argument parser.
+   * @param p
+   *          The parent managed object path.
+   * @param r
+   *          The set relation.
+   * @return Returns the new delete-xxx sub-command.
+   * @throws ArgumentException
+   *           If the sub-command could not be created successfully.
+   */
+  public static DeleteSubCommandHandler create(
+      SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
+      SetRelationDefinition<?, ?> r) throws ArgumentException {
+    return new DeleteSubCommandHandler(parser, p, r, p.child(r));
+  }
+
+
 
   // The argument which should be used to force deletion.
   private final BooleanArgument forceArgument;
@@ -255,14 +281,13 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
 
     ManagedObject<?> parent = result.getValue();
     try {
-      if (relation instanceof InstantiableRelationDefinition) {
-        InstantiableRelationDefinition<?, ?> irelation =
-          (InstantiableRelationDefinition<?, ?>) relation;
+      if (relation instanceof InstantiableRelationDefinition
+          || relation instanceof SetRelationDefinition) {
         String childName = names.get(names.size() - 1);
 
         if (childName == null) {
           MenuResult<String> sresult =
-            readChildName(app, parent, irelation, null);
+            readChildName(app, parent, relation, null);
 
           if (sresult.isQuit()) {
             if (!app.isMenuDrivenMode()) {
@@ -277,11 +302,32 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
           } else {
             childName = sresult.getValue();
           }
+        } else if (relation instanceof SetRelationDefinition) {
+          // The provided type short name needs mapping to the full name.
+          String name = childName.trim();
+          SortedMap types = getSubTypes(relation.getChildDefinition());
+          ManagedObjectDefinition cd =
+            (ManagedObjectDefinition) types.get(name);
+          if (cd == null) {
+            // The name must be invalid.
+            String typeUsage = getSubTypesUsage(relation.getChildDefinition());
+            Message msg = ERR_DSCFG_ERROR_SUB_TYPE_UNRECOGNIZED.get(
+                name, relation.getUserFriendlyName(), typeUsage);
+            throw new ArgumentException(msg);
+          } else {
+            childName = cd.getName();
+          }
         }
 
         if (confirmDeletion(app)) {
           setCommandBuilderUseful(true);
-          parent.removeChild(irelation, childName);
+          if (relation instanceof InstantiableRelationDefinition) {
+            parent.removeChild((InstantiableRelationDefinition<?,?>) relation,
+                childName);
+          } else {
+            parent.removeChild((SetRelationDefinition<?,?>) relation,
+                childName);
+          }
         } else {
           return MenuResult.cancel();
         }

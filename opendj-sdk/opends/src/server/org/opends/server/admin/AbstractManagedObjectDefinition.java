@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin;
@@ -869,7 +869,7 @@ public abstract class AbstractManagedObjectDefinition
   public final boolean isTop() {
     // Casting to Object and instanceof check are required
     // to workaround a bug in JDK versions prior to 1.5.0_08.
-    return ((Object) this instanceof TopCfgDefn);
+    return (this instanceof TopCfgDefn);
   }
 
 

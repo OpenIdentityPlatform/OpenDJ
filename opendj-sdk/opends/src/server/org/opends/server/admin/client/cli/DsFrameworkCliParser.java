@@ -22,17 +22,16 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.client.cli;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.AdminMessages.*;
 import static org.opends.messages.DSConfigMessages.*;
-import org.opends.messages.Message;
+import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 import static org.opends.server.tools.ToolConstants.*;
-import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
-import static org.opends.server.util.StaticUtils.wrapText;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -41,36 +40,22 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.logging.Logger;
 
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
 
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.messages.Message;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.SubCommand;
-
-import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 
 /**
  * This class will parse CLI arguments for the dsframework command lines.
  */
 public class DsFrameworkCliParser extends SecureConnectionCliParser
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
-  /**
-   * The Logger.
-   */
-  static private final Logger LOG =
-    Logger.getLogger(DsFrameworkCliParser.class.getName());
-
   /**
    * The different CLI group.
    */

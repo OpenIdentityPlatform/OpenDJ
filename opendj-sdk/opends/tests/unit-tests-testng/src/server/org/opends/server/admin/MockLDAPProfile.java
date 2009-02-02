@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.admin;
 
@@ -99,7 +99,7 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
    * {@inheritDoc}
    */
   @Override
-  public String getInstantiableRelationChildRDNType(
+  public String getRelationChildRDNType(
       InstantiableRelationDefinition<?, ?> r) {
     if (r == TestCfg.getTestOneToManyParentRelationDefinition()
         || r == TestParentCfgDefn.getInstance()

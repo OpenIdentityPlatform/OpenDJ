@@ -53,6 +53,7 @@ import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.RelationDefinition;
+import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 import org.opends.server.admin.client.AuthorizationException;
@@ -186,6 +187,27 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
   public static SetPropSubCommandHandler create(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
       OptionalRelationDefinition<?, ?> r) throws ArgumentException {
+    return new SetPropSubCommandHandler(parser, path.child(r), r);
+  }
+
+
+
+  /**
+   * Creates a new set-xxx-prop sub-command for a set relation.
+   *
+   * @param parser
+   *          The sub-command argument parser.
+   * @param path
+   *          The parent managed object path.
+   * @param r
+   *          The set relation.
+   * @return Returns the new set-xxx-prop sub-command.
+   * @throws ArgumentException
+   *           If the sub-command could not be created successfully.
+   */
+  public static SetPropSubCommandHandler create(
+      SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
+      SetRelationDefinition<?, ?> r) throws ArgumentException {
     return new SetPropSubCommandHandler(parser, path.child(r), r);
   }
 
@@ -429,7 +451,6 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                       {
                         String argName =
                           CLIProfile.getInstance().getNamingArgument(
-                              (InstantiableRelationDefinition<?, ?>)
                               path.getRelationDefinition());
                         try
                         {

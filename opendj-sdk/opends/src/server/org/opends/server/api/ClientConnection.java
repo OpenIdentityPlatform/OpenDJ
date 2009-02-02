@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -71,8 +71,6 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
-
-
 /**
  * This class defines the set of methods and structures that must be
  * implemented by a Directory Server client connection.
@@ -114,7 +112,7 @@ public abstract class ClientConnection
   private int lookthroughLimit;
 
   // The time that this client connection was established.
-  private long connectTime;
+  private final long connectTime;
 
   // The idle time limit for this client connection.
   private long idleTimeLimit;
@@ -125,10 +123,11 @@ public abstract class ClientConnection
 
   // A string representation of the time that this client connection
   // was established.
-  private String connectTimeString;
+  private final String connectTimeString;
 
   // A set of persistent searches registered for this client.
-  private CopyOnWriteArrayList<PersistentSearch> persistentSearches;
+  private final CopyOnWriteArrayList<PersistentSearch>
+      persistentSearches;
 
   // The network group to which the connection belongs to.
   private NetworkGroup networkGroup;
@@ -1099,14 +1098,8 @@ public abstract class ClientConnection
   public void setUnauthenticated()
   {
     setAuthenticationInfo(new AuthenticationInfo());
-    this.sizeLimit = networkGroup.getSearchSizeLimit();
-    if (this.sizeLimit == -1) {
-        this.sizeLimit = DirectoryServer.getSizeLimit();
-    }
-    this.timeLimit = networkGroup.getSearchDurationLimit();
-    if (this.timeLimit == -1) {
-      this.timeLimit = DirectoryServer.getTimeLimit();
-    }
+    this.sizeLimit = networkGroup.getSizeLimit();
+    this.timeLimit = networkGroup.getTimeLimit();
   }
 
 
@@ -1746,6 +1739,7 @@ public abstract class ClientConnection
    *
    * @return  A string representation of this client connection.
    */
+  @Override
   public final String toString()
   {
     StringBuilder buffer = new StringBuilder();
@@ -1774,6 +1768,7 @@ public abstract class ClientConnection
    * processing, then it should override this method and make sure to
    * invoke {@code super.finalize} as its first call.
    */
+  @Override
   protected void finalize()
   {
     finalizeConnectionInternal();
@@ -1818,14 +1813,8 @@ public abstract class ClientConnection
       this.networkGroup.addConnection(this);
 
       // The client connection inherits the resource limits
-      sizeLimit = networkGroup.getSearchSizeLimit();
-      if (sizeLimit == -1) {
-        sizeLimit = DirectoryServer.getSizeLimit();
-      }
-      timeLimit = networkGroup.getSearchDurationLimit();
-      if (timeLimit == -1) {
-        timeLimit = DirectoryServer.getTimeLimit();
-      }
+      sizeLimit = networkGroup.getSizeLimit();
+      timeLimit = networkGroup.getTimeLimit();
     }
   }
 

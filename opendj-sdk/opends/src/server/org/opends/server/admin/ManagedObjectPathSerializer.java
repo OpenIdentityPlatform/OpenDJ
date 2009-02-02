@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.admin;
 
@@ -108,6 +108,28 @@ public interface ManagedObjectPathSerializer {
   <C extends ConfigurationClient, S extends Configuration>
       void appendManagedObjectPathElement(
       SingletonRelationDefinition<? super C, ? super S> r,
+      AbstractManagedObjectDefinition<C, S> d);
+
+
+
+  /**
+   * Append a managed object path element identified by a
+   * set relation.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that
+   *          this path element references.
+   * @param <S>
+   *          The type of server managed object configuration that
+   *          this path element references.
+   * @param r
+   *          The set relation.
+   * @param d
+   *          The managed object definition.
+   */
+  <C extends ConfigurationClient, S extends Configuration>
+      void appendManagedObjectPathElement(
+      SetRelationDefinition<? super C, ? super S> r,
       AbstractManagedObjectDefinition<C, S> d);
 
 }

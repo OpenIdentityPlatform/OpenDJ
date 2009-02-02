@@ -56,6 +56,7 @@ import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.RelationDefinition;
+import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.Tag;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
@@ -181,6 +182,10 @@ public final class DSConfig extends ConsoleApplication {
         InstantiableRelationDefinition<?, ?> ir =
           (InstantiableRelationDefinition<?, ?>) rd;
         ufpn = ir.getUserFriendlyPluralName();
+      } else if (rd instanceof SetRelationDefinition) {
+        SetRelationDefinition<?, ?> sr =
+          (SetRelationDefinition<?, ?>) rd;
+        ufpn = sr.getUserFriendlyPluralName();
       }
 
       MenuBuilder<Integer> builder = new MenuBuilder<Integer>(app);
@@ -467,6 +472,7 @@ public final class DSConfig extends ConsoleApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isAdvancedMode() {
     return advancedModeArgument.isPresent();
   }
@@ -476,6 +482,7 @@ public final class DSConfig extends ConsoleApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isInteractive() {
     return !noPromptArgument.isPresent();
   }
@@ -495,6 +502,7 @@ public final class DSConfig extends ConsoleApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isQuiet() {
     return quietArgument.isPresent();
   }
@@ -504,6 +512,7 @@ public final class DSConfig extends ConsoleApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isScriptFriendly() {
     return scriptFriendlyArgument.isPresent();
   }
@@ -513,6 +522,7 @@ public final class DSConfig extends ConsoleApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isVerbose() {
     return verboseArgument.isPresent();
   }

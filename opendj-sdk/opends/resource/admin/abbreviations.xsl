@@ -22,7 +22,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2008 Sun Microsystems, Inc.
+  !      Copyright 2008-2009 Sun Microsystems, Inc.
   ! -->
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -52,7 +52,7 @@
               or $value = 'md5' or $value = 'sha1' or $value = 'sha256'
               or $value = 'sha384' or $value = 'sha512' or $value = 'tls'
               or $value = 'des' or $value = 'aes' or $value = 'rc4'
-              or $value = 'db' or $value = 'snmp'
+              or $value = 'db' or $value = 'snmp' or $value = 'qos'
              "/>
   </xsl:template>
 </xsl:stylesheet>

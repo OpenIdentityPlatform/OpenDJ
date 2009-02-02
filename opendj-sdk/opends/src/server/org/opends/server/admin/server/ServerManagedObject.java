@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin.server;
@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
-import org.opends.messages.AdminMessages;
 import org.opends.messages.Message;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.Constraint;
@@ -51,6 +50,7 @@ import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyProvider;
 import org.opends.server.admin.RelationDefinition;
+import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.api.ConfigChangeListener;
@@ -223,6 +223,55 @@ public final class ServerManagedObject<S extends Configuration> implements
 
 
   /**
+   * Deregisters an existing configuration add listener.
+   *
+   * @param <M>
+   *          The type of the child server configuration object.
+   * @param d
+   *          The set relation definition.
+   * @param listener
+   *          The configuration add listener.
+   * @throws IllegalArgumentException
+   *           If the set relation definition is not
+   *           associated with this managed object's definition.
+   */
+  public <M extends Configuration> void deregisterAddListener(
+      SetRelationDefinition<?, M> d,
+      ConfigurationAddListener<M> listener) throws IllegalArgumentException {
+    validateRelationDefinition(d);
+
+    DN baseDN = DNBuilder.create(path, d);
+    deregisterAddListener(baseDN, listener);
+  }
+
+
+
+  /**
+   * Deregisters an existing server managed object add listener.
+   *
+   * @param <M>
+   *          The type of the child server configuration object.
+   * @param d
+   *          The set relation definition.
+   * @param listener
+   *          The server managed object add listener.
+   * @throws IllegalArgumentException
+   *           If the set relation definition is not
+   *           associated with this managed object's definition.
+   */
+  public <M extends Configuration> void deregisterAddListener(
+      SetRelationDefinition<?, M> d,
+      ServerManagedObjectAddListener<M> listener)
+      throws IllegalArgumentException {
+    validateRelationDefinition(d);
+
+    DN baseDN = DNBuilder.create(path, d);
+    deregisterAddListener(baseDN, listener);
+  }
+
+
+
+  /**
    * Deregisters an existing configuration change listener.
    *
    * @param listener
@@ -371,6 +420,55 @@ public final class ServerManagedObject<S extends Configuration> implements
 
 
   /**
+   * Deregisters an existing configuration delete listener.
+   *
+   * @param <M>
+   *          The type of the child server configuration object.
+   * @param d
+   *          The set relation definition.
+   * @param listener
+   *          The configuration delete listener.
+   * @throws IllegalArgumentException
+   *           If the set relation definition is not
+   *           associated with this managed object's definition.
+   */
+  public <M extends Configuration> void deregisterDeleteListener(
+      SetRelationDefinition<?, M> d,
+      ConfigurationDeleteListener<M> listener) throws IllegalArgumentException {
+    validateRelationDefinition(d);
+
+    DN baseDN = DNBuilder.create(path, d);
+    deregisterDeleteListener(baseDN, listener);
+  }
+
+
+
+  /**
+   * Deregisters an existing server managed object delete listener.
+   *
+   * @param <M>
+   *          The type of the child server configuration object.
+   * @param d
+   *          The set relation definition.
+   * @param listener
+   *          The server managed object delete listener.
+   * @throws IllegalArgumentException
+   *           If the set relation definition is not
+   *           associated with this managed object's definition.
+   */
+  public <M extends Configuration> void deregisterDeleteListener(
+      SetRelationDefinition<?, M> d,
+      ServerManagedObjectDeleteListener<M> listener)
+      throws IllegalArgumentException {
+    validateRelationDefinition(d);
+
+    DN baseDN = DNBuilder.create(path, d);
+    deregisterDeleteListener(baseDN, listener);
+  }
+
+
+
+  /**
    * Retrieve an instantiable child managed object.
    *
    * @param <M>
@@ -418,6 +516,37 @@ public final class ServerManagedObject<S extends Configuration> implements
       ConfigException {
     validateRelationDefinition(d);
     return context.getManagedObject(path.child(d));
+  }
+
+
+
+  /**
+   * Retrieve a set child managed object.
+   *
+   * @param <M>
+   *          The requested type of the child server managed object
+   *          configuration.
+   * @param d
+   *          The set relation definition.
+   * @param name
+   *          The name of the child managed object.
+   * @return Returns the set child managed object.
+   * @throws IllegalArgumentException
+   *           If the relation definition is not associated with this
+   *           managed object's definition or if {@code name} specifies
+   *           a managed object definition which is not a sub-type of
+   *           the relation's child definition.
+   * @throws ConfigException
+   *           If the child managed object could not be found or if it
+   *           could not be decoded.
+   */
+  public <M extends Configuration> ServerManagedObject<? extends M> getChild(
+      SetRelationDefinition<?, M> d, String name)
+      throws IllegalArgumentException, ConfigException
+  {
+    validateRelationDefinition(d);
+
+    return context.getManagedObject(path.child(d, name));
   }
 
 
@@ -599,6 +728,25 @@ public final class ServerManagedObject<S extends Configuration> implements
 
 
   /**
+   * Lists the child managed objects associated with the specified
+   * set relation.
+   *
+   * @param d
+   *          The set relation definition.
+   * @return Returns the names of the child managed objects.
+   * @throws IllegalArgumentException
+   *           If the relation definition is not associated with this
+   *           managed object's definition.
+   */
+  public String[] listChildren(SetRelationDefinition<?, ?> d)
+      throws IllegalArgumentException {
+    validateRelationDefinition(d);
+    return context.listManagedObjects(path, d);
+  }
+
+
+
+  /**
    * Register to be notified when new child configurations are added
    * beneath an instantiable relation.
    *
@@ -704,6 +852,63 @@ public final class ServerManagedObject<S extends Configuration> implements
       throws IllegalArgumentException, ConfigException {
     validateRelationDefinition(d);
     DN baseDN = DNBuilder.create(path, d).getParent();
+    ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(path, d,
+        listener);
+    registerAddListener(baseDN, adaptor);
+  }
+
+
+
+  /**
+   * Register to be notified when new child configurations are added
+   * beneath a set relation.
+   *
+   * @param <M>
+   *          The type of the child server configuration object.
+   * @param d
+   *          The set relation definition.
+   * @param listener
+   *          The configuration add listener.
+   * @throws IllegalArgumentException
+   *           If the set relation definition is not
+   *           associated with this managed object's definition.
+   * @throws ConfigException
+   *           If the configuration entry associated with the
+   *           set relation could not be retrieved.
+   */
+  public <M extends Configuration> void registerAddListener(
+      SetRelationDefinition<?, M> d,
+      ConfigurationAddListener<M> listener) throws IllegalArgumentException,
+      ConfigException {
+    registerAddListener(d, new ServerManagedObjectAddListenerAdaptor<M>(
+        listener));
+  }
+
+
+
+  /**
+   * Register to be notified when new child server managed object are
+   * added beneath a set relation.
+   *
+   * @param <M>
+   *          The type of the child server configuration object.
+   * @param d
+   *          The set relation definition.
+   * @param listener
+   *          The server managed object add listener.
+   * @throws IllegalArgumentException
+   *           If the set relation definition is not
+   *           associated with this managed object's definition.
+   * @throws ConfigException
+   *           If the configuration entry associated with the
+   *           set relation could not be retrieved.
+   */
+  public <M extends Configuration> void registerAddListener(
+      SetRelationDefinition<?, M> d,
+      ServerManagedObjectAddListener<M> listener)
+      throws IllegalArgumentException, ConfigException {
+    validateRelationDefinition(d);
+    DN baseDN = DNBuilder.create(path, d);
     ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(path, d,
         listener);
     registerAddListener(baseDN, adaptor);
@@ -868,6 +1073,63 @@ public final class ServerManagedObject<S extends Configuration> implements
       throws IllegalArgumentException, ConfigException {
     validateRelationDefinition(d);
     DN baseDN = DNBuilder.create(path, d).getParent();
+    ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(path, d,
+        listener);
+    registerDeleteListener(baseDN, adaptor);
+  }
+
+
+
+  /**
+   * Register to be notified when existing child configurations are
+   * deleted beneath a set relation.
+   *
+   * @param <M>
+   *          The type of the child server configuration object.
+   * @param d
+   *          The set relation definition.
+   * @param listener
+   *          The configuration delete listener.
+   * @throws IllegalArgumentException
+   *           If the set relation definition is not
+   *           associated with this managed object's definition.
+   * @throws ConfigException
+   *           If the configuration entry associated with the
+   *           set relation could not be retrieved.
+   */
+  public <M extends Configuration> void registerDeleteListener(
+      SetRelationDefinition<?, M> d,
+      ConfigurationDeleteListener<M> listener) throws IllegalArgumentException,
+      ConfigException {
+    registerDeleteListener(d, new ServerManagedObjectDeleteListenerAdaptor<M>(
+        listener));
+  }
+
+
+
+  /**
+   * Register to be notified when existing child server managed
+   * objects are deleted beneath a set relation.
+   *
+   * @param <M>
+   *          The type of the child server configuration object.
+   * @param d
+   *          The set relation definition.
+   * @param listener
+   *          The server managed objects delete listener.
+   * @throws IllegalArgumentException
+   *           If the set relation definition is not
+   *           associated with this managed object's definition.
+   * @throws ConfigException
+   *           If the configuration entry associated with the
+   *           set relation could not be retrieved.
+   */
+  public <M extends Configuration> void registerDeleteListener(
+      SetRelationDefinition<?, M> d,
+      ServerManagedObjectDeleteListener<M> listener)
+      throws IllegalArgumentException, ConfigException {
+    validateRelationDefinition(d);
+    DN baseDN = DNBuilder.create(path, d);
     ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(path, d,
         listener);
     registerDeleteListener(baseDN, adaptor);
@@ -1079,7 +1341,7 @@ public final class ServerManagedObject<S extends Configuration> implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = AdminMessages.ERR_ADMIN_CANNOT_GET_LISTENER_BASE.get(
+      Message message = ERR_ADMIN_CANNOT_GET_LISTENER_BASE.get(
           String.valueOf(dn), stackTraceToSingleLineString(e));
       throw new ConfigException(message, e);
     }
@@ -1125,7 +1387,7 @@ public final class ServerManagedObject<S extends Configuration> implements
     }
 
     // No parent entry could be found.
-    Message message = AdminMessages.ERR_ADMIN_UNABLE_TO_REGISTER_LISTENER
+    Message message = ERR_ADMIN_UNABLE_TO_REGISTER_LISTENER
         .get(String.valueOf(baseDN));
     throw new ConfigException(message);
   }

@@ -23,40 +23,42 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2008 Sun Microsystems, Inc.
+  !      Copyright 2009 Sun Microsystems, Inc.
   ! -->
-<adm:managed-object name="network-group-request-filtering-policy"
-  plural-name="network-group-request-filtering-policies"
+<adm:managed-object name="request-filtering-qos-policy"
+  plural-name="request-filtering-qos-policies"
+  extends="qos-policy"
   package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
-
   <adm:synopsis>
     The
-    <adm:user-friendly-name /> is used to define the type of requests
-    allowed in the network group.
+    <adm:user-friendly-name/>
+    is used to define the type of requests allowed by the server.
   </adm:synopsis>
-
-  <adm:tag name="core-server" />
-
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:name>ds-cfg-network-group-request-filtering-policy</ldap:name>
-      <ldap:superior>top</ldap:superior>
+      <ldap:name>ds-cfg-request-filtering-qos-policy</ldap:name>
+      <ldap:superior>ds-cfg-qos-policy</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-
-  <adm:property name="allowed-operations" mandatory="false" multi-valued="true">
-    <adm:synopsis>
-      Specifies which operations are allowed in the network group.
-    </adm:synopsis>
-    <adm:description>
-      When this attribute is specified, only the listed operations are
-      allowed in the network group. If the attribute is not defined, all
-      the operations are allowed.
-    </adm:description>
+  <adm:property-override name="java-class" advanced="true">
     <adm:default-behavior>
-      <adm:undefined />
+      <adm:defined>
+        <adm:value>
+          org.opends.server.core.networkgroups.RequestFilteringPolicyFactory
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+  <adm:property name="allowed-operations" multi-valued="true">
+    <adm:synopsis>
+      Specifies which operations are allowed by the server.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>All operations are allowed.</adm:synopsis>
+      </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
       <adm:enumeration>
@@ -76,7 +78,8 @@
           <adm:synopsis>Extended operations</adm:synopsis>
         </adm:value>
         <adm:value name="inequality-search">
-          <adm:synopsis>Inequality Search operations</adm:synopsis>
+          <adm:synopsis>Inequality Search operations
+          </adm:synopsis>
         </adm:value>
         <adm:value name="modify">
           <adm:synopsis>Modify operations</adm:synopsis>
@@ -95,21 +98,18 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="allowed-attributes" mandatory="false" multi-valued="true">
+  <adm:property name="allowed-attributes" multi-valued="true">
     <adm:synopsis>
-      Specifies which attributes are allowed in search and compare operations.
+      Specifies which attributes are allowed in search and
+      compare operations.
     </adm:synopsis>
-    <adm:description>
-      When this attribute is specified, only the listed attributes are allowed
-      in search and compare operations. If it is not set, all the attributes
-      are allowed, except those listed in ds-cfg-prohibited-attributes.
-    </adm:description>
     <adm:default-behavior>
-      <adm:undefined />
+      <adm:alias>
+        <adm:synopsis>All non-prohibited attributes.</adm:synopsis>
+      </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:string />
+      <adm:string/>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -117,24 +117,19 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="prohibited-attributes" mandatory="false"
-  multi-valued="true">
+    multi-valued="true">
     <adm:synopsis>
-      Specifies which attributes are not allowed in search and compare
-      operations.
-    </adm:synopsis>
-    <adm:description>
-      When this attribute is specified, all the listed attributes are prohibited
-      in search and compare operations. It should not be used in conjunction
-      with ds-cfg-allowed-attributes.
-
-    </adm:description>
+      Specifies which attributes are not allowed in search
+      and compare operations.
+    </adm:synopsis> 
     <adm:default-behavior>
-      <adm:undefined />
+      <adm:alias>
+        <adm:synopsis>All allowed attributes.</adm:synopsis>
+      </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:string />
+      <adm:string/>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -142,19 +137,14 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  
-  <adm:property name="allowed-search-scopes" mandatory="false"
-  multi-valued="true">
+  <adm:property name="allowed-search-scopes" multi-valued="true">
     <adm:synopsis>
-      Specifies which search scopes are allowed in the network group.
+      Specifies which search scopes are allowed by the server.
     </adm:synopsis>
-    <adm:description>
-      When this attribute is specified, only the listed scopes are
-      allowed in the network group. If it is not set, all search scopes are
-      allowed.
-    </adm:description>
     <adm:default-behavior>
-      <adm:undefined />
+      <adm:alias>
+        <adm:synopsis>All search scopes are allowed.</adm:synopsis>
+      </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
       <adm:enumeration>
@@ -178,22 +168,17 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="allowed-subtrees" mandatory="false"
-  multi-valued="true">
+  <adm:property name="allowed-subtrees" multi-valued="true">
     <adm:synopsis>
-      Specifies which subtrees are exposed to clients.
+      Specifies which subtrees are accessible to clients.
     </adm:synopsis>
-    <adm:description>
-      When this attribute is specified, only the listed subtrees are exposed. If
-      it is not set, all the substrees are exposed. Note that
-      ds-cfg-prohibited-subtrees restricts the list of exposed subtrees.
-    </adm:description>
     <adm:default-behavior>
-      <adm:undefined />
+      <adm:alias>
+        <adm:synopsis>All non-prohibited subtrees.</adm:synopsis>
+      </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:dn />
+      <adm:dn/>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -201,22 +186,18 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="prohibited-subtrees" mandatory="false"
-  multi-valued="true">
+  <adm:property name="prohibited-subtrees" multi-valued="true">
     <adm:synopsis>
-      Specifies which subtrees are not exposed to clients. Each prohibited 
-      subtree must be subordinate to an allowed subtree.
+      Specifies which subtrees must be hidden from clients. Each
+      prohibited subtree must be subordinate to an allowed subtree.
     </adm:synopsis>
-    <adm:description>
-      When this attribute is specified, all the listed subtrees cannot be
-      accessed.
-    </adm:description>
     <adm:default-behavior>
-      <adm:undefined />
+      <adm:alias>
+        <adm:synopsis>All allowed subtrees.</adm:synopsis>
+      </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:dn />
+      <adm:dn/>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -224,5 +205,4 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
 </adm:managed-object>
