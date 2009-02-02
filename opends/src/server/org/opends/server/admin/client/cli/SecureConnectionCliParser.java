@@ -22,42 +22,39 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin.client.cli;
 
-import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.messages.ToolMessages.*;
-
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.tools.ToolConstants.*;
-import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
-import static org.opends.server.util.StaticUtils.wrapText;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.logging.Logger;
 
 import javax.net.ssl.KeyManager;
 
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.PasswordReader;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
+import org.opends.server.util.args.ArgumentGroup;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommandArgumentParser;
-import org.opends.server.util.args.ArgumentGroup;
 
 /**
  * This is a commodity class that can be used to check the arguments required
@@ -103,12 +100,6 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    * End Of Line.
    */
   public static String EOL = System.getProperty("line.separator");
-
-  /**
-   * The Logger.
-   */
-  static private final Logger LOG =
-    Logger.getLogger(SecureConnectionCliParser.class.getName());
 
   /**
    * Creates a new instance of this argument parser with no arguments.

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin.client.ldap;
@@ -44,6 +44,7 @@ import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.ManagedObjectPathSerializer;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.RelationDefinition;
+import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
 
 
@@ -96,6 +97,30 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
     return builder.getInstance();
   }
 
+
+
+  /**
+   * Creates a new LDAP name representing the specified managed object
+   * path and set relation.
+   *
+   * @param path
+   *          The managed object path.
+   * @param relation
+   *          The child set relation.
+   * @param profile
+   *          The LDAP profile which should be used to construct LDAP
+   *          names.
+   * @return Returns a new LDAP name representing the specified
+   *         managed object path and set relation.
+   */
+  public static LdapName create(ManagedObjectPath<?, ?> path,
+      SetRelationDefinition<?, ?> relation, LDAPProfile profile) {
+    LDAPNameBuilder builder = new LDAPNameBuilder(profile);
+    path.serialize(builder);
+    builder.appendManagedObjectPathElement(relation);
+    return builder.getInstance();
+  }
+
   // The list of RDNs in big-endian order.
   private final LinkedList<Rdn> rdns;
 
@@ -126,10 +151,10 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
           InstantiableRelationDefinition<? super C, ? super S> r,
           AbstractManagedObjectDefinition<C, S> d, String name) {
     // Add the RDN sequence representing the relation.
-    appendManagedObjectPathElement((RelationDefinition<?, ?>) r);
+    appendManagedObjectPathElement(r);
 
     // Now add the single RDN representing the named instance.
-    String type = profile.getInstantiableRelationChildRDNType(r);
+    String type = profile.getRelationChildRDNType(r);
     try {
       Rdn rdn = new Rdn(type, name.trim());
       rdns.add(rdn);
@@ -168,7 +193,7 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
           OptionalRelationDefinition<? super C, ? super S> r,
           AbstractManagedObjectDefinition<C, S> d) {
     // Add the RDN sequence representing the relation.
-    appendManagedObjectPathElement((RelationDefinition<?, ?>) r);
+    appendManagedObjectPathElement(r);
   }
 
 
@@ -181,7 +206,30 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
           SingletonRelationDefinition<? super C, ? super S> r,
           AbstractManagedObjectDefinition<C, S> d) {
     // Add the RDN sequence representing the relation.
-    appendManagedObjectPathElement((RelationDefinition<?, ?>) r);
+    appendManagedObjectPathElement(r);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public <C extends ConfigurationClient, S extends Configuration>
+      void appendManagedObjectPathElement(
+          SetRelationDefinition<? super C, ? super S> r,
+          AbstractManagedObjectDefinition<C, S> d) {
+    // Add the RDN sequence representing the relation.
+    appendManagedObjectPathElement(r);
+
+    // Now add the single RDN representing the named instance.
+    String type = profile.getRelationChildRDNType(r);
+    try {
+      Rdn rdn = new Rdn(type, d.getName());
+      rdns.add(rdn);
+    } catch (InvalidNameException e1) {
+      // Should not happen.
+      throw new RuntimeException(e1);
+    }
   }
 
 

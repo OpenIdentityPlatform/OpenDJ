@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin;
@@ -104,8 +104,28 @@ public final class LDAPProfile {
      *         the instantiable relation is not handled by this LDAP
      *         profile wrapper.
      */
-    public String getInstantiableRelationChildRDNType(
+    public String getRelationChildRDNType(
         InstantiableRelationDefinition<?, ?> r) {
+      return null;
+    }
+
+
+
+    /**
+     * Gets the LDAP RDN attribute type for child entries of an set
+     * relation.
+     * <p>
+     * The default implementation of this method is to return
+     * <code>null</code>.
+     *
+     * @param r
+     *          The set relation.
+     * @return Returns the LDAP RDN attribute type for child entries of
+     *         an set relation, or <code>null</code> if the set relation
+     *         is not handled by this LDAP profile wrapper.
+     */
+    public String getRelationChildRDNType(SetRelationDefinition<?, ?> r)
+    {
       return null;
     }
 
@@ -217,7 +237,7 @@ public final class LDAPProfile {
    *           If the LDAP profile properties file associated with the
    *           provided managed object definition could not be loaded.
    */
-  public String getInstantiableRelationChildRDNType(
+  public String getRelationChildRDNType(
       InstantiableRelationDefinition<?, ?> r) throws MissingResourceException {
     if (r.getNamingPropertyDefinition() != null) {
       // Use the attribute associated with the naming property.
@@ -225,7 +245,7 @@ public final class LDAPProfile {
           .getNamingPropertyDefinition());
     } else {
       for (Wrapper profile : profiles) {
-        String rdnType = profile.getInstantiableRelationChildRDNType(r);
+        String rdnType = profile.getRelationChildRDNType(r);
         if (rdnType != null) {
           return rdnType;
         }
@@ -238,18 +258,47 @@ public final class LDAPProfile {
 
 
   /**
-   * Gets the LDAP object classes associated with an instantiable
+   * Gets the LDAP object classes associated with an instantiable or set
    * relation branch. The branch is the parent entry of child managed
    * objects.
    *
    * @param r
-   *          The instantiable relation.
+   *          The instantiable or set relation.
    * @return Returns the LDAP object classes associated with an
-   *         instantiable relation branch.
+   *         instantiable or set relation branch.
    */
-  public List<String> getInstantiableRelationObjectClasses(
-      InstantiableRelationDefinition<?, ?> r) {
+  public List<String> getRelationObjectClasses(
+      RelationDefinition<?, ?> r) {
     return Arrays.asList(new String[] { "top", "ds-cfg-branch" });
+  }
+
+
+
+  /**
+   * Gets the LDAP RDN attribute type for child entries of an set
+   * relation.
+   *
+   * @param r
+   *          The set relation.
+   * @return Returns the LDAP RDN attribute type for child entries of an
+   *         set relation.
+   * @throws MissingResourceException
+   *           If the LDAP profile properties file associated with the
+   *           provided managed object definition could not be loaded.
+   */
+  public String getRelationChildRDNType(SetRelationDefinition<?, ?> r)
+      throws MissingResourceException
+  {
+    for (Wrapper profile : profiles)
+    {
+      String rdnType = profile.getRelationChildRDNType(r);
+      if (rdnType != null)
+      {
+        return rdnType;
+      }
+    }
+    return resource.getString(r.getParentDefinition(),
+        "naming-attribute." + r.getName());
   }
 
 

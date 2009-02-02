@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2009 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="connection-handler"
   plural-name="connection-handlers"
@@ -84,82 +84,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="allowed-client" multi-valued="true">
-    <adm:synopsis>
-      Specifies a set of host names or address masks that determine the 
-      clients that are allowed to establish connections to this connection 
-      handler. 
-    </adm:synopsis>
-    <adm:description>
-      Valid values include a host name, a fully qualified domain name, a 
-      domain name, an IP address, or a subnetwork with subnetwork mask.
-    </adm:description>
-    <adm:requires-admin-action>
-      <adm:none>
-        <adm:synopsis>
-          Changes to this configuration attribute take effect
-          immediately and do not interfere with connections that may
-          have already been established.
-        </adm:synopsis>
-      </adm:none>
-    </adm:requires-admin-action>
-    <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          All clients with addresses that do not match an address on the
-          deny list are allowed. If there is no deny list, then all
-          clients are allowed.
-        </adm:synopsis>
-      </adm:alias>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:ip-address-mask />
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-allowed-client</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
-  <adm:property name="denied-client" multi-valued="true">
-    <adm:synopsis>
-      Specifies a set of host names or address masks that determine
-      the clients that are not allowed to establish connections to this 
-      connection handler. 
-    </adm:synopsis>
-    <adm:description>
-      Valid values include a host name, a fully qualified domain name, a 
-      domain name, an IP address, or a subnetwork with subnetwork mask. 
-      If both allowed and denied client masks are defined and a client
-      connection matches one or more masks in both lists, then the
-      connection is denied. If only a denied list is specified,
-      then any client not matching a mask in that list is allowed. 
-    </adm:description>
-    <adm:requires-admin-action>
-      <adm:none>
-        <adm:synopsis>
-          Changes to this configuration attribute take effect
-          immediately and do not interfere with connections that may
-          have already been established.
-        </adm:synopsis>
-      </adm:none>
-    </adm:requires-admin-action>
-    <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          If an allow list is specified, then only clients with
-          addresses on the allow list are allowed. Otherwise, all
-          clients are allowed.
-        </adm:synopsis>
-      </adm:alias>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:ip-address-mask />
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-denied-client</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
+  <adm:property-reference name="allowed-client" />
+  <adm:property-reference name="denied-client" />
 </adm:managed-object>

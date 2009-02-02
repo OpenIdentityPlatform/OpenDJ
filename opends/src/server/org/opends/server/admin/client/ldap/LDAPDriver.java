@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.client.ldap;
 
@@ -69,6 +69,7 @@ import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.Reference;
 import org.opends.server.admin.RelationDefinition;
+import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.UnknownPropertyDefinitionException;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.admin.client.AuthorizationException;
@@ -358,6 +359,51 @@ final class LDAPDriver extends Driver {
   public <C extends ConfigurationClient, S extends Configuration>
   String[] listManagedObjects(
       ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
+      AbstractManagedObjectDefinition<? extends C, ? extends S> d)
+      throws IllegalArgumentException, ManagedObjectNotFoundException,
+      AuthorizationException, CommunicationException {
+    validateRelationDefinition(parent, rd);
+
+    if (!managedObjectExists(parent)) {
+      throw new ManagedObjectNotFoundException();
+    }
+
+    // Get the search base DN.
+    LdapName dn = LDAPNameBuilder.create(parent, rd, profile);
+
+    // Retrieve only those entries which are sub-types of the
+    // specified definition.
+    StringBuilder builder = new StringBuilder();
+    builder.append("(objectclass=");
+    builder.append(profile.getObjectClass(d));
+    builder.append(')');
+    String filter = builder.toString();
+
+    List<String> children = new ArrayList<String>();
+    try {
+      for (LdapName child : connection.listEntries(dn, filter)) {
+        children.add(child.getRdn(child.size() - 1).getValue().toString());
+      }
+    } catch (NameNotFoundException e) {
+      // Ignore this - it means that the base entry does not exist
+      // (which it might not if this managed object has just been
+      // created.
+    } catch (NamingException e) {
+      adaptNamingException(e);
+    }
+
+    return children.toArray(new String[children.size()]);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <C extends ConfigurationClient, S extends Configuration>
+  String[] listManagedObjects(
+      ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd,
       AbstractManagedObjectDefinition<? extends C, ? extends S> d)
       throws IllegalArgumentException, ManagedObjectNotFoundException,
       AuthorizationException, CommunicationException {

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin;
@@ -66,6 +66,26 @@ public interface RelationDefinitionVisitor<R, P> {
    */
   <C extends ConfigurationClient, S extends Configuration> R visitInstantiable(
       InstantiableRelationDefinition<C, S> rd, P p);
+
+
+
+  /**
+   * Visit a set relation definition.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          relation definition refers to.
+   * @param rd
+   *          The set relation definition to visit.
+   * @param p
+   *          A visitor specified parameter.
+   * @return Returns a visitor specified result.
+   */
+  <C extends ConfigurationClient, S extends Configuration> R visitSet(
+      SetRelationDefinition<C, S> rd, P p);
 
 
 

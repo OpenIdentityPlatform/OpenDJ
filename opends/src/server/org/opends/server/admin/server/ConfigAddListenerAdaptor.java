@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
 
@@ -38,10 +38,13 @@ import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.Constraint;
 import org.opends.server.admin.DecodingException;
+import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
+import org.opends.server.admin.SetRelationDefinition;
+import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
@@ -76,6 +79,9 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
   // The instantiable relation.
   private final InstantiableRelationDefinition<?, S> instantiableRelation;
 
+  // The set relation.
+  private final SetRelationDefinition<?, S> setRelation;
+
   // The underlying add listener.
   private final ServerManagedObjectAddListener<S> listener;
 
@@ -104,6 +110,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
     this.path = path;
     this.instantiableRelation = relation;
     this.optionalRelation = null;
+    this.setRelation = null;
     this.listener = listener;
     this.cachedManagedObject = null;
   }
@@ -127,6 +134,31 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
     this.path = path;
     this.optionalRelation = relation;
     this.instantiableRelation = null;
+    this.setRelation = null;
+    this.listener = listener;
+    this.cachedManagedObject = null;
+  }
+
+
+
+  /**
+   * Create a new configuration add listener adaptor for a
+   * set relation.
+   *
+   * @param path
+   *          The managed object path of the parent.
+   * @param relation
+   *          The set relation.
+   * @param listener
+   *          The underlying add listener.
+   */
+  public ConfigAddListenerAdaptor(ManagedObjectPath<?, ?> path,
+      SetRelationDefinition<?, S> relation,
+      ServerManagedObjectAddListener<S> listener) {
+    this.path = path;
+    this.instantiableRelation = null;
+    this.optionalRelation = null;
+    this.setRelation = relation;
     this.listener = listener;
     this.cachedManagedObject = null;
   }
@@ -186,22 +218,29 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
     AttributeValue av = dn.getRDN().getAttributeValue(0);
     String name = av.getStringValue().trim();
 
-    ManagedObjectPath<?, S> childPath;
-    if (instantiableRelation != null) {
-      childPath = path.child(instantiableRelation, name);
-    } else {
-      // Optional managed objects are located directly beneath the
-      // parent and have a well-defined name. We need to make sure
-      // that we are handling the correct entry.
-      childPath = path.child(optionalRelation);
-      DN expectedDN = DNBuilder.create(childPath);
-      if (!dn.equals(expectedDN)) {
-        // Doesn't apply to us.
-        return true;
-      }
-    }
-
     try {
+      ManagedObjectPath<?, ? extends S> childPath;
+      if (instantiableRelation != null) {
+        childPath = path.child(instantiableRelation, name);
+      } else if (setRelation != null) {
+        try {
+          childPath = path.child(setRelation, name);
+        } catch (IllegalArgumentException e) {
+          throw new DefinitionDecodingException(setRelation
+              .getChildDefinition(), Reason.WRONG_TYPE_INFORMATION);
+        }
+      } else {
+        // Optional managed objects are located directly beneath the
+        // parent and have a well-defined name. We need to make sure
+        // that we are handling the correct entry.
+        childPath = path.child(optionalRelation);
+        DN expectedDN = DNBuilder.create(childPath);
+        if (!dn.equals(expectedDN)) {
+          // Doesn't apply to us.
+          return true;
+        }
+      }
+
       ServerManagementContext context = ServerManagementContext.getInstance();
       cachedManagedObject = context.decode(childPath, configEntry, configEntry);
     } catch (DecodingException e) {

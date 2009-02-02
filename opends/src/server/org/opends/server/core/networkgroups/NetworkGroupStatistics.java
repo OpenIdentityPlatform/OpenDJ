@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.core.networkgroups;
@@ -40,8 +40,8 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
 
 import org.opends.server.types.SearchScope;
-import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.messages.ProtocolMessages.*;
 
 /**
  * This class implements the statistics associated to a network group.
@@ -50,10 +50,10 @@ public class NetworkGroupStatistics
        extends MonitorProvider<MonitorProviderCfg> {
 
   // The instance name for this monitor provider instance.
-  private String instanceName;
-  private NetworkGroup networkGroup;
+  private final String instanceName;
+  private final NetworkGroup networkGroup;
 
-  private Object lock = new Object();
+  private final Object lock = new Object();
   private long abandonRequests = 0;
   private long addRequests = 0;
   private long bindRequests = 0;
@@ -131,6 +131,7 @@ public class NetworkGroupStatistics
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
          throws ConfigException, InitializationException {
     // Throw an exception, because this monitor is not intended to be
@@ -145,6 +146,7 @@ public class NetworkGroupStatistics
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getMonitorInstanceName() {
       return this.instanceName+",cn=Network Groups";
   }
@@ -152,6 +154,7 @@ public class NetworkGroupStatistics
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getUpdateInterval() {
     // This monitor should not run periodically.
     return -1;
@@ -160,6 +163,7 @@ public class NetworkGroupStatistics
   /**
    * {@inheritDoc}
    */
+  @Override
   public void updateMonitorData() {
     // No implementation is required since this does not do periodic updates.
   }
@@ -167,30 +171,39 @@ public class NetworkGroupStatistics
   /**
    * {@inheritDoc}
    */
+  @Override
   public List<Attribute> getMonitorData() {
     ArrayList<Attribute> attrs = new ArrayList<Attribute>();
 
-    RequestFilteringPolicyStat requestFilteringPolicyStat =
-            networkGroup.getRequestFilteringPolicyStat();
-    if (requestFilteringPolicyStat != null) {
-      attrs.add(Attributes.create("ds-mon-rejected-attributes-total-count",
-          String.valueOf(requestFilteringPolicyStat.getRejectedAttributes())));
-      attrs.add(Attributes.create("ds-mon-rejected-operations-total-count",
-          String.valueOf(requestFilteringPolicyStat.getRejectedOperations())));
-      attrs.add(Attributes.create("ds-mon-rejected-search-scopes-total-count",
-          String.valueOf(requestFilteringPolicyStat.getRejectedScopes())));
-      attrs.add(Attributes.create("ds-mon-rejected-subtrees-total-count",
-          String.valueOf(requestFilteringPolicyStat.getRejectedSubtrees())));
+    RequestFilteringPolicyStatistics rfpStatistics =
+        networkGroup.getRequestFilteringPolicyStatistics();
+    if (rfpStatistics != null)
+    {
+      attrs.add(Attributes.create(
+          "ds-mon-rejected-attributes-total-count", String
+              .valueOf(rfpStatistics.getRejectedAttributes())));
+      attrs.add(Attributes.create(
+          "ds-mon-rejected-operations-total-count", String
+              .valueOf(rfpStatistics.getRejectedOperations())));
+      attrs.add(Attributes.create(
+          "ds-mon-rejected-search-scopes-total-count", String
+              .valueOf(rfpStatistics.getRejectedScopes())));
+      attrs.add(Attributes.create(
+          "ds-mon-rejected-subtrees-total-count", String
+              .valueOf(rfpStatistics.getRejectedSubtrees())));
     }
 
-    ResourceLimitsStat resLimitStat = networkGroup.getResourceLimitStat();
-    if (resLimitStat != null) {
+    ResourceLimitsPolicyStatistics rlpStatistics =
+        networkGroup.getResourceLimitsPolicyStatistics();
+    if (rlpStatistics != null)
+    {
       attrs.add(Attributes.create("ds-mon-client-connection-count",
-          String.valueOf(resLimitStat.getClientConnections())));
+          String.valueOf(rlpStatistics.getClientConnections())));
       attrs.add(Attributes.create("ds-mon-client-connection-max-count",
-          String.valueOf(resLimitStat.getMaxClientConnections())));
-      attrs.add(Attributes.create("ds-mon-client-connection-total-count",
-          String.valueOf(resLimitStat.getTotalClientConnections())));
+          String.valueOf(rlpStatistics.getMaxClientConnections())));
+      attrs.add(Attributes.create(
+          "ds-mon-client-connection-total-count", String
+              .valueOf(rlpStatistics.getTotalClientConnections())));
     }
 
     synchronized(lock) {
@@ -218,6 +231,7 @@ public class NetworkGroupStatistics
       attrs.add(Attributes.create("ds-mon-unbind-operations-total-count",
           String.valueOf(unbindRequests)));
     }
+
     attrs.add(Attributes.create("ds-mon-discarded-referrals-total-count",
         "Not implemented"));
     attrs.add(Attributes.create("ds-mon-forwarded-referrals-total-count",

@@ -25,84 +25,57 @@
   !
   !      Copyright 2007-2009 Sun Microsystems, Inc.
   ! -->
-<adm:managed-object name="network-group" plural-name="network-groups"
+<adm:managed-object name="network-group"
+  plural-name="network-groups"
   package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
     The
-    <adm:user-friendly-name />
-    is used to classify incoming connections and route requests to
+    <adm:user-friendly-name/>
+    is used to classify incoming client connections and route requests to
     workflows.
   </adm:synopsis>
-  <adm:tag name="core-server" />
+  <adm:tag name="core-server"/>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-network-group</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-
-  <adm:relation name="network-group-criteria"
-    managed-object-name="network-group-criteria">
+  <adm:relation name="network-group-qos-policy"
+                managed-object-name="qos-policy">
     <adm:synopsis>
-      Specifies the set of criteria associated to this network group.
+      Specifies the set of quality of service (QoS) policies enforced by
+      the
+      <adm:user-friendly-name/>
+      .
     </adm:synopsis>
     <adm:description>
-      A client connection can belong to a <adm:user-friendly-name /> only
-      if it matches all the criteria defined for this
-      <adm:user-friendly-name />.
+      All client connections belonging to the
+      <adm:user-friendly-name/>
+      will comply with its policies.
     </adm:description>
-    <adm:one-to-zero-or-one />
+    <adm:one-to-many unique="true"
+      plural-name="network-group-qos-policies"/>
     <adm:profile name="ldap">
-      <ldap:rdn-sequence>cn=Criteria</ldap:rdn-sequence>
+      <ldap:rdn-sequence>cn=QoS Policies</ldap:rdn-sequence>
     </adm:profile>
   </adm:relation>
-
-  <adm:relation name="network-group-resource-limits"
-    managed-object-name="network-group-resource-limits">
-    <adm:synopsis>
-      Specifies the set of resource limits enforced by this
-      <adm:user-friendly-name />.
-    </adm:synopsis>
-    <adm:description>
-      All client connections belonging to a <adm:user-friendly-name />
-      must comply with the resource limits policy.
-    </adm:description>
-    <adm:one-to-zero-or-one />
-    <adm:profile name="ldap">
-      <ldap:rdn-sequence>cn=ResourceLimits</ldap:rdn-sequence>
-    </adm:profile>
-  </adm:relation>
-
-  <adm:relation name="network-group-request-filtering-policy"
-    managed-object-name="network-group-request-filtering-policy">
-    <adm:synopsis>
-      Specifies the request filtering policy enforced by this
-      <adm:user-friendly-name />.
-    </adm:synopsis>
-    <adm:description>
-      All client connections belonging to a <adm:user-friendly-name />
-      must comply with the request filtering policy.
-    </adm:description>
-    <adm:one-to-zero-or-one />
-    <adm:profile name="ldap">
-      <ldap:rdn-sequence>cn=RequestFilteringPolicy</ldap:rdn-sequence>
-     </adm:profile>
-   </adm:relation>
-
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
       Indicates whether the
-      <adm:user-friendly-name />
+      <adm:user-friendly-name/>
       is enabled for use in the server.
     </adm:synopsis>
     <adm:description>
-      If a network group is not enabled, its workflows will not be
-      accessible when processing operations.
+      If a
+      <adm:user-friendly-name/>
+      is not enabled then its workflows will not be accessible when
+      processing operations.
     </adm:description>
     <adm:syntax>
-      <adm:boolean />
+      <adm:boolean/>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -110,36 +83,20 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="network-group-id" mandatory="true"
-    read-only="true">
-    <adm:synopsis>
-      Specifies the name that is used to identify the associated
-      <adm:user-friendly-name />
-      .
-    </adm:synopsis>
-    <adm:description>
-      The name must be unique among all the 
-      <adm:user-friendly-plural-name />
-      in the server.
-    </adm:description>
-    <adm:syntax>
-      <adm:string />
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-network-group-id</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
   <adm:property name="priority" mandatory="true">
     <adm:synopsis>
-      Specifies the order in which the network groups are evaluated.
+      Specifies the priority for this <adm:user-friendly-name/>.
     </adm:synopsis>
     <adm:description>
-      A client connection is first compared against network group with
-      priority 1. If the client connection does not match the network group
-      criteria, the client connection is compared against network group
-      with priority 2 etc...
+      A client connection is first compared against the
+      <adm:user-friendly-name/>
+      with the lowest priority. If the client connection does not match
+      its connection criteria, then the client connection is compared against
+      the 
+      <adm:user-friendly-name/>
+      with next lowest priority, and so on. If no
+      <adm:user-friendly-name/>
+      is selected then the client connection is rejected.
     </adm:description>
     <adm:syntax>
       <adm:integer lower-limit="0"/>
@@ -152,19 +109,24 @@
   </adm:property>
   <adm:property name="workflow" multi-valued="true">
     <adm:synopsis>
-      Identifies the workflows in the network group.
+      Specifies a set of workflows which should be accessible from this
+      <adm:user-friendly-name/>
+      .
     </adm:synopsis>
     <adm:default-behavior>
-      <adm:undefined />
+      <adm:alias>
+        <adm:synopsis>No workflows will be accessible.</adm:synopsis>
+      </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:aggregation relation-name="workflow" parent-path="/">
+      <adm:aggregation relation-name="workflow"
+        parent-path="/">
         <adm:constraint>
           <adm:synopsis>
             The referenced workflows must be enabled.
           </adm:synopsis>
           <adm:target-is-enabled-condition>
-            <adm:contains property="enabled" value="true" />
+            <adm:contains property="enabled" value="true"/>
           </adm:target-is-enabled-condition>
         </adm:constraint>
       </adm:aggregation>
@@ -175,93 +137,162 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="affinity-policy" mandatory="false" advanced="true">
+  <adm:property name="allowed-auth-method" multi-valued="true">
     <adm:synopsis>
-      Defines the client connection affinity policy.
+      Specifies a set of allowed authorization methods that clients
+      must use in order to establish connections to this
+      <adm:user-friendly-name/>. 
     </adm:synopsis>
-    <adm:description>
-      A client connection affinity allows some requests to be routed
-      to a specific data source regardless the regular routing
-      process. For example, we can requires all the requests to be
-      routed to a data source after a write has been complete on
-      that data source. That way, a read request would return data
-      that are consistent with a previous write request. By default,
-      the client connection affinity is disabled.
-    </adm:description>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property take effect immediately and do not
+          interfere with connections that may have already been
+          established.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
     <adm:default-behavior>
-      <adm:defined>
-        <adm:value>none</adm:value>
-      </adm:defined>
+      <adm:alias>
+        <adm:synopsis>
+          All authorization methods are allowed.
+        </adm:synopsis>
+      </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
       <adm:enumeration>
-        <adm:value name="none">
+        <adm:value name="anonymous">
           <adm:synopsis>
-            Disables the client connection affinity.
+            Unauthorized clients.
           </adm:synopsis>
         </adm:value>
-        <adm:value name="first-read-request-after-write-request">
+        <adm:value name="simple">
           <adm:synopsis>
-            Routes the first read request to the data source to which
-            a previous write request has been routed to. This affinity
-            is useful when a client application performs a read request
-            after a write request and the read request should return
-            consistent data.
+            Clients who bind using simple authentication (name and password).
           </adm:synopsis>
         </adm:value>
-        <adm:value name="all-requests-after-first-write-request">
+        <adm:value name="sasl">
           <adm:synopsis>
-            Routes all the requests to the data source to which a
-            previous write request has been routed to.
-          </adm:synopsis>
-        </adm:value>
-        <adm:value name="all-write-requests-after-first-write-request">
-          <adm:synopsis>
-            Routes all the write requests to the data source to which
-            a previous write request has been routed to. This affinity
-            policy is useful for batch update where a parent entry and
-            its subordinates must be sent to the same data source.
-          </adm:synopsis>
-        </adm:value>
-        <adm:value name="all-requests-after-first-request">
-          <adm:synopsis>
-            Routes all the requests to the data source to which a
-            previous request has been routed to. This affinity policy
-            allows to create a kind of tunnel between a client application
-            and a data source.
+            Clients who bind using SASL/external certificate based
+            authentication.
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-affinity-policy</ldap:name>
+        <ldap:name>ds-cfg-allowed-auth-method</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="affinity-timeout" mandatory="false" advanced="true">
+  <adm:property name="allowed-protocol" multi-valued="true">
     <adm:synopsis>
-      The period of time by which an affinity route remains active.
-      The timeout value is a number of seconds and when the value is
-      set to 0s (default value) then the route remains active forever.
+      Specifies a set of allowed supported protocols that clients
+      must use in order to establish connections to this
+      <adm:user-friendly-name/>.
     </adm:synopsis>
-    <adm:description>
-      When the client connection affinity is enabled, an affinity route
-      might be elected in accordance with the affinity policy. The affinity
-      route is then used until the timeout value expires unless the timeout
-      value is 0s in which case the route remains active forever.
-    </adm:description>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property take effect immediately and do not
+          interfere with connections that may have already been
+          established.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
     <adm:default-behavior>
-      <adm:defined>
-        <adm:value>0s</adm:value>
-      </adm:defined>
+      <adm:alias>
+        <adm:synopsis>
+          All supported protocols are allowed.
+        </adm:synopsis>
+      </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
-    	<adm:duration base-unit="s" lower-limit="0" />
+      <adm:enumeration>
+        <adm:value name="ldap">
+          <adm:synopsis>
+            Clients using LDAP are allowed.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="ldaps">
+          <adm:synopsis>
+            Clients using LDAPS are allowed.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-affinity-timeout</ldap:name>
+        <ldap:name>ds-cfg-allowed-protocol</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="allowed-bind-dn" multi-valued="true">
+    <adm:synopsis>
+      Specifies a set of bind DN patterns that determine the 
+      clients that are allowed to establish connections to this
+      <adm:user-friendly-name/>. 
+    </adm:synopsis>
+    <adm:description>
+      Valid bind DN filters are strings composed of zero or more
+      wildcards. A double wildcard ** replaces one or more RDN
+      components (as in uid=dmiller,**,dc=example,dc=com). A simple
+      wildcard * replaces either a whole RDN, or a whole type, or a
+      value substring (as in uid=bj*,ou=people,dc=example,dc=com).
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property take effect immediately and do not
+          interfere with connections that may have already been
+          established.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          All bind DNs are allowed.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-allowed-bind-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property-reference name="allowed-client" />
+  <adm:property-reference name="denied-client" />
+  <adm:property name="is-security-mandatory">
+    <adm:synopsis>
+      Specifies whether or not a secured client connection
+      is required in order for clients to establish connections
+      to this <adm:user-friendly-name/>. 
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property take effect immediately and do not
+          interfere with connections that may have already been
+          established.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-is-security-mandatory</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

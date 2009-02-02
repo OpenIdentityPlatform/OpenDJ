@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin;
@@ -37,6 +37,13 @@ import org.opends.messages.Message;
  * The requested managed object was found but it could not be decoded.
  */
 public abstract class DecodingException extends OperationsException {
+
+  /**
+   * Fake serialization ID.
+   */
+  private static final long serialVersionUID = 1L;
+
+
 
   /**
    * Create a decoding exception with a message.

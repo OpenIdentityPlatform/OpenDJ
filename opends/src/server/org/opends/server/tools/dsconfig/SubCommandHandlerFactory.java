@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -40,6 +40,7 @@ import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.RelationDefinitionVisitor;
 import org.opends.server.admin.RelationOption;
+import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.SubCommandArgumentParser;
@@ -115,6 +116,32 @@ final class SubCommandHandlerFactory {
      * {@inheritDoc}
      */
     public <C extends ConfigurationClient, S extends Configuration>
+        Void visitSet(
+        SetRelationDefinition<C, S> rd, ManagedObjectPath<?, ?> p) {
+      try {
+        // Create the sub-commands.
+        createHandlers.add(CreateSubCommandHandler.create(parser, p, rd));
+        deleteHandlers.add(DeleteSubCommandHandler.create(parser, p, rd));
+        listHandlers.add(ListSubCommandHandler.create(parser, p, rd));
+        getPropHandlers.add(GetPropSubCommandHandler.create(parser, p, rd));
+        setPropHandlers.add(SetPropSubCommandHandler.create(parser, p, rd));
+
+        // Process the referenced managed object definition and its
+        // sub-types.
+        processRelation(p, rd);
+      } catch (ArgumentException e) {
+        exception = e;
+      }
+
+      return null;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public <C extends ConfigurationClient, S extends Configuration>
         Void visitSingleton(
         SingletonRelationDefinition<C, S> rd, ManagedObjectPath<?, ?> p) {
       try {
@@ -135,36 +162,36 @@ final class SubCommandHandlerFactory {
   }
 
   // The set of all available sub-commands.
-  private SortedSet<SubCommandHandler> allHandlers =
+  private final SortedSet<SubCommandHandler> allHandlers =
     new TreeSet<SubCommandHandler>();
 
   // The set of create-xxx available sub-commands.
-  private SortedSet<CreateSubCommandHandler<?, ?>> createHandlers =
+  private final SortedSet<CreateSubCommandHandler<?, ?>> createHandlers =
     new TreeSet<CreateSubCommandHandler<?, ?>>();
 
   // The set of delete-xxx available sub-commands.
-  private SortedSet<DeleteSubCommandHandler> deleteHandlers =
+  private final SortedSet<DeleteSubCommandHandler> deleteHandlers =
     new TreeSet<DeleteSubCommandHandler>();
 
   // Any exception that occurred whilst creating the sub-commands.
   private ArgumentException exception = null;
 
   // The set of get-xxx-prop available sub-commands.
-  private SortedSet<GetPropSubCommandHandler> getPropHandlers =
+  private final SortedSet<GetPropSubCommandHandler> getPropHandlers =
     new TreeSet<GetPropSubCommandHandler>();
 
   // The help sub-command handler.
   private HelpSubCommandHandler helpHandler = null;
 
   // The set of list-xxx available sub-commands.
-  private SortedSet<ListSubCommandHandler> listHandlers =
+  private final SortedSet<ListSubCommandHandler> listHandlers =
     new TreeSet<ListSubCommandHandler>();
 
   // The sub-command argument parser.
   private final SubCommandArgumentParser parser;
 
   // The set of set-xxx-prop available sub-commands.
-  private SortedSet<SetPropSubCommandHandler> setPropHandlers =
+  private final SortedSet<SetPropSubCommandHandler> setPropHandlers =
     new TreeSet<SetPropSubCommandHandler>();
 
   // The relation visitor.
@@ -310,6 +337,27 @@ final class SubCommandHandlerFactory {
   private <C extends ConfigurationClient, S extends Configuration>
       void processRelation(
       ManagedObjectPath<?, ?> path, OptionalRelationDefinition<C, S> r) {
+    AbstractManagedObjectDefinition<C, S> d = r.getChildDefinition();
+
+    // Process all relations associated directly with this
+    // definition.
+    helpHandler.registerManagedObjectDefinition(d);
+    processPath(path.child(r, d));
+
+    // Now process relations associated with derived definitions.
+    for (AbstractManagedObjectDefinition<? extends C, ? extends S> c : d
+        .getAllChildren()) {
+      helpHandler.registerManagedObjectDefinition(c);
+      processPath(path.child(r, c));
+    }
+  }
+
+
+
+  // Process a set relation.
+  private <C extends ConfigurationClient, S extends Configuration>
+      void processRelation(
+      ManagedObjectPath<?, ?> path, SetRelationDefinition<C, S> r) {
     AbstractManagedObjectDefinition<C, S> d = r.getChildDefinition();
 
     // Process all relations associated directly with this

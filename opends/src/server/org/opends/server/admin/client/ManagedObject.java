@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin.client;
@@ -49,6 +49,7 @@ import org.opends.server.admin.PropertyIsMandatoryException;
 import org.opends.server.admin.PropertyIsReadOnlyException;
 import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.PropertyProvider;
+import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
 
 
@@ -227,6 +228,45 @@ public interface ManagedObject<T extends ConfigurationClient> extends
 
 
   /**
+   * Creates a new child managed object bound to the specified
+   * set relation. The new managed object will initially not
+   * contain any property values (including mandatory properties).
+   * Once the managed object has been configured it can be added to
+   * the server using the {@link #commit()} method.
+   *
+   * @param <C>
+   *          The expected type of the child managed object
+   *          configuration client.
+   * @param <S>
+   *          The expected type of the child managed object
+   *          server configuration.
+   * @param <CC>
+   *          The actual type of the added managed object
+   *          configuration client.
+   * @param r
+   *          The set relation definition.
+   * @param d
+   *          The definition of the managed object to be created.
+   * @param exceptions
+   *          A collection in which to place any
+   *          {@link DefaultBehaviorException}s that occurred whilst
+   *          attempting to determine the managed object's default
+   *          values.
+   * @return Returns a new child managed object bound to the specified
+   *         set relation.
+   * @throws IllegalArgumentException
+   *           If the relation definition is not associated with this
+   *           managed object's definition.
+   */
+  <C extends ConfigurationClient, S extends Configuration, CC extends C>
+  ManagedObject<CC> createChild(SetRelationDefinition<C, S> r,
+      ManagedObjectDefinition<CC, ? extends S> d,
+      Collection<DefaultBehaviorException> exceptions)
+      throws IllegalArgumentException;
+
+
+
+  /**
    * Retrieves an instantiable child managed object.
    *
    * @param <C>
@@ -354,6 +394,52 @@ public interface ManagedObject<T extends ConfigurationClient> extends
   <C extends ConfigurationClient, S extends Configuration>
   ManagedObject<? extends C> getChild(SingletonRelationDefinition<C, S> r)
       throws IllegalArgumentException, DefinitionDecodingException,
+      ManagedObjectDecodingException, ManagedObjectNotFoundException,
+      ConcurrentModificationException, AuthorizationException,
+      CommunicationException;
+
+
+
+  /**
+   * Retrieves a set child managed object.
+   *
+   * @param <C>
+   *          The requested type of the child managed object
+   *          configuration client.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          relation definition refers to.
+   * @param r
+   *          The set relation definition.
+   * @param name
+   *          The name of the child managed object.
+   * @return Returns the set child managed object.
+   * @throws IllegalArgumentException
+   *           If the relation definition is not associated with this
+   *           managed object's definition.
+   * @throws DefinitionDecodingException
+   *           If the managed object was found but its type could not
+   *           be determined.
+   * @throws ManagedObjectDecodingException
+   *           If the managed object was found but one or more of its
+   *           properties could not be decoded.
+   * @throws ManagedObjectNotFoundException
+   *           If the requested managed object could not be found on
+   *           the server.
+   * @throws ConcurrentModificationException
+   *           If this managed object has been removed from the server
+   *           by another client.
+   * @throws AuthorizationException
+   *           If the server refuses to retrieve the managed object
+   *           because the client does not have the correct
+   *           privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
+   */
+  <C extends ConfigurationClient, S extends Configuration>
+  ManagedObject<? extends C> getChild(SetRelationDefinition<C, S> r,
+      String name) throws IllegalArgumentException, DefinitionDecodingException,
       ManagedObjectDecodingException, ManagedObjectNotFoundException,
       ConcurrentModificationException, AuthorizationException,
       CommunicationException;
@@ -582,6 +668,80 @@ public interface ManagedObject<T extends ConfigurationClient> extends
 
 
   /**
+   * Lists the child managed objects associated with the specified set
+   * relation.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          relation definition refers to.
+   * @param r
+   *          The set relation definition.
+   * @return Returns the names of the child managed objects which for
+   *         set relations are the definition names of each managed
+   *         object.
+   * @throws IllegalArgumentException
+   *           If the relation definition is not associated with this
+   *           managed object's definition.
+   * @throws ConcurrentModificationException
+   *           If this managed object has been removed from the server
+   *           by another client.
+   * @throws AuthorizationException
+   *           If the server refuses to list the managed objects because
+   *           the client does not have the correct privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
+   */
+  <C extends ConfigurationClient, S extends Configuration>
+  String[] listChildren(SetRelationDefinition<C, S> r)
+      throws IllegalArgumentException, ConcurrentModificationException,
+      AuthorizationException, CommunicationException;
+
+
+
+  /**
+   * Lists the child managed objects associated with the specified set
+   * relation which are a sub-type of the specified managed object
+   * definition.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          relation definition refers to.
+   * @param r
+   *          The set relation definition.
+   * @param d
+   *          The managed object definition.
+   * @return Returns the names of the child managed objects which for
+   *         set relations are the definition names of each managed
+   *         object.
+   * @throws IllegalArgumentException
+   *           If the relation definition is not associated with this
+   *           managed object's definition.
+   * @throws ConcurrentModificationException
+   *           If this managed object has been removed from the server
+   *           by another client.
+   * @throws AuthorizationException
+   *           If the server refuses to list the managed objects because
+   *           the client does not have the correct privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
+   */
+  <C extends ConfigurationClient, S extends Configuration>
+  String[] listChildren(SetRelationDefinition<C, S> r,
+      AbstractManagedObjectDefinition<? extends C, ? extends S> d)
+      throws IllegalArgumentException, ConcurrentModificationException,
+      AuthorizationException, CommunicationException;
+
+
+
+  /**
    * Removes the named instantiable child managed object.
    *
    * @param <C>
@@ -659,6 +819,49 @@ public interface ManagedObject<T extends ConfigurationClient> extends
    */
   <C extends ConfigurationClient, S extends Configuration>
   void removeChild(OptionalRelationDefinition<C, S> r)
+      throws IllegalArgumentException, ManagedObjectNotFoundException,
+      OperationRejectedException, ConcurrentModificationException,
+      AuthorizationException, CommunicationException;
+
+
+
+  /**
+   * Removes s set child managed object.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          relation definition refers to.
+   * @param r
+   *          The set relation definition.
+   * @param name
+   *          The name of the child managed object to be removed.
+   * @throws IllegalArgumentException
+   *           If the relation definition is not associated with this
+   *           managed object's definition.
+   * @throws ManagedObjectNotFoundException
+   *           If the managed object could not be removed because it
+   *           could not found on the server.
+   * @throws OperationRejectedException
+   *           If the managed object cannot be removed due to some
+   *           client-side or server-side constraint which cannot be
+   *           satisfied (for example, if it is referenced by another
+   *           managed object).
+   * @throws ConcurrentModificationException
+   *           If this managed object has been removed from the server
+   *           by another client.
+   * @throws AuthorizationException
+   *           If the server refuses to remove the managed objects
+   *           because the client does not have the correct
+   *           privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
+   */
+  <C extends ConfigurationClient, S extends Configuration>
+  void removeChild(SetRelationDefinition<C, S> r, String name)
       throws IllegalArgumentException, ManagedObjectNotFoundException,
       OperationRejectedException, ConcurrentModificationException,
       AuthorizationException, CommunicationException;

@@ -22,9 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
-package org.opends.server.plugins;
+package org.opends.server.core.networkgroups;
 
 
 
@@ -40,7 +40,6 @@ import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.*;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.types.AuthenticationType;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
@@ -73,10 +72,6 @@ public final class NetworkGroupPlugin
        extends DirectoryServerPlugin<NetworkGroupPluginCfg>
        implements ConfigurationChangeListener<NetworkGroupPluginCfg>
 {
-  // The current configuration for this plugin.
-  private NetworkGroupPluginCfg currentConfig;
-
-
 
   /**
    * Creates a new instance of this Directory Server plugin.  Every plugin must
@@ -87,8 +82,6 @@ public final class NetworkGroupPlugin
   public NetworkGroupPlugin()
   {
     super();
-
-
   }
 
   /**
@@ -99,8 +92,6 @@ public final class NetworkGroupPlugin
                                      NetworkGroupPluginCfg configuration)
          throws ConfigException
   {
-    currentConfig = configuration;
-
     // Make sure that the plugin has been enabled for the appropriate types.
     for (PluginType t : pluginTypes)
     {
@@ -151,7 +142,7 @@ public final class NetworkGroupPlugin
           boolean fullCheck,
           ArrayList<Message> messages)
   {
-    if (!connection.getNetworkGroup().checkResourceLimits(
+    if (!connection.getNetworkGroup().checkResourceLimitsPolicy(
             connection, operation, fullCheck, messages)) {
       return false;
     }
@@ -449,7 +440,6 @@ public final class NetworkGroupPlugin
   public ConfigChangeResult applyConfigurationChange(
                                  NetworkGroupPluginCfg configuration)
   {
-    currentConfig = configuration;
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 }

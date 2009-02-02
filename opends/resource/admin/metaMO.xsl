@@ -22,7 +22,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2009 Sun Microsystems, Inc.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
   xmlns:admpp="http://www.opends.org/admin-preprocessor"
@@ -848,8 +848,11 @@
       <xsl:when test="adm:one-to-zero-or-one">
         <xsl:text>OptionalRelationDefinition&lt;</xsl:text>
       </xsl:when>
-      <xsl:when test="adm:one-to-many">
+      <xsl:when test="string(adm:one-to-many/@unique) != 'true'">
         <xsl:text>InstantiableRelationDefinition&lt;</xsl:text>
+      </xsl:when>
+      <xsl:when test="string(adm:one-to-many/@unique) = 'true'">
+        <xsl:text>SetRelationDefinition&lt;</xsl:text>
       </xsl:when>
       <xsl:otherwise>
         <xsl:message terminate="yes">
@@ -893,8 +896,11 @@
         <xsl:when test="adm:one-to-zero-or-one">
           <xsl:text>OptionalRelationDefinition</xsl:text>
         </xsl:when>
-        <xsl:when test="adm:one-to-many">
+        <xsl:when test="string(adm:one-to-many/@unique) != 'true'">
           <xsl:text>InstantiableRelationDefinition</xsl:text>
+        </xsl:when>
+        <xsl:when test="string(adm:one-to-many/@unique) = 'true'">
+          <xsl:text>SetRelationDefinition</xsl:text>
         </xsl:when>
         <xsl:otherwise>
           <xsl:message terminate="yes">
@@ -918,6 +924,12 @@
     <xsl:value-of
       select="concat($java-managed-object-name, 'CfgDefn.getInstance());&#xa;')" />
     <xsl:if test="adm:one-to-many/@naming-property">
+      <xsl:if test="string(adm:one-to-many/@unique) = 'true'">
+        <xsl:message terminate="yes">
+          <xsl:value-of
+            select="concat('Naming properties found in unique one-to-many relation &quot;', @name, '&quot;.')" />
+        </xsl:message>
+      </xsl:if>
       <xsl:variable name="java-property-name">
         <xsl:call-template name="name-to-java">
           <xsl:with-param name="value"
@@ -1111,8 +1123,11 @@
       <xsl:when test="adm:one-to-zero-or-one">
         <xsl:text>OptionalRelationDefinition&lt;</xsl:text>
       </xsl:when>
-      <xsl:when test="adm:one-to-many">
+      <xsl:when test="string(adm:one-to-many/@unique) != 'true'">
         <xsl:text>InstantiableRelationDefinition&lt;</xsl:text>
+      </xsl:when>
+      <xsl:when test="string(adm:one-to-many/@unique) = 'true'">
+        <xsl:text>SetRelationDefinition&lt;</xsl:text>
       </xsl:when>
       <xsl:otherwise>
         <xsl:message terminate="yes">
@@ -1259,14 +1274,29 @@
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
-        <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
-                         '    public &lt;M extends ', $java-class-name, 'CfgClient&gt; M create', $java-relation-name, '(&#xa;',
-                         '        ManagedObjectDefinition&lt;M, ? extends ', $java-class-name,'Cfg&gt; d, String name, Collection&lt;DefaultBehaviorException&gt; exceptions) throws IllegalManagedObjectNameException {&#xa;',
-                         '      return impl.createChild(INSTANCE.get', $java-relation-plural-name,'RelationDefinition(), d, name, exceptions).getConfiguration();&#xa;',
-                         '    }&#xa;')" />
+        <xsl:choose>
+          <xsl:when test="string(adm:one-to-many/@unique) != 'true'">
+            <xsl:value-of
+              select="concat('    /**&#xa;',
+                             '     * {@inheritDoc}&#xa;',
+                             '     */&#xa;',
+                             '    public &lt;M extends ', $java-class-name, 'CfgClient&gt; M create', $java-relation-name, '(&#xa;',
+                             '        ManagedObjectDefinition&lt;M, ? extends ', $java-class-name,'Cfg&gt; d, String name, Collection&lt;DefaultBehaviorException&gt; exceptions) throws IllegalManagedObjectNameException {&#xa;',
+                             '      return impl.createChild(INSTANCE.get', $java-relation-plural-name,'RelationDefinition(), d, name, exceptions).getConfiguration();&#xa;',
+                             '    }&#xa;')" />
+          </xsl:when>
+          <xsl:when test="string(adm:one-to-many/@unique) = 'true'">
+            <!--  Unique one-to-many children are named implicitly by their definition -->
+            <xsl:value-of
+              select="concat('    /**&#xa;',
+                             '     * {@inheritDoc}&#xa;',
+                             '     */&#xa;',
+                             '    public &lt;M extends ', $java-class-name, 'CfgClient&gt; M create', $java-relation-name, '(&#xa;',
+                             '        ManagedObjectDefinition&lt;M, ? extends ', $java-class-name,'Cfg&gt; d, Collection&lt;DefaultBehaviorException&gt; exceptions) {&#xa;',
+                             '      return impl.createChild(INSTANCE.get', $java-relation-plural-name,'RelationDefinition(), d, exceptions).getConfiguration();&#xa;',
+                             '    }&#xa;')" />
+          </xsl:when>
+        </xsl:choose>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
@@ -1841,9 +1871,14 @@
         <xsl:if test="$this-is-hidden or $this-is-advanced">
           <import>org.opends.server.admin.ManagedObjectOption</import>
         </xsl:if>
-        <xsl:if test="$this-all-relations/adm:one-to-many">
+        <xsl:if test="$this-all-relations/adm:one-to-many[not(@unique = 'true')]">
           <import>
             org.opends.server.admin.InstantiableRelationDefinition
+          </import>
+        </xsl:if>
+        <xsl:if test="$this-all-relations/adm:one-to-many[@unique = 'true']">
+          <import>
+            org.opends.server.admin.SetRelationDefinition
           </import>
         </xsl:if>
         <xsl:if test="$this-all-relations/adm:one-to-zero-or-one">
@@ -1912,9 +1947,11 @@
             </xsl:if>
             <xsl:if test="$this-all-relations/adm:one-to-many">
               <import>java.util.Collection</import>
-              <import>
-                org.opends.server.admin.client.IllegalManagedObjectNameException
-              </import>
+              <xsl:if test="$this-all-relations/adm:one-to-many[not(@unique = 'true')]">
+                <import>
+                  org.opends.server.admin.client.IllegalManagedObjectNameException
+                </import>
+              </xsl:if>
               <import>
                 org.opends.server.admin.DefaultBehaviorException
               </import>

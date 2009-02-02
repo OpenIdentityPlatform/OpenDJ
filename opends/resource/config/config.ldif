@@ -20,7 +20,7 @@
 #
 # CDDL HEADER END
 #
-#      Copyright 2006-2008 Sun Microsystems, Inc.
+#      Copyright 2006-2009 Sun Microsystems, Inc.
 #
 #
 # This file contains the primary Directory Server configuration.  It must not
@@ -1796,7 +1796,7 @@ objectClass: top
 objectClass: ds-cfg-plugin
 objectClass: ds-cfg-network-group-plugin
 cn: Network Group
-ds-cfg-java-class: org.opends.server.plugins.NetworkGroupPlugin
+ds-cfg-java-class: org.opends.server.core.networkgroups.NetworkGroupPlugin
 ds-cfg-enabled: true
 ds-cfg-invoke-for-internal-operations: false
 ds-cfg-plugin-type: postConnect

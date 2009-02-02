@@ -22,22 +22,24 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core.networkgroups;
 
 
-import static org.opends.messages.CoreMessages.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.opends.server.config.ConfigConstants.DN_BACKEND_BASE;
 
 import java.util.ArrayList;
+import java.util.Collections;
+
+import static org.opends.messages.CoreMessages.*;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.admin.std.meta.NetworkGroupCriteriaCfgDefn.AllowedAuthMethod;
+import org.opends.server.admin.std.meta.NetworkGroupCfgDefn.AllowedAuthMethod;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.*;
 import org.opends.server.extensions.NullConnectionSecurityProvider;
@@ -51,6 +53,7 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ResultCode;
@@ -461,7 +464,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
       String networkGroupID,
       DN     workflowBaseDN
       )
-      throws DirectoryException
+      throws Exception
   {
     // Create and register the network group with the server.
     NetworkGroup networkGroup = new NetworkGroup(networkGroupID);
@@ -474,10 +477,10 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     {
       networkGroup.register();
     }
-    catch (DirectoryException de)
+    catch (InitializationException e)
     {
       exceptionRaised = true;
-      assertEquals(de.getMessageObject().getDescriptor(),
+      assertEquals(e.getMessageObject().getDescriptor(),
                    ERR_REGISTER_NETWORK_GROUP_ALREADY_EXISTS);
     }
     assertEquals(exceptionRaised, true);
@@ -552,7 +555,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Dump the default network group
     dump(adminNG, "adminNetworkGroup> ");
-    
+
     // let's get the internal network group -- it should always exist
     NetworkGroup internalNG = NetworkGroup.getInternalNetworkGroup();
     assertNotNull(internalNG);
@@ -592,7 +595,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
       DN subordinate2,
       DN subordinate3,
       DN unrelatedDN
-      ) throws DirectoryException
+      ) throws Exception
   {
     // The network group identifier is always the same for this test.
     String networkGroupID = "Network Group for test2";
@@ -758,53 +761,84 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
       String networkGroupID,
       DN     workflowBaseDN,
       int    priority,
-      int    maxConnections,
-      int    maxConnectionsFromSameClient,
-      int    maxOpsPerConn,
-      int    maxConcurrentOpsPerConn,
-      int    searchTimeLimit,
-      int    searchSizeLimit,
-      int    minSubstringLength
+      final int    maxConnections,
+      final int    maxConnectionsFromSameClient,
+      final int    maxOpsPerConn,
+      final int    maxConcurrentOpsPerConn,
+      final int    searchTimeLimit,
+      final int    searchSizeLimit,
+      final int    minSubstringLength
       )
-      throws DirectoryException
+      throws Exception
   {
     // Create and register the network group with the server.
-    NetworkGroup networkGroup = new NetworkGroup(networkGroupID);
-    networkGroup.register();
+    TestCaseUtils.dsconfig(
+        "set-global-configuration-prop",
+        "--set", "workflow-configuration-mode:manual");
 
-    networkGroup.setNetworkGroupPriority(priority);
+    try
+    {
+      TestCaseUtils.dsconfig(
+          "create-network-group",
+          "--group-name", networkGroupID,
+          "--set", "enabled:true",
+          "--set", "priority:" + priority);
 
-    // Create a workflow -- the workflow ID is the string representation
-    // of the workflow base DN.
-    WorkflowElement<?> nullWE = null;
-    WorkflowImpl workflow = new WorkflowImpl(
-        workflowBaseDN.toString(), workflowBaseDN, null, nullWE);
+      try
+      {
+        // Ensure that the network group was created ok.
+        NetworkGroup networkGroup = NetworkGroup.getNetworkGroup(networkGroupID);
+        assertNotNull(networkGroup, "The network group does not seem to be registered.");
 
-    // Register the workflow with the network group.
-    networkGroup.registerWorkflow(workflow);
+        TestCaseUtils.dsconfig(
+            "create-network-group-qos-policy",
+            "--group-name", networkGroupID,
+            "--type", "resource-limits",
+            "--set", "max-concurrent-ops-per-connection:" + maxConcurrentOpsPerConn,
+            "--set", "max-connections:" + maxConnections,
+            "--set", "max-connections-from-same-ip:" + maxConnectionsFromSameClient,
+            "--set", "max-ops-per-connection:" + maxOpsPerConn,
+            "--set", "min-substring-length:" + minSubstringLength,
+            "--set", "size-limit:" + searchSizeLimit,
+            "--set", "time-limit:" + searchTimeLimit + "s");
 
-    // Create the resource limits
-    ResourceLimits limits = new ResourceLimits(null);
-    limits.setMaxConnections(maxConnections);
-    limits.setMaxConnectionsFromSameIP(maxConnectionsFromSameClient);
-    limits.setMaxOpsPerConnection(maxOpsPerConn);
-    limits.setMaxConcurrentOpsPerConnection(maxConcurrentOpsPerConn);
-    limits.setSearchTimeLimit(searchTimeLimit);
-    limits.setSearchSizeLimit(searchSizeLimit);
-    limits.setMinSearchSubstringLength(minSubstringLength);
+        // Check that the policy was created.
+        ResourceLimitsPolicy policy = networkGroup.getNetworkGroupQOSPolicy(ResourceLimitsPolicy.class);
+        assertNotNull(policy, "The policy was not registered.");
 
-    // Associate the resource limits to the network group
-    networkGroup.setResourceLimits(limits);
+        // Check the resource limits are set properly.
+        assertEquals(policy.getTimeLimit(), searchTimeLimit);
+        assertEquals(policy.getSizeLimit(), searchSizeLimit);
+        assertEquals(policy.getMinSubstring(), minSubstringLength);
 
-    // Check the resource limits
-    assertEquals(networkGroup.getSearchDurationLimit(), searchTimeLimit);
-    assertEquals(networkGroup.getSearchSizeLimit(), searchSizeLimit);
-    assertEquals(networkGroup.getMinSubstring(), minSubstringLength);
+        assertEquals(networkGroup.getTimeLimit(), searchTimeLimit);
+        assertEquals(networkGroup.getSizeLimit(), searchSizeLimit);
+        assertEquals(networkGroup.getMinSubstring(), minSubstringLength);
 
-    // Clean the network group
-    networkGroup.deregisterWorkflow(workflow.getWorkflowId());
-    networkGroup.deregister();
+        TestCaseUtils.dsconfig(
+            "delete-network-group-qos-policy",
+            "--group-name", networkGroupID,
+            "--policy-type", "resource-limits");
+
+        // Check that the policy was removed.
+        policy = networkGroup.getNetworkGroupQOSPolicy(ResourceLimitsPolicy.class);
+        assertNull(policy, "The policy was not deregistered.");
+      }
+      finally
+      {
+        // The policy will get removed by this as well.
+        TestCaseUtils.dsconfig("delete-network-group", "--group-name",
+            networkGroupID);
+      }
+    }
+    finally
+    {
+      TestCaseUtils.dsconfig(
+          "set-global-configuration-prop",
+          "--set", "workflow-configuration-mode:auto");
+    }
   }
+
 
 
   /**
@@ -820,7 +854,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
       DN dn2,
       int prio2
       )
-      throws DirectoryException
+      throws Exception
   {
     // Create and register the network group with the server.
     NetworkGroup networkGroup1 = new NetworkGroup(ng1);
@@ -872,39 +906,36 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
           int prio1,
           int prio2,
           int prio3)
-    throws DirectoryException
+    throws Exception
   {
     // Create a AuthMethodCriteria for anonymous connections
-    AuthMethodCriteria authCriteria1 = new AuthMethodCriteria();
-    authCriteria1.addAuthMethod(AllowedAuthMethod.ANONYMOUS);
-    NetworkGroupCriteria criteria1 = new NetworkGroupCriteria(null);
-    criteria1.setAuthMethodCriteria(authCriteria1);
+    AuthMethodConnectionCriteria authCriteria1 =
+        new AuthMethodConnectionCriteria(Collections
+            .singleton(AllowedAuthMethod.ANONYMOUS));
 
     // Create a AuthMethodCriteria for simple bind connections
-    AuthMethodCriteria authCriteria2 = new AuthMethodCriteria();
-    authCriteria2.addAuthMethod(AllowedAuthMethod.SIMPLE);
-    NetworkGroupCriteria criteria2 = new NetworkGroupCriteria(null);
-    criteria2.setAuthMethodCriteria(authCriteria2);
+    AuthMethodConnectionCriteria authCriteria2 =
+        new AuthMethodConnectionCriteria(Collections
+            .singleton(AllowedAuthMethod.SIMPLE));
 
     // Create a AuthMethodCriteria for sasl connections
-    AuthMethodCriteria authCriteria3 = new AuthMethodCriteria();
-    authCriteria3.addAuthMethod(AllowedAuthMethod.SASL);
-    NetworkGroupCriteria criteria3 = new NetworkGroupCriteria(null);
-    criteria3.setAuthMethodCriteria(authCriteria3);
+    AuthMethodConnectionCriteria authCriteria3 =
+        new AuthMethodConnectionCriteria(Collections
+            .singleton(AllowedAuthMethod.SASL));
 
 
     // Create and register the network group with the server.
     NetworkGroup networkGroup1 = new NetworkGroup("anonymous_group");
     networkGroup1.register();
-    networkGroup1.setCriteria(criteria1);
+    networkGroup1.setConnectionCriteria(authCriteria1);
     networkGroup1.setNetworkGroupPriority(prio1);
     NetworkGroup networkGroup2 = new NetworkGroup("simplebind_group");
     networkGroup2.register();
-    networkGroup2.setCriteria(criteria2);
+    networkGroup2.setConnectionCriteria(authCriteria2);
     networkGroup2.setNetworkGroupPriority(prio2);
     NetworkGroup networkGroup3 = new NetworkGroup("sasl_group");
     networkGroup3.register();
-    networkGroup3.setCriteria(criteria3);
+    networkGroup3.setConnectionCriteria(authCriteria3);
     networkGroup3.setNetworkGroupPriority(prio3);
 
     // Create a new client connection, with anonymous authentication
@@ -943,18 +974,17 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   public void testNetworkGroupBindDnCriteria(
           String bindDnFilter,
           boolean match)
-    throws DirectoryException
+    throws Exception
   {
     // Create a BindDnFilterCriteria
-    BindDnCriteria bindCriteria = new BindDnCriteria();
-    bindCriteria.addBindDnFilter(bindDnFilter);
-    NetworkGroupCriteria criteria = new NetworkGroupCriteria(null);
-    criteria.setBindDnCriteria(bindCriteria);
+    BindDNConnectionCriteria bindCriteria =
+        BindDNConnectionCriteria.decode(Collections
+            .singleton(bindDnFilter));
 
     // Create and register the network group with the server.
     NetworkGroup networkGroup = new NetworkGroup("bindfilter_group");
     networkGroup.register();
-    networkGroup.setCriteria(criteria);
+    networkGroup.setConnectionCriteria(bindCriteria);
 
     NetworkGroup defaultNg = NetworkGroup.getDefaultNetworkGroup();
 
@@ -1000,17 +1030,16 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
    */
   @Test (groups = "virtual")
   public void testNetworkGroupSecurityCriteria()
-    throws DirectoryException
+    throws Exception
   {
     // Create a SecurityCriteria
-    SecurityCriteria secCriteria = new SecurityCriteria(true);
-    NetworkGroupCriteria criteria = new NetworkGroupCriteria(null);
-    criteria.setSecurityCriteria(secCriteria);
+    SecurityConnectionCriteria secCriteria =
+        SecurityConnectionCriteria.SECURITY_REQUIRED;
 
     // Create and register the network group with the server.
     NetworkGroup networkGroup = new NetworkGroup("secured_group");
     networkGroup.register();
-    networkGroup.setCriteria(criteria);
+    networkGroup.setConnectionCriteria(secCriteria);
 
     NetworkGroup defaultNg = NetworkGroup.getDefaultNetworkGroup();
 
@@ -1029,8 +1058,8 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     assertEquals(ng, defaultNg);
 
     // now change the criteria (security not mandatory)
-    secCriteria = new SecurityCriteria(false);
-    criteria.setSecurityCriteria(secCriteria);
+    secCriteria = SecurityConnectionCriteria.SECURITY_NOT_REQUIRED;
+    networkGroup.setConnectionCriteria(secCriteria);
 
     // connection1 should match the networkGroup, even though it is not
     // secured

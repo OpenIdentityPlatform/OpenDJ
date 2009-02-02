@@ -21,7 +21,6 @@
  *
  * CDDL HEADER END
  *
- *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
@@ -47,6 +46,7 @@ import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.RelationDefinition;
+import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
@@ -93,6 +93,28 @@ final class ListSubCommandHandler extends SubCommandHandler {
   public static ListSubCommandHandler create(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
       InstantiableRelationDefinition<?, ?> r) throws ArgumentException {
+    return new ListSubCommandHandler(parser, p, r, r.getPluralName(), r
+        .getUserFriendlyPluralName());
+  }
+
+
+
+  /**
+   * Creates a new list-xxx sub-command for a set relation.
+   *
+   * @param parser
+   *          The sub-command argument parser.
+   * @param p
+   *          The parent managed object path.
+   * @param r
+   *          The set relation.
+   * @return Returns the new list-xxx sub-command.
+   * @throws ArgumentException
+   *           If the sub-command could not be created successfully.
+   */
+  public static ListSubCommandHandler create(
+      SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
+      SetRelationDefinition<?, ?> r) throws ArgumentException {
     return new ListSubCommandHandler(parser, p, r, r.getPluralName(), r
         .getUserFriendlyPluralName());
   }
@@ -216,6 +238,10 @@ final class ListSubCommandHandler extends SubCommandHandler {
       InstantiableRelationDefinition<?, ?> irelation =
         (InstantiableRelationDefinition<?, ?>) relation;
       ufn = irelation.getUserFriendlyPluralName();
+    } else if (relation instanceof SetRelationDefinition) {
+      SetRelationDefinition<?, ?> srelation =
+        (SetRelationDefinition<?, ?>) relation;
+      ufn = srelation.getUserFriendlyPluralName();
     } else {
       ufn = relation.getUserFriendlyName();
     }
@@ -265,6 +291,39 @@ final class ListSubCommandHandler extends SubCommandHandler {
         for (String s : parent.listChildren(irelation)) {
           try {
             children.put(s, parent.getChild(irelation, s));
+          } catch (ManagedObjectNotFoundException e) {
+            // Ignore - as it's been removed since we did the list.
+          }
+        }
+      } catch (DefinitionDecodingException e) {
+        // FIXME: just output this as a warnings (incl. the name) but
+        // continue.
+        Message msg = ERR_DSCFG_ERROR_LIST_DDE.get(ufn, ufn, ufn);
+        throw new ClientException(LDAPResultCode.OTHER, msg);
+      } catch (ManagedObjectDecodingException e) {
+        // FIXME: just output this as a warnings (incl. the name) but
+        // continue.
+        Message msg = ERR_DSCFG_ERROR_LIST_MODE.get(ufn);
+        throw new ClientException(LDAPResultCode.OTHER, msg, e);
+      } catch (AuthorizationException e) {
+        Message msg = ERR_DSCFG_ERROR_LIST_AUTHZ.get(ufn);
+        throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+            msg);
+      } catch (ConcurrentModificationException e) {
+        Message msg = ERR_DSCFG_ERROR_LIST_CME.get(ufn);
+        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
+      } catch (CommunicationException e) {
+        Message msg = ERR_DSCFG_ERROR_LIST_CE.get(ufn, e.getMessage());
+        throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+            msg);
+      }
+    } else if (relation instanceof SetRelationDefinition) {
+      SetRelationDefinition<?, ?> srelation =
+        (SetRelationDefinition<?, ?>) relation;
+      try {
+        for (String s : parent.listChildren(srelation)) {
+          try {
+            children.put(s, parent.getChild(srelation, s));
           } catch (ManagedObjectNotFoundException e) {
             // Ignore - as it's been removed since we did the list.
           }
@@ -363,7 +422,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
       }
       builder.addSortKey(0);
 
-      String baseType = relation.getName();
+      String baseType = relation.getChildDefinition().getName();
       String typeSuffix = "-" + baseType;
       for (String name : children.keySet()) {
         ManagedObject<?> child = children.get(name);
@@ -382,7 +441,11 @@ final class ListSubCommandHandler extends SubCommandHandler {
 
         // First output the name.
         builder.startRow();
-        builder.appendCell(name);
+        if (relation instanceof SetRelationDefinition) {
+          builder.appendCell(d.getUserFriendlyName());
+        } else {
+          builder.appendCell(name);
+        }
 
         // Output the managed object type in the form used in
         // create-xxx commands.

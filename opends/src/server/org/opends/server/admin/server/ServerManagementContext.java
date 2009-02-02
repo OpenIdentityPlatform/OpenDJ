@@ -22,13 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin.server;
 
 
 
+import static org.opends.messages.AdminMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -43,7 +44,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.opends.messages.AdminMessages;
 import org.opends.messages.Message;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
@@ -72,6 +72,7 @@ import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.Reference;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
+import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 import org.opends.server.admin.UnknownPropertyDefinitionException;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
@@ -111,7 +112,7 @@ public final class ServerManagementContext {
 
     // Optional new configuration entry which does not yet exist in
     // the configuration back-end.
-    private ConfigEntry newConfigEntry;
+    private final ConfigEntry newConfigEntry;
 
     // The path of the managed object containing the next property.
     private ManagedObjectPath<?, ?> nextPath = null;
@@ -672,6 +673,58 @@ public final class ServerManagementContext {
 
 
   /**
+   * Lists the child managed objects of the named parent managed
+   * object.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          relation definition refers to.
+   * @param parent
+   *          The path of the parent managed object.
+   * @param rd
+   *          The set relation definition.
+   * @return Returns the names of the child managed objects.
+   * @throws IllegalArgumentException
+   *           If the relation definition is not associated with the
+   *           parent managed object's definition.
+   */
+  public <C extends ConfigurationClient, S extends Configuration>
+  String[] listManagedObjects(
+      ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd)
+      throws IllegalArgumentException {
+    validateRelationDefinition(parent, rd);
+
+    // Get the target entry.
+    DN targetDN = DNBuilder.create(parent, rd);
+    ConfigEntry configEntry;
+    try {
+      configEntry = DirectoryServer.getConfigEntry(targetDN);
+    } catch (ConfigException e) {
+      return new String[0];
+    }
+
+    if (configEntry == null) {
+      return new String[0];
+    }
+
+    // Retrieve the children.
+    Set<DN> children = configEntry.getChildren().keySet();
+    ArrayList<String> names = new ArrayList<String>(children.size());
+    for (DN child : children) {
+      // Assume that RDNs are single-valued and can be trimmed.
+      AttributeValue av = child.getRDN().getAttributeValue(0);
+      names.add(av.getStringValue().trim());
+    }
+
+    return names.toArray(new String[names.size()]);
+  }
+
+
+
+  /**
    * Determines whether or not the named managed object exists.
    *
    * @param path
@@ -902,7 +955,7 @@ public final class ServerManagementContext {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = AdminMessages.ERR_ADMIN_CANNOT_GET_MANAGED_OBJECT.get(
+      Message message = ERR_ADMIN_CANNOT_GET_MANAGED_OBJECT.get(
           String.valueOf(dn), stackTraceToSingleLineString(e));
       throw new ConfigException(message, e);
     }
@@ -910,7 +963,7 @@ public final class ServerManagementContext {
     // The configuration handler is free to return null indicating
     // that the entry does not exist.
     if (configEntry == null) {
-      Message message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST
+      Message message = ERR_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST
           .get(String.valueOf(dn));
       throw new ConfigException(message);
     }

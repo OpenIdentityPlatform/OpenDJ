@@ -22,13 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin.client;
 
 
 
+import java.util.Set;
 import java.util.SortedSet;
 
 import org.opends.server.admin.AbstractManagedObjectDefinition;
@@ -41,6 +42,7 @@ import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyException;
+import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.client.spi.Driver;
 import org.opends.server.admin.std.client.RootCfgClient;
 
@@ -155,6 +157,54 @@ public abstract class ManagementContext {
 
 
   /**
+   * Deletes s set child managed object from the
+   * named parent managed object.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          relation definition refers to.
+   * @param parent
+   *          The path of the parent managed object.
+   * @param rd
+   *          The set relation definition.
+   * @param name
+   *          The name of the child managed object to be removed.
+   * @return Returns <code>true</code> if the set
+   *         child managed object was found, or <code>false</code>
+   *         if it was not found.
+   * @throws IllegalArgumentException
+   *           If the relation definition is not associated with the
+   *           parent managed object's definition.
+   * @throws ManagedObjectNotFoundException
+   *           If the parent managed object could not be found.
+   * @throws OperationRejectedException
+   *           If the managed object cannot be removed due to some
+   *           client-side or server-side constraint which cannot be
+   *           satisfied (for example, if it is referenced by another
+   *           managed object).
+   * @throws AuthorizationException
+   *           If the server refuses to remove the managed objects
+   *           because the client does not have the correct
+   *           privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
+   */
+  public final <C extends ConfigurationClient, S extends Configuration>
+  boolean deleteManagedObject(
+      ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd,
+      String name) throws IllegalArgumentException,
+      ManagedObjectNotFoundException, OperationRejectedException,
+      AuthorizationException, CommunicationException {
+    return getDriver().deleteManagedObject(parent, rd, name);
+  }
+
+
+
+  /**
    * Gets the named managed object.
    *
    * @param <C>
@@ -236,7 +286,12 @@ public abstract class ManagementContext {
       DefinitionDecodingException, AuthorizationException,
       ManagedObjectNotFoundException, CommunicationException,
       PropertyException {
-    return getDriver().getPropertyValue(path, pd);
+    Set<PD> values = getPropertyValues(path, pd);
+    if (values.isEmpty()) {
+      return null;
+    } else {
+      return values.iterator().next();
+    }
   }
 
 
@@ -343,7 +398,7 @@ public abstract class ManagementContext {
       ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd)
       throws IllegalArgumentException, ManagedObjectNotFoundException,
       AuthorizationException, CommunicationException {
-    return getDriver().listManagedObjects(parent, rd);
+    return listManagedObjects(parent, rd, rd.getChildDefinition());
   }
 
 
@@ -387,6 +442,44 @@ public abstract class ManagementContext {
       throws IllegalArgumentException, ManagedObjectNotFoundException,
       AuthorizationException, CommunicationException {
     return getDriver().listManagedObjects(parent, rd, d);
+  }
+
+
+
+  /**
+   * Lists the child managed objects of the named parent managed
+   * object.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          relation definition refers to.
+   * @param parent
+   *          The path of the parent managed object.
+   * @param rd
+   *          The set relation definition.
+   * @return Returns the names of the child managed objects.
+   * @throws IllegalArgumentException
+   *           If the relation definition is not associated with the
+   *           parent managed object's definition.
+   * @throws ManagedObjectNotFoundException
+   *           If the parent managed object could not be found.
+   * @throws AuthorizationException
+   *           If the server refuses to list the managed objects
+   *           because the client does not have the correct
+   *           privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
+   */
+  public final <C extends ConfigurationClient, S extends Configuration>
+  String[] listManagedObjects(
+      ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd)
+      throws IllegalArgumentException, ManagedObjectNotFoundException,
+      AuthorizationException, CommunicationException {
+    return getDriver().listManagedObjects(parent, rd, rd.getChildDefinition());
   }
 
 

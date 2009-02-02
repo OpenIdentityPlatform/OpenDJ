@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2009 Sun Microsystems, Inc.
   ! -->
 <adm:root-managed-object xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap"
@@ -416,13 +416,15 @@
     </adm:profile>
   </adm:relation>
   <adm:relation name="network-group">
-    <adm:one-to-many naming-property="network-group-id" />
+    <adm:one-to-many />
     <adm:profile name="ldap">
       <ldap:rdn-sequence>cn=Network Groups,cn=config</ldap:rdn-sequence>
     </adm:profile>
     <adm:profile name="cli">
       <cli:relation>
         <cli:default-property name="enabled" />
+        <cli:default-property name="priority" />
+        <cli:default-property name="workflow" />
       </cli:relation>
     </adm:profile>
   </adm:relation>

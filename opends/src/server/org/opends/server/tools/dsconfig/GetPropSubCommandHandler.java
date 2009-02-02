@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -52,6 +52,7 @@ import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
+import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 import org.opends.server.admin.client.AuthorizationException;
@@ -122,6 +123,27 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
   public static GetPropSubCommandHandler create(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
       OptionalRelationDefinition<?, ?> r) throws ArgumentException {
+    return new GetPropSubCommandHandler(parser, path.child(r), r);
+  }
+
+
+
+  /**
+   * Creates a new get-xxx-prop sub-command for a set relation.
+   *
+   * @param parser
+   *          The sub-command argument parser.
+   * @param path
+   *          The parent managed object path.
+   * @param r
+   *          The set relation.
+   * @return Returns the new get-xxx-prop sub-command.
+   * @throws ArgumentException
+   *           If the sub-command could not be created successfully.
+   */
+  public static GetPropSubCommandHandler create(
+      SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
+      SetRelationDefinition<?, ?> r) throws ArgumentException {
     return new GetPropSubCommandHandler(parser, path.child(r), r);
   }
 

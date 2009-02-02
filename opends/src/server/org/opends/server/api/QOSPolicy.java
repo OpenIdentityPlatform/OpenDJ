@@ -22,25 +22,35 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
-package org.opends.server.core.networkgroups;
+
+package org.opends.server.api;
+
 
 
 /**
- * This class defines the network group policy. A client connection
- * that belongs to a network group has to comply with the policies
- * attach to the network group.
+ * An abstract QOS policy.
  */
-public class NetworkGroupPolicy
+public abstract class QOSPolicy
 {
-
   /**
-   * Creates a new instance of the network group policy.
+   * Creates a new abstract QOS Policy.
    */
-  public NetworkGroupPolicy()
+  protected QOSPolicy()
   {
-    // No implementation is required.
+    // No implementation required.
   }
 
+
+
+  /**
+   * Performs any necessary work to finalize this QOS policy.
+   * <p>
+   * The default implementation is to do nothing.
+   */
+  public void finalizeQOSPolicy()
+  {
+    // Do nothing by default.
+  }
 }
