@@ -366,7 +366,7 @@
               
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'telephoneNumber:' ,
+                    'testString'         : 'telephonenumber:' ,
                     'expectedResult'     : '1' }
               </call>
               
@@ -689,7 +689,7 @@
               
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
-                    'testString'         : 'telephoneNumber:' ,
+                    'testString'         : 'telephonenumber:' ,
                     'expectedResult'     : '1' }
               </call>
               
