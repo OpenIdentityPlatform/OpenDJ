@@ -31,9 +31,11 @@ import static org.opends.messages.AdminToolMessages.*;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.MouseAdapter;
@@ -73,6 +75,7 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
@@ -2100,5 +2103,88 @@ public class Utilities
     }
     label.setIcon(requiredIcon);
     label.setHorizontalTextPosition(SwingConstants.LEADING);
+  }
+
+
+  /**
+   * Updates the scrolls with the provided points.
+   * This method uses SwingUtilities.invokeLater so it can be also called
+   * outside the event thread.
+   * @param pos the scroll and points.
+   */
+  public static void updateViewPositions(final ViewPositions pos)
+  {
+    SwingUtilities.invokeLater(new Runnable()
+    {
+      public void run()
+      {
+        for (int i=0; i<pos.size(); i++)
+        {
+          pos.getScrollPane(i).getViewport().setViewPosition(pos.getPoint(i));
+        }
+      }
+    });
+  }
+
+  /**
+   * Gets the view positions object for the provided component.  This includes
+   * all the scroll panes inside the provided component.
+   * @param comp the component.
+   * @return the view positions for the provided component.
+   */
+  public static ViewPositions getViewPositions(Component comp)
+  {
+    ViewPositions pos = new ViewPositions();
+    if (comp instanceof Container)
+    {
+      updateContainedViewPositions((Container)comp, pos);
+    }
+    return pos;
+  }
+
+  /**
+   * Returns the scrolpane where the provided component is contained.
+   * <CODE>null</CODE> if the component is not contained in any scrolpane.
+   * @param comp the component.
+   * @return the scrolpane where the provided component is contained.
+   */
+  public static JScrollPane getContainingScroll(Component comp)
+  {
+    JScrollPane scroll = null;
+    Container parent = comp.getParent();
+    while ((scroll == null) && (parent != null))
+    {
+      if (parent instanceof JScrollPane)
+      {
+        scroll = (JScrollPane)parent;
+      }
+      else
+      {
+        parent = parent.getParent();
+      }
+    }
+    return scroll;
+  }
+
+  private static void updateContainedViewPositions(Container comp,
+      ViewPositions pos)
+  {
+    if (comp instanceof JScrollPane)
+    {
+      JScrollPane scroll = (JScrollPane)comp;
+      Point p = scroll.getViewport().getViewPosition();
+      pos.add(scroll, p);
+    }
+    else
+    {
+      for (int i=0; i<comp.getComponentCount(); i++)
+      {
+        Component child = comp.getComponent(i);
+        if (child instanceof Container)
+        {
+          updateContainedViewPositions((Container)child, pos);
+        }
+      }
+    }
   }
 }

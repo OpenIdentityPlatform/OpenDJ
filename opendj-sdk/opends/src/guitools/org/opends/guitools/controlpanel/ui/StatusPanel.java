@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -49,6 +49,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -64,6 +65,7 @@ import org.opends.guitools.controlpanel.ui.components.LabelWithHelpIcon;
 import org.opends.guitools.controlpanel.ui.renderer.BaseDNCellRenderer;
 import org.opends.guitools.controlpanel.ui.renderer.CustomCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.guitools.controlpanel.util.ViewPositions;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.types.DN;
@@ -232,6 +234,17 @@ class StatusPanel extends StatusGenericPanel
    */
   public void updateContents(ServerDescriptor desc)
   {
+    JScrollPane scroll = Utilities.getContainingScroll(this);
+    ViewPositions pos;
+    if (scroll != null)
+    {
+      pos = Utilities.getViewPositions(scroll);
+    }
+    else
+    {
+      pos = Utilities.getViewPositions(this);
+    }
+
     Collection<OpenDsException> exceptions = desc.getExceptions();
     if (exceptions.size() == 0)
     {
@@ -412,6 +425,8 @@ class StatusPanel extends StatusGenericPanel
     authenticate.setVisible(!isAuthenticated && isRunning);
 
     recalculateSizes();
+
+    Utilities.updateViewPositions(pos);
   }
 
   /**

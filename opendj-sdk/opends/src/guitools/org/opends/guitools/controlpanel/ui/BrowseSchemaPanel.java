@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -34,6 +34,7 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -82,6 +83,7 @@ import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.ui.renderer.TreeCellRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.guitools.controlpanel.util.ViewPositions;
 import org.opends.messages.Message;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
@@ -109,6 +111,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
 
   private SchemaBrowserRightPanel entryPane;
   private TreePanel treePane;
+
+  private JScrollPane treeScroll;
 
   private TreePath lastEntryTreePath;
 
@@ -317,7 +321,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
         if ((e.getKeyCode() == KeyEvent.VK_ENTER) && applyButton.isEnabled())
         {
           filter.displayRefreshIcon(FilterTextField.DEFAULT_REFRESH_ICON_TIME);
-          repopulateTree(treePane.getTree());
+          repopulateTree(treePane.getTree(), false);
         }
       }
     });
@@ -329,7 +333,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       public void actionPerformed(ActionEvent ev)
       {
         filter.displayRefreshIcon(FilterTextField.DEFAULT_REFRESH_ICON_TIME);
-        repopulateTree(treePane.getTree());
+        repopulateTree(treePane.getTree(), false);
       }
     });
     gbc.gridx ++;
@@ -351,7 +355,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       public void actionPerformed(ActionEvent ev)
       {
         filter.displayRefreshIcon(FilterTextField.DEFAULT_REFRESH_ICON_TIME);
-        repopulateTree(treePane.getTree());
+        repopulateTree(treePane.getTree(), false);
       }
     });
 
@@ -479,7 +483,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     Utilities.setBorder(lNoMatchFound, new EmptyBorder(15, 15, 15, 15));
     gbc.fill = GridBagConstraints.HORIZONTAL;
     p.add(lNoMatchFound, gbc);
-    JScrollPane treeScroll = Utilities.createScrollPane(p);
+    treeScroll = Utilities.createScrollPane(p);
 
     entryPane.addSchemaElementSelectionListener(
         new SchemaElementSelectionListener()
@@ -608,6 +612,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final ServerDescriptor desc = ev.getNewDescriptor();
+    final boolean forceScroll = lastSchema == null;
     if ((lastSchema == null) ||
         !ServerDescriptor.areSchemasEqual(lastSchema, desc.getSchema())||
         true)
@@ -619,7 +624,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
         {
           public void run()
           {
-            repopulateTree(treePane.getTree());
+            repopulateTree(treePane.getTree(), forceScroll);
           }
         });
       }
@@ -676,14 +681,18 @@ public class BrowseSchemaPanel extends StatusGenericPanel
   /**
    * Repopulates the tree.
    * @param tree the tree to be repopulated.
+   * @param forceScroll whether the scroll must be reset or not.
    */
-  private void repopulateTree(JTree tree)
+  private void repopulateTree(JTree tree, final boolean forceScroll)
   {
     if (lastSchema == null)
     {
       return;
     }
     ignoreSelectionEvents = true;
+
+    final Point currentPosition = treeScroll.getViewport().getViewPosition();
+
     DefaultMutableTreeNode root = getRoot(tree);
 
     TreePath path = tree.getSelectionPath();
@@ -1023,6 +1032,21 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       }
     }
     repaint();
+
+    SwingUtilities.invokeLater(new Runnable()
+    {
+      public void run()
+      {
+        if (forceScroll)
+        {
+          treeScroll.getViewport().setViewPosition(new Point(0, 0));
+        }
+        else
+        {
+          treeScroll.getViewport().setViewPosition(currentPosition);
+        }
+      }
+    });
   }
 
   /**
@@ -1031,6 +1055,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
    */
   private void updateEntryPane()
   {
+    ViewPositions pos = Utilities.getViewPositions(entryPane);
     TreePath[] paths = treePane.getTree().getSelectionPaths();
     TreePath path = null;
     if ((paths != null) && (paths.length == 1))
@@ -1123,6 +1148,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
         entryPane.displayMessage(NO_SCHEMA_ITEM_SELECTED);
       }
     }
+    Utilities.updateViewPositions(pos);
   }
 
   /**
