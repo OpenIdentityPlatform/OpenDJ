@@ -37,7 +37,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.opends.server.types.AttributeValues;
 import org.opends.server.types.Attributes;
 
 /**
@@ -136,7 +136,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
     AttributeBuilder builder = new AttributeBuilder(type, ATTR_SERVER_STATE);
     for (String str : domain.getServerState().toStringSet())
     {
-      builder.add(new AttributeValue(type,str));
+      builder.add(AttributeValues.create(type,str));
     }
     attributes.add(builder.toAttribute());
 
@@ -205,7 +205,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
       for (Short serverId : srSrvNotAckUps.keySet())
       {
         String str = serverId + ":" + srSrvNotAckUps.get(serverId);
-        builder.add(new AttributeValue(type, str));
+        builder.add(AttributeValues.create(type, str));
       }
       attributes.add(builder.toAttribute());
     }
@@ -238,7 +238,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
       for (Short serverId : sdSrvTimUps.keySet())
       {
         String str = serverId + ":" + sdSrvTimUps.get(serverId);
-        builder.add(new AttributeValue(type, str));
+        builder.add(AttributeValues.create(type, str));
       }
       attributes.add(builder.toAttribute());
     }
@@ -270,7 +270,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
       int value)
   {
     AttributeType type = DirectoryServer.getDefaultAttributeType(name);
-    attributes.add(Attributes.create(type, new AttributeValue(type,
+    attributes.add(Attributes.create(type, AttributeValues.create(type,
         String.valueOf(value))));
   }
 
@@ -288,7 +288,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
       long value)
   {
     AttributeType type = DirectoryServer.getDefaultAttributeType(name);
-    attributes.add(Attributes.create(type, new AttributeValue(type,
+    attributes.add(Attributes.create(type, AttributeValues.create(type,
         String.valueOf(value))));
   }
 
@@ -306,7 +306,8 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
       String value)
   {
     AttributeType type = DirectoryServer.getDefaultAttributeType(name);
-    attributes.add(Attributes.create(type, new AttributeValue(type, value)));
+    attributes
+        .add(Attributes.create(type, AttributeValues.create(type, value)));
   }
 
   /**

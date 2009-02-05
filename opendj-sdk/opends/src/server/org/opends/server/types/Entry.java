@@ -50,8 +50,6 @@ import org.opends.server.api.ProtocolElement;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.util.LDIFException;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -108,6 +106,8 @@ public class Entry
 
   // The set of objectclasses for this entry.
   private Map<ObjectClass,String> objectClasses;
+
+  private Attribute objectClassAttribute;
 
   // The DN for this entry.
   private DN dn;
@@ -310,12 +310,12 @@ public class Entry
          new LinkedHashMap<ObjectClass,String>();
     for (AttributeValue v : objectClassNames)
     {
-      String name = v.getStringValue();
+      String name = v.getValue().toString();
 
       String lowerName;
       try
       {
-        lowerName = v.getNormalizedStringValue();
+        lowerName = v.getNormalizedValue().toString();
       }
       catch (Exception e)
       {
@@ -324,7 +324,7 @@ public class Entry
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        lowerName = toLowerCase(v.getStringValue());
+        lowerName = toLowerCase(v.getValue().toString());
       }
 
       ObjectClass oc = DirectoryServer.getObjectClass(lowerName);
@@ -340,9 +340,10 @@ public class Entry
     }
 
 
-    // If we've gotten here, then everything is fine so put the new
+    // If we've gotten here, then everything is fine so append the new
     // set of objectclasses.
     objectClasses = ocMap;
+    objectClassAttribute = null;
   }
 
 
@@ -455,17 +456,26 @@ public class Entry
       return null;
     }
 
-    AttributeType ocType =
-      DirectoryServer.getObjectClassAttributeType();
-    AttributeBuilder builder =
-      new AttributeBuilder(ocType, ATTR_OBJECTCLASS);
-
-    for (String s : objectClasses.values())
+    if(objectClassAttribute == null)
     {
-      builder.add(new AttributeValue(ocType, new ASN1OctetString(s)));
+      AttributeType ocType =
+          DirectoryServer.getObjectClassAttributeType();
+      AttributeBuilder builder =
+          new AttributeBuilder(ocType, ATTR_OBJECTCLASS);
+
+      for (Map.Entry<ObjectClass, String> e :
+          objectClasses.entrySet())
+      {
+        builder.add(AttributeValues.create(
+            ByteString.valueOf(e.getValue()),
+            ByteString.valueOf(e.getKey()
+                .getNormalizedPrimaryName())));
+      }
+
+      objectClassAttribute = builder.toAttribute();
     }
 
-    return builder.toAttribute();
+    return objectClassAttribute;
   }
 
 
@@ -1487,7 +1497,7 @@ public class Entry
           ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
-    String incrementValue = i.next().getStringValue();
+    String incrementValue = i.next().getValue().toString();
     long increment;
     try
     {
@@ -1514,7 +1524,7 @@ public class Entry
 
     for (AttributeValue v : a)
     {
-      String s = v.getStringValue();
+      String s = v.getValue().toString();
       long currentValue;
       try
       {
@@ -1529,7 +1539,7 @@ public class Entry
       }
 
       long newValue = currentValue + increment;
-      builder.add(new AttributeValue(attributeType, String
+      builder.add(AttributeValues.create(attributeType, String
           .valueOf(newValue)));
     }
 
@@ -1615,7 +1625,7 @@ public class Entry
         String ocName;
         try
         {
-          ocName = v.getNormalizedStringValue();
+          ocName = v.getNormalizedValue().toString();
         }
         catch (Exception e)
         {
@@ -1624,7 +1634,7 @@ public class Entry
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          ocName = toLowerCase(v.getStringValue());
+          ocName = toLowerCase(v.getValue().toString());
         }
 
         boolean matchFound = false;
@@ -1788,7 +1798,7 @@ public class Entry
              LinkedHashMap<ObjectClass,String>();
       for (AttributeValue v : a)
       {
-        String ocName    = v.getStringValue();
+        String ocName    = v.getValue().toString();
         String lowerName = toLowerCase(ocName);
         ObjectClass oc   =
              DirectoryServer.getObjectClass(lowerName, true);
@@ -1813,6 +1823,7 @@ public class Entry
               objectClasses.put(oc, ocs.get(oc));
             }
           }
+          objectClassAttribute = null;
           break;
 
         case DELETE:
@@ -1826,10 +1837,12 @@ public class Entry
                              ResultCode.NO_SUCH_ATTRIBUTE, message);
             }
           }
+          objectClassAttribute = null;
           break;
 
         case REPLACE:
           objectClasses = ocs;
+          objectClassAttribute = null;
           break;
 
         case INCREMENT:
@@ -3052,7 +3065,7 @@ public class Entry
     {
       for (AttributeValue v : a)
       {
-        referralURLs.add(v.getStringValue());
+        referralURLs.add(v.getValue().toString());
       }
     }
 
@@ -3179,7 +3192,7 @@ public class Entry
       else
       {
         return DN.decode(
-            aliasAttr.iterator().next().getStringValue());
+            aliasAttr.iterator().next().getValue().toString());
       }
     }
   }
@@ -3386,306 +3399,119 @@ public class Entry
    * that if the way we store entries changes in the future we will
    * still be able to read entries encoded in an older format.
    *
+   * @param  buffer  The buffer to encode into.
    * @param  config  The configuration that may be used to control how
    *                 the entry is encoded.
    *
-   * @return  The entry encoded in a form that is suitable for
-   *          long-term persistent storage.
-   *
    * @throws  DirectoryException  If a problem occurs while attempting
    *                              to encode the entry.
    */
-  public byte[] encode(EntryEncodeConfig config)
+  public void encode(ByteStringBuilder buffer,
+                     EntryEncodeConfig config)
          throws DirectoryException
   {
-    return encodeV2(config);
+    encodeV3(buffer, config);
   }
 
-
-
   /**
-   * Encodes this entry using the V1 encoding.
+   * Encodes this entry using the V3 encoding.
    *
-   * @return  The entry encoded in the V1 encoding.
-   */
-  public byte[] encodeV1()
-  {
-    // The version number will be one byte.  We'll add that later.
-
-
-    // The DN will be encoded as a one-to-five byte length followed
-    // byte the UTF-8 byte representation.
-    byte[] dnBytes  = getBytes(dn.toString());
-    byte[] dnLength = ASN1Element.encodeLength(dnBytes.length);
-    int totalBytes = 1 + dnBytes.length + dnLength.length;
-
-
-    // The object classes will be encoded as one-to-five byte length
-    // followed by a zero-delimited UTF-8 byte representation of the
-    // names (e.g., top\0person\0organizationalPerson\0inetOrgPerson).
-    int i=0;
-    int totalOCBytes = objectClasses.size() - 1;
-    byte[][] ocBytes = new byte[objectClasses.size()][];
-    for (String ocName : objectClasses.values())
-    {
-      ocBytes[i] = getBytes(ocName);
-      totalOCBytes += ocBytes[i++].length;
-    }
-    byte[] ocLength = ASN1Element.encodeLength(totalOCBytes);
-    totalBytes += totalOCBytes + ocLength.length;
-
-
-    // The user attributes will be encoded as a one-to-five byte
-    // number of attributes followed by a sequence of:
-    // - A UTF-8 byte representation of the attribute name.
-    // - A zero delimiter
-    // - A one-to-five byte number of values for the attribute
-    // - A sequence of:
-    //   - A one-to-five byte length for the value
-    //   - A UTF-8 byte representation for the value
-    i=0;
-    int numUserAttributes = 0;
-    int totalUserAttrBytes = 0;
-    LinkedList<byte[]> userAttrBytes = new LinkedList<byte[]>();
-    for (List<Attribute> attrList : userAttributes.values())
-    {
-      for (Attribute a : attrList)
-      {
-        if (a.isVirtual() || a.isEmpty())
-        {
-          continue;
-        }
-
-        numUserAttributes++;
-
-        byte[] nameBytes = getBytes(a.getNameWithOptions());
-
-        int numValues = 0;
-        int totalValueBytes = 0;
-        LinkedList<byte[]> valueBytes = new LinkedList<byte[]>();
-        for (AttributeValue v : a)
-        {
-          numValues++;
-          byte[] vBytes = v.getValueBytes();
-          byte[] vLength = ASN1Element.encodeLength(vBytes.length);
-          valueBytes.add(vLength);
-          valueBytes.add(vBytes);
-          totalValueBytes += vLength.length + vBytes.length;
-        }
-        byte[] numValuesBytes = ASN1Element.encodeLength(numValues);
-
-        byte[] attrBytes = new byte[nameBytes.length +
-                                    numValuesBytes.length +
-                                    totalValueBytes + 1];
-        System.arraycopy(nameBytes, 0, attrBytes, 0,
-                         nameBytes.length);
-
-        int pos = nameBytes.length+1;
-        System.arraycopy(numValuesBytes, 0, attrBytes, pos,
-                         numValuesBytes.length);
-        pos += numValuesBytes.length;
-        for (byte[] b : valueBytes)
-        {
-          System.arraycopy(b, 0, attrBytes, pos, b.length);
-          pos += b.length;
-        }
-
-        userAttrBytes.add(attrBytes);
-        totalUserAttrBytes += attrBytes.length;
-      }
-    }
-    byte[] userAttrCount =
-         ASN1OctetString.encodeLength(numUserAttributes);
-    totalBytes += totalUserAttrBytes + userAttrCount.length;
-
-
-    // The operational attributes will be encoded in the same way as
-    // the user attributes.
-    i=0;
-    int numOperationalAttributes = 0;
-    int totalOperationalAttrBytes = 0;
-    LinkedList<byte[]> operationalAttrBytes =
-                            new LinkedList<byte[]>();
-    for (List<Attribute> attrList : operationalAttributes.values())
-    {
-      for (Attribute a : attrList)
-      {
-        if (a.isVirtual() || a.isEmpty())
-        {
-          continue;
-        }
-
-        numOperationalAttributes++;
-
-        byte[] nameBytes = getBytes(a.getNameWithOptions());
-
-        int numValues = 0;
-        int totalValueBytes = 0;
-        LinkedList<byte[]> valueBytes = new LinkedList<byte[]>();
-        for (AttributeValue v : a)
-        {
-          numValues++;
-          byte[] vBytes = v.getValueBytes();
-          byte[] vLength = ASN1Element.encodeLength(vBytes.length);
-          valueBytes.add(vLength);
-          valueBytes.add(vBytes);
-          totalValueBytes += vLength.length + vBytes.length;
-        }
-        byte[] numValuesBytes = ASN1Element.encodeLength(numValues);
-
-        byte[] attrBytes = new byte[nameBytes.length +
-                                    numValuesBytes.length +
-                                    totalValueBytes + 1];
-        System.arraycopy(nameBytes, 0, attrBytes, 0,
-                         nameBytes.length);
-
-        int pos = nameBytes.length+1;
-        System.arraycopy(numValuesBytes, 0, attrBytes, pos,
-                         numValuesBytes.length);
-        pos += numValuesBytes.length;
-        for (byte[] b : valueBytes)
-        {
-          System.arraycopy(b, 0, attrBytes, pos, b.length);
-          pos += b.length;
-        }
-
-        operationalAttrBytes.add(attrBytes);
-        totalOperationalAttrBytes += attrBytes.length;
-      }
-    }
-    byte[] operationalAttrCount =
-         ASN1OctetString.encodeLength(numOperationalAttributes);
-    totalBytes += totalOperationalAttrBytes +
-                  operationalAttrCount.length;
-
-
-    // Now we've got all the data that we need.  Create a big byte
-    // array to hold it all and pack it in.
-    byte[] entryBytes = new byte[totalBytes];
-
-
-    // Add the entry version number as the first byte.
-    entryBytes[0] = 0x01;
-
-
-    // Next, add the DN length and value.
-    System.arraycopy(dnLength, 0, entryBytes, 1, dnLength.length);
-    int pos = 1 + dnLength.length;
-    System.arraycopy(dnBytes, 0, entryBytes, pos,  dnBytes.length);
-    pos += dnBytes.length;
-
-
-    // Next, add the object classes length and values.
-    System.arraycopy(ocLength, 0, entryBytes, pos, ocLength.length);
-    pos += ocLength.length;
-    for (byte[] b : ocBytes)
-    {
-      System.arraycopy(b, 0, entryBytes, pos, b.length);
-      pos += b.length + 1;
-    }
-
-    // We need to back up one because there's no zero-teriminator
-    // after the last object class name.
-    pos--;
-
-
-    // Next, add the user attribute count and the user attribute
-    // data.
-    System.arraycopy(userAttrCount, 0, entryBytes, pos,
-                     userAttrCount.length);
-    pos += userAttrCount.length;
-    for (byte[] b : userAttrBytes)
-    {
-      System.arraycopy(b, 0, entryBytes, pos, b.length);
-      pos += b.length;
-    }
-
-
-    // Finally, add the operational attribute count and the
-    // operational attribute data.
-    System.arraycopy(operationalAttrCount, 0, entryBytes, pos,
-                     operationalAttrCount.length);
-    pos += operationalAttrCount.length;
-    for (byte[] b : operationalAttrBytes)
-    {
-      System.arraycopy(b, 0, entryBytes, pos, b.length);
-      pos += b.length;
-    }
-
-    return entryBytes;
-  }
-
-
-
-  /**
-   * Encodes this entry using the V2 encoding.
-   *
+   * @param  buffer  The buffer to encode into.
    * @param  config  The configuration that should be used to encode
    *                 the entry.
    *
-   * @return  The entry encoded in the V2 encoding.
-   *
    * @throws  DirectoryException  If a problem occurs while attempting
    *                              to encode the entry.
    */
-  public byte[] encodeV2(EntryEncodeConfig config)
+  private void encodeV3(ByteStringBuilder buffer,
+                        EntryEncodeConfig config)
          throws DirectoryException
   {
-    // The version number will be one byte.  We'll add that later.
-
+    // The version number will be one byte.
+    buffer.append((byte)0x03);
 
     // Get the encoded respresentation of the config.
-    byte[] configBytes = config.encode();
-    byte[] configLength =
-                ASN1Element.encodeLength(configBytes.length);
-    int totalBytes = 1 + configBytes.length + configLength.length;
-
+    config.encode(buffer);
 
     // If we should include the DN, then it will be encoded as a
     // one-to-five byte length followed by the UTF-8 byte
     // representation.
-    byte[] dnBytes  = null;
-    byte[] dnLength = null;
     if (! config.excludeDN())
     {
-      dnBytes  = getBytes(dn.toString());
-      dnLength = ASN1Element.encodeLength(dnBytes.length);
-      totalBytes += dnBytes.length + dnLength.length;
+      // TODO: Can we encode the DN directly into buffer?
+      byte[] dnBytes  = getBytes(dn.toString());
+      buffer.appendBERLength(dnBytes.length);
+      buffer.append(dnBytes);
     }
 
 
     // Encode the object classes in the appropriate manner.
-    byte[] ocLength;
-    LinkedList<byte[]> ocBytes = new LinkedList<byte[]>();
     if (config.compressObjectClassSets())
     {
-      byte[] b = config.getCompressedSchema().
-                      encodeObjectClasses(objectClasses);
-      ocBytes.add(b);
-      ocLength = ASN1Element.encodeLength(b.length);
-      totalBytes += ocLength.length + b.length;
+      config.getCompressedSchema().encodeObjectClasses(buffer,
+          objectClasses);
     }
     else
     {
-      int totalOCBytes = objectClasses.size() - 1;
+      // Encode number of OCs and 0 terminated names.
+      buffer.appendBERLength(objectClasses.size());
       for (String ocName : objectClasses.values())
       {
-        byte[] b = getBytes(ocName);
-        ocBytes.add(b);
-        totalOCBytes += b.length;
+        buffer.append(ocName);
+        buffer.append((byte)0x00);
       }
-      ocLength = ASN1Element.encodeLength(totalOCBytes);
-      totalBytes += totalOCBytes + ocLength.length;
     }
 
 
     // Encode the user attributes in the appropriate manner.
-    int numUserAttributes = 0;
-    int totalUserAttrBytes = 0;
-    LinkedList<byte[]> userAttrBytes = new LinkedList<byte[]>();
+    encodeAttributes(buffer, userAttributes, config);
+
+
+    // The operational attributes will be encoded in the same way as
+    // the user attributes.
+    encodeAttributes(buffer, operationalAttributes, config);
+  }
+
+  /**
+   * Encode the given attributes of an entry.
+   *
+   * @param  buffer  The buffer to encode into.
+   * @param  attributes The attributes to encode.
+   * @param  config  The configuration that may be used to control how
+   *                 the entry is encoded.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to encode the entry.
+   */
+  private void encodeAttributes(ByteStringBuilder buffer,
+                    Map<AttributeType,List<Attribute>> attributes,
+                                EntryEncodeConfig config)
+      throws DirectoryException
+  {
+    int numAttributes = 0;
+
+    // First count how many attributes are there to encode.
+    for (List<Attribute> attrList : attributes.values())
+    {
+      Attribute a;
+      for (int i = 0; i < attrList.size(); i++)
+      {
+        a = attrList.get(i);
+        if (a.isVirtual() || a.isEmpty())
+        {
+          continue;
+        }
+
+        numAttributes++;
+      }
+    }
+
+    // Encoded one-to-five byte number of attributes
+    buffer.appendBERLength(numAttributes);
+
     if (config.compressAttributeDescriptions())
     {
-      for (List<Attribute> attrList : userAttributes.values())
+      for (List<Attribute> attrList : attributes.values())
       {
         for (Attribute a : attrList)
         {
@@ -3694,273 +3520,64 @@ public class Entry
             continue;
           }
 
-          numUserAttributes++;
-
-          byte[] attrBytes =
-               config.getCompressedSchema().encodeAttribute(a);
-          byte[] lengthBytes =
-               ASN1Element.encodeLength(attrBytes.length);
-          userAttrBytes.add(lengthBytes);
-          userAttrBytes.add(attrBytes);
-          totalUserAttrBytes += lengthBytes.length + attrBytes.length;
+          config.getCompressedSchema().encodeAttribute(buffer, a);
         }
       }
     }
     else
     {
-      // The user attributes will be encoded as a one-to-five byte
-      // number of attributes followed by a sequence of:
+      // The attributes will be encoded as a sequence of:
       // - A UTF-8 byte representation of the attribute name.
       // - A zero delimiter
       // - A one-to-five byte number of values for the attribute
       // - A sequence of:
       //   - A one-to-five byte length for the value
       //   - A UTF-8 byte representation for the value
-      for (List<Attribute> attrList : userAttributes.values())
+      for (List<Attribute> attrList : attributes.values())
       {
         for (Attribute a : attrList)
         {
-          if (a.isVirtual() || a.isEmpty())
-          {
-            continue;
-          }
-
-          numUserAttributes++;
-
           byte[] nameBytes = getBytes(a.getNameWithOptions());
+          buffer.append(nameBytes);
+          buffer.append((byte)0x00);
 
-          int numValues = 0;
-          int totalValueBytes = 0;
-          LinkedList<byte[]> valueBytes = new LinkedList<byte[]>();
-          for (AttributeValue v : a)
+          buffer.appendBERLength(a.size());
+          for(AttributeValue v : a)
           {
-            numValues++;
-            byte[] vBytes = v.getValueBytes();
-            byte[] vLength = ASN1Element.encodeLength(vBytes.length);
-            valueBytes.add(vLength);
-            valueBytes.add(vBytes);
-            totalValueBytes += vLength.length + vBytes.length;
+            buffer.appendBERLength(v.getValue().length());
+            buffer.append(v.getValue());
           }
-          byte[] numValuesBytes = ASN1Element.encodeLength(numValues);
-
-          byte[] attrBytes = new byte[nameBytes.length +
-                                      numValuesBytes.length +
-                                      totalValueBytes + 1];
-          System.arraycopy(nameBytes, 0, attrBytes, 0,
-                           nameBytes.length);
-
-          int pos = nameBytes.length+1;
-          System.arraycopy(numValuesBytes, 0, attrBytes, pos,
-                           numValuesBytes.length);
-          pos += numValuesBytes.length;
-          for (byte[] b : valueBytes)
-          {
-            System.arraycopy(b, 0, attrBytes, pos, b.length);
-            pos += b.length;
-          }
-
-          userAttrBytes.add(attrBytes);
-          totalUserAttrBytes += attrBytes.length;
         }
       }
     }
-    byte[] userAttrCount =
-         ASN1OctetString.encodeLength(numUserAttributes);
-    totalBytes += totalUserAttrBytes + userAttrCount.length;
-
-
-    // Encode the operational attributes in the appropriate manner.
-    int numOperationalAttributes = 0;
-    int totalOperationalAttrBytes = 0;
-    LinkedList<byte[]> operationalAttrBytes =
-                            new LinkedList<byte[]>();
-    if (config.compressAttributeDescriptions())
-    {
-      for (List<Attribute> attrList : operationalAttributes.values())
-      {
-        for (Attribute a : attrList)
-        {
-          if (a.isVirtual() || a.isEmpty())
-          {
-            continue;
-          }
-
-          numOperationalAttributes++;
-
-          byte[] attrBytes =
-               config.getCompressedSchema().encodeAttribute(a);
-          byte[] lengthBytes =
-               ASN1Element.encodeLength(attrBytes.length);
-          operationalAttrBytes.add(lengthBytes);
-          operationalAttrBytes.add(attrBytes);
-          totalOperationalAttrBytes +=
-               lengthBytes.length + attrBytes.length;
-        }
-      }
-    }
-    else
-    {
-      // Encode the operational attributes in the same way as the user
-      // attributes.
-      for (List<Attribute> attrList : operationalAttributes.values())
-      {
-        for (Attribute a : attrList)
-        {
-          if (a.isVirtual() || a.isEmpty())
-          {
-            continue;
-          }
-
-          numOperationalAttributes++;
-
-          byte[] nameBytes = getBytes(a.getNameWithOptions());
-
-          int numValues = 0;
-          int totalValueBytes = 0;
-          LinkedList<byte[]> valueBytes = new LinkedList<byte[]>();
-          for (AttributeValue v : a)
-          {
-            numValues++;
-            byte[] vBytes = v.getValueBytes();
-            byte[] vLength = ASN1Element.encodeLength(vBytes.length);
-            valueBytes.add(vLength);
-            valueBytes.add(vBytes);
-            totalValueBytes += vLength.length + vBytes.length;
-          }
-          byte[] numValuesBytes = ASN1Element.encodeLength(numValues);
-
-          byte[] attrBytes = new byte[nameBytes.length +
-                                      numValuesBytes.length +
-                                      totalValueBytes + 1];
-          System.arraycopy(nameBytes, 0, attrBytes, 0,
-                           nameBytes.length);
-
-          int pos = nameBytes.length+1;
-          System.arraycopy(numValuesBytes, 0, attrBytes, pos,
-                           numValuesBytes.length);
-          pos += numValuesBytes.length;
-          for (byte[] b : valueBytes)
-          {
-            System.arraycopy(b, 0, attrBytes, pos, b.length);
-            pos += b.length;
-          }
-
-          operationalAttrBytes.add(attrBytes);
-          totalOperationalAttrBytes += attrBytes.length;
-        }
-      }
-    }
-    byte[] operationalAttrCount =
-         ASN1OctetString.encodeLength(numOperationalAttributes);
-    totalBytes += totalOperationalAttrBytes +
-                  operationalAttrCount.length;
-
-
-    // Now we've got all the data that we need.  Create a big byte
-    // array to hold it all and pack it in.
-    byte[] entryBytes = new byte[totalBytes];
-
-
-    // Add the entry version number as the first byte.
-    entryBytes[0] = 0x02;
-
-
-    // Next, add the encoded config.
-    System.arraycopy(configLength, 0, entryBytes, 1,
-                     configLength.length);
-    int pos = 1 + configLength.length;
-    System.arraycopy(configBytes, 0, entryBytes, pos,
-                     configBytes.length);
-    pos += configBytes.length;
-
-
-    // Next, add the DN length and value.
-    if (! config.excludeDN())
-    {
-      System.arraycopy(dnLength, 0, entryBytes, pos, dnLength.length);
-      pos += dnLength.length;
-      System.arraycopy(dnBytes, 0, entryBytes, pos,  dnBytes.length);
-      pos += dnBytes.length;
-    }
-
-
-    // Next, add the object classes length and values.
-    System.arraycopy(ocLength, 0, entryBytes, pos, ocLength.length);
-    pos += ocLength.length;
-    if (config.compressObjectClassSets())
-    {
-      for (byte[] b : ocBytes)
-      {
-        System.arraycopy(b, 0, entryBytes, pos, b.length);
-        pos += b.length;
-      }
-    }
-    else
-    {
-      for (byte[] b : ocBytes)
-      {
-        System.arraycopy(b, 0, entryBytes, pos, b.length);
-        pos += b.length + 1;
-      }
-
-      // We need to back up one because there's no zero-teriminator
-      // after the last object class name.
-      pos--;
-    }
-
-
-    // Next, add the user attribute count and the user attribute
-    // data.
-    System.arraycopy(userAttrCount, 0, entryBytes, pos,
-                     userAttrCount.length);
-    pos += userAttrCount.length;
-    for (byte[] b : userAttrBytes)
-    {
-      System.arraycopy(b, 0, entryBytes, pos, b.length);
-      pos += b.length;
-    }
-
-
-    // Finally, add the operational attribute count and the
-    // operational attribute data.
-    System.arraycopy(operationalAttrCount, 0, entryBytes, pos,
-                     operationalAttrCount.length);
-    pos += operationalAttrCount.length;
-    for (byte[] b : operationalAttrBytes)
-    {
-      System.arraycopy(b, 0, entryBytes, pos, b.length);
-      pos += b.length;
-    }
-
-    return entryBytes;
   }
-
 
 
   /**
    * Decodes the provided byte array as an entry.
    *
-   * @param  entryBytes  The byte array containing the data to be
-   *                     decoded.
+   * @param  entryBuffer  The byte array containing the data to be
+   *                      decoded.
    *
    * @return  The decoded entry.
    *
    * @throws  DirectoryException  If the provided byte array cannot be
    *                              decoded as an entry.
    */
-  public static Entry decode(byte[] entryBytes)
+  public static Entry decode(ByteSequenceReader entryBuffer)
          throws DirectoryException
   {
-    return decode(entryBytes,
+    return decode(entryBuffer,
                   DirectoryServer.getDefaultCompressedSchema());
   }
 
 
 
-  /**
-   * Decodes the provided byte array as an entry.
+    /**
+   * Decodes the provided byte array as an entry using the V3
+   * encoding.
    *
-   * @param  entryBytes        The byte array containing the data to
+   * @param  entryBuffer       The byte buffer containing the data to
    *                           be decoded.
    * @param  compressedSchema  The compressed schema manager to use
    *                           when decoding tokenized schema
@@ -3971,436 +3588,39 @@ public class Entry
    * @throws  DirectoryException  If the provided byte array cannot be
    *                              decoded as an entry.
    */
-  public static Entry decode(byte[] entryBytes,
+  public static Entry decode(ByteSequenceReader entryBuffer,
                              CompressedSchema compressedSchema)
          throws DirectoryException
   {
-    switch(entryBytes[0])
-    {
-      case 0x01:
-        return decodeV1(entryBytes);
-      case 0x02:
-        return decodeV2(entryBytes, compressedSchema);
-      default:
-        Message message = ERR_ENTRY_DECODE_UNRECOGNIZED_VERSION.get(
-            byteToHex(entryBytes[0]));
-        throw new DirectoryException(
-                       DirectoryServer.getServerErrorResultCode(),
-                       message);
-    }
-  }
-
-
-
-  /**
-   * Decodes the provided byte array as an entry using the V1
-   * encoding.
-   *
-   * @param  entryBytes  The byte array containing the data to be
-   *                     decoded.
-   *
-   * @return  The decoded entry.
-   *
-   * @throws  DirectoryException  If the provided byte array cannot be
-   *                              decoded as an entry.
-   */
-  public static Entry decodeV1(byte[] entryBytes)
-         throws DirectoryException
-  {
     try
     {
       // The first byte must be the entry version.  If it's not one
       // we recognize, then that's an error.
-      if (entryBytes[0] != 0x01)
+      Byte version = entryBuffer.get();
+      if (version != 0x03 && version != 0x02 && version != 0x01)
       {
         Message message = ERR_ENTRY_DECODE_UNRECOGNIZED_VERSION.get(
-            byteToHex(entryBytes[0]));
+            byteToHex(version));
         throw new DirectoryException(
                        DirectoryServer.getServerErrorResultCode(),
                        message);
       }
 
-
-      // Next is the length of the DN.  It may be a single byte or
-      // multiple bytes.
-      int pos = 1;
-      int dnLength = entryBytes[pos] & 0x7F;
-      if (entryBytes[pos++] != dnLength)
+      EntryEncodeConfig config;
+      if(version != 0x01)
       {
-        int numLengthBytes = dnLength;
-        dnLength = 0;
-        for (int i=0; i < numLengthBytes; i++, pos++)
-        {
-          dnLength = (dnLength << 8) | (entryBytes[pos] & 0xFF);
-        }
+        // Next is the length of the encoded configuration.
+        int configLength = entryBuffer.getBERLength();
+
+        // Next is the encoded configuration itself.
+        config =
+            EntryEncodeConfig.decode(entryBuffer, configLength,
+                compressedSchema);
       }
-
-
-      // Next is the DN itself.
-      byte[] dnBytes = new byte[dnLength];
-      System.arraycopy(entryBytes, pos, dnBytes, 0, dnLength);
-      pos += dnLength;
-      DN dn = DN.decode(new ASN1OctetString(dnBytes));
-
-
-      // Next is the length of the object classes.  It may be a single
-      // byte or multiple bytes.
-      int ocLength = entryBytes[pos] & 0x7F;
-      if (entryBytes[pos++] != ocLength)
+      else
       {
-        int numLengthBytes = ocLength;
-        ocLength = 0;
-        for (int i=0; i < numLengthBytes; i++, pos++)
-        {
-          ocLength = (ocLength << 8) | (entryBytes[pos] & 0xFF);
-        }
+        config = EntryEncodeConfig.DEFAULT_CONFIG;
       }
-
-
-      // Next is the encoded set of object classes.  It will be a
-      // single string with the object class names separated by zeros.
-      LinkedHashMap<ObjectClass,String> objectClasses =
-           new LinkedHashMap<ObjectClass,String>();
-      int startPos = pos;
-      for (int i=0; i < ocLength; i++,pos++)
-      {
-        if (entryBytes[pos] == 0x00)
-        {
-          String name = new String(entryBytes, startPos, pos-startPos,
-                                   "UTF-8");
-          String lowerName = toLowerCase(name);
-          ObjectClass oc =
-               DirectoryServer.getObjectClass(lowerName, true);
-          objectClasses.put(oc, name);
-          startPos = pos+1;
-        }
-      }
-      String name = new String(entryBytes, startPos, pos-startPos,
-                               "UTF-8");
-      String lowerName = toLowerCase(name);
-      ObjectClass oc =
-           DirectoryServer.getObjectClass(lowerName, true);
-      objectClasses.put(oc, name);
-
-
-      // Next is the total number of user attributes.  It may be a
-      // single byte or multiple bytes.
-      int numUserAttrs = entryBytes[pos] & 0x7F;
-      if (entryBytes[pos++] != numUserAttrs)
-      {
-        int numLengthBytes = numUserAttrs;
-        numUserAttrs = 0;
-        for (int i=0; i < numLengthBytes; i++, pos++)
-        {
-          numUserAttrs = (numUserAttrs << 8) |
-                         (entryBytes[pos] & 0xFF);
-        }
-      }
-
-
-      // Now, we should iterate through the user attributes and decode
-      // each one.
-      LinkedHashMap<AttributeType,List<Attribute>> userAttributes =
-           new LinkedHashMap<AttributeType,List<Attribute>>();
-      AttributeBuilder builder = new AttributeBuilder();
-      for (int i=0; i < numUserAttrs; i++)
-      {
-        AttributeType attributeType;
-
-        // First, we have the zero-terminated attribute name.
-        startPos = pos;
-        while (entryBytes[pos] != 0x00)
-        {
-          pos++;
-        }
-        name = new String(entryBytes, startPos, pos-startPos,
-                          "UTF-8");
-        int semicolonPos = name.indexOf(';');
-        if (semicolonPos > 0)
-        {
-          builder.setAttributeType(name.substring(0, semicolonPos));
-          attributeType = builder.getAttributeType();
-
-          int nextPos = name.indexOf(';', semicolonPos+1);
-          while (nextPos > 0)
-          {
-            String option = name.substring(semicolonPos+1, nextPos);
-            if (option.length() > 0)
-            {
-              builder.setOption(option);
-            }
-
-            semicolonPos = nextPos;
-            nextPos = name.indexOf(';', semicolonPos+1);
-          }
-
-          String option = name.substring(semicolonPos+1);
-          if (option.length() > 0)
-          {
-            builder.setOption(option);
-          }
-        }
-        else
-        {
-          builder.setAttributeType(name);
-          attributeType = builder.getAttributeType();
-        }
-
-
-        // Next, we have the number of values.
-        int numValues = entryBytes[++pos] & 0x7F;
-        if (entryBytes[pos++] != numValues)
-        {
-          int numLengthBytes = numValues;
-          numValues = 0;
-          for (int j=0; j < numLengthBytes; j++, pos++)
-          {
-            numValues = (numValues << 8) | (entryBytes[pos] & 0xFF);
-          }
-        }
-
-        // Next, we have the sequence of length-value pairs.
-        builder.setInitialCapacity(numValues);
-        for (int j=0; j < numValues; j++)
-        {
-          int valueLength = entryBytes[pos] & 0x7F;
-          if (entryBytes[pos++] != valueLength)
-          {
-            int numLengthBytes = valueLength;
-            valueLength = 0;
-            for (int k=0; k < numLengthBytes; k++, pos++)
-            {
-              valueLength = (valueLength << 8) |
-                            (entryBytes[pos] & 0xFF);
-            }
-          }
-
-          byte[] valueBytes = new byte[valueLength];
-          System.arraycopy(entryBytes, pos, valueBytes, 0,
-                           valueLength);
-          builder.add(new AttributeValue(attributeType,
-              new ASN1OctetString(valueBytes)));
-          pos += valueLength;
-        }
-
-
-        // Create the attribute and add it to the set of user
-        // attributes.
-        Attribute a = builder.toAttribute();
-        List<Attribute> attrList = userAttributes.get(attributeType);
-        if (attrList == null)
-        {
-          attrList = new ArrayList<Attribute>(1);
-          attrList.add(a);
-          userAttributes.put(attributeType, attrList);
-        }
-        else
-        {
-          attrList.add(a);
-        }
-      }
-
-
-      // Next is the total number of operational attributes.  It may
-      // be a single byte or multiple bytes.
-      int numOperationalAttrs = entryBytes[pos] & 0x7F;
-      if (entryBytes[pos++] != numOperationalAttrs)
-      {
-        int numLengthBytes = numOperationalAttrs;
-        numOperationalAttrs = 0;
-        for (int i=0; i < numLengthBytes; i++, pos++)
-        {
-          numOperationalAttrs =
-               (numOperationalAttrs << 8) | (entryBytes[pos] & 0xFF);
-        }
-      }
-
-
-      // Now, we should iterate through the operational attributes and
-      // decode each one.
-      LinkedHashMap<AttributeType,List<Attribute>>
-           operationalAttributes =
-              new LinkedHashMap<AttributeType,List<Attribute>>();
-      for (int i=0; i < numOperationalAttrs; i++)
-      {
-        AttributeType attributeType;
-
-        // First, we have the zero-terminated attribute name.
-        startPos = pos;
-        while (entryBytes[pos] != 0x00)
-        {
-          pos++;
-        }
-        name = new String(entryBytes, startPos, pos-startPos,
-                          "UTF-8");
-        int semicolonPos = name.indexOf(';');
-        if (semicolonPos > 0)
-        {
-          builder.setAttributeType(name.substring(0, semicolonPos));
-          attributeType = builder.getAttributeType();
-
-          int nextPos = name.indexOf(';', semicolonPos+1);
-          while (nextPos > 0)
-          {
-            String option = name.substring(semicolonPos+1, nextPos);
-            if (option.length() > 0)
-            {
-              builder.setOption(option);
-            }
-
-            semicolonPos = nextPos;
-            nextPos = name.indexOf(';', semicolonPos+1);
-          }
-
-          String option = name.substring(semicolonPos+1);
-          if (option.length() > 0)
-          {
-            builder.setOption(option);
-          }
-        }
-        else
-        {
-          builder.setAttributeType(name);
-          attributeType = builder.getAttributeType();
-        }
-
-
-        // Next, we have the number of values.
-        int numValues = entryBytes[++pos] & 0x7F;
-        if (entryBytes[pos++] != numValues)
-        {
-          int numLengthBytes = numValues;
-          numValues = 0;
-          for (int j=0; j < numLengthBytes; j++, pos++)
-          {
-            numValues = (numValues << 8) | (entryBytes[pos] & 0xFF);
-          }
-        }
-
-        // Next, we have the sequence of length-value pairs.
-        builder.setInitialCapacity(numValues);
-        for (int j=0; j < numValues; j++)
-        {
-          int valueLength = entryBytes[pos] & 0x7F;
-          if (entryBytes[pos++] != valueLength)
-          {
-            int numLengthBytes = valueLength;
-            valueLength = 0;
-            for (int k=0; k < numLengthBytes; k++, pos++)
-            {
-              valueLength = (valueLength << 8) |
-                            (entryBytes[pos] & 0xFF);
-            }
-          }
-
-          byte[] valueBytes = new byte[valueLength];
-          System.arraycopy(
-              entryBytes, pos, valueBytes, 0, valueLength);
-          builder.add(new AttributeValue(attributeType,
-              new ASN1OctetString(valueBytes)));
-          pos += valueLength;
-        }
-
-
-        // Create the attribute and add it to the set of operational
-        // attributes.
-        Attribute a = builder.toAttribute();
-        List<Attribute> attrList =
-          operationalAttributes.get(attributeType);
-        if (attrList == null)
-        {
-          attrList = new ArrayList<Attribute>(1);
-          attrList.add(a);
-          operationalAttributes.put(attributeType, attrList);
-        }
-        else
-        {
-          attrList.add(a);
-        }
-      }
-
-
-      // We've got everything that we need, so create and return the
-      // entry.
-      return new Entry(dn, objectClasses, userAttributes,
-                       operationalAttributes);
-    }
-    catch (DirectoryException de)
-    {
-      throw de;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_ENTRY_DECODE_EXCEPTION.get(getExceptionMessage(e));
-      throw new DirectoryException(
-                     DirectoryServer.getServerErrorResultCode(),
-                     message, e);
-    }
-  }
-
-
-
-  /**
-   * Decodes the provided byte array as an entry using the V2
-   * encoding.
-   *
-   * @param  entryBytes        The byte array containing the data to
-   *                           be decoded.
-   * @param  compressedSchema  The compressed schema manager to use
-   *                           when decoding tokenized schema
-   *                           elements.
-   *
-   * @return  The decoded entry.
-   *
-   * @throws  DirectoryException  If the provided byte array cannot be
-   *                              decoded as an entry.
-   */
-  public static Entry decodeV2(byte[] entryBytes,
-                               CompressedSchema compressedSchema)
-         throws DirectoryException
-  {
-    try
-    {
-      // The first byte must be the entry version.  If it's not one
-      // we recognize, then that's an error.
-      if (entryBytes[0] != 0x02)
-      {
-        Message message = ERR_ENTRY_DECODE_UNRECOGNIZED_VERSION.get(
-            byteToHex(entryBytes[0]));
-        throw new DirectoryException(
-                       DirectoryServer.getServerErrorResultCode(),
-                       message);
-      }
-
-
-      // Next is the length of the encoded configuration.  It may be a
-      // single byte or multiple bytes.
-      int pos = 1;
-      int configLength = entryBytes[pos] & 0x7F;
-      if (entryBytes[pos++] != configLength)
-      {
-        int numLengthBytes = configLength;
-        configLength = 0;
-        for (int i=0; i < numLengthBytes; i++, pos++)
-        {
-          configLength =
-               (configLength << 8) | (entryBytes[pos] & 0xFF);
-        }
-      }
-
-
-      // Next is the encoded configuration itself.
-      EntryEncodeConfig config =
-           EntryEncodeConfig.decode(entryBytes, pos, configLength,
-                                    compressedSchema);
-      pos += configLength;
-
 
       // If we should have included the DN in the entry, then it's
       // next.
@@ -4413,387 +3633,32 @@ public class Entry
       {
         // Next is the length of the DN.  It may be a single byte or
         // multiple bytes.
-        int dnLength = entryBytes[pos] & 0x7F;
-        if (entryBytes[pos++] != dnLength)
-        {
-          int numLengthBytes = dnLength;
-          dnLength = 0;
-          for (int i=0; i < numLengthBytes; i++, pos++)
-          {
-            dnLength = (dnLength << 8) | (entryBytes[pos] & 0xFF);
-          }
-        }
+        int dnLength = entryBuffer.getBERLength();
 
 
         // Next is the DN itself.
-        byte[] dnBytes = new byte[dnLength];
-        System.arraycopy(entryBytes, pos, dnBytes, 0, dnLength);
-        pos += dnLength;
-        dn = DN.decode(new ASN1OctetString(dnBytes));
-      }
-
-
-      // Next is the length of the object classes.  It may be a single
-      // byte or multiple bytes.
-      int ocLength = entryBytes[pos] & 0x7F;
-      if (entryBytes[pos++] != ocLength)
-      {
-        int numLengthBytes = ocLength;
-        ocLength = 0;
-        for (int i=0; i < numLengthBytes; i++, pos++)
-        {
-          ocLength = (ocLength << 8) | (entryBytes[pos] & 0xFF);
-        }
+        ByteSequence dnBytes = entryBuffer.getByteSequence(dnLength);
+        dn = DN.decode(dnBytes.toByteString());
       }
 
 
       // Next is the set of encoded object classes.  The encoding will
       // depend on the configuration.
-      Map<ObjectClass,String> objectClasses;
-      if (config.compressObjectClassSets())
-      {
-        byte[] ocBytes = new byte[ocLength];
-        System.arraycopy(entryBytes, pos, ocBytes, 0, ocLength);
-        objectClasses = config.getCompressedSchema().
-                             decodeObjectClasses(ocBytes);
-        pos += ocLength;
-      }
-      else
-      {
-        // The set of object classes will be encoded as a single
-        // string with the oibject class names separated by zeros.
-        objectClasses = new LinkedHashMap<ObjectClass,String>();
-        int startPos = pos;
-        for (int i=0; i < ocLength; i++,pos++)
-        {
-          if (entryBytes[pos] == 0x00)
-          {
-            String name = new String(entryBytes, startPos,
-                                     pos-startPos, "UTF-8");
-            String lowerName = toLowerCase(name);
-            ObjectClass oc =
-                 DirectoryServer.getObjectClass(lowerName, true);
-            objectClasses.put(oc, name);
-            startPos = pos+1;
-          }
-        }
-        String name = new String(entryBytes, startPos, pos-startPos,
-                                 "UTF-8");
-        String lowerName = toLowerCase(name);
-        ObjectClass oc =
-             DirectoryServer.getObjectClass(lowerName, true);
-        objectClasses.put(oc, name);
-      }
-
-
-      // Next is the total number of user attributes.  It may be a
-      // single byte or multiple bytes.
-      int numUserAttrs = entryBytes[pos] & 0x7F;
-      if (entryBytes[pos++] != numUserAttrs)
-      {
-        int numLengthBytes = numUserAttrs;
-        numUserAttrs = 0;
-        for (int i=0; i < numLengthBytes; i++, pos++)
-        {
-          numUserAttrs = (numUserAttrs << 8) |
-                         (entryBytes[pos] & 0xFF);
-        }
-      }
+      Map<ObjectClass,String> objectClasses =
+          decodeObjectClasses(version, entryBuffer, config);
 
 
       // Now, we should iterate through the user attributes and decode
       // each one.
       LinkedHashMap<AttributeType,List<Attribute>> userAttributes =
-           new LinkedHashMap<AttributeType,List<Attribute>>();
-      if (config.compressAttributeDescriptions())
-      {
-        for (int i=0; i < numUserAttrs; i++)
-        {
-          // Get the length of the attribute.
-          int attrLength = entryBytes[pos] & 0x7F;
-          if (entryBytes[pos++] != attrLength)
-          {
-            int attrLengthBytes = attrLength;
-            attrLength = 0;
-            for (int j=0; j < attrLengthBytes; j++, pos++)
-            {
-              attrLength = (attrLength << 8) |
-                           (entryBytes[pos] & 0xFF);
-            }
-          }
-
-          // Decode the attribute.
-          Attribute a = config.getCompressedSchema().decodeAttribute(
-                             entryBytes, pos, attrLength);
-          List<Attribute> attrList =
-               userAttributes.get(a.getAttributeType());
-          if (attrList == null)
-          {
-            attrList = new ArrayList<Attribute>(1);
-            userAttributes.put(a.getAttributeType(), attrList);
-          }
-
-          attrList.add(a);
-          pos += attrLength;
-        }
-      }
-      else
-      {
-        AttributeBuilder builder = new AttributeBuilder();
-        for (int i=0; i < numUserAttrs; i++)
-        {
-          AttributeType attributeType;
-
-          // First, we have the zero-terminated attribute name.
-          int startPos = pos;
-          while (entryBytes[pos] != 0x00)
-          {
-            pos++;
-          }
-
-          String name = new String(entryBytes, startPos, pos-startPos,
-                                   "UTF-8");
-          int semicolonPos = name.indexOf(';');
-          if (semicolonPos > 0)
-          {
-            builder.setAttributeType(name.substring(0, semicolonPos));
-            attributeType = builder.getAttributeType();
-
-            int nextPos = name.indexOf(';', semicolonPos+1);
-            while (nextPos > 0)
-            {
-              String option = name.substring(semicolonPos+1, nextPos);
-              if (option.length() > 0)
-              {
-                builder.setOption(option);
-              }
-
-              semicolonPos = nextPos;
-              nextPos = name.indexOf(';', semicolonPos+1);
-            }
-
-            String option = name.substring(semicolonPos+1);
-            if (option.length() > 0)
-            {
-              builder.setOption(option);
-            }
-          }
-          else
-          {
-            builder.setAttributeType(name);
-            attributeType = builder.getAttributeType();
-          }
-
-
-          // Next, we have the number of values.
-          int numValues = entryBytes[++pos] & 0x7F;
-          if (entryBytes[pos++] != numValues)
-          {
-            int numLengthBytes = numValues;
-            numValues = 0;
-            for (int j=0; j < numLengthBytes; j++, pos++)
-            {
-              numValues = (numValues << 8) | (entryBytes[pos] & 0xFF);
-            }
-          }
-
-          // Next, we have the sequence of length-value pairs.
-          builder.setInitialCapacity(numValues);
-          for (int j=0; j < numValues; j++)
-          {
-            int valueLength = entryBytes[pos] & 0x7F;
-            if (entryBytes[pos++] != valueLength)
-            {
-              int numLengthBytes = valueLength;
-              valueLength = 0;
-              for (int k=0; k < numLengthBytes; k++, pos++)
-              {
-                valueLength = (valueLength << 8) |
-                              (entryBytes[pos] & 0xFF);
-              }
-            }
-
-            byte[] valueBytes = new byte[valueLength];
-            System.arraycopy(entryBytes, pos, valueBytes, 0,
-                             valueLength);
-            builder.add(new AttributeValue(attributeType,
-                new ASN1OctetString(valueBytes)));
-            pos += valueLength;
-          }
-
-
-          // Create the attribute and add it to the set of user
-          // attributes.
-          Attribute a = builder.toAttribute();
-          List<Attribute> attrList =
-            userAttributes.get(attributeType);
-          if (attrList == null)
-          {
-            attrList = new ArrayList<Attribute>(1);
-            attrList.add(a);
-            userAttributes.put(attributeType, attrList);
-          }
-          else
-          {
-            attrList.add(a);
-          }
-        }
-      }
-
-
-      // Next is the total number of operational attributes.  It may
-      // be a single byte or multiple bytes.
-      int numOperationalAttrs = entryBytes[pos] & 0x7F;
-      if (entryBytes[pos++] != numOperationalAttrs)
-      {
-        int numLengthBytes = numOperationalAttrs;
-        numOperationalAttrs = 0;
-        for (int i=0; i < numLengthBytes; i++, pos++)
-        {
-          numOperationalAttrs =
-               (numOperationalAttrs << 8) | (entryBytes[pos] & 0xFF);
-        }
-      }
+          decodeAttributes(version, entryBuffer, config);
 
 
       // Now, we should iterate through the operational attributes and
       // decode each one.
       LinkedHashMap<AttributeType,List<Attribute>>
-           operationalAttributes =
-              new LinkedHashMap<AttributeType,List<Attribute>>();
-      if (config.compressAttributeDescriptions())
-      {
-        for (int i=0; i < numOperationalAttrs; i++)
-        {
-          // Get the length of the attribute.
-          int attrLength = entryBytes[pos] & 0x7F;
-          if (entryBytes[pos++] != attrLength)
-          {
-            int attrLengthBytes = attrLength;
-            attrLength = 0;
-            for (int j=0; j < attrLengthBytes; j++, pos++)
-            {
-              attrLength = (attrLength << 8) |
-                           (entryBytes[pos] & 0xFF);
-            }
-          }
-
-          // Decode the attribute.
-          Attribute a = config.getCompressedSchema().decodeAttribute(
-                             entryBytes, pos, attrLength);
-          List<Attribute> attrList =
-               operationalAttributes.get(a.getAttributeType());
-          if (attrList == null)
-          {
-            attrList = new ArrayList<Attribute>(1);
-            operationalAttributes.put(a.getAttributeType(), attrList);
-          }
-
-          attrList.add(a);
-          pos += attrLength;
-        }
-      }
-      else
-      {
-        AttributeBuilder builder = new AttributeBuilder();
-        for (int i=0; i < numOperationalAttrs; i++)
-        {
-          AttributeType attributeType;
-
-          // First, we have the zero-terminated attribute name.
-          int startPos = pos;
-          while (entryBytes[pos] != 0x00)
-          {
-            pos++;
-          }
-          String name = new String(entryBytes, startPos, pos-startPos,
-                                   "UTF-8");
-          int semicolonPos = name.indexOf(';');
-          if (semicolonPos > 0)
-          {
-            builder.setAttributeType(name.substring(0, semicolonPos));
-            attributeType = builder.getAttributeType();
-
-            int nextPos = name.indexOf(';', semicolonPos+1);
-            while (nextPos > 0)
-            {
-              String option = name.substring(semicolonPos+1, nextPos);
-              if (option.length() > 0)
-              {
-                builder.setOption(option);
-              }
-
-              semicolonPos = nextPos;
-              nextPos = name.indexOf(';', semicolonPos+1);
-            }
-
-            String option = name.substring(semicolonPos+1);
-            if (option.length() > 0)
-            {
-              builder.setOption(option);
-            }
-          }
-          else
-          {
-            builder.setAttributeType(name);
-            attributeType = builder.getAttributeType();
-          }
-
-
-          // Next, we have the number of values.
-          int numValues = entryBytes[++pos] & 0x7F;
-          if (entryBytes[pos++] != numValues)
-          {
-            int numLengthBytes = numValues;
-            numValues = 0;
-            for (int j=0; j < numLengthBytes; j++, pos++)
-            {
-              numValues = (numValues << 8) | (entryBytes[pos] & 0xFF);
-            }
-          }
-
-          // Next, we have the sequence of length-value pairs.
-          builder.setInitialCapacity(numValues);
-          for (int j=0; j < numValues; j++)
-          {
-            int valueLength = entryBytes[pos] & 0x7F;
-            if (entryBytes[pos++] != valueLength)
-            {
-              int numLengthBytes = valueLength;
-              valueLength = 0;
-              for (int k=0; k < numLengthBytes; k++, pos++)
-              {
-                valueLength = (valueLength << 8) |
-                              (entryBytes[pos] & 0xFF);
-              }
-            }
-
-            byte[] valueBytes = new byte[valueLength];
-            System.arraycopy(
-                entryBytes, pos, valueBytes, 0, valueLength);
-            builder.add(new AttributeValue(attributeType,
-                new ASN1OctetString(valueBytes)));
-            pos += valueLength;
-          }
-
-
-          // Create the attribute and add it to the set of operational
-          // attributes.
-          Attribute a = builder.toAttribute();
-          List<Attribute> attrList =
-            operationalAttributes.get(attributeType);
-          if (attrList == null)
-          {
-            attrList = new ArrayList<Attribute>(1);
-            attrList.add(a);
-            operationalAttributes.put(attributeType, attrList);
-          }
-          else
-          {
-            attrList.add(a);
-          }
-        }
-      }
+          operationalAttributes =
+          decodeAttributes(version, entryBuffer, config);
 
 
       // We've got everything that we need, so create and return the
@@ -4821,6 +3686,239 @@ public class Entry
   }
 
 
+  /**
+   * Decode the object classes of an encoded entry.
+   *
+   * @param  ver The version of the entry encoding.
+   * @param  entryBuffer The byte sequence containing the encoded
+   *                     entry.
+   * @param  config  The configuration that may be used to control how
+   *                 the entry is encoded.
+   *
+   * @return  A map of the decoded object classes.
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to encode the entry.
+   */
+  private static Map<ObjectClass,String> decodeObjectClasses(
+      byte ver, ByteSequenceReader entryBuffer,
+      EntryEncodeConfig config) throws DirectoryException
+  {
+    // Next is the set of encoded object classes.  The encoding will
+    // depend on the configuration.
+    Map<ObjectClass,String> objectClasses;
+    if (config.compressObjectClassSets())
+    {
+      if(ver < 0x03)
+      {
+        // Next is the length of the object classes. It may be a
+        // single byte or multiple bytes.
+        entryBuffer.getBERLength();
+      }
+
+      objectClasses = config.getCompressedSchema().
+          decodeObjectClasses(entryBuffer);
+    }
+    else
+    {
+      if(ver < 0x03)
+      {
+        // Next is the length of the object classes. It may be a
+        // single byte or multiple bytes.
+        int ocLength = entryBuffer.getBERLength();
+
+        // The set of object classes will be encoded as a single
+        // string with the object class names separated by zeros.
+        objectClasses = new LinkedHashMap<ObjectClass,String>();
+        int startPos = entryBuffer.position();
+        int endPos;
+        for (int i=0; i < ocLength; i++)
+        {
+          if (entryBuffer.get() == 0x00)
+          {
+            endPos = entryBuffer.position()-1;
+            entryBuffer.position(startPos);
+            String name = entryBuffer.getString(endPos - startPos);
+            String lowerName = toLowerCase(name);
+            ObjectClass oc =
+                DirectoryServer.getObjectClass(lowerName, true);
+            objectClasses.put(oc, name);
+
+            entryBuffer.skip(1);
+            startPos = entryBuffer.position();
+          }
+        }
+        endPos = entryBuffer.position();
+        entryBuffer.position(startPos);
+        String name = entryBuffer.getString(endPos - startPos);
+        String lowerName = toLowerCase(name);
+        ObjectClass oc =
+            DirectoryServer.getObjectClass(lowerName, true);
+        objectClasses.put(oc, name);
+      }
+      else
+      {
+        // Next is the number of zero terminated object classes.
+        int numOC = entryBuffer.getBERLength();
+        int startPos;
+        int endPos;
+        objectClasses = new LinkedHashMap<ObjectClass,String>(numOC);
+        for(int i = 0; i < numOC; i++)
+        {
+          startPos = entryBuffer.position();
+          while(entryBuffer.get() != 0x00)
+          {}
+          endPos = entryBuffer.position()-1;
+          entryBuffer.position(startPos);
+          String name = entryBuffer.getString(endPos - startPos);
+          String lowerName = toLowerCase(name);
+          ObjectClass oc =
+              DirectoryServer.getObjectClass(lowerName, true);
+          objectClasses.put(oc, name);
+          entryBuffer.skip(1);
+        }
+      }
+    }
+
+    return objectClasses;
+  }
+
+  /**
+   * Decode the attributes of an encoded entry.
+   *
+   * @param  ver The version of the entry encoding.
+   * @param  entryBuffer The byte sequence containing the encoded
+   *                     entry.
+   * @param  config  The configuration that may be used to control how
+   *                 the entry is encoded.
+   *
+   * @return  A map of the decoded object classes.
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to encode the entry.
+   */
+  private static LinkedHashMap<AttributeType,List<Attribute>>
+  decodeAttributes(Byte ver, ByteSequenceReader entryBuffer,
+                   EntryEncodeConfig config) throws DirectoryException
+  {
+    // Next is the total number of attributes.  It may be a
+    // single byte or multiple bytes.
+    int attrs = entryBuffer.getBERLength();
+
+
+    // Now, we should iterate through the attributes and decode
+    // each one.
+    LinkedHashMap<AttributeType,List<Attribute>> attributes =
+        new LinkedHashMap<AttributeType,List<Attribute>>(attrs);
+    if (config.compressAttributeDescriptions())
+    {
+      for (int i=0; i < attrs; i++)
+      {
+        if(ver < 0x03)
+        {
+          // Version 2 includes a total attribute length
+          entryBuffer.getBERLength();
+        }
+        // Decode the attribute.
+        Attribute a = config.getCompressedSchema().decodeAttribute(
+            entryBuffer);
+        List<Attribute> attrList =
+            attributes.get(a.getAttributeType());
+        if (attrList == null)
+        {
+          attrList = new ArrayList<Attribute>(1);
+          attributes.put(a.getAttributeType(), attrList);
+        }
+
+        attrList.add(a);
+      }
+    }
+    else
+    {
+      AttributeBuilder builder = new AttributeBuilder();
+      int startPos;
+      int endPos;
+      for (int i=0; i < attrs; i++)
+      {
+        AttributeType attributeType;
+
+        // First, we have the zero-terminated attribute name.
+        startPos = entryBuffer.position();
+        while (entryBuffer.get() != 0x00)
+        {}
+        endPos = entryBuffer.position()-1;
+        entryBuffer.position(startPos);
+        String name = entryBuffer.getString(endPos - startPos);
+        entryBuffer.skip(1);
+
+        int semicolonPos = name.indexOf(';');
+        if (semicolonPos > 0)
+        {
+          builder.setAttributeType(name.substring(0, semicolonPos));
+          attributeType = builder.getAttributeType();
+
+          int nextPos = name.indexOf(';', semicolonPos+1);
+          while (nextPos > 0)
+          {
+            String option = name.substring(semicolonPos+1, nextPos);
+            if (option.length() > 0)
+            {
+              builder.setOption(option);
+            }
+
+            semicolonPos = nextPos;
+            nextPos = name.indexOf(';', semicolonPos+1);
+          }
+
+          String option = name.substring(semicolonPos+1);
+          if (option.length() > 0)
+          {
+            builder.setOption(option);
+          }
+        }
+        else
+        {
+          builder.setAttributeType(name);
+          attributeType = builder.getAttributeType();
+        }
+
+
+        // Next, we have the number of values.
+        int numValues = entryBuffer.getBERLength();
+
+        // Next, we have the sequence of length-value pairs.
+        builder.setInitialCapacity(numValues);
+        for (int j=0; j < numValues; j++)
+        {
+          int valueLength = entryBuffer.getBERLength();
+
+          ByteString valueBytes =
+              entryBuffer.getByteSequence(valueLength).toByteString();
+          builder.add(AttributeValues.create(attributeType,
+              valueBytes));
+        }
+
+
+        // Create the attribute and add it to the set of
+        // attributes.
+        Attribute a = builder.toAttribute();
+        List<Attribute> attrList =
+            attributes.get(attributeType);
+        if (attrList == null)
+        {
+          attrList = new ArrayList<Attribute>(1);
+          attrList.add(a);
+          attributes.put(attributeType, attrList);
+        }
+        else
+        {
+          attrList.add(a);
+        }
+      }
+    }
+
+    return attributes;
+  }
+
+
 
   /**
    * Retrieves a list of the lines for this entry in LDIF form.  Long
@@ -4837,7 +3935,8 @@ public class Entry
     // First, append the DN.
     StringBuilder dnLine = new StringBuilder();
     dnLine.append("dn");
-    appendLDIFSeparatorAndValue(dnLine, getBytes(dn.toString()));
+    appendLDIFSeparatorAndValue(dnLine,
+        ByteString.valueOf(dn.toString()));
     ldifLines.add(dnLine);
 
 
@@ -4867,7 +3966,7 @@ public class Entry
         {
           StringBuilder attrLine = new StringBuilder();
           attrLine.append(attrName);
-          appendLDIFSeparatorAndValue(attrLine, v.getValueBytes());
+          appendLDIFSeparatorAndValue(attrLine, v.getValue());
           ldifLines.add(attrLine);
         }
       }
@@ -4890,7 +3989,7 @@ public class Entry
         {
           StringBuilder attrLine = new StringBuilder();
           attrLine.append(attrName);
-          appendLDIFSeparatorAndValue(attrLine, v.getValueBytes());
+          appendLDIFSeparatorAndValue(attrLine, v.getValue());
           ldifLines.add(attrLine);
         }
       }
@@ -4973,7 +4072,8 @@ public class Entry
     // First, write the DN.  It will always be included.
     StringBuilder dnLine = new StringBuilder();
     dnLine.append("dn");
-    appendLDIFSeparatorAndValue(dnLine, getBytes(dn.toString()));
+    appendLDIFSeparatorAndValue(dnLine,
+        ByteString.valueOf(dn.toString()));
     writeLDIFLine(dnLine, writer, wrapLines, wrapColumn);
 
 
@@ -5048,7 +4148,7 @@ public class Entry
               StringBuilder attrLine = new StringBuilder();
               attrLine.append(attrName);
               appendLDIFSeparatorAndValue(attrLine,
-                                          v.getValueBytes());
+                                          v.getValue());
               writeLDIFLine(attrLine, writer, wrapLines, wrapColumn);
             }
           }
@@ -5110,7 +4210,7 @@ public class Entry
                 StringBuilder attrLine = new StringBuilder();
                 attrLine.append(attrName);
                 appendLDIFSeparatorAndValue(attrLine,
-                                            v.getValueBytes());
+                                            v.getValue());
                 writeLDIFLine(attrLine, writer, wrapLines,
                               wrapColumn);
               }
@@ -5178,7 +4278,7 @@ public class Entry
                 StringBuilder attrLine = new StringBuilder();
                 attrLine.append(attrName);
                 appendLDIFSeparatorAndValue(attrLine,
-                                            v.getValueBytes());
+                                            v.getValue());
                 writeLDIFLine(attrLine, writer, wrapLines,
                               wrapColumn);
               }
@@ -5517,12 +4617,12 @@ public class Entry
         Iterator<AttributeValue> valueIterator = a.iterator();
         if (valueIterator.hasNext())
         {
-          buffer.append(valueIterator.next().getStringValue());
+          buffer.append(valueIterator.next().getValue().toString());
 
           while (valueIterator.hasNext())
           {
             buffer.append(",");
-            buffer.append(valueIterator.next().getStringValue());
+            buffer.append(valueIterator.next().getValue().toString());
           }
         }
 
@@ -5559,12 +4659,12 @@ public class Entry
         Iterator<AttributeValue> valueIterator = a.iterator();
         if (valueIterator.hasNext())
         {
-          buffer.append(valueIterator.next().getStringValue());
+          buffer.append(valueIterator.next().getValue().toString());
 
           while (valueIterator.hasNext())
           {
             buffer.append(",");
-            buffer.append(valueIterator.next().getStringValue());
+            buffer.append(valueIterator.next().getValue().toString());
           }
         }
 
@@ -5654,12 +4754,12 @@ public class Entry
 
       for (AttributeValue v : attribute)
       {
-        String name = v.getStringValue();
+        String name = v.getValue().toString();
 
         String lowerName;
         try
         {
-          lowerName = v.getNormalizedStringValue();
+          lowerName = v.getNormalizedValue().toString();
         }
         catch (Exception e)
         {
@@ -5668,7 +4768,7 @@ public class Entry
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          lowerName = toLowerCase(v.getStringValue());
+          lowerName = toLowerCase(v.getValue().toString());
         }
 
         // Create a default object class if necessary.

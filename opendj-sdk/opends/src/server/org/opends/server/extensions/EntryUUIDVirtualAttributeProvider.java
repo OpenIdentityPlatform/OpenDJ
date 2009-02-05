@@ -39,15 +39,7 @@ import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringFactory;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.VirtualAttributeRule;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -118,9 +110,9 @@ public class EntryUUIDVirtualAttributeProvider
     String normDNString = entry.getDN().toNormalizedString();
     String uuidString =
          UUID.nameUUIDFromBytes(getBytes(normDNString)).toString();
-    AttributeValue value = new AttributeValue(
-        ByteStringFactory.create(uuidString),
-        ByteStringFactory.create(uuidString));
+    AttributeValue value = AttributeValues.create(
+         ByteString.valueOf(uuidString),
+         ByteString.valueOf(uuidString));
     return Collections.singleton(value);
   }
 
@@ -151,7 +143,7 @@ public class EntryUUIDVirtualAttributeProvider
       String uuidString =
            UUID.nameUUIDFromBytes(getBytes(normalizedDN)).toString();
 
-      String normalizedValue = value.getNormalizedStringValue();
+      String normalizedValue = value.getNormalizedValue().toString();
       return uuidString.equals(normalizedValue);
     }
     catch (Exception e)

@@ -52,7 +52,6 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseAddOperation;
@@ -175,14 +174,14 @@ public class AddOperationBasis
     this.userAttributes        = userAttributes;
     this.operationalAttributes = operationalAttributes;
 
-    rawEntryDN = new ASN1OctetString(entryDN.toString());
+    rawEntryDN = ByteString.valueOf(entryDN.toString());
 
     rawAttributes = new ArrayList<RawAttribute>();
 
-    ArrayList<ASN1OctetString> ocValues = new ArrayList<ASN1OctetString>();
+    ArrayList<ByteString> ocValues = new ArrayList<ByteString>();
     for (String s : objectClasses.values())
     {
-      ocValues.add(new ASN1OctetString(s));
+      ocValues.add(ByteString.valueOf(s));
     }
 
     LDAPAttribute ocAttr = new LDAPAttribute(ATTR_OBJECTCLASS, ocValues);

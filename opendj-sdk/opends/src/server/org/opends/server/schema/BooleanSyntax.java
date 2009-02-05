@@ -38,18 +38,15 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
 
 
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
 import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
+import org.opends.server.util.ServerConstants;
 
 
 /**
@@ -78,8 +75,22 @@ public class BooleanSyntax
      */
     public Boolean decode(AttributeValue value) throws DirectoryException
     {
-      ByteString octetString = value.getNormalizedValue();
-      return decodeBooleanValue(octetString);
+      ByteString normalizedValue = value.getNormalizedValue();
+      if (normalizedValue.equals(ServerConstants.TRUE_VALUE))
+      {
+        return true;
+      }
+      else if (normalizedValue.equals(ServerConstants.FALSE_VALUE))
+      {
+        return false;
+      }
+      else
+      {
+        Message message =
+            WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(normalizedValue.toString());
+        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+            message);
+      }
     }
   };
 
@@ -226,10 +237,10 @@ public class BooleanSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteString value,
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
-    String valueString = value.stringValue().toUpperCase();
+    String valueString = value.toString().toUpperCase();
 
     boolean returnValue = (valueString.equals("TRUE") ||
                            valueString.equals("YES") ||
@@ -243,7 +254,7 @@ public class BooleanSyntax
     if (! returnValue)
     {
       invalidReason.append(WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(
-              value.stringValue()));
+              value.toString()));
     }
 
     return returnValue;
@@ -263,45 +274,13 @@ public class BooleanSyntax
   {
     if (b)
     {
-      return new AttributeValue(new ASN1OctetString("TRUE"),
-                                new ASN1OctetString("TRUE"));
+      return AttributeValues.create(ServerConstants.TRUE_VALUE,
+                                ServerConstants.TRUE_VALUE);
     }
     else
     {
-      return new AttributeValue(new ASN1OctetString("FALSE"),
-                                new ASN1OctetString("FALSE"));
-    }
-  }
-
-
-
-  /**
-   * Decodes the provided normalized value as a boolean.
-   *
-   * @param  normalizedValue  The normalized value to decode as a boolean.
-   *
-   * @return  The decoded boolean value.
-   *
-   * @throws  DirectoryException  If the provided value cannot be decoded as a
-   *                              boolean.
-   */
-  public static boolean decodeBooleanValue(ByteString normalizedValue)
-         throws DirectoryException
-  {
-    String valueString = normalizedValue.stringValue();
-    if (valueString.equals("TRUE"))
-    {
-      return true;
-    }
-    else if (valueString.equals("FALSE"))
-    {
-      return false;
-    }
-    else
-    {
-      Message message = WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(valueString);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                   message);
+      return AttributeValues.create(ServerConstants.FALSE_VALUE,
+                                ServerConstants.FALSE_VALUE);
     }
   }
 

@@ -34,14 +34,16 @@ import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Long;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringBuilder;
 
-import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Exception;
+import org.opends.server.protocols.asn1.ASN1Reader;
 
 
 /**
@@ -114,9 +116,21 @@ public class GetConnectionIDExtendedOperation
    *
    * @return  The ASN.1 octet string containing the encoded connection ID.
    */
-  public static ASN1OctetString encodeResponseValue(long connectionID)
+  public static ByteString encodeResponseValue(long connectionID)
   {
-    return new ASN1OctetString(new ASN1Long(connectionID).encode());
+    ByteStringBuilder builder = new ByteStringBuilder(8);
+    ASN1Writer writer = ASN1.getWriter(builder);
+
+    try
+    {
+      writer.writeInteger(connectionID);
+    }
+    catch(Exception e)
+    {
+      // TODO: DO something.
+    }
+
+    return builder.toByteString();
   }
 
 
@@ -128,13 +142,22 @@ public class GetConnectionIDExtendedOperation
    *
    * @return  The connection ID decoded from the provided response value.
    *
-   * @throws  ASN1Exception  If an error occurs while trying to decode the
+   * @throws ASN1Exception  If an error occurs while trying to decode the
    *                         response value.
    */
-  public static long decodeResponseValue(ASN1OctetString responseValue)
+  public static long decodeResponseValue(ByteString responseValue)
          throws ASN1Exception
   {
-    return ASN1Long.decodeAsLong(responseValue.value()).longValue();
+    ASN1Reader reader = ASN1.getReader(responseValue);
+    try
+    {
+      return reader.readInteger();
+    }
+    catch(Exception e)
+    {
+      // TODO: DO something
+      return 0;
+    }
   }
 }
 

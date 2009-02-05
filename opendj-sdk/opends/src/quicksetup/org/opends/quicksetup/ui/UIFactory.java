@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.ui;
@@ -1287,6 +1287,7 @@ public class UIFactory
       col.setHeaderRenderer(headerRenderer);
     }
     MouseAdapter listMouseListener = new MouseAdapter() {
+      @Override
       public void mouseClicked(MouseEvent e) {
         TableColumnModel columnModel = table.getColumnModel();
         int viewColumn = columnModel.getColumnIndexAtX(e.getX());
@@ -1754,6 +1755,7 @@ class HeaderRenderer extends DefaultTableCellRenderer
   /**
    * {@inheritDoc}
    */
+  @Override
   public Component getTableCellRendererComponent(JTable table, Object value,
       boolean isSelected, boolean hasFocus, int row, int column) {
     setText((String)value);
@@ -1818,6 +1820,7 @@ class ProgressJEditorPane extends JEditorPane
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setText(String text)
   {
     // Scroll can be null in constructor
@@ -1841,6 +1844,7 @@ class ProgressJEditorPane extends JEditorPane
   /**
    * {@inheritDoc}
    */
+  @Override
   public void scrollRectToVisible(Rectangle rect)
   {
     if (!ignoreScrollToVisible)

@@ -28,22 +28,18 @@ package org.opends.server.controls;
 import org.opends.messages.Message;
 
 
-
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
-import org.opends.server.types.Control;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
+import org.opends.server.protocols.asn1.*;
+import static org.opends.server.protocols.asn1.ASN1Constants.
+    UNIVERSAL_OCTET_STRING_TYPE;
+import org.opends.server.protocols.ldap.*;
+import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
+import java.io.IOException;
 
 
 /**
@@ -52,8 +48,67 @@ import static org.opends.server.util.ServerConstants.*;
  * entry immediately before an add, modify, or modify DN operation.
  */
 public class LDAPPostReadResponseControl
-       extends Control
+    extends Control
 {
+  /**
+   * ControlDecoder implentation to decode this control from a ByteString.
+   */
+  private final static class Decoder
+      implements ControlDecoder<LDAPPostReadResponseControl>
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public LDAPPostReadResponseControl decode(boolean isCritical,
+                                              ByteString value)
+        throws DirectoryException
+    {
+      if (value == null)
+      {
+        Message message = ERR_POSTREADRESP_NO_CONTROL_VALUE.get();
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+      }
+
+
+      ASN1Reader reader = ASN1.getReader(value);
+      SearchResultEntry searchEntry;
+      try
+      {
+        SearchResultEntryProtocolOp searchResultEntryProtocolOp =
+            LDAPReader.readSearchEntry(reader);
+        searchEntry = searchResultEntryProtocolOp.toSearchResultEntry();
+      }
+      catch (LDAPException le)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, le);
+        }
+
+        Message message =
+            ERR_POSTREADRESP_CANNOT_DECODE_VALUE.get(le.getMessage());
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message,
+            le);
+      }
+
+      return new LDAPPostReadResponseControl(isCritical, searchEntry);
+    }
+
+    public String getOID()
+    {
+      return OID_LDAP_READENTRY_POSTREAD;
+    }
+
+  }
+
+  /**
+   * The Control Decoder that can be used to decode this control.
+   */
+  public static final ControlDecoder<LDAPPostReadResponseControl> DECODER =
+    new Decoder();
+
+
+
   /**
    * The tracer object for the debug logger.
    */
@@ -76,11 +131,7 @@ public class LDAPPostReadResponseControl
    */
   public LDAPPostReadResponseControl(SearchResultEntry searchEntry)
   {
-    super(OID_LDAP_READENTRY_POSTREAD, false,
-          encodeEntry(searchEntry));
-
-
-    this.searchEntry = searchEntry;
+    this(false, searchEntry);
   }
 
 
@@ -89,122 +140,36 @@ public class LDAPPostReadResponseControl
    * Creates a new instance of this LDAP post-read response control with the
    * provided information.
    *
-   * @param  oid          The OID to use for this control.
-   * @param  isCritical   Indicates whether support for this control should be
-   *                      considered a critical part of the server processing.
-   * @param  searchEntry  The search result entry to include in the response
-   *                      control.
-   */
-  public LDAPPostReadResponseControl(String oid, boolean isCritical,
-                                    SearchResultEntry searchEntry)
-  {
-    super(oid, isCritical, encodeEntry(searchEntry));
-
-
-    this.searchEntry = searchEntry;
-  }
-
-
-
-  /**
-   * Creates a new instance of this LDAP post-read response control with the
-   * provided information.
-   *
-   * @param  oid           The OID to use for this control.
    * @param  isCritical    Indicates whether support for this control should be
    *                       considered a critical part of the server processing.
    * @param  searchEntry   The search result entry to include in the response
    *                       control.
-   * @param  encodedValue  The pre-encoded value for this control.
    */
-  private LDAPPostReadResponseControl(String oid, boolean isCritical,
-                                      SearchResultEntry searchEntry,
-                                      ASN1OctetString encodedValue)
+  public LDAPPostReadResponseControl(boolean isCritical,
+                                     SearchResultEntry searchEntry)
   {
-    super(oid, isCritical, encodedValue);
+    super(OID_LDAP_READENTRY_POSTREAD, isCritical);
 
 
     this.searchEntry = searchEntry;
   }
 
-
-
   /**
-   * Creates a new LDAP post-read response control from the contents of the
-   * provided control.
+   * Writes this control's value to an ASN.1 writer. The value (if any) must be
+   * written as an ASN1OctetString.
    *
-   * @param  control  The generic control containing the information to use to
-   *                  create this LDAP post-read response control.
-   *
-   * @return  The LDAP post-read response control decoded from the provided
-   *          control.
-   *
-   * @throws  LDAPException  If this control cannot be decoded as a valid LDAP
-   *                         post-read response control.
+   * @param writer The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public static LDAPPostReadResponseControl decodeControl(Control control)
-         throws LDAPException
-  {
-    if (! control.hasValue())
-    {
-      Message message = ERR_POSTREADRESP_NO_CONTROL_VALUE.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-    }
+  @Override
+  public void writeValue(ASN1Writer writer) throws IOException {
+    writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
 
-
-    ASN1OctetString controlValue = control.getValue();
-    SearchResultEntry searchEntry;
-    try
-    {
-      ASN1Element element = ASN1Element.decode(controlValue.value());
-      SearchResultEntryProtocolOp searchResultEntryProtocolOp =
-           SearchResultEntryProtocolOp.decodeSearchEntry(element);
-      searchEntry = searchResultEntryProtocolOp.toSearchResultEntry();
-    }
-    catch (ASN1Exception ae)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-      }
-
-      Message message =
-          ERR_POSTREADRESP_CANNOT_DECODE_VALUE.get(ae.getMessage());
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message,
-                              ae);
-    }
-    catch (LDAPException le)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, le);
-      }
-
-      Message message =
-          ERR_POSTREADRESP_CANNOT_DECODE_VALUE.get(le.getMessage());
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message,
-                              le);
-    }
-
-    return new LDAPPostReadResponseControl(control.getOID(),
-                                           control.isCritical(), searchEntry,
-                                           controlValue);
-  }
-
-
-
-  /**
-   * Encodes the provided search result entry for use as an attribute value.
-   *
-   * @param  searchEntry  The search result entry to be encoded.
-   *
-   * @return  The ASN.1 octet string containing the encoded control value.
-   */
-  private static ASN1OctetString encodeEntry(SearchResultEntry searchEntry)
-  {
     SearchResultEntryProtocolOp protocolOp =
-         new SearchResultEntryProtocolOp(searchEntry);
-    return new ASN1OctetString(protocolOp.encode().encode());
+        new SearchResultEntryProtocolOp(searchEntry);
+    protocolOp.write(writer);
+
+    writer.writeEndSequence();
   }
 
 
@@ -224,40 +189,12 @@ public class LDAPPostReadResponseControl
 
 
   /**
-   * Specifies the search result entry for use with this post-read response
-   * control.
-   *
-   * @param  searchEntry  The search result entry for use with this post-read
-   *                      response control.
-   */
-  public void setSearchEntry(SearchResultEntry searchEntry)
-  {
-    this.searchEntry = searchEntry;
-    setValue(encodeEntry(searchEntry));
-  }
-
-
-
-  /**
-   * Retrieves a string representation of this LDAP post-read response control.
-   *
-   * @return  A string representation of this LDAP post-read response control.
-   */
-  public String toString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
-  }
-
-
-
-  /**
    * Appends a string representation of this LDAP post-read response control to
    * the provided buffer.
    *
    * @param  buffer  The buffer to which the information should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("LDAPPostReadResponseControl(criticality=");

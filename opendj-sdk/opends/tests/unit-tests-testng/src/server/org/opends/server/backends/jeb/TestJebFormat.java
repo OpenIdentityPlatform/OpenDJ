@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -32,17 +32,14 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.Entry;
-import org.opends.server.types.EntryEncodeConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.ObjectClass;
+import org.opends.server.types.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.StaticUtils;
+import static org.opends.server.util.StaticUtils.getBytes;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -187,6 +184,237 @@ public class TestJebFormat extends JebTestCase {
   }
 
   /**
+   * Encodes this entry using the V3 encoding.
+   *
+   * @param  buffer  The buffer to encode into.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to encode the entry.
+   */
+  private void encodeV1(Entry entry, ByteStringBuilder buffer)
+         throws DirectoryException
+  {
+    // The version number will be one byte.
+    buffer.append((byte)0x01);
+
+    // TODO: Can we encode the DN directly into buffer?
+    byte[] dnBytes  = getBytes(entry.getDN().toString());
+    buffer.appendBERLength(dnBytes.length);
+    buffer.append(dnBytes);
+
+
+    // Encode number of OCs and 0 terminated names.
+    int i = 1;
+    ByteStringBuilder bsb = new ByteStringBuilder();
+    for (String ocName : entry.getObjectClasses().values())
+    {
+      bsb.append(ocName);
+      if(i < entry.getObjectClasses().values().size())
+      {
+        bsb.append((byte)0x00);
+      }
+      i++;
+    }
+    buffer.appendBERLength(bsb.length());
+    buffer.append(bsb);
+
+
+    // Encode the user attributes in the appropriate manner.
+    encodeV1Attributes(buffer, entry.getUserAttributes());
+
+
+    // The operational attributes will be encoded in the same way as
+    // the user attributes.
+    encodeV1Attributes(buffer, entry.getOperationalAttributes());
+  }
+
+  private void encodeV1Attributes(ByteStringBuilder buffer,
+                                Map<AttributeType,List<Attribute>> attributes)
+      throws DirectoryException
+  {
+    int numAttributes = 0;
+
+    // First count how many attributes are there to encode.
+    for (List<Attribute> attrList : attributes.values())
+    {
+      for (Attribute a : attrList)
+      {
+        if (a.isVirtual() || a.isEmpty())
+        {
+          continue;
+        }
+
+        numAttributes++;
+      }
+    }
+
+    // Encoded one-to-five byte number of attributes
+    buffer.appendBERLength(numAttributes);
+
+
+    // The attributes will be encoded as a sequence of:
+    // - A UTF-8 byte representation of the attribute name.
+    // - A zero delimiter
+    // - A one-to-five byte number of values for the attribute
+    // - A sequence of:
+    //   - A one-to-five byte length for the value
+    //   - A UTF-8 byte representation for the value
+    for (List<Attribute> attrList : attributes.values())
+    {
+      for (Attribute a : attrList)
+      {
+        byte[] nameBytes = getBytes(a.getNameWithOptions());
+        buffer.append(nameBytes);
+        buffer.append((byte)0x00);
+
+        buffer.appendBERLength(a.size());
+        for(AttributeValue v : a)
+        {
+          buffer.appendBERLength(v.getValue().length());
+          buffer.append(v.getValue());
+        }
+      }
+    }
+  }
+
+    /**
+   * Encodes this entry using the V3 encoding.
+   *
+   * @param  buffer  The buffer to encode into.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to encode the entry.
+   */
+  private void encodeV2(Entry entry, ByteStringBuilder buffer,
+                        EntryEncodeConfig config)
+         throws DirectoryException
+  {
+    // The version number will be one byte.
+    buffer.append((byte)0x02);
+
+    // Get the encoded respresentation of the config.
+    config.encode(buffer);
+
+    // If we should include the DN, then it will be encoded as a
+    // one-to-five byte length followed by the UTF-8 byte
+    // representation.
+    if (! config.excludeDN())
+    {
+      // TODO: Can we encode the DN directly into buffer?
+      byte[] dnBytes  = getBytes(entry.getDN().toString());
+      buffer.appendBERLength(dnBytes.length);
+      buffer.append(dnBytes);
+    }
+
+
+    // Encode the object classes in the appropriate manner.
+    if (config.compressObjectClassSets())
+    {
+      ByteStringBuilder bsb = new ByteStringBuilder();
+      config.getCompressedSchema().encodeObjectClasses(bsb,
+          entry.getObjectClasses());
+      buffer.appendBERLength(bsb.length());
+      buffer.append(bsb);
+    }
+    else
+    {
+      // Encode number of OCs and 0 terminated names.
+      int i = 1;
+      ByteStringBuilder bsb = new ByteStringBuilder();
+      for (String ocName : entry.getObjectClasses().values())
+      {
+        bsb.append(ocName);
+        if(i < entry.getObjectClasses().values().size())
+        {
+          bsb.append((byte)0x00);
+        }
+        i++;
+      }
+      buffer.appendBERLength(bsb.length());
+      buffer.append(bsb);
+    }
+
+
+    // Encode the user attributes in the appropriate manner.
+    encodeV2Attributes(buffer, entry.getUserAttributes(), config);
+
+
+    // The operational attributes will be encoded in the same way as
+    // the user attributes.
+    encodeV2Attributes(buffer, entry.getOperationalAttributes(), config);
+  }
+
+  private void encodeV2Attributes(ByteStringBuilder buffer,
+                                Map<AttributeType,List<Attribute>> attributes,
+                                EntryEncodeConfig config)
+      throws DirectoryException
+  {
+    int numAttributes = 0;
+
+    // First count how many attributes are there to encode.
+    for (List<Attribute> attrList : attributes.values())
+    {
+      for (Attribute a : attrList)
+      {
+        if (a.isVirtual() || a.isEmpty())
+        {
+          continue;
+        }
+
+        numAttributes++;
+      }
+    }
+
+    // Encoded one-to-five byte number of attributes
+    buffer.appendBERLength(numAttributes);
+
+    if (config.compressAttributeDescriptions())
+    {
+      for (List<Attribute> attrList : attributes.values())
+      {
+        for (Attribute a : attrList)
+        {
+          if (a.isVirtual() || a.isEmpty())
+          {
+            continue;
+          }
+
+          ByteStringBuilder bsb = new ByteStringBuilder();
+          config.getCompressedSchema().encodeAttribute(bsb, a);
+          buffer.appendBERLength(bsb.length());
+          buffer.append(bsb);
+        }
+      }
+    }
+    else
+    {
+      // The attributes will be encoded as a sequence of:
+      // - A UTF-8 byte representation of the attribute name.
+      // - A zero delimiter
+      // - A one-to-five byte number of values for the attribute
+      // - A sequence of:
+      //   - A one-to-five byte length for the value
+      //   - A UTF-8 byte representation for the value
+      for (List<Attribute> attrList : attributes.values())
+      {
+        for (Attribute a : attrList)
+        {
+          byte[] nameBytes = getBytes(a.getNameWithOptions());
+          buffer.append(nameBytes);
+          buffer.append((byte)0x00);
+
+          buffer.appendBERLength(a.size());
+          for(AttributeValue v : a)
+          {
+            buffer.appendBERLength(v.getValue().length());
+            buffer.append(v.getValue());
+          }
+        }
+      }
+    }
+  }
+
+  /**
    * Test entry.
    *
    * @throws Exception
@@ -205,9 +433,10 @@ public class TestJebFormat extends JebTestCase {
 
     Entry entryBefore, entryAfter;
     while ((entryBefore = reader.readEntry(false)) != null) {
-      byte[] bytes = JebFormat.entryToDatabase(entryBefore);
+      ByteString bytes = ID2Entry.entryToDatabase(entryBefore,
+          new DataConfig(false, false, null));
 
-      entryAfter = JebFormat.entryFromDatabase(bytes,
+      entryAfter = ID2Entry.entryFromDatabase(bytes,
                         DirectoryServer.getDefaultCompressedSchema());
 
       // check DN and number of attributes
@@ -274,16 +503,13 @@ public class TestJebFormat extends JebTestCase {
     LDIFReader reader = new LDIFReader(new LDIFImportConfig(
         new ByteArrayInputStream(originalLDIFBytes)));
 
-    Entry entryBefore, entryAfterGeneric, entryAfterV1;
+    Entry entryBefore, entryAfterV1;
     while ((entryBefore = reader.readEntry(false)) != null) {
-      byte[] entryBytes = entryBefore.encodeV1();
-      entryAfterGeneric = Entry.decode(entryBytes);
-      assertEquals(entryBefore, entryAfterGeneric);
+      ByteStringBuilder bsb = new ByteStringBuilder();
+      encodeV1(entryBefore, bsb);
+      entryAfterV1 = Entry.decode(bsb.asReader());
 
-      entryAfterV1 = Entry.decodeV1(entryBytes);
       assertEquals(entryBefore, entryAfterV1);
-
-      assertEquals(entryAfterGeneric, entryAfterV1);
     }
     reader.close();
   }
@@ -327,25 +553,48 @@ public class TestJebFormat extends JebTestCase {
     LDIFReader reader = new LDIFReader(new LDIFImportConfig(
         new ByteArrayInputStream(originalLDIFBytes)));
 
-    Entry entryBefore, entryAfterGeneric, entryAfterV2;
+    Entry entryBefore, entryAfterV2;
     while ((entryBefore = reader.readEntry(false)) != null) {
-      byte[] entryBytes = entryBefore.encodeV2(config);
-      entryAfterGeneric = Entry.decode(entryBytes,
-                                       config.getCompressedSchema());
-      if (config.excludeDN())
-      {
-        entryAfterGeneric.setDN(entryBefore.getDN());
-      }
-      assertEquals(entryBefore, entryAfterGeneric);
-
-      entryAfterV2 = Entry.decodeV2(entryBytes, config.getCompressedSchema());
+      ByteStringBuilder bsb = new ByteStringBuilder();
+      encodeV2(entryBefore, bsb, config);
+      entryAfterV2 = Entry.decode(bsb.asReader());
       if (config.excludeDN())
       {
         entryAfterV2.setDN(entryBefore.getDN());
       }
       assertEquals(entryBefore, entryAfterV2);
+    }
+    reader.close();
+  }
 
-      assertEquals(entryAfterGeneric, entryAfterV2);
+  /**
+   * Tests the entry encoding and decoding process the version 1 encoding.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test(dataProvider = "encodeConfigs")
+  public void testEntryToAndFromDatabaseV3(EntryEncodeConfig config)
+         throws Exception {
+    // Make sure that the server is up and running.
+    TestCaseUtils.startServer();
+
+    // Convert the test LDIF string to a byte array
+    byte[] originalLDIFBytes = StaticUtils.getBytes(ldifString);
+
+    LDIFReader reader = new LDIFReader(new LDIFImportConfig(
+        new ByteArrayInputStream(originalLDIFBytes)));
+
+    Entry entryBefore, entryAfterV3;
+    while ((entryBefore = reader.readEntry(false)) != null) {
+      ByteStringBuilder bsb = new ByteStringBuilder();
+      entryBefore.encode(bsb, config);
+      entryAfterV3 = Entry.decode(bsb.asReader());
+      if (config.excludeDN())
+      {
+        entryAfterV3.setDN(entryBefore.getDN());
+      }
+      assertEquals(entryBefore, entryAfterV3);
     }
     reader.close();
   }

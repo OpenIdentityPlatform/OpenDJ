@@ -25,25 +25,26 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
-import java.util.Collection;
-import java.util.Collections;
-import org.opends.messages.Message;
 
 
 
-import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ResultCode;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+
+import java.util.Collection;
+import java.util.Collections;
+
+import org.opends.messages.Message;
+import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ResultCode;
+import org.opends.server.util.ServerConstants;
 
 
 
@@ -79,6 +80,7 @@ class IntegerFirstComponentEqualityMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getAllNames()
   {
     return Collections.singleton(getName());
@@ -92,6 +94,7 @@ class IntegerFirstComponentEqualityMatchingRule
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
    * it does not have a name.
    */
+  @Override
   public String getName()
   {
     return EMR_INTEGER_FIRST_COMPONENT_NAME;
@@ -104,6 +107,7 @@ class IntegerFirstComponentEqualityMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return EMR_INTEGER_FIRST_COMPONENT_OID;
@@ -117,6 +121,7 @@ class IntegerFirstComponentEqualityMatchingRule
    * @return  The description for this matching rule, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     // There is no standard description for this matching rule.
@@ -131,6 +136,7 @@ class IntegerFirstComponentEqualityMatchingRule
    *
    * @return  The OID of the syntax with which this matching rule is associated.
    */
+  @Override
   public String getSyntaxOID()
   {
     return SYNTAX_INTEGER_OID;
@@ -149,25 +155,26 @@ class IntegerFirstComponentEqualityMatchingRule
    * @throws  DirectoryException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
-  public ByteString normalizeValue(ByteString value)
+  @Override
+  public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
     StringBuilder buffer = new StringBuilder();
-    toLowerCase(value.value(), buffer, true);
+    toLowerCase(value, buffer, true);
 
     int bufferLength = buffer.length();
     if (bufferLength == 0)
     {
-      if (value.value().length > 0)
+      if (value.length() > 0)
       {
         // This should only happen if the value is composed entirely of spaces.
         // In that case, the normalized value is a single space.
-        return new ASN1OctetString(" ");
+        return ServerConstants.SINGLE_SPACE_VALUE;
       }
       else
       {
         // The value is empty, so it is already normalized.
-        return new ASN1OctetString();
+        return ByteString.empty();
       }
     }
 
@@ -184,7 +191,7 @@ class IntegerFirstComponentEqualityMatchingRule
       }
     }
 
-    return new ASN1OctetString(buffer.toString());
+    return ByteString.valueOf(buffer.toString());
   }
 
 
@@ -199,12 +206,13 @@ class IntegerFirstComponentEqualityMatchingRule
    * @return  <CODE>true</CODE> if the provided values are equal, or
    *          <CODE>false</CODE> if not.
    */
-  public boolean areEqual(ByteString value1, ByteString value2)
+  @Override
+  public boolean areEqual(ByteSequence value1, ByteSequence value2)
   {
     try
     {
-      int intValue1 = extractIntValue(value1.stringValue());
-      int intValue2 = extractIntValue(value2.stringValue());
+      int intValue1 = extractIntValue(value1.toString());
+      int intValue2 = extractIntValue(value2.toString());
 
       return (intValue1 == intValue2);
     }
@@ -235,7 +243,8 @@ class IntegerFirstComponentEqualityMatchingRule
    *
    * @return  The hash code generated for the provided attribute value.
    */
-  public int generateHashCode(AttributeValue attributeValue)
+  @Override
+  public int generateHashCode(ByteSequence attributeValue)
   {
     // In this case, we'll always return the same value because the matching
     // isn't based on the entire value.
@@ -282,9 +291,8 @@ class IntegerFirstComponentEqualityMatchingRule
       }
     }
 
-    char c;
     int  pos = 1;
-    while ((pos < valueLength) && ((c = valueString.charAt(pos)) == ' '))
+    while ((pos < valueLength) && ((valueString.charAt(pos)) == ' '))
     {
       pos++;
     }
@@ -301,7 +309,7 @@ class IntegerFirstComponentEqualityMatchingRule
     // The current position must be the start position for the value.  Keep
     // reading until we find the next space.
     int startPos = pos++;
-    while ((pos < valueLength) && ((c = valueString.charAt(pos)) != ' '))
+    while ((pos < valueLength) && ((valueString.charAt(pos)) != ' '))
     {
       pos++;
     }

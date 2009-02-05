@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.messages;
@@ -270,19 +270,20 @@ public final class MessageBuilder implements Appendable, CharSequence,
    * @return Message raw message representing builder content
    */
   public Message toMessage() {
+    if(messages.isEmpty())
+    {
+      return Message.EMPTY;
+    }
+
     StringBuffer fmtString = new StringBuffer();
     for (int i = 0; i < messages.size(); i++) {
       fmtString.append("%s");
     }
 
-    if (messages.isEmpty()) {
-      return Message.raw(fmtString, messages.toArray());
-    } else {
-      // Inherit the category and severity of the first message.
-      MessageDescriptor md = messages.get(0).getDescriptor();
-      return Message.raw(md.getCategory(), md.getSeverity(), fmtString,
-          messages.toArray());
-    }
+    // Inherit the category and severity of the first message.
+    MessageDescriptor md = messages.get(0).getDescriptor();
+    return Message.raw(md.getCategory(), md.getSeverity(), fmtString,
+        messages.toArray());
   }
 
   /**

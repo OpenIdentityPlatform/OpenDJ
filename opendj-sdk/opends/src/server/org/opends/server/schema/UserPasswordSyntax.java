@@ -37,11 +37,9 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
 
 
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
@@ -212,7 +210,7 @@ public class UserPasswordSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteString value,
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // We have to accept any value here because in many cases the value will not
@@ -291,18 +289,17 @@ public class UserPasswordSyntax
    * @return  <CODE>true</CODE> if the value appears to be encoded using the
    *          user password syntax, or <CODE>false</CODE> if not.
    */
-  public static boolean isEncoded(ByteString value)
+  public static boolean isEncoded(ByteSequence value)
   {
     // If the value is null or empty, then it's not.
-    byte[] valueBytes;
-    if ((value == null) || ((valueBytes = value.value()).length == 0))
+    if ((value == null) || value.length() == 0)
     {
       return false;
     }
 
 
     // If the value doesn't start with an opening curly brace, then it's not.
-    if (valueBytes[0] != '{')
+    if (value.byteAt(0) != '{')
     {
       return false;
     }
@@ -311,9 +308,9 @@ public class UserPasswordSyntax
     // There must be a corresponding closing curly brace, and there must be at
     // least one character inside the brace.
     int closingBracePos = -1;
-    for (int i=1; i < valueBytes.length; i++)
+    for (int i=1; i < value.length(); i++)
     {
-      if (valueBytes[i] == '}')
+      if (value.byteAt(i) == '}')
       {
         closingBracePos = i;
         break;
@@ -327,7 +324,7 @@ public class UserPasswordSyntax
 
 
     // The closing curly brace must not be the last character of the password.
-    if (closingBracePos == (valueBytes.length - 1))
+    if (closingBracePos == (value.length() - 1))
     {
       return false;
     }

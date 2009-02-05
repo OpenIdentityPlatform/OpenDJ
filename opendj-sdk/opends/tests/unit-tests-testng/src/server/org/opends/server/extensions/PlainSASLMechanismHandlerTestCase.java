@@ -37,18 +37,11 @@ import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchScope;
-import org.opends.server.types.SearchFilter;
+import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
 
@@ -105,7 +98,7 @@ public class PlainSASLMechanismHandlerTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation op =
-         conn.processSearch(new ASN1OctetString(""), SearchScope.BASE_OBJECT,
+         conn.processSearch(ByteString.empty(), SearchScope.BASE_OBJECT,
               LDAPFilter.decode("(supportedSASLMechanisms=PLAIN)"));
     assertFalse(op.getSearchEntries().isEmpty());
   }
@@ -125,15 +118,15 @@ public class PlainSASLMechanismHandlerTestCase
   {
     return new Object[][]
     {
-      new Object[] { new ASN1OctetString("a") },
-      new Object[] { new ASN1OctetString("ab") },
-      new Object[] { new ASN1OctetString("abc") },
-      new Object[] { new ASN1OctetString("abcd") },
-      new Object[] { new ASN1OctetString("abcde") },
-      new Object[] { new ASN1OctetString("abcdef") },
-      new Object[] { new ASN1OctetString("abcdefg") },
-      new Object[] { new ASN1OctetString("abcdefgh") },
-      new Object[] { new ASN1OctetString("The Quick Brown Fox Jumps Over " +
+      new Object[] { ByteString.valueOf("a") },
+      new Object[] { ByteString.valueOf("ab") },
+      new Object[] { ByteString.valueOf("abc") },
+      new Object[] { ByteString.valueOf("abcd") },
+      new Object[] { ByteString.valueOf("abcde") },
+      new Object[] { ByteString.valueOf("abcdef") },
+      new Object[] { ByteString.valueOf("abcdefg") },
+      new Object[] { ByteString.valueOf("abcdefgh") },
+      new Object[] { ByteString.valueOf("The Quick Brown Fox Jumps Over " +
                                          "The Lazy Dog") },
     };
   }
@@ -165,7 +158,7 @@ public class PlainSASLMechanismHandlerTestCase
                    "givenName: Test",
                    "sn: User",
                    "cn: Test User",
-                   "userPassword: " + password.stringValue());
+                   "userPassword: " + password.toString());
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -175,15 +168,16 @@ public class PlainSASLMechanismHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    byte[] saslCredBytes = new byte[11 + password.value().length];
-    System.arraycopy("test.user".getBytes("UTF-8"), 0, saslCredBytes, 1, 9);
-    System.arraycopy(password.value(), 0, saslCredBytes, 11,
-                     password.value().length);
+    ByteStringBuilder saslCredBytes = new ByteStringBuilder();
+    saslCredBytes.append((byte)0);
+    saslCredBytes.append("test.user");
+    saslCredBytes.append((byte)0);
+    saslCredBytes.append(password);
     InternalClientConnection anonymousConn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         anonymousConn.processSASLBind(new ASN1OctetString(), "PLAIN",
-                                       new ASN1OctetString(saslCredBytes));
+         anonymousConn.processSASLBind(ByteString.empty(), "PLAIN",
+                                       saslCredBytes.toByteString());
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -213,7 +207,7 @@ public class PlainSASLMechanismHandlerTestCase
                    "givenName: Test",
                    "sn: User",
                    "cn: Test User",
-                   "userPassword: " + password.stringValue());
+                   "userPassword: " + password.toString());
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -223,15 +217,16 @@ public class PlainSASLMechanismHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    byte[] saslCredBytes = new byte[13 + password.value().length];
-    System.arraycopy("u:test.user".getBytes("UTF-8"), 0, saslCredBytes, 1, 11);
-    System.arraycopy(password.value(), 0, saslCredBytes, 13,
-                     password.value().length);
+    ByteStringBuilder saslCredBytes = new ByteStringBuilder();
+    saslCredBytes.append((byte)0);
+    saslCredBytes.append("u:test.user");
+    saslCredBytes.append((byte)0);
+    saslCredBytes.append(password);
     InternalClientConnection anonymousConn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         anonymousConn.processSASLBind(new ASN1OctetString(), "PLAIN",
-                                       new ASN1OctetString(saslCredBytes));
+         anonymousConn.processSASLBind(ByteString.empty(), "PLAIN",
+                                       saslCredBytes.toByteString());
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -262,7 +257,7 @@ public class PlainSASLMechanismHandlerTestCase
                    "givenName: Test",
                    "sn: User",
                    "cn: Test User",
-                   "userPassword: " + password.stringValue());
+                   "userPassword: " + password.toString());
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -272,16 +267,17 @@ public class PlainSASLMechanismHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    byte[] saslCredBytes = new byte[24 + password.value().length];
-    System.arraycopy("u:test.user".getBytes("UTF-8"), 0, saslCredBytes, 0, 11);
-    System.arraycopy("u:test.user".getBytes("UTF-8"), 0, saslCredBytes, 12, 11);
-    System.arraycopy(password.value(), 0, saslCredBytes, 24,
-                     password.value().length);
+    ByteStringBuilder saslCredBytes = new ByteStringBuilder();
+    saslCredBytes.append("u:test.user");
+    saslCredBytes.append((byte)0);
+    saslCredBytes.append("u:test.user");
+    saslCredBytes.append((byte)0);
+    saslCredBytes.append(password);
     InternalClientConnection anonymousConn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         anonymousConn.processSASLBind(new ASN1OctetString(), "PLAIN",
-                                       new ASN1OctetString(saslCredBytes));
+         anonymousConn.processSASLBind(ByteString.empty(), "PLAIN",
+                                       saslCredBytes.toByteString());
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -311,7 +307,7 @@ public class PlainSASLMechanismHandlerTestCase
                    "givenName: Test",
                    "sn: User",
                    "cn: Test User",
-                   "userPassword: " + password.stringValue());
+                   "userPassword: " + password.toString());
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -321,18 +317,17 @@ public class PlainSASLMechanismHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    byte[] dnBytes = e.getDN().toString().getBytes("UTF-8");
-    byte[] saslCredBytes =
-         new byte[5 + dnBytes.length + password.value().length];
-    System.arraycopy("dn:".getBytes("UTF-8"), 0, saslCredBytes, 1, 3);
-    System.arraycopy(dnBytes, 0, saslCredBytes, 4, dnBytes.length);
-    System.arraycopy(password.value(), 0, saslCredBytes, 5 + dnBytes.length,
-                     password.value().length);
+    ByteStringBuilder saslCredBytes = new ByteStringBuilder();
+    saslCredBytes.append((byte)0);
+    saslCredBytes.append("dn:");
+    saslCredBytes.append(e.getDN().toString());
+    saslCredBytes.append((byte)0);
+    saslCredBytes.append(password);
     InternalClientConnection anonymousConn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         anonymousConn.processSASLBind(new ASN1OctetString(), "PLAIN",
-                                       new ASN1OctetString(saslCredBytes));
+         anonymousConn.processSASLBind(ByteString.empty(), "PLAIN",
+                                       saslCredBytes.toByteString());
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -363,7 +358,7 @@ public class PlainSASLMechanismHandlerTestCase
                    "givenName: Test",
                    "sn: User",
                    "cn: Test User",
-                   "userPassword: " + password.stringValue());
+                   "userPassword: " + password.toString());
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -373,19 +368,19 @@ public class PlainSASLMechanismHandlerTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    byte[] dnBytes = ("dn:" + e.getDN().toString()).getBytes("UTF-8");
-    byte[] saslCredBytes =
-         new byte[2 + (2*dnBytes.length) + password.value().length];
-    System.arraycopy(dnBytes, 0, saslCredBytes, 0, dnBytes.length);
-    System.arraycopy(dnBytes, 0, saslCredBytes, dnBytes.length+1,
-                     dnBytes.length);
-    System.arraycopy(password.value(), 0, saslCredBytes,
-                     (2*dnBytes.length + 2), password.value().length);
+    ByteStringBuilder saslCredBytes = new ByteStringBuilder();
+    saslCredBytes.append("dn:");
+    saslCredBytes.append(e.getDN().toString());
+    saslCredBytes.append((byte)0);
+    saslCredBytes.append("dn:");
+    saslCredBytes.append(e.getDN().toString());
+    saslCredBytes.append((byte)0);
+    saslCredBytes.append(password);
     InternalClientConnection anonymousConn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         anonymousConn.processSASLBind(new ASN1OctetString(), "PLAIN",
-                                       new ASN1OctetString(saslCredBytes));
+         anonymousConn.processSASLBind(ByteString.empty(), "PLAIN",
+                                       saslCredBytes.toByteString());
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -400,13 +395,13 @@ public class PlainSASLMechanismHandlerTestCase
   public void testSASLPlainAsRoot()
          throws Exception
   {
-    ASN1OctetString rootCreds =
-         new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
+    ByteString rootCreds =
+         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     InternalClientConnection anonymousConn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         anonymousConn.processSASLBind(new ASN1OctetString(), "PLAIN",
+         anonymousConn.processSASLBind(ByteString.empty(), "PLAIN",
                                     rootCreds);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -455,21 +450,21 @@ public class PlainSASLMechanismHandlerTestCase
     return new Object[][]
     {
       new Object[] { null },
-      new Object[] { new ASN1OctetString() },
-      new Object[] { new ASN1OctetString("u:test.user") },
-      new Object[] { new ASN1OctetString("password") },
-      new Object[] { new ASN1OctetString("\u0000") },
-      new Object[] { new ASN1OctetString("\u0000\u0000") },
-      new Object[] { new ASN1OctetString("\u0000password") },
-      new Object[] { new ASN1OctetString("\u0000\u0000password") },
-      new Object[] { new ASN1OctetString("\u0000u:test.user\u0000") },
-      new Object[] { new ASN1OctetString("\u0000dn:\u0000password") },
-      new Object[] { new ASN1OctetString("\u0000dn:bogus\u0000password") },
-      new Object[] { new ASN1OctetString("\u0000dn:cn=no such user" +
+      new Object[] { ByteString.empty() },
+      new Object[] { ByteString.valueOf("u:test.user") },
+      new Object[] { ByteString.valueOf("password") },
+      new Object[] { ByteString.valueOf("\u0000") },
+      new Object[] { ByteString.valueOf("\u0000\u0000") },
+      new Object[] { ByteString.valueOf("\u0000password") },
+      new Object[] { ByteString.valueOf("\u0000\u0000password") },
+      new Object[] { ByteString.valueOf("\u0000u:test.user\u0000") },
+      new Object[] { ByteString.valueOf("\u0000dn:\u0000password") },
+      new Object[] { ByteString.valueOf("\u0000dn:bogus\u0000password") },
+      new Object[] { ByteString.valueOf("\u0000dn:cn=no such user" +
                                          "\u0000password") },
-      new Object[] { new ASN1OctetString("\u0000u:\u0000password") },
-      new Object[] { new ASN1OctetString("\u0000u:nosuchuser\u0000password") },
-      new Object[] { new ASN1OctetString("\u0000u:test.user\u0000" +
+      new Object[] { ByteString.valueOf("\u0000u:\u0000password") },
+      new Object[] { ByteString.valueOf("\u0000u:nosuchuser\u0000password") },
+      new Object[] { ByteString.valueOf("\u0000u:test.user\u0000" +
                                          "wrongpassword") },
     };
   }
@@ -485,7 +480,7 @@ public class PlainSASLMechanismHandlerTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "invalidCredentials")
-  public void testInvalidCredentials(ASN1OctetString saslCredentials)
+  public void testInvalidCredentials(ByteString saslCredentials)
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -513,7 +508,7 @@ public class PlainSASLMechanismHandlerTestCase
     InternalClientConnection anonymousConn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-         anonymousConn.processSASLBind(new ASN1OctetString(), "PLAIN",
+         anonymousConn.processSASLBind(ByteString.empty(), "PLAIN",
                                        saslCredentials);
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
   }

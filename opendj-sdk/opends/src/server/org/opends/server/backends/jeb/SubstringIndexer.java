@@ -168,7 +168,7 @@ public class SubstringIndexer extends Indexer
       {
         try
         {
-          byte[] normalizedBytes = value.getNormalizedValue().value();
+          byte[] normalizedBytes = value.getNormalizedValue().toByteArray();
 
           substringKeys(normalizedBytes, keys);
         }
@@ -245,7 +245,7 @@ public class SubstringIndexer extends Indexer
       {
         try
         {
-          byte[] normalizedBytes = value.getNormalizedValue().value();
+          byte[] normalizedBytes = value.getNormalizedValue().toByteArray();
 
           substringKeys(normalizedBytes, modifiedKeys, insert);
         }

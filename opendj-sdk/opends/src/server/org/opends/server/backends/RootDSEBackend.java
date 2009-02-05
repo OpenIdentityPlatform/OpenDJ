@@ -54,7 +54,6 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.core.WorkflowTopologyNode;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.Validator;
@@ -838,7 +837,7 @@ public class RootDSEBackend
     AttributeBuilder builder = new AttributeBuilder(type, name);
     for (DN dn : values) {
       builder.add(
-          new AttributeValue(type, new ASN1OctetString(dn.toString())));
+          AttributeValues.create(type, dn.toString()));
     }
 
     return builder.toAttribute();
@@ -871,7 +870,7 @@ public class RootDSEBackend
     AttributeBuilder builder = new AttributeBuilder(type, name);
     builder.setInitialCapacity(values.size());
     for (String s : values) {
-      builder.add(new AttributeValue(type, new ASN1OctetString(s)));
+      builder.add(AttributeValues.create(type, s));
     }
 
     return builder.toAttribute();

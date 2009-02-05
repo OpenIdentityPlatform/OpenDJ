@@ -73,7 +73,6 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.tools.LDIFModify;
 import org.opends.server.types.*;
@@ -864,7 +863,7 @@ public class ConfigFileHandler
       {
         try
         {
-          ASN1OctetString ts = new ASN1OctetString(name.substring(7, dotPos));
+          ByteString ts = ByteString.valueOf(name.substring(7, dotPos));
           long timestamp = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(ts);
           if (timestamp > latestTimestamp)
           {
@@ -883,7 +882,7 @@ public class ConfigFileHandler
       {
         try
         {
-          ASN1OctetString ts = new ASN1OctetString(name.substring(7, dashPos));
+          ByteString ts = ByteString.valueOf(name.substring(7, dashPos));
           long timestamp = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(ts);
           int counter = Integer.parseInt(name.substring(dashPos+1, dotPos));
 

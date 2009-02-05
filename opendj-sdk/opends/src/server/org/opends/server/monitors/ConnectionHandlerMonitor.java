@@ -38,15 +38,7 @@ import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DirectoryConfig;
-import org.opends.server.types.HostPort;
-import org.opends.server.types.ObjectClass;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -199,7 +191,7 @@ public class ConnectionHandlerMonitor
       AttributeBuilder builder = new AttributeBuilder(listenerType);
       for (HostPort hp : listeners)
       {
-        builder.add(new AttributeValue(listenerType, hp.toString()));
+        builder.add(AttributeValues.create(listenerType, hp.toString()));
       }
       attrs.add(builder.toAttribute());
     }
@@ -210,7 +202,7 @@ public class ConnectionHandlerMonitor
       for (ClientConnection c : conns)
       {
         numConnections++;
-        builder.add(new AttributeValue(connectionsType, c
+        builder.add(AttributeValues.create(connectionsType, c
             .getMonitorSummary()));
       }
       attrs.add(builder.toAttribute());

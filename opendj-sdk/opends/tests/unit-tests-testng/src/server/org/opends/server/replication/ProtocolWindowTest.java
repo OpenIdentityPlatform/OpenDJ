@@ -47,7 +47,6 @@ import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
@@ -55,19 +54,10 @@ import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.Modification;
-import org.opends.server.types.Operation;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchScope;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.opends.server.types.Attribute;
+import org.opends.server.types.*;
 
 import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.assertNotNull;
@@ -232,7 +222,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
           throws LDAPException
   {
     InternalSearchOperation op = connection.processSearch(
-        new ASN1OctetString("cn=monitor"),
+        ByteString.valueOf("cn=monitor"),
         SearchScope.WHOLE_SUBTREE, LDAPFilter.decode(
             "(max-waiting-changes=" +  changelog_queue_size + ")"));
     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
@@ -247,7 +237,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
   private boolean checkWindows(int windowSize) throws LDAPException
   {
     InternalSearchOperation op = connection.processSearch(
-        new ASN1OctetString("cn=monitor"),
+        ByteString.valueOf("cn=monitor"),
         SearchScope.WHOLE_SUBTREE,
         LDAPFilter.decode("(max-rcv-window=" + windowSize + ")"));
     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
@@ -263,7 +253,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
   private void searchUpdateSent() throws Exception
   {
     InternalSearchOperation op = connection.processSearch(
-        new ASN1OctetString("cn=monitor"),
+        ByteString.valueOf("cn=monitor"),
         SearchScope.WHOLE_SUBTREE,
         LDAPFilter.decode("(sent-updates=" + WINDOW_SIZE + ")"));
 
@@ -272,7 +262,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
         "Entries#=" + op.getEntriesSent());
 
     op = connection.processSearch(
-        new ASN1OctetString("cn=monitor"),
+        ByteString.valueOf("cn=monitor"),
         SearchScope.WHOLE_SUBTREE,
         LDAPFilter.decode("(missing-changes=" +
             (REPLICATION_QUEUE_SIZE + WINDOW_SIZE) + ")"));
@@ -288,7 +278,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
         Attribute attr = attit.next();
         logError(Message.raw(Category.SYNC, Severity.INFORMATION,
         e.getDN() + "= " + attr.getName() + " " + attr.iterator()
-        .next().getStringValue()));
+        .next().getValue().toString()));
       }
     }
     assertEquals(op.getEntriesSent(), 1, "Entries#=" + op.getEntriesSent());
@@ -301,6 +291,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
    * @throws Exception
    *           If the environment could not be set up.
    */
+  @Override
   @BeforeClass
   public void setUp() throws Exception
   {

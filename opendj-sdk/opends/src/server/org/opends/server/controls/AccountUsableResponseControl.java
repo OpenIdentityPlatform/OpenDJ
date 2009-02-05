@@ -28,19 +28,12 @@ package org.opends.server.controls;
 import org.opends.messages.Message;
 
 
+import java.io.IOException;
 
-import java.util.ArrayList;
-
-import org.opends.server.protocols.asn1.ASN1Boolean;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Integer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.Control;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
+import org.opends.server.protocols.asn1.*;
+import static org.opends.server.protocols.asn1.ASN1Constants.
+    UNIVERSAL_OCTET_STRING_TYPE;
+import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -69,8 +62,119 @@ import static org.opends.server.util.StaticUtils.*;
  * </PRE>
  */
 public class AccountUsableResponseControl
-       extends Control
+    extends Control
 {
+  /**
+   * ControlDecoder implentation to decode this control from a ByteString.
+   */
+  private final static class Decoder
+      implements ControlDecoder<AccountUsableResponseControl>
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public AccountUsableResponseControl decode(boolean isCritical,
+                                               ByteString value)
+        throws DirectoryException
+    {
+      if (value == null)
+      {
+        // The response control must always have a value.
+        Message message = ERR_ACCTUSABLERES_NO_CONTROL_VALUE.get();
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+      }
+
+
+      try
+      {
+        ASN1Reader reader = ASN1.getReader(value);
+        switch (reader.peekType())
+        {
+          case TYPE_SECONDS_BEFORE_EXPIRATION:
+            int secondsBeforeExpiration = (int)reader.readInteger();
+            return new AccountUsableResponseControl(isCritical,
+                secondsBeforeExpiration);
+          case TYPE_MORE_INFO:
+            boolean isInactive = false;
+            boolean isReset = false;
+            boolean isExpired = false;
+            boolean isLocked = false;
+            int     remainingGraceLogins = -1;
+            int     secondsBeforeUnlock = 0;
+
+            reader.readStartSequence();
+            while(reader.hasNextElement())
+            {
+              switch (reader.peekType())
+              {
+                case TYPE_INACTIVE:
+                  isInactive = reader.readBoolean();
+                  break;
+                case TYPE_RESET:
+                  isReset = reader.readBoolean();
+                  break;
+                case TYPE_EXPIRED:
+                  isExpired = reader.readBoolean();
+                  break;
+                case TYPE_REMAINING_GRACE_LOGINS:
+                  remainingGraceLogins = (int)reader.readInteger();
+                  break;
+                case TYPE_SECONDS_BEFORE_UNLOCK:
+                  isLocked = true;
+                  secondsBeforeUnlock = (int)reader.readInteger();
+                  break;
+                default:
+                  Message message = ERR_ACCTUSABLERES_UNKNOWN_UNAVAILABLE_TYPE.
+                      get(byteToHex(reader.peekType()));
+                  throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                      message);
+              }
+            }
+            reader.readEndSequence();
+
+            return new AccountUsableResponseControl(isCritical,
+                isInactive, isReset,
+                isExpired,
+                remainingGraceLogins,
+                isLocked,
+                secondsBeforeUnlock);
+
+          default:
+            Message message = ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE.get(
+                byteToHex(reader.peekType()));
+            throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+        }
+      }
+      catch (DirectoryException de)
+      {
+        throw de;
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message =
+            ERR_ACCTUSABLERES_DECODE_ERROR.get(getExceptionMessage(e));
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+      }
+    }
+
+    public String getOID()
+    {
+      return OID_ACCOUNT_USABLE_CONTROL;
+    }
+
+  }
+
+  /**
+   * The Control Decoder that can be used to decode this control.
+   */
+  public static final ControlDecoder<AccountUsableResponseControl> DECODER =
+    new Decoder();
+
   /**
    * The tracer object for the debug logger.
    */
@@ -175,8 +279,26 @@ public class AccountUsableResponseControl
    */
   public AccountUsableResponseControl(int secondsBeforeExpiration)
   {
-    super(OID_ACCOUNT_USABLE_CONTROL, false,
-          encodeValue(secondsBeforeExpiration));
+    this(false, secondsBeforeExpiration);
+  }
+
+  /**
+   * Creates a new account usability response control that may be used to
+   * indicate that the account is available and provide the number of seconds
+   * until expiration.  It will use the default OID and criticality.
+   *
+   * @param  isCritical  Indicates whether this control should be
+   *                     considered critical in processing the
+   *                     request.
+   * @param  secondsBeforeExpiration  The length of time in seconds until the
+   *                                  user's password expires, or -1 if the
+   *                                  user's password will not expire or the
+   *                                  expiration time is unknown.
+   */
+  public AccountUsableResponseControl(boolean isCritical,
+                                      int secondsBeforeExpiration)
+  {
+    super(OID_ACCOUNT_USABLE_CONTROL, isCritical);
 
 
     this.secondsBeforeExpiration = secondsBeforeExpiration;
@@ -194,36 +316,49 @@ public class AccountUsableResponseControl
 
   /**
    * Creates a new account usability response control that may be used to
-   * indicate that the account is available and provide the number of seconds
-   * until expiration.
+   * indicate that the account is not available and provide information about
+   * the underlying reason.  It will use the default OID and criticality.
    *
-   * @param  oid                      The OID for this account usability
-   *                                  response control.
-   * @param  isCritical               Indicates whether this control should be
-   *                                  marked critical.
-   * @param  secondsBeforeExpiration  The length of time in seconds until the
-   *                                  user's password expires, or -1 if the
-   *                                  user's password will not expire or the
-   *                                  expiration time is unknown.
+   * @param  isCritical  Indicates whether this control should be
+   *                     considered critical in processing the
+   *                     request.
+   * @param  isInactive            Indicates whether the user's account has been
+   *                               inactivated by an administrator.
+   * @param  isReset               Indicates whether the user's password has
+   *                               been reset by an administrator.
+   * @param  isExpired             Indicates whether the user's password is
+   *                               expired.
+   * @param  remainingGraceLogins  The number of grace logins remaining.  A
+   *                               value of zero indicates that there are none
+   *                               remaining.  A value of -1 indicates that
+   *                               grace login functionality is not enabled.
+   * @param  isLocked              Indicates whether the user's account is
+   *                               currently locked out.
+   * @param  secondsBeforeUnlock   The length of time in seconds until the
+   *                               account is unlocked.  A value of -1 indicates
+   *                               that the account will not be automatically
+   *                               unlocked and must be reset by an
+   *                               administrator.
    */
-  public AccountUsableResponseControl(String oid, boolean isCritical,
-                                      int secondsBeforeExpiration)
+  public AccountUsableResponseControl(boolean isCritical, boolean isInactive,
+                                      boolean isReset,
+                                      boolean isExpired,
+                                      int remainingGraceLogins,
+                                      boolean isLocked, int secondsBeforeUnlock)
   {
-    super(oid, isCritical, encodeValue(secondsBeforeExpiration));
+    super(OID_ACCOUNT_USABLE_CONTROL, isCritical);
 
 
-    this.secondsBeforeExpiration = secondsBeforeExpiration;
+    this.isInactive           = isInactive;
+    this.isReset              = isReset;
+    this.isExpired            = isExpired;
+    this.remainingGraceLogins = remainingGraceLogins;
+    this.isLocked             = isLocked;
+    this.secondsBeforeUnlock  = secondsBeforeUnlock;
 
-    isUsable             = true;
-    isInactive           = false;
-    isReset              = false;
-    isExpired            = false;
-    remainingGraceLogins = -1;
-    isLocked             = false;
-    secondsBeforeUnlock  = 0;
+    isUsable                = false;
+    secondsBeforeExpiration = -1;
   }
-
-
 
   /**
    * Creates a new account usability response control that may be used to
@@ -253,339 +388,60 @@ public class AccountUsableResponseControl
                                       int remainingGraceLogins,
                                       boolean isLocked, int secondsBeforeUnlock)
   {
-    super(OID_ACCOUNT_USABLE_CONTROL, false,
-          encodeValue(isInactive, isReset, isExpired, remainingGraceLogins,
-                      isLocked, secondsBeforeUnlock));
-
-
-    this.isInactive           = isInactive;
-    this.isReset              = isReset;
-    this.isExpired            = isExpired;
-    this.remainingGraceLogins = remainingGraceLogins;
-    this.isLocked             = isLocked;
-    this.secondsBeforeUnlock  = secondsBeforeUnlock;
-
-    isUsable                = false;
-    secondsBeforeExpiration = -1;
+    this(false, isInactive, isReset, isExpired, remainingGraceLogins,
+        isLocked, secondsBeforeUnlock);
   }
 
-
-
   /**
-   * Creates a new account usability response control that may be used to
-   * indicate that the account is not available and provide information about
-   * the underlying reason.
+   * Writes this control's value to an ASN.1 writer. The value (if any) must be
+   * written as an ASN1OctetString.
    *
-   * @param  oid                   The OID for this account usability response
-   *                               control.
-   * @param  isCritical            Indicates whether this control should be
-   *                               marked critical.
-   * @param  isInactive            Indicates whether the user's account has been
-   *                               inactivated by an administrator.
-   * @param  isReset               Indicates whether the user's password has
-   *                               been reset by an administrator.
-   * @param  isExpired             Indicates whether the user's password is
-   *                               expired.
-   * @param  remainingGraceLogins  The number of grace logins remaining.  A
-   *                               value of zero indicates that there are none
-   *                               remaining.  A value of -1 indicates that
-   *                               grace login functionality is not enabled.
-   * @param  isLocked              Indicates whether the user's account is
-   *                               currently locked out.
-   * @param  secondsBeforeUnlock   The length of time in seconds until the
-   *                               account is unlocked.  A value of -1 indicates
-   *                               that the account will not be automatically
-   *                               unlocked and must be reset by an
-   *                               administrator.
+   * @param writer The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public AccountUsableResponseControl(String oid, boolean isCritical,
-                                      boolean isInactive, boolean isReset,
-                                      boolean isExpired,
-                                      int remainingGraceLogins,
-                                      boolean isLocked, int secondsBeforeUnlock)
-  {
-    super(oid, isCritical,
-          encodeValue(isInactive, isReset, isExpired, remainingGraceLogins,
-                      isLocked, secondsBeforeUnlock));
+  public void writeValue(ASN1Writer writer) throws IOException {
+    writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
 
-
-    this.isInactive           = isInactive;
-    this.isReset              = isReset;
-    this.isExpired            = isExpired;
-    this.remainingGraceLogins = remainingGraceLogins;
-    this.isLocked             = isLocked;
-    this.secondsBeforeUnlock  = secondsBeforeUnlock;
-
-    isUsable                = false;
-    secondsBeforeExpiration = -1;
-  }
-
-
-
-  /**
-   * Creates a new account usability response control using the provided
-   * information.  This version of the constructor is only intended for internal
-   * use.
-   *
-   * @param  oid                      The OID for this account usability
-   *                                  response control.
-   * @param  isCritical               Indicates whether this control should be
-   *                                  marked critical.
-   * @param  isAvailable              Indicates whether the user's account is
-   *                                  available for use.
-   * @param  secondsBeforeExpiration  The length of time in seconds until the
-   *                                  user's password expires, or -1 if the
-   *                                  user's password will not expire or the
-   *                                  expiration time is unknown.
-   * @param  isInactive               Indicates whether the user's account has
-   *                                  been inactivated by an administrator.
-   * @param  isReset                  Indicates whether the user's password has
-   *                                  been reset by an administrator.
-   * @param  isExpired                Indicates whether the user's password is
-   *                                  expired.
-   * @param  remainingGraceLogins     The number of grace logins remaining.  A
-   *                                  value of zero indicates that there are
-   *                                  none remaining.  A value of -1 indicates
-   *                                  that grace login functionality is not
-   *                                  enabled.
-   * @param  isLocked                 Indicates whether the user's account is
-   *                                  currently locked out.
-   * @param  secondsBeforeUnlock      The length of time in seconds until the
-   *                                  account is unlocked.  A value of -1
-   *                                  indicates that the account will not be
-   *                                  automatically unlocked and must be reset
-   *                                  by an administrator.
-   * @param  encodedValue             The pre-encoded value for this account
-   *                                  usable response control.
-   */
-  private AccountUsableResponseControl(String oid, boolean isCritical,
-                                             boolean isAvailable,
-                                             int secondsBeforeExpiration,
-                                             boolean isInactive,
-                                             boolean isReset, boolean isExpired,
-                                             int remainingGraceLogins,
-                                             boolean isLocked,
-                                             int secondsBeforeUnlock,
-                                             ASN1OctetString encodedValue)
-  {
-    super(oid, isCritical, encodedValue);
-
-
-    this.isUsable                = isAvailable;
-    this.secondsBeforeExpiration = secondsBeforeExpiration;
-    this.isInactive              = isInactive;
-    this.isReset                 = isReset;
-    this.isExpired               = isExpired;
-    this.remainingGraceLogins    = remainingGraceLogins;
-    this.isLocked                = isLocked;
-    this.secondsBeforeUnlock     = secondsBeforeUnlock;
-  }
-
-
-
-  /**
-   * Encodes the provided information into an ASN.1 octet string suitable for
-   * use as the value for an account usable response control in which the use's
-   * account is available.
-   *
-   * @param  secondsBeforeExpiration  The length of time in seconds until the
-   *                                  user's password expires, or -1 if the
-   *                                  user's password will not expire or the
-   *                                  expiration time is unknown.
-   *
-   * @return  An ASN.1 octet string containing the encoded control value.
-   */
-  private static ASN1OctetString encodeValue(int secondsBeforeExpiration)
-  {
-    ASN1Integer sbeInteger = new ASN1Integer(TYPE_SECONDS_BEFORE_EXPIRATION,
-                                             secondsBeforeExpiration);
-
-    return new ASN1OctetString(sbeInteger.encode());
-  }
-
-
-
-  /**
-   * Encodes the provided information into an ASN.1 octet string suitable for
-   * use as the value for an account usable response control in which the user's
-   * account is not available.
-   *
-   *
-   * @param  isInactive            Indicates whether the user's account has been
-   *                               inactivated by an administrator.
-   * @param  isReset               Indicates whether the user's password has
-   *                               been reset by an administrator.
-   * @param  isExpired             Indicates whether the user's password is
-   *                               expired.
-   * @param  remainingGraceLogins  The number of grace logins remaining.  A
-   *                               value of zero indicates that there are none
-   *                               remaining.  A value of -1 indicates that
-   *                               grace login functionality is not enabled.
-   * @param  isLocked              Indicates whether the user's account is
-   *                               currently locked out.
-   * @param  secondsBeforeUnlock   The length of time in seconds until the
-   *                               account is unlocked.  A value of -1 indicates
-   *                               that the account will not be automatically
-   *                               unlocked and must be reset by an
-   *                               administrator.
-   *
-   * @return  An ASN.1 octet string containing the encoded control value.
-   */
-  private static ASN1OctetString encodeValue(boolean isInactive,
-                                             boolean isReset, boolean isExpired,
-                                             int remainingGraceLogins,
-                                             boolean isLocked,
-                                             int secondsBeforeUnlock)
-  {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(5);
-
-    if (isInactive)
+    if(secondsBeforeExpiration < 0)
     {
-      elements.add(new ASN1Boolean(TYPE_INACTIVE, true));
+      writer.writeInteger(TYPE_SECONDS_BEFORE_EXPIRATION,
+          secondsBeforeExpiration);
     }
-
-    if (isReset)
+    else
     {
-      elements.add(new ASN1Boolean(TYPE_RESET, true));
-    }
-
-    if (isExpired)
-    {
-      elements.add(new ASN1Boolean(TYPE_EXPIRED, true));
-
-      if (remainingGraceLogins >= 0)
+      writer.writeStartSequence(TYPE_MORE_INFO);
+      if (isInactive)
       {
-        elements.add(new ASN1Integer(TYPE_REMAINING_GRACE_LOGINS,
-                                     remainingGraceLogins));
-      }
-    }
-
-    if (isLocked)
-    {
-      elements.add(new ASN1Integer(TYPE_SECONDS_BEFORE_UNLOCK,
-                                   secondsBeforeUnlock));
-    }
-
-    ASN1Sequence moreInfoSequence = new ASN1Sequence(TYPE_MORE_INFO,
-                                                     elements);
-    return new ASN1OctetString(moreInfoSequence.encode());
-  }
-
-
-
-  /**
-   * Creates a new account usable response control from the contents of the
-   * provided control.
-   *
-   * @param  control  The generic control containing the information to use to
-   *                  create this account usable response control.
-   *
-   * @return  The account usable response control decoded from the provided
-   *          control.
-   *
-   * @throws  LDAPException  If this control cannot be decoded as a valid
-   *                         account usable response control.
-   */
-  public static AccountUsableResponseControl decodeControl(Control control)
-         throws LDAPException
-  {
-    ASN1OctetString controlValue = control.getValue();
-    if (controlValue == null)
-    {
-      // The response control must always have a value.
-      Message message = ERR_ACCTUSABLERES_NO_CONTROL_VALUE.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-    }
-
-
-    try
-    {
-      ASN1Element valueElement = ASN1Element.decode(controlValue.value());
-      switch (valueElement.getType())
-      {
-        case TYPE_SECONDS_BEFORE_EXPIRATION:
-          int secondsBeforeExpiration =
-                   valueElement.decodeAsInteger().intValue();
-          return new AccountUsableResponseControl(control.getOID(),
-                                                  control.isCritical(), true,
-                                                  secondsBeforeExpiration,
-                                                  false, false, false, -1,
-                                                  false, 0, controlValue);
-        case TYPE_MORE_INFO:
-          boolean isInactive = false;
-          boolean isReset = false;
-          boolean isExpired = false;
-          boolean isLocked = false;
-          int     remainingGraceLogins = -1;
-          int     secondsBeforeUnlock = 0;
-
-          for (ASN1Element e : valueElement.decodeAsSequence().elements())
-          {
-            switch (e.getType())
-            {
-              case TYPE_INACTIVE:
-                isInactive = e.decodeAsBoolean().booleanValue();
-                break;
-              case TYPE_RESET:
-                isReset = e.decodeAsBoolean().booleanValue();
-                break;
-              case TYPE_EXPIRED:
-                isExpired = e.decodeAsBoolean().booleanValue();
-                break;
-              case TYPE_REMAINING_GRACE_LOGINS:
-                remainingGraceLogins = e.decodeAsInteger().intValue();
-                break;
-              case TYPE_SECONDS_BEFORE_UNLOCK:
-                isLocked = true;
-                secondsBeforeUnlock = e.decodeAsInteger().intValue();
-                break;
-              default:
-                Message message = ERR_ACCTUSABLERES_UNKNOWN_UNAVAILABLE_TYPE.
-                    get(byteToHex(e.getType()));
-                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-            }
-          }
-
-          return new AccountUsableResponseControl(control.getOID(),
-                                                  control.isCritical(), false,
-                                                  -1, isInactive, isReset,
-                                                  isExpired,
-                                                  remainingGraceLogins,
-                                                  isLocked, secondsBeforeUnlock,
-                                                  controlValue);
-
-        default:
-          Message message = ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE.get(
-              byteToHex(valueElement.getType()));
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-      }
-    }
-    catch (LDAPException le)
-    {
-      throw le;
-    }
-    catch (ASN1Exception ae)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ae);
+        writer.writeBoolean(TYPE_INACTIVE, true);
       }
 
-      Message message = ERR_ACCTUSABLERES_DECODE_ERROR.get(ae.getMessage());
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
+      if (isReset)
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        writer.writeBoolean(TYPE_RESET, true);
       }
 
-      Message message =
-          ERR_ACCTUSABLERES_DECODE_ERROR.get(getExceptionMessage(e));
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
+      if (isExpired)
+      {
+        writer.writeBoolean(TYPE_EXPIRED, true);
+
+        if (remainingGraceLogins >= 0)
+        {
+          writer.writeInteger(TYPE_REMAINING_GRACE_LOGINS,
+              remainingGraceLogins);
+        }
+      }
+
+      if (isLocked)
+      {
+        writer.writeInteger(TYPE_SECONDS_BEFORE_UNLOCK,
+            secondsBeforeUnlock);
+      }
+      writer.writeEndSequence();
     }
+
+    writer.writeEndSequence();
   }
+
 
 
 
@@ -698,20 +554,6 @@ public class AccountUsableResponseControl
   public int getSecondsBeforeUnlock()
   {
     return secondsBeforeUnlock;
-  }
-
-
-
-  /**
-   * Retrieves a string representation of this password policy response control.
-   *
-   * @return  A string representation of this password policy response control.
-   */
-  public String toString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
   }
 
 

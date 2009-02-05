@@ -44,8 +44,6 @@ import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.plugins.UpdatePreOpPlugin;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -59,6 +57,7 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.tools.LDAPModify;
+import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
 
@@ -111,75 +110,75 @@ public class ModifyOperationTestCase
 
 
     ArrayList<RawModification> ldapMods = new ArrayList<RawModification>();
-    ArrayList<ASN1OctetString> ldapValues = new ArrayList<ASN1OctetString>();
-    ldapValues.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> ldapValues = new ArrayList<ByteString>();
+    ldapValues.add(ByteString.valueOf("foo"));
     LDAPAttribute ldapAttr = new LDAPAttribute("description", ldapValues);
     ldapMods.add(new LDAPModification(ModificationType.ADD, ldapAttr));
 
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), null,
-                                   new ASN1OctetString(), ldapMods));
+                                   ByteString.empty(), ldapMods));
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), noControls,
-                                   new ASN1OctetString(), ldapMods));
+                                   ByteString.empty(), ldapMods));
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), null,
-                                   new ASN1OctetString("o=test"), ldapMods));
+                                   ByteString.valueOf("o=test"), ldapMods));
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), noControls,
-                                   new ASN1OctetString("o=test"), ldapMods));
+                                   ByteString.valueOf("o=test"), ldapMods));
 
     ldapMods = new ArrayList<RawModification>();
     ldapMods.add(new LDAPModification(ModificationType.DELETE, ldapAttr));
 
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), null,
-                                   new ASN1OctetString(), ldapMods));
+                                   ByteString.empty(), ldapMods));
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), noControls,
-                                   new ASN1OctetString(), ldapMods));
+                                   ByteString.empty(), ldapMods));
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), null,
-                                   new ASN1OctetString("o=test"), ldapMods));
+                                   ByteString.valueOf("o=test"), ldapMods));
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), noControls,
-                                   new ASN1OctetString("o=test"), ldapMods));
+                                   ByteString.valueOf("o=test"), ldapMods));
 
     ldapMods = new ArrayList<RawModification>();
     ldapMods.add(new LDAPModification(ModificationType.REPLACE, ldapAttr));
 
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), null,
-                                   new ASN1OctetString(), ldapMods));
+                                   ByteString.empty(), ldapMods));
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), noControls,
-                                   new ASN1OctetString(), ldapMods));
+                                   ByteString.empty(), ldapMods));
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), null,
-                                   new ASN1OctetString("o=test"), ldapMods));
+                                   ByteString.valueOf("o=test"), ldapMods));
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), noControls,
-                                   new ASN1OctetString("o=test"), ldapMods));
+                                   ByteString.valueOf("o=test"), ldapMods));
 
     ldapMods = new ArrayList<RawModification>();
-    ArrayList<ASN1OctetString> values2 = new ArrayList<ASN1OctetString>();
-    values2.add(new ASN1OctetString("bar"));
+    ArrayList<ByteString> values2 = new ArrayList<ByteString>();
+    values2.add(ByteString.valueOf("bar"));
     LDAPAttribute ldapAttr2 = new LDAPAttribute("description", values2);
     ldapMods.add(new LDAPModification(ModificationType.DELETE, ldapAttr));
     ldapMods.add(new LDAPModification(ModificationType.ADD, ldapAttr2));
 
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), null,
-                                   new ASN1OctetString(), ldapMods));
+                                   ByteString.empty(), ldapMods));
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), noControls,
-                                   new ASN1OctetString(), ldapMods));
+                                   ByteString.empty(), ldapMods));
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), null,
-                                   new ASN1OctetString("o=test"), ldapMods));
+                                   ByteString.valueOf("o=test"), ldapMods));
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), noControls,
-                                   new ASN1OctetString("o=test"), ldapMods));
+                                   ByteString.valueOf("o=test"), ldapMods));
 
     ldapMods = new ArrayList<RawModification>();
     ldapAttr2 = new LDAPAttribute("cn", values2);
@@ -188,16 +187,16 @@ public class ModifyOperationTestCase
 
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), null,
-                                   new ASN1OctetString(), ldapMods));
+                                   ByteString.empty(), ldapMods));
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), noControls,
-                                   new ASN1OctetString(), ldapMods));
+                                   ByteString.empty(), ldapMods));
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), null,
-                                   new ASN1OctetString("o=test"), ldapMods));
+                                   ByteString.valueOf("o=test"), ldapMods));
     opList.add(new ModifyOperationBasis(conn, conn.nextOperationID(),
                                    conn.nextMessageID(), noControls,
-                                   new ASN1OctetString("o=test"), ldapMods));
+                                   ByteString.valueOf("o=test"), ldapMods));
 
 
 
@@ -343,10 +342,10 @@ public class ModifyOperationTestCase
     ByteString originalDN = modifyOperation.getRawEntryDN();
     assertNotNull(originalDN);
 
-    modifyOperation.setRawEntryDN(new ASN1OctetString("uid=test,o=test"));
+    modifyOperation.setRawEntryDN(ByteString.valueOf("uid=test,o=test"));
     assertNotNull(modifyOperation.getRawEntryDN());
     assertEquals(modifyOperation.getRawEntryDN(),
-                 new ASN1OctetString("uid=test,o=test"));
+                 ByteString.valueOf("uid=test,o=test"));
 
     modifyOperation.setRawEntryDN(originalDN);
     assertNotNull(modifyOperation.getRawEntryDN());
@@ -365,8 +364,8 @@ public class ModifyOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
@@ -374,7 +373,7 @@ public class ModifyOperationTestCase
 
     ModifyOperation modifyOperation =
          new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                             null, new ASN1OctetString(), mods);
+                             null, ByteString.empty(), mods);
     assertNotNull(modifyOperation.getEntryDN());
   }
 
@@ -426,7 +425,7 @@ public class ModifyOperationTestCase
                              null, DN.nullDN(), mods);
     assertNotNull(modifyOperation.getEntryDN());
 
-    modifyOperation.setRawEntryDN(new ASN1OctetString("ou=Users,o=test"));
+    modifyOperation.setRawEntryDN(ByteString.valueOf("ou=Users,o=test"));
     assertNotNull(modifyOperation.getEntryDN());
   }
 
@@ -449,8 +448,8 @@ public class ModifyOperationTestCase
          new ArrayList<RawModification>(rawMods);
     modifyOperation.setRawModifications(clonedMods);
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("test"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("test"));
     LDAPAttribute attr = new LDAPAttribute("test", values);
 
     LDAPModification mod = new LDAPModification(ModificationType.REPLACE, attr);
@@ -572,15 +571,15 @@ public class ModifyOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("invaliddn"), mods);
+         conn.processModify(ByteString.valueOf("invaliddn"), mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -597,15 +596,15 @@ public class ModifyOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("o=nonexistent"), mods);
+         conn.processModify(ByteString.valueOf("o=nonexistent"), mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -627,8 +626,8 @@ public class ModifyOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
@@ -636,7 +635,7 @@ public class ModifyOperationTestCase
 
     ModifyOperation modifyOperation =
          conn.processModify(
-              new ASN1OctetString("cn=test,ou=nosuchparent," + baseDN), mods);
+              ByteString.valueOf("cn=test,ou=nosuchparent," + baseDN), mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -658,15 +657,15 @@ public class ModifyOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("cn=nosuchentry," + baseDN),
+         conn.processModify(ByteString.valueOf("cn=nosuchentry," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -692,7 +691,7 @@ public class ModifyOperationTestCase
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString(baseDN), mods);
+         conn.processModify(ByteString.valueOf(baseDN), mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -718,15 +717,15 @@ public class ModifyOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("o=test"), mods);
+         conn.processModify(ByteString.valueOf("o=test"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -763,15 +762,15 @@ public class ModifyOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("test2"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("test2"));
     LDAPAttribute attr = new LDAPAttribute("o", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("o=test"), mods);
+         conn.processModify(ByteString.valueOf("o=test"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -813,15 +812,15 @@ public class ModifyOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("test"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("test"));
     LDAPAttribute attr = new LDAPAttribute("dc;lang-en-us", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString(baseDN), mods);
+         conn.processModify(ByteString.valueOf(baseDN), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -872,15 +871,15 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("displayName", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -924,15 +923,15 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("false"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("false"));
     LDAPAttribute attr = new LDAPAttribute("ds-pwp-account-disabled", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -975,16 +974,16 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
-    values.add(new ASN1OctetString("bar"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
+    values.add(ByteString.valueOf("bar"));
     LDAPAttribute attr = new LDAPAttribute("displayName", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -1028,16 +1027,16 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("true"));
-    values.add(new ASN1OctetString("false"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("true"));
+    values.add(ByteString.valueOf("false"));
     LDAPAttribute attr = new LDAPAttribute("ds-pwp-account-disabled", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -1080,15 +1079,15 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("Test"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("Test"));
     LDAPAttribute attr = new LDAPAttribute("givenName", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -1131,16 +1130,16 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("Foo"));
-    values.add(new ASN1OctetString("Foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("Foo"));
+    values.add(ByteString.valueOf("Foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -1184,15 +1183,15 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("invaliddn"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("invaliddn"));
     LDAPAttribute attr = new LDAPAttribute("manager", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -1235,15 +1234,15 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("invaliddn"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("invaliddn"));
     LDAPAttribute attr = new LDAPAttribute("manager", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -1286,15 +1285,15 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("dc", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -1339,20 +1338,20 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("dc", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("extensibleObject"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("extensibleObject"));
     attr = new LDAPAttribute("objectClass", values);
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -1395,15 +1394,15 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("uid", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -1451,7 +1450,7 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -1494,15 +1493,15 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("test.user"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("test.user"));
     LDAPAttribute attr = new LDAPAttribute("uid", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -1545,8 +1544,8 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("Foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("Foo"));
     LDAPAttribute attr = new LDAPAttribute("givenName", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
@@ -1554,7 +1553,7 @@ public class ModifyOperationTestCase
 
     ModifyOperation modifyOperation =
          conn.processModify(
-              new ASN1OctetString("givenName=Test,sn=User," + baseDN), mods);
+              ByteString.valueOf("givenName=Test,sn=User," + baseDN), mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1602,7 +1601,7 @@ public class ModifyOperationTestCase
 
     ModifyOperation modifyOperation =
          conn.processModify(
-              new ASN1OctetString("givenName=Test,sn=User," + baseDN), mods);
+              ByteString.valueOf("givenName=Test,sn=User," + baseDN), mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1649,7 +1648,7 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -1694,15 +1693,15 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -1746,15 +1745,15 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -1799,16 +1798,16 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
-    values.add(new ASN1OctetString("bar"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
+    values.add(ByteString.valueOf("bar"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -1856,7 +1855,7 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -1899,15 +1898,15 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("User"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("User"));
     LDAPAttribute attr = new LDAPAttribute("sn", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -1951,15 +1950,15 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("bar"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("bar"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -2003,15 +2002,15 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("test.user"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("test.user"));
     LDAPAttribute attr = new LDAPAttribute("uid", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -2022,7 +2021,7 @@ public class ModifyOperationTestCase
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString("uid=test.user," + baseDN),
+              ByteString.valueOf("uid=test.user," + baseDN),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -2075,8 +2074,8 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("Test User"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("Test User"));
     LDAPAttribute attr = new LDAPAttribute("cn", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
@@ -2084,7 +2083,7 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -2095,7 +2094,7 @@ public class ModifyOperationTestCase
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString(baseDN),
+              ByteString.valueOf(baseDN),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -2151,15 +2150,15 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("X"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("X"));
     LDAPAttribute attr = new LDAPAttribute("givenName;lang-fr", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -2170,7 +2169,7 @@ public class ModifyOperationTestCase
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString(baseDN),
+              ByteString.valueOf(baseDN),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -2228,7 +2227,7 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -2276,7 +2275,7 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -2319,15 +2318,15 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -2371,19 +2370,19 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("bar"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("bar"));
     attr = new LDAPAttribute("mail", values);
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -2428,19 +2427,19 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("baz"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("baz"));
     attr = new LDAPAttribute("mail", values);
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -2484,20 +2483,20 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("bar"));
-    values.add(new ASN1OctetString("baz"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("bar"));
+    values.add(ByteString.valueOf("baz"));
     attr = new LDAPAttribute("mail", values);
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -2544,7 +2543,7 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -2587,15 +2586,15 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("Foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("Foo"));
     LDAPAttribute attr = new LDAPAttribute("displayName", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -2643,7 +2642,7 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -2691,7 +2690,7 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -2728,15 +2727,15 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("organizationalUnit"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("organizationalUnit"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("ou=People," + baseDN), mods);
+         conn.processModify(ByteString.valueOf("ou=People," + baseDN), mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -2772,15 +2771,15 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("organization"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("organization"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("ou=People," + baseDN), mods);
+         conn.processModify(ByteString.valueOf("ou=People," + baseDN), mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -2824,14 +2823,14 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("1"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("1"));
     LDAPAttribute attr = new LDAPAttribute("employeeNumber", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -2847,7 +2846,7 @@ public class ModifyOperationTestCase
     {
       for (AttributeValue v : a)
       {
-        assertEquals(Integer.parseInt(v.getStringValue()), 2);
+        assertEquals(Integer.parseInt(v.getValue().toString()), 2);
         found = true;
       }
     }
@@ -2893,14 +2892,14 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("10"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("10"));
     LDAPAttribute attr = new LDAPAttribute("employeeNumber", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -2916,7 +2915,7 @@ public class ModifyOperationTestCase
     {
       for (AttributeValue v : a)
       {
-        assertEquals(Integer.parseInt(v.getStringValue()), 11);
+        assertEquals(Integer.parseInt(v.getValue().toString()), 11);
         found = true;
       }
     }
@@ -2962,14 +2961,14 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("-1"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("-1"));
     LDAPAttribute attr = new LDAPAttribute("employeeNumber", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -2985,7 +2984,7 @@ public class ModifyOperationTestCase
     {
       for (AttributeValue v : a)
       {
-        assertEquals(Integer.parseInt(v.getStringValue()), 0);
+        assertEquals(Integer.parseInt(v.getValue().toString()), 0);
         found = true;
       }
     }
@@ -3029,14 +3028,14 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("1"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("1"));
     LDAPAttribute attr = new LDAPAttribute("displayName", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -3080,14 +3079,14 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("notnumeric"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("notnumeric"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -3132,14 +3131,14 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("1"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("1"));
     LDAPAttribute attr = new LDAPAttribute("roomNumber", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -3188,7 +3187,7 @@ public class ModifyOperationTestCase
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -3232,15 +3231,15 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("1"));
-    values.add(new ASN1OctetString("2"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("1"));
+    values.add(ByteString.valueOf("2"));
     LDAPAttribute attr = new LDAPAttribute("roomNumber", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -3283,14 +3282,14 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("1"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("1"));
     LDAPAttribute attr = new LDAPAttribute("employeeNumber", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -3336,14 +3335,14 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("extensibleObject"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -3392,14 +3391,14 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("extensibleObject"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -3447,14 +3446,14 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("inetOrgPerson"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("inetOrgPerson"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -3499,14 +3498,14 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("organizationalUnit"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("organizationalUnit"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -3550,23 +3549,23 @@ public class ModifyOperationTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(3000);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(3000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse =
          message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("12345678-1234-1234-1234-1234567890ab"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("12345678-1234-1234-1234-1234567890ab"));
     LDAPAttribute attr = new LDAPAttribute("entryUUID", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
@@ -3576,11 +3575,11 @@ public class ModifyOperationTestCase
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
-                  new ASN1OctetString("uid=test.user," + baseDN), mods);
+                  ByteString.valueOf("uid=test.user," + baseDN), mods);
     message = new LDAPMessage(2, modifyRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     ModifyResponseProtocolOp modifyResponse =
          message.getModifyResponseProtocolOp();
     assertFalse(modifyResponse.getResultCode() == 0);
@@ -3630,14 +3629,14 @@ public class ModifyOperationTestCase
 
     DirectoryServer.setWritabilityMode(WritabilityMode.DISABLED);
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("extensibleObject"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -3686,14 +3685,14 @@ public class ModifyOperationTestCase
 
     DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("extensibleObject"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -3744,23 +3743,23 @@ public class ModifyOperationTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(3000);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(3000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse =
          message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("extensibleObject"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
@@ -3770,11 +3769,11 @@ public class ModifyOperationTestCase
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
-                  new ASN1OctetString("uid=test.user," + baseDN), mods);
+                  ByteString.valueOf("uid=test.user," + baseDN), mods);
     message = new LDAPMessage(2, modifyRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     ModifyResponseProtocolOp modifyResponse =
          message.getModifyResponseProtocolOp();
     assertFalse(modifyResponse.getResultCode() == 0);
@@ -3827,14 +3826,14 @@ public class ModifyOperationTestCase
     Backend b = DirectoryServer.getBackend(DN.decode(baseDN));
     b.setWritabilityMode(WritabilityMode.DISABLED);
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("extensibleObject"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
@@ -3884,14 +3883,14 @@ public class ModifyOperationTestCase
     Backend b = DirectoryServer.getBackend(DN.decode(baseDN));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("extensibleObject"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("uid=test.user," + baseDN),
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
                             mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
@@ -3943,23 +3942,23 @@ public class ModifyOperationTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(3000);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(3000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse =
          message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("extensibleObject"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
@@ -3969,11 +3968,11 @@ public class ModifyOperationTestCase
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
-                  new ASN1OctetString("uid=test.user," + baseDN), mods);
+                  ByteString.valueOf("uid=test.user," + baseDN), mods);
     message = new LDAPMessage(2, modifyRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     ModifyResponseProtocolOp modifyResponse =
          message.getModifyResponseProtocolOp();
     assertFalse(modifyResponse.getResultCode() == 0);
@@ -4006,15 +4005,15 @@ public class ModifyOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("o=test"), mods);
+         conn.processModify(ByteString.valueOf("o=test"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -4044,15 +4043,15 @@ public class ModifyOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("dc", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString(baseDN), mods);
+         conn.processModify(ByteString.valueOf(baseDN), mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
 
@@ -4076,8 +4075,8 @@ public class ModifyOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
@@ -4085,7 +4084,7 @@ public class ModifyOperationTestCase
 
     ModifyOperationBasis modifyOperation =
          new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                             null, new ASN1OctetString(baseDN), mods);
+                             null, ByteString.valueOf(baseDN), mods);
 
     CancelRequest cancelRequest = new CancelRequest(false,
                                                     Message.raw("testCancelBeforeStartup"));
@@ -4110,8 +4109,8 @@ public class ModifyOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
@@ -4119,7 +4118,7 @@ public class ModifyOperationTestCase
 
     ModifyOperationBasis modifyOperation =
          new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                             null, new ASN1OctetString(baseDN), mods);
+                             null, ByteString.valueOf(baseDN), mods);
 
     modifyOperation.run();
 
@@ -4151,15 +4150,15 @@ public class ModifyOperationTestCase
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
 
-      ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-      values.add(new ASN1OctetString("foo"));
+      ArrayList<ByteString> values = new ArrayList<ByteString>();
+      values.add(ByteString.valueOf("foo"));
       LDAPAttribute attr = new LDAPAttribute("description", values);
 
       ArrayList<RawModification> mods = new ArrayList<RawModification>();
       mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
       ModifyOperation modifyOperation =
-           conn.processModify(new ASN1OctetString(baseDN), mods);
+           conn.processModify(ByteString.valueOf(baseDN), mods);
       assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     }
     finally
@@ -4182,41 +4181,40 @@ public class ModifyOperationTestCase
     TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(5000);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(5000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse =
          message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(new ASN1OctetString(baseDN), mods);
+         new ModifyRequestProtocolOp(ByteString.valueOf(baseDN), mods);
     message = new LDAPMessage(2, modifyRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList("PreParse"));
-    w.writeElement(message.encode());
+         DisconnectClientPlugin.createDisconnectControlList("PreParse"));
+    w.writeMessage(message);
 
-    ASN1Element element = r.readElement();
-    if (element != null)
+    message = r.readMessage();
+    if (message != null)
     {
       // If we got an element back, then it must be a notice of disconnect
       // unsolicited notification.
-      message = LDAPMessage.decode(element.decodeAsSequence());
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
@@ -4241,42 +4239,41 @@ public class ModifyOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(5000);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(5000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse =
          message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(new ASN1OctetString("o=test"), mods);
+         new ModifyRequestProtocolOp(ByteString.valueOf("o=test"), mods);
     message = new LDAPMessage(2, modifyRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList(
+         DisconnectClientPlugin.createDisconnectControlList(
               "PreOperation"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    ASN1Element element = r.readElement();
-    if (element != null)
+    message = r.readMessage();
+    if (message != null)
     {
       // If we got an element back, then it must be a notice of disconnect
       // unsolicited notification.
-      message = LDAPMessage.decode(element.decodeAsSequence());
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
@@ -4301,35 +4298,35 @@ public class ModifyOperationTestCase
     TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(5000);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(5000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse =
          message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(new ASN1OctetString(baseDN), mods);
+         new ModifyRequestProtocolOp(ByteString.valueOf(baseDN), mods);
     message = new LDAPMessage(2, modifyRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList(
+         DisconnectClientPlugin.createDisconnectControlList(
               "PostOperation"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
     // The operation should NOT be aborted at the post operation stage. While
     // the plugin can disconnect the client, the modify should have already
@@ -4338,14 +4335,13 @@ public class ModifyOperationTestCase
 responseLoop:
     while (true)
     {
-      ASN1Element element = r.readElement();
-      if (element == null)
+      message = r.readMessage();
+      if (message == null)
       {
         // The connection has been closed.
         break responseLoop;
       }
 
-      message = LDAPMessage.decode(element.decodeAsSequence());
       switch (message.getProtocolOpType())
       {
         case OP_TYPE_MODIFY_RESPONSE:
@@ -4389,47 +4385,46 @@ responseLoop:
     TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(5000);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(5000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse =
          message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(new ASN1OctetString(baseDN), mods);
+         new ModifyRequestProtocolOp(ByteString.valueOf(baseDN), mods);
     message = new LDAPMessage(2, modifyRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList(
+         DisconnectClientPlugin.createDisconnectControlList(
               "PostResponse"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
 responseLoop:
     while (true)
     {
-      ASN1Element element = r.readElement();
-      if (element == null)
+      message = r.readMessage();
+      if (message == null)
       {
         // The connection has been closed.
         break responseLoop;
       }
 
-      message = LDAPMessage.decode(element.decodeAsSequence());
       switch (message.getProtocolOpType())
       {
         case OP_TYPE_MODIFY_RESPONSE:
@@ -4602,7 +4597,7 @@ responseLoop:
 
     ModifyOperationBasis modifyOperation =
          new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                             controls, new ASN1OctetString("o=test"), mods);
+                             controls, ByteString.valueOf("o=test"), mods);
     modifyOperation.run();
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(DirectoryServer.entryExists(DN.decode("o=test")));

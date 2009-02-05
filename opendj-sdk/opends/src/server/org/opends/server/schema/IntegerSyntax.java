@@ -38,12 +38,9 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
 
 
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
@@ -84,12 +81,12 @@ public class IntegerSyntax
       ByteString nvalue = value.getNormalizedValue();
       try
       {
-        return Integer.valueOf(nvalue.stringValue());
+        return Integer.valueOf(nvalue.toString());
       }
       catch (NumberFormatException e)
       {
         Message message =
-            WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(nvalue.stringValue());
+            WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(nvalue.toString());
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
             message);
       }
@@ -253,10 +250,10 @@ public class IntegerSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteString value,
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
-    String valueString = value.stringValue();
+    String valueString = value.toString();
     int    length      = valueString.length();
 
     if (length == 0)

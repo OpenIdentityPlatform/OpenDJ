@@ -62,16 +62,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.AdminToolMessages;
 import org.opends.messages.Message;
 import org.opends.server.config.ConfigConstants;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringFactory;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.OpenDsException;
-import org.opends.server.types.RDN;
-import org.opends.server.types.Schema;
+import org.opends.server.types.*;
 
 /**
  * The task that is called when we must modify an entry.
@@ -691,7 +682,7 @@ public class ModifyEntryTask extends Task
     Attribute attribute = new BasicAttribute(attrName);
     for (AttributeValue value : values)
     {
-      attribute.add(value.getValue().value());
+      attribute.add(value.getValue().toByteArray());
     }
     return attribute;
   }
@@ -709,17 +700,17 @@ public class ModifyEntryTask extends Task
     ByteString v;
     if (value instanceof String)
     {
-      v = ByteStringFactory.create((String)value);
+      v = ByteString.valueOf((String)value);
     }
     else if (value instanceof byte[])
     {
-      v = ByteStringFactory.create((byte[])value);
+      v = ByteString.wrap((byte[])value);
     }
     else
     {
-      v = ByteStringFactory.create(String.valueOf(value));
+      v = ByteString.valueOf(String.valueOf(value));
     }
-    return new AttributeValue(attrType, v);
+    return AttributeValues.create(attrType, v);
   }
 
   /**

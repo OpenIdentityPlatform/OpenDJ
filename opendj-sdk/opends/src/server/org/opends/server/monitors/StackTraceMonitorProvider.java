@@ -36,12 +36,7 @@ import org.opends.server.admin.std.server.StackTraceMonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.InitializationException;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -160,7 +155,7 @@ public class StackTraceMonitorProvider
       buffer.append(" ---------- ");
       buffer.append(t.getName());
       buffer.append(" ----------");
-      builder.add(new AttributeValue(attrType, buffer.toString()));
+      builder.add(AttributeValues.create(attrType, buffer.toString()));
 
       // Create an attribute for the stack trace.
       if (stackElements != null)
@@ -190,7 +185,7 @@ public class StackTraceMonitorProvider
           }
           buffer.append(")");
 
-          builder.add(new AttributeValue(attrType, buffer.toString()));
+          builder.add(AttributeValues.create(attrType, buffer.toString()));
         }
       }
     }

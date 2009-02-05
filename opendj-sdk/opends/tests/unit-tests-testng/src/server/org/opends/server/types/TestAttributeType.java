@@ -40,7 +40,6 @@ import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.util.ServerConstants;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
@@ -677,87 +676,6 @@ public final class TestAttributeType extends TestCommonSchemaElements {
     AttributeType type = builder.getInstance();
 
     Assert.assertEquals(type.isObjectClassType(), result);
-  }
-
-
-
-  /**
-   * Create test data for testing the
-   * {@link AttributeType#generateHashCode(AttributeValue)} method.
-   *
-   * @return Returns the array of test data.
-   */
-  @DataProvider(name = "generateHashCodeTestData")
-  public Object[][] createGenerateHashCodeTestData() {
-    return new Object[][] { { "one", "one", true },
-        { "one", "ONE", true }, { "one", "  oNe  ", true },
-        { "one two", " one  two  ", true },
-        { "one two", "onetwo", false }, { "one", "two", false } };
-  }
-
-
-
-  /**
-   * Check that the
-   * {@link AttributeType#generateHashCode(AttributeValue)} method
-   * works as expected.
-   *
-   * @param value1
-   *          The first test value.
-   * @param value2
-   *          The second test value.
-   * @param result
-   *          The expected result.
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(dataProvider = "generateHashCodeTestData")
-  public void testGenerateHashCodeTestData(String value1,
-      String value2, boolean result) throws Exception {
-    AttributeTypeBuilder builder = new AttributeTypeBuilder("test",
-        "1.2.3");
-    builder.setSyntax(DirectoryServer.getDefaultStringSyntax());
-    AttributeType type = builder.getInstance();
-
-    AttributeValue av1 = new AttributeValue(type, value1);
-    AttributeValue av2 = new AttributeValue(type, value2);
-
-    int h1 = type.generateHashCode(av1);
-    int h2 = type.generateHashCode(av2);
-
-    Assert.assertEquals(h1 == h2, result);
-  }
-
-
-
-  /**
-   * Check that the {@link AttributeType#normalize(ByteString)} method
-   * works as expected.
-   *
-   * @param value1
-   *          The first test value.
-   * @param value2
-   *          The second test value.
-   * @param result
-   *          The expected result.
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(dataProvider = "generateHashCodeTestData")
-  public void testNormalize(String value1, String value2,
-      boolean result) throws Exception {
-    AttributeTypeBuilder builder = new AttributeTypeBuilder("test",
-        "1.2.3");
-    builder.setSyntax(DirectoryServer.getDefaultStringSyntax());
-    AttributeType type = builder.getInstance();
-
-    ByteString b1 = new ASN1OctetString(value1);
-    ByteString b2 = new ASN1OctetString(value2);
-
-    ByteString r1 = type.normalize(b1);
-    ByteString r2 = type.normalize(b2);
-
-    Assert.assertEquals(r1.equals(r2), result);
   }
 
 

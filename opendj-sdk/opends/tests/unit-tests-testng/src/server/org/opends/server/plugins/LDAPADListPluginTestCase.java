@@ -128,7 +128,7 @@ public class LDAPADListPluginTestCase
     {
       for (AttributeValue v : a)
       {
-        pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
+        pluginTypes.add(PluginType.forName(v.getValue().toString().toLowerCase()));
       }
     }
 
@@ -214,7 +214,8 @@ public class LDAPADListPluginTestCase
       {
         for (AttributeValue v : a)
         {
-          pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
+          pluginTypes.add(PluginType.forName(
+              v.getValue().toString().toLowerCase()));
         }
       }
     }

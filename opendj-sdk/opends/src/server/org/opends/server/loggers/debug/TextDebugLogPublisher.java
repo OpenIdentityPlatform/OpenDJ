@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers.debug;
 import org.opends.messages.Message;
@@ -745,14 +745,14 @@ public class TextDebugLogPublisher
                                    TraceSettings settings,
                                    String signature,
                                    String sourceLocation,
-                                   ProtocolElement element,
+                                   String decodedForm,
                                    StackTraceElement[] stackTrace)
   {
     LogCategory category = DebugLogCategory.PROTOCOL;
 
     StringBuilder builder = new StringBuilder();
     builder.append(ServerConstants.EOL);
-    element.toString(builder, 4);
+    builder.append(decodedForm);
 
     String stack = null;
     if(stackTrace != null)

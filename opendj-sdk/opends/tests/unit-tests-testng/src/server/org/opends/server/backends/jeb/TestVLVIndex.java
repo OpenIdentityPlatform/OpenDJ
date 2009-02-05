@@ -36,11 +36,9 @@ import org.opends.server.controls.ServerSideSortResponseControl;
 import org.opends.server.controls.VLVResponseControl;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -337,7 +335,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
         {
           for(int j = 0; j < values.getValues().length; j++)
           {
-            byte[] value;
+            ByteString value;
             if(i < 4)
             {
               value = svs1.getValue(i * 3 + j);
@@ -346,10 +344,10 @@ public class TestVLVIndex extends DirectoryServerTestCase {
             {
               value = svs2.getValue((i - 4) * 3 + j);
             }
-            byte[] oValue = null;
+            ByteString oValue = null;
             if(values.getValues()[j] != null)
             {
-              oValue = values.getValues()[j].getNormalizedValueBytes();
+              oValue = values.getValues()[j].getNormalizedValue();
             }
             assertEquals(value, oValue);
           }
@@ -411,11 +409,25 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL))
       {
-        sortResponse = ServerSideSortResponseControl.decodeControl(c);
+        if(c instanceof LDAPControl)
+        {
+          sortResponse = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+        }
+        else
+        {
+          sortResponse = (ServerSideSortResponseControl)c;
+        }
       }
       else if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        vlvResponse = VLVResponseControl.decodeControl(c);
+        if(c instanceof LDAPControl)
+        {
+          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+        }
+        else
+        {
+          vlvResponse = (VLVResponseControl)c;
+        }
       }
       else
       {
@@ -485,11 +497,25 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL))
       {
-        sortResponse = ServerSideSortResponseControl.decodeControl(c);
+        if(c instanceof LDAPControl)
+        {
+          sortResponse = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+        }
+        else
+        {
+          sortResponse = (ServerSideSortResponseControl)c;
+        }
       }
       else if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        vlvResponse = VLVResponseControl.decodeControl(c);
+        if(c instanceof LDAPControl)
+        {
+          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+        }
+        else
+        {
+          vlvResponse = (VLVResponseControl)c;
+        }
       }
       else
       {
@@ -559,11 +585,25 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL))
       {
-        sortResponse = ServerSideSortResponseControl.decodeControl(c);
+        if(c instanceof LDAPControl)
+        {
+          sortResponse = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+        }
+        else
+        {
+          sortResponse = (ServerSideSortResponseControl)c;
+        }
       }
       else if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        vlvResponse = VLVResponseControl.decodeControl(c);
+        if(c instanceof LDAPControl)
+        {
+          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+        }
+        else
+        {
+          vlvResponse = (VLVResponseControl)c;
+        }
       }
       else
       {
@@ -618,7 +658,14 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        vlvResponse = VLVResponseControl.decodeControl(c);
+        if(c instanceof LDAPControl)
+        {
+          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+        }
+        else
+        {
+          vlvResponse = (VLVResponseControl)c;
+        }
       }
     }
 
@@ -665,7 +712,14 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        vlvResponse = VLVResponseControl.decodeControl(c);
+        if(c instanceof LDAPControl)
+        {
+          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+        }
+        else
+        {
+          vlvResponse = (VLVResponseControl)c;
+        }
       }
     }
 
@@ -723,7 +777,14 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        vlvResponse = VLVResponseControl.decodeControl(c);
+        if(c instanceof LDAPControl)
+        {
+          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+        }
+        else
+        {
+          vlvResponse = (VLVResponseControl)c;
+        }
       }
     }
 
@@ -786,11 +847,25 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL))
       {
-        sortResponse = ServerSideSortResponseControl.decodeControl(c);
+        if(c instanceof LDAPControl)
+        {
+          sortResponse = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+        }
+        else
+        {
+          sortResponse = (ServerSideSortResponseControl)c;
+        }
       }
       else if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        vlvResponse = VLVResponseControl.decodeControl(c);
+        if(c instanceof LDAPControl)
+        {
+          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+        }
+        else
+        {
+          vlvResponse = (VLVResponseControl)c;
+        }
       }
       else
       {
@@ -823,7 +898,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
 
     ArrayList<Control> requestControls = new ArrayList<Control>();
     requestControls.add(new ServerSideSortRequestControl(sortOrder));
-    requestControls.add(new VLVRequestControl(0, 3, new ASN1OctetString("a")));
+    requestControls.add(new VLVRequestControl(0, 3, ByteString.valueOf("a")));
 
     InternalSearchOperation internalSearch =
         new InternalSearchOperation(conn, conn.nextOperationID(),
@@ -860,11 +935,25 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL))
       {
-        sortResponse = ServerSideSortResponseControl.decodeControl(c);
+        if(c instanceof LDAPControl)
+        {
+          sortResponse = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+        }
+        else
+        {
+          sortResponse = (ServerSideSortResponseControl)c;
+        }
       }
       else if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        vlvResponse = VLVResponseControl.decodeControl(c);
+        if(c instanceof LDAPControl)
+        {
+          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+        }
+        else
+        {
+          vlvResponse = (VLVResponseControl)c;
+        }
       }
       else
       {
@@ -898,7 +987,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     ArrayList<Control> requestControls = new ArrayList<Control>();
     requestControls.add(new ServerSideSortRequestControl(sortOrder));
     requestControls.add(new VLVRequestControl(0, 3,
-                                              new ASN1OctetString("aaccf")));
+                                              ByteString.valueOf("aaccf")));
 
     InternalSearchOperation internalSearch =
         new InternalSearchOperation(conn, conn.nextOperationID(),
@@ -935,11 +1024,25 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL))
       {
-        sortResponse = ServerSideSortResponseControl.decodeControl(c);
+        if(c instanceof LDAPControl)
+        {
+          sortResponse = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+        }
+        else
+        {
+          sortResponse = (ServerSideSortResponseControl)c;
+        }
       }
       else if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        vlvResponse = VLVResponseControl.decodeControl(c);
+        if(c instanceof LDAPControl)
+        {
+          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+        }
+        else
+        {
+          vlvResponse = (VLVResponseControl)c;
+        }
       }
       else
       {
@@ -973,7 +1076,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     ArrayList<Control> requestControls = new ArrayList<Control>();
     requestControls.add(new ServerSideSortRequestControl(sortOrder));
     requestControls.add(new VLVRequestControl(0, 3,
-                                              new ASN1OctetString("albert")));
+                                              ByteString.valueOf("albert")));
 
     InternalSearchOperation internalSearch =
         new InternalSearchOperation(conn, conn.nextOperationID(),
@@ -1010,11 +1113,25 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL))
       {
-        sortResponse = ServerSideSortResponseControl.decodeControl(c);
+        if(c instanceof LDAPControl)
+        {
+          sortResponse = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+        }
+        else
+        {
+          sortResponse = (ServerSideSortResponseControl)c;
+        }
       }
       else if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        vlvResponse = VLVResponseControl.decodeControl(c);
+        if(c instanceof LDAPControl)
+        {
+          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+        }
+        else
+        {
+          vlvResponse = (VLVResponseControl)c;
+        }
       }
       else
       {
@@ -1048,7 +1165,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     ArrayList<Control> requestControls = new ArrayList<Control>();
     requestControls.add(new ServerSideSortRequestControl(sortOrder));
     requestControls.add(new VLVRequestControl(1, 3,
-                                              new ASN1OctetString("albert")));
+                                              ByteString.valueOf("albert")));
 
     InternalSearchOperation internalSearch =
         new InternalSearchOperation(conn, conn.nextOperationID(),
@@ -1086,11 +1203,25 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL))
       {
-        sortResponse = ServerSideSortResponseControl.decodeControl(c);
+        if(c instanceof LDAPControl)
+        {
+          sortResponse = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+        }
+        else
+        {
+          sortResponse = (ServerSideSortResponseControl)c;
+        }
       }
       else if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        vlvResponse = VLVResponseControl.decodeControl(c);
+        if(c instanceof LDAPControl)
+        {
+          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+        }
+        else
+        {
+          vlvResponse = (VLVResponseControl)c;
+        }
       }
       else
       {
@@ -1123,7 +1254,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
 
     ArrayList<Control> requestControls = new ArrayList<Control>();
     requestControls.add(new ServerSideSortRequestControl(sortOrder));
-    requestControls.add(new VLVRequestControl(0, 3, new ASN1OctetString("zz")));
+    requestControls.add(new VLVRequestControl(0, 3, ByteString.valueOf("zz")));
 
     InternalSearchOperation internalSearch =
         new InternalSearchOperation(conn, conn.nextOperationID(),
@@ -1159,7 +1290,14 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        vlvResponse = VLVResponseControl.decodeControl(c);
+        if(c instanceof LDAPControl)
+        {
+          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+        }
+        else
+        {
+          vlvResponse = (VLVResponseControl)c;
+        }
       }
     }
 

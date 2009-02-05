@@ -28,16 +28,15 @@ package org.opends.server.schema;
 
 
 
-import java.util.Arrays;
+import static org.opends.server.schema.SchemaConstants.*;
 
 import java.util.Collection;
 import java.util.Collections;
+
 import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-
-import static org.opends.server.schema.SchemaConstants.*;
 
 
 
@@ -62,6 +61,7 @@ class OctetStringEqualityMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getAllNames()
   {
     return Collections.singleton(getName());
@@ -75,6 +75,7 @@ class OctetStringEqualityMatchingRule
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
    * it does not have a name.
    */
+  @Override
   public String getName()
   {
     return EMR_OCTET_STRING_NAME;
@@ -87,6 +88,7 @@ class OctetStringEqualityMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return EMR_OCTET_STRING_OID;
@@ -100,6 +102,7 @@ class OctetStringEqualityMatchingRule
    * @return  The description for this matching rule, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     // There is no standard description for this matching rule.
@@ -114,6 +117,7 @@ class OctetStringEqualityMatchingRule
    *
    * @return  The OID of the syntax with which this matching rule is associated.
    */
+  @Override
   public String getSyntaxOID()
   {
     return SYNTAX_OCTET_STRING_OID;
@@ -132,29 +136,11 @@ class OctetStringEqualityMatchingRule
    * @throws  DirectoryException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
-  public ByteString normalizeValue(ByteString value)
+  @Override
+  public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
-    return new ASN1OctetString(value.value());
-  }
-
-
-
-  /**
-   * Indicates whether the two provided normalized values are equal to each
-   * other.
-   *
-   * @param  value1  The normalized form of the first value to compare.
-   * @param  value2  The normalized form of the second value to compare.
-   *
-   * @return  <CODE>true</CODE> if the provided values are equal, or
-   *          <CODE>false</CODE> if not.
-   */
-  public boolean areEqual(ByteString value1, ByteString value2)
-  {
-    // Since the values are already normalized, we just need to compare the
-    // associated byte arrays.
-    return Arrays.equals(value1.value(), value2.value());
+    return value.toByteString();
   }
 }
 

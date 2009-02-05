@@ -73,10 +73,8 @@ import org.opends.server.util.ServerConstants;
 import static org.opends.server.util.ServerConstants.OC_TOP;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.schema.DirectoryStringSyntax;
@@ -499,7 +497,7 @@ public class CryptoManagerImpl
   static byte[] getInstanceKeyCertificateFromLocalTruststore()
           throws CryptoManagerException {
     // Construct the key entry DN.
-    final AttributeValue distinguishedValue = new AttributeValue(
+    final AttributeValue distinguishedValue = AttributeValues.create(
             attrKeyID, ConfigConstants.ADS_CERTIFICATE_ALIAS);
     final DN entryDN = localTruststoreDN.concat(
             RDN.create(attrKeyID, distinguishedValue));
@@ -538,7 +536,7 @@ public class CryptoManagerImpl
             /* attribute ds-cfg-public-key-certificate is a MUST in
                the schema */
             certificate = e.getAttributeValue(
-                    attrPublicKeyCertificate, BinarySyntax.DECODER);
+                  attrPublicKeyCertificate, BinarySyntax.DECODER).toByteArray();
           }
           break;
         }
@@ -643,7 +641,7 @@ public class CryptoManagerImpl
             = getInstanceKeyID(instanceKeyCertificate);
     // Construct the key entry DN.
     final AttributeValue distinguishedValue =
-            new AttributeValue(attrKeyID, instanceKeyID);
+        AttributeValues.create(attrKeyID, instanceKeyID);
     final DN entryDN = instanceKeysDN.concat(
          RDN.create(attrKeyID, distinguishedValue));
     // Construct the search filter.
@@ -682,9 +680,9 @@ public class CryptoManagerImpl
         AttributeBuilder builder = new AttributeBuilder(
             attrPublicKeyCertificate);
         builder.setOption("binary");
-        builder.add(new AttributeValue(
+        builder.add(AttributeValues.create(
             attrPublicKeyCertificate,
-            ByteStringFactory.create(instanceKeyCertificate)));
+            ByteString.wrap(instanceKeyCertificate)));
         final Attribute certificateAttr = builder.toAttribute();
         entry.addAttribute(certificateAttr,
                 new ArrayList<AttributeValue>(0));
@@ -763,7 +761,7 @@ public class CryptoManagerImpl
         final String keyID = e.getAttributeValue(
                 attrKeyID, DirectoryStringSyntax.DECODER);
         final byte[] certificate = e.getAttributeValue(
-                attrPublicKeyCertificate, BinarySyntax.DECODER);
+                attrPublicKeyCertificate, BinarySyntax.DECODER).toByteArray();
         certificateMap.put(keyID, certificate);
       }
     }
@@ -1091,7 +1089,7 @@ public class CryptoManagerImpl
 
             // Send the Get Symmetric Key extended request.
 
-            ASN1OctetString requestValue =
+            ByteString requestValue =
                  GetSymmetricKeyExtendedOperation.encodeRequestValue(
                       symmetricKey, getInstanceKeyID());
 
@@ -1101,8 +1099,8 @@ public class CryptoManagerImpl
                            OID_GET_SYMMETRIC_KEY_EXTENDED_OP,
                       requestValue);
 
-            ArrayList<LDAPControl> controls =
-                 new ArrayList<LDAPControl>();
+            ArrayList<Control> controls =
+                 new ArrayList<Control>();
             LDAPMessage requestMessage =
                  new LDAPMessage(nextMessageID.getAndIncrement(),
                                  extendedRequest, controls);
@@ -1115,7 +1113,7 @@ public class CryptoManagerImpl
                  LDAPResultCode.SUCCESS)
             {
               // Got our symmetric key value.
-              return extendedResponse.getValue().stringValue();
+              return extendedResponse.getValue().toString();
             }
           }
           finally
@@ -1710,8 +1708,8 @@ public class CryptoManagerImpl
     {
       // Construct the key entry DN.
       AttributeValue distinguishedValue =
-           new AttributeValue(attrKeyID,
-                              keyEntry.getKeyID().getStringValue());
+           AttributeValues.create(attrKeyID,
+               keyEntry.getKeyID().getStringValue());
       DN entryDN = secretKeysDN.concat(
            RDN.create(attrKeyID, distinguishedValue));
 
@@ -1735,21 +1733,24 @@ public class CryptoManagerImpl
       // Add the transformation name attribute.
       attrList = new ArrayList<Attribute>(1);
       attrList.add(Attributes.create(attrTransformation,
-          new AttributeValue(attrTransformation, keyEntry.getType())));
+          AttributeValues.create(attrTransformation,
+              keyEntry.getType())));
       userAttrs.put(attrTransformation, attrList);
 
       // Add the init vector length attribute.
       attrList = new ArrayList<Attribute>(1);
       attrList.add(Attributes.create(attrInitVectorLength,
-          new AttributeValue(attrInitVectorLength, String.valueOf(keyEntry
+          AttributeValues.create(attrInitVectorLength,
+              String.valueOf(keyEntry
               .getIVLengthBits()))));
       userAttrs.put(attrInitVectorLength, attrList);
 
 
       // Add the key length attribute.
       attrList = new ArrayList<Attribute>(1);
-      attrList.add(Attributes.create(attrKeyLength, new AttributeValue(
-          attrKeyLength, String.valueOf(keyEntry.getKeyLengthBits()))));
+      attrList.add(Attributes.create(attrKeyLength,
+          AttributeValues.create(attrKeyLength,
+              String.valueOf(keyEntry.getKeyLengthBits()))));
       userAttrs.put(attrKeyLength, attrList);
 
 
@@ -1770,7 +1771,7 @@ public class CryptoManagerImpl
         String symmetricKey = cryptoManager.encodeSymmetricKeyAttribute(
             mapEntry.getKey(), mapEntry.getValue(), keyEntry.getSecretKey());
 
-        builder.add(new AttributeValue(attrSymmetricKey, symmetricKey));
+        builder.add(AttributeValues.create(attrSymmetricKey, symmetricKey));
       }
       attrList = new ArrayList<Attribute>(1);
       attrList.add(builder.toAttribute());
@@ -2255,7 +2256,7 @@ public class CryptoManagerImpl
     {
       // Construct the key entry DN.
       AttributeValue distinguishedValue =
-           new AttributeValue(attrKeyID,
+           AttributeValues.create(attrKeyID,
                               keyEntry.getKeyID().getStringValue());
       DN entryDN = secretKeysDN.concat(
            RDN.create(attrKeyID, distinguishedValue));
@@ -2281,13 +2282,13 @@ public class CryptoManagerImpl
       // Add the mac algorithm name attribute.
       attrList = new ArrayList<Attribute>(1);
       attrList.add(Attributes.create(attrMacAlgorithm,
-          new AttributeValue(attrMacAlgorithm, keyEntry.getType())));
+          AttributeValues.create(attrMacAlgorithm, keyEntry.getType())));
       userAttrs.put(attrMacAlgorithm, attrList);
 
 
       // Add the key length attribute.
       attrList = new ArrayList<Attribute>(1);
-      attrList.add(Attributes.create(attrKeyLength, new AttributeValue(
+      attrList.add(Attributes.create(attrKeyLength, AttributeValues.create(
           attrKeyLength, String.valueOf(keyEntry.getKeyLengthBits()))));
       userAttrs.put(attrKeyLength, attrList);
 
@@ -2314,7 +2315,7 @@ public class CryptoManagerImpl
                   keyEntry.getSecretKey());
 
         builder.add(
-             new AttributeValue(attrSymmetricKey, symmetricKey));
+            AttributeValues.create(attrSymmetricKey, symmetricKey));
       }
 
       attrList = new ArrayList<Attribute>(1);
@@ -2945,15 +2946,16 @@ public class CryptoManagerImpl
 
 
   /** {@inheritDoc} */
-  public int compress(byte[] src, byte[] dst)
+  public int compress(byte[] src, int srcOff, int srcLen,
+                      byte[] dst, int dstOff, int dstLen)
   {
     Deflater deflater = new Deflater();
     try
     {
-      deflater.setInput(src);
+      deflater.setInput(src, srcOff, srcLen);
       deflater.finish();
 
-      int compressedLength = deflater.deflate(dst);
+      int compressedLength = deflater.deflate(dst, dstOff, dstLen);
       if (deflater.finished())
       {
         return compressedLength;
@@ -2971,15 +2973,16 @@ public class CryptoManagerImpl
 
 
   /** {@inheritDoc} */
-  public int uncompress(byte[] src, byte[] dst)
+  public int uncompress(byte[] src, int srcOff, int srcLen,
+                        byte[] dst, int dstOff, int dstLen)
          throws DataFormatException
   {
     Inflater inflater = new Inflater();
     try
     {
-      inflater.setInput(src);
+      inflater.setInput(src, srcOff, srcLen);
 
-      int decompressedLength = inflater.inflate(dst);
+      int decompressedLength = inflater.inflate(dst, dstOff, dstLen);
       if (inflater.finished())
       {
         return decompressedLength;
@@ -2990,7 +2993,7 @@ public class CryptoManagerImpl
 
         while (! inflater.finished())
         {
-          totalLength += inflater.inflate(dst);
+          totalLength += inflater.inflate(dst, dstOff, dstLen);
         }
 
         return -totalLength;

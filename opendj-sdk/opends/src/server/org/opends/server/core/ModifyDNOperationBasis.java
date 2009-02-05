@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.MessageBuilder;
@@ -33,7 +33,6 @@ import java.util.List;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 import org.opends.server.types.operation.PreParseModifyDNOperation;
 import static org.opends.server.core.CoreConstants.*;
@@ -176,8 +175,8 @@ public class ModifyDNOperationBasis
     this.deleteOldRDN = deleteOldRDN;
     this.newSuperior  = newSuperior;
 
-    rawEntryDN = new ASN1OctetString(entryDN.toString());
-    rawNewRDN  = new ASN1OctetString(newRDN.toString());
+    rawEntryDN = ByteString.valueOf(entryDN.toString());
+    rawNewRDN  = ByteString.valueOf(newRDN.toString());
 
     if (newSuperior == null)
     {
@@ -185,7 +184,7 @@ public class ModifyDNOperationBasis
     }
     else
     {
-      rawNewSuperior = new ASN1OctetString(newSuperior.toString());
+      rawNewSuperior = ByteString.valueOf(newSuperior.toString());
     }
 
     responseControls = new ArrayList<Control>();
@@ -270,7 +269,7 @@ public class ModifyDNOperationBasis
     {
       if (newRDN == null)
       {
-        newRDN = RDN.decode(rawNewRDN.stringValue());
+        newRDN = RDN.decode(rawNewRDN.toString());
       }
     }
     catch (DirectoryException de)
@@ -444,7 +443,7 @@ public class ModifyDNOperationBasis
     }
     else
     {
-      newSuperiorStr = rawNewSuperior.stringValue();
+      newSuperiorStr = rawNewSuperior.toString();
     }
 
     return new String[][]
@@ -572,6 +571,7 @@ public class ModifyDNOperationBasis
    * managing synchronization, and any other work that might need to
    * be done in the course of processing.
    */
+  @Override
   public final void run()
   {
     setResultCode(ResultCode.UNDEFINED);

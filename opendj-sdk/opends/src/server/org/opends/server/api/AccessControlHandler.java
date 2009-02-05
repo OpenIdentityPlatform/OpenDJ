@@ -22,12 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
+
+
+
 import org.opends.messages.Message;
-
-
 
 import java.util.List;
 
@@ -40,13 +41,14 @@ import org.opends.server.workflowelement.localbackend.*;
 
 /**
  * This class defines the set of methods and structures that must be
- * implemented by a Directory Server access control handler.  All
+ * implemented by a Directory Server access control handler. All
  * methods in this class should take the entire request into account
  * when making the determination, including any request controls that
  * might have been provided.
  *
- * @param  <T>  The type of access control configuration handled by
- *              this access control provider implementation.
+ * @param <T>
+ *          The type of access control configuration handled by this
+ *          access control provider implementation.
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.VOLATILE,
@@ -60,53 +62,48 @@ public abstract class AccessControlHandler
    * Initializes the access control handler implementation based on
    * the information in the provided configuration entry.
    *
-   * @param  configuration  The configuration object that contains the
-   *                        information to use to initialize this
-   *                        access control handler.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in
-   *                           the process of performing the
-   *                           initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during
-   *                                   initialization that is not
-   *                                   related to the server
-   *                                   configuration.
+   * @param configuration
+   *          The configuration object that contains the information
+   *          to use to initialize this access control handler.
+   * @throws ConfigException
+   *           If an unrecoverable problem arises in the process of
+   *           performing the initialization.
+   * @throws InitializationException
+   *           If a problem occurs during initialization that is not
+   *           related to the server configuration.
    */
   public abstract void initializeAccessControlHandler(T configuration)
 
-         throws ConfigException, InitializationException;
+  throws ConfigException, InitializationException;
 
 
 
   /**
    * Indicates whether the provided configuration is acceptable for
-   * this access control handler.  It should be possible to call this
+   * this access control handler. It should be possible to call this
    * method on an uninitialized access control handler instance in
    * order to determine whether the handler would be able to use the
-   * provided configuration.
-   * <BR><BR>
+   * provided configuration. <BR>
+   * <BR>
    * Note that implementations which use a subclass of the provided
-   * configuration class will likely need to cast the configuration
-   * to the appropriate subclass type.
+   * configuration class will likely need to cast the configuration to
+   * the appropriate subclass type.
    *
-   * @param  configuration        The access control handler
-   *                              configuration for which to make the
-   *                              determination.
-   * @param  unacceptableReasons  A list that may be used to hold the
-   *                              reasons that the provided
-   *                              configuration is not acceptable.
-   *
-   * @return  {@code true} if the provided configuration is acceptable
-   *          for this access control handler, or {@code false} if
-   *          not.
+   * @param configuration
+   *          The access control handler configuration for which to
+   *          make the determination.
+   * @param unacceptableReasons
+   *          A list that may be used to hold the reasons that the
+   *          provided configuration is not acceptable.
+   * @return {@code true} if the provided configuration is acceptable
+   *         for this access control handler, or {@code false} if not.
    */
   public boolean isConfigurationAcceptable(
-                      AccessControlHandlerCfg configuration,
-                      List<Message> unacceptableReasons)
+      AccessControlHandlerCfg configuration,
+      List<Message> unacceptableReasons)
   {
     // This default implementation does not perform any special
-    // validation.  It should be overridden by access control handler
+    // validation. It should be overridden by access control handler
     // implementations that wish to perform more detailed validation.
     return true;
   }
@@ -125,152 +122,143 @@ public abstract class AccessControlHandler
 
   /**
    * Indicates whether the provided add operation is allowed based on
-   * the access control configuration.  This method should not alter
+   * the access control configuration. This method should not alter
    * the provided add operation in any way.
    *
-   * @param  addOperation  The operation for which to make the
-   *                       determination.
-   *
-   * @return  {@code true} if the operation should be allowed by the
-   *          access control configuration, or {@code false} if not.
+   * @param addOperation
+   *          The operation for which to make the determination.
+   * @return {@code true} if the operation should be allowed by the
+   *         access control configuration, or {@code false} if not.
    */
-  public abstract boolean isAllowed(LocalBackendAddOperation
-                                         addOperation);
+  public abstract boolean isAllowed(
+      LocalBackendAddOperation addOperation);
+
 
 
   /**
-   * Indicates whether the provided control is allowed based on
-   * the access control configuration and the specified
-   * operation. This method should not alter the provided
-   * operation in any way.
+   * Indicates whether the provided control is allowed based on the
+   * access control configuration and the specified operation. This
+   * method should not alter the provided operation in any way.
    *
-   * @param  dn  A DN that can be used in the access determination.
-   *
-   * @param  op  The operation to use in the
-   *                       determination.
-   *
-   * @param control The control for which to make the determination.
-   *
-   * @return  {@code true} if the control should be allowed by the
-   *          access control configuration, or {@code false} if not.
+   * @param dn
+   *          A DN that can be used in the access determination.
+   * @param op
+   *          The operation to use in the determination.
+   * @param control
+   *          The control for which to make the determination.
+   * @return {@code true} if the control should be allowed by the
+   *         access control configuration, or {@code false} if not.
    */
-  public abstract boolean isAllowed(DN dn, Operation  op,
+  public abstract boolean isAllowed(DN dn, Operation op,
                                     Control control);
 
 
 
   /**
    * Indicates whether the provided bind operation is allowed based on
-   * the access control configuration.  This method should not alter
+   * the access control configuration. This method should not alter
    * the provided bind operation in any way.
    *
-   * @param  bindOperation  The operation for which to make the
-   *                        determination.
-   *
-   * @return  {@code true} if the operation should be allowed by the
-   *          access control configuration, or {@code false} if not.
+   * @param bindOperation
+   *          The operation for which to make the determination.
+   * @return {@code true} if the operation should be allowed by the
+   *         access control configuration, or {@code false} if not.
    */
-  public abstract boolean isAllowed(LocalBackendBindOperation
-                                         bindOperation);
+  public abstract boolean isAllowed(
+      LocalBackendBindOperation bindOperation);
 
 
 
   /**
    * Indicates whether the provided compare operation is allowed based
-   * on the access control configuration.  This method should not
-   * alter the provided compare operation in any way.
+   * on the access control configuration. This method should not alter
+   * the provided compare operation in any way.
    *
-   * @param  compareOperation  The operation for which to make the
-   *                           determination.
-   *
-   * @return  {@code true} if the operation should be allowed by the
-   *          access control configuration, or {@code false} if not.
+   * @param compareOperation
+   *          The operation for which to make the determination.
+   * @return {@code true} if the operation should be allowed by the
+   *         access control configuration, or {@code false} if not.
    */
-  public abstract boolean isAllowed(LocalBackendCompareOperation
-      compareOperation);
+  public abstract boolean isAllowed(
+      LocalBackendCompareOperation compareOperation);
 
 
 
   /**
    * Indicates whether the provided delete operation is allowed based
-   * on the access control configuration.  This method should not
-   * alter the provided delete operation in any way.
+   * on the access control configuration. This method should not alter
+   * the provided delete operation in any way.
    *
-   * @param  deleteOperation  The operation for which to make the
-   *                          determination.
-   *
-   * @return  {@code true} if the operation should be allowed by the
-   *          access control configuration, or {@code false} if not.
+   * @param deleteOperation
+   *          The operation for which to make the determination.
+   * @return {@code true} if the operation should be allowed by the
+   *         access control configuration, or {@code false} if not.
    */
-  public abstract boolean isAllowed(LocalBackendDeleteOperation
-                                         deleteOperation);
+  public abstract boolean isAllowed(
+      LocalBackendDeleteOperation deleteOperation);
 
 
 
   /**
    * Indicates whether the provided extended operation is allowed
-   * based on the access control configuration.  This method should
-   * not alter the provided extended operation in any way.
+   * based on the access control configuration. This method should not
+   * alter the provided extended operation in any way.
    *
-   * @param  extendedOperation  The operation for which to make the
-   *                            determination.
-   *
-   * @return  {@code true} if the operation should be allowed by the
-   *          access control configuration, or {@code false} if not.
+   * @param extendedOperation
+   *          The operation for which to make the determination.
+   * @return {@code true} if the operation should be allowed by the
+   *         access control configuration, or {@code false} if not.
    */
-  public abstract boolean isAllowed(ExtendedOperation
-                                         extendedOperation);
+  public abstract boolean isAllowed(
+      ExtendedOperation extendedOperation);
 
 
 
   /**
    * Indicates whether the provided modify operation is allowed based
-   * on the access control configuration.  This method should not
-   * alter the provided modify operation in any way.
+   * on the access control configuration. This method should not alter
+   * the provided modify operation in any way.
    *
-   * @param  modifyOperation  The operation for which to make the
-   *                          determination.
-   *
-   * @return  {@code true} if the operation should be allowed by the
-   *          access control configuration, or {@code false} if not.
+   * @param modifyOperation
+   *          The operation for which to make the determination.
+   * @return {@code true} if the operation should be allowed by the
+   *         access control configuration, or {@code false} if not.
    */
-  public abstract boolean isAllowed(LocalBackendModifyOperation
-                                         modifyOperation);
+  public abstract boolean isAllowed(
+      LocalBackendModifyOperation modifyOperation);
 
 
 
   /**
    * Indicates whether the provided modify DN operation is allowed
-   * based on the access control configuration.  This method should
-   * not alter the provided modify DN operation in any way.
+   * based on the access control configuration. This method should not
+   * alter the provided modify DN operation in any way.
    *
-   * @param  modifyDNOperation  The operation for which to make the
-   *                            determination.
-   *
-   * @return  {@code true} if the operation should be allowed by the
-   *          access control configuration, or {@code false} if not.
+   * @param modifyDNOperation
+   *          The operation for which to make the determination.
+   * @return {@code true} if the operation should be allowed by the
+   *         access control configuration, or {@code false} if not.
    */
-  public abstract boolean isAllowed(LocalBackendModifyDNOperation
-                                         modifyDNOperation);
+  public abstract boolean isAllowed(
+      LocalBackendModifyDNOperation modifyDNOperation);
 
 
 
   /**
    * Indicates whether the provided search operation is allowed based
-   * on the access control configuration.  This method may only alter
+   * on the access control configuration. This method may only alter
    * the provided search operation in order to add an opaque block of
    * data to it that will be made available for use in determining
    * whether matching search result entries or search result
    * references may be allowed.
    *
-   * @param  searchOperation  The operation for which to make the
-   *                          determination.
-   *
-   * @return  {@code true} if the operation should be allowed by the
-   *          access control configuration, or {@code false} if not.
+   * @param searchOperation
+   *          The operation for which to make the determination.
+   * @return {@code true} if the operation should be allowed by the
+   *         access control configuration, or {@code false} if not.
    */
-  public abstract boolean isAllowed(LocalBackendSearchOperation
-                                         searchOperation);
+  public abstract boolean isAllowed(
+      LocalBackendSearchOperation searchOperation);
 
 
 
@@ -279,17 +267,18 @@ public abstract class AccessControlHandler
    * the client. Implementations <b>must not under any
    * circumstances</b> modify the search entry in any way.
    *
-   * @param  searchOperation  The search operation with which the
-   *                          provided entry is associated.
-   * @param  searchEntry      The search result entry for which to
-   *                          make the determination.
-   *
-   * @return  {@code true} if the access control configuration allows
-   *          the entry to be returned to the client, or {@code false}
-   *          if not.
+   * @param searchOperation
+   *          The search operation with which the provided entry is
+   *          associated.
+   * @param searchEntry
+   *          The search result entry for which to make the
+   *          determination.
+   * @return {@code true} if the access control configuration allows
+   *         the entry to be returned to the client, or {@code false}
+   *         if not.
    */
   public abstract boolean maySend(SearchOperation searchOperation,
-                                  SearchResultEntry searchEntry);
+      SearchResultEntry searchEntry);
 
 
 
@@ -298,16 +287,16 @@ public abstract class AccessControlHandler
    * contains any attributes or values that the client is not
    * permitted to access.
    *
-   * @param searchOperation The search operation with which the
-   *                        provided entry is associated.
-   * @param searchEntry     The search result entry to be filtered.
-   *
-   * @return  Returns the entry with filtered attributes and values
-   *          removed.
+   * @param searchOperation
+   *          The search operation with which the provided entry is
+   *          associated.
+   * @param searchEntry
+   *          The search result entry to be filtered.
+   * @return Returns the entry with filtered attributes and values
+   *         removed.
    */
-  public abstract SearchResultEntry
-                       filterEntry(SearchOperation searchOperation,
-                                   SearchResultEntry searchEntry);
+  public abstract SearchResultEntry filterEntry(
+      SearchOperation searchOperation, SearchResultEntry searchEntry);
 
 
 
@@ -315,38 +304,40 @@ public abstract class AccessControlHandler
    * Indicates whether the provided search result reference may be
    * sent to the client based on the access control configuration.
    *
-   * @param  dn         A DN that can be used in the access
-   *                    determination.
-   *
-   * @param  searchOperation  The search operation with which the
-   *                          provided reference is associated.
-   * @param  searchReference  The search result reference for which to
-   *                          make the determination.
-   *
-   * @return  {@code true} if the access control configuration allows
-   *          the reference to be returned to the client, or
-   *          {@code false} if not.
+   * @param dn
+   *          A DN that can be used in the access determination.
+   * @param searchOperation
+   *          The search operation with which the provided reference
+   *          is associated.
+   * @param searchReference
+   *          The search result reference for which to make the
+   *          determination.
+   * @return {@code true} if the access control configuration allows
+   *         the reference to be returned to the client, or {@code
+   *         false} if not.
    */
   public abstract boolean maySend(DN dn,
-                             SearchOperation searchOperation,
-                             SearchResultReference searchReference);
+                               SearchOperation searchOperation,
+                               SearchResultReference searchReference);
+
+
 
   /**
    * Indicates if the specified proxy user entry can proxy, or act on
    * the behalf of the specified proxied user entry. The operation
    * parameter is used in the evaluation.
    *
-   * @param proxyUser The entry to use as the proxy user.
-   * @param proxiedUser The entry to be proxied by the proxy user.
-   * @param operation The operation to use in the evaluation.
-   *
-   * @return  {@code true} if the access control configuration allows
-   *          the proxy user to proxy the proxied user, or
-   *          {@code false} if not.
+   * @param proxyUser
+   *          The entry to use as the proxy user.
+   * @param proxiedUser
+   *          The entry to be proxied by the proxy user.
+   * @param operation
+   *          The operation to use in the evaluation.
+   * @return {@code true} if the access control configuration allows
+   *         the proxy user to proxy the proxied user, or {@code
+   *         false} if not.
    */
-  public abstract boolean mayProxy(Entry proxyUser,
-                                   Entry proxiedUser,
-                                   Operation operation);
+  public abstract boolean mayProxy(Entry proxyUser, Entry proxiedUser,
+      Operation operation);
 
 }
-

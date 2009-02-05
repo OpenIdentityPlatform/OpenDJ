@@ -26,11 +26,60 @@
  */
 package org.opends.server.core;
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.DynamicConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.Validator.*;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.net.InetAddress;
+import java.text.DecimalFormat;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
+
+import javax.management.MBeanServer;
+import javax.management.MBeanServerFactory;
+
+import org.opends.messages.Message;
+import org.opends.messages.MessageDescriptor;
 import org.opends.server.admin.AdministrationDataSync;
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.GlobalCfgDefn.WorkflowConfigurationMode;
-import org.opends.server.admin.std.server.*;
+import org.opends.server.admin.std.server.AlertHandlerCfg;
+import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.opends.server.admin.std.server.ConnectionHandlerCfg;
+import org.opends.server.admin.std.server.CryptoManagerCfg;
+import org.opends.server.admin.std.server.DirectoryStringAttributeSyntaxCfg;
+import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.admin.std.server.PasswordValidatorCfg;
+import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.admin.std.server.RootDSEBackendCfg;
+import org.opends.server.admin.std.server.SynchronizationProviderCfg;
+import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AlertHandler;
@@ -53,13 +102,14 @@ import org.opends.server.api.EntryCache;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.ExportTaskListener;
 import org.opends.server.api.ExtendedOperationHandler;
+import org.opends.server.api.Extension;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.InitializationCompletedListener;
 import org.opends.server.api.InvokableComponent;
 import org.opends.server.api.KeyManagerProvider;
-import org.opends.server.api.Extension;
 import org.opends.server.api.MatchingRule;
+import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.PasswordGenerator;
@@ -72,14 +122,10 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.api.WorkQueue;
-import org.opends.server.api.AccessControlHandler;
-import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.ExtensibleMatchingRule;
 import org.opends.server.backends.RootDSEBackend;
-import static org.opends.server.config.ConfigConstants.DN_CONFIG_ROOT;
-import static org.opends.server.config.ConfigConstants.DN_MONITOR_ROOT;
-import static org.opends.server.config.ConfigConstants.ENV_VAR_INSTALL_ROOT;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.JMXMBean;
@@ -87,22 +133,22 @@ import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.core.networkgroups.NetworkGroupConfigManager;
+import org.opends.server.crypto.CryptoManagerImpl;
+import org.opends.server.crypto.CryptoManagerSync;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.JMXAlertHandler;
-import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import org.opends.server.loggers.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.RetentionPolicy;
+import org.opends.server.loggers.RotationPolicy;
+import org.opends.server.loggers.TextErrorLogPublisher;
+import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.debug.DebugLogger;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.loggers.debug.TextDebugLogPublisher;
-
-import org.opends.messages.MessageDescriptor;
-import org.opends.messages.Message;
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.messages.ToolMessages.*;
 import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.monitors.ConnectionHandlerMonitor;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalConnectionHandler;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.BinarySyntax;
 import org.opends.server.schema.BooleanEqualityMatchingRuleFactory;
@@ -134,10 +180,10 @@ import org.opends.server.schema.ObjectIdentifierEqualityMatchingRuleFactory;
 import org.opends.server.schema.OctetStringEqualityMatchingRuleFactory;
 import org.opends.server.schema.OctetStringOrderingMatchingRuleFactory;
 import org.opends.server.schema.OctetStringSubstringMatchingRuleFactory;
-import static org.opends.server.schema.SchemaConstants.*;
 import org.opends.server.schema.TelephoneNumberEqualityMatchingRuleFactory;
 import org.opends.server.schema.TelephoneNumberSubstringMatchingRuleFactory;
 import org.opends.server.schema.TelephoneNumberSyntax;
+import org.opends.server.servicetag.ServiceTagRegistration;
 import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.AcceptRejectWarn;
@@ -146,17 +192,18 @@ import org.opends.server.types.AttributeUsage;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.Control;
-import org.opends.server.crypto.CryptoManagerImpl;
 import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LockManager;
 import org.opends.server.types.MatchingRuleUse;
 import org.opends.server.types.Modification;
 import org.opends.server.types.NameForm;
@@ -170,12 +217,6 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.Schema;
 import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.types.WritabilityMode;
-import org.opends.server.types.DirectoryEnvironmentConfig;
-import org.opends.server.types.LockManager;
-import static org.opends.server.util.DynamicConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.Validator.ensureNotNull;
 import org.opends.server.util.MultiOutputStream;
 import org.opends.server.util.RuntimeInformation;
 import org.opends.server.util.SetupUtils;
@@ -189,28 +230,8 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.workflowelement.WorkflowElement;
 import org.opends.server.workflowelement.WorkflowElementConfigManager;
-import
-  org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
-import org.opends.server.protocols.internal.InternalConnectionHandler;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.crypto.CryptoManagerSync;
-import org.opends.server.servicetag.ServiceTagRegistration;
-import static org.opends.messages.ConfigMessages.*;
-
-import javax.management.MBeanServer;
-import javax.management.MBeanServerFactory;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.net.InetAddress;
-import java.text.DecimalFormat;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
-import org.opends.server.api.MatchingRuleFactory;
+import org.opends.server.workflowelement.
+    localbackend.LocalBackendWorkflowElement;
 
 
 /**
@@ -642,7 +663,7 @@ public class DirectoryServer
   private MonitorConfigManager monitorConfigManager;
 
   // The operating system on which the server is running.
-  private OperatingSystem operatingSystem;
+  private final OperatingSystem operatingSystem;
 
   // The configuration handler used to manage the password generators.
   private PasswordGeneratorConfigManager passwordGeneratorConfigManager;
@@ -731,7 +752,7 @@ public class DirectoryServer
 
   // The mappings between the names and WorkflowElements
   // registered with the Directory Server
-  private ConcurrentHashMap<String, WorkflowElement> workflowElements =
+  private final ConcurrentHashMap<String, WorkflowElement> workflowElements =
           new ConcurrentHashMap<String, WorkflowElement>();
 
   // The workflow configuration mode (auto or manual).
@@ -2358,7 +2379,7 @@ public class DirectoryServer
         workflowID,
         baseDN,
         rootWE.getWorkflowElementID(),
-        (WorkflowElement) rootWE);
+        rootWE);
     workflowImpl.register();
 
     return workflowImpl;
@@ -3044,7 +3065,7 @@ public class DirectoryServer
       if (serverRoot != null)
       {
         File instanceRoot =
-          directoryServer.environmentConfig.getInstanceRootFromServerRoot(
+          DirectoryEnvironmentConfig.getInstanceRootFromServerRoot(
               serverRoot);
         if (instanceRoot != null)
         {
@@ -5278,8 +5299,7 @@ public class DirectoryServer
       directoryServer.defaultPasswordPolicyConfig = null;
     }
 
-    PasswordPolicyConfig config
-            = directoryServer.passwordPolicies.remove(configEntryDN);
+    directoryServer.passwordPolicies.remove(configEntryDN);
   }
 
 
@@ -8076,9 +8096,8 @@ public class DirectoryServer
       directoryServer.shuttingDown = true;
     }
 
-    ConfigEntry rootConfigEntry = null;
     try {
-      rootConfigEntry = directoryServer.configHandler.getConfigRootEntry();
+      directoryServer.configHandler.getConfigRootEntry();
     } catch (Exception e) {
 
     }
@@ -9544,7 +9563,7 @@ public class DirectoryServer
   public static DN getMonitorProviderDN(MonitorProvider provider)
   {
     String monitorName = provider.getMonitorInstanceName();
-    AttributeType cnType = getAttributeType(ATTR_COMMON_NAME);
+    getAttributeType(ATTR_COMMON_NAME);
     DN monitorRootDN;
     try
     {
@@ -9848,7 +9867,7 @@ public class DirectoryServer
     synchronized (directoryServer)
     {
       if (directoryServer.workflowElements.containsKey(workflowElementID)) {
-        Message message = ERR_REGISTER_WORKFLOW_ELEMENT_ALREADY_EXISTS.get(
+        ERR_REGISTER_WORKFLOW_ELEMENT_ALREADY_EXISTS.get(
                 workflowElementID);
       } else {
         directoryServer.workflowElements.put(workflowElementID, we);

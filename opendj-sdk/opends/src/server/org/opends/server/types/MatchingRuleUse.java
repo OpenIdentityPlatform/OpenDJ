@@ -42,7 +42,6 @@ import org.opends.server.schema.MatchingRuleUseSyntax;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
 
 
@@ -219,7 +218,7 @@ public final class MatchingRuleUse
   public MatchingRuleUse recreateFromDefinition()
          throws DirectoryException
   {
-    ByteString value  = ByteStringFactory.create(definition);
+    ByteString value  = ByteString.valueOf(definition);
     Schema     schema = DirectoryConfig.getSchema();
 
     MatchingRuleUse mru =

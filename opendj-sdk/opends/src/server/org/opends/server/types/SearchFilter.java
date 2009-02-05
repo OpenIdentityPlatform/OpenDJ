@@ -22,16 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
 
 
-
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,7 +40,6 @@ import java.util.Collections;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -51,7 +47,6 @@ import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.ServerConstants.*;
-
 
 
 /**
@@ -829,8 +824,8 @@ public final class SearchFilter
     {
       return new SearchFilter(filterType, null, null, attributeType,
                     attributeOptions,
-                    new AttributeValue(new ASN1OctetString(),
-                                       new ASN1OctetString()),
+          AttributeValues.create(ByteString.empty(),
+                                       ByteString.empty()),
                     null, null, null, null, false);
     }
     else if (valueStr.equals("*"))
@@ -861,8 +856,8 @@ public final class SearchFilter
       ByteString userValue;
       if (hasEscape)
       {
-        ByteBuffer valueBuffer =
-             ByteBuffer.allocate(valueStr.length());
+        ByteStringBuilder valueBuffer =
+            new ByteStringBuilder(valueStr.length());
         for (int i=0; i < valueBytes.length; i++)
         {
           if (valueBytes[i] == 0x5C) // The backslash character
@@ -1005,26 +1000,23 @@ public final class SearchFilter
                                ResultCode.PROTOCOL_ERROR, message);
             }
 
-            valueBuffer.put(byteValue);
+            valueBuffer.append(byteValue);
           }
           else
           {
-            valueBuffer.put(valueBytes[i]);
+            valueBuffer.append(valueBytes[i]);
           }
         }
 
-        valueBytes = new byte[valueBuffer.position()];
-        valueBuffer.flip();
-        valueBuffer.get(valueBytes);
-        userValue = new ASN1OctetString(valueBytes);
+        userValue = valueBuffer.toByteString();
       }
       else
       {
-        userValue = new ASN1OctetString(valueBytes);
+        userValue = ByteString.wrap(valueBytes);
       }
 
       AttributeValue value =
-           new AttributeValue(attributeType, userValue);
+          AttributeValues.create(attributeType, userValue);
       return new SearchFilter(filterType, null, null, attributeType,
                               attributeOptions, value, null, null,
                               null, null, false);
@@ -1258,7 +1250,7 @@ public final class SearchFilter
     {
       if (hasEscape)
       {
-        ByteBuffer buffer = ByteBuffer.allocate(firstPos);
+        ByteStringBuilder buffer = new ByteStringBuilder(firstPos);
         for (int i=0; i < firstPos; i++)
         {
           if (valueBytes[i] == 0x5C)
@@ -1401,24 +1393,19 @@ public final class SearchFilter
                                ResultCode.PROTOCOL_ERROR, message);
             }
 
-            buffer.put(byteValue);
+            buffer.append(byteValue);
           }
           else
           {
-            buffer.put(valueBytes[i]);
+            buffer.append(valueBytes[i]);
           }
         }
 
-        byte[] subInitialBytes = new byte[buffer.position()];
-        buffer.flip();
-        buffer.get(subInitialBytes);
-        subInitial = new ASN1OctetString(subInitialBytes);
+        subInitial = buffer.toByteString();
       }
       else
       {
-        byte[] subInitialBytes = new byte[firstPos];
-        System.arraycopy(valueBytes, 0, subInitialBytes, 0, firstPos);
-        subInitial = new ASN1OctetString(subInitialBytes);
+        subInitial = ByteString.wrap(valueBytes, 0, firstPos);
       }
     }
 
@@ -1432,7 +1419,7 @@ public final class SearchFilter
 
       if (hasEscape)
       {
-        ByteBuffer buffer = ByteBuffer.allocate(length);
+        ByteStringBuilder buffer = new ByteStringBuilder(length);
         for (int i=firstPos+1; i < asteriskPos; i++)
         {
           if (valueBytes[i] == 0x5C)
@@ -1575,25 +1562,20 @@ public final class SearchFilter
                                ResultCode.PROTOCOL_ERROR, message);
             }
 
-            buffer.put(byteValue);
+            buffer.append(byteValue);
           }
           else
           {
-            buffer.put(valueBytes[i]);
+            buffer.append(valueBytes[i]);
           }
         }
 
-        byte[] subAnyBytes = new byte[buffer.position()];
-        buffer.flip();
-        buffer.get(subAnyBytes);
-        subAny.add(new ASN1OctetString(subAnyBytes));
+        subAny.add(buffer.toByteString());
+        buffer.clear();
       }
       else
       {
-        byte[] subAnyBytes = new byte[length];
-        System.arraycopy(valueBytes, firstPos+1, subAnyBytes, 0,
-                         length);
-        subAny.add(new ASN1OctetString(subAnyBytes));
+        subAny.add(ByteString.wrap(valueBytes, firstPos+1, length));
       }
 
 
@@ -1614,7 +1596,7 @@ public final class SearchFilter
 
       if (hasEscape)
       {
-        ByteBuffer buffer = ByteBuffer.allocate(length);
+        ByteStringBuilder buffer = new ByteStringBuilder(length);
         for (int i=firstPos+1; i < endPos; i++)
         {
           if (valueBytes[i] == 0x5C)
@@ -1757,25 +1739,19 @@ public final class SearchFilter
                                ResultCode.PROTOCOL_ERROR, message);
             }
 
-            buffer.put(byteValue);
+            buffer.append(byteValue);
           }
           else
           {
-            buffer.put(valueBytes[i]);
+            buffer.append(valueBytes[i]);
           }
         }
 
-        byte[] subFinalBytes = new byte[buffer.position()];
-        buffer.flip();
-        buffer.get(subFinalBytes);
-        subFinal = new ASN1OctetString(subFinalBytes);
+        subFinal = buffer.toByteString();
       }
       else
       {
-        byte[] subFinalBytes = new byte[length];
-        System.arraycopy(valueBytes, firstPos+1, subFinalBytes, 0,
-                         length);
-        subFinal = new ASN1OctetString(subFinalBytes);
+        subFinal = ByteString.wrap(valueBytes, firstPos+1, length);
       }
     }
 
@@ -1934,7 +1910,8 @@ public final class SearchFilter
     ByteString userValue;
     if (hasEscape)
     {
-      ByteBuffer valueBuffer = ByteBuffer.allocate(valueBytes.length);
+      ByteStringBuilder valueBuffer =
+          new ByteStringBuilder(valueBytes.length);
       for (int i=0; i < valueBytes.length; i++)
       {
         if (valueBytes[i] == 0x5C) // The backslash character
@@ -2076,22 +2053,19 @@ public final class SearchFilter
                                            message);
           }
 
-          valueBuffer.put(byteValue);
+          valueBuffer.append(byteValue);
         }
         else
         {
-          valueBuffer.put(valueBytes[i]);
+          valueBuffer.append(valueBytes[i]);
         }
       }
 
-      valueBytes = new byte[valueBuffer.position()];
-      valueBuffer.flip();
-      valueBuffer.get(valueBytes);
-      userValue = new ASN1OctetString(valueBytes);
+      userValue = valueBuffer.toByteString();
     }
     else
     {
-      userValue = new ASN1OctetString(valueBytes);
+      userValue = ByteString.wrap(valueBytes);
     }
 
     // Make sure that the filter contains at least one of an attribute
@@ -2122,14 +2096,15 @@ public final class SearchFilter
         }
         else
         {
-          value = new AttributeValue(userValue,
+          value = AttributeValues.create(userValue,
                                      mr.normalizeValue(userValue));
         }
       }
     }
     else
     {
-      value = new AttributeValue(attributeType, userValue);
+      value = AttributeValues.create(attributeType,
+          userValue);
     }
 
     return new SearchFilter(FilterType.EXTENSIBLE_MATCH, null, null,
@@ -2787,7 +2762,7 @@ public final class SearchFilter
           "%s with value %s",
                    this, completeFilter, entry.getDN(),
                    attributeType.getNameOrOID(),
-                   assertionValue.getStringValue());
+                   assertionValue.getValue().toString());
     }
     return ConditionResult.FALSE;
   }
@@ -3758,7 +3733,7 @@ outerComponentLoop:
             ByteString nSI2 =
                  smr.normalizeSubstring(f.subInitialElement);
 
-            if (! Arrays.equals(nSI1.value(), nSI2.value()))
+            if (! nSI1.equals(nSI2))
             {
               return false;
             }
@@ -3785,7 +3760,7 @@ outerComponentLoop:
             ByteString nSF2 =
                  smr.normalizeSubstring(f.subFinalElement);
 
-            if (! Arrays.equals(nSF1.value(), nSF2.value()))
+            if (! nSF1.equals(nSF2))
             {
               return false;
             }
@@ -3810,7 +3785,7 @@ outerComponentLoop:
             ByteString nSA2 =
                  smr.normalizeSubstring(f.subAnyElements.get(i));
 
-            if (! Arrays.equals(nSA1.value(), nSA2.value()))
+            if (! nSA1.equals(nSA2))
             {
               return false;
             }
@@ -4338,10 +4313,11 @@ outerComponentLoop:
     // it to see if there are any unsafe characters.  If there are,
     // then escape them and replace them with a two-digit hex
     // equivalent.
-    byte[] valueBytes = value.value();
-    buffer.ensureCapacity(buffer.length() + valueBytes.length);
-    for (byte b : valueBytes)
+    buffer.ensureCapacity(buffer.length() + value.length());
+    byte b;
+    for (int i = 0; i < value.length(); i++)
     {
+      b = value.byteAt(i);
       if (((b & 0x7F) != b) ||  // Not 7-bit clean
           (b <= 0x1F) ||        // Below the printable character range
           (b == 0x28) ||        // Open parenthesis

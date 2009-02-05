@@ -32,9 +32,7 @@ import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DirectoryException;
+import org.opends.server.types.*;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
@@ -65,16 +63,16 @@ public class BinarySyntax
   /**
    * A {@code byte[]} attribute value decoder for this syntax.
    */
-  public static final AttributeValueDecoder<byte[]> DECODER =
-    new AttributeValueDecoder<byte[]>()
+  public static final AttributeValueDecoder<ByteString> DECODER =
+    new AttributeValueDecoder<ByteString>()
   {
     /**
      * {@inheritDoc}
      */
-    public byte[] decode(AttributeValue value) throws DirectoryException {
+    public ByteString decode(AttributeValue value) throws DirectoryException {
       // Make sure that the value is valid.
       value.getNormalizedValue();
-      return value.getValueBytes();
+      return value.getValue();
     }
   };
 
@@ -235,7 +233,7 @@ public class BinarySyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteString value,
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // All values will be acceptable for the binary syntax.

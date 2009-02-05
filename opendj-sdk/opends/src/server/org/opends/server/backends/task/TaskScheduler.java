@@ -1979,7 +1979,7 @@ public class TaskScheduler
       throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
     }
 
-    String taskClassName = value.getStringValue();
+    String taskClassName = value.getValue().toString();
     if (! DirectoryServer.getAllowedTasks().contains(taskClassName))
     {
       Message message = ERR_TASKSCHED_NOT_ALLOWED_TASK.get(taskClassName);

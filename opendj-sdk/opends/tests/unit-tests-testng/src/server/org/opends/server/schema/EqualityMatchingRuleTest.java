@@ -28,7 +28,6 @@ package org.opends.server.schema;
 
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
@@ -78,9 +77,9 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
 
     // normalize the 2 provided values and check that they are equals
     ByteString normalizedValue1 =
-      rule.normalizeValue(new ASN1OctetString(value1));
+      rule.normalizeValue(ByteString.valueOf(value1));
     ByteString normalizedValue2 =
-      rule.normalizeValue(new ASN1OctetString(value2));
+      rule.normalizeValue(ByteString.valueOf(value2));
 
     Boolean liveResult = rule.areEqual(normalizedValue1, normalizedValue2);
     assertEquals(result, liveResult);
@@ -131,7 +130,7 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
     boolean success = false;
     try
     {
-      rule.normalizeValue(new ASN1OctetString(value));
+      rule.normalizeValue(ByteString.valueOf(value));
     } catch (DirectoryException e) {
       success = true;
     }
@@ -165,9 +164,9 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
 
     // normalize the 2 provided values and check that they are equals
     ByteString normalizedValue1 =
-      rule.normalizeValue(new ASN1OctetString(value1));
+      rule.normalizeValue(ByteString.valueOf(value1));
     ByteString normalizedValue2 =
-      rule.normalizeValue(new ASN1OctetString(value2));
+      rule.normalizeValue(ByteString.valueOf(value2));
 
     ConditionResult liveResult =
       rule.valuesMatch(normalizedValue1, normalizedValue2);

@@ -26,12 +26,13 @@
  */
 package org.opends.server.protocols.ldap;
 
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.asn1.ASN1Null;
 import org.opends.server.types.LDAPException;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringBuilder;
 import static org.opends.server.util.ServerConstants.EOL;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertEquals;
 
@@ -56,22 +57,22 @@ public class TestCompareRequestProtocolOp extends LdapTestCase
   /**
    * The DN for compare requests in this test case.
    */
-  private static final ASN1OctetString dn =
-      new ASN1OctetString("dc=example,dc=com");
+  private static final ByteString dn =
+      ByteString.valueOf("dc=example,dc=com");
 
   /**
    * The alternative DN for compare requests in this test case.
    */
-  private static final ASN1OctetString dnAlt =
-      new ASN1OctetString("dc=sun,dc=com");
+  private static final ByteString dnAlt =
+      ByteString.valueOf("dc=sun,dc=com");
 
   // The assertion value for this compare request.
-  private ASN1OctetString assertionValue =
-      new ASN1OctetString("=test");
+  private ByteString assertionValue =
+      ByteString.valueOf("=test");
 
   // The assertion value for this compare request.
-  private ASN1OctetString assertionValueAlt =
-      new ASN1OctetString("=testAlt");
+  private ByteString assertionValueAlt =
+      ByteString.valueOf("=testAlt");
 
   // The attribute type for this compare request.
   private String attributeType = "testAttribute";
@@ -124,31 +125,6 @@ public class TestCompareRequestProtocolOp extends LdapTestCase
   }
 
   /**
-   * Test to make sure that setter methods work.
-   *
-   * @throws Exception If the test failed unexpectedly.
-   */
-  @Test
-  public void testSetMethods() throws Exception
-  {
-    CompareRequestProtocolOp compareRequest;
-
-    compareRequest = new CompareRequestProtocolOp(dn, attributeType,
-                                                  assertionValue);
-    assertEquals(compareRequest.getDN(), dn);
-    compareRequest.setDN(dnAlt);
-    assertEquals(compareRequest.getDN(), dnAlt);
-
-    assertEquals(compareRequest.getAttributeType(), attributeType);
-    compareRequest.setAttributeType(attributeTypeAlt);
-    assertEquals(compareRequest.getAttributeType(), attributeTypeAlt);
-
-    assertEquals(compareRequest.getAssertionValue(), assertionValue);
-    compareRequest.setAssertionValue(assertionValueAlt);
-    assertEquals(compareRequest.getAssertionValue(), assertionValueAlt);
-  }
-
-  /**
    * Test the decode method when an null element is passed
    *
    * @throws Exception If the test failed unexpectedly.
@@ -156,7 +132,7 @@ public class TestCompareRequestProtocolOp extends LdapTestCase
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeNullElement() throws Exception
   {
-    CompareRequestProtocolOp.decodeCompareRequest(null);
+    LDAPReader.readProtocolOp(null);
   }
 
   /**
@@ -167,9 +143,13 @@ public class TestCompareRequestProtocolOp extends LdapTestCase
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeEmptyElement() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>();
-    CompareRequestProtocolOp.decode(new ASN1Sequence(OP_TYPE_COMPARE_REQUEST,
-                                                 elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_COMPARE_REQUEST);
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -180,11 +160,15 @@ public class TestCompareRequestProtocolOp extends LdapTestCase
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeInvalidElement() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1Null());
-    elements.add(new ASN1Null());
-    CompareRequestProtocolOp.decode(new ASN1Sequence(OP_TYPE_COMPARE_REQUEST,
-                                                 elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_COMPARE_REQUEST);
+    writer.writeNull();
+    writer.writeNull();
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -195,11 +179,15 @@ public class TestCompareRequestProtocolOp extends LdapTestCase
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeWrongElementType() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(dn);
-    elements.add(new ASN1Null());
-    CompareRequestProtocolOp.decode(new ASN1Sequence(OP_TYPE_COMPARE_RESPONSE,
-                                                 elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_COMPARE_REQUEST);
+    writer.writeOctetString(dn);
+    writer.writeNull();
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -210,14 +198,15 @@ public class TestCompareRequestProtocolOp extends LdapTestCase
   @Test(expectedExceptions = Exception.class)
   public void testNullEncodeDecode() throws Exception
   {
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
     CompareRequestProtocolOp compareEncoded;
     CompareRequestProtocolOp compareDecoded;
-    ASN1Element element;
 
     compareEncoded = new CompareRequestProtocolOp(null, null, null);
-    element = compareEncoded.encode();
-    compareDecoded = (CompareRequestProtocolOp)CompareRequestProtocolOp.decode(
-        element);
+    compareEncoded.write(writer);
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    compareDecoded = (CompareRequestProtocolOp)LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -228,18 +217,19 @@ public class TestCompareRequestProtocolOp extends LdapTestCase
   @Test
   public void testEncodeDecode() throws Exception
   {
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
     CompareRequestProtocolOp compareEncoded;
     CompareRequestProtocolOp compareDecoded;
-    ASN1Element element;
     ArrayList<LDAPAttribute> attributes;
 
 
     //Test case for a full encode decode operation with normal params.
     compareEncoded = new CompareRequestProtocolOp(dn, attributeType,
                                                   assertionValue);
-    element = compareEncoded.encode();
-    compareDecoded = (CompareRequestProtocolOp)CompareRequestProtocolOp.decode(
-        element);
+    compareEncoded.write(writer);
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    compareDecoded = (CompareRequestProtocolOp)LDAPReader.readProtocolOp(reader);
 
     assertEquals(compareEncoded.getType(), OP_TYPE_COMPARE_REQUEST);
     assertEquals(compareEncoded.getDN(), compareDecoded.getDN());
@@ -304,7 +294,7 @@ public class TestCompareRequestProtocolOp extends LdapTestCase
 
     key.append(indentBuf);
     key.append("  Target DN:  ");
-    dn.toString(key);
+    key.append(dn);
     key.append(EOL);
 
     key.append(indentBuf);
@@ -315,7 +305,7 @@ public class TestCompareRequestProtocolOp extends LdapTestCase
     key.append(indentBuf);
     key.append("  Assertion Value:");
     key.append(EOL);
-    assertionValue.toString(key, indent+4);
+    assertionValue.toHexPlusAscii(key, indent+4);
 
     assertEquals(buffer.toString(), key.toString());
   }

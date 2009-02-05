@@ -49,19 +49,7 @@ import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.IndexType;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -233,7 +221,7 @@ public class FingerprintCertificateMapper
 
     // Create the search filter from the fingerprint.
     AttributeValue value =
-         new AttributeValue(fingerprintAttributeType, fingerprintString);
+        AttributeValues.create(fingerprintAttributeType, fingerprintString);
     SearchFilter filter =
          SearchFilter.createEqualityFilter(fingerprintAttributeType, value);
 

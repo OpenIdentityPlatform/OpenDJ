@@ -135,7 +135,7 @@ public final class Attributes
   public static Attribute create(AttributeType attributeType,
       String name, String valueString)
   {
-    AttributeValue value = new AttributeValue(attributeType,
+    AttributeValue value = AttributeValues.create(attributeType,
         valueString);
     return create(attributeType, name, value);
   }

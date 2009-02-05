@@ -37,11 +37,7 @@ import java.util.Set;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.UniqueCharactersPasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
 import org.opends.messages.MessageBuilder;
@@ -127,7 +123,7 @@ public class UniqueCharactersPasswordValidator
     // Iterate through the characters in the new password and place them in the
     // set as needed.  If we should behave in a case-insensitive manner, then
     // convert all the characters to lowercase first.
-    String passwordString = newPassword.stringValue();
+    String passwordString = newPassword.toString();
     if (! config.isCaseSensitiveValidation())
     {
       passwordString = passwordString.toLowerCase();

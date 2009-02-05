@@ -29,7 +29,6 @@ package org.opends.server.schema;
 import static org.testng.Assert.*;
 
 import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -151,9 +150,9 @@ public class ApproximatematchingRule extends SchemaTestCase
 
     // normalize the 2 provided values
     ByteString normalizedValue1 =
-      ruleInstance.normalizeValue(new ASN1OctetString(value1));
+      ruleInstance.normalizeValue(ByteString.valueOf(value1));
     ByteString normalizedValue2 =
-      ruleInstance.normalizeValue(new ASN1OctetString(value2));
+      ruleInstance.normalizeValue(ByteString.valueOf(value2));
 
     // check that the approximatelyMatch return the expected result.
     Boolean liveResult = ruleInstance.approximatelyMatch(normalizedValue1,

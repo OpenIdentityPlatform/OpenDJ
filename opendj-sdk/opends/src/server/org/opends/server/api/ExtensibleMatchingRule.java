@@ -26,10 +26,14 @@
  */
 package org.opends.server.api;
 
+
+
 import java.util.Collection;
-import org.opends.server.types.ByteString;
+
+import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.IndexConfig;
+
 
 
 /**
@@ -38,39 +42,43 @@ import org.opends.server.types.IndexConfig;
  * Extensible matching rule.
  */
 @org.opends.server.types.PublicAPI(
-     stability=org.opends.server.types.StabilityLevel.VOLATILE,
-     mayInstantiate=false,
-     mayExtend=true,
-     mayInvoke=false)
+    stability = org.opends.server.types.StabilityLevel.VOLATILE,
+    mayInstantiate = false,
+    mayExtend = true,
+    mayInvoke = false)
 public abstract class ExtensibleMatchingRule extends MatchingRule
 {
   /**
-  * Returns a collection of extensible indexers associated with this
-  * matching rule.
-  * @param config The index configuration to be used by this
-  *                      matching rule.
-  * @return ExtensibleIndexer associated with this matching rule.
-  */
-  public  abstract Collection<ExtensibleIndexer> getIndexers(
-          IndexConfig config);
-
+   * Returns a collection of extensible indexers associated with this
+   * matching rule.
+   *
+   * @param config
+   *          The index configuration to be used by this matching
+   *          rule.
+   * @return The collection of extensible indexers associated with
+   *         this matching rule.
+   */
+  public abstract Collection<ExtensibleIndexer> getIndexers(
+      IndexConfig config);
 
 
 
   /**
-   * Queries the index using factory of type T and returns
-   * a query of type T for the provided assertion value.
-   * @param  <T>  The type of IndexQueryFactory.
-   * @param  assertionValue  An assertion value which needs to be
-   *                                               queried.
-   * @param factory  An IndexQueryFactory which will be used for
-   *                                creating  queries.
-   * @return T  The generated index query.
-   * @throws DirectoryException  If an  error occurs while generating
-   *                the query.
+   * Returns an index query appropriate for the provided attribute
+   * value assertion.
+   *
+   * @param <T>
+   *          The type of index query created by the {@code factory}.
+   * @param assertionValue
+   *          The attribute value assertion.
+   * @param factory
+   *          The index query factory which should be used to
+   *          construct the index query.
+   * @return The index query appropriate for the provided attribute
+   *         value assertion.
+   * @throws DirectoryException
+   *           If an error occurs while generating the index query.
    */
-  public  abstract <T> T createIndexQuery(
-                   ByteString assertionValue,
-                   IndexQueryFactory<T> factory)
-                                          throws DirectoryException;
+  public abstract <T> T createIndexQuery(ByteSequence assertionValue,
+      IndexQueryFactory<T> factory) throws DirectoryException;
 }

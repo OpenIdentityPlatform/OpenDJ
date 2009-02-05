@@ -39,12 +39,7 @@ import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.InitializationException;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -192,7 +187,7 @@ public class ClientConnectionMonitorProvider
     AttributeBuilder builder = new AttributeBuilder(attrType);
     for (ClientConnection conn : connMap.values())
     {
-      builder.add(new AttributeValue(attrType, conn.getMonitorSummary()));
+      builder.add(AttributeValues.create(attrType, conn.getMonitorSummary()));
     }
 
     ArrayList<Attribute> attrs = new ArrayList<Attribute>(2);

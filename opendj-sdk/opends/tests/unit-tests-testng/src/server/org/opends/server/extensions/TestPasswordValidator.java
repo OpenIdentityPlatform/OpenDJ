@@ -32,13 +32,8 @@ import java.util.Set;
 
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
-import org.opends.server.config.ConfigEntry;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.Operation;
+import org.opends.server.types.*;
 import org.opends.messages.MessageBuilder;
-import org.opends.messages.Message;
 
 
 /**

@@ -39,12 +39,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringFactory;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.util.Base64;
 
 import static org.opends.messages.ExtensionMessages.*;
@@ -160,14 +155,14 @@ public class SaltedSHA256PasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString encodePassword(ByteString plaintext)
+  public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
   {
-    byte[] plainBytes    = plaintext.value();
+    int plainBytesLength = plaintext.length();
     byte[] saltBytes     = new byte[NUM_SALT_BYTES];
-    byte[] plainPlusSalt = new byte[plainBytes.length + NUM_SALT_BYTES];
+    byte[] plainPlusSalt = new byte[plainBytesLength + NUM_SALT_BYTES];
 
-    System.arraycopy(plainBytes, 0, plainPlusSalt,0,plainBytes.length);
+    plaintext.copyTo(plainPlusSalt);
 
     byte[] digestBytes;
 
@@ -177,7 +172,7 @@ public class SaltedSHA256PasswordStorageScheme
       {
         // Generate the salt and put in the plain+salt array.
         random.nextBytes(saltBytes);
-        System.arraycopy(saltBytes,0, plainPlusSalt, plainBytes.length,
+        System.arraycopy(saltBytes,0, plainPlusSalt, plainBytesLength,
                          NUM_SALT_BYTES);
 
         // Create the hash from the concatenated value.
@@ -204,7 +199,7 @@ public class SaltedSHA256PasswordStorageScheme
     System.arraycopy(saltBytes, 0, hashPlusSalt, digestBytes.length,
                      NUM_SALT_BYTES);
 
-    return ByteStringFactory.create(Base64.encode(hashPlusSalt));
+    return ByteString.valueOf(Base64.encode(hashPlusSalt));
   }
 
 
@@ -213,7 +208,7 @@ public class SaltedSHA256PasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString encodePasswordWithScheme(ByteString plaintext)
+  public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
   {
     StringBuilder buffer = new StringBuilder();
@@ -221,11 +216,11 @@ public class SaltedSHA256PasswordStorageScheme
     buffer.append(STORAGE_SCHEME_NAME_SALTED_SHA_256);
     buffer.append('}');
 
-    byte[] plainBytes    = plaintext.value();
+    int plainBytesLength = plaintext.length();
     byte[] saltBytes     = new byte[NUM_SALT_BYTES];
-    byte[] plainPlusSalt = new byte[plainBytes.length + NUM_SALT_BYTES];
+    byte[] plainPlusSalt = new byte[plainBytesLength + NUM_SALT_BYTES];
 
-    System.arraycopy(plainBytes, 0, plainPlusSalt,0,plainBytes.length);
+    plaintext.copyTo(plainPlusSalt);
 
     byte[] digestBytes;
 
@@ -235,7 +230,7 @@ public class SaltedSHA256PasswordStorageScheme
       {
         // Generate the salt and put in the plain+salt array.
         random.nextBytes(saltBytes);
-        System.arraycopy(saltBytes,0, plainPlusSalt, plainBytes.length,
+        System.arraycopy(saltBytes,0, plainPlusSalt, plainBytesLength,
                          NUM_SALT_BYTES);
 
         // Create the hash from the concatenated value.
@@ -263,7 +258,7 @@ public class SaltedSHA256PasswordStorageScheme
                      NUM_SALT_BYTES);
     buffer.append(Base64.encode(hashPlusSalt));
 
-    return ByteStringFactory.create(buffer.toString());
+    return ByteString.valueOf(buffer.toString());
   }
 
 
@@ -272,15 +267,15 @@ public class SaltedSHA256PasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public boolean passwordMatches(ByteString plaintextPassword,
-                                 ByteString storedPassword)
+  public boolean passwordMatches(ByteSequence plaintextPassword,
+                                 ByteSequence storedPassword)
   {
     // Base64-decode the stored value and take the last 8 bytes as the salt.
     byte[] saltBytes = new byte[NUM_SALT_BYTES];
     byte[] digestBytes;
     try
     {
-      byte[] decodedBytes = Base64.decode(storedPassword.stringValue());
+      byte[] decodedBytes = Base64.decode(storedPassword.toString());
 
       int digestLength = decodedBytes.length - NUM_SALT_BYTES;
       digestBytes = new byte[digestLength];
@@ -296,17 +291,17 @@ public class SaltedSHA256PasswordStorageScheme
       }
 
       Message message = ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(
-          storedPassword.stringValue(), String.valueOf(e));
+          storedPassword.toString(), String.valueOf(e));
       ErrorLogger.logError(message);
       return false;
     }
 
 
     // Use the salt to generate a digest based on the provided plain-text value.
-    byte[] plainBytes    = plaintextPassword.value();
-    byte[] plainPlusSalt = new byte[plainBytes.length + NUM_SALT_BYTES];
-    System.arraycopy(plainBytes, 0, plainPlusSalt, 0, plainBytes.length);
-    System.arraycopy(saltBytes, 0,plainPlusSalt, plainBytes.length,
+    int plainBytesLength = plaintextPassword.length();
+    byte[] plainPlusSalt = new byte[plainBytesLength + NUM_SALT_BYTES];
+    plaintextPassword.copyTo(plainPlusSalt);
+    System.arraycopy(saltBytes, 0,plainPlusSalt, plainBytesLength,
                      NUM_SALT_BYTES);
 
     byte[] userDigestBytes;
@@ -360,14 +355,14 @@ public class SaltedSHA256PasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString encodeAuthPassword(ByteString plaintext)
+  public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
   {
-    byte[] plainBytes    = plaintext.value();
+    int plaintextLength = plaintext.length();
     byte[] saltBytes     = new byte[NUM_SALT_BYTES];
-    byte[] plainPlusSalt = new byte[plainBytes.length + NUM_SALT_BYTES];
+    byte[] plainPlusSalt = new byte[plaintextLength + NUM_SALT_BYTES];
 
-    System.arraycopy(plainBytes, 0, plainPlusSalt, 0, plainBytes.length);
+    plaintext.copyTo(plainPlusSalt);
 
     byte[] digestBytes;
 
@@ -377,7 +372,7 @@ public class SaltedSHA256PasswordStorageScheme
       {
         // Generate the salt and put in the plain+salt array.
         random.nextBytes(saltBytes);
-        System.arraycopy(saltBytes,0, plainPlusSalt, plainBytes.length,
+        System.arraycopy(saltBytes,0, plainPlusSalt, plaintextLength,
                          NUM_SALT_BYTES);
 
         // Create the hash from the concatenated value.
@@ -406,7 +401,7 @@ public class SaltedSHA256PasswordStorageScheme
     authPWValue.append('$');
     authPWValue.append(Base64.encode(digestBytes));
 
-    return ByteStringFactory.create(authPWValue.toString());
+    return ByteString.valueOf(authPWValue.toString());
   }
 
 
@@ -415,7 +410,7 @@ public class SaltedSHA256PasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public boolean authPasswordMatches(ByteString plaintextPassword,
+  public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
   {
     byte[] saltBytes;
@@ -436,10 +431,10 @@ public class SaltedSHA256PasswordStorageScheme
     }
 
 
-    byte[] plainBytes = plaintextPassword.value();
-    byte[] plainPlusSaltBytes = new byte[plainBytes.length + saltBytes.length];
-    System.arraycopy(plainBytes, 0, plainPlusSaltBytes, 0, plainBytes.length);
-    System.arraycopy(saltBytes, 0, plainPlusSaltBytes, plainBytes.length,
+    int plainBytesLength = plaintextPassword.length();
+    byte[] plainPlusSaltBytes = new byte[plainBytesLength + saltBytes.length];
+    plaintextPassword.copyTo(plainPlusSaltBytes);
+    System.arraycopy(saltBytes, 0, plainPlusSaltBytes, plainBytesLength,
                      saltBytes.length);
 
     synchronized (digestLock)
@@ -466,7 +461,7 @@ public class SaltedSHA256PasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString getPlaintextValue(ByteString storedPassword)
+  public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
   {
     Message message =

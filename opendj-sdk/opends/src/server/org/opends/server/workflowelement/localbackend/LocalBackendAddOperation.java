@@ -70,27 +70,7 @@ import org.opends.server.core.PluginConfigManager;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.CanceledOperationException;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.RDN;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SynchronizationProviderResult;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationAddOperation;
 import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PostSynchronizationAddOperation;
@@ -1221,7 +1201,8 @@ addProcessing:
         for (PasswordStorageScheme s : defaultStorageSchemes)
         {
           ByteString encodedValue = s.encodeAuthPassword(value);
-          builder.add(new AttributeValue(passwordAttribute, encodedValue));
+          builder.add(AttributeValues.create(
+              passwordAttribute, encodedValue));
         }
       }
       else
@@ -1229,7 +1210,8 @@ addProcessing:
         for (PasswordStorageScheme s : defaultStorageSchemes)
         {
           ByteString encodedValue = s.encodePasswordWithScheme(value);
-          builder.add(new AttributeValue(passwordAttribute, encodedValue));
+          builder.add(AttributeValues.create(
+              passwordAttribute, encodedValue));
         }
       }
     }
@@ -1317,10 +1299,10 @@ addProcessing:
                   if (! syntax.valueIsAcceptable(v.getValue(), invalidReason))
                   {
                     Message message = WARN_ADD_OP_INVALID_SYNTAX.get(
-                                           String.valueOf(entryDN),
-                                           String.valueOf(v.getStringValue()),
-                                           String.valueOf(a.getName()),
-                                           String.valueOf(invalidReason));
+                                        String.valueOf(entryDN),
+                                        String.valueOf(v.getValue().toString()),
+                                        String.valueOf(a.getName()),
+                                        String.valueOf(invalidReason));
 
                     throw new DirectoryException(
                                    ResultCode.INVALID_ATTRIBUTE_SYNTAX,
@@ -1346,7 +1328,7 @@ addProcessing:
                   {
                     Message message = WARN_ADD_OP_INVALID_SYNTAX.
                         get(String.valueOf(entryDN),
-                            String.valueOf(v.getStringValue()),
+                            String.valueOf(v.getValue().toString()),
                             String.valueOf(a.getName()),
                             String.valueOf(invalidReason));
 
@@ -1378,7 +1360,7 @@ addProcessing:
                   {
                     logError(WARN_ADD_OP_INVALID_SYNTAX.get(
                                   String.valueOf(entryDN),
-                                  String.valueOf(v.getStringValue()),
+                                  String.valueOf(v.getValue().toString()),
                                   String.valueOf(a.getName()),
                                   String.valueOf(invalidReason)));
                   }
@@ -1401,7 +1383,7 @@ addProcessing:
                   {
                     logError(WARN_ADD_OP_INVALID_SYNTAX.get(
                                   String.valueOf(entryDN),
-                                  String.valueOf(v.getStringValue()),
+                                  String.valueOf(v.getValue().toString()),
                                   String.valueOf(a.getName()),
                                   String.valueOf(invalidReason)));
                   }
@@ -1481,30 +1463,8 @@ addProcessing:
 
         if (oid.equals(OID_LDAP_ASSERTION))
         {
-          LDAPAssertionRequestControl assertControl;
-          if (c instanceof LDAPAssertionRequestControl)
-          {
-            assertControl = (LDAPAssertionRequestControl) c;
-          }
-          else
-          {
-            try
-            {
-              assertControl = LDAPAssertionRequestControl.decodeControl(c);
-              requestControls.set(i, assertControl);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              throw new DirectoryException(
-                             ResultCode.valueOf(le.getResultCode()),
-                             le.getMessageObject());
-            }
-          }
+          LDAPAssertionRequestControl assertControl =
+            getRequestControl(LDAPAssertionRequestControl.DECODER);
 
           try
           {
@@ -1542,29 +1502,8 @@ addProcessing:
         }
         else if (oid.equals(OID_LDAP_READENTRY_POSTREAD))
         {
-          if (c instanceof LDAPPostReadRequestControl)
-          {
-            postReadRequest = (LDAPPostReadRequestControl) c;
-          }
-          else
-          {
-            try
-            {
-              postReadRequest = LDAPPostReadRequestControl.decodeControl(c);
-              requestControls.set(i, postReadRequest);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              throw new DirectoryException(
-                             ResultCode.valueOf(le.getResultCode()),
-                             le.getMessageObject());
-            }
-          }
+          postReadRequest =
+                getRequestControl(LDAPPostReadRequestControl.DECODER);
         }
         else if (oid.equals(OID_PROXIED_AUTH_V1))
         {
@@ -1577,31 +1516,8 @@ addProcessing:
                            ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
           }
 
-
-          ProxiedAuthV1Control proxyControl;
-          if (c instanceof ProxiedAuthV1Control)
-          {
-            proxyControl = (ProxiedAuthV1Control) c;
-          }
-          else
-          {
-            try
-            {
-              proxyControl = ProxiedAuthV1Control.decodeControl(c);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              throw new DirectoryException(
-                             ResultCode.valueOf(le.getResultCode()),
-                             le.getMessageObject());
-            }
-          }
-
+          ProxiedAuthV1Control proxyControl =
+              getRequestControl(ProxiedAuthV1Control.DECODER);
 
           Entry authorizationEntry = proxyControl.getAuthorizationEntry();
           setAuthorizationEntry(authorizationEntry);
@@ -1622,34 +1538,11 @@ addProcessing:
                                                    this))
           {
             throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
-                           ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
+                ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
           }
 
-
-          ProxiedAuthV2Control proxyControl;
-          if (c instanceof ProxiedAuthV2Control)
-          {
-            proxyControl = (ProxiedAuthV2Control) c;
-          }
-          else
-          {
-            try
-            {
-              proxyControl = ProxiedAuthV2Control.decodeControl(c);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              throw new DirectoryException(
-                             ResultCode.valueOf(le.getResultCode()),
-                             le.getMessageObject());
-            }
-          }
-
+          ProxiedAuthV2Control proxyControl =
+              getRequestControl(ProxiedAuthV2Control.DECODER);
 
           Entry authorizationEntry = proxyControl.getAuthorizationEntry();
           setAuthorizationEntry(authorizationEntry);
@@ -1731,9 +1624,7 @@ addProcessing:
     //          out..
     SearchResultEntry searchEntry = new SearchResultEntry(addedEntry);
     LDAPPostReadResponseControl responseControl =
-         new LDAPPostReadResponseControl(postReadRequest.getOID(),
-                                         postReadRequest.isCritical(),
-                                         searchEntry);
+         new LDAPPostReadResponseControl(searchEntry);
     addResponseControl(responseControl);
   }
 }

@@ -35,7 +35,6 @@ import java.util.List;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.operation.PostOperationExtendedOperation;
 import org.opends.server.types.operation.PostResponseExtendedOperation;
 import org.opends.server.types.operation.PreOperationExtendedOperation;
@@ -71,10 +70,10 @@ public class ExtendedOperationBasis
   private static final DebugTracer TRACER = DebugLogger.getTracer();
 
   // The value for the request associated with this extended operation.
-  private ASN1OctetString requestValue;
+  private ByteString requestValue;
 
   // The value for the response associated with this extended operation.
-  private ASN1OctetString responseValue;
+  private ByteString responseValue;
 
   // Indicates whether a response has yet been sent for this operation.
   private boolean responseSent;
@@ -107,7 +106,7 @@ public class ExtendedOperationBasis
   public ExtendedOperationBasis(ClientConnection clientConnection,
                            long operationID,
                            int messageID, List<Control> requestControls,
-                           String requestOID, ASN1OctetString requestValue)
+                           String requestOID, ByteString requestValue)
   {
     super(clientConnection, operationID, messageID, requestControls);
 
@@ -162,7 +161,7 @@ public class ExtendedOperationBasis
   /**
    * {@inheritDoc}
    */
-  public final ASN1OctetString getRequestValue()
+  public final ByteString getRequestValue()
   {
     return requestValue;
   }
@@ -176,7 +175,7 @@ public class ExtendedOperationBasis
    * @param  requestValue  The value for the request associated with this
    *                       extended operation.
    */
-  public final void setRequestValue(ASN1OctetString requestValue)
+  public final void setRequestValue(ByteString requestValue)
   {
     this.requestValue = requestValue;
   }
@@ -206,7 +205,7 @@ public class ExtendedOperationBasis
   /**
    * {@inheritDoc}
    */
-  public final ASN1OctetString getResponseValue()
+  public final ByteString getResponseValue()
   {
     return responseValue;
   }
@@ -216,7 +215,7 @@ public class ExtendedOperationBasis
   /**
    * {@inheritDoc}
    */
-  public final void setResponseValue(ASN1OctetString responseValue)
+  public final void setResponseValue(ByteString responseValue)
   {
     this.responseValue = responseValue;
   }
@@ -469,10 +468,10 @@ public class ExtendedOperationBasis
             pluginConfigManager.invokePreOperationExtendedPlugins(this);
         if(!preOpResult.continueProcessing())
         {
-          setResultCode(preParseResult.getResultCode());
-          appendErrorMessage(preParseResult.getErrorMessage());
-          setMatchedDN(preParseResult.getMatchedDN());
-          setReferralURLs(preParseResult.getReferralURLs());
+          setResultCode(preOpResult.getResultCode());
+          appendErrorMessage(preOpResult.getErrorMessage());
+          setMatchedDN(preOpResult.getMatchedDN());
+          setReferralURLs(preOpResult.getReferralURLs());
           return;
         }
 

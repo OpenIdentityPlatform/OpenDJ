@@ -243,7 +243,7 @@ public class HistoricalTest
     Entry entry = DirectoryServer.getEntry(dn1);
     List<Attribute> attrs = entry.getAttribute(entryuuidType);
     String entryuuid =
-         attrs.get(0).iterator().next().getStringValue();
+         attrs.get(0).iterator().next().getValue().toString();
 
     // Add the second test entry.
     TestCaseUtils.addEntry(
@@ -261,7 +261,7 @@ public class HistoricalTest
     entry = DirectoryServer.getEntry(dn2);
     attrs = entry.getAttribute(entryuuidType);
     String entryuuid2 =
-         attrs.get(0).iterator().next().getStringValue();
+         attrs.get(0).iterator().next().getValue().toString();
 
     // A change on a first server.
     ChangeNumber t1 = new ChangeNumber(1, (short) 0, (short) 3);
@@ -315,13 +315,13 @@ public class HistoricalTest
     entry = DirectoryServer.getEntry(dn1);
     attrs = entry.getAttribute(attrType);
     String attrValue1 =
-         attrs.get(0).iterator().next().getStringValue();
+         attrs.get(0).iterator().next().getValue().toString();
 
     // Read the second entry to see how the conflict was resolved.
     entry = DirectoryServer.getEntry(dn2);
     attrs = entry.getAttribute(attrType);
     String attrValue2 =
-         attrs.get(0).iterator().next().getStringValue();
+         attrs.get(0).iterator().next().getValue().toString();
 
     // The two values should be the first value added.
     assertEquals(attrValue1, "A");

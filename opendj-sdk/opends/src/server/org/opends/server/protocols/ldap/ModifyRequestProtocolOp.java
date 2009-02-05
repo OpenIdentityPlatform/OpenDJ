@@ -25,25 +25,19 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
-
 
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.io.IOException;
 
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
+import org.opends.server.protocols.asn1.*;
 import org.opends.server.types.RawModification;
+import org.opends.server.types.ByteString;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -64,7 +58,7 @@ public class ModifyRequestProtocolOp
   private ArrayList<RawModification> modifications;
 
   // The DN for this modify request.
-  private ASN1OctetString dn;
+  private ByteString dn;
 
 
 
@@ -74,7 +68,7 @@ public class ModifyRequestProtocolOp
    *
    * @param  dn  The DN for this modify request.
    */
-  public ModifyRequestProtocolOp(ASN1OctetString dn)
+  public ModifyRequestProtocolOp(ByteString dn)
   {
     this.dn            = dn;
     this.modifications = new ArrayList<RawModification>();
@@ -89,7 +83,7 @@ public class ModifyRequestProtocolOp
    * @param  dn             The DN for this modify request.
    * @param  modifications  The set of modifications for this modify request.
    */
-  public ModifyRequestProtocolOp(ASN1OctetString dn,
+  public ModifyRequestProtocolOp(ByteString dn,
                                  ArrayList<RawModification> modifications)
   {
     this.dn = dn;
@@ -111,21 +105,9 @@ public class ModifyRequestProtocolOp
    *
    * @return  The DN for this modify request.
    */
-  public ASN1OctetString getDN()
+  public ByteString getDN()
   {
     return dn;
-  }
-
-
-
-  /**
-   * Specifies the DN for this modify request.
-   *
-   * @param  dn  The DN for this modify request.
-   */
-  public void setDN(ASN1OctetString dn)
-  {
-    this.dn = dn;
   }
 
 
@@ -165,119 +147,25 @@ public class ModifyRequestProtocolOp
     return "Modify Request";
   }
 
-
-
   /**
-   * Encodes this protocol op to an ASN.1 element suitable for including in an
-   * LDAP message.
+   * Writes this protocol op to an ASN.1 output stream.
    *
-   * @return  The ASN.1 element containing the encoded protocol op.
+   * @param stream The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public ASN1Element encode()
+  public void write(ASN1Writer stream) throws IOException
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(dn);
+    stream.writeStartSequence(OP_TYPE_MODIFY_REQUEST);
+    stream.writeOctetString(dn);
 
-
-    ArrayList<ASN1Element> modElements =
-         new ArrayList<ASN1Element>(modifications.size());
-    for (RawModification mod : modifications)
+    stream.writeStartSequence();
+    for(RawModification mod : modifications)
     {
-      modElements.add(mod.encode());
+      mod.write(stream);
     }
-    elements.add(new ASN1Sequence(modElements));
+    stream.writeEndSequence();
 
-
-    return new ASN1Sequence(OP_TYPE_MODIFY_REQUEST, elements);
-  }
-
-
-
-  /**
-   * Decodes the provided ASN.1 element as an LDAP modify request protocol op.
-   *
-   * @param  element  The ASN.1 element to be decoded.
-   *
-   * @return  The decoded modify request protocol op.
-   *
-   * @throws  LDAPException  If a problem occurs while decoding the provided
-   *                         ASN.1 element as an LDAP modify request protocol
-   *                         op.
-   */
-  public static ModifyRequestProtocolOp decodeModifyRequest(ASN1Element element)
-         throws LDAPException
-  {
-    ArrayList<ASN1Element> elements;
-    try
-    {
-      elements = element.decodeAsSequence().elements();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_MODIFY_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    int numElements = elements.size();
-    if (numElements != 2)
-    {
-      Message message =
-          ERR_LDAP_MODIFY_REQUEST_DECODE_INVALID_ELEMENT_COUNT.get(numElements);
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-
-    ASN1OctetString dn;
-    try
-    {
-      dn = elements.get(0).decodeAsOctetString();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_MODIFY_REQUEST_DECODE_DN.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-
-    ArrayList<RawModification> modifications;
-    try
-    {
-      ArrayList<ASN1Element> modElements =
-           elements.get(1).decodeAsSequence().elements();
-      modifications = new ArrayList<RawModification>(modElements.size());
-      for (ASN1Element e : modElements)
-      {
-        modifications.add(LDAPModification.decode(e));
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_MODIFY_REQUEST_DECODE_MODS.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    return new ModifyRequestProtocolOp(dn, modifications);
+    stream.writeEndSequence();
   }
 
 
@@ -291,7 +179,7 @@ public class ModifyRequestProtocolOp
   public void toString(StringBuilder buffer)
   {
     buffer.append("ModifyRequest(dn=");
-    dn.toString(buffer);
+    buffer.append(dn.toString());
     buffer.append(", mods={");
 
     if (! modifications.isEmpty())
@@ -333,7 +221,7 @@ public class ModifyRequestProtocolOp
 
     buffer.append(indentBuf);
     buffer.append("  DN:  ");
-    dn.toString(buffer);
+    buffer.append(dn.toString());
     buffer.append(EOL);
 
     buffer.append("  Modifications:");

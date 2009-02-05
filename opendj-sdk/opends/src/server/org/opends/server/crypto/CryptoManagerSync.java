@@ -49,6 +49,7 @@ import static org.opends.server.config.ConfigConstants.OC_CRYPTO_CIPHER_KEY;
 import static org.opends.server.config.ConfigConstants.OC_CRYPTO_MAC_KEY;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.controls.PersistentSearchChangeType;
 import org.opends.server.controls.EntryChangeNotificationControl;
 import org.opends.server.core.DirectoryServer;
@@ -299,11 +300,19 @@ public class CryptoManagerSync
         {
           if (c.getOID().equals(OID_ENTRY_CHANGE_NOTIFICATION))
           {
-            ecn = EntryChangeNotificationControl.decodeControl(c);
+            if (c instanceof LDAPControl)
+            {
+              ecn = EntryChangeNotificationControl.DECODER.decode(c
+                  .isCritical(), ((LDAPControl) c).getValue());
+            }
+            else
+            {
+              ecn = (EntryChangeNotificationControl)c;
+            }
           }
         }
       }
-      catch (LDAPException e)
+      catch (DirectoryException e)
       {
         // ignore
       }

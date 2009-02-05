@@ -39,7 +39,6 @@ import java.util.Iterator;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPAttribute;
@@ -50,6 +49,7 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
@@ -72,7 +72,7 @@ public class PersistentServerState
    private final DN baseDn;
    private final InternalClientConnection conn =
        InternalClientConnection.getRootConnection();
-   private final ASN1OctetString asn1BaseDn;
+   private final ByteString asn1BaseDn;
    private final short serverId;
 
    private final ServerState state;
@@ -102,7 +102,7 @@ public class PersistentServerState
     this.baseDn = baseDn;
     this.serverId = serverId;
     this.state = new ServerState();
-    asn1BaseDn = new ASN1OctetString(baseDn.toString());
+    this.asn1BaseDn = ByteString.valueOf(baseDn.toString());
     loadState();
   }
 
@@ -118,7 +118,7 @@ public class PersistentServerState
     this.baseDn = baseDn;
     this.serverId = serverId;
     this.state = state;
-    asn1BaseDn = new ASN1OctetString(baseDn.toString());
+    this.asn1BaseDn = ByteString.valueOf(baseDn.toString());
     loadState();
   }
 
@@ -299,8 +299,7 @@ public class PersistentServerState
       Attribute attr = attrs.get(0);
       for (AttributeValue value : attr)
       {
-        ChangeNumber changeNumber =
-          new ChangeNumber(value.getStringValue());
+        ChangeNumber changeNumber = new ChangeNumber(value.toString());
         update(changeNumber);
       }
     }
@@ -343,7 +342,7 @@ public class PersistentServerState
    */
   private ResultCode runUpdateStateEntry(DN serverStateEntryDN)
   {
-    ArrayList<ASN1OctetString> values = state.toASN1ArrayList();
+    ArrayList<ByteString> values = state.toASN1ArrayList();
 
     LDAPAttribute attr =
       new LDAPAttribute(REPLICATION_STATE, values);
@@ -355,7 +354,7 @@ public class PersistentServerState
       new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
           InternalClientConnection.nextMessageID(),
           new ArrayList<Control>(0),
-          new ASN1OctetString(serverStateEntryDN.toString()),
+          ByteString.valueOf(serverStateEntryDN.toString()),
           mods);
     op.setInternalOperation(true);
     op.setSynchronizationOperation(true);
@@ -450,7 +449,7 @@ public class PersistentServerState
             while (true)
             {
               AttributeValue attrVal = iav.next();
-              HistVal histVal = new HistVal(attrVal.getStringValue());
+              HistVal histVal = new HistVal(attrVal.toString());
               ChangeNumber cn = histVal.getCn();
 
               if ((cn != null) && (cn.getServerId() == serverId))
@@ -514,7 +513,7 @@ public class PersistentServerState
    DeleteOperationBasis del =  new DeleteOperationBasis(conn,
        InternalClientConnection.nextOperationID(),
        InternalClientConnection.nextMessageID(), null,
-       new ASN1OctetString(ruvEntry.getDN().toNormalizedString()));
+       ByteString.valueOf(ruvEntry.getDN().toNormalizedString()));
 
    // Run the internal operation
    del.setInternalOperation(true);
@@ -654,7 +653,7 @@ public class PersistentServerState
           {
             Iterator<AttributeValue> iav = attrs.get(0).iterator();
             AttributeValue attrVal = iav.next();
-            if (attrVal.getStringValue().
+            if (attrVal.toString().
                 equalsIgnoreCase("ffffffff-ffff-ffff-ffff-ffffffffffff"))
             {
               ruvEntry = ldapSubEntry;

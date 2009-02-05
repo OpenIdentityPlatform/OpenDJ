@@ -863,7 +863,7 @@ public class TaskBackend
       }
 
       AttributeValue v = iterator.next();
-      String valueString = toLowerCase(v.getStringValue());
+      String valueString = toLowerCase(v.toString());
       if (!(valueString.startsWith("cancel") ||
         valueString.startsWith("stop"))) {
         acceptable = false;
@@ -2352,6 +2352,7 @@ public class TaskBackend
   /**
    * {@inheritDoc}
    */
+  @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
   }

@@ -150,7 +150,7 @@ public class Branch
         {
           try
           {
-            String[] valueStrings = new String[] { v.getStringValue() };
+            String[] valueStrings = new String[] { v.getValue().toString()};
             Tag[] tags = new Tag[1];
             tags[0] = new StaticTextTag();
             tags[0].initializeForBranch(templateFile, this, valueStrings, 0,
@@ -174,7 +174,7 @@ public class Branch
         {
           try
           {
-            String[] valueStrings = new String[] { v.getStringValue() };
+            String[] valueStrings = new String[] { v.getValue().toString()};
             Tag[] tags = new Tag[1];
             tags[0] = new StaticTextTag();
             tags[0].initializeForBranch(templateFile, this, valueStrings, 0,

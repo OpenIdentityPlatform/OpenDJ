@@ -41,7 +41,6 @@ import java.util.LinkedHashSet;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
-import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.CompareOperation;
@@ -50,28 +49,10 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.Operation;
-import org.opends.server.types.RawAttribute;
-import org.opends.server.types.RawModification;
-import org.opends.server.types.RDN;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultReference;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -285,12 +266,14 @@ public class InternalClientConnectionTestCase
    *
    * @param  conn  The internal client connection to use for the test.
    */
-  @Test(dataProvider = "internalConns")
+ /*MPD
+  *  @Test(dataProvider = "internalConns")
+
   public void testGetConnectionSecurityProvider(InternalClientConnection conn)
   {
     assertNotNull(conn.getConnectionSecurityProvider());
   }
-
+*/
 
 
   /**
@@ -298,6 +281,7 @@ public class InternalClientConnectionTestCase
    *
    * @param  conn  The internal client connection to use for the test.
    */
+  /* MPD
   @Test(dataProvider = "internalConns")
   public void testSetConnectionSecurityProvider(InternalClientConnection conn)
   {
@@ -306,20 +290,7 @@ public class InternalClientConnectionTestCase
     assertNotNull(securityProvider);
     conn.setConnectionSecurityProvider(securityProvider);
   }
-
-
-
-  /**
-   * Tests the <CODE>getSecurityMechanism</CODE> method.
-   *
-   * @param  conn  The internal client connection to use for the test.
-   */
-  @Test(dataProvider = "internalConns")
-  public void testGetSecurityMechanism(InternalClientConnection conn)
-  {
-    assertNotNull(conn.getSecurityMechanism());
-  }
-
+*/
 
 
   /**
@@ -346,17 +317,17 @@ public class InternalClientConnectionTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ASN1OctetString dn = new ASN1OctetString("cn=test,o=test");
+    ByteString dn = ByteString.valueOf("cn=test,o=test");
 
     ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("device"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("device"));
     attrs.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("test"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("test"));
     attrs.add(new LDAPAttribute("cn", values));
 
     InternalClientConnection conn =
@@ -407,8 +378,8 @@ public class InternalClientConnectionTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     BindOperation bindOperation =
-         conn.processSimpleBind(new ASN1OctetString("cn=Directory Manager"),
-                                new ASN1OctetString("password"));
+         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
+                                ByteString.valueOf("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -428,7 +399,7 @@ public class InternalClientConnectionTestCase
          InternalClientConnection.getRootConnection();
     BindOperation bindOperation =
          conn.processSimpleBind(DN.decode("cn=Directory Manager"),
-                                new ASN1OctetString("password"));
+                                ByteString.valueOf("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -444,13 +415,13 @@ public class InternalClientConnectionTestCase
   public void testProcessSASLBind1()
          throws Exception
   {
-    ASN1OctetString creds =
-         new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
+    ByteString creds =
+         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     BindOperation bindOperation =
-         conn.processSASLBind(new ASN1OctetString(), "PLAIN", creds);
+         conn.processSASLBind(ByteString.empty(), "PLAIN", creds);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -466,8 +437,8 @@ public class InternalClientConnectionTestCase
   public void testProcessSASLBind2()
          throws Exception
   {
-    ASN1OctetString creds =
-         new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
+    ByteString creds =
+         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -504,8 +475,8 @@ public class InternalClientConnectionTestCase
 
 
     CompareOperation compareOperation =
-         conn.processCompare(new ASN1OctetString("cn=test,o=test"), "cn",
-                             new ASN1OctetString("test"));
+         conn.processCompare(ByteString.valueOf("cn=test,o=test"), "cn",
+                             ByteString.valueOf("test"));
     assertEquals(compareOperation.getResultCode(), ResultCode.COMPARE_TRUE);
   }
 
@@ -539,7 +510,7 @@ public class InternalClientConnectionTestCase
     CompareOperation compareOperation =
          conn.processCompare(DN.decode("cn=test,o=test"),
                              DirectoryServer.getAttributeType("cn", true),
-                             new ASN1OctetString("test"));
+                             ByteString.valueOf("test"));
     assertEquals(compareOperation.getResultCode(), ResultCode.COMPARE_TRUE);
   }
 
@@ -571,7 +542,7 @@ public class InternalClientConnectionTestCase
 
 
     DeleteOperation deleteOperation =
-         conn.processDelete(new ASN1OctetString("cn=test,o=test"));
+         conn.processDelete(ByteString.valueOf("cn=test,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -652,15 +623,15 @@ public class InternalClientConnectionTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("This is a test"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("This is a test"));
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("description", values)));
 
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString("cn=test,o=test"), mods);
+         conn.processModify(ByteString.valueOf("cn=test,o=test"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -728,8 +699,8 @@ public class InternalClientConnectionTestCase
 
 
     ModifyDNOperation modifyDNOperation =
-         conn.processModifyDN(new ASN1OctetString("cn=test,o=test"),
-                              new ASN1OctetString("cn=test2"), true);
+         conn.processModifyDN(ByteString.valueOf("cn=test,o=test"),
+                              ByteString.valueOf("cn=test2"), true);
     assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -761,9 +732,9 @@ public class InternalClientConnectionTestCase
 
 
     ModifyDNOperation modifyDNOperation =
-         conn.processModifyDN(new ASN1OctetString("cn=test,o=test"),
-                              new ASN1OctetString("cn=test2"), true,
-                              new ASN1OctetString("dc=example,dc=com"));
+         conn.processModifyDN(ByteString.valueOf("cn=test,o=test"),
+                              ByteString.valueOf("cn=test2"), true,
+                              ByteString.valueOf("dc=example,dc=com"));
     assertEquals(modifyDNOperation.getResultCode(),
                  ResultCode.UNWILLING_TO_PERFORM);
   }
@@ -851,7 +822,7 @@ public class InternalClientConnectionTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(new ASN1OctetString(""), SearchScope.BASE_OBJECT,
+         conn.processSearch(ByteString.valueOf(""), SearchScope.BASE_OBJECT,
                             LDAPFilter.decode("(objectClass=*)"));
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
@@ -873,7 +844,7 @@ public class InternalClientConnectionTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(new ASN1OctetString(""), SearchScope.BASE_OBJECT,
+         conn.processSearch(ByteString.valueOf(""), SearchScope.BASE_OBJECT,
                             DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                             LDAPFilter.decode("(objectClass=*)"),
                             new LinkedHashSet<String>());
@@ -901,7 +872,7 @@ public class InternalClientConnectionTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(new ASN1OctetString(""), SearchScope.BASE_OBJECT,
+         conn.processSearch(ByteString.valueOf(""), SearchScope.BASE_OBJECT,
                             DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                             LDAPFilter.decode("(objectClass=*)"),
                             new LinkedHashSet<String>(), searchListener);
@@ -998,7 +969,7 @@ public class InternalClientConnectionTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(new ASN1OctetString(""), SearchScope.BASE_OBJECT,
+         conn.processSearch(ByteString.valueOf(""), SearchScope.BASE_OBJECT,
                             LDAPFilter.decode("(objectClass=*)"));
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());

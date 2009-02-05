@@ -45,7 +45,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -53,13 +52,9 @@ import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.ResultCode;
+import org.opends.server.tools.LDAPReader;
+import org.opends.server.tools.LDAPWriter;
+import org.opends.server.types.*;
 import org.opends.server.util.Base64;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -310,15 +305,15 @@ public class ExternalSASLMechanismHandlerTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader reader = new ASN1Reader(s);
-    ASN1Writer writer = new ASN1Writer(s);
+    LDAPReader reader = new LDAPReader(s);
+    LDAPWriter writer = new LDAPWriter(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString(), "EXTERNAL", null);
+         new BindRequestProtocolOp(ByteString.empty(), "EXTERNAL", null);
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    writer.writeElement(message.encode());
+    writer.writeMessage(message);
 
-    message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+    message = reader.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertFalse(bindResponse.getResultCode() == 0);
 

@@ -25,31 +25,18 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
 
 
-
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.io.IOException;
 
-import org.opends.server.protocols.asn1.ASN1Boolean;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Enumerated;
-import org.opends.server.protocols.asn1.ASN1Integer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.RawFilter;
-import org.opends.server.types.SearchScope;
+import org.opends.server.protocols.asn1.*;
+import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -73,7 +60,7 @@ public class SearchRequestProtocolOp
   private DereferencePolicy dereferencePolicy;
 
   // The base DN for this search request.
-  private ASN1OctetString baseDN;
+  private ByteString baseDN;
 
   // The size limit for this search request.
   private int sizeLimit;
@@ -106,7 +93,7 @@ public class SearchRequestProtocolOp
    * @param  attributes         The set of requested attributes for this search
    *                            request.
    */
-  public SearchRequestProtocolOp(ASN1OctetString baseDN, SearchScope scope,
+  public SearchRequestProtocolOp(ByteString baseDN, SearchScope scope,
                                  DereferencePolicy dereferencePolicy,
                                  int sizeLimit, int timeLimit,
                                  boolean typesOnly, RawFilter filter,
@@ -137,23 +124,10 @@ public class SearchRequestProtocolOp
    *
    * @return  The base DN for this search request.
    */
-  public ASN1OctetString getBaseDN()
+  public ByteString getBaseDN()
   {
     return baseDN;
   }
-
-
-
-  /**
-   * Specifies the base DN for this search request.
-   *
-   * @param  baseDN  The base DN for this search request.
-   */
-  public void setBaseDN(ASN1OctetString baseDN)
-  {
-    this.baseDN = baseDN;
-  }
-
 
 
   /**
@@ -167,19 +141,6 @@ public class SearchRequestProtocolOp
   }
 
 
-
-  /**
-   * Specifies the scope for this search request.
-   *
-   * @param  scope  The scope for this search request.
-   */
-  public void setScope(SearchScope scope)
-  {
-    this.scope = scope;
-  }
-
-
-
   /**
    * Retrieves the alias dereferencing policy for this search request.
    *
@@ -188,19 +149,6 @@ public class SearchRequestProtocolOp
   public DereferencePolicy getDereferencePolicy()
   {
     return dereferencePolicy;
-  }
-
-
-
-  /**
-   * Specifies the alias dereferencing policy for this search request.
-   *
-   * @param  dereferencePolicy  The alias dereferencing policy for this search
-   *                            request.
-   */
-  public void setDereferencePolicy(DereferencePolicy dereferencePolicy)
-  {
-    this.dereferencePolicy = dereferencePolicy;
   }
 
 
@@ -218,18 +166,6 @@ public class SearchRequestProtocolOp
 
 
   /**
-   * Specifies the size limit for this search request.
-   *
-   * @param  sizeLimit  The size limit for this search request.
-   */
-  public void setSizeLimit(int sizeLimit)
-  {
-    this.sizeLimit = sizeLimit;
-  }
-
-
-
-  /**
    * Retrieves the time limit for this search request.
    *
    * @return  The time limit for this search request.
@@ -237,18 +173,6 @@ public class SearchRequestProtocolOp
   public int getTimeLimit()
   {
     return timeLimit;
-  }
-
-
-
-  /**
-   * Specifies the time limit for this search request.
-   *
-   * @param  timeLimit  The time limit for this search request.
-   */
-  public void setTimeLimit(int timeLimit)
-  {
-    this.timeLimit = timeLimit;
   }
 
 
@@ -266,18 +190,6 @@ public class SearchRequestProtocolOp
 
 
   /**
-   * Specifies the value of the typesOnly flag for this search request.
-   *
-   * @param  typesOnly  The value of the typesOnly flag for this search request.
-   */
-  public void setTypesOnly(boolean typesOnly)
-  {
-    this.typesOnly = typesOnly;
-  }
-
-
-
-  /**
    * Retrieves the filter for this search request.
    *
    * @return  The filter for this search request.
@@ -285,18 +197,6 @@ public class SearchRequestProtocolOp
   public RawFilter getFilter()
   {
     return filter;
-  }
-
-
-
-  /**
-   * Specifies the filter for this search request.
-   *
-   * @param  filter  The filter for this search request.
-   */
-  public void setFilter(RawFilter filter)
-  {
-    this.filter = filter;
   }
 
 
@@ -310,26 +210,6 @@ public class SearchRequestProtocolOp
   public LinkedHashSet<String> getAttributes()
   {
     return attributes;
-  }
-
-
-
-  /**
-   * Specifies the set of requested attributes for this search request.
-   *
-   * @param  attributes  The set of requested attributes for this search
-   *                     request.
-   */
-  public void setAttributes(LinkedHashSet<String> attributes)
-  {
-    if (attributes == null)
-    {
-      this.attributes.clear();
-    }
-    else
-    {
-      this.attributes = attributes;
-    }
   }
 
 
@@ -356,278 +236,31 @@ public class SearchRequestProtocolOp
     return "Search Request";
   }
 
-
-
   /**
-   * Encodes this protocol op to an ASN.1 element suitable for including in an
-   * LDAP message.
+   * Writes this protocol op to an ASN.1 output stream.
    *
-   * @return  The ASN.1 element containing the encoded protocol op.
+   * @param stream The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public ASN1Element encode()
+  public void write(ASN1Writer stream) throws IOException
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(8);
-    elements.add(baseDN);
-    elements.add(new ASN1Enumerated(scope.intValue()));
-    elements.add(new ASN1Enumerated(dereferencePolicy.intValue()));
-    elements.add(new ASN1Integer(sizeLimit));
-    elements.add(new ASN1Integer(timeLimit));
-    elements.add(new ASN1Boolean(typesOnly));
-    elements.add(filter.encode());
+    stream.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
+    stream.writeOctetString(baseDN);
+    stream.writeEnumerated(scope.intValue());
+    stream.writeEnumerated(dereferencePolicy.intValue());
+    stream.writeInteger(sizeLimit);
+    stream.writeInteger(timeLimit);
+    stream.writeBoolean(typesOnly);
+    filter.write(stream);
 
-    ArrayList<ASN1Element> attrElements =
-         new ArrayList<ASN1Element>(attributes.size());
-    for (String attribute : attributes)
+    stream.writeStartSequence();
+    for(String attribute : attributes)
     {
-      attrElements.add(new ASN1OctetString(attribute));
+      stream.writeOctetString(attribute);
     }
-    elements.add(new ASN1Sequence(attrElements));
+    stream.writeEndSequence();
 
-    return new ASN1Sequence(OP_TYPE_SEARCH_REQUEST, elements);
-  }
-
-
-
-  /**
-   * Decodes the provided ASN.1 element as an LDAP search request protocol op.
-   *
-   * @param  element  The ASN.1 element to decode.
-   *
-   * @return  The decoded LDAP search request protocol op.
-   *
-   * @throws  LDAPException  If a problem occurs while decoding the provided
-   *                         ASN.1 element as an LDAP search request protocol
-   *                         op.
-   */
-  public static SearchRequestProtocolOp decodeSearchRequest(ASN1Element element)
-         throws LDAPException
-  {
-    ArrayList<ASN1Element> elements;
-    try
-    {
-      elements = element.decodeAsSequence().elements();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_SEARCH_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    int numElements = elements.size();
-    if (numElements != 8)
-    {
-      Message message =
-          ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_ELEMENT_COUNT.get(numElements);
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-
-    ASN1OctetString baseDN;
-    try
-    {
-      baseDN = elements.get(0).decodeAsOctetString();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_SEARCH_REQUEST_DECODE_BASE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    SearchScope scope;
-    try
-    {
-      switch (elements.get(1).decodeAsEnumerated().intValue())
-      {
-        case SCOPE_BASE_OBJECT:
-          scope = SearchScope.BASE_OBJECT;
-          break;
-        case SCOPE_SINGLE_LEVEL:
-          scope = SearchScope.SINGLE_LEVEL;
-          break;
-        case SCOPE_WHOLE_SUBTREE:
-          scope = SearchScope.WHOLE_SUBTREE;
-          break;
-        case SCOPE_SUBORDINATE_SUBTREE:
-          scope = SearchScope.SUBORDINATE_SUBTREE;
-          break;
-        default:
-          int    scopeValue = elements.get(1).decodeAsEnumerated().intValue();
-          Message message =
-              ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_SCOPE.get(scopeValue);
-          throw new LDAPException(PROTOCOL_ERROR, message);
-      }
-    }
-    catch (LDAPException le)
-    {
-      throw le;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_SEARCH_REQUEST_DECODE_SCOPE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    DereferencePolicy dereferencePolicy;
-    try
-    {
-      switch (elements.get(2).decodeAsEnumerated().intValue())
-      {
-        case DEREF_NEVER:
-          dereferencePolicy = DereferencePolicy.NEVER_DEREF_ALIASES;
-          break;
-        case DEREF_IN_SEARCHING:
-          dereferencePolicy = DereferencePolicy.DEREF_IN_SEARCHING;
-          break;
-        case DEREF_FINDING_BASE:
-          dereferencePolicy = DereferencePolicy.DEREF_FINDING_BASE_OBJECT;
-          break;
-        case DEREF_ALWAYS:
-          dereferencePolicy = DereferencePolicy.DEREF_ALWAYS;
-          break;
-        default:
-          int    derefValue = elements.get(2).decodeAsEnumerated().intValue();
-          Message message =
-              ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_DEREF.get(derefValue);
-          throw new LDAPException(PROTOCOL_ERROR, message);
-      }
-    }
-    catch (LDAPException le)
-    {
-      throw le;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_SEARCH_REQUEST_DECODE_DEREF.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    int sizeLimit;
-    try
-    {
-      sizeLimit = elements.get(3).decodeAsInteger().intValue();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_SEARCH_REQUEST_DECODE_SIZE_LIMIT.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    int timeLimit;
-    try
-    {
-      timeLimit = elements.get(4).decodeAsInteger().intValue();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_SEARCH_REQUEST_DECODE_TIME_LIMIT.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    boolean typesOnly;
-    try
-    {
-      typesOnly = elements.get(5).decodeAsBoolean().booleanValue();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_SEARCH_REQUEST_DECODE_TYPES_ONLY.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    RawFilter filter;
-    try
-    {
-      filter = RawFilter.decode(elements.get(6));
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_SEARCH_REQUEST_DECODE_FILTER.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    LinkedHashSet<String> attributes;
-    try
-    {
-      ArrayList<ASN1Element> attrElements =
-           elements.get(7).decodeAsSequence().elements();
-      attributes = new LinkedHashSet<String>(attrElements.size());
-      for (ASN1Element e: attrElements)
-      {
-        attributes.add(e.decodeAsOctetString().stringValue());
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_SEARCH_REQUEST_DECODE_ATTRIBUTES.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    return new SearchRequestProtocolOp(baseDN, scope, dereferencePolicy,
-                                       sizeLimit, timeLimit, typesOnly, filter,
-                                       attributes);
+    stream.writeEndSequence();
   }
 
 
@@ -641,7 +274,7 @@ public class SearchRequestProtocolOp
   public void toString(StringBuilder buffer)
   {
     buffer.append("SearchRequest(baseDN=");
-    baseDN.toString(buffer);
+    buffer.append(baseDN.toString());
     buffer.append(", scope=");
     buffer.append(String.valueOf(scope));
     buffer.append(", derefPolicy=");
@@ -695,7 +328,7 @@ public class SearchRequestProtocolOp
 
     buffer.append(indentBuf);
     buffer.append("  Base DN:  ");
-    baseDN.toString(buffer);
+    buffer.append(baseDN.toString());
     buffer.append(EOL);
 
     buffer.append(indentBuf);

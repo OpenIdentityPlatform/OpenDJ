@@ -34,7 +34,6 @@ import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.SaltedSHA1PasswordStorageSchemeCfgDefn;
 import org.opends.server.admin.std.server.SaltedSHA1PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.ByteString;
 
@@ -105,9 +104,9 @@ public class SaltedSHA1PasswordStorageSchemeTestCase
 
     scheme.initializePasswordStorageScheme(configuration);
 
-    String passwordString = scheme.encodeOffline(plaintext.value());
+    String passwordString = scheme.encodeOffline(plaintext.toByteArray());
     String[] pwComps = UserPasswordSyntax.decodeUserPassword(passwordString);
-    ASN1OctetString encodedPassword = new ASN1OctetString(pwComps[1]);
+    ByteString encodedPassword = ByteString.valueOf(pwComps[1]);
 
     assertTrue(scheme.passwordMatches(plaintext, encodedPassword));
   }

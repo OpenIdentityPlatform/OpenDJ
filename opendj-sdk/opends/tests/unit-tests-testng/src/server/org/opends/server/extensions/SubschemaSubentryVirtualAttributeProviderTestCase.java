@@ -28,35 +28,35 @@ package org.opends.server.extensions;
 
 
 
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
+
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.AttributeValues;
 import org.opends.server.types.Control;
-import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DN;
+import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 import org.opends.server.types.VirtualAttributeRule;
-
-import static org.testng.Assert.*;
-
-import static org.opends.server.util.ServerConstants.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 
 
@@ -144,7 +144,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
     {
       assertTrue(!a.isEmpty());
       assertEquals(a.size(), 1);
-      assertTrue(a.contains(new AttributeValue(subschemaSubentryType,
+      assertTrue(a.contains(AttributeValues.create(subschemaSubentryType,
                                                "cn=schema")));
     }
   }
@@ -455,16 +455,17 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
     attrList.add("subschemaSubentry");
 
     LinkedList<Control> requestControls = new LinkedList<Control>();
-    requestControls.add(new Control(OID_REAL_ATTRS_ONLY, true));
+    requestControls.add(new LDAPControl(OID_REAL_ATTRS_ONLY, true));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                                     conn.nextMessageID(), requestControls,
-                                     entryDN, SearchScope.BASE_OBJECT,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
-                                     0, false, filter, attrList, null);
+        new InternalSearchOperation(conn, InternalClientConnection
+            .nextOperationID(), InternalClientConnection
+            .nextMessageID(), requestControls, entryDN,
+            SearchScope.BASE_OBJECT,
+            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false, filter,
+            attrList, null);
     searchOperation.run();
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
@@ -498,16 +499,17 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
     attrList.add("subschemaSubentry");
 
     LinkedList<Control> requestControls = new LinkedList<Control>();
-    requestControls.add(new Control(OID_VIRTUAL_ATTRS_ONLY, true));
+    requestControls.add(new LDAPControl(OID_VIRTUAL_ATTRS_ONLY, true));
 
     InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+        InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                                     conn.nextMessageID(), requestControls,
-                                     entryDN, SearchScope.BASE_OBJECT,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
-                                     0, false, filter, attrList, null);
+        new InternalSearchOperation(conn, InternalClientConnection
+            .nextOperationID(), InternalClientConnection
+            .nextMessageID(), requestControls, entryDN,
+            SearchScope.BASE_OBJECT,
+            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false, filter,
+            attrList, null);
     searchOperation.run();
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
@@ -560,7 +562,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
     Set<AttributeValue> values = provider.getValues(entry, rule);
     assertNotNull(values);
     assertEquals(values.size(), 1);
-    assertTrue(values.contains(new AttributeValue(subschemaSubentryType,
+    assertTrue(values.contains(AttributeValues.create(subschemaSubentryType,
                                                   "cn=schema")));
   }
 
@@ -626,7 +628,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     assertTrue(provider.hasValue(entry, rule,
-                                 new AttributeValue(subschemaSubentryType,
+        AttributeValues.create(subschemaSubentryType,
                                                     "cn=schema")));
   }
 
@@ -660,7 +662,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     assertFalse(provider.hasValue(entry, rule,
-                     new AttributeValue(subschemaSubentryType,
+        AttributeValues.create(subschemaSubentryType,
                                         "cn=not schema")));
   }
 
@@ -726,7 +728,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-    values.add(new AttributeValue(subschemaSubentryType, "cn=schema"));
+    values.add(AttributeValues.create(subschemaSubentryType, "cn=schema"));
 
     assertTrue(provider.hasAnyValue(entry, rule, values));
   }
@@ -761,7 +763,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-    values.add(new AttributeValue(subschemaSubentryType, "cn=not schema"));
+    values.add(AttributeValues.create(subschemaSubentryType, "cn=not schema"));
 
     assertFalse(provider.hasAnyValue(entry, rule, values));
   }
@@ -796,9 +798,9 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(3);
-    values.add(new AttributeValue(subschemaSubentryType, "cn=schema"));
-    values.add(new AttributeValue(subschemaSubentryType, "cn=not schema"));
-    values.add(new AttributeValue(subschemaSubentryType,
+    values.add(AttributeValues.create(subschemaSubentryType, "cn=schema"));
+    values.add(AttributeValues.create(subschemaSubentryType, "cn=not schema"));
+    values.add(AttributeValues.create(subschemaSubentryType,
                                   "cn=not schema either"));
 
     assertTrue(provider.hasAnyValue(entry, rule, values));
@@ -834,10 +836,10 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(3);
-    values.add(new AttributeValue(subschemaSubentryType, "cn=not schema"));
-    values.add(new AttributeValue(subschemaSubentryType,
+    values.add(AttributeValues.create(subschemaSubentryType, "cn=not schema"));
+    values.add(AttributeValues.create(subschemaSubentryType,
                                   "cn=not schema either"));
-    values.add(new AttributeValue(subschemaSubentryType,
+    values.add(AttributeValues.create(subschemaSubentryType,
                                   "cn=still not schema"));
 
     assertFalse(provider.hasAnyValue(entry, rule, values));

@@ -38,13 +38,7 @@ import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.VirtualAttributeRule;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
 
@@ -103,8 +97,8 @@ public class SubschemaSubentryVirtualAttributeProvider
                                        VirtualAttributeRule rule)
   {
     AttributeValue value =
-        new AttributeValue(rule.getAttributeType(),
-                           DirectoryServer.getSchemaDN().toString());
+        AttributeValues.create(rule.getAttributeType(), DirectoryServer
+            .getSchemaDN().toString());
     return Collections.singleton(value);
   }
 

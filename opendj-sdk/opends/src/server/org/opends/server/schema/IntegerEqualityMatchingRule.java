@@ -25,24 +25,24 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
-import org.opends.messages.Message;
 
 
 
-import java.util.Arrays;
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.schema.SchemaConstants.*;
 
 import java.util.Collection;
 import java.util.Collections;
+
+import org.opends.messages.Message;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.schema.SchemaConstants.*;
-import org.opends.server.loggers.ErrorLogger;
 
 
 /**
@@ -65,6 +65,7 @@ class IntegerEqualityMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getAllNames()
   {
     return Collections.singleton(getName());
@@ -78,6 +79,7 @@ class IntegerEqualityMatchingRule
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
    * it does not have a name.
    */
+  @Override
   public String getName()
   {
     return EMR_INTEGER_NAME;
@@ -90,6 +92,7 @@ class IntegerEqualityMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return EMR_INTEGER_OID;
@@ -103,6 +106,7 @@ class IntegerEqualityMatchingRule
    * @return  The description for this matching rule, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     // There is no standard description for this matching rule.
@@ -117,6 +121,7 @@ class IntegerEqualityMatchingRule
    *
    * @return  The OID of the syntax with which this matching rule is associated.
    */
+  @Override
   public String getSyntaxOID()
   {
     return SYNTAX_INTEGER_OID;
@@ -135,18 +140,17 @@ class IntegerEqualityMatchingRule
    * @throws  DirectoryException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
-  public ByteString normalizeValue(ByteString value)
+  @Override
+  public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
-    byte[] valueBytes = value.value();
-
-    int length = valueBytes.length;
+    int length = value.length();
     StringBuilder buffer = new StringBuilder(length);
 
     boolean logged = false;
     for (int i=0; i < length; i++)
     {
-      switch (valueBytes[i])
+      switch (value.byteAt(i))
       {
         case '0':
           switch (buffer.length())
@@ -160,7 +164,7 @@ class IntegerEqualityMatchingRule
               else
               {
                 Message message = WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(
-                        value.stringValue());
+                        value.toString());
 
                 switch (DirectoryServer.getSyntaxEnforcementPolicy())
                 {
@@ -182,7 +186,7 @@ class IntegerEqualityMatchingRule
               if (buffer.charAt(0) == '-')
               {
                 Message message = WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(
-                        value.stringValue());
+                        value.toString());
 
                 switch (DirectoryServer.getSyntaxEnforcementPolicy())
                 {
@@ -245,7 +249,7 @@ class IntegerEqualityMatchingRule
           else
           {
             Message message = WARN_ATTR_SYNTAX_INTEGER_MISPLACED_DASH.get(
-                    value.stringValue());
+                    value.toString());
 
             switch (DirectoryServer.getSyntaxEnforcementPolicy())
             {
@@ -264,8 +268,8 @@ class IntegerEqualityMatchingRule
           break;
         default:
           Message message = WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
-                  value.stringValue(),
-                  ((char) valueBytes[i]), i);
+                  value.toString(),
+                  ((char) value.byteAt(i)), i);
           switch (DirectoryServer.getSyntaxEnforcementPolicy())
           {
             case REJECT:
@@ -285,7 +289,7 @@ class IntegerEqualityMatchingRule
     if (buffer.length() == 0)
     {
       Message message = WARN_ATTR_SYNTAX_INTEGER_EMPTY_VALUE.get(
-              value.stringValue());
+              value.toString());
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
@@ -311,7 +315,7 @@ class IntegerEqualityMatchingRule
     else if ((buffer.length() == 1) && (buffer.charAt(0) == '-'))
     {
       Message message = WARN_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE.get(
-              value.stringValue());
+              value.toString());
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
         case REJECT:
@@ -334,26 +338,7 @@ class IntegerEqualityMatchingRule
       }
     }
 
-    return new ASN1OctetString(buffer.toString());
-  }
-
-
-
-  /**
-   * Indicates whether the two provided normalized values are equal to each
-   * other.
-   *
-   * @param  value1  The normalized form of the first value to compare.
-   * @param  value2  The normalized form of the second value to compare.
-   *
-   * @return  <CODE>true</CODE> if the provided values are equal, or
-   *          <CODE>false</CODE> if not.
-   */
-  public boolean areEqual(ByteString value1, ByteString value2)
-  {
-    // Since the values are already normalized, we just need to compare the
-    // associated byte arrays.
-    return Arrays.equals(value1.value(), value2.value());
+    return ByteString.valueOf(buffer.toString());
   }
 }
 

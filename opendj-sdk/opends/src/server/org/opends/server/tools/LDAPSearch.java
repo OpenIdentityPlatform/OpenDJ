@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -32,24 +32,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.opends.server.controls.AccountUsableResponseControl;
-import org.opends.server.controls.EntryChangeNotificationControl;
-import org.opends.server.controls.MatchedValuesControl;
-import org.opends.server.controls.MatchedValuesFilter;
-import org.opends.server.controls.PagedResultsControl;
-import org.opends.server.controls.PersistentSearchChangeType;
-import org.opends.server.controls.PersistentSearchControl;
-import org.opends.server.controls.ServerSideSortRequestControl;
-import org.opends.server.controls.ServerSideSortResponseControl;
-import org.opends.server.controls.VLVRequestControl;
-import org.opends.server.controls.VLVResponseControl;
+import org.opends.server.controls.*;
 import org.opends.server.util.Base64;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.PasswordReader;
@@ -59,10 +45,7 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
-import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
@@ -84,8 +67,6 @@ import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
 
 
-
-
 /**
  * This class provides a tool that can be used to issue search requests to the
  * Directory Server.
@@ -105,7 +86,7 @@ public class LDAPSearch
 
 
   // The set of response controls for the search.
-  private ArrayList<LDAPControl> responseControls;
+  private List<Control> responseControls;
 
   // The message ID counter to use for requests.
   private AtomicInteger nextMessageID;
@@ -131,7 +112,7 @@ public class LDAPSearch
     this.nextMessageID = nextMessageID;
     this.out           = out;
     this.err           = err;
-    responseControls   = new ArrayList<LDAPControl>();
+    responseControls   = new ArrayList<Control>();
   }
 
 
@@ -165,7 +146,7 @@ public class LDAPSearch
 
     for (LDAPFilter filter: filters)
     {
-      ASN1OctetString asn1OctetStr = new ASN1OctetString(baseDN);
+      ByteString asn1OctetStr = ByteString.valueOf(baseDN);
 
       SearchRequestProtocolOp protocolOp =
         new SearchRequestProtocolOp(asn1OctetStr,
@@ -200,15 +181,15 @@ public class LDAPSearch
             switch(opType)
             {
               case OP_TYPE_SEARCH_RESULT_ENTRY:
-                for (LDAPControl c : responseControls)
+                for (Control c : responseControls)
                 {
                   if (c.getOID().equals(OID_ENTRY_CHANGE_NOTIFICATION))
                   {
                     try
                     {
                       EntryChangeNotificationControl ecn =
-                           EntryChangeNotificationControl.decodeControl(
-                                c.getControl());
+                        EntryChangeNotificationControl.DECODER
+                        .decode(c.isCritical(), ((LDAPControl) c).getValue());
 
                       out.println(INFO_LDAPSEARCH_PSEARCH_CHANGE_TYPE.get(
                               ecn.getChangeType().toString()));
@@ -226,8 +207,8 @@ public class LDAPSearch
                     try
                     {
                       AccountUsableResponseControl acrc =
-                           AccountUsableResponseControl.decodeControl(
-                                c.getControl());
+                        AccountUsableResponseControl.DECODER
+                        .decode(c.isCritical(), ((LDAPControl) c).getValue());
 
                       out.println(INFO_LDAPSEARCH_ACCTUSABLE_HEADER.get());
                       if (acrc.isUsable())
@@ -315,15 +296,15 @@ public class LDAPSearch
                 errorMessage = searchOp.getErrorMessage();
                 matchedDN = searchOp.getMatchedDN();
 
-                for (LDAPControl c : responseMessage.getControls())
+                for (Control c : responseMessage.getControls())
                 {
                   if (c.getOID().equals(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL))
                   {
                     try
                     {
                       ServerSideSortResponseControl sortResponse =
-                           ServerSideSortResponseControl.decodeControl(
-                                c.getControl());
+                        ServerSideSortResponseControl.DECODER
+                        .decode(c.isCritical(), ((LDAPControl) c).getValue());
                       int rc = sortResponse.getResultCode();
                       if (rc != LDAPResultCode.SUCCESS)
                       {
@@ -345,7 +326,8 @@ public class LDAPSearch
                     try
                     {
                       VLVResponseControl vlvResponse =
-                           VLVResponseControl.decodeControl(c.getControl());
+                          VLVResponseControl.DECODER.decode(c.isCritical(),
+                              ((LDAPControl) c).getValue());
                       int rc = vlvResponse.getVLVResultCode();
                       if (rc == LDAPResultCode.SUCCESS)
                       {
@@ -493,19 +475,19 @@ public class LDAPSearch
           buffer.append(EOL);
       } else
       {
-        for (ASN1OctetString v : a.getValues())
+        for (ByteString v : a.getValues())
         {
           String valueString;
-          if (needsBase64Encoding(v.value()))
+          if (needsBase64Encoding(v))
           {
-            valueString = Base64.encode(v.value());
+            valueString = Base64.encode(v);
             buffer.append(name);
             buffer.append(":: ");
 
             colsRemaining = wrapColumn - nameLength - 3;
           } else
           {
-            valueString = v.stringValue();
+            valueString = v.toString();
             buffer.append(name);
             buffer.append(": ");
 
@@ -557,7 +539,7 @@ public class LDAPSearch
    * @return  The set of response controls included in the last search result
    *          done message.
    */
-  public ArrayList<LDAPControl> getResponseControls()
+  public List<Control> getResponseControls()
   {
     return responseControls;
   }
@@ -1273,7 +1255,7 @@ public class LDAPSearch
     {
       for (String ctrlString : controlStr.getValues())
       {
-        LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
+        Control ctrl = LDAPToolUtils.getControl(ctrlString, err);
         if(ctrl == null)
         {
           Message message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
@@ -1293,31 +1275,17 @@ public class LDAPSearch
         err.println(argParser.getUsage());
         return 1;
       }
-      ASN1OctetString v=null;
-      ASN1OctetString effectiveRightsUserVal =
-              new ASN1OctetString(authzID);
-      ASN1Sequence sequence=null;
-      ArrayList<ASN1Element> attrElements =
-              new ArrayList<ASN1Element>();
-      for(String a : effectiveRightsAttrs.getValues())
-        attrElements.add(new ASN1OctetString(a));
-      ASN1Sequence attrSeq=new ASN1Sequence(attrElements);
-      ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-      elements.add(effectiveRightsUserVal);
-      elements.add(attrSeq);
-      sequence= new ASN1Sequence(elements);
-      LDAPControl effectiveRightsControl =
-              new LDAPControl(OID_GET_EFFECTIVE_RIGHTS, false,
-                      new ASN1OctetString(sequence.encode()));
+      Control effectiveRightsControl =
+          new GetEffectiveRightsRequestControl(false, authzID.substring(3),
+              effectiveRightsAttrs.getValues());
       searchOptions.getControls().add(effectiveRightsControl);
     }
 
     if (proxyAuthzID.isPresent())
     {
-      ASN1OctetString proxyValue = new ASN1OctetString(proxyAuthzID.getValue());
-
-      LDAPControl proxyControl =
-        new LDAPControl(OID_PROXIED_AUTH_V2, true, proxyValue);
+      Control proxyControl =
+          new ProxiedAuthV2Control(true,
+              ByteString.valueOf(proxyAuthzID.getValue()));
       searchOptions.getControls().add(proxyControl);
     }
 
@@ -1441,7 +1409,7 @@ public class LDAPSearch
 
       PersistentSearchControl psearchControl =
            new PersistentSearchControl(changeTypes, changesOnly, returnECs);
-      searchOptions.getControls().add(new LDAPControl(psearchControl));
+      searchOptions.getControls().add(psearchControl);
     }
 
     if (assertionFilter.isPresent())
@@ -1454,9 +1422,8 @@ public class LDAPSearch
 
         // FIXME -- Change this to the correct OID when the official one is
         //          assigned.
-        LDAPControl assertionControl =
-             new LDAPControl(OID_LDAP_ASSERTION, true,
-                             new ASN1OctetString(filter.encode().encode()));
+        Control assertionControl =
+            new LDAPAssertionRequestControl(true, filter);
         searchOptions.getControls().add(assertionControl);
       }
       catch (LDAPException le)
@@ -1490,7 +1457,7 @@ public class LDAPSearch
       }
 
       MatchedValuesControl mvc = new MatchedValuesControl(true, mvFilters);
-      searchOptions.getControls().add(new LDAPControl(mvc));
+      searchOptions.getControls().add(mvc);
     }
 
     if (sortOrder.isPresent())
@@ -1498,8 +1465,7 @@ public class LDAPSearch
       try
       {
         searchOptions.getControls().add(
-             new LDAPControl(new ServerSideSortRequestControl(
-                                      sortOrder.getValue())));
+            new ServerSideSortRequestControl(sortOrder.getValue()));
       }
       catch (LDAPException le)
       {
@@ -1530,11 +1496,9 @@ public class LDAPSearch
         {
           int beforeCount = Integer.parseInt(tokenizer.nextToken());
           int afterCount  = Integer.parseInt(tokenizer.nextToken());
-          ASN1OctetString assertionValue =
-               new ASN1OctetString(tokenizer.nextToken());
+          ByteString assertionValue = ByteString.valueOf(tokenizer.nextToken());
           searchOptions.getControls().add(
-               new LDAPControl(new VLVRequestControl(beforeCount, afterCount,
-                                                     assertionValue)));
+              new VLVRequestControl(beforeCount, afterCount, assertionValue));
         }
         catch (Exception e)
         {
@@ -1552,8 +1516,8 @@ public class LDAPSearch
           int offset       = Integer.parseInt(tokenizer.nextToken());
           int contentCount = Integer.parseInt(tokenizer.nextToken());
           searchOptions.getControls().add(
-               new LDAPControl(new VLVRequestControl(beforeCount, afterCount,
-                                                     offset, contentCount)));
+              new VLVRequestControl(beforeCount, afterCount, offset,
+                  contentCount));
         }
         catch (Exception e)
         {
@@ -1725,16 +1689,15 @@ public class LDAPSearch
         }
 
         int pageSize = simplePageSize.getIntValue();
-        ASN1OctetString cookieValue = new ASN1OctetString();
-        ArrayList<LDAPControl> origControls = searchOptions.getControls();
+        ByteString cookieValue = null;
+        ArrayList<Control> origControls = searchOptions.getControls();
 
         while (true)
         {
-          ArrayList<LDAPControl> newControls =
-               new ArrayList<LDAPControl>(origControls.size()+1);
+          ArrayList<Control> newControls =
+               new ArrayList<Control>(origControls.size()+1);
           newControls.addAll(origControls);
-          newControls.add(new LDAPControl(
-               new PagedResultsControl(true, pageSize, cookieValue)));
+          newControls.add(new PagedResultsControl(true, pageSize, cookieValue));
           searchOptions.setControls(newControls);
 
           ldapSearch = new LDAPSearch(nextMessageID, out, err);
@@ -1743,27 +1706,27 @@ public class LDAPSearch
                                                       searchOptions,
                                                       wrapColumn);
 
-          ArrayList<LDAPControl> responseControls =
+          List<Control> responseControls =
                ldapSearch.getResponseControls();
           boolean responseFound = false;
-          for (LDAPControl c  :responseControls)
+          for (Control c : responseControls)
           {
             if (c.getOID().equals(OID_PAGED_RESULTS_CONTROL))
             {
               try
               {
-                PagedResultsControl control =
-                     new PagedResultsControl(c.isCritical(), c.getValue());
+                PagedResultsControl control = PagedResultsControl.DECODER
+                    .decode(c.isCritical(), ((LDAPControl) c).getValue());
                 responseFound = true;
                 cookieValue = control.getCookie();
                 break;
               }
-              catch (LDAPException le)
+              catch (DirectoryException de)
               {
                 Message message =
-                    ERR_PAGED_RESULTS_CANNOT_DECODE.get(le.getMessage());
+                    ERR_PAGED_RESULTS_CANNOT_DECODE.get(de.getMessage());
                 throw new LDAPException(
-                        CLIENT_SIDE_DECODING_ERROR, message, le);
+                        CLIENT_SIDE_DECODING_ERROR, message, de);
               }
             }
           }
@@ -1773,7 +1736,7 @@ public class LDAPSearch
             Message message = ERR_PAGED_RESULTS_RESPONSE_NOT_FOUND.get();
             throw new LDAPException(CLIENT_SIDE_CONTROL_NOT_FOUND, message);
           }
-          else if (cookieValue.value().length == 0)
+          else if (cookieValue.length() == 0)
           {
             break;
           }

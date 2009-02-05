@@ -42,8 +42,6 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.admin.std.meta.NetworkGroupCfgDefn.AllowedAuthMethod;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.*;
-import org.opends.server.extensions.NullConnectionSecurityProvider;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.Attribute;
@@ -946,8 +944,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     // Use simple bind on this connection
     Entry userEntry = DirectoryServer.getEntry(
             DN.decode("cn=Directory Manager, cn=Root DNs, cn=config"));
-    ByteString password = new ASN1OctetString();
-    password.setValue("password");
+    ByteString password = ByteString.valueOf("password");
     ClientConnection connection2 = new InternalClientConnection(
           new AuthenticationInfo(userEntry, password, true));
     ng = NetworkGroup.findMatchingNetworkGroup(connection2);
@@ -998,8 +995,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     // Use simple bind on this connection
     Entry userEntry = DirectoryServer.getEntry(
             DN.decode("cn=Directory Manager, cn=Root DNs, cn=config"));
-    ByteString password = new ASN1OctetString();
-    password.setValue("password");
+    ByteString password = ByteString.valueOf("password");
     ClientConnection connection2 = new InternalClientConnection(
           new AuthenticationInfo(userEntry, password, true));
     ng = NetworkGroup.findMatchingNetworkGroup(connection2);
@@ -1049,13 +1045,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     ClientConnection connection1 = new InternalClientConnection(DN.NULL_DN);
     NetworkGroup ng = NetworkGroup.findMatchingNetworkGroup(connection1);
     assertEquals(ng, networkGroup);
-
-    // Now set the security provider to NullConnectionSecurityProvider
-    // the connection is not secured any more
-    connection1.setConnectionSecurityProvider(
-            new NullConnectionSecurityProvider());
-    ng = NetworkGroup.findMatchingNetworkGroup(connection1);
-    assertEquals(ng, defaultNg);
 
     // now change the criteria (security not mandatory)
     secCriteria = SecurityConnectionCriteria.SECURITY_NOT_REQUIRED;

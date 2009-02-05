@@ -70,7 +70,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
   {
     TestCaseUtils.restartServer();
     TestCaseUtils.initializeTestBackend(true);
-    
+
     //Add entries to two backends to test public naming context.
     addTestEntries("o=test", 't');
     TestCaseUtils.clearJEBackend(true,"userRoot", "dc=example,dc=com");
@@ -216,7 +216,8 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
     for (Attribute a : attrList){
       for (AttributeValue v : a)
-        pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
+        pluginTypes.add(PluginType.forName(
+            v.getValue().toString().toLowerCase()));
     }
     UniqueAttributePluginCfg configuration =
             AdminTestCaseUtils.getConfiguration(
@@ -334,7 +335,8 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     for (Attribute a : attrList)
     {
       for (AttributeValue v : a)
-        pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
+        pluginTypes.add(PluginType.forName(
+            v.getValue().toString().toLowerCase()));
     }
     UniqueAttributePluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(
@@ -745,7 +747,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     conn.processModify(dn, mods);
   }
 
-  
+
 
   private void
   replaceAttrInEntry(DN dn, String attrTypeString, String... attrValStrings) {
@@ -753,7 +755,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     AttributeType attrType = getAttrType(attrTypeString);
     AttributeBuilder builder = new AttributeBuilder(attrType, attrTypeString);
     for(String valString : attrValStrings) {
-      builder.add(new AttributeValue(attrType, valString));
+      builder.add(AttributeValues.create(attrType, valString));
     }
     mods.add(new Modification(ModificationType.REPLACE, builder.toAttribute()));
     InternalClientConnection conn =

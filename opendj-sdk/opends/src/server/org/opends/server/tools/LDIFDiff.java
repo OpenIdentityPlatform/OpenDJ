@@ -44,20 +44,7 @@ import java.util.TreeMap;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ExistingFileBehavior;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.NullOutputStream;
-import org.opends.server.types.ObjectClass;
+import org.opends.server.types.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.args.ArgumentException;
@@ -824,7 +811,7 @@ public class LDIFDiff
       AttributeBuilder builder = new AttributeBuilder(attrType);
       for (ObjectClass oc : sourceClasses)
       {
-        builder.add(new AttributeValue(attrType, oc.getNameOrOID()));
+        builder.add(AttributeValues.create(attrType, oc.getNameOrOID()));
       }
 
       modifications.add(new Modification(ModificationType.DELETE, builder
@@ -838,7 +825,7 @@ public class LDIFDiff
       AttributeBuilder builder = new AttributeBuilder(attrType);
       for (ObjectClass oc : targetClasses)
       {
-        builder.add(new AttributeValue(attrType, oc.getNameOrOID()));
+        builder.add(AttributeValues.create(attrType, oc.getNameOrOID()));
       }
 
       modifications.add(new Modification(ModificationType.ADD, builder

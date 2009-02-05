@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -281,6 +281,23 @@ public abstract class CommonSchemaElements {
 
     if (primaryName != null) {
       return primaryName;
+    } else {
+      // Guaranteed not to be null.
+      return oid;
+    }
+  }
+
+  /**
+   * Retrieves the normalized primary name or OID for this schema
+   * definition. If it does not have any names, then the OID will be
+   * returned.
+   *
+   * @return The name or OID for this schema definition.
+   */
+  public final String getNormalizedPrimaryNameOrOID() {
+
+    if (lowerName != null) {
+      return lowerName;
     } else {
       // Guaranteed not to be null.
       return oid;

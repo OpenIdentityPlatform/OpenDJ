@@ -38,7 +38,6 @@ import static org.testng.Assert.fail;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -88,9 +87,9 @@ public final class TestRDN extends TypesTestCase {
             .getDefaultIntegerSyntax());
     DirectoryServer.getSchema().registerAttributeType(dummy, true);
 
-    AV_DC_ORG = new AttributeValue(AT_DC, "org");
-    AV_DC_OPENDS = new AttributeValue(AT_DC, "opends");
-    AV_CN = new AttributeValue(AT_DC, "hello world");
+    AV_DC_ORG = AttributeValues.create(AT_DC, "org");
+    AV_DC_OPENDS = AttributeValues.create(AT_DC, "opends");
+    AV_CN = AttributeValues.create(AT_DC, "hello world");
   }
 
 

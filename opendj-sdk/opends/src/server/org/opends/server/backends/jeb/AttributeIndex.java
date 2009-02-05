@@ -34,7 +34,6 @@ import com.sleepycat.je.*;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -797,7 +796,7 @@ public class AttributeIndex
     {
       int len = Math.min(substrLength, remain);
       keyBytes = makeSubstringKey(value, i, len);
-      set.add(new ASN1OctetString(keyBytes));
+      set.add(ByteString.wrap(keyBytes));
     }
 
     return set;
@@ -947,7 +946,7 @@ public class AttributeIndex
     {
       // Make a key from the normalized assertion value.
       byte[] keyBytes =
-           equalityFilter.getAssertionValue().getNormalizedValue().value();
+          equalityFilter.getAssertionValue().getNormalizedValue().toByteArray();
       DatabaseEntry key = new DatabaseEntry(keyBytes);
 
       if(debugBuffer != null)
@@ -1026,7 +1025,7 @@ public class AttributeIndex
       OrderingMatchingRule orderingRule =
            filter.getAttributeType().getOrderingMatchingRule();
       byte[] lower = orderingRule.normalizeValue(
-           filter.getAssertionValue().getValue()).value();
+           filter.getAssertionValue().getValue()).toByteArray();
 
       // Set the upper bound to 0 to search all keys greater then the lower
       // bound.
@@ -1082,7 +1081,7 @@ public class AttributeIndex
       OrderingMatchingRule orderingRule =
            filter.getAttributeType().getOrderingMatchingRule();
       byte[] upper = orderingRule.normalizeValue(
-           filter.getAssertionValue().getValue()).value();
+           filter.getAssertionValue().getValue()).toByteArray();
 
       if(debugBuffer != null)
       {
@@ -1133,7 +1132,7 @@ public class AttributeIndex
         {
           ByteString normValue =
                matchRule.normalizeSubstring(filter.getSubInitialElement());
-          byte[] normBytes = normValue.value();
+          byte[] normBytes = normValue.toByteArray();
 
           EntryIDSet list = matchInitialSubstring(normBytes);
           results.retainAll(list);
@@ -1178,7 +1177,7 @@ public class AttributeIndex
       {
         // Normalize the substring according to the substring matching rule.
         ByteString normValue = matchRule.normalizeSubstring(element);
-        byte[] normBytes = normValue.value();
+        byte[] normBytes = normValue.toByteArray();
 
         // Get the candidate entry IDs from the index.
         EntryIDSet list = matchSubstring(normBytes);
@@ -1240,10 +1239,12 @@ public class AttributeIndex
            getAttributeType().getOrderingMatchingRule();
 
       // Set the lower bound for a range search.
-      byte[] lower = orderingRule.normalizeValue(lowerValue.getValue()).value();
+      byte[] lower =
+          orderingRule.normalizeValue(lowerValue.getValue()).toByteArray();
 
       // Set the upper bound for a range search.
-      byte[] upper = orderingRule.normalizeValue(upperValue.getValue()).value();
+      byte[] upper =
+          orderingRule.normalizeValue(upperValue.getValue()).toByteArray();
 
       // Read the range: lower <= keys <= upper.
       return orderingIndex.readRange(lower, upper, true, true);
@@ -1329,7 +1330,7 @@ public class AttributeIndex
       // Make a key from the normalized assertion value.
       byte[] keyBytes =
            approximateMatchingRule.normalizeValue(
-               approximateFilter.getAssertionValue().getValue()).value();
+               approximateFilter.getAssertionValue().getValue()).toByteArray();
       DatabaseEntry key = new DatabaseEntry(keyBytes);
 
       if(debugBuffer != null)

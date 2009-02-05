@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -36,13 +36,11 @@ import java.util.TreeSet;
 
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-
 
 
 /**
@@ -694,15 +692,15 @@ public final class RDN
         attrType = DirectoryServer.getDefaultAttributeType(name);
       }
 
-      AttributeValue value = new AttributeValue(new ASN1OctetString(),
-                                     new ASN1OctetString());
+      AttributeValue value = AttributeValues.create(
+          ByteString.empty(), ByteString.empty());
       return new RDN(attrType, name, value);
     }
 
 
     // Parse the value for this RDN component.  This can be done using
     // the DN code.
-    ByteString parsedValue = new ASN1OctetString();
+    ByteStringBuilder parsedValue = new ByteStringBuilder(0);
     pos = DN.parseAttributeValue(rdnString, pos, parsedValue);
 
 
@@ -722,7 +720,8 @@ public final class RDN
       attrType = DirectoryServer.getDefaultAttributeType(name);
     }
 
-    AttributeValue value = new AttributeValue(attrType, parsedValue);
+    AttributeValue value = AttributeValues.create(attrType,
+        parsedValue.toByteString());
     RDN rdn = new RDN(attrType, name, value);
 
 
@@ -857,15 +856,15 @@ public final class RDN
           attrType = DirectoryServer.getDefaultAttributeType(name);
         }
 
-        value = new AttributeValue(new ASN1OctetString(),
-                                   new ASN1OctetString());
+        value = AttributeValues.create(ByteString.empty(),
+                                   ByteString.empty());
         rdn.addValue(attrType, name, value);
         return rdn;
       }
 
 
       // Parse the value for this RDN component.
-      parsedValue = new ASN1OctetString();
+      parsedValue.clear();
       pos = DN.parseAttributeValue(rdnString, pos, parsedValue);
 
 
@@ -883,7 +882,8 @@ public final class RDN
         attrType = DirectoryServer.getDefaultAttributeType(name);
       }
 
-      value = new AttributeValue(attrType, parsedValue);
+      value = AttributeValues.create(attrType,
+          parsedValue.toByteString());
       rdn.addValue(attrType, name, value);
 
 
@@ -1006,7 +1006,7 @@ public final class RDN
       buffer.append(attributeNames[0]);
       buffer.append("=");
 
-      String s = attributeValues[0].getStringValue();
+      String s = attributeValues[0].getValue().toString();
       buffer.append(getDNValue(s));
 
       for (int i=1; i < numValues; i++)
@@ -1015,7 +1015,7 @@ public final class RDN
         buffer.append(attributeNames[i]);
         buffer.append("=");
 
-        s = attributeValues[i].getStringValue();
+        s = attributeValues[i].getValue().toString();
         buffer.append(getDNValue(s));
       }
 
@@ -1077,12 +1077,13 @@ public final class RDN
 
     if (attributeNames.length == 1)
     {
-      toLowerCase(attributeTypes[0].getNameOrOID(), buffer);
+      buffer.append(
+          attributeTypes[0].getNormalizedPrimaryNameOrOID());
       buffer.append('=');
 
       try
       {
-        String s = attributeValues[0].getNormalizedStringValue();
+        String s = attributeValues[0].getNormalizedValue().toString();
         buffer.append(getDNValue(s));
       }
       catch (Exception e)
@@ -1092,7 +1093,7 @@ public final class RDN
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        String s = attributeValues[0].getStringValue();
+        String s = attributeValues[0].getValue().toString();
         buffer.append(getDNValue(s));
       }
     }
@@ -1103,12 +1104,13 @@ public final class RDN
       for (int i=0; i < attributeNames.length; i++)
       {
         StringBuilder b2 = new StringBuilder();
-        toLowerCase(attributeTypes[i].getNameOrOID(), b2);
+        b2.append(attributeTypes[i].getNormalizedPrimaryNameOrOID());
         b2.append('=');
 
         try
         {
-          String s = attributeValues[i].getNormalizedStringValue();
+          String s =
+              attributeValues[i].getNormalizedValue().toString();
           b2.append(getDNValue(s));
         }
         catch (Exception e)
@@ -1118,7 +1120,7 @@ public final class RDN
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          String s = attributeValues[i].getStringValue();
+          String s = attributeValues[i].getValue().toString();
           b2.append(getDNValue(s));
         }
 
@@ -1167,9 +1169,9 @@ public final class RDN
         {
           try
           {
-            return attributeValues[0].getNormalizedStringValue().
+            return attributeValues[0].getNormalizedValue().toString().
                         compareTo(rdn.attributeValues[0].
-                             getNormalizedStringValue());
+                             getNormalizedValue().toString());
           }
           catch (Exception e)
           {
@@ -1178,9 +1180,9 @@ public final class RDN
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            return attributeValues[0].getStringValue().
+            return attributeValues[0].getValue().toString().
                 compareTo(rdn.attributeValues[0].
-                    getStringValue());
+                    getValue().toString());
           }
         }
         else
@@ -1206,9 +1208,10 @@ public final class RDN
       }
       else
       {
-        String name1 = toLowerCase(attributeTypes[0].getNameOrOID());
+        String name1 =
+            attributeTypes[0].getNormalizedPrimaryNameOrOID();
         String name2 =
-             toLowerCase(rdn.attributeTypes[0].getNameOrOID());
+             rdn.attributeTypes[0].getNormalizedPrimaryNameOrOID();
         return name1.compareTo(name2);
       }
     }
@@ -1225,7 +1228,7 @@ public final class RDN
     for (int i=0; i < attributeTypes.length; i++)
     {
       String lowerName =
-           toLowerCase(attributeTypes[i].getNameOrOID());
+           attributeTypes[i].getNormalizedPrimaryNameOrOID();
       typeMap1.put(lowerName, attributeTypes[i]);
       valueMap1.put(lowerName, attributeValues[i]);
     }
@@ -1237,7 +1240,7 @@ public final class RDN
     for (int i=0; i < rdn.attributeTypes.length; i++)
     {
       String lowerName =
-           toLowerCase(rdn.attributeTypes[i].getNameOrOID());
+          rdn.attributeTypes[i].getNormalizedPrimaryNameOrOID();
       typeMap2.put(lowerName, rdn.attributeTypes[i]);
       valueMap2.put(lowerName, rdn.attributeValues[i]);
     }
@@ -1262,8 +1265,8 @@ public final class RDN
           try
           {
             valueComparison =
-                 value1.getNormalizedStringValue().compareTo(
-                      value2.getNormalizedStringValue());
+                 value1.getNormalizedValue().toString().compareTo(
+                      value2.getNormalizedValue().toString());
           }
           catch (Exception e)
           {
@@ -1273,8 +1276,8 @@ public final class RDN
             }
 
             valueComparison =
-                value1.getStringValue().compareTo(
-                    value2.getStringValue());
+                value1.getValue().toString().compareTo(
+                    value2.getValue().toString());
           }
         }
         else

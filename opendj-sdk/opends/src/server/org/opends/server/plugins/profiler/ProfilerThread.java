@@ -30,15 +30,11 @@ package org.opends.server.plugins.profiler;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Long;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.asn1.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -233,7 +229,7 @@ public class ProfilerThread
   {
     // Open the capture file for writing.  We'll use an ASN.1 writer to write
     // the data.
-    ASN1Writer writer = new ASN1Writer(new FileOutputStream(filename));
+    ASN1Writer writer = ASN1.getWriter(new FileOutputStream(filename));
 
 
     try
@@ -251,19 +247,19 @@ public class ProfilerThread
 
       // Write a header to the file containing the number of samples and the
       // start and stop times.
-      ArrayList<ASN1Element> headerElements = new ArrayList<ASN1Element>(3);
-      headerElements.add(new ASN1Long(numIntervals));
-      headerElements.add(new ASN1Long(captureStartTime));
-      headerElements.add(new ASN1Long(captureStopTime));
-      writer.writeElement(new ASN1Sequence(headerElements));
+      writer.writeStartSequence();
+      writer.writeInteger(numIntervals);
+      writer.writeInteger(captureStartTime);
+      writer.writeInteger(captureStopTime);
+      writer.writeEndSequence();
 
 
       // For each unique stack captured, write it to the file followed by the
       // number of occurrences.
       for (ProfileStack s : stackTraces.keySet())
       {
-        writer.writeElement(s.encode());
-        writer.writeElement(new ASN1Long(stackTraces.get(s)));
+        s.write(writer);
+        writer.writeInteger(stackTraces.get(s));
       }
     }
     finally

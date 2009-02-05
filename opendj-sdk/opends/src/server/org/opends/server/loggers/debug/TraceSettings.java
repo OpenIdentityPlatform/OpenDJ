@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.loggers.debug;
@@ -39,10 +39,7 @@ import org.opends.server.admin.std.meta.DebugTargetCfgDefn;
 import org.opends.server.admin.std.server.DebugTargetCfg;
 
 
-import java.util.Set;
-import java.util.HashSet;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * This class encapsulates the trace settings in effect at a given traceing
@@ -377,5 +374,53 @@ public class TraceSettings
     }
 
     return settings;
+  }
+
+  /**
+   * Get the log level of this setting.
+   * @return the log level of this setting.
+   */
+  public LogLevel getLevel() {
+    return level;
+  }
+
+  /**
+   * Get the log categories for this setting.
+   * @return the log categories for this setting.
+   */
+  public Set<LogCategory> getIncludeCategories() {
+    return Collections.unmodifiableSet(includeCategories);
+  }
+
+  /**
+   * Get whether method arguments should be logged.
+   * @return if method arguments should be logged.
+   */
+  public boolean isNoArgs() {
+    return noArgs;
+  }
+
+  /**
+   * Get whether method return values should be logged.
+   * @return if method return values should be logged.
+   */
+  public boolean isNoRetVal() {
+    return noRetVal;
+  }
+
+  /**
+   * Get the level of stack frames to include.
+   * @return the level of stack frames to include.
+   */
+  public int getStackDepth() {
+    return stackDepth;
+  }
+
+  /**
+   * Get whether the cause exception is included in exception messages.
+   * @return if the cause exception is included in exception messages.
+   */
+  public boolean isIncludeCause() {
+    return includeCause;
   }
 }

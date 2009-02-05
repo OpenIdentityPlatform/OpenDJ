@@ -34,17 +34,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.types.Control;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchScope;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchResultReference;
+import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
 
@@ -85,7 +76,7 @@ public class InternalSearchOperationTestCase
          InternalClientConnection.getRootConnection();
     new InternalSearchOperation(conn, conn.nextOperationID(),
                                 conn.nextMessageID(), new ArrayList<Control>(),
-                                new ASN1OctetString(), SearchScope.BASE_OBJECT,
+                                ByteString.empty(), SearchScope.BASE_OBJECT,
                                 DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
                                 false, LDAPFilter.decode("(objectClass=*)"),
                                 new LinkedHashSet<String>(), null);
@@ -107,7 +98,7 @@ public class InternalSearchOperationTestCase
          InternalClientConnection.getRootConnection();
     new InternalSearchOperation(conn, conn.nextOperationID(),
                                 conn.nextMessageID(), new ArrayList<Control>(),
-                                new ASN1OctetString(), SearchScope.BASE_OBJECT,
+                                ByteString.empty(), SearchScope.BASE_OBJECT,
                                 DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
                                 false, LDAPFilter.decode("(objectClass=*)"),
                                 new LinkedHashSet<String>(),
@@ -180,7 +171,7 @@ public class InternalSearchOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch(new ASN1OctetString(""), SearchScope.BASE_OBJECT,
+         conn.processSearch(ByteString.valueOf(""), SearchScope.BASE_OBJECT,
                             LDAPFilter.decode("(objectClass=*)"));
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
@@ -204,7 +195,7 @@ public class InternalSearchOperationTestCase
          new InternalSearchOperation(conn, conn.nextOperationID(),
                                      conn.nextMessageID(),
                                      new ArrayList<Control>(),
-                                     new ASN1OctetString(),
+                                     ByteString.empty(),
                                      SearchScope.BASE_OBJECT,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
                                      0, false,
@@ -234,7 +225,7 @@ public class InternalSearchOperationTestCase
          new InternalSearchOperation(conn, conn.nextOperationID(),
                                      conn.nextMessageID(),
                                      new ArrayList<Control>(),
-                                     new ASN1OctetString(),
+                                     ByteString.empty(),
                                      SearchScope.BASE_OBJECT,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
                                      0, false,
@@ -265,7 +256,7 @@ public class InternalSearchOperationTestCase
          new InternalSearchOperation(conn, conn.nextOperationID(),
                                      conn.nextMessageID(),
                                      new ArrayList<Control>(),
-                                     new ASN1OctetString(),
+                                     ByteString.empty(),
                                      SearchScope.BASE_OBJECT,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
                                      0, false,
@@ -294,7 +285,7 @@ public class InternalSearchOperationTestCase
          new InternalSearchOperation(conn, conn.nextOperationID(),
                                      conn.nextMessageID(),
                                      new ArrayList<Control>(),
-                                     new ASN1OctetString(),
+                                     ByteString.empty(),
                                      SearchScope.BASE_OBJECT,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
                                      0, false,

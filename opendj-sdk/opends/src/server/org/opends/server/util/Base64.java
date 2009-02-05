@@ -46,6 +46,7 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.NullOutputStream;
+import org.opends.server.types.ByteSequence;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
@@ -123,6 +124,55 @@ public final class Base64
         break;
       case 2:
         int value = ((rawData[pos++] & 0xFF) << 8) | (rawData[pos] & 0xFF);
+        buffer.append(BASE64_ALPHABET[(value >>> 10) & 0x3F]);
+        buffer.append(BASE64_ALPHABET[(value >>>  4) & 0x3F]);
+        buffer.append(BASE64_ALPHABET[(value <<   2) & 0x3F]);
+        buffer.append("=");
+        break;
+    }
+
+    return buffer.toString();
+  }
+
+  /**
+   * Encodes the provided raw data using base64.
+   *
+   * @param  rawData  The raw data to encode.  It must not be <CODE>null</CODE>.
+   *
+   * @return  The base64-encoded representation of the provided raw data.
+   */
+  public static String encode(ByteSequence rawData)
+  {
+    ensureNotNull(rawData);
+
+
+    StringBuilder buffer = new StringBuilder(4 * rawData.length() / 3);
+
+    int pos = 0;
+    int iterations = rawData.length() / 3;
+    for (int i=0; i < iterations; i++)
+    {
+      int value = ((rawData.byteAt(pos++) & 0xFF) << 16) |
+                  ((rawData.byteAt(pos++) & 0xFF) <<  8) |
+          (rawData.byteAt(pos++) & 0xFF);
+
+      buffer.append(BASE64_ALPHABET[(value >>> 18) & 0x3F]);
+      buffer.append(BASE64_ALPHABET[(value >>> 12) & 0x3F]);
+      buffer.append(BASE64_ALPHABET[(value >>>  6) & 0x3F]);
+      buffer.append(BASE64_ALPHABET[value & 0x3F]);
+    }
+
+
+    switch (rawData.length() % 3)
+    {
+      case 1:
+        buffer.append(BASE64_ALPHABET[(rawData.byteAt(pos) >>> 2) & 0x3F]);
+        buffer.append(BASE64_ALPHABET[(rawData.byteAt(pos) <<  4) & 0x3F]);
+        buffer.append("==");
+        break;
+      case 2:
+        int value = ((rawData.byteAt(pos++) & 0xFF) << 8) |
+            (rawData.byteAt(pos) & 0xFF);
         buffer.append(BASE64_ALPHABET[(value >>> 10) & 0x3F]);
         buffer.append(BASE64_ALPHABET[(value >>>  4) & 0x3F]);
         buffer.append(BASE64_ALPHABET[(value <<   2) & 0x3F]);

@@ -29,7 +29,7 @@ package org.opends.server.schema;
 import static org.testng.Assert.*;
 
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.types.ByteString;
 import org.opends.messages.MessageBuilder;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -67,7 +67,7 @@ public abstract class AttributeSyntaxTest extends SchemaTestCase
     MessageBuilder reason = new MessageBuilder();
     // test the valueIsAcceptable method
     Boolean liveResult =
-      syntax.valueIsAcceptable(new ASN1OctetString(value), reason);
+      syntax.valueIsAcceptable(ByteString.valueOf(value), reason);
     
     if (liveResult != result)
       fail(syntax + ".valueIsAcceptable gave bad result for " + value + 

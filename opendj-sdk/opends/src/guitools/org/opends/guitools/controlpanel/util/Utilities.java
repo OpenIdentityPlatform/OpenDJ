@@ -104,13 +104,7 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.schema.SchemaConstants;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DN;
-import org.opends.server.types.OpenDsException;
-import org.opends.server.types.RDN;
-import org.opends.server.types.Schema;
-import org.opends.server.types.SchemaFileElement;
+import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
@@ -1255,7 +1249,8 @@ public class Utilities
   public static String getRDNString(String attrName, String attrValue)
   {
     AttributeType attrType = DirectoryServer.getDefaultAttributeType(attrName);
-    AttributeValue value = new AttributeValue(attrType, attrValue);
+    AttributeValue value =
+        AttributeValues.create(attrType, attrValue);
     RDN rdn = new RDN(attrType, attrName, value);
     return rdn.toString();
   }

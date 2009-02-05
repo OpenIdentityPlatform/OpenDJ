@@ -28,19 +28,20 @@ package org.opends.server.schema;
 
 
 
-import java.util.Collection;
-import java.util.Collections;
-import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
+
+import java.util.Collection;
+import java.util.Collections;
+
+import org.opends.server.api.OrderingMatchingRule;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DirectoryException;
 
 
 
@@ -81,6 +82,7 @@ class GeneralizedTimeOrderingMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getAllNames()
   {
     return Collections.singleton(getName());
@@ -94,6 +96,7 @@ class GeneralizedTimeOrderingMatchingRule
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
    * it does not have a name.
    */
+  @Override
   public String getName()
   {
     return OMR_GENERALIZED_TIME_NAME;
@@ -106,6 +109,7 @@ class GeneralizedTimeOrderingMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return OMR_GENERALIZED_TIME_OID;
@@ -119,6 +123,7 @@ class GeneralizedTimeOrderingMatchingRule
    * @return  The description for this matching rule, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     // There is no standard description for this matching rule.
@@ -133,6 +138,7 @@ class GeneralizedTimeOrderingMatchingRule
    *
    * @return  The OID of the syntax with which this matching rule is associated.
    */
+  @Override
   public String getSyntaxOID()
   {
     return SYNTAX_GENERALIZED_TIME_OID;
@@ -151,13 +157,14 @@ class GeneralizedTimeOrderingMatchingRule
    * @throws  DirectoryException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
-  public ByteString normalizeValue(ByteString value)
+  @Override
+  public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
     try
     {
       long timestamp = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(value);
-      return new ASN1OctetString(GeneralizedTimeSyntax.format(timestamp));
+      return ByteString.valueOf(GeneralizedTimeSyntax.format(timestamp));
     }
     catch (DirectoryException de)
     {
@@ -173,10 +180,10 @@ class GeneralizedTimeOrderingMatchingRule
 
         case WARN:
           logError(de.getMessageObject());
-          return new ASN1OctetString(value.value());
+          return value.toByteString();
 
         default:
-          return new ASN1OctetString(value.value());
+          return value.toByteString();
       }
     }
   }
@@ -196,7 +203,8 @@ class GeneralizedTimeOrderingMatchingRule
    *          ascending order, or zero if there is no difference between the
    *          values with regard to ordering.
    */
-  public int compareValues(ByteString value1, ByteString value2)
+  @Override
+  public int compareValues(ByteSequence value1, ByteSequence value2)
   {
     try
     {
@@ -244,7 +252,7 @@ class GeneralizedTimeOrderingMatchingRule
    */
   public int compare(byte[] b1, byte[] b2)
   {
-    return compareValues(new ASN1OctetString(b1), new ASN1OctetString(b2));
+    return compareValues(ByteString.wrap(b1), ByteString.wrap(b2));
   }
 }
 

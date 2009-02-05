@@ -27,17 +27,31 @@
 
 package org.opends.server.tools.tasks;
 
-import org.opends.messages.Message;
 import static org.opends.messages.ToolMessages.*;
-import org.opends.server.config.ConfigConstants;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.types.ResultCode.*;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.opends.messages.Message;
+import org.opends.server.backends.task.FailedDependencyAction;
+import org.opends.server.backends.task.TaskState;
+import org.opends.server.config.ConfigConstants;
 import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
+import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
+import org.opends.server.protocols.ldap.DeleteResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPConstants;
-import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPModification;
@@ -49,6 +63,8 @@ import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.Control;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
@@ -57,22 +73,7 @@ import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
-import static org.opends.server.types.ResultCode.*;
-import org.opends.server.backends.task.TaskState;
-import org.opends.server.backends.task.FailedDependencyAction;
 import org.opends.server.util.StaticUtils;
-
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
-import org.opends.server.protocols.ldap.DeleteResponseProtocolOp;
 
 /**
  * Helper class for interacting with the task backend on behalf of utilities
@@ -88,7 +89,7 @@ public class TaskClient {
   /**
    * Keeps track of message IDs.
    */
-  private AtomicInteger nextMessageID = new AtomicInteger(0);
+  private final AtomicInteger nextMessageID = new AtomicInteger(0);
 
   /**
    * Creates a new TaskClient for interacting with the task backend remotely.
@@ -113,7 +114,7 @@ public class TaskClient {
           throws LDAPException, IOException, ASN1Exception, TaskClientException
   {
     String taskID = null;
-    ASN1OctetString entryDN = null;
+    ByteString entryDN = null;
     boolean scheduleRecurring = false;
 
     LDAPReader reader = connection.getLDAPReader();
@@ -129,59 +130,58 @@ public class TaskClient {
         taskID = information.getTaskClass().getSimpleName() +
           "-" + UUID.randomUUID().toString();
       }
-      entryDN = new ASN1OctetString(ATTR_RECURRING_TASK_ID + "=" +
+      entryDN = ByteString.valueOf(ATTR_RECURRING_TASK_ID + "=" +
         taskID + "," + RECURRING_TASK_BASE_RDN + "," + DN_TASK_ROOT);
     } else {
       // Use a formatted time/date for the ID so that is remotely useful
       SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS");
       taskID = df.format(new Date());
 
-      entryDN = new ASN1OctetString(ATTR_TASK_ID + "=" + taskID + "," +
+      entryDN = ByteString.valueOf(ATTR_TASK_ID + "=" + taskID + "," +
         SCHEDULED_TASK_BASE_RDN + "," + DN_TASK_ROOT);
     }
 
-    ArrayList<LDAPControl> controls = new ArrayList<LDAPControl>();
-
+    ArrayList<Control> controls = new ArrayList<Control>();
     ArrayList<RawAttribute> attributes = new ArrayList<RawAttribute>();
 
-    ArrayList<ASN1OctetString> ocValues = new ArrayList<ASN1OctetString>(3);
-    ocValues.add(new ASN1OctetString("top"));
-    ocValues.add(new ASN1OctetString(ConfigConstants.OC_TASK));
+    ArrayList<ByteString> ocValues = new ArrayList<ByteString>(3);
+    ocValues.add(ByteString.valueOf("top"));
+    ocValues.add(ByteString.valueOf(ConfigConstants.OC_TASK));
 
     if (scheduleRecurring) {
-      ocValues.add(new ASN1OctetString(ConfigConstants.OC_RECURRING_TASK));
+      ocValues.add(ByteString.valueOf(ConfigConstants.OC_RECURRING_TASK));
     }
 
-    ocValues.add(new ASN1OctetString(information.getTaskObjectclass()));
+    ocValues.add(ByteString.valueOf(information.getTaskObjectclass()));
     attributes.add(new LDAPAttribute(ATTR_OBJECTCLASS, ocValues));
 
-    ArrayList<ASN1OctetString> taskIDValues = new ArrayList<ASN1OctetString>(1);
-    taskIDValues.add(new ASN1OctetString(taskID));
+    ArrayList<ByteString> taskIDValues = new ArrayList<ByteString>(1);
+    taskIDValues.add(ByteString.valueOf(taskID));
 
     if (scheduleRecurring) {
       attributes.add(new LDAPAttribute(ATTR_RECURRING_TASK_ID, taskIDValues));
     }
     attributes.add(new LDAPAttribute(ATTR_TASK_ID, taskIDValues));
 
-    ArrayList<ASN1OctetString> classValues = new ArrayList<ASN1OctetString>(1);
-    classValues.add(new ASN1OctetString(information.getTaskClass().getName()));
+    ArrayList<ByteString> classValues = new ArrayList<ByteString>(1);
+    classValues.add(ByteString.valueOf(information.getTaskClass().getName()));
     attributes.add(new LDAPAttribute(ATTR_TASK_CLASS, classValues));
 
     // add the start time if necessary
     Date startDate = information.getStartDateTime();
     if (startDate != null) {
       String startTimeString = StaticUtils.formatDateTimeString(startDate);
-      ArrayList<ASN1OctetString> startDateValues =
-              new ArrayList<ASN1OctetString>(1);
-      startDateValues.add(new ASN1OctetString(startTimeString));
+      ArrayList<ByteString> startDateValues =
+              new ArrayList<ByteString>(1);
+      startDateValues.add(ByteString.valueOf(startTimeString));
       attributes.add(new LDAPAttribute(ATTR_TASK_SCHEDULED_START_TIME,
               startDateValues));
     }
 
     if (scheduleRecurring) {
-      ArrayList<ASN1OctetString> recurringPatternValues =
-        new ArrayList<ASN1OctetString>(1);
-      recurringPatternValues.add(new ASN1OctetString(
+      ArrayList<ByteString> recurringPatternValues =
+        new ArrayList<ByteString>(1);
+      recurringPatternValues.add(ByteString.valueOf(
         information.getRecurringDateTime()));
       attributes.add(new LDAPAttribute(ATTR_RECURRING_TASK_SCHEDULE,
         recurringPatternValues));
@@ -190,10 +190,10 @@ public class TaskClient {
     // add dependency IDs
     List<String> dependencyIds = information.getDependencyIds();
     if (dependencyIds != null && dependencyIds.size() > 0) {
-      ArrayList<ASN1OctetString> dependencyIdValues =
-              new ArrayList<ASN1OctetString>(dependencyIds.size());
+      ArrayList<ByteString> dependencyIdValues =
+              new ArrayList<ByteString>(dependencyIds.size());
       for (String dependencyId : dependencyIds) {
-        dependencyIdValues.add(new ASN1OctetString(dependencyId));
+        dependencyIdValues.add(ByteString.valueOf(dependencyId));
       }
       attributes.add(new LDAPAttribute(ATTR_TASK_DEPENDENCY_IDS,
               dependencyIdValues));
@@ -203,9 +203,9 @@ public class TaskClient {
       if (fda == null) {
         fda = FailedDependencyAction.defaultValue();
       }
-      ArrayList<ASN1OctetString> fdaValues =
-              new ArrayList<ASN1OctetString>(1);
-      fdaValues.add(new ASN1OctetString(fda.name()));
+      ArrayList<ByteString> fdaValues =
+              new ArrayList<ByteString>(1);
+      fdaValues.add(ByteString.valueOf(fda.name()));
       attributes.add(new LDAPAttribute(ATTR_TASK_FAILED_DEPENDENCY_ACTION,
               fdaValues));
     }
@@ -214,10 +214,10 @@ public class TaskClient {
     List<String> compNotifEmailAddresss =
             information.getNotifyUponCompletionEmailAddresses();
     if (compNotifEmailAddresss != null && compNotifEmailAddresss.size() > 0) {
-      ArrayList<ASN1OctetString> compNotifEmailAddrValues =
-              new ArrayList<ASN1OctetString>(compNotifEmailAddresss.size());
+      ArrayList<ByteString> compNotifEmailAddrValues =
+              new ArrayList<ByteString>(compNotifEmailAddresss.size());
       for (String emailAddr : compNotifEmailAddresss) {
-        compNotifEmailAddrValues.add(new ASN1OctetString(emailAddr));
+        compNotifEmailAddrValues.add(ByteString.valueOf(emailAddr));
       }
       attributes.add(new LDAPAttribute(ATTR_TASK_NOTIFY_ON_COMPLETION,
               compNotifEmailAddrValues));
@@ -227,10 +227,10 @@ public class TaskClient {
     List<String> errNotifEmailAddresss =
             information.getNotifyUponErrorEmailAddresses();
     if (errNotifEmailAddresss != null && errNotifEmailAddresss.size() > 0) {
-      ArrayList<ASN1OctetString> errNotifEmailAddrValues =
-              new ArrayList<ASN1OctetString>(errNotifEmailAddresss.size());
+      ArrayList<ByteString> errNotifEmailAddrValues =
+              new ArrayList<ByteString>(errNotifEmailAddresss.size());
       for (String emailAddr : errNotifEmailAddresss) {
-        errNotifEmailAddrValues.add(new ASN1OctetString(emailAddr));
+        errNotifEmailAddrValues.add(ByteString.valueOf(emailAddr));
       }
       attributes.add(new LDAPAttribute(ATTR_TASK_NOTIFY_ON_ERROR,
               errNotifEmailAddrValues));
@@ -289,7 +289,7 @@ public class TaskClient {
     List<Entry> entries = new ArrayList<Entry>();
 
     writeSearch(new SearchRequestProtocolOp(
-            new ASN1OctetString(ConfigConstants.DN_TASK_ROOT),
+        ByteString.valueOf(ConfigConstants.DN_TASK_ROOT),
             SearchScope.WHOLE_SUBTREE,
             DereferencePolicy.NEVER_DEREF_ALIASES,
             Integer.MAX_VALUE,
@@ -341,7 +341,7 @@ public class TaskClient {
     Entry entry = null;
 
     writeSearch(new SearchRequestProtocolOp(
-            new ASN1OctetString(ConfigConstants.DN_TASK_ROOT),
+        ByteString.valueOf(ConfigConstants.DN_TASK_ROOT),
             SearchScope.WHOLE_SUBTREE,
             DereferencePolicy.NEVER_DEREF_ALIASES,
             Integer.MAX_VALUE,
@@ -395,18 +395,18 @@ public class TaskClient {
     if (state != null) {
       if (!TaskState.isDone(state)) {
 
-        ASN1OctetString dn = new ASN1OctetString(entry.getDN().toString());
+        ByteString dn = ByteString.valueOf(entry.getDN().toString());
 
         ArrayList<RawModification> mods = new ArrayList<RawModification>();
 
-        ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
+        ArrayList<ByteString> values = new ArrayList<ByteString>();
         String newState;
         if (TaskState.isPending(state)) {
           newState = TaskState.CANCELED_BEFORE_STARTING.name();
         } else {
           newState = TaskState.STOPPED_BY_ADMINISTRATOR.name();
         }
-        values.add(new ASN1OctetString(newState));
+        values.add(ByteString.valueOf(newState));
         LDAPAttribute attr = new LDAPAttribute(ATTR_TASK_STATE, values);
         mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
@@ -443,7 +443,7 @@ public class TaskClient {
         }
       } else if (TaskState.isRecurring(state)) {
 
-        ASN1OctetString dn = new ASN1OctetString(entry.getDN().toString());
+        ByteString dn = ByteString.valueOf(entry.getDN().toString());
         DeleteRequestProtocolOp deleteRequest =
           new DeleteRequestProtocolOp(dn);
 
@@ -498,7 +498,7 @@ public class TaskClient {
     LDAPMessage requestMessage = new LDAPMessage(
             nextMessageID.getAndIncrement(),
             searchRequest,
-            new ArrayList<LDAPControl>());
+            new ArrayList<Control>());
 
     // Send the request to the server and read the response.
     writer.writeMessage(requestMessage);

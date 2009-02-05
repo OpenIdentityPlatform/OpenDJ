@@ -22,15 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
+import org.opends.server.protocols.asn1.ASN1Writer;
 
-
-import org.opends.server.protocols.asn1.ASN1OctetString;
-
-
+import java.io.IOException;
 
 
 /**
@@ -42,11 +40,8 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
      mayInstantiate=true,
      mayExtend=true,
      mayInvoke=true)
-public class Control
+public abstract class Control
 {
-  // The value for this control.
-  private ASN1OctetString value;
-
   // The criticality for this control.
   private boolean isCritical;
 
@@ -63,30 +58,10 @@ public class Control
    *                     considered critical in processing the
    *                     request.
    */
-  public Control(String oid, boolean isCritical)
+  protected Control(String oid, boolean isCritical)
   {
     this.oid        = oid;
     this.isCritical = isCritical;
-    this.value      = null;
-  }
-
-
-
-  /**
-   * Creates a new control with the specified information.
-   *
-   * @param  oid         The OID for this control.
-   * @param  isCritical  Indicates whether this control should be
-   *                     considered critical in processing the
-   *                     request.
-   * @param  value       The value for this control.
-   */
-  public Control(String oid, boolean isCritical,
-                 ASN1OctetString value)
-  {
-    this.oid        = oid;
-    this.isCritical = isCritical;
-    this.value      = value;
   }
 
 
@@ -100,19 +75,6 @@ public class Control
   {
     return oid;
   }
-
-
-
-  /**
-   * Specifies the OID for this control.
-   *
-   * @param  oid  The OID for this control.
-   */
-  public final void setOID(String oid)
-  {
-    this.oid = oid;
-  }
-
 
 
   /**
@@ -130,69 +92,47 @@ public class Control
 
 
   /**
-   * Specifies whether this control should be considered critical in
-   * processing the request.
-   *
-   * @param  isCritical  Specifies whether this control should be
-   *                     considered critical in processing the
-   *                     request.
-   */
-  public final void setCritical(boolean isCritical)
-  {
-    this.isCritical = isCritical;
-  }
-
-
-
-  /**
-   * Retrieves the value for this control.
-   *
-   * @return  The value for this control, or <CODE>null</CODE> if
-   *          there is no value.
-   */
-  public final ASN1OctetString getValue()
-  {
-    return value;
-  }
-
-
-
-  /**
-   * Indicates whether this control has a value.
-   *
-   * @return  <CODE>true</CODE> if this control has a value, or
-   *          <CODE>false</CODE> if it does not.
-   */
-  public final boolean hasValue()
-  {
-    return (value != null);
-  }
-
-
-
-  /**
-   * Specifies the value for this control.
-   *
-   * @param  value  The value for this control.
-   */
-  public final void setValue(ASN1OctetString value)
-  {
-    this.value = value;
-  }
-
-
-
-  /**
    * Retrieves a string representation of this control.
    *
    * @return  A string representation of this control.
    */
-  public String toString()
+  @Override
+  public final String toString()
   {
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
   }
+
+  /**
+   * Writes this control to an ASN.1 writer.
+   *
+   * @param writer The ASN.1 writer to use.
+   * @throws IOException If a problem occurs while writing to the
+   *                     stream.
+   */
+  public final void write(ASN1Writer writer) throws IOException
+  {
+    writer.writeStartSequence();
+    writer.writeOctetString(getOID());
+    if(isCritical())
+    {
+      writer.writeBoolean(isCritical());
+    }
+    writeValue(writer);
+    writer.writeEndSequence();
+  }
+
+  /**
+   * Writes this control's value to an ASN.1 writer. The value
+   * (if any) must be written as an ASN1OctetString.
+   *
+   * @param writer The ASN.1 writer to use.
+   * @throws IOException If a problem occurs while writing to the
+   *                     stream.
+   */
+  protected abstract void writeValue(ASN1Writer writer)
+      throws IOException;
 
 
 
@@ -209,13 +149,6 @@ public class Control
     buffer.append(oid);
     buffer.append(",isCritical=");
     buffer.append(isCritical);
-
-    if (value != null)
-    {
-      buffer.append(",value=");
-      value.toString(buffer);
-    }
-
     buffer.append(")");
   }
 }

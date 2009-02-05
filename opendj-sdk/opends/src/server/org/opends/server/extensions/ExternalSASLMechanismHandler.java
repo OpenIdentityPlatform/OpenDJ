@@ -29,6 +29,7 @@ import org.opends.messages.Message;
 
 
 
+import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,27 +38,16 @@ import org.opends.server.admin.std.server.ExternalSASLMechanismHandlerCfg;
 import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
 import org.opends.server.api.CertificateMapper;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.protocols.ldap.LDAPClientConnection;
+import org.opends.server.types.*;
 import static org.opends.messages.ExtensionMessages.*;
 
 import static org.opends.server.util.ServerConstants.*;
@@ -178,51 +168,24 @@ public class ExternalSASLMechanismHandler
     // Get the client connection used for the bind request, and get the
     // security manager for that connection.  If either are null, then fail.
     ClientConnection clientConnection = bindOperation.getClientConnection();
-    if (clientConnection == null)
-    {
+    if (clientConnection == null) {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
       Message message = ERR_SASLEXTERNAL_NO_CLIENT_CONNECTION.get();
       bindOperation.setAuthFailureReason(message);
       return;
     }
 
-    ConnectionSecurityProvider securityProvider =
-         clientConnection.getConnectionSecurityProvider();
-    if (securityProvider == null)
-    {
-      bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-      Message message = ERR_SASLEXTERNAL_NO_SECURITY_PROVIDER.get();
-      bindOperation.setAuthFailureReason(message);
-      return;
+    if(!(clientConnection instanceof LDAPClientConnection)) {
+        //TODO SASLPhase2 need better message
+        bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+        Message message = ERR_SASLEXTERNAL_NO_SECURITY_PROVIDER.get();
+        bindOperation.setAuthFailureReason(message);
+        return;
     }
-
-
-    // Make sure that the client connection is using the TLS security provider.
-    // If not, then fail.
-    if (! (securityProvider instanceof TLSConnectionSecurityProvider))
-    {
+    LDAPClientConnection lc = (LDAPClientConnection) clientConnection;
+    Certificate[] clientCertChain = lc.getClientCertificateChain();
+    if ((clientCertChain == null) || (clientCertChain.length == 0)) {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-      Message message = ERR_SASLEXTERNAL_CLIENT_NOT_USING_TLS_PROVIDER.get(
-              securityProvider.getSecurityMechanismName());
-      bindOperation.setAuthFailureReason(message);
-      return;
-    }
-
-    TLSConnectionSecurityProvider tlsSecurityProvider =
-         (TLSConnectionSecurityProvider) securityProvider;
-
-
-    // Get the certificate chain that the client presented to the server, if
-    // possible.  If there isn't one, then fail.
-    java.security.cert.Certificate[] clientCertChain =
-         tlsSecurityProvider.getClientCertificateChain();
-    if ((clientCertChain == null) || (clientCertChain.length == 0))
-    {
-      bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
       Message message = ERR_SASLEXTERNAL_NO_CLIENT_CERT.get();
       bindOperation.setAuthFailureReason(message);
       return;
@@ -295,8 +258,8 @@ public class ExternalSASLMechanismHandler
           {
             byte[] certBytes = clientCertChain[0].getEncoded();
             AttributeValue v =
-                 new AttributeValue(certificateAttributeType,
-                                    new ASN1OctetString(certBytes));
+                AttributeValues.create(
+                    certificateAttributeType, ByteString.wrap(certBytes));
 
             boolean found = false;
             for (Attribute a : certAttrList)
@@ -343,8 +306,8 @@ public class ExternalSASLMechanismHandler
           {
             byte[] certBytes = clientCertChain[0].getEncoded();
             AttributeValue v =
-                 new AttributeValue(certificateAttributeType,
-                                    new ASN1OctetString(certBytes));
+                AttributeValues.create(
+                    certificateAttributeType, ByteString.wrap(certBytes));
 
             boolean found = false;
             for (Attribute a : certAttrList)

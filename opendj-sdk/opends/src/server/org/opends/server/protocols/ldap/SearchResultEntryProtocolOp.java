@@ -28,13 +28,11 @@ package org.opends.server.protocols.ldap;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -42,17 +40,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
+import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.ObjectClass;
@@ -69,11 +63,6 @@ import org.opends.server.util.Base64;
 public class SearchResultEntryProtocolOp
        extends ProtocolOp
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
   // The set of attributes for this search entry.
   private LinkedList<LDAPAttribute> attributes;
 
@@ -244,19 +233,6 @@ public class SearchResultEntryProtocolOp
   }
 
 
-
-  /**
-   * Specifies the DN for this search result entry.
-   *
-   * @param  dn  The DN for this search result entry.
-   */
-  public void setDN(DN dn)
-  {
-    this.dn = dn;
-  }
-
-
-
   /**
    * Retrieves the set of attributes for this search result entry.  The returned
    * list may be altered by the caller.
@@ -297,118 +273,25 @@ public class SearchResultEntryProtocolOp
 
 
   /**
-   * Encodes this protocol op to an ASN.1 element suitable for including in an
-   * LDAP message.
+   * Writes this protocol op to an ASN.1 output stream.
    *
-   * @return  The ASN.1 element containing the encoded protocol op.
+   * @param stream The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
   @Override
-  public ASN1Element encode()
+  public void write(ASN1Writer stream) throws IOException
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1OctetString(dn.toString()));
+    stream.writeStartSequence(OP_TYPE_SEARCH_RESULT_ENTRY);
+    stream.writeOctetString(dn.toString());
 
-
-    ArrayList<ASN1Element> attrElements =
-         new ArrayList<ASN1Element>(attributes.size());
-    for (LDAPAttribute attr : attributes)
+    stream.writeStartSequence();
+    for(LDAPAttribute attr : attributes)
     {
-      attrElements.add(attr.encode());
+      attr.write(stream);
     }
-    elements.add(new ASN1Sequence(attrElements));
+    stream.writeEndSequence();
 
-
-    return new ASN1Sequence(OP_TYPE_SEARCH_RESULT_ENTRY, elements);
-  }
-
-
-
-  /**
-   * Decodes the provided ASN.1 element as an LDAP search result entry protocol
-   * op.
-   *
-   * @param  element  The ASN.1 element to be decoded.
-   *
-   * @return  The decoded search result entry protocol op.
-   *
-   * @throws  LDAPException  If a problem occurs while decoding the provided
-   *                         ASN.1 element as an LDAP search result entry
-   *                         protocol op.
-   */
-  public static SearchResultEntryProtocolOp decodeSearchEntry(ASN1Element
-                                                                   element)
-         throws LDAPException
-  {
-    ArrayList<ASN1Element> elements;
-    try
-    {
-      elements = element.decodeAsSequence().elements();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_SEARCH_ENTRY_DECODE_SEQUENCE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    int numElements = elements.size();
-    if (numElements != 2)
-    {
-      Message message =
-          ERR_LDAP_SEARCH_ENTRY_DECODE_INVALID_ELEMENT_COUNT.get(numElements);
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-
-    DN dn;
-    try
-    {
-      dn = DN.decode(elements.get(0).decodeAsOctetString().stringValue());
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_LDAP_SEARCH_ENTRY_DECODE_DN.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-
-    LinkedList<LDAPAttribute> attributes;
-    try
-    {
-      ArrayList<ASN1Element> attrElements =
-           elements.get(1).decodeAsSequence().elements();
-      attributes = new LinkedList<LDAPAttribute>();
-      for (ASN1Element e : attrElements)
-      {
-        attributes.add(LDAPAttribute.decode(e));
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_SEARCH_ENTRY_DECODE_ATTRS.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    return new SearchResultEntryProtocolOp(dn, attributes);
+    stream.writeEndSequence();
   }
 
 
@@ -541,12 +424,12 @@ public class SearchResultEntryProtocolOp
       String name       = a.getAttributeType();
       int    nameLength = name.length();
 
-      for (ASN1OctetString v : a.getValues())
+      for (ByteString v : a.getValues())
       {
         String valueString;
-        if (needsBase64Encoding(v.value()))
+        if (needsBase64Encoding(v))
         {
-          valueString = Base64.encode(v.value());
+          valueString = Base64.encode(v);
           buffer.append(name);
           buffer.append(":: ");
 
@@ -554,7 +437,7 @@ public class SearchResultEntryProtocolOp
         }
         else
         {
-          valueString = v.stringValue();
+          valueString = v.toString();
           buffer.append(name);
           buffer.append(": ");
 
@@ -627,7 +510,7 @@ public class SearchResultEntryProtocolOp
 
       if (attrType.isObjectClassType())
       {
-        for (ASN1OctetString os : a.getValues())
+        for (ByteString os : a.getValues())
         {
           String ocName = os.toString();
           ObjectClass oc =

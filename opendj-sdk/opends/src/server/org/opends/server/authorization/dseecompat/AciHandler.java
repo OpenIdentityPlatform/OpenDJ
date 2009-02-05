@@ -47,9 +47,10 @@ import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.*;
-import org.opends.server.controls.GetEffectiveRights;
+import org.opends.server.controls.GetEffectiveRightsRequestControl;
 import org.opends.server.backends.jeb.EntryContainer;
 
 
@@ -568,7 +569,8 @@ public class AciHandler
            (isAttributeDN(container.getCurrentAttributeType())))  {
           String DNString=null;
           try {
-           DNString  =  container.getCurrentAttributeValue().getStringValue();
+            DNString =
+                container.getCurrentAttributeValue().getValue().toString();
             DN tmpDN = DN.decode(DNString);
             //Have a valid DN, compare to clientDN to see if the ACI_SELF
             //right should be set.
@@ -911,7 +913,8 @@ public class AciHandler
            DirectoryServer.getAttributeType(baseName)) == null)
            attributeType = DirectoryServer.getDefaultAttributeType(baseName);
        AttributeValue attributeValue =
-           new AttributeValue(attributeType, operation.getAssertionValue());
+           AttributeValues.create(attributeType,
+               operation.getAssertionValue());
        operationContainer.setCurrentAttributeType(attributeType);
        operationContainer.setCurrentAttributeValue(attributeValue);
        return isAllowed(operationContainer, operation);
@@ -1186,12 +1189,20 @@ public class AciHandler
       op.setAttachment(ORIG_AUTH_ENTRY, op.getAuthorizationEntry());
     else if(control.getOID().equals(OID_GET_EFFECTIVE_RIGHTS)) {
       try {
-        GetEffectiveRights getEffectiveRightsControl =
-                GetEffectiveRights.decodeControl(control);
+        GetEffectiveRightsRequestControl getEffectiveRightsControl;
+        if(control instanceof LDAPControl)
+        {
+          getEffectiveRightsControl = GetEffectiveRightsRequestControl.DECODER
+              .decode(control.isCritical(), ((LDAPControl) control).getValue());
+        }
+        else
+        {
+          getEffectiveRightsControl = (GetEffectiveRightsRequestControl)control;
+        }
         op.setAttachment(OID_GET_EFFECTIVE_RIGHTS, getEffectiveRightsControl);
-      } catch  (LDAPException le)  {
+      } catch  (DirectoryException de)  {
         Message message =
-            WARN_ACI_SYNTAX_DECODE_EFFECTIVERIGHTS_FAIL.get(le.getMessage());
+            WARN_ACI_SYNTAX_DECODE_EFFECTIVERIGHTS_FAIL.get(de.getMessage());
         logError(message);
         ret=false;
       }
@@ -1231,7 +1242,7 @@ public class AciHandler
 
       // Load the values, a bind rule might want to evaluate them.
       for (String URLString : URLStrings) {
-        builder.add(new AttributeValue(refAttrType, URLString));
+        builder.add(AttributeValues.create(refAttrType, URLString));
       }
 
       e.addAttribute(builder.toAttribute(),null);

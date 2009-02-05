@@ -22,17 +22,21 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools;
 
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Sequence;
+import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.types.LDAPException;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.RecordingInputStream;
+import org.opends.server.types.ByteString;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.util.ServerConstants;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -43,23 +47,14 @@ import java.net.Socket;
  */
 public class LDAPReader
 {
-  private ASN1Reader asn1Reader;
-  private VerboseTracer tracer;
-
   /**
-   * Creates a new LDAP reader that will read messages from the provided
-   * socket.
-   *
-   * @param  socket  The socket from which to read the LDAP messages.
-   *
-   * @throws  IOException  If a problem occurs while attempting to obtain an
-   *                       ASN.1 reader for the socket.
+   * The tracer object for the debug logger.
    */
-  public LDAPReader(Socket socket)
-       throws IOException
-  {
-    this(socket, null);
-  }
+  private static final DebugTracer TRACER = getTracer();
+
+  private Socket socket;
+  private ASN1Reader asn1Reader;
+  private RecordingInputStream debugInputStream;
 
   /**
    * Creates a new LDAP reader that will read messages from the provided
@@ -67,16 +62,15 @@ public class LDAPReader
    *
    * @param  socket   The socket from which to read the LDAP messages.
    *
-   * @param  tracer   Specifies a tracer to be used for tracing messages read.
-   *
    * @throws  IOException  If a problem occurs while attempting to obtain an
    *                       input stream for the socket.
    */
-  public LDAPReader(Socket socket, VerboseTracer tracer)
+  public LDAPReader(Socket socket)
        throws IOException
   {
-    this.asn1Reader = new ASN1Reader(socket);
-    this.tracer = tracer;
+    this.socket = socket;
+    this.debugInputStream = new RecordingInputStream(socket.getInputStream());
+    this.asn1Reader = ASN1.getReader(debugInputStream);
   }
 
   /**
@@ -97,17 +91,31 @@ public class LDAPReader
   public LDAPMessage readMessage()
        throws IOException, ASN1Exception, LDAPException
   {
-    ASN1Element element = asn1Reader.readElement();
-    if (element == null)
+    debugInputStream.setRecordingEnabled(debugEnabled());
+
+    if(!asn1Reader.hasNextElement())
     {
+      // EOF was reached...
       return null;
     }
 
-    ASN1Sequence sequence = ASN1Sequence.decodeAsSequence(element);
-    LDAPMessage message = LDAPMessage.decode(sequence);
-    if (tracer != null)
+    LDAPMessage message =
+        org.opends.server.protocols.ldap.LDAPReader.readMessage(asn1Reader);
+
+    if(debugInputStream.isRecordingEnabled())
     {
-      tracer.traceIncomingMessage(message, sequence);
+      ByteString bytesRead = debugInputStream.getRecordedBytes();
+      debugInputStream.clearRecordedBytes();
+
+      StringBuilder builder = new StringBuilder();
+      builder.append("bytes read from wire(len=");
+      builder.append(bytesRead.length());
+      builder.append("):");
+      builder.append(ServerConstants.EOL);
+      bytesRead.toHexPlusAscii(builder, 4);
+
+      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, builder.toString());
+      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, message.toString());
     }
 
     return message;
@@ -118,18 +126,31 @@ public class LDAPReader
    */
   public void close()
   {
-    asn1Reader.close();
+    try
+    {
+      asn1Reader.close();
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
+
+    if (socket != null)
+    {
+      try
+      {
+        socket.close();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
   }
-
-  /**
-   * Get the underlying ASN1 reader.
-   *
-   * @return  The underlying ASN1 reader.
-   */
-  public ASN1Reader getASN1Reader()
-  {
-    return asn1Reader;
-  }
-
-
 }

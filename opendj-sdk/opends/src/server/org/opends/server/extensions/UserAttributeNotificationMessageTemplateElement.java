@@ -80,7 +80,7 @@ public class UserAttributeNotificationMessageTemplateElement
       {
         for (AttributeValue v : a)
         {
-          buffer.append(v.getStringValue());
+          buffer.append(v.getValue().toString());
           return;
         }
       }

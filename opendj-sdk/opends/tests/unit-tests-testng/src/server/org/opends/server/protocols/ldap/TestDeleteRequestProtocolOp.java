@@ -29,10 +29,13 @@ package org.opends.server.protocols.ldap;
 import static org.testng.Assert.*;
 
 import org.testng.annotations.*;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.types.LDAPException;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringBuilder;
 import static org.opends.server.util.ServerConstants.EOL;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
 
 /**
  * This class defines a set of tests for the
@@ -55,14 +58,14 @@ public class TestDeleteRequestProtocolOp extends LdapTestCase
   /**
    * The DN for delete requests in this test case.
    */
-  private static final ASN1OctetString dn =
-      new ASN1OctetString("dc=example,dc=com");
+  private static final ByteString dn =
+      ByteString.valueOf("dc=example,dc=com");
 
   /**
    * The alternative DN for delete requests in this test case.
    */
-  private static final ASN1OctetString dnAlt =
-      new ASN1OctetString("dc=sun,dc=com");
+  private static final ByteString dnAlt =
+      ByteString.valueOf("dc=sun,dc=com");
 
   /**
    * Test the constructors to make sure the right objects are constructed.
@@ -77,22 +80,7 @@ public class TestDeleteRequestProtocolOp extends LdapTestCase
     assertEquals(deleteRequest.getDN(), dn);
   }
 
-
   /**
-   * Test to make sure that setter methods work.
-   *
-   * @throws Exception If the test failed unexpectedly.
-   */
-  @Test
-  public void testSetMethods() throws Exception
-  {
-    DeleteRequestProtocolOp deleteRequest = new DeleteRequestProtocolOp(dn);
-
-    deleteRequest.setDN(dnAlt);;
-    assertEquals(deleteRequest.getDN(), dnAlt);
-  }
-
-    /**
    * Test to make sure the class processes the right LDAP op type.
    *
    * @throws Exception If the test failed unexpectedly.
@@ -124,16 +112,18 @@ public class TestDeleteRequestProtocolOp extends LdapTestCase
   @Test
   public void testEncodeDecode() throws Exception
   {
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
     DeleteRequestProtocolOp deleteEncoded;
     DeleteRequestProtocolOp deleteDecoded;
-    ASN1Element element;
 
     deleteEncoded = new DeleteRequestProtocolOp(dn);
-    element = deleteEncoded.encode();
-    deleteDecoded = (DeleteRequestProtocolOp)DeleteRequestProtocolOp.decode(
-        element);
+    deleteEncoded.write(writer);
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    assertEquals(reader.peekType(), OP_TYPE_DELETE_REQUEST);
 
-    assertEquals(element.getType(), OP_TYPE_DELETE_REQUEST);
+    deleteDecoded = (DeleteRequestProtocolOp)LDAPReader.readProtocolOp(reader);
+
     assertEquals(deleteDecoded.getDN(), deleteEncoded.getDN());
   }
 
@@ -145,14 +135,15 @@ public class TestDeleteRequestProtocolOp extends LdapTestCase
   @Test(expectedExceptions = Exception.class)
   public void testNullEncodeDecode() throws Exception
   {
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
     DeleteRequestProtocolOp deleteEncoded;
     DeleteRequestProtocolOp deleteDecoded;
-    ASN1Element element;
 
     deleteEncoded = new DeleteRequestProtocolOp(null);
-    element = deleteEncoded.encode();
-    deleteDecoded = (DeleteRequestProtocolOp)DeleteRequestProtocolOp.decode(
-        element);
+    deleteEncoded.write(writer);
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    deleteDecoded = (DeleteRequestProtocolOp)LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -163,7 +154,7 @@ public class TestDeleteRequestProtocolOp extends LdapTestCase
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeNullElement() throws Exception
   {
-    DeleteRequestProtocolOp.decode(null);
+    LDAPReader.readProtocolOp(null);
   }
 
   /**

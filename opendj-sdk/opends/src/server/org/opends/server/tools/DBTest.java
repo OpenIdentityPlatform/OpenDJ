@@ -45,13 +45,12 @@ import static org.opends.server.tools.ToolConstants.OPTION_LONG_HELP;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
+import org.opends.server.core.CoreConfigManager;
 import org.opends.server.config.ConfigException;
 import org.opends.server.api.Backend;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.backends.jeb.*;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Element;
 
 import java.io.*;
 import java.util.*;
@@ -439,6 +438,64 @@ public class DBTest
       {
         Message message = ERR_CANNOT_LOAD_SCHEMA.get(
             getExceptionMessage(e));
+        printMessage(message);
+        return 1;
+      }
+
+
+
+      // Initialize the Directory Server core configuration.
+      try
+      {
+        CoreConfigManager coreConfigManager = new CoreConfigManager();
+        coreConfigManager.initializeCoreConfig();
+      }
+      catch (ConfigException ce)
+      {
+        Message message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
+                ce.getMessage());
+        printMessage(message);
+        return 1;
+      }
+      catch (InitializationException ie)
+      {
+        Message message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
+                ie.getMessage());
+        printMessage(message);
+        return 1;
+      }
+      catch (Exception e)
+      {
+        Message message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(
+                getExceptionMessage(e));
+        printMessage(message);
+        return 1;
+      }
+
+
+      // Initialize the Directory Server crypto manager.
+      try
+      {
+        directoryServer.initializeCryptoManager();
+      }
+      catch (ConfigException ce)
+      {
+        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+                ce.getMessage());
+        printMessage(message);
+        return 1;
+      }
+      catch (InitializationException ie)
+      {
+        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+                ie.getMessage());
+        printMessage(message);
+        return 1;
+      }
+      catch (Exception e)
+      {
+        Message message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
+                getExceptionMessage(e));
         printMessage(message);
         return 1;
       }
@@ -1162,17 +1219,15 @@ public class DBTest
               else if(databaseContainer instanceof VLVIndex)
               {
                 // Encode the value as a size/value pair
-                byte[] vBytes =
-                    new ASN1OctetString(minKeyValue.getValue()).value();
-                byte[] vLength = ASN1Element.encodeLength(vBytes.length);
-                start = new byte[vBytes.length + vLength.length];
-                System.arraycopy(vLength, 0, start, 0, vLength.length);
-                System.arraycopy(vBytes, 0, start, vLength.length,
-                                 vBytes.length);
+                byte[] vBytes = StaticUtils.getBytes(minKeyValue.getValue());
+                ByteStringBuilder builder = new ByteStringBuilder();
+                builder.appendBERLength(vBytes.length);
+                builder.append(vBytes);
+                start = builder.toByteArray();
               }
               else
               {
-                start = new ASN1OctetString(minKeyValue.getValue()).value();
+                start = StaticUtils.getBytes(minKeyValue.getValue());
               }
             }
           }
@@ -1213,17 +1268,15 @@ public class DBTest
               else if(databaseContainer instanceof VLVIndex)
               {
                 // Encode the value as a size/value pair
-                byte[] vBytes =
-                    new ASN1OctetString(maxKeyValue.getValue()).value();
-                byte[] vLength = ASN1Element.encodeLength(vBytes.length);
-                end = new byte[vBytes.length + vLength.length];
-                System.arraycopy(vLength, 0, end, 0, vLength.length);
-                System.arraycopy(vBytes, 0, end, vLength.length,
-                                 vBytes.length);
+                byte[] vBytes = StaticUtils.getBytes(maxKeyValue.getValue());
+                ByteStringBuilder builder = new ByteStringBuilder();
+                builder.appendBERLength(vBytes.length);
+                builder.append(vBytes);
+                start = builder.toByteArray();
               }
               else
               {
-                end = new ASN1OctetString(maxKeyValue.getValue()).value();
+                end = StaticUtils.getBytes(maxKeyValue.getValue());
               }
             }
           }
@@ -1311,8 +1364,8 @@ public class DBTest
             {
               try
               {
-                formatedKey = DN.decode(new ASN1OctetString(
-                    key.getData())).toNormalizedString();
+                formatedKey = DN.decode(ByteString.wrap(key.getData())).
+                    toNormalizedString();
                 keyLabel = INFO_LABEL_DBTEST_ENTRY_DN.get();
               }
               catch(Exception e)
@@ -1333,8 +1386,9 @@ public class DBTest
               try
               {
                 formatedData = System.getProperty("line.separator") +
-                    JebFormat.entryFromDatabase(data.getData(),
-                         ec.getRootContainer().getCompressedSchema()).
+                    ID2Entry.entryFromDatabase(
+                        ByteString.wrap(data.getData()),
+                        ec.getRootContainer().getCompressedSchema()).
                               toLDIFString();
                 dataLabel = INFO_LABEL_DBTEST_ENTRY.get();
               }
@@ -1349,7 +1403,7 @@ public class DBTest
             {
               try
               {
-                formatedKey = DN.decode(new ASN1OctetString(
+                formatedKey = DN.decode(ByteString.wrap(
                     key.getData())).toNormalizedString();
                 keyLabel = INFO_LABEL_DBTEST_ENTRY_DN.get();
               }
@@ -1359,12 +1413,12 @@ public class DBTest
                     ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e));
                 printMessage(message);
               }
-              formatedData = new ASN1OctetString(key.getData()).stringValue();
+              formatedData = new String(key.getData());
               dataLabel = INFO_LABEL_DBTEST_URI.get();
             }
             else if(databaseContainer instanceof Index)
             {
-              formatedKey = new ASN1OctetString(key.getData()).stringValue();
+              formatedKey = new String(key.getData());
               keyLabel = INFO_LABEL_DBTEST_INDEX_VALUE.get();
 
               EntryIDSet idSet = new EntryIDSet(key.getData(),
@@ -1434,8 +1488,7 @@ public class DBTest
                   }
                   else
                   {
-                    builder.append(
-                        new ASN1OctetString(valueBytes).stringValue());
+                    builder.append(new String(valueBytes));
                   }
                   builder.append(" ");
                   pos += valueLength;
@@ -1469,21 +1522,20 @@ public class DBTest
                   for(int j = 0; j < sortKeys.length; j++)
                   {
                     SortKey sortKey = index.sortOrder.getSortKeys()[j];
-                    byte[] value = svs.getValue(i * sortKeys.length + j);
+                    ByteString value = svs.getValue(i * sortKeys.length + j);
                     builder.append(sortKey.getAttributeType().getNameOrOID());
                     builder.append(": ");
                     if(value == null)
                     {
                       builder.append("NULL");
                     }
-                    else if(value.length == 0)
+                    else if(value.length() == 0)
                     {
                       builder.append("SIZE-EXCEEDED");
                     }
                     else
                     {
-                      builder.append(
-                          new ASN1OctetString(value).stringValue());
+                      builder.append(value.toString());
                     }
                     builder.append(" ");
                   }

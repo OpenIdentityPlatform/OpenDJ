@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.zip.DataFormatException;
 
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.types.ByteString;
 
 
 /**
@@ -230,15 +230,15 @@ public class ServerState implements Iterable<Short>
    * @return an ArrayList of ANS1OctetString encoding the ChangeNumbers
    * contained in the ServerState.
    */
-  public ArrayList<ASN1OctetString> toASN1ArrayList()
+  public ArrayList<ByteString> toASN1ArrayList()
   {
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>(0);
+    ArrayList<ByteString> values = new ArrayList<ByteString>(0);
 
     synchronized (this)
     {
       for (Short id : list.keySet())
       {
-        ASN1OctetString value = new ASN1OctetString(list.get(id).toString());
+        ByteString value = ByteString.valueOf(list.get(id).toString());
         values.add(value);
       }
     }

@@ -37,10 +37,8 @@ import org.opends.messages.Message;
 import org.opends.server.admin.std.meta.NetworkGroupCfgDefn.AllowedAuthMethod;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
-import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.CancelRequest;
@@ -96,8 +94,7 @@ public final class MockClientConnection extends ClientConnection
       break;
     case SIMPLE:
       Entry simpleUser = DirectoryServer.getEntry(bindDN);
-      ByteString password = new ASN1OctetString();
-      password.setValue("password");
+      ByteString password = ByteString.valueOf("password");
       this.authInfo =
           new AuthenticationInfo(simpleUser, password, true);
       break;
@@ -190,15 +187,6 @@ public final class MockClientConnection extends ClientConnection
 
 
   @Override
-  public ConnectionSecurityProvider getConnectionSecurityProvider()
-  {
-    // Stub.
-    return null;
-  }
-
-
-
-  @Override
   public InetAddress getLocalAddress()
   {
     // Stub.
@@ -263,15 +251,6 @@ public final class MockClientConnection extends ClientConnection
     {
       throw new RuntimeException(e);
     }
-  }
-
-
-
-  @Override
-  public String getSecurityMechanism()
-  {
-    // Stub.
-    return null;
   }
 
 
@@ -358,17 +337,20 @@ public final class MockClientConnection extends ClientConnection
 
 
   @Override
-  public void setConnectionSecurityProvider(
-      ConnectionSecurityProvider securityProvider)
+  public void toString(StringBuilder buffer)
   {
     // Stub.
   }
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public void toString(StringBuilder buffer)
+  public int getSSF()
   {
     // Stub.
+    return 0;
   }
 }

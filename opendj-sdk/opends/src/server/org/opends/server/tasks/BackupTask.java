@@ -438,7 +438,7 @@ public class BackupTask extends Task
             Message message = ERR_BACKUPDB_CANNOT_BACKUP_IN_DIRECTORY.get(
                 b.getBackendID(),backupLocation.getPath(),
                 backupDir.getConfigEntryDN().getRDN().
-                getAttributeValue(0).getStringValue());
+                getAttributeValue(0).toString());
             logError(message);
             return false ;
           }
@@ -609,6 +609,7 @@ public class BackupTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   protected TaskState runTask()
   {
     if (!argumentsAreValid())

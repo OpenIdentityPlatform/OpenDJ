@@ -31,16 +31,20 @@ package org.opends.server.plugins;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.io.IOException;
 
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.*;
 import org.opends.server.config.ConfigException;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.types.Control;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.CanceledOperationException;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.*;
+import org.opends.server.controls.ControlDecoder;
+import org.opends.server.loggers.ErrorLogger;
 import org.opends.messages.Message;
 
 
@@ -70,6 +74,78 @@ public class DisconnectClientPlugin
        "1.3.6.1.4.1.26027.1.999.2";
 
 
+  /**
+   * The control used by this plugin.
+   */
+  public static class DisconnectClientControl extends Control
+  {
+    /**
+     * ControlDecoder implentation to decode this control from a ByteString.
+     */
+    private final static class Decoder
+        implements ControlDecoder<DisconnectClientControl>
+    {
+      /**
+       * {@inheritDoc}
+       */
+      public DisconnectClientControl decode(boolean isCritical,
+                                            ByteString value)
+          throws DirectoryException
+      {
+        return new DisconnectClientControl(isCritical, value.toString());
+      }
+
+      public String getOID()
+      {
+        return OID_DISCONNECT_REQUEST;
+      }
+
+    }
+
+    /**
+     * The Control Decoder that can be used to decode this control.
+     */
+    public static final ControlDecoder<DisconnectClientControl> DECODER =
+      new Decoder();
+
+
+    private String section;
+
+    /**
+     * Constructs a new change number control.
+     *
+     * @param  isCritical   Indicates whether support for this control should be
+     *                      considered a critical part of the server processing.
+     * @param section  The section to use for the disconnect.
+     */
+    public DisconnectClientControl(boolean isCritical, String section)
+    {
+      super(OID_DISCONNECT_REQUEST, isCritical);
+      this.section = section;
+    }
+
+    /**
+     * Writes this control's value to an ASN.1 writer. The value (if any)
+     * must be written as an ASN1OctetString.
+     *
+     * @param writer The ASN.1 writer to use.
+     * @throws java.io.IOException If a problem occurs while writing to the stream.
+     */
+    @Override
+    protected void writeValue(ASN1Writer writer) throws IOException {
+      writer.writeOctetString(section);
+    }
+
+    /**
+     * Retrieves the delay duration.
+     *
+     * @return The delay duration.
+     */
+    public String getSection()
+    {
+      return section;
+    }
+  }
 
   /**
    * Creates a new instance of this Directory Server plugin.  Every
@@ -667,23 +743,24 @@ public class DisconnectClientPlugin
   private boolean disconnectInternal(PluginOperation operation,
                                      String section)
   {
-    List<Control> requestControls = operation.getRequestControls();
-    if (requestControls != null)
+    try
     {
-      for (Control c : requestControls)
-      {
-        if (c.getOID().equals(OID_DISCONNECT_REQUEST))
-        {
-          if (c.getValue().stringValue().equalsIgnoreCase(section))
-          {
-            operation.disconnectClient(DisconnectReason.CLOSED_BY_PLUGIN, true,
-                 Message.raw("Closed by disconnect client plugin (section " +
-                         section + ")"));
+      DisconnectClientControl control =
+          operation.getRequestControl(DisconnectClientControl.DECODER);
 
-            return true;
-          }
-        }
+      if (control != null && control.getSection().equalsIgnoreCase(section))
+      {
+        operation.disconnectClient(DisconnectReason.CLOSED_BY_PLUGIN, true,
+            Message.raw("Closed by disconnect client plugin (section " +
+                section + ")"));
+
+        return true;
       }
+    }
+    catch (Exception e)
+    {
+      ErrorLogger.logError(Message.raw("Unable to decode the disconnect client control:  " +
+              e));
     }
 
 
@@ -702,8 +779,7 @@ public class DisconnectClientPlugin
    */
   public static Control createDisconnectControl(String section)
   {
-    return new Control(OID_DISCONNECT_REQUEST, false,
-                       new ASN1OctetString(section));
+    return new DisconnectClientControl(false, section);
   }
 
 
@@ -720,44 +796,7 @@ public class DisconnectClientPlugin
   {
     ArrayList<Control> controlList = new ArrayList<Control>(1);
 
-    controlList.add(new Control(OID_DISCONNECT_REQUEST, false,
-                                new ASN1OctetString(section)));
-
-    return controlList;
-  }
-
-
-
-  /**
-   * Creates a disconnect request LDAP control with the specified section.
-   *
-   * @param  section  The section to use for the disconnect.
-   *
-   * @return  The appropriate disconnect request LDAP control.
-   */
-  public static LDAPControl createDisconnectLDAPControl(String section)
-  {
-    return new LDAPControl(OID_DISCONNECT_REQUEST, false,
-                           new ASN1OctetString(section));
-  }
-
-
-
-  /**
-   * Retrieves a list containing a disconnect request LDAP control with the
-   * specified section.
-   *
-   * @param  section  The section to use for the disconnect.
-   *
-   * @return  A list containing the appropriate disconnect request LDAP control.
-   */
-  public static ArrayList<LDAPControl> createDisconnectLDAPControlList(
-                                            String section)
-  {
-    ArrayList<LDAPControl> controlList = new ArrayList<LDAPControl>(1);
-
-    controlList.add(new LDAPControl(OID_DISCONNECT_REQUEST, false,
-                                    new ASN1OctetString(section)));
+    controlList.add(new DisconnectClientControl(false, section));
 
     return controlList;
   }

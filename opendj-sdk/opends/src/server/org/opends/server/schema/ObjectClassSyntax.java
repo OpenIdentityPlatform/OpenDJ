@@ -44,18 +44,10 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.ObjectClassType;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.Schema;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 import static org.opends.messages.SchemaMessages.*;
 import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -213,7 +205,7 @@ public class ObjectClassSyntax
   /**
    * {@inheritDoc}
    */
-  public boolean valueIsAcceptable(ByteString value,
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // We'll use the decodeObjectClass method to determine if the value is
@@ -260,13 +252,13 @@ public class ObjectClassSyntax
    * @throws  DirectoryException  If the provided value cannot be decoded as an
    *                              objectclass definition.
    */
-  public static ObjectClass decodeObjectClass(ByteString value, Schema schema,
+  public static ObjectClass decodeObjectClass(ByteSequence value, Schema schema,
                                               boolean allowUnknownElements)
          throws DirectoryException
   {
     // Get string representations of the provided value using the provided form
     // and with all lowercase characters.
-    String valueStr = value.stringValue();
+    String valueStr = value.toString();
     String lowerStr = toLowerCase(valueStr);
 
 
@@ -836,7 +828,7 @@ public class ObjectClassSyntax
 
 
 
-    return new ObjectClass(value.stringValue(), primaryName, names, oid,
+    return new ObjectClass(value.toString(), primaryName, names, oid,
                            description, superiorClass, requiredAttributes,
                            optionalAttributes, objectClassType, isObsolete,
                            extraProperties);

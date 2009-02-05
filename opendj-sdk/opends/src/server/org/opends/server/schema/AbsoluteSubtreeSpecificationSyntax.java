@@ -26,7 +26,6 @@
  */
 package org.opends.server.schema;
 
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -44,10 +43,7 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AbsoluteSubtreeSpecification;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -83,7 +79,7 @@ public final class AbsoluteSubtreeSpecificationSyntax
      */
     public AbsoluteSubtreeSpecification decode(AttributeValue value)
         throws DirectoryException {
-      return AbsoluteSubtreeSpecification.valueOf(value.getStringValue());
+      return AbsoluteSubtreeSpecification.valueOf(value.getValue().toString());
     }
   };
 
@@ -224,12 +220,12 @@ public final class AbsoluteSubtreeSpecificationSyntax
    * @return <CODE>true</CODE> if the provided value is acceptable for
    *         use with this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteString value,
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // Use the subtree specification code to make this determination.
     try {
-      AbsoluteSubtreeSpecification.valueOf(value.stringValue());
+      AbsoluteSubtreeSpecification.valueOf(value.toString());
 
       return true;
     } catch (DirectoryException e) {

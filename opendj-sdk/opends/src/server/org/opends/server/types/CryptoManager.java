@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -348,13 +348,19 @@ import java.util.SortedSet;
    * destination array should be considered invalid.
    *
    * @param  src  The array containing the raw data to compress.
+   * @param  srcOff The start offset of the source data.
+   * @param  srcLen The maximum number of source data bytes to
+   *                compress.
    * @param  dst  The array into which the compressed data should be
    *              written.
+   * @param  dstOff The start offset of the compressed data.
+   * @param  dstLen The maximum number of bytes of compressed data.
    *
    * @return  The number of bytes of compressed data, or -1 if it was
    *          not possible to actually compress the data.
    */
-  int compress(byte[] src, byte[] dst);
+  int compress(byte[] src, int srcOff, int srcLen,
+               byte[] dst, int dstOff, int dstLen);
 
   /**
    * Attempts to uncompress the data in the provided source array into
@@ -368,9 +374,14 @@ import java.util.SortedSet;
    * if a negative value is returned, then the data in the destination
    * array should be considered invalid.
    *
-   * @param  src  The array containing the compressed data.
-   * @param  dst  The array into which the uncompressed data should be
+   * @param  src  The array containing the raw data to compress.
+   * @param  srcOff The start offset of the source data.
+   * @param  srcLen The maximum number of source data bytes to
+   *                compress.
+   * @param  dst  The array into which the compressed data should be
    *              written.
+   * @param  dstOff The start offset of the compressed data.
+   * @param  dstLen The maximum number of bytes of compressed data.
    *
    * @return  A positive value containing the number of bytes of
    *          uncompressed data written into the destination buffer,
@@ -381,7 +392,8 @@ import java.util.SortedSet;
    * @throws java.util.zip.DataFormatException  If a problem occurs
    * while attempting to uncompress the data.
    */
-  int uncompress(byte[] src, byte[] dst)
+  int uncompress(byte[] src, int srcOff, int srcLen,
+                 byte[] dst, int dstOff, int dstLen)
          throws DataFormatException;
 
   /**

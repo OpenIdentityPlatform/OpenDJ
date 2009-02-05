@@ -33,14 +33,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.RDN;
+import org.opends.server.types.*;
 
 import static org.opends.server.util.StaticUtils.*;
 
@@ -168,7 +161,8 @@ public class TemplateEntry
           return null;
         }
 
-        AttributeValue value = new AttributeValue(t, v.getValue().toString());
+        AttributeValue value =
+            AttributeValues.create(t, v.getValue().toString());
         rdn = new RDN(t, value);
       }
       else
@@ -185,7 +179,7 @@ public class TemplateEntry
           }
 
           names[i]  = t.getPrimaryName();
-          values[i] = new AttributeValue(t, v.getValue().toString());
+          values[i] = AttributeValues.create(t, v.getValue().toString());
         }
 
         rdn = new RDN(rdnAttrs, names, values);
@@ -312,7 +306,7 @@ public class TemplateEntry
         AttributeBuilder builder = new AttributeBuilder(t, t.getNameOrOID());
         for (TemplateValue v : valueList)
         {
-          builder.add(new AttributeValue(t, v.getValue().toString()));
+          builder.add(AttributeValues.create(t, v.getValue().toString()));
         }
 
         ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
@@ -324,7 +318,7 @@ public class TemplateEntry
         AttributeBuilder builder = new AttributeBuilder(t, t.getNameOrOID());
         for (TemplateValue v : valueList)
         {
-          builder.add(new AttributeValue(t, v.getValue().toString()));
+          builder.add(AttributeValues.create(t, v.getValue().toString()));
         }
 
         ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);

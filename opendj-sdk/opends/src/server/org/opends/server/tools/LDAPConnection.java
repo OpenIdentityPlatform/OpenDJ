@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -35,11 +35,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.opends.server.controls.PasswordExpiringControl;
-import org.opends.server.controls.PasswordPolicyErrorType;
-import org.opends.server.controls.PasswordPolicyResponseControl;
-import org.opends.server.controls.PasswordPolicyWarningType;
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.controls.*;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -47,10 +43,14 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.loggers.debug.DebugLogger;
+import org.opends.server.loggers.debug.TraceSettings;
 import static org.opends.messages.CoreMessages.
                    INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR;
 import static org.opends.messages.ToolMessages.*;
@@ -155,18 +155,24 @@ public class LDAPConnection
     Socket socket;
     Socket startTLSSocket = null;
     int resultCode;
-    ArrayList<LDAPControl> requestControls = new ArrayList<LDAPControl> ();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl> ();
+    ArrayList<Control> requestControls = new ArrayList<Control> ();
+    ArrayList<Control> responseControls = new ArrayList<Control> ();
 
-    VerboseTracer tracer =
-         new VerboseTracer(connectionOptions.isVerbose(), err);
+    if(connectionOptions.isVerbose())
+    {
+      ConsoleDebugLogPublisher publisher = new ConsoleDebugLogPublisher(err);
+      publisher.addTraceSettings(null,
+          new TraceSettings(DebugLogLevel.VERBOSE));
+      DebugLogger.addDebugLogPublisher(publisher);
+    }
+
     if(connectionOptions.useStartTLS())
     {
       try
       {
         startTLSSocket = new Socket(hostName, portNumber);
-        ldapWriter = new LDAPWriter(startTLSSocket, tracer);
-        ldapReader = new LDAPReader(startTLSSocket, tracer);
+        ldapWriter = new LDAPWriter(startTLSSocket);
+        ldapReader = new LDAPReader(startTLSSocket);
       } catch(UnknownHostException uhe)
       {
         Message msg = INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get();
@@ -235,8 +241,8 @@ public class LDAPConnection
       {
         socket = new Socket(hostName, portNumber);
       }
-      ldapWriter = new LDAPWriter(socket, tracer);
-      ldapReader = new LDAPReader(socket, tracer);
+      ldapWriter = new LDAPWriter(socket);
+      ldapReader = new LDAPReader(socket);
     } catch(UnknownHostException uhe)
     {
       Message msg = INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get();
@@ -285,34 +291,43 @@ public class LDAPConnection
          ldapReader, ldapWriter, hostName, nextMessageID);
     try
     {
-      ASN1OctetString bindPW;
-      if (bindPassword == null)
+      ByteString bindDNBytes;
+      if(bindDN == null)
       {
-        bindPW = null;
+        bindDNBytes = ByteString.empty();
       }
       else
       {
-        bindPW = new ASN1OctetString(bindPassword);
+        bindDNBytes = ByteString.valueOf(bindDN);
+      }
+
+      ByteString bindPW;
+      if (bindPassword == null)
+      {
+        bindPW =  ByteString.empty();
+      }
+      else
+      {
+        bindPW = ByteString.valueOf(bindPassword);
       }
 
       String result = null;
       if (connectionOptions.useSASLExternal())
       {
-        result = handler.doSASLExternal(new ASN1OctetString(bindDN),
+        result = handler.doSASLExternal(bindDNBytes,
                                         connectionOptions.getSASLProperties(),
                                         requestControls, responseControls);
       }
       else if (connectionOptions.getSASLMechanism() != null)
       {
-            result = handler.doSASLBind(new ASN1OctetString(bindDN), bindPW,
+            result = handler.doSASLBind(bindDNBytes, bindPW,
             connectionOptions.getSASLMechanism(),
             connectionOptions.getSASLProperties(),
             requestControls, responseControls);
       }
       else if(bindDN != null)
       {
-              result = handler.doSimpleBind(versionNumber,
-                  new ASN1OctetString(bindDN), bindPW,
+              result = handler.doSimpleBind(versionNumber, bindDNBytes, bindPW,
               requestControls, responseControls);
       }
       if(result != null)
@@ -320,18 +335,27 @@ public class LDAPConnection
         out.println(result);
       }
 
-      for (LDAPControl c : responseControls)
+      for (Control c : responseControls)
       {
         if (c.getOID().equals(OID_AUTHZID_RESPONSE))
         {
-          ASN1OctetString controlValue = c.getValue();
-          if (controlValue != null)
+          AuthorizationIdentityResponseControl control;
+          if (c instanceof LDAPControl)
           {
-
-            Message message =
-                    INFO_BIND_AUTHZID_RETURNED.get(controlValue.stringValue());
-            out.println(message);
+            // We have to decode this control.
+            control = AuthorizationIdentityResponseControl.DECODER.decode(c
+                .isCritical(), ((LDAPControl) c).getValue());
           }
+          else
+          {
+            // Control should already have been decoded.
+            control = (AuthorizationIdentityResponseControl)c;
+          }
+
+          Message message =
+              INFO_BIND_AUTHZID_RETURNED.get(
+                  control.getAuthorizationID());
+          out.println(message);
         }
         else if (c.getOID().equals(OID_NS_PASSWORD_EXPIRED))
         {
@@ -341,12 +365,20 @@ public class LDAPConnection
         }
         else if (c.getOID().equals(OID_NS_PASSWORD_EXPIRING))
         {
-          PasswordExpiringControl expiringControl =
-               PasswordExpiringControl.decodeControl(new Control(c.getOID(),
-                                                                 c.isCritical(),
-                                                                 c.getValue()));
+          PasswordExpiringControl control;
+          if(c instanceof LDAPControl)
+          {
+            // We have to decode this control.
+            control = PasswordExpiringControl.DECODER.decode(c.isCritical(),
+                ((LDAPControl) c).getValue());
+          }
+          else
+          {
+            // Control should already have been decoded.
+            control = (PasswordExpiringControl)c;
+          }
           Message timeString =
-               secondsToTimeString(expiringControl.getSecondsUntilExpiration());
+               secondsToTimeString(control.getSecondsUntilExpiration());
 
 
           Message message = INFO_BIND_PASSWORD_EXPIRING.get(timeString);
@@ -354,9 +386,17 @@ public class LDAPConnection
         }
         else if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
         {
-          PasswordPolicyResponseControl pwPolicyControl =
-               PasswordPolicyResponseControl.decodeControl(new Control(
-                    c.getOID(), c.isCritical(), c.getValue()));
+          PasswordPolicyResponseControl pwPolicyControl;
+          if(c instanceof LDAPControl)
+          {
+            pwPolicyControl = PasswordPolicyResponseControl.DECODER.decode(c
+                .isCritical(), ((LDAPControl) c).getValue());
+          }
+          else
+          {
+            pwPolicyControl = (PasswordPolicyResponseControl)c;
+          }
+
 
           PasswordPolicyErrorType errorType = pwPolicyControl.getErrorType();
           if (errorType != null)
@@ -413,13 +453,17 @@ public class LDAPConnection
       }
       throw new LDAPConnectionException(ce.getMessageObject(), ce.getExitCode(),
                                         null, ce);
-    } catch (LDAPException le)
+    } catch (LDAPException le) {
+        throw new LDAPConnectionException(le.getMessageObject(),
+                le.getResultCode(),
+                le.getErrorMessage(),
+                le.getMatchedDN(),
+                le.getCause());
+    } catch (DirectoryException de)
     {
-      throw new LDAPConnectionException(le.getMessageObject(),
-                                        le.getResultCode(),
-                                        le.getErrorMessage(),
-                                        le.getMatchedDN(),
-                                        le.getCause());
+      throw new LDAPConnectionException(de.getMessageObject(), de
+          .getResultCode().getIntValue(), null, de.getMatchedDN(), de
+          .getCause());
     } catch(Exception ex)
     {
       if (debugEnabled())

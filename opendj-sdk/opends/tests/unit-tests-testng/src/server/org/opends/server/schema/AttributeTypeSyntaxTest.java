@@ -29,12 +29,10 @@ package org.opends.server.schema;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringFactory;
 import org.opends.messages.MessageBuilder;
 
 import static org.testng.Assert.*;
@@ -132,7 +130,7 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
 
 
     // Create an attribute type definition and verify that it is acceptable.
-    ByteString definition = ByteStringFactory.create(
+    ByteString definition = ByteString.valueOf(
       "( testxapproxtype-oid NAME 'testXApproxType' " +
            "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 " +
            "X-APPROX 'equalLengthApproximateMatch' )");

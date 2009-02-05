@@ -37,15 +37,11 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 import static org.opends.messages.SchemaMessages.*;
 import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -85,7 +81,7 @@ public class DistinguishedNameSyntax
      */
     public DN decode(AttributeValue value) throws DirectoryException
     {
-      return DN.decode(value.getStringValue());
+      return DN.decode(value.getValue().toString());
     }
   };
 
@@ -239,13 +235,13 @@ public class DistinguishedNameSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteString value,
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // Use the DN code to make this determination.
     try
     {
-      DN.decode(value.stringValue());
+      DN.decode(value.toString());
 
       return true;
     }
@@ -267,7 +263,7 @@ public class DistinguishedNameSyntax
       }
 
 
-      invalidReason.append(ERR_ATTR_SYNTAX_DN_INVALID.get(value.stringValue(),
+      invalidReason.append(ERR_ATTR_SYNTAX_DN_INVALID.get(value.toString(),
                                       String.valueOf(e)));
 
       return false;

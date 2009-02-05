@@ -31,7 +31,6 @@ package org.opends.server.core;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -42,21 +41,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.opends.messages.Message;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Integer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Sequence;
+import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.ByteArray;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ObjectClass;
+import org.opends.server.types.*;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -87,21 +75,22 @@ public final class DefaultCompressedSchema
   private AtomicInteger ocCounter;
 
   // The map between encoded representations and attribute types.
-  private ConcurrentHashMap<ByteArray,AttributeType> atDecodeMap;
+  private ConcurrentHashMap<ByteSequence,AttributeType> atDecodeMap;
 
   // The map between encoded representations and attribute options.
-  private ConcurrentHashMap<ByteArray,Set<String>> aoDecodeMap;
+  private ConcurrentHashMap<ByteSequence,Set<String>> aoDecodeMap;
 
   // The map between encoded representations and object class sets.
-  private ConcurrentHashMap<ByteArray,Map<ObjectClass,String>> ocDecodeMap;
+  private ConcurrentHashMap<ByteSequence,Map<ObjectClass,String>> ocDecodeMap;
 
   // The map between attribute descriptions and their encoded
   // representations.
-  private ConcurrentHashMap<AttributeType,
-               ConcurrentHashMap<Set<String>,ByteArray>> adEncodeMap;
+  private final ConcurrentHashMap<AttributeType,
+                ConcurrentHashMap<Set<String>, ByteSequence>> adEncodeMap;
 
   // The map between object class sets and encoded representations.
-  private ConcurrentHashMap<Map<ObjectClass,String>,ByteArray> ocEncodeMap;
+  private final ConcurrentHashMap<Map<ObjectClass,String>,
+      ByteSequence> ocEncodeMap;
 
 
 
@@ -110,12 +99,14 @@ public final class DefaultCompressedSchema
    */
   public DefaultCompressedSchema()
   {
-    atDecodeMap = new ConcurrentHashMap<ByteArray, AttributeType>();
-    aoDecodeMap = new ConcurrentHashMap<ByteArray, Set<String>>();
-    ocDecodeMap = new ConcurrentHashMap<ByteArray, Map<ObjectClass, String>>();
+    atDecodeMap = new ConcurrentHashMap<ByteSequence, AttributeType>();
+    aoDecodeMap = new ConcurrentHashMap<ByteSequence, Set<String>>();
+    ocDecodeMap =
+        new ConcurrentHashMap<ByteSequence, Map<ObjectClass, String>>();
     adEncodeMap = new ConcurrentHashMap
-      <AttributeType, ConcurrentHashMap<Set<String>, ByteArray>>();
-    ocEncodeMap = new ConcurrentHashMap<Map<ObjectClass, String>, ByteArray>();
+      <AttributeType, ConcurrentHashMap<Set<String>, ByteSequence>>();
+    ocEncodeMap = new ConcurrentHashMap<Map<ObjectClass, String>,
+        ByteSequence>();
 
     adCounter = new AtomicInteger(1);
     ocCounter = new AtomicInteger(1);
@@ -130,7 +121,7 @@ public final class DefaultCompressedSchema
    */
   private void load()
   {
-    ASN1Reader reader = null;
+    FileInputStream inputStream = null;
 
     try
     {
@@ -144,41 +135,40 @@ public final class DefaultCompressedSchema
       {
         return;
       }
-      FileInputStream inputStream = new FileInputStream(path);
-      reader = new ASN1Reader(inputStream);
+      inputStream = new FileInputStream(path);
+      ASN1Reader reader = ASN1.getReader(inputStream);
 
 
       // The first element in the file should be a sequence of object class
       // sets.  Each object class set will itself be a sequence of octet
       // strings, where the first one is the token and the remaining elements
       // are the names of the associated object classes.
-      ASN1Sequence ocSequence = reader.readElement().decodeAsSequence();
-      for (ASN1Element element : ocSequence.elements())
+      reader.readStartSequence();
+      while(reader.hasNextElement())
       {
-        ArrayList<ASN1Element> elements = element.decodeAsSequence().elements();
-        ASN1OctetString os = elements.get(0).decodeAsOctetString();
-        ByteArray token = new ByteArray(os.value());
+        reader.readStartSequence();
+        ByteSequence token = reader.readOctetString();
 
         LinkedHashMap<ObjectClass,String> ocMap =
-             new LinkedHashMap<ObjectClass,String>(elements.size()-1);
-        for (int i=1; i < elements.size(); i++)
+             new LinkedHashMap<ObjectClass,String>();
+        while(reader.hasNextElement())
         {
-          os = elements.get(i).decodeAsOctetString();
-          String ocName = os.stringValue();
+          String ocName = reader.readOctetStringAsString();
           String lowerName = toLowerCase(ocName);
           ObjectClass oc = DirectoryServer.getObjectClass(lowerName, true);
           ocMap.put(oc, ocName);
         }
+        reader.readEndSequence();
 
         ocEncodeMap.put(ocMap, token);
         ocDecodeMap.put(token, ocMap);
       }
+      reader.readEndSequence();
 
 
       // The second element in the file should be an integer element that holds
       // the value to use to initialize the object class counter.
-      ASN1Element counterElement = reader.readElement();
-      ocCounter.set(counterElement.decodeAsInteger().intValue());
+      ocCounter.set((int)reader.readInteger());
 
 
       // The third element in the file should be a sequence of attribute
@@ -186,35 +176,32 @@ public final class DefaultCompressedSchema
       // itself be a sequence of octet strings, where the first one is the
       // token, the second is the attribute name, and all remaining elements are
       // the attribute options.
-      ASN1Sequence adSequence = reader.readElement().decodeAsSequence();
-      for (ASN1Element element : adSequence.elements())
+      reader.readStartSequence();
+      while(reader.hasNextElement())
       {
-        ArrayList<ASN1Element> elements = element.decodeAsSequence().elements();
-        ASN1OctetString os = elements. get(0).decodeAsOctetString();
-        ByteArray token = new ByteArray(os.value());
-
-        os = elements.get(1).decodeAsOctetString();
-        String attrName = os.stringValue();
+        reader.readStartSequence();
+        ByteSequence token = reader.readOctetString();
+        String attrName = reader.readOctetStringAsString();
         String lowerName = toLowerCase(attrName);
         AttributeType attrType =
-             DirectoryServer.getAttributeType(lowerName, true);
+            DirectoryServer.getAttributeType(lowerName, true);
 
         LinkedHashSet<String> options =
-             new LinkedHashSet<String>(elements.size()-2);
-        for (int i=2; i < elements.size(); i++)
+            new LinkedHashSet<String>();
+        while(reader.hasNextElement())
         {
-          os = elements.get(i).decodeAsOctetString();
-          options.add(os.stringValue());
+          options.add(reader.readOctetStringAsString());
         }
+        reader.readEndSequence();
 
         atDecodeMap.put(token, attrType);
         aoDecodeMap.put(token, options);
 
-        ConcurrentHashMap<Set<String>, ByteArray> map = adEncodeMap
+        ConcurrentHashMap<Set<String>, ByteSequence> map = adEncodeMap
             .get(attrType);
         if (map == null)
         {
-          map = new ConcurrentHashMap<Set<String>, ByteArray>(1);
+          map = new ConcurrentHashMap<Set<String>, ByteSequence>(1);
           map.put(options, token);
           adEncodeMap.put(attrType, map);
         }
@@ -223,12 +210,12 @@ public final class DefaultCompressedSchema
           map.put(options, token);
         }
       }
+      reader.readEndSequence();
 
 
       // The fourth element in the file should be an integer element that holds
       // the value to use to initialize the attribute description counter.
-      counterElement = reader.readElement();
-      adCounter.set(counterElement.decodeAsInteger().intValue());
+      adCounter.set((int)reader.readInteger());
     }
     catch (Exception e)
     {
@@ -244,9 +231,9 @@ public final class DefaultCompressedSchema
     {
       try
       {
-        if (reader != null)
+        if (inputStream != null)
         {
-          reader.close();
+          inputStream.close();
         }
       }
       catch (Exception e)
@@ -270,7 +257,7 @@ public final class DefaultCompressedSchema
   private void save()
           throws DirectoryException
   {
-    ASN1Writer writer = null;
+    FileOutputStream outputStream = null;
     try
     {
       // Determine the location of the "live" compressed schema data file, and
@@ -281,39 +268,34 @@ public final class DefaultCompressedSchema
                     COMPRESSED_SCHEMA_FILE_NAME;
       String tempPath = path + ".tmp";
 
-      FileOutputStream outputStream = new FileOutputStream(tempPath);
-      writer = new ASN1Writer(outputStream);
+      outputStream = new FileOutputStream(tempPath);
+      ASN1Writer writer = ASN1.getWriter(outputStream);
 
 
       // The first element in the file should be a sequence of object class
       // sets.  Each object class set will itself be a sequence of octet
       // strings, where the first one is the token and the remaining elements
       // are the names of the associated object classes.
-      ArrayList<ASN1Element> ocElements =
-           new ArrayList<ASN1Element>(ocDecodeMap.size());
-      for (Map.Entry<ByteArray,Map<ObjectClass,String>> mapEntry :
+      writer.writeStartSequence();
+      for (Map.Entry<ByteSequence,Map<ObjectClass,String>> mapEntry :
            ocDecodeMap.entrySet())
       {
-        ByteArray token = mapEntry.getKey();
+        writer.writeStartSequence();
+        writer.writeOctetString(mapEntry.getKey());
         Map<ObjectClass,String> ocMap = mapEntry.getValue();
-
-        ArrayList<ASN1Element> elements =
-             new ArrayList<ASN1Element>(ocMap.size()+1);
-        elements.add(new ASN1OctetString(token.array()));
 
         for (String ocName : ocMap.values())
         {
-          elements.add(new ASN1OctetString(ocName));
+          writer.writeOctetString(ocName);
         }
-
-        ocElements.add(new ASN1Sequence(elements));
+        writer.writeEndSequence();
       }
-      writer.writeElement(new ASN1Sequence(ocElements));
+      writer.writeEndSequence();
 
 
       // The second element in the file should be an integer element that holds
       // the value to use to initialize the object class counter.
-      writer.writeElement(new ASN1Integer(ocCounter.get()));
+      writer.writeInteger(ocCounter.get());
 
 
       // The third element in the file should be a sequence of attribute
@@ -321,34 +303,31 @@ public final class DefaultCompressedSchema
       // itself be a sequence of octet strings, where the first one is the
       // token, the second is the attribute name, and all remaining elements are
       // the attribute options.
-      ArrayList<ASN1Element> adElements =
-           new ArrayList<ASN1Element>(atDecodeMap.size());
-      for (ByteArray token : atDecodeMap.keySet())
+      writer.writeStartSequence();
+      for (ByteSequence token : atDecodeMap.keySet())
       {
+        writer.writeStartSequence();
         AttributeType attrType = atDecodeMap.get(token);
         Set<String> options = aoDecodeMap.get(token);
 
-        ArrayList<ASN1Element> elements =
-             new ArrayList<ASN1Element>(options.size()+2);
-        elements.add(new ASN1OctetString(token.array()));
-        elements.add(new ASN1OctetString(attrType.getNameOrOID()));
+        writer.writeOctetString(token);
+        writer.writeOctetString(attrType.getNameOrOID());
         for (String option : options)
         {
-          elements.add(new ASN1OctetString(option));
+          writer.writeOctetString(option);
         }
-
-        adElements.add(new ASN1Sequence(elements));
+        writer.writeEndSequence();
       }
-      writer.writeElement(new ASN1Sequence(adElements));
+      writer.writeEndSequence();
 
 
       // The fourth element in the file should be an integer element that holds
       // the value to use to initialize the attribute description counter.
-      writer.writeElement(new ASN1Integer(adCounter.get()));
+      writer.writeInteger(adCounter.get());
 
 
       // Close the writer and swing the temp file into place.
-      writer.close();
+      outputStream.close();
       File liveFile = new File(path);
       File tempFile = new File(tempPath);
 
@@ -379,9 +358,9 @@ public final class DefaultCompressedSchema
     {
       try
       {
-        if (writer != null)
+        if (outputStream != null)
         {
-          writer.close();
+          outputStream.close();
         }
       }
       catch (Exception e)
@@ -400,29 +379,27 @@ public final class DefaultCompressedSchema
    * {@inheritDoc}
    */
   @Override()
-  public byte[] encodeObjectClasses(Map<ObjectClass,String> objectClasses)
+  public void encodeObjectClasses(ByteStringBuilder entryBuffer,
+                                  Map<ObjectClass,String> objectClasses)
          throws DirectoryException
   {
-    ByteArray encodedClasses = ocEncodeMap.get(objectClasses);
+    ByteSequence encodedClasses = ocEncodeMap.get(objectClasses);
     if (encodedClasses == null)
     {
       synchronized (ocEncodeMap)
       {
         int setValue = ocCounter.getAndIncrement();
-        byte[] array = encodeInt(setValue);
 
-        encodedClasses = new ByteArray(array);
+        encodedClasses = ByteString.wrap(encodeInt(setValue));
         ocEncodeMap.put(objectClasses, encodedClasses);
         ocDecodeMap.put(encodedClasses, objectClasses);
 
         save();
-        return array;
       }
     }
-    else
-    {
-      return encodedClasses.array();
-    }
+
+    entryBuffer.appendBERLength(encodedClasses.length());
+    encodedClasses.copyTo(entryBuffer);
   }
 
 
@@ -432,17 +409,17 @@ public final class DefaultCompressedSchema
    */
   @Override()
   public Map<ObjectClass,String> decodeObjectClasses(
-                                      byte[] encodedObjectClasses)
-         throws DirectoryException
+      ByteSequenceReader entryBufferReader) throws DirectoryException
   {
-    ByteArray byteArray = new ByteArray(encodedObjectClasses);
+    int tokenLength = entryBufferReader.getBERLength();
+    ByteSequence byteArray = entryBufferReader.getByteSequence(tokenLength);
     Map<ObjectClass,String> ocMap = ocDecodeMap.get(byteArray);
     if (ocMap == null)
     {
-      Message message = ERR_COMPRESSEDSCHEMA_UNKNOWN_OC_TOKEN.get(
-                             bytesToHex(encodedObjectClasses));
+      Message message = ERR_COMPRESSEDSCHEMA_UNKNOWN_OC_TOKEN.get(byteArray
+          .toByteString().toHex());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
+          message);
     }
     else
     {
@@ -456,23 +433,22 @@ public final class DefaultCompressedSchema
    * {@inheritDoc}
    */
   @Override()
-  public byte[] encodeAttribute(Attribute attribute)
-         throws DirectoryException
+  public void encodeAttribute(ByteStringBuilder entryBuffer,
+                              Attribute attribute) throws DirectoryException
   {
     AttributeType type = attribute.getAttributeType();
     Set<String> options = attribute.getOptions();
 
-    ConcurrentHashMap<Set<String>, ByteArray> map = adEncodeMap.get(type);
+    ConcurrentHashMap<Set<String>, ByteSequence> map = adEncodeMap.get(type);
     if (map == null)
     {
-      byte[] array;
+      ByteString byteArray;
       synchronized (adEncodeMap)
       {
-        map = new ConcurrentHashMap<Set<String>,ByteArray>(1);
+        map = new ConcurrentHashMap<Set<String>, ByteSequence>(1);
 
         int intValue = adCounter.getAndIncrement();
-        array = encodeInt(intValue);
-        ByteArray byteArray = new ByteArray(array);
+        byteArray = ByteString.wrap(encodeInt(intValue));
         map.put(options,byteArray);
 
         adEncodeMap.put(type, map);
@@ -481,32 +457,26 @@ public final class DefaultCompressedSchema
         save();
       }
 
-      return encodeAttribute(array, attribute);
+      encodeAttribute(entryBuffer, byteArray, attribute);
     }
     else
     {
-      ByteArray byteArray = map.get(options);
+      ByteSequence byteArray = map.get(options);
       if (byteArray == null)
       {
-        byte[] array;
         synchronized (map)
         {
           int intValue = adCounter.getAndIncrement();
-          array = encodeInt(intValue);
-          byteArray = new ByteArray(array);
+          byteArray = ByteString.wrap(encodeInt(intValue));
           map.put(options,byteArray);
 
           atDecodeMap.put(byteArray, type);
           aoDecodeMap.put(byteArray, options);
           save();
         }
+      }
 
-        return encodeAttribute(array, attribute);
-      }
-      else
-      {
-        return encodeAttribute(byteArray.array(), attribute);
-      }
+      encodeAttribute(entryBuffer, byteArray, attribute);
     }
   }
 
@@ -516,50 +486,27 @@ public final class DefaultCompressedSchema
    * Encodes the information in the provided attribute to a byte
    * array.
    *
+   * @param  buffer     The byte buffer to encode the attribute into.
    * @param  adArray    The byte array that is a placeholder for the
    *                    attribute type and set of options.
    * @param  attribute  The attribute to be encoded.
-   *
-   * @return  An encoded representation of the provided attribute.
    */
-  private byte[] encodeAttribute(byte[] adArray, Attribute attribute)
+  private void encodeAttribute(ByteStringBuilder buffer, ByteSequence adArray,
+                               Attribute attribute)
   {
-    int totalValuesLength = 0;
-    byte[][] subArrays = new  byte[attribute.size()*2][];
-    int pos = 0;
-    for (AttributeValue v : attribute)
+    // Write the length of the adArray followed by the adArray.
+    buffer.appendBERLength(adArray.length());
+    adArray.copyTo(buffer);
+
+    // Write the number of attributes
+    buffer.appendBERLength(attribute.size());
+
+    // Write the attribute values as length / value pairs
+    for(AttributeValue v : attribute)
     {
-      byte[] vBytes = v.getValueBytes();
-      byte[] lBytes = ASN1Element.encodeLength(vBytes.length);
-
-      subArrays[pos++] = lBytes;
-      subArrays[pos++] = vBytes;
-
-      totalValuesLength += lBytes.length + vBytes.length;
+      buffer.appendBERLength(v.getValue().length());
+      buffer.append(v.getValue());
     }
-
-    byte[] adArrayLength = ASN1Element.encodeLength(adArray.length);
-    byte[] countBytes = ASN1Element.encodeLength(attribute.size());
-    int totalLength = adArrayLength.length + adArray.length +
-                      countBytes.length + totalValuesLength;
-    byte[] array = new byte[totalLength];
-
-    System.arraycopy(adArrayLength, 0, array, 0,
-                     adArrayLength.length);
-    pos = adArrayLength.length;
-    System.arraycopy(adArray, 0, array, pos, adArray.length);
-    pos += adArray.length;
-    System.arraycopy(countBytes, 0, array, pos, countBytes.length);
-    pos += countBytes.length;
-
-    for (int i=0; i < subArrays.length; i++)
-    {
-      System.arraycopy(subArrays[i], 0, array, pos,
-                       subArrays[i].length);
-      pos += subArrays[i].length;
-    }
-
-    return array;
   }
 
 
@@ -568,75 +515,43 @@ public final class DefaultCompressedSchema
    * {@inheritDoc}
    */
   @Override()
-  public Attribute decodeAttribute(byte[] encodedEntry, int startPos,
-                                   int length)
+  public Attribute decodeAttribute(ByteSequenceReader entryBufferReader)
          throws DirectoryException
   {
     // Figure out how many bytes are in the token that is the placeholder for
     // the attribute description.
-    int pos = startPos;
-    int adArrayLength = encodedEntry[pos] & 0x7F;
-    if (adArrayLength != encodedEntry[pos++])
-    {
-      int numLengthBytes = adArrayLength;
-      adArrayLength = 0;
-      for (int i=0; i < numLengthBytes; i++, pos++)
-      {
-        adArrayLength = (adArrayLength << 8) | (encodedEntry[pos] & 0xFF);
-      }
-    }
+    int adArrayLength = entryBufferReader.getBERLength();
 
 
     // Get the attribute description token and make sure it resolves to an
     // attribute type and option set.
-    ByteArray adArray = new ByteArray(new byte[adArrayLength]);
-    System.arraycopy(encodedEntry, pos, adArray.array(), 0, adArrayLength);
-    pos += adArrayLength;
+    ByteSequence adArray = entryBufferReader.getByteSequence(adArrayLength);
 
     AttributeType attrType = atDecodeMap.get(adArray);
     Set<String> options = aoDecodeMap.get(adArray);
     if ((attrType == null) || (options == null))
     {
-      Message message = ERR_COMPRESSEDSCHEMA_UNRECOGNIZED_AD_TOKEN.get(
-                             bytesToHex(adArray.array()));
+      Message message = ERR_COMPRESSEDSCHEMA_UNRECOGNIZED_AD_TOKEN.get(adArray
+          .toByteString().toHex());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
+          message);
     }
 
 
     // Determine the number of values for the attribute.
-    int numValues = encodedEntry[pos] & 0x7F;
-    if (numValues != encodedEntry[pos++])
-    {
-      int numValuesBytes = numValues;
-      numValues = 0;
-      for (int i=0; i < numValuesBytes; i++, pos++)
-      {
-        numValues = (numValues << 8) | (encodedEntry[pos] & 0xFF);
-      }
-    }
+    int numValues = entryBufferReader.getBERLength();
 
 
     // For the common case of a single value with no options, generate
     // less garbage.
     if (numValues == 1 && options.isEmpty())
     {
-      int valueLength = encodedEntry[pos] & 0x7F;
-      if (valueLength != encodedEntry[pos++])
-      {
-        int valueLengthBytes = valueLength;
-        valueLength = 0;
-        for (int j = 0; j < valueLengthBytes; j++, pos++)
-        {
-          valueLength = (valueLength << 8) | (encodedEntry[pos] & 0xFF);
-        }
-      }
+      int valueLength = entryBufferReader.getBERLength();
 
-      byte[] valueBytes = new byte[valueLength];
-      System.arraycopy(encodedEntry, pos, valueBytes, 0, valueLength);
-
-      return Attributes.create(attrType, new AttributeValue(attrType,
-          new ASN1OctetString(valueBytes)));
+      ByteString valueBytes =
+          entryBufferReader.getByteSequence(valueLength).toByteString();
+      return Attributes.create(attrType,
+          AttributeValues.create(attrType,valueBytes));
     }
     else
     {
@@ -646,22 +561,12 @@ public final class DefaultCompressedSchema
       builder.setInitialCapacity(numValues);
       for (int i = 0; i < numValues; i++)
       {
-        int valueLength = encodedEntry[pos] & 0x7F;
-        if (valueLength != encodedEntry[pos++])
-        {
-          int valueLengthBytes = valueLength;
-          valueLength = 0;
-          for (int j = 0; j < valueLengthBytes; j++, pos++)
-          {
-            valueLength = (valueLength << 8) | (encodedEntry[pos] & 0xFF);
-          }
-        }
+        int valueLength = entryBufferReader.getBERLength();
 
-        byte[] valueBytes = new byte[valueLength];
-        System.arraycopy(encodedEntry, pos, valueBytes, 0, valueLength);
-        pos += valueLength;
-        builder.add(new AttributeValue(attrType,
-            new ASN1OctetString(valueBytes)));
+        ByteString valueBytes =
+            entryBufferReader.getByteSequence(valueLength).toByteString();
+        builder.add(AttributeValues.create(attrType,
+            valueBytes));
       }
 
       return builder.toAttribute();

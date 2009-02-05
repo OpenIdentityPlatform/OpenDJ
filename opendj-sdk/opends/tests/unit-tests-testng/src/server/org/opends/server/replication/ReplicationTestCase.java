@@ -67,25 +67,11 @@ import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.schema.IntegerSyntax;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.ByteStringFactory;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.replication.plugin.MultimasterReplication;
 
 /**
@@ -591,7 +577,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     {
       // Search for matching entries in config backend
       InternalSearchOperation op = connection.processSearch(
-        new ASN1OctetString("cn=config"),
+        ByteString.valueOf("cn=config"),
         SearchScope.WHOLE_SUBTREE,
         LDAPFilter.decode(filter));
 
@@ -658,7 +644,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       if (count++>0)
         Thread.sleep(100);
       op = connection.processSearch(
-                                    ByteStringFactory.create("cn=monitor"),
+          ByteString.valueOf("cn=monitor"),
                                     SearchScope.SINGLE_LEVEL,
                                     LDAPFilter.decode(monitorFilter));
     }
@@ -716,7 +702,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
             AttributeType attrType =
               DirectoryServer.getAttributeType(attrTypeStr, true);
-            found = tmpAttr.contains(new AttributeValue(attrType, valueString));
+            found = tmpAttr.contains(AttributeValues.create(attrType, valueString));
           }
         }
 

@@ -29,13 +29,16 @@ import org.opends.messages.Message;
 
 
 
-import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.Control;
-import org.opends.server.types.LDAPException;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ResultCode;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
+import java.io.IOException;
 
 
 /**
@@ -46,8 +49,41 @@ import static org.opends.server.util.ServerConstants.*;
 public class AccountUsableRequestControl
        extends Control
 {
+  /**
+   * ControlDecoder implentation to decode this control from a ByteString.
+   */
+  private static final class Decoder
+      implements ControlDecoder<AccountUsableRequestControl>
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public AccountUsableRequestControl decode(boolean isCritical,
+                                              ByteString value)
+           throws DirectoryException
+    {
+      if (value != null)
+      {
+        Message message = ERR_ACCTUSABLEREQ_CONTROL_HAS_VALUE.get();
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+      }
 
 
+      return new AccountUsableRequestControl(isCritical);
+    }
+
+    public String getOID()
+    {
+      return OID_ACCOUNT_USABLE_CONTROL;
+    }
+
+  }
+
+  /**
+   * The Control Decoder that can be used to decode this control.
+   */
+  public static final ControlDecoder<AccountUsableRequestControl> DECODER =
+    new Decoder();
 
   /**
    * Creates a new instance of the account usable request control with the
@@ -55,67 +91,32 @@ public class AccountUsableRequestControl
    */
   public AccountUsableRequestControl()
   {
-    super(OID_ACCOUNT_USABLE_CONTROL, false);
-
+    this(false);
   }
-
-
 
   /**
    * Creates a new instance of the account usable request control with the
-   * provided information.
+   * default settings.
    *
-   * @param  oid         The OID to use for this control.
-   * @param  isCritical  Indicates whether support for this control should be
-   *                     considered a critical part of the client processing.
+   * @param  isCritical  Indicates whether this control should be
+   *                     considered critical in processing the
+   *                     request.
    */
-  public AccountUsableRequestControl(String oid, boolean isCritical)
+  public AccountUsableRequestControl(boolean isCritical)
   {
-    super(oid, isCritical);
+    super(OID_ACCOUNT_USABLE_CONTROL, isCritical);
 
   }
 
-
-
   /**
-   * Creates a new account usable request control from the contents of the
-   * provided control.
+   * Writes this control's value to an ASN.1 writer. The value (if any) must be
+   * written as an ASN1OctetString.
    *
-   * @param  control  The generic control containing the information to use to
-   *                  create this account usable request control.
-   *
-   * @return  The account usable request control decoded from the provided
-   *          control.
-   *
-   * @throws  LDAPException  If this control cannot be decoded as a valid
-   *                         account usable request control.
+   * @param writer The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public static AccountUsableRequestControl decodeControl(Control control)
-         throws LDAPException
-  {
-    if (control.hasValue())
-    {
-      Message message = ERR_ACCTUSABLEREQ_CONTROL_HAS_VALUE.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-    }
-
-
-    return new AccountUsableRequestControl(control.getOID(),
-                                           control.isCritical());
-  }
-
-
-
-  /**
-   * Retrieves a string representation of this account usable request control.
-   *
-   * @return  A string representation of this account usable request control.
-   */
-  public String toString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
+  protected void writeValue(ASN1Writer writer) throws IOException {
+    // No value element.
   }
 
 

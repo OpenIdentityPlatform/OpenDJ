@@ -37,6 +37,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.protocols.ldap.LDAPConnectionHandler;
 import org.opends.server.protocols.ldap.LDAPStatistics;
+import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Control;
 import org.opends.server.types.Operation;
 
@@ -448,7 +449,7 @@ public abstract class OperationTestCase
   @Test(dataProvider = "testOperations")
   public void testAddAndRemoveResponseControl(Operation operation)
   {
-    Control c = new Control("1.2.3.4", false);
+    Control c = new LDAPControl("1.2.3.4", false);
     operation.addResponseControl(c);
     operation.removeResponseControl(c);
 

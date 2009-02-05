@@ -448,45 +448,6 @@ public abstract class ClientConnection
   public abstract boolean isSecure();
 
 
-
-  /**
-   * Retrieves the connection security provider for this client
-   * connection.
-   *
-   * @return  The connection security provider for this client
-   *          connection.
-   */
-  public abstract ConnectionSecurityProvider
-                       getConnectionSecurityProvider();
-
-
-
-  /**
-   * Specifies the connection security provider for this client
-   * connection.
-   *
-   * @param  securityProvider  The connection security provider to use
-   *                           for communication on this client
-   *                           connection.
-   */
-  public abstract void setConnectionSecurityProvider(
-                            ConnectionSecurityProvider
-                                 securityProvider);
-
-
-
-  /**
-   * Retrieves the human-readable name of the security mechanism that
-   * is used to protect communication with this client.
-   *
-   * @return  The human-readable name of the security mechanism that
-   *          is used to protect communication with this client, or
-   *          {@code null} if no security is in place.
-   */
-  public abstract String getSecurityMechanism();
-
-
-
   /**
    * Retrieves a {@code Selector} that may be used to ensure that
    * write  operations complete in a timely manner, or terminate the
@@ -1333,7 +1294,7 @@ public abstract class ClientConnection
       {
         for (AttributeValue v : a)
         {
-          String privName = toLowerCase(v.getStringValue());
+          String privName = toLowerCase(v.getValue().toString());
 
           // If the name of the privilege is prefixed with a minus
           // sign, then we will take away that privilege from the
@@ -1836,5 +1797,12 @@ public abstract class ClientConnection
   {
     return 0L;
   }
+
+  /**
+   * Return the Security Strength Factor of a client connection.
+   *
+   * @return An integer representing the SSF value of a connection.
+   */
+  public abstract int getSSF();
 }
 

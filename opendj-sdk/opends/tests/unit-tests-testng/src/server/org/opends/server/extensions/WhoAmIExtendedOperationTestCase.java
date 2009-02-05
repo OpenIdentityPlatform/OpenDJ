@@ -42,7 +42,6 @@ import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
@@ -53,10 +52,7 @@ import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.tools.LDAPAuthenticationHandler;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
 
@@ -179,11 +175,11 @@ public class WhoAmIExtendedOperationTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(reader, writer, "localhost",
                                        nextMessageID);
-    authHandler.doSimpleBind(3, new ASN1OctetString("cn=Directory Manager"),
-                             new ASN1OctetString("password"),
-                             new ArrayList<LDAPControl>(),
-                             new ArrayList<LDAPControl>());
-    ASN1OctetString authzID = authHandler.requestAuthorizationIdentity();
+    authHandler.doSimpleBind(3, ByteString.valueOf("cn=Directory Manager"),
+                             ByteString.valueOf("password"),
+                             new ArrayList<Control>(),
+                             new ArrayList<Control>());
+    ByteString authzID = authHandler.requestAuthorizationIdentity();
     assertNotNull(authzID);
 
     LDAPMessage unbindMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
@@ -212,7 +208,7 @@ public class WhoAmIExtendedOperationTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(reader, writer, "localhost",
                                        nextMessageID);
-    ASN1OctetString authzID = authHandler.requestAuthorizationIdentity();
+    ByteString authzID = authHandler.requestAuthorizationIdentity();
     assertNull(authzID);
 
     LDAPMessage unbindMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
@@ -263,11 +259,11 @@ public class WhoAmIExtendedOperationTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(reader, writer, "localhost",
                                        nextMessageID);
-    authHandler.doSimpleBind(3, new ASN1OctetString("uid=test.user,o=test"),
-                             new ASN1OctetString("password"),
-                             new ArrayList<LDAPControl>(),
-                             new ArrayList<LDAPControl>());
-    ASN1OctetString authzID = authHandler.requestAuthorizationIdentity();
+    authHandler.doSimpleBind(3, ByteString.valueOf("uid=test.user,o=test"),
+                             ByteString.valueOf("password"),
+                             new ArrayList<Control>(),
+                             new ArrayList<Control>());
+    ByteString authzID = authHandler.requestAuthorizationIdentity();
     assertNotNull(authzID);
 
     LDAPMessage unbindMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
@@ -340,11 +336,11 @@ public class WhoAmIExtendedOperationTestCase
     authzIDList.add("dn:uid=test.user,o=test");
     saslProperties.put("authzID", authzIDList);
 
-    authHandler.doSASLPlain(new ASN1OctetString(),
-                            new ASN1OctetString("password"), saslProperties,
-                            new ArrayList<LDAPControl>(),
-                            new ArrayList<LDAPControl>());
-    ASN1OctetString authzID = authHandler.requestAuthorizationIdentity();
+    authHandler.doSASLPlain(ByteString.empty(),
+                            ByteString.valueOf("password"), saslProperties,
+                            new ArrayList<Control>(),
+                            new ArrayList<Control>());
+    ByteString authzID = authHandler.requestAuthorizationIdentity();
     assertNotNull(authzID);
     assertEquals(authzID.toString(), "dn:uid=test.user,o=test");
 
@@ -407,11 +403,11 @@ public class WhoAmIExtendedOperationTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(reader, writer, "localhost",
                                        nextMessageID);
-    authHandler.doSimpleBind(3, new ASN1OctetString("uid=proxy.user,o=test"),
-                             new ASN1OctetString("password"),
-                             new ArrayList<LDAPControl>(),
-                             new ArrayList<LDAPControl>());
-    ASN1OctetString authzID = authHandler.requestAuthorizationIdentity();
+    authHandler.doSimpleBind(3, ByteString.valueOf("uid=proxy.user,o=test"),
+                             ByteString.valueOf("password"),
+                             new ArrayList<Control>(),
+                             new ArrayList<Control>());
+    ByteString authzID = authHandler.requestAuthorizationIdentity();
     assertNotNull(authzID);
     assertEquals(authzID.toString(), "dn:uid=proxy.user,o=test");
 
@@ -419,9 +415,9 @@ public class WhoAmIExtendedOperationTestCase
     // Use the "Who Am I?" operation again, this time with the proxy control.
     ExtendedRequestProtocolOp extendedRequest =
          new ExtendedRequestProtocolOp(OID_WHO_AM_I_REQUEST);
-    ArrayList<LDAPControl> requestControls = new ArrayList<LDAPControl>(1);
-    requestControls.add(new LDAPControl(new ProxiedAuthV2Control(
-         new ASN1OctetString("dn:uid=test.user,o=test"))));
+    ArrayList<Control> requestControls = new ArrayList<Control>(1);
+    requestControls.add(new ProxiedAuthV2Control(
+         ByteString.valueOf("dn:uid=test.user,o=test")));
     LDAPMessage message = new LDAPMessage(nextMessageID.getAndIncrement(),
                                           extendedRequest, requestControls);
     writer.writeMessage(message);
@@ -494,11 +490,11 @@ public class WhoAmIExtendedOperationTestCase
          new LDAPAuthenticationHandler(reader, writer, "localhost",
                                        nextMessageID);
     authHandler.doSimpleBind(3,
-                             new ASN1OctetString("uid=cantproxy.user,o=test"),
-                             new ASN1OctetString("password"),
-                             new ArrayList<LDAPControl>(),
-                             new ArrayList<LDAPControl>());
-    ASN1OctetString authzID = authHandler.requestAuthorizationIdentity();
+                             ByteString.valueOf("uid=cantproxy.user,o=test"),
+                             ByteString.valueOf("password"),
+                             new ArrayList<Control>(),
+                             new ArrayList<Control>());
+    ByteString authzID = authHandler.requestAuthorizationIdentity();
     assertNotNull(authzID);
     assertEquals(authzID.toString(), "dn:uid=cantproxy.user,o=test");
 
@@ -506,9 +502,9 @@ public class WhoAmIExtendedOperationTestCase
     // Use the "Who Am I?" operation again, this time with the proxy control.
     ExtendedRequestProtocolOp extendedRequest =
          new ExtendedRequestProtocolOp(OID_WHO_AM_I_REQUEST);
-    ArrayList<LDAPControl> requestControls = new ArrayList<LDAPControl>(1);
-    requestControls.add(new LDAPControl(new ProxiedAuthV2Control(
-         new ASN1OctetString("dn:uid=test.user,o=test"))));
+    ArrayList<Control> requestControls = new ArrayList<Control>(1);
+    requestControls.add(new ProxiedAuthV2Control(
+         ByteString.valueOf("dn:uid=test.user,o=test")));
     LDAPMessage message = new LDAPMessage(nextMessageID.getAndIncrement(),
                                           extendedRequest, requestControls);
     writer.writeMessage(message);

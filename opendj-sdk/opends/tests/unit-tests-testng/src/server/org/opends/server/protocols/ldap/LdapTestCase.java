@@ -35,10 +35,6 @@ import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.LDAPConnectionHandlerCfgDefn;
 import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
 import org.opends.server.config.ConfigException;
-import org.opends.server.protocols.asn1.ASN1Boolean;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Long;
-import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.types.Attribute;
 import org.testng.annotations.Test;
 
@@ -92,51 +88,6 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
         return false;
     }
     return !(e1.hasNext() || e2.hasNext());
-  }
-
-  /**
-   * Generate an exception by writing a long into a integer element.
-   * @param op The op.
-   * @param type The type of sequence.
-   * @param index The index into the element to write to.
-   * @throws Exception If the protocol op decode can't write the sequence.
-   */
-  static void 
-  badIntegerElement(ProtocolOp op, byte type, int index) throws Exception {
-	  ASN1Element element = op.encode();
-	  ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-	  elements.set(index, new ASN1Long(Long.MAX_VALUE));
-	  ProtocolOp.decode(new ASN1Sequence(type, elements));
-  }
-
-  /**
-   * Generate an exception by adding an element.
-   * @param op The op.
-   * @param type The type of sequence.
-   * @throws Exception If the protocol op decode has too many elements.
-   */
-  static void 
-  tooManyElements(ProtocolOp op, byte type) throws Exception
-  {
-	  ASN1Element element = op.encode();
-	  ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-	  elements.add(new ASN1Boolean(true));
-	  ProtocolOp.decode(new ASN1Sequence(type, elements));
-  }
-
-  /**
-   * Generate an exception by removing an element.
-   * @param op The op.
-   * @param type The type of sequence.
-   * @throws Exception If the protocol op decode has too few elements.
-   */
-  static void 
-  tooFewElements(ProtocolOp op, byte type) throws Exception
-  {
-	  ASN1Element element = op.encode();
-	  ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-	  elements.remove(0);
-	  ProtocolOp.decode(new ASN1Sequence(type, elements));
   }
 
   /**

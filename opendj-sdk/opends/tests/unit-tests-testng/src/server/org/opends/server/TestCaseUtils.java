@@ -81,15 +81,17 @@ import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.plugins.InvocationCounterPlugin;
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.LDAPReader;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.dsconfig.DSConfig;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
@@ -1250,19 +1252,19 @@ public final class TestCaseUtils {
     Socket s = null;
     try {
       s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-      ASN1Reader r = new ASN1Reader(s);
-      ASN1Writer w = new ASN1Writer(s);
-      r.setIOTimeout(3000);
+      s.setSoTimeout(3000);
+      ASN1Reader r = ASN1.getReader(s.getInputStream());
+      ASN1Writer w = ASN1.getWriter(s.getOutputStream());
 
       BindRequestProtocolOp bindRequest =
         new BindRequestProtocolOp(
-                 new ASN1OctetString(dn),
+                 ByteString.valueOf(dn),
                  3,
-                new ASN1OctetString(pw));
+                 ByteString.valueOf(pw));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeElement(message.encode());
+      message.write(w);
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      message = LDAPReader.readMessage(r);
       BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
       if (bindResponse.getResultCode() == 0) {
         return true;

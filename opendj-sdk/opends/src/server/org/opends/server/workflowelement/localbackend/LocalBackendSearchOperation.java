@@ -51,7 +51,6 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.LDAPException;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
@@ -336,30 +335,8 @@ searchProcessing:
 
         if (oid.equals(OID_LDAP_ASSERTION))
         {
-          LDAPAssertionRequestControl assertControl;
-          if (c instanceof LDAPAssertionRequestControl)
-          {
-            assertControl = (LDAPAssertionRequestControl) c;
-          }
-          else
-          {
-            try
-            {
-              assertControl = LDAPAssertionRequestControl.decodeControl(c);
-              requestControls.set(i, assertControl);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              throw new DirectoryException(
-                             ResultCode.valueOf(le.getResultCode()),
-                             le.getMessageObject(), le);
-            }
-          }
+          LDAPAssertionRequestControl assertControl =
+                getRequestControl(LDAPAssertionRequestControl.DECODER);
 
           try
           {
@@ -422,31 +399,8 @@ searchProcessing:
                            ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
           }
 
-
-          ProxiedAuthV1Control proxyControl;
-          if (c instanceof ProxiedAuthV1Control)
-          {
-            proxyControl = (ProxiedAuthV1Control) c;
-          }
-          else
-          {
-            try
-            {
-              proxyControl = ProxiedAuthV1Control.decodeControl(c);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              throw new DirectoryException(
-                             ResultCode.valueOf(le.getResultCode()),
-                             le.getMessageObject(), le);
-            }
-          }
-
+          ProxiedAuthV1Control proxyControl =
+              getRequestControl(ProxiedAuthV1Control.DECODER);
 
           Entry authorizationEntry = proxyControl.getAuthorizationEntry();
           setAuthorizationEntry(authorizationEntry);
@@ -469,31 +423,8 @@ searchProcessing:
                            ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
           }
 
-
-          ProxiedAuthV2Control proxyControl;
-          if (c instanceof ProxiedAuthV2Control)
-          {
-            proxyControl = (ProxiedAuthV2Control) c;
-          }
-          else
-          {
-            try
-            {
-              proxyControl = ProxiedAuthV2Control.decodeControl(c);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              throw new DirectoryException(
-                             ResultCode.valueOf(le.getResultCode()),
-                             le.getMessageObject(), le);
-            }
-          }
-
+          ProxiedAuthV2Control proxyControl =
+              getRequestControl(ProxiedAuthV2Control.DECODER);
 
           Entry authorizationEntry = proxyControl.getAuthorizationEntry();
           setAuthorizationEntry(authorizationEntry);
@@ -508,29 +439,8 @@ searchProcessing:
         }
         else if (oid.equals(OID_PERSISTENT_SEARCH))
         {
-          PersistentSearchControl psearchControl;
-          if (c instanceof PersistentSearchControl)
-          {
-            psearchControl = (PersistentSearchControl) c;
-          }
-          else
-          {
-            try
-            {
-              psearchControl = PersistentSearchControl.decodeControl(c);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              throw new DirectoryException(
-                             ResultCode.valueOf(le.getResultCode()),
-                             le.getMessageObject(), le);
-            }
-          }
+          PersistentSearchControl psearchControl =
+            getRequestControl(PersistentSearchControl.DECODER);
 
           persistentSearch = new PersistentSearch(this,
                                       psearchControl.getChangeTypes(),
@@ -549,30 +459,9 @@ searchProcessing:
         }
         else if (oid.equals(OID_MATCHED_VALUES))
         {
-          if (c instanceof MatchedValuesControl)
-          {
-            setMatchedValuesControl((MatchedValuesControl) c);
-          }
-          else
-          {
-            try
-            {
-              MatchedValuesControl matchedValuesControl =
-                MatchedValuesControl.decodeControl(c);
-              setMatchedValuesControl(matchedValuesControl);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              throw new DirectoryException(
-                             ResultCode.valueOf(le.getResultCode()),
-                             le.getMessageObject(), le);
-            }
-          }
+          MatchedValuesControl matchedValuesControl =
+                getRequestControl(MatchedValuesControl.DECODER);
+          setMatchedValuesControl(matchedValuesControl);
         }
         else if (oid.equals(OID_ACCOUNT_USABLE_CONTROL))
         {

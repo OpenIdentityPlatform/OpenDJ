@@ -22,23 +22,23 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
 
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
-
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+
+import java.util.Collection;
+import java.util.Collections;
+
+import org.opends.server.api.SubstringMatchingRule;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.util.ServerConstants;
 
 
 
@@ -62,6 +62,7 @@ class CaseIgnoreSubstringMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getAllNames()
   {
     return Collections.singleton(getName());
@@ -75,6 +76,7 @@ class CaseIgnoreSubstringMatchingRule
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
    * it does not have a name.
    */
+  @Override
   public String getName()
   {
     return SMR_CASE_IGNORE_NAME;
@@ -87,6 +89,7 @@ class CaseIgnoreSubstringMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return SMR_CASE_IGNORE_OID;
@@ -100,6 +103,7 @@ class CaseIgnoreSubstringMatchingRule
    * @return  The description for this matching rule, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     // There is no standard description for this matching rule.
@@ -114,6 +118,7 @@ class CaseIgnoreSubstringMatchingRule
    *
    * @return  The OID of the syntax with which this matching rule is associated.
    */
+  @Override
   public String getSyntaxOID()
   {
     return SYNTAX_SUBSTRING_ASSERTION_OID;
@@ -132,25 +137,26 @@ class CaseIgnoreSubstringMatchingRule
    * @throws  DirectoryException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
-  public ByteString normalizeValue(ByteString value)
+  @Override
+  public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
     StringBuilder buffer = new StringBuilder();
-    toLowerCase(value.value(), buffer, true);
+    toLowerCase(value, buffer, true);
 
     int bufferLength = buffer.length();
     if (bufferLength == 0)
     {
-      if (value.value().length > 0)
+      if (value.length() > 0)
       {
         // This should only happen if the value is composed entirely of spaces.
         // In that case, the normalized value is a single space.
-        return new ASN1OctetString(" ");
+        return ServerConstants.SINGLE_SPACE_VALUE;
       }
       else
       {
         // The value is empty, so it is already normalized.
-        return new ASN1OctetString();
+        return ByteString.empty();
       }
     }
 
@@ -167,7 +173,7 @@ class CaseIgnoreSubstringMatchingRule
       }
     }
 
-    return new ASN1OctetString(buffer.toString());
+    return ByteString.valueOf(buffer.toString());
   }
 
 
@@ -183,28 +189,29 @@ class CaseIgnoreSubstringMatchingRule
    * @throws  DirectoryException  If the provided value fragment is not
    *                              acceptable according to the associated syntax.
    */
-  public ByteString normalizeSubstring(ByteString substring)
+  @Override
+  public ByteString normalizeSubstring(ByteSequence substring)
          throws DirectoryException
   {
     // In this case, the process for normalizing a substring is the same as
     // normalizing a full value with the exception that it may include an
     // opening or trailing space.
     StringBuilder buffer = new StringBuilder();
-    toLowerCase(substring.value(), buffer, false);
+    toLowerCase(substring, buffer, false);
 
     int bufferLength = buffer.length();
     if (bufferLength == 0)
     {
-      if (substring.value().length > 0)
+      if (substring.length() > 0)
       {
         // This should only happen if the value is composed entirely of spaces.
         // In that case, the normalized value is a single space.
-        return new ASN1OctetString(" ");
+        return ServerConstants.SINGLE_SPACE_VALUE;
       }
       else
       {
         // The value is empty, so it is already normalized.
-        return substring;
+        return substring.toByteString();
       }
     }
 
@@ -221,120 +228,7 @@ class CaseIgnoreSubstringMatchingRule
       }
     }
 
-    return new ASN1OctetString(buffer.toString());
-  }
-
-
-
-  /**
-   * Determines whether the provided value matches the given substring filter
-   * components.  Note that any of the substring filter components may be
-   * <CODE>null</CODE> but at least one of them must be non-<CODE>null</CODE>.
-   *
-   * @param  value           The normalized value against which to compare the
-   *                         substring components.
-   * @param  subInitial      The normalized substring value fragment that should
-   *                         appear at the beginning of the target value.
-   * @param  subAnyElements  The normalized substring value fragments that
-   *                         should appear in the middle of the target value.
-   * @param  subFinal        The normalized substring value fragment that should
-   *                         appear at the end of the target value.
-   *
-   * @return  <CODE>true</CODE> if the provided value does match the given
-   *          substring components, or <CODE>false</CODE> if not.
-   */
-  public boolean valueMatchesSubstring(ByteString value, ByteString subInitial,
-                                       List<ByteString> subAnyElements,
-                                       ByteString subFinal)
-  {
-    byte[] valueBytes = value.value();
-    int valueLength = valueBytes.length;
-
-    int pos = 0;
-    if (subInitial != null)
-    {
-      byte[] initialBytes = subInitial.value();
-      int initialLength = initialBytes.length;
-      if (initialLength > valueLength)
-      {
-        return false;
-      }
-
-      for (; pos < initialLength; pos++)
-      {
-        if (initialBytes[pos] != valueBytes[pos])
-        {
-          return false;
-        }
-      }
-    }
-
-
-    if ((subAnyElements != null) && (! subAnyElements.isEmpty()))
-    {
-      for (ByteString element : subAnyElements)
-      {
-        byte[] anyBytes = element.value();
-        int anyLength = anyBytes.length;
-
-        int end = valueLength - anyLength;
-        boolean match = false;
-        for (; pos <= end; pos++)
-        {
-          if (anyBytes[0] == valueBytes[pos])
-          {
-            boolean subMatch = true;
-            for (int i=1; i < anyLength; i++)
-            {
-              if (anyBytes[i] != valueBytes[pos+i])
-              {
-                subMatch = false;
-                break;
-              }
-            }
-
-            if (subMatch)
-            {
-              match = subMatch;
-              break;
-            }
-          }
-        }
-
-        if (match)
-        {
-          pos += anyLength;
-        }
-        else
-        {
-          return false;
-        }
-      }
-    }
-
-
-    if (subFinal != null)
-    {
-      byte[] finalBytes = subFinal.value();
-      int finalLength = finalBytes.length;
-
-      if ((valueLength - finalLength) < pos)
-      {
-        return false;
-      }
-
-      pos = valueLength - finalLength;
-      for (int i=0; i < finalLength; i++,pos++)
-      {
-        if (finalBytes[i] != valueBytes[pos])
-        {
-          return false;
-        }
-      }
-    }
-
-
-    return true;
+    return ByteString.valueOf(buffer.toString());
   }
 }
 

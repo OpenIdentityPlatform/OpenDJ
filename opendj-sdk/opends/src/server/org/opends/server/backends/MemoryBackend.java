@@ -39,6 +39,7 @@ import org.opends.server.admin.Configuration;
 import org.opends.server.admin.std.server.MemoryBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigException;
+import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -475,15 +476,12 @@ public class MemoryBackend
 
     // Check to see if the entry contains a subtree delete control.
     boolean subtreeDelete = false;
-    if (deleteOperation != null)
+
+    if (deleteOperation != null
+        && deleteOperation
+            .getRequestControl(SubtreeDeleteControl.DECODER) != null)
     {
-      for (Control c : deleteOperation.getRequestControls())
-      {
-        if (c.getOID().equals(OID_SUBTREE_DELETE_CONTROL))
-        {
-          subtreeDelete = true;
-        }
-      }
+      subtreeDelete = true;
     }
 
     HashSet<DN> children = childDNs.get(entryDN);
@@ -989,6 +987,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
   }

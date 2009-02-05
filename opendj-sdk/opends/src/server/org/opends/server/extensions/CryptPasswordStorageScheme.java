@@ -28,7 +28,6 @@ package org.opends.server.extensions;
 
 
 
-import java.util.Arrays;
 import java.util.Random;
 
 import org.opends.messages.Message;
@@ -36,11 +35,7 @@ import org.opends.server.admin.std.server.CryptPasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringFactory;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.util.Crypt;
 
 import static org.opends.messages.ExtensionMessages.*;
@@ -115,7 +110,7 @@ public class CryptPasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString encodePassword(ByteString plaintext)
+  public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
   {
 
@@ -123,7 +118,9 @@ public class CryptPasswordStorageScheme
 
     try
     {
-      digestBytes = crypt.crypt(plaintext.value(), randomSalt());
+      // TODO: Can we avoid this copy?
+      byte[] plaintextBytes = plaintext.toByteArray();
+      digestBytes = crypt.crypt(plaintextBytes, randomSalt());
     }
     catch (Exception e)
     {
@@ -133,7 +130,7 @@ public class CryptPasswordStorageScheme
                                    message, e);
     }
 
-    return ByteStringFactory.create(digestBytes);
+    return ByteString.wrap(digestBytes);
   }
 
 
@@ -160,7 +157,7 @@ public class CryptPasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString encodePasswordWithScheme(ByteString plaintext)
+  public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
   {
     StringBuilder buffer =
@@ -171,7 +168,7 @@ public class CryptPasswordStorageScheme
 
     buffer.append(encodePassword(plaintext));
 
-    return ByteStringFactory.create(buffer.toString());
+    return ByteString.valueOf(buffer.toString());
   }
 
 
@@ -180,27 +177,28 @@ public class CryptPasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public boolean passwordMatches(ByteString plaintextPassword,
-                                 ByteString storedPassword)
+  public boolean passwordMatches(ByteSequence plaintextPassword,
+                                 ByteSequence storedPassword)
   {
-    byte[] storedPWDigestBytes = storedPassword.value();
+    // TODO: Can we avoid this copy?
+    byte[] plaintextPasswordBytes = plaintextPassword.toByteArray();
 
-    byte[] userPWDigestBytes;
+    ByteString userPWDigestBytes;
     try
     {
       // The salt is stored as the first two bytes of the storedPassword
       // value, and crypt.crypt() only looks at the first two bytes, so
       // we can pass it in directly.
-      byte[] salt = storedPWDigestBytes;
-
-      userPWDigestBytes = crypt.crypt(plaintextPassword.value(), salt);
+      byte[] salt = storedPassword.copyTo(new byte[2]);
+      userPWDigestBytes =
+          ByteString.wrap(crypt.crypt(plaintextPasswordBytes, salt));
     }
     catch (Exception e)
     {
       return false;
     }
 
-    return Arrays.equals(userPWDigestBytes, storedPWDigestBytes);
+    return userPWDigestBytes.equals(storedPassword);
   }
 
 
@@ -221,7 +219,7 @@ public class CryptPasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString encodeAuthPassword(ByteString plaintext)
+  public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
   {
     Message message =
@@ -235,7 +233,7 @@ public class CryptPasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public boolean authPasswordMatches(ByteString plaintextPassword,
+  public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
   {
     // This storage scheme does not support the authentication password syntax.
@@ -259,7 +257,7 @@ public class CryptPasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString getPlaintextValue(ByteString storedPassword)
+  public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
   {
     Message message =

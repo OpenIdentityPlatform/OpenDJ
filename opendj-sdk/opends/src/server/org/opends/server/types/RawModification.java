@@ -22,27 +22,23 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
-import org.opends.messages.Message;
 
-
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Enumerated;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.ldap.LDAPModification;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
-import static org.opends.server.util.ServerConstants.*;
+
+import java.io.IOException;
+import java.util.ArrayList;
+
+import org.opends.messages.Message;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.ldap.LDAPModification;
 
 
 
@@ -172,7 +168,7 @@ public abstract class RawModification
   public static RawModification
                      create(ModificationType modificationType,
                             String attributeType,
-                            List<ByteString> attributeValues)
+                            ArrayList<ByteString> attributeValues)
   {
     RawAttribute rawAttribute =
          RawAttribute.create(attributeType, attributeValues);
@@ -221,26 +217,26 @@ public abstract class RawModification
 
 
   /**
-   * Encodes this modification to an ASN.1 element.
+   * Writes this modification to an ASN.1 stream.
    *
-   * @return  The ASN.1 element containing the encoded modification.
+   * @param stream The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the
+   *                     stream.
    */
-  public final ASN1Element encode()
+  public void write(ASN1Writer stream) throws IOException
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1Enumerated(
-                          getModificationType().intValue()));
-    elements.add(getAttribute().encode());
-
-    return new ASN1Sequence(elements);
+    stream.writeStartSequence();
+    stream.writeEnumerated(getModificationType().intValue());
+    getAttribute().write(stream);
+    stream.writeEndSequence();
   }
 
 
-
   /**
-   * Decodes the provided ASN.1 element as an LDAP modification.
+   * Decodes the elements from the provided ASN.1 reader as an
+   * LDAP modification.
    *
-   * @param  element  The ASN.1 element to decode.
+   * @param  reader The ASN.1 reader.
    *
    * @return  The decoded LDAP modification.
    *
@@ -248,13 +244,12 @@ public abstract class RawModification
    *                         decode the provided ASN.1 element as a
    *                         raw modification.
    */
-  public static LDAPModification decode(ASN1Element element)
+  public static LDAPModification decode(ASN1Reader reader)
          throws LDAPException
   {
-    ArrayList<ASN1Element> elements;
     try
     {
-      elements = element.decodeAsSequence().elements();
+      reader.readStartSequence();
     }
     catch (Exception e)
     {
@@ -269,20 +264,11 @@ public abstract class RawModification
     }
 
 
-    int numElements = elements.size();
-    if (numElements != 2)
-    {
-      Message message =
-          ERR_LDAP_MODIFICATION_DECODE_INVALID_ELEMENT_COUNT.
-            get(numElements);
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-
     ModificationType modificationType;
     try
     {
-      switch (elements.get(0).decodeAsEnumerated().intValue())
+      int type = (int)reader.readInteger();
+      switch (type)
       {
         case MOD_TYPE_ADD:
           modificationType = ModificationType.ADD;
@@ -297,11 +283,9 @@ public abstract class RawModification
           modificationType = ModificationType.INCREMENT;
           break;
         default:
-          int intValue =
-                   elements.get(0).decodeAsEnumerated().intValue();
           Message message =
               ERR_LDAP_MODIFICATION_DECODE_INVALID_MOD_TYPE.
-                get(intValue);
+                get(type);
           throw new LDAPException(PROTOCOL_ERROR, message);
       }
     }
@@ -325,7 +309,7 @@ public abstract class RawModification
     RawAttribute attribute;
     try
     {
-      attribute = RawAttribute.decode(elements.get(1));
+      attribute = RawAttribute.decode(reader);
     }
     catch (Exception e)
     {
@@ -336,6 +320,22 @@ public abstract class RawModification
 
       Message message =
           ERR_LDAP_MODIFICATION_DECODE_ATTR.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
+    }
+
+    try
+    {
+      reader.readEndSequence();
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      Message message = ERR_LDAP_MODIFICATION_DECODE_SEQUENCE.get(
+          String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 

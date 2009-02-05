@@ -42,7 +42,6 @@ import static org.opends.server.util.DynamicConstants.REVISION_NUMBER;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.backends.jeb.*;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.messages.Message;
 import org.opends.messages.JebMessages;
 import static org.opends.messages.JebMessages.*;
@@ -868,7 +867,7 @@ public class Importer implements Thread.UncaughtExceptionHandler {
               message = ERR_JEB_IMPORT_NO_WORKER_THREADS.get();
               throw new JebException(message);
             }
-            DN dn = DN.decode(new ASN1OctetString(key.getData()));
+            DN dn = DN.decode(ByteString.wrap(key.getData()));
             if(!context.getIncludeBranches().contains(dn)) {
               EntryID id = new EntryID(data);
               Entry entry =

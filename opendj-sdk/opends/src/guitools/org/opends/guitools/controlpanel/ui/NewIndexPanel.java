@@ -635,7 +635,7 @@ public class NewIndexPanel extends AbstractIndexPanel
           indexEntry.getObjectClassAttribute().iterator();
         while (it.hasNext())
         {
-          oc.add(it.next().getStringValue());
+          oc.add(it.next().getValue().toString());
         }
         attrs.put(oc);
 
@@ -647,7 +647,7 @@ public class NewIndexPanel extends AbstractIndexPanel
           it = odsAttr.iterator();
           while (it.hasNext())
           {
-            attr.add(it.next().getStringValue());
+            attr.add(it.next().getValue().toString());
           }
           attrs.put(attr);
         }

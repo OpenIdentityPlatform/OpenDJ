@@ -33,12 +33,7 @@ import org.opends.server.admin.std.server.Base64PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringFactory;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.util.Base64;
 
 import static org.opends.messages.ExtensionMessages.*;
@@ -103,10 +98,10 @@ public class Base64PasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString encodePassword(ByteString plaintext)
+  public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
   {
-    return ByteStringFactory.create(Base64.encode(plaintext.value()));
+    return ByteString.valueOf(Base64.encode(plaintext));
   }
 
 
@@ -115,16 +110,16 @@ public class Base64PasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString encodePasswordWithScheme(ByteString plaintext)
+  public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
   {
     StringBuilder buffer = new StringBuilder();
     buffer.append('{');
     buffer.append(STORAGE_SCHEME_NAME_BASE64);
     buffer.append('}');
-    buffer.append(Base64.encode(plaintext.value()));
+    buffer.append(Base64.encode(plaintext));
 
-    return ByteStringFactory.create(buffer.toString());
+    return ByteString.valueOf(buffer.toString());
   }
 
 
@@ -133,11 +128,11 @@ public class Base64PasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public boolean passwordMatches(ByteString plaintextPassword,
-                                 ByteString storedPassword)
+  public boolean passwordMatches(ByteSequence plaintextPassword,
+                                 ByteSequence storedPassword)
   {
-    String userString   = Base64.encode(plaintextPassword.value());
-    String storedString = storedPassword.stringValue();
+    String userString   = Base64.encode(plaintextPassword);
+    String storedString = storedPassword.toString();
     return userString.equals(storedString);
   }
 
@@ -158,13 +153,12 @@ public class Base64PasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString getPlaintextValue(ByteString storedPassword)
+  public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
   {
     try
     {
-      return ByteStringFactory.create(Base64.decode(
-                                           storedPassword.stringValue()));
+      return ByteString.wrap(Base64.decode(storedPassword.toString()));
     }
     catch (Exception e)
     {
@@ -174,7 +168,7 @@ public class Base64PasswordStorageScheme
       }
 
       Message message = ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(
-          storedPassword.stringValue(), String.valueOf(e));
+          storedPassword.toString(), String.valueOf(e));
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
                                    e);
     }
@@ -198,7 +192,7 @@ public class Base64PasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString encodeAuthPassword(ByteString plaintext)
+  public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
   {
     Message message =
@@ -212,7 +206,7 @@ public class Base64PasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public boolean authPasswordMatches(ByteString plaintextPassword,
+  public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
   {
     // This storage scheme does not support the authentication password syntax.

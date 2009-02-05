@@ -44,22 +44,7 @@ import org.opends.server.core.GroupManager;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.MemberList;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchScope;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.VirtualAttributeRule;
+import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
 
@@ -664,9 +649,9 @@ public class VirtualStaticGroupTestCase
     assertFalse(values.isEmpty());
     assertTrue(provider.hasValue(entry, rule));
     assertTrue(provider.hasValue(entry, rule,
-                    new AttributeValue(memberType, u1.toString())));
+        AttributeValues.create(memberType, u1.toString())));
     assertFalse(provider.hasValue(entry, rule,
-                    new AttributeValue(memberType, ne.toString())));
+        AttributeValues.create(memberType, ne.toString())));
     assertTrue(provider.hasAnyValue(entry, rule, values));
     assertFalse(provider.hasAnyValue(entry, rule,
                                      Collections.<AttributeValue>emptySet()));
@@ -743,9 +728,9 @@ public class VirtualStaticGroupTestCase
     assertTrue(values.isEmpty());
     assertFalse(provider.hasValue(entry, rule));
     assertFalse(provider.hasValue(entry, rule,
-                    new AttributeValue(memberType, u1.toString())));
+        AttributeValues.create(memberType, u1.toString())));
     assertFalse(provider.hasValue(entry, rule,
-                    new AttributeValue(memberType, ne.toString())));
+        AttributeValues.create(memberType, ne.toString())));
     assertFalse(provider.hasAnyValue(entry, rule, values));
     assertFalse(provider.hasAnyValue(entry, rule,
                                      Collections.<AttributeValue>emptySet()));
@@ -797,7 +782,7 @@ public class VirtualStaticGroupTestCase
     Attribute a = e.getAttribute(memberType).get(0);
     assertEquals(a.size(), 4);
 
-    AttributeValue v = new AttributeValue(memberType, u1.toString());
+    AttributeValue v = AttributeValues.create(memberType, u1.toString());
     assertTrue(a.contains(v));
 
     cleanUp();
@@ -827,7 +812,7 @@ public class VirtualStaticGroupTestCase
     Attribute a = e.getAttribute(memberType).get(0);
     assertEquals(a.size(), 1);
 
-    AttributeValue v = new AttributeValue(memberType, u4.toString());
+    AttributeValue v = AttributeValues.create(memberType, u4.toString());
     assertTrue(a.contains(v));
 
     InternalClientConnection conn =
@@ -869,7 +854,7 @@ public class VirtualStaticGroupTestCase
     Attribute a = e.getAttribute(memberType).get(0);
     assertEquals(a.size(), 1);
 
-    AttributeValue v = new AttributeValue(memberType, u4.toString());
+    AttributeValue v = AttributeValues.create(memberType, u4.toString());
     assertTrue(a.contains(v));
 
 
@@ -892,7 +877,7 @@ public class VirtualStaticGroupTestCase
     a = e.getAttribute(memberType).get(0);
     assertEquals(a.size(), 0);
 
-    v = new AttributeValue(memberType, u4.toString());
+    v = AttributeValues.create(memberType, u4.toString());
     assertTrue(a.contains(v));
 
 

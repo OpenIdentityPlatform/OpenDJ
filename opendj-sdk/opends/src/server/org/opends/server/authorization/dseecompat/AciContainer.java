@@ -27,22 +27,22 @@
 
 package org.opends.server.authorization.dseecompat;
 
+import org.opends.server.protocols.ldap.LDAPClientConnection;
 import org.opends.server.types.*;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.Group;
 import org.opends.server.core.AddOperationBasis;
-import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.extensions.TLSConnectionSecurityProvider;
 import org.opends.server.types.Operation;
 import java.net.InetAddress;
+import java.security.cert.Certificate;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.HashMap;
 
 import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.authorization.dseecompat.AciHandler.*;
-import org.opends.server.controls.GetEffectiveRights;
+import org.opends.server.controls.GetEffectiveRightsRequestControl;
 import static org.opends.server.util.ServerConstants.OID_GET_EFFECTIVE_RIGHTS;
 
 /**
@@ -287,8 +287,8 @@ implements AciTargetMatchContext, AciEvalContext {
       if(operation instanceof SearchOperation && (rights == ACI_READ)) {
         //Checks if a geteffectiverights control was sent and
         //sets up the structures needed.
-        GetEffectiveRights getEffectiveRightsControl =
-              (GetEffectiveRights)
+        GetEffectiveRightsRequestControl getEffectiveRightsControl =
+              (GetEffectiveRightsRequestControl)
                       operation.getAttachment(OID_GET_EFFECTIVE_RIGHTS);
         if(getEffectiveRightsControl != null) {
           hasGetEffectiveRightsControl=true;
@@ -835,15 +835,14 @@ implements AciTargetMatchContext, AciEvalContext {
              */
             if (authInfo.hasAuthenticationType(AuthenticationType.SASL) &&
                  authInfo.hasSASLMechanism(saslMech)) {
-              ConnectionSecurityProvider provider =
-                    clientConnection.getConnectionSecurityProvider();
-              if (provider instanceof TLSConnectionSecurityProvider) {
-                TLSConnectionSecurityProvider tlsProvider =
-                      (TLSConnectionSecurityProvider) provider;
-                 if (tlsProvider.getClientCertificateChain() != null) {
-                   matched = EnumEvalResult.TRUE;
-                 }
-              }
+
+                if(clientConnection instanceof LDAPClientConnection) {
+                    LDAPClientConnection lc =
+                                       (LDAPClientConnection) clientConnection;
+                    Certificate[] certChain = lc.getClientCertificateChain();
+                    if(certChain.length != 0)
+                        matched = EnumEvalResult.TRUE;
+                }
             }
           } else {
             // A particular SASL mechanism.
@@ -985,6 +984,6 @@ implements AciTargetMatchContext, AciEvalContext {
    * {@inheritDoc}
    */
   public int getCurrentSSF() {
-      return clientConnection.getConnectionSecurityProvider().getSSF();
+      return clientConnection.getSSF();
   }
 }

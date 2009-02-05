@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.internal;
 
@@ -30,16 +30,15 @@ package org.opends.server.protocols.internal;
 
 import java.io.OutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.io.InputStream;
+import java.util.List;
 
 import org.opends.messages.Message;
 import org.opends.server.core.*;
-import org.opends.server.protocols.asn1.ASN1Element;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.ldap.*;
-import org.opends.server.types.AuthenticationType;
-import org.opends.server.types.Control;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchResultReference;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -69,28 +68,126 @@ public final class InternalLDAPOutputStream
   // Indicates whether this stream has been closed.
   private boolean closed;
 
-  // Indicates whether the type of the ASN.1 element is needed.
-  private boolean needType;
-
-  // The BER type for the ASN.1 element being read.
-  private byte elementType;
-
-  // The data for the ASN.1 element being read.
-  private byte[] elementBytes;
-
-  // The length bytes for the ASN.1 element being read.
-  private byte[] lengthBytes;
-
-  // The offset in the appropriate array at which we should begin
-  // writing data.  This could either refer to the length or data
-  // array, depending on the stage of the encoding process.
-  private int arrayOffset;
+  private final ASN1Reader reader;
 
   // The internal LDAP socket with which this output stream is
   // associated.
-  private InternalLDAPSocket socket;
+  private final InternalLDAPSocket socket;
 
+  // The immediate data being written.
+  private ByteSequenceReader byteBuffer;
 
+  // The save buffer used to store any unprocessed data waiting
+  // to be read as ASN.1 elements. (Usually due to writing incomplete
+  // ASN.1 elements.)
+  private final ByteStringBuilder saveBuffer;
+
+  private final ByteSequenceReader saveBufferReader;
+
+  /**
+   * An adaptor class for reading from a save buffer and the bytes
+   * being written sequentially using the InputStream interface.
+   *
+   * Since the bytes being written are only available duing the write
+   * call, any unused data will be appended to the save buffer before
+   * returning from the write method. This reader will always read the
+   * save buffer first before the actual bytes being written to ensure
+   * bytes are read in the same order as they are written.
+   */
+  private class CombinedBufferInputStream extends InputStream
+  {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int available()
+    {
+      // The number of available bytes is the sum of the save buffer
+      // and the last read data in the NIO ByteStringBuilder.
+      return saveBufferReader.remaining() + byteBuffer.remaining();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int read()
+    {
+      if(saveBufferReader.remaining() > 0)
+      {
+        // Try saved buffer first
+        return 0xFF & saveBufferReader.get();
+      }
+      if(byteBuffer.remaining() > 0)
+      {
+        // Must still be on the channel buffer
+        return 0xFF & byteBuffer.get();
+      }
+
+      return -1;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int read(byte[] bytes)
+    {
+      return read(bytes, 0, bytes.length);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int read(byte[] value, int off, int length)
+    {
+      int bytesCopied=0;
+      int len;
+      if(saveBufferReader.remaining() > 0)
+      {
+        // Copy out of the last saved buffer first
+        len = Math.min(saveBufferReader.remaining(), length);
+        saveBufferReader.get(value, off, len);
+        bytesCopied += len;
+      }
+      if(bytesCopied < length && byteBuffer.remaining() > 0)
+      {
+        // Copy out of the channel buffer if we haven't got
+        // everything we needed.
+        len = Math.min(byteBuffer.remaining(), length - bytesCopied);
+        byteBuffer.get(value, off + bytesCopied, len);
+        bytesCopied += len;
+      }
+      return bytesCopied;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long skip(long length)
+    {
+      int bytesSkipped=0;
+      int len;
+      if(saveBufferReader.remaining() > 0)
+      {
+        // Skip in the last saved buffer first
+        len = Math.min(saveBufferReader.remaining(), (int)length);
+        saveBufferReader.position(saveBufferReader.position() + len);
+        bytesSkipped += len;
+      }
+      if(bytesSkipped < length && byteBuffer.remaining() > 0)
+      {
+        //Skip in the channel buffer if we haven't skipped enough.
+        len = Math.min(byteBuffer.remaining(),
+            (int)length - bytesSkipped);
+        byteBuffer.position(byteBuffer.position() + len);
+        bytesSkipped += len;
+      }
+      return bytesSkipped;
+    }
+  }
 
   /**
    * Creates a new instance of an internal LDAP output stream that is
@@ -102,14 +199,13 @@ public final class InternalLDAPOutputStream
   public InternalLDAPOutputStream(InternalLDAPSocket socket)
   {
     this.socket = socket;
+    this.closed = false;
+    this.saveBuffer = new ByteStringBuilder();
+    this.saveBufferReader = saveBuffer.asReader();
 
-    closed = false;
-
-    needType = true;
-    elementType = 0x00;
-    elementBytes = null;
-    lengthBytes = null;
-    arrayOffset = 0;
+    CombinedBufferInputStream bufferStream =
+        new CombinedBufferInputStream();
+    this.reader = ASN1.getReader(bufferStream);
   }
 
 
@@ -199,125 +295,32 @@ public final class InternalLDAPOutputStream
       throw new IOException(m.toString());
     }
 
-    if (len == 0)
+    byteBuffer = ByteString.wrap(b, off, len).asReader();
+
+    try
     {
-      return;
-    }
-
-
-    // See if we need to read the BER type.
-    int position  = off;
-    int remaining = len;
-    if (needType)
-    {
-      elementType = b[position++];
-      needType = false;
-
-      if (--remaining <= 0)
+      while(reader.elementAvailable())
       {
-        return;
+        LDAPMessage msg = LDAPReader.readMessage(reader);
+        processMessage(msg);
       }
     }
-
-
-    // See if we need to read the first length byte.
-    if ((lengthBytes == null) && (elementBytes == null))
+    catch(Exception e)
     {
-      int length = b[position++];
-      if (length == (length & 0x7F))
-      {
-        // It's a single-byte length, so we can create the value
-        // array.
-        elementBytes = new byte[length];
-      }
-      else
-      {
-        // It's a multi-byte length, so we can create the length
-        // array.
-        lengthBytes = new byte[length & 0x7F];
-      }
-
-      arrayOffset = 0;
-      if (--remaining <= 0)
-      {
-        return;
-      }
+      throw new IOException(e.getMessage());
     }
 
-
-    // See if we need to continue reading part of a multi-byte length.
-    if (lengthBytes != null)
+    // Clear the save buffer if we have read all of it
+    if(saveBufferReader.remaining() == 0)
     {
-      // See if we have enough to read the full length.  If so, then
-      // do it.  Otherwise, read what we can and return.
-      int needed = lengthBytes.length - arrayOffset;
-      if (remaining >= needed)
-      {
-        System.arraycopy(b, position, lengthBytes, arrayOffset,
-                         needed);
-        position += needed;
-        remaining -= needed;
-
-        int length = 0;
-        for (byte lb : lengthBytes)
-        {
-          length <<= 8;
-          length |= (lb & 0xFF);
-        }
-
-        elementBytes = new byte[length];
-        lengthBytes = null;
-        arrayOffset = 0;
-        if (remaining <= 0)
-        {
-          return;
-        }
-      }
-      else
-      {
-        System.arraycopy(b, position, lengthBytes, arrayOffset,
-                         remaining);
-        arrayOffset += remaining;
-        return;
-      }
+      saveBuffer.clear();
+      saveBufferReader.rewind();
     }
 
-
-    // See if we need to read data for the element value.
-    if (elementBytes != null)
+    // Append any unused data in the channel buffer to the save buffer
+    if(byteBuffer.remaining() > 0)
     {
-      // See if we have enough to read the full value.  If so, then
-      // do it, create the element, and process it.  Otherwise, read
-      // what we can and return.
-      int needed = elementBytes.length - arrayOffset;
-      if (remaining >= needed)
-      {
-        System.arraycopy(b, position, elementBytes, arrayOffset,
-                         needed);
-        position += needed;
-        remaining -= needed;
-        processElement(new ASN1Element(elementType, elementBytes));
-
-        needType     = true;
-        arrayOffset  = 0;
-        lengthBytes  = null;
-        elementBytes = null;
-      }
-      else
-      {
-        System.arraycopy(b, position, lengthBytes, arrayOffset,
-                         remaining);
-        arrayOffset += remaining;
-        return;
-      }
-    }
-
-
-    // If there is still more data available, then call this method
-    // again to process it.
-    if (remaining > 0)
-    {
-      write(b, position, remaining);
+      saveBuffer.append(byteBuffer, byteBuffer.remaining());
     }
   }
 
@@ -339,73 +342,7 @@ public final class InternalLDAPOutputStream
   public synchronized void write(int b)
          throws IOException
   {
-    if (closed)
-    {
-      Message m = ERR_INTERNALOS_CLOSED.get();
-      throw new IOException(m.toString());
-    }
-
-    if (needType)
-    {
-      elementType = (byte) (b & 0xFF);
-      needType = false;
-      return;
-    }
-    else if (elementBytes != null)
-    {
-      // The byte should be part of the element value.
-      elementBytes[arrayOffset++] = (byte) (b & 0xFF);
-      if (arrayOffset == elementBytes.length)
-      {
-        // The element has been completed, so process it.
-        processElement(new ASN1Element(elementType, elementBytes));
-      }
-
-      lengthBytes  = null;
-      elementBytes = null;
-      arrayOffset  = 0;
-      needType     = true;
-
-      return;
-    }
-    else if (lengthBytes != null)
-    {
-      // The byte should be part of a multi-byte length.
-      lengthBytes[arrayOffset++] = (byte) (b & 0xFF);
-      if (arrayOffset == lengthBytes.length)
-      {
-        int length = 0;
-        for (int i=0; i < lengthBytes.length; i++)
-        {
-          length <<= 8;
-          length |= (lengthBytes[i] & 0xFF);
-        }
-
-        elementBytes = new byte[length];
-        lengthBytes  = null;
-        arrayOffset   = 0;
-      }
-
-      return;
-    }
-    else
-    {
-      if ((b & 0x7F) == b)
-      {
-        // It's the complete length.
-        elementBytes = new byte[b];
-        lengthBytes  = null;
-        arrayOffset = 0;
-      }
-      else
-      {
-        lengthBytes  = new byte[b & 0x7F];
-        elementBytes = null;
-        arrayOffset  = 0;
-      }
-
-      return;
-    }
+    write(new byte[]{(byte)b}, 0, 1);
   }
 
 
@@ -416,25 +353,15 @@ public final class InternalLDAPOutputStream
    * the appropriate response message(s) to the client through the
    * corresponding internal LDAP input stream.
    *
-   * @param  element  The ASN.1 element to be processed.
+   * @param  message The LDAP message to process.
    *
    * @throws  IOException  If a problem occurs while attempting to
    *                       decode the provided ASN.1 element as an
    *                       LDAP message.
    */
-  private void processElement(ASN1Element element)
+  private void processMessage(LDAPMessage message)
           throws IOException
   {
-    LDAPMessage message;
-    try
-    {
-      message = LDAPMessage.decode(element.decodeAsSequence());
-    }
-    catch (Exception e)
-    {
-      throw new IOException(e.getMessage());
-    }
-
     switch (message.getProtocolOpType())
     {
       case OP_TYPE_ABANDON_REQUEST:
@@ -509,19 +436,10 @@ public final class InternalLDAPOutputStream
     int messageID = message.getMessageID();
     AddRequestProtocolOp request = message.getAddRequestProtocolOp();
 
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    if (message.getControls() != null)
-    {
-      for (LDAPControl c : message.getControls())
-      {
-        requestControls.add(c.getControl());
-      }
-    }
-
     InternalClientConnection conn = socket.getConnection();
     AddOperationBasis op =
          new AddOperationBasis(conn, conn.nextOperationID(),
-                               messageID, requestControls,
+                               messageID, message.getControls(),
                                request.getDN(),
                                request.getAttributes());
     op.run();
@@ -531,12 +449,7 @@ public final class InternalLDAPOutputStream
                                    op.getErrorMessage().toMessage(),
                                    op.getMatchedDN(),
                                    op.getReferralURLs());
-    ArrayList<LDAPControl> responseControls =
-         new ArrayList<LDAPControl>();
-    for (Control c : op.getResponseControls())
-    {
-      responseControls.add(new LDAPControl(c));
-    }
+    List<Control> responseControls = op.getResponseControls();
 
     socket.getInputStream().addLDAPMessage(
          new LDAPMessage(messageID, addResponse, responseControls));
@@ -572,19 +485,10 @@ public final class InternalLDAPOutputStream
       return;
     }
 
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    if (message.getControls() != null)
-    {
-      for (LDAPControl c : message.getControls())
-      {
-        requestControls.add(c.getControl());
-      }
-    }
-
     InternalClientConnection conn = socket.getConnection();
     BindOperationBasis op =
          new BindOperationBasis(conn, conn.nextOperationID(),
-                  messageID, requestControls,
+                  messageID, message.getControls(),
                   String.valueOf(request.getProtocolVersion()),
                   request.getDN(), request.getSimplePassword());
     op.run();
@@ -594,12 +498,7 @@ public final class InternalLDAPOutputStream
                                     op.getErrorMessage().toMessage(),
                                     op.getMatchedDN(),
                                     op.getReferralURLs());
-    ArrayList<LDAPControl> responseControls =
-         new ArrayList<LDAPControl>();
-    for (Control c : op.getResponseControls())
-    {
-      responseControls.add(new LDAPControl(c));
-    }
+    List<Control> responseControls = op.getResponseControls();
 
     if (bindResponse.getResultCode() == LDAPResultCode.SUCCESS)
     {
@@ -630,19 +529,10 @@ public final class InternalLDAPOutputStream
     CompareRequestProtocolOp request =
          message.getCompareRequestProtocolOp();
 
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    if (message.getControls() != null)
-    {
-      for (LDAPControl c : message.getControls())
-      {
-        requestControls.add(c.getControl());
-      }
-    }
-
     InternalClientConnection conn = socket.getConnection();
     CompareOperationBasis op =
          new CompareOperationBasis(conn, conn.nextOperationID(),
-                  messageID, requestControls, request.getDN(),
+                  messageID, message.getControls(), request.getDN(),
                   request.getAttributeType(),
                   request.getAssertionValue());
     op.run();
@@ -653,12 +543,7 @@ public final class InternalLDAPOutputStream
                   op.getErrorMessage().toMessage(),
                   op.getMatchedDN(),
                   op.getReferralURLs());
-    ArrayList<LDAPControl> responseControls =
-         new ArrayList<LDAPControl>();
-    for (Control c : op.getResponseControls())
-    {
-      responseControls.add(new LDAPControl(c));
-    }
+    List<Control> responseControls = op.getResponseControls();
 
     socket.getInputStream().addLDAPMessage(
          new LDAPMessage(messageID, compareResponse,
@@ -684,19 +569,10 @@ public final class InternalLDAPOutputStream
     DeleteRequestProtocolOp request =
          message.getDeleteRequestProtocolOp();
 
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    if (message.getControls() != null)
-    {
-      for (LDAPControl c : message.getControls())
-      {
-        requestControls.add(c.getControl());
-      }
-    }
-
     InternalClientConnection conn = socket.getConnection();
     DeleteOperationBasis op =
          new DeleteOperationBasis(conn, conn.nextOperationID(),
-                  messageID, requestControls, request.getDN());
+                  messageID, message.getControls(), request.getDN());
     op.run();
 
     DeleteResponseProtocolOp deleteResponse =
@@ -705,12 +581,7 @@ public final class InternalLDAPOutputStream
                   op.getErrorMessage().toMessage(),
                   op.getMatchedDN(),
                   op.getReferralURLs());
-    ArrayList<LDAPControl> responseControls =
-         new ArrayList<LDAPControl>();
-    for (Control c : op.getResponseControls())
-    {
-      responseControls.add(new LDAPControl(c));
-    }
+    List<Control> responseControls = op.getResponseControls();
 
     socket.getInputStream().addLDAPMessage(
          new LDAPMessage(messageID, deleteResponse,
@@ -746,19 +617,10 @@ public final class InternalLDAPOutputStream
       return;
     }
 
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    if (message.getControls() != null)
-    {
-      for (LDAPControl c : message.getControls())
-      {
-        requestControls.add(c.getControl());
-      }
-    }
-
     InternalClientConnection conn = socket.getConnection();
     ExtendedOperationBasis op =
          new ExtendedOperationBasis(conn, conn.nextOperationID(),
-                  messageID, requestControls, request.getOID(),
+                  messageID, message.getControls(), request.getOID(),
                   request.getValue());
     op.run();
 
@@ -769,12 +631,7 @@ public final class InternalLDAPOutputStream
                   op.getMatchedDN(),
                   op.getReferralURLs(), op.getResponseOID(),
                   op.getResponseValue());
-    ArrayList<LDAPControl> responseControls =
-         new ArrayList<LDAPControl>();
-    for (Control c : op.getResponseControls())
-    {
-      responseControls.add(new LDAPControl(c));
-    }
+    List<Control> responseControls = op.getResponseControls();
 
     socket.getInputStream().addLDAPMessage(
          new LDAPMessage(messageID, extendedResponse,
@@ -800,19 +657,10 @@ public final class InternalLDAPOutputStream
     ModifyRequestProtocolOp request =
          message.getModifyRequestProtocolOp();
 
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    if (message.getControls() != null)
-    {
-      for (LDAPControl c : message.getControls())
-      {
-        requestControls.add(c.getControl());
-      }
-    }
-
     InternalClientConnection conn = socket.getConnection();
     ModifyOperationBasis op =
          new ModifyOperationBasis(conn, conn.nextOperationID(),
-                  messageID, requestControls, request.getDN(),
+                  messageID, message.getControls(), request.getDN(),
                   request.getModifications());
     op.run();
 
@@ -822,12 +670,7 @@ public final class InternalLDAPOutputStream
                   op.getErrorMessage().toMessage(),
                   op.getMatchedDN(),
                   op.getReferralURLs());
-    ArrayList<LDAPControl> responseControls =
-         new ArrayList<LDAPControl>();
-    for (Control c : op.getResponseControls())
-    {
-      responseControls.add(new LDAPControl(c));
-    }
+    List<Control> responseControls = op.getResponseControls();
 
     socket.getInputStream().addLDAPMessage(
          new LDAPMessage(messageID, modifyResponse,
@@ -853,21 +696,12 @@ public final class InternalLDAPOutputStream
     ModifyDNRequestProtocolOp request =
          message.getModifyDNRequestProtocolOp();
 
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    if (message.getControls() != null)
-    {
-      for (LDAPControl c : message.getControls())
-      {
-        requestControls.add(c.getControl());
-      }
-    }
-
     InternalClientConnection conn = socket.getConnection();
     ModifyDNOperationBasis op =
          new ModifyDNOperationBasis(conn, conn.nextOperationID(),
-                  messageID, requestControls, request.getEntryDN(),
-                  request.getNewRDN(), request.deleteOldRDN(),
-                  request.getNewSuperior());
+               messageID, message.getControls(), request.getEntryDN(),
+               request.getNewRDN(), request.deleteOldRDN(),
+               request.getNewSuperior());
     op.run();
 
     ModifyDNResponseProtocolOp modifyDNResponse =
@@ -876,12 +710,7 @@ public final class InternalLDAPOutputStream
                   op.getErrorMessage().toMessage(),
                   op.getMatchedDN(),
                   op.getReferralURLs());
-    ArrayList<LDAPControl> responseControls =
-         new ArrayList<LDAPControl>();
-    for (Control c : op.getResponseControls())
-    {
-      responseControls.add(new LDAPControl(c));
-    }
+    List<Control> responseControls = op.getResponseControls();
 
     socket.getInputStream().addLDAPMessage(
          new LDAPMessage(messageID, modifyDNResponse,
@@ -907,23 +736,14 @@ public final class InternalLDAPOutputStream
     SearchRequestProtocolOp request =
          message.getSearchRequestProtocolOp();
 
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    if (message.getControls() != null)
-    {
-      for (LDAPControl c : message.getControls())
-      {
-        requestControls.add(c.getControl());
-      }
-    }
-
     InternalClientConnection conn = socket.getConnection();
     InternalSearchOperation op =
          new InternalSearchOperation(conn, conn.nextOperationID(),
-                  messageID, requestControls, request.getBaseDN(),
-                  request.getScope(), request.getDereferencePolicy(),
-                  request.getSizeLimit(), request.getTimeLimit(),
-                  request.getTypesOnly(), request.getFilter(),
-                  request.getAttributes(), this);
+                messageID, message.getControls(), request.getBaseDN(),
+                request.getScope(), request.getDereferencePolicy(),
+                request.getSizeLimit(), request.getTimeLimit(),
+                request.getTypesOnly(), request.getFilter(),
+                request.getAttributes(), this);
     op.run();
 
     SearchResultDoneProtocolOp searchDone =
@@ -932,12 +752,7 @@ public final class InternalLDAPOutputStream
                   op.getErrorMessage().toMessage(),
                   op.getMatchedDN(),
                   op.getReferralURLs());
-    ArrayList<LDAPControl> responseControls =
-         new ArrayList<LDAPControl>();
-    for (Control c : op.getResponseControls())
-    {
-      responseControls.add(new LDAPControl(c));
-    }
+    List<Control> responseControls = op.getResponseControls();
 
     socket.getInputStream().addLDAPMessage(
          new LDAPMessage(messageID, searchDone, responseControls));
@@ -963,12 +778,7 @@ public final class InternalLDAPOutputStream
                    InternalSearchOperation searchOperation,
                    SearchResultEntry searchEntry)
   {
-    ArrayList<LDAPControl> entryControls =
-         new ArrayList<LDAPControl>();
-    for (Control c : searchEntry.getControls())
-    {
-      entryControls.add(new LDAPControl(c));
-    }
+    List<Control> entryControls = searchEntry.getControls();
 
     SearchResultEntryProtocolOp entry =
          new SearchResultEntryProtocolOp(searchEntry);
@@ -998,12 +808,7 @@ public final class InternalLDAPOutputStream
                    InternalSearchOperation searchOperation,
                    SearchResultReference searchReference)
   {
-    ArrayList<LDAPControl> entryControls =
-         new ArrayList<LDAPControl>();
-    for (Control c : searchReference.getControls())
-    {
-      entryControls.add(new LDAPControl(c));
-    }
+    List<Control> entryControls = searchReference.getControls();
 
     SearchResultReferenceProtocolOp reference =
          new SearchResultReferenceProtocolOp(searchReference);

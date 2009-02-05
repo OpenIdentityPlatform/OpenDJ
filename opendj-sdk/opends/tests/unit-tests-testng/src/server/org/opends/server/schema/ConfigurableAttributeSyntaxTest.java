@@ -37,12 +37,11 @@ import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.TelephoneNumberAttributeSyntaxCfgDefn;
 import org.opends.server.admin.std.server.TelephoneNumberAttributeSyntaxCfg;
-import org.opends.server.api.AttributeSyntax;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.ByteString;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -128,7 +127,7 @@ public class ConfigurableAttributeSyntaxTest extends SchemaTestCase
 
     // check the syntax of the given value.
     Boolean liveResult = syntax.valueIsAcceptable(
-        new ASN1OctetString(value), new MessageBuilder());
+        ByteString.valueOf(value), new MessageBuilder());
     assertEquals(result, liveResult);
 
     // call the getters to increase code coverage...

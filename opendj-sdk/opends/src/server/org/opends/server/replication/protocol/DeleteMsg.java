@@ -32,10 +32,10 @@ import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.core.DeleteOperationBasis;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.types.AbstractOperation;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
 
 /**
@@ -51,7 +51,7 @@ public class DeleteMsg extends LDAPUpdateMsg
   public DeleteMsg(PostOperationDeleteOperation operation)
   {
     super((OperationContext) operation.getAttachment(SYNCHROCONTEXT),
-           operation.getRawEntryDN().stringValue());
+           operation.getRawEntryDN().toString());
   }
 
   /**
@@ -94,7 +94,7 @@ public class DeleteMsg extends LDAPUpdateMsg
     DeleteOperationBasis del =  new DeleteOperationBasis(connection,
                                InternalClientConnection.nextOperationID(),
                                InternalClientConnection.nextMessageID(), null,
-                               new ASN1OctetString(newDn));
+        ByteString.valueOf(newDn));
     DeleteContext ctx = new DeleteContext(getChangeNumber(), getUniqueId());
     del.setAttachment(SYNCHROCONTEXT, ctx);
     return del;

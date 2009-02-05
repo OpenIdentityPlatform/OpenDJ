@@ -273,13 +273,13 @@ public class PatternRDN
         // Handle this just like a substring filter.
 
         ByteString subInitial = pattern.get(0);
-        if (subInitial.value().length == 0)
+        if (subInitial.length() == 0)
         {
           subInitial = null;
         }
 
         ByteString subFinal = pattern.get(pattern.size() - 1);
-        if (subFinal.value().length == 0)
+        if (subFinal.length() == 0)
         {
           subFinal = null;
         }
@@ -308,7 +308,8 @@ public class PatternRDN
       }
       else
       {
-        ByteString thisNormValue = type.normalize(pattern.get(0));
+        ByteString thisNormValue =
+            type.getEqualityMatchingRule().normalizeValue(pattern.get(0));
         ByteString thatNormValue = value.getNormalizedValue();
         EqualityMatchingRule mr = type.getEqualityMatchingRule();
         return mr.areEqual(thisNormValue, thatNormValue);

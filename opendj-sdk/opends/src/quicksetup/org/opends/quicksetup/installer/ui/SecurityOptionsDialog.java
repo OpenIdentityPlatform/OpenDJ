@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -129,6 +129,7 @@ public class SecurityOptionsDialog extends JDialog
 
     addWindowListener(new WindowAdapter()
     {
+      @Override
       public void windowClosing(WindowEvent e)
       {
         cancelClicked();
@@ -664,6 +665,7 @@ public class SecurityOptionsDialog extends JDialog
   {
     BackgroundTask worker = new BackgroundTask()
     {
+      @Override
       public Object processBackgroundTask()
       {
         ArrayList<Message> errorMsgs = new ArrayList<Message>();
@@ -675,6 +677,7 @@ public class SecurityOptionsDialog extends JDialog
         return errorMsgs;
       }
 
+      @Override
       public void backgroundTaskCompleted(Object returnValue,
           Throwable throwable)
       {

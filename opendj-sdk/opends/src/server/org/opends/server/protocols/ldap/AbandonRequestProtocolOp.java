@@ -25,22 +25,17 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
 
 
 
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Integer;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
+import org.opends.server.protocols.asn1.ASN1Writer;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 
+import java.io.IOException;
 
 
 /**
@@ -87,18 +82,6 @@ public class AbandonRequestProtocolOp
 
 
   /**
-   * Specifies the message ID of the operation to abandon.
-   *
-   * @param  idToAbandon  The message ID of the operation to abandon.
-   */
-  public void setIDToAbandon(int idToAbandon)
-  {
-    this.idToAbandon = idToAbandon;
-  }
-
-
-
-  /**
    * Retrieves the BER type for this protocol op.
    *
    * @return  The BER type for this protocol op.
@@ -120,55 +103,16 @@ public class AbandonRequestProtocolOp
     return "Abandon Request";
   }
 
-
-
   /**
-   * Encodes this protocol op to an ASN.1 element suitable for including in an
-   * LDAP message.
+   * Writes this protocol op to an ASN.1 output stream.
    *
-   * @return  The ASN.1 element containing the encoded protocol op.
+   * @param stream The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public ASN1Element encode()
+  public void write(ASN1Writer stream) throws IOException
   {
-    return new ASN1Integer(OP_TYPE_ABANDON_REQUEST, idToAbandon);
+    stream.writeInteger(OP_TYPE_ABANDON_REQUEST, idToAbandon);
   }
-
-
-
-  /**
-   * Decodes the provided ASN.1 element as an abandon request protocol op.
-   *
-   * @param  element  The ASN.1 element to decode.
-   *
-   * @return  The decoded abandon request protocol op.
-   *
-   * @throws  LDAPException  If the provided ASN.1 element cannot be decoded as
-   *                         an abandon request protocol op.
-   */
-  public static AbandonRequestProtocolOp decodeAbandonRequest(ASN1Element
-                                                                   element)
-         throws LDAPException
-  {
-    int idToAbandon;
-    try
-    {
-      idToAbandon = element.decodeAsInteger().intValue();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_ABANDON_REQUEST_DECODE_ID.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-    return new AbandonRequestProtocolOp(idToAbandon);
-  }
-
 
 
   /**

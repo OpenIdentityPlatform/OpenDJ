@@ -22,12 +22,11 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers.debug;
 
 import org.opends.server.api.DebugLogPublisher;
-import org.opends.server.api.ProtocolElement;
 import org.opends.server.types.DebugLogCategory;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.loggers.LogLevel;
@@ -1001,11 +1000,11 @@ public class DebugTracer
    * Log a protocol element.
    *
    * @param level the level of the log message.
-   * @param element the protocol element to dump.
+   * @param elementStr the string representation of protocol element.
    */
-  public void debugProtocolElement(LogLevel level, ProtocolElement element)
+  public void debugProtocolElement(LogLevel level, String elementStr)
   {
-    if(DebugLogger.debugEnabled() && element != null)
+    if(DebugLogger.debugEnabled() && elementStr != null)
     {
       StackTraceElement[] stackTrace = null;
       StackTraceElement[] filteredStackTrace = null;
@@ -1073,7 +1072,8 @@ public class DebugTracer
           }
 
           settings.debugPublisher.traceProtocolElement(level, activeSettings,
-                                                       signature, sl, element,
+                                                       signature, sl,
+                                                       elementStr,
                                                        filteredStackTrace);
         }
       }

@@ -30,13 +30,7 @@ package org.opends.server.types.operation;
 
 import java.util.LinkedHashSet;
 
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DN;
-import org.opends.server.types.RawFilter;
-import org.opends.server.types.SearchScope;
-import org.opends.server.types.SearchFilter;
-
+import org.opends.server.types.*;
 
 
 /**

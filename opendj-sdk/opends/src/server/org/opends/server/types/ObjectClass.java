@@ -314,7 +314,7 @@ public final class ObjectClass
   public ObjectClass recreateFromDefinition()
          throws DirectoryException
   {
-    ByteString value  = ByteStringFactory.create(definition);
+    ByteString value  = ByteString.valueOf(definition);
     Schema     schema = DirectoryConfig.getSchema();
 
     ObjectClass oc = ObjectClassSyntax.decodeObjectClass(value,

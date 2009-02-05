@@ -40,12 +40,7 @@ import org.opends.server.admin.std.server.CharacterSetPasswordValidatorCfg;
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.config.ConfigException;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryConfig;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
 import org.opends.messages.MessageBuilder;
@@ -127,7 +122,7 @@ public class CharacterSetPasswordValidator
 
 
     // Process the provided password.
-    String password = newPassword.stringValue();
+    String password = newPassword.toString();
     HashMap<String,Integer> counts = new HashMap<String,Integer>();
     for (int i=0; i < password.length(); i++)
     {

@@ -30,7 +30,6 @@ import static org.testng.Assert.*;
 
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
@@ -66,9 +65,9 @@ public abstract class OrderingMatchingRuleTest extends SchemaTestCase
     // ruleInstance.initializeMatchingRule(configEntry);
 
     ByteString normalizedValue1 =
-      ruleInstance.normalizeValue(new ASN1OctetString(value1));
+      ruleInstance.normalizeValue(ByteString.valueOf(value1));
     ByteString normalizedValue2 =
-      ruleInstance.normalizeValue(new ASN1OctetString(value2));
+      ruleInstance.normalizeValue(ByteString.valueOf(value2));
     int res = ruleInstance.compareValues(normalizedValue1, normalizedValue2);
     if (result == 0)
     {
@@ -125,7 +124,7 @@ public abstract class OrderingMatchingRuleTest extends SchemaTestCase
     // normalize the 2 provided values
     try
     {
-      ruleInstance.normalizeValue(new ASN1OctetString(value));
+      ruleInstance.normalizeValue(ByteString.valueOf(value));
     } catch (DirectoryException e) {
       // that's the expected path : the matching rule has detected that
       // the value is incorrect.
@@ -152,7 +151,7 @@ public abstract class OrderingMatchingRuleTest extends SchemaTestCase
     // normalize the 2 provided values
     try
     {
-      ruleInstance.normalizeValue(new ASN1OctetString(value));
+      ruleInstance.normalizeValue(ByteString.valueOf(value));
     } catch (Exception e)
     {
       fail(ruleInstance + " in warn mode should not reject value " + value + e);

@@ -382,7 +382,7 @@ public final class ResourceLimitsPolicyFactory implements
         ByteString subInitialElement = filter.getSubInitialElement();
         if (subInitialElement != null)
         {
-          length += subInitialElement.stringValue().length();
+          length += subInitialElement.length();
         }
         ArrayList<ByteString> subAnyElements =
             filter.getSubAnyElements();
@@ -390,13 +390,13 @@ public final class ResourceLimitsPolicyFactory implements
         {
           for (ByteString element : subAnyElements)
           {
-            length += element.stringValue().length();
+            length += element.length();
           }
         }
         ByteString subFinalElement = filter.getSubFinalElement();
         if (subFinalElement != null)
         {
-          length += subFinalElement.stringValue().length();
+          length += subFinalElement.length();
         }
         return length >= minSearchSubstringLength;
       default:

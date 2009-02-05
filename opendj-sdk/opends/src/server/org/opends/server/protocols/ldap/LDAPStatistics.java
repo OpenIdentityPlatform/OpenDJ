@@ -28,62 +28,52 @@ package org.opends.server.protocols.ldap;
 
 
 
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.types.OperationType.*;
+
 import java.util.ArrayList;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.monitors.ClientConnectionMonitorProvider;
 import org.opends.server.monitors.OperationMonitor;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DebugLogLevel;
-
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.types.OperationType.*;
+import org.opends.server.types.AttributeValues;
 
 
 
 /**
- * This class defines a data structure that will be used to keep track of
- * various metrics related to LDAP communication that the server has conducted.
- * The statistics that will be tracked include:
- *
+ * This class defines a data structure that will be used to keep track
+ * of various metrics related to LDAP communication that the server has
+ * conducted. The statistics that will be tracked include:
  * <UL>
- *   <LI>The total number of LDAP client connections accepted by the
- *       server.</LI>
- *   <LI>The total number of LDAP client connections that have been closed.</LI>
- *   <LI>The total number of LDAP messages read, both overall and broken down
- *       by message type.</LI>
- *   <LI>The total number of LDAP messages written, both overall and broken down
- *       by message type.</LI>
- *   <LI>The total number of bytes read from LDAP clients.</LI>
- *   <LI>The total number of bytes written to LDAP clients.</LI>
+ * <LI>The total number of LDAP client connections accepted by the
+ * server.</LI>
+ * <LI>The total number of LDAP client connections that have been
+ * closed.</LI>
+ * <LI>The total number of LDAP messages read, both overall and broken
+ * down by message type.</LI>
+ * <LI>The total number of LDAP messages written, both overall and
+ * broken down by message type.</LI>
+ * <LI>The total number of bytes read from LDAP clients.</LI>
+ * <LI>The total number of bytes written to LDAP clients.</LI>
  * </UL>
- *
- * <BR><BR>
- * This class may also be used in a hierarchical form if it is desirable to
- * get specific and general statistics at the same time (e.g., information
- * about the interaction with a specific client or aggregated for all clients).
+ * <BR>
+ * <BR>
+ * This class may also be used in a hierarchical form if it is desirable
+ * to get specific and general statistics at the same time (e.g.,
+ * information about the interaction with a specific client or
+ * aggregated for all clients).
  */
-public class LDAPStatistics
-       extends MonitorProvider<MonitorProviderCfg>
+public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
-
 
   // The statistics maintained by this class.
   private long abandonRequests;
@@ -116,57 +106,58 @@ public class LDAPStatistics
   private long searchResultsDone;
   private long unbindRequests;
 
-  // The parent that should also be updated whenever statistics in this object
-  // are updated.
-  private LDAPStatistics parent;
+  // The parent that should also be updated whenever statistics in this
+  // object are updated.
+  private final LDAPStatistics parent;
 
-  // The locks used to provide threadsafe access to this class.  In this case,
-  // read and write refer to the type of LDAP communication, not access to the
-  // protected data.
-  private Object abandonLock;
-  private Object connectLock;
-  private Object disconnectLock;
-  private Object readLock;
-  private Object writeLock;
+  // The locks used to provide threadsafe access to this class. In this
+  // case, read and write refer to the type of LDAP communication, not
+  // access to the protected data.
+  private final Object abandonLock;
+  private final Object connectLock;
+  private final Object disconnectLock;
+  private final Object readLock;
+  private final Object writeLock;
 
   // The instance name for this monitor provider instance.
-  private String instanceName;
+  private final String instanceName;
 
   // Connection Handler to which the statistics belong to.
-  private ConnectionHandler handler;
+  private final ConnectionHandler handler;
 
+  // Monitor Objects : for Operations.
+  private final OperationMonitor addRequestsMonitor =
+      OperationMonitor.getOperationMonitor(ADD);
+  private final OperationMonitor searchRequestsMonitor =
+      OperationMonitor.getOperationMonitor(SEARCH);
+  private final OperationMonitor delRequestsMonitor =
+      OperationMonitor.getOperationMonitor(DELETE);
+  private final OperationMonitor bindRequestsMonitor =
+      OperationMonitor.getOperationMonitor(BIND);
+  private final OperationMonitor unbindRequestsMonitor =
+      OperationMonitor.getOperationMonitor(UNBIND);
+  private final OperationMonitor compareRequestsMonitor =
+      OperationMonitor.getOperationMonitor(COMPARE);
+  private final OperationMonitor modRequestsMonitor =
+      OperationMonitor.getOperationMonitor(MODIFY);
+  private final OperationMonitor moddnRequestsMonitor =
+      OperationMonitor.getOperationMonitor(MODIFY);
+  private final OperationMonitor abandonRequestsMonitor =
+      OperationMonitor.getOperationMonitor(ABANDON);
+  private final OperationMonitor extendedRequestsMonitor =
+      OperationMonitor.getOperationMonitor(EXTENDED);
 
-    // Monitor Objects : for Operations.
-    private OperationMonitor addRequestsMonitor =
-            OperationMonitor.getOperationMonitor(ADD);
-    private OperationMonitor searchRequestsMonitor =
-            OperationMonitor.getOperationMonitor(SEARCH);
-    private OperationMonitor delRequestsMonitor =
-            OperationMonitor.getOperationMonitor(DELETE);
-    private OperationMonitor bindRequestsMonitor =
-            OperationMonitor.getOperationMonitor(BIND);
-    private OperationMonitor unbindRequestsMonitor =
-            OperationMonitor.getOperationMonitor(UNBIND);
-    private OperationMonitor compareRequestsMonitor =
-            OperationMonitor.getOperationMonitor(COMPARE);
-    private OperationMonitor modRequestsMonitor =
-            OperationMonitor.getOperationMonitor(MODIFY);
-    private OperationMonitor moddnRequestsMonitor =
-            OperationMonitor.getOperationMonitor(MODIFY);
-    private OperationMonitor abandonRequestsMonitor =
-            OperationMonitor.getOperationMonitor(ABANDON);
-    private OperationMonitor extendedRequestsMonitor =
-            OperationMonitor.getOperationMonitor(EXTENDED);
 
 
   /**
    * Creates a new instance of this class with no parent.
    *
-   * @param handler to which the stats belong  to.
-   * @param  instanceName  The name for this monitor provider instance.
+   * @param handler
+   *          to which the stats belong to.
+   * @param instanceName
+   *          The name for this monitor provider instance.
    */
-  public LDAPStatistics(ConnectionHandler handler,
-          String instanceName)
+  public LDAPStatistics(ConnectionHandler handler, String instanceName)
   {
     this(handler, instanceName, null);
 
@@ -178,60 +169,62 @@ public class LDAPStatistics
   /**
    * Creates a new instance of this class with the specified parent.
    *
-   * @param  handler       the handler to which the stats belong to.
-   * @param  instanceName  The name for this monitor provider instance.
-   * @param  parent        The parent object that should also be updated
-   *                       whenever this class is updated.  It may be null if
-   *                       there should not be a parent.
+   * @param handler
+   *          the handler to which the stats belong to.
+   * @param instanceName
+   *          The name for this monitor provider instance.
+   * @param parent
+   *          The parent object that should also be updated whenever
+   *          this class is updated. It may be null if there should not
+   *          be a parent.
    */
-  public LDAPStatistics(ConnectionHandler handler,
-          String instanceName, LDAPStatistics parent)
+  public LDAPStatistics(ConnectionHandler handler, String instanceName,
+      LDAPStatistics parent)
   {
     super("LDAP Statistics Monitor Provider");
 
-
     this.instanceName = instanceName;
-    this.parent       = parent;
+    this.parent = parent;
     this.handler = handler;
 
-    abandonLock    = new Object();
-    connectLock    = new Object();
+    abandonLock = new Object();
+    connectLock = new Object();
     disconnectLock = new Object();
-    readLock       = new Object();
-    writeLock      = new Object();
+    readLock = new Object();
+    writeLock = new Object();
 
-    abandonRequests        = 0;
-    addRequests            = 0;
-    addResponses           = 0;
-    bindRequests           = 0;
-    bindResponses          = 0;
-    bytesRead              = 0;
-    bytesWritten           = 0;
-    compareRequests        = 0;
-    compareResponses       = 0;
-    connectionsClosed      = 0;
+    abandonRequests = 0;
+    addRequests = 0;
+    addResponses = 0;
+    bindRequests = 0;
+    bindResponses = 0;
+    bytesRead = 0;
+    bytesWritten = 0;
+    compareRequests = 0;
+    compareResponses = 0;
+    connectionsClosed = 0;
     connectionsEstablished = 0;
-    deleteRequests         = 0;
-    deleteResponses        = 0;
-    extendedRequests       = 0;
-    extendedResponses      = 0;
-    messagesRead           = 0;
-    messagesWritten        = 0;
-    modifyRequests         = 0;
-    modifyResponses        = 0;
-    modifyDNRequests       = 0;
-    modifyDNResponses      = 0;
-    operationsAbandoned    = 0;
-    operationsCompleted    = 0;
-    operationsInitiated    = 0;
-    searchRequests         = 0;
-    searchResultEntries    = 0;
+    deleteRequests = 0;
+    deleteResponses = 0;
+    extendedRequests = 0;
+    extendedResponses = 0;
+    messagesRead = 0;
+    messagesWritten = 0;
+    modifyRequests = 0;
+    modifyResponses = 0;
+    modifyDNRequests = 0;
+    modifyDNResponses = 0;
+    operationsAbandoned = 0;
+    operationsCompleted = 0;
+    operationsInitiated = 0;
+    searchRequests = 0;
+    searchResultEntries = 0;
     searchResultReferences = 0;
-    searchResultsDone      = 0;
-    unbindRequests         = 0;
+    searchResultsDone = 0;
+    unbindRequests = 0;
 
     ClientConnectionMonitorProvider connections =
-                new ClientConnectionMonitorProvider(this.handler);
+        new ClientConnectionMonitorProvider(this.handler);
 
     DirectoryServer.registerMonitorProvider(connections);
   }
@@ -241,26 +234,30 @@ public class LDAPStatistics
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
-         throws ConfigException
+      throws ConfigException
   {
     // Throw an exception, because this monitor is not intended to be
-    // dynamically loaded from the configuration.  Rather, it should be
-    // explicitly created and registered by the LDAP connection handler or an
-    // LDAP client connection.
-    Message message = ERR_LDAP_STATS_INVALID_MONITOR_INITIALIZATION.get(
-        String.valueOf(configuration.dn()));
+    // dynamically loaded from the configuration. Rather, it should be
+    // explicitly created and registered by the LDAP connection handler
+    // or an LDAP client connection.
+    Message message =
+        ERR_LDAP_STATS_INVALID_MONITOR_INITIALIZATION.get(String
+            .valueOf(configuration.dn()));
     throw new ConfigException(message);
   }
 
 
 
   /**
-   * Retrieves the name of this monitor provider.  It should be unique among all
-   * monitor providers, including all instances of the same monitor provider.
+   * Retrieves the name of this monitor provider. It should be unique
+   * among all monitor providers, including all instances of the same
+   * monitor provider.
    *
-   * @return  The name of this monitor provider.
+   * @return The name of this monitor provider.
    */
+  @Override
   public String getMonitorInstanceName()
   {
     return instanceName;
@@ -269,14 +266,17 @@ public class LDAPStatistics
 
 
   /**
-   * Retrieves the length of time in milliseconds that should elapse between
-   * calls to the <CODE>updateMonitorData()</CODE> method.  A negative or zero
-   * return value indicates that the <CODE>updateMonitorData()</CODE> method
-   * should not be periodically invoked.
+   * Retrieves the length of time in milliseconds that should elapse
+   * between calls to the <CODE>updateMonitorData()</CODE> method. A
+   * negative or zero return value indicates that the
+   * <CODE>updateMonitorData()</CODE> method should not be periodically
+   * invoked.
    *
-   * @return  The length of time in milliseconds that should elapse between
-   *          calls to the <CODE>updateMonitorData()</CODE> method.
+   * @return The length of time in milliseconds that should elapse
+   *         between calls to the <CODE>updateMonitorData()</CODE>
+   *         method.
    */
+  @Override
   public long getUpdateInterval()
   {
     // This monitor should not run periodically.
@@ -286,27 +286,31 @@ public class LDAPStatistics
 
 
   /**
-   * Performs any processing periodic processing that may be desired to update
-   * the information associated with this monitor.  Note that best-effort
-   * attempts will be made to ensure that calls to this method come
-   * <CODE>getUpdateInterval()</CODE> milliseconds apart, but no guarantees will
-   * be made.
+   * Performs any processing periodic processing that may be desired to
+   * update the information associated with this monitor. Note that
+   * best-effort attempts will be made to ensure that calls to this
+   * method come <CODE>getUpdateInterval()</CODE> milliseconds apart,
+   * but no guarantees will be made.
    */
+  @Override
   public void updateMonitorData()
   {
-    // No implementation is required since this does not do periodic updates.
+    // No implementation is required since this does not do periodic
+    // updates.
   }
 
 
 
   /**
-   * Retrieves a set of attributes containing monitor data that should be
-   * returned to the client if the corresponding monitor entry is requested.
+   * Retrieves a set of attributes containing monitor data that should
+   * be returned to the client if the corresponding monitor entry is
+   * requested.
    *
-   * @return  A set of attributes containing monitor data that should be
-   *          returned to the client if the corresponding monitor entry is
-   *          requested.
+   * @return A set of attributes containing monitor data that should be
+   *         returned to the client if the corresponding monitor entry
+   *         is requested.
    */
+  @Override
   public ArrayList<Attribute> getMonitorData()
   {
     ArrayList<Attribute> attrs = new ArrayList<Attribute>(29);
@@ -341,9 +345,10 @@ public class LDAPStatistics
     long tmpSearchResultsDone;
     long tmpUnbindRequests;
 
-    // Quickly grab the locks and store consistent copies of the information.
-    // Note that when grabbing multiple locks, it is essential that they are all
-    // acquired in the same order to prevent deadlocks.
+    // Quickly grab the locks and store consistent copies of the
+    // information. Note that when grabbing multiple locks, it is
+    // essential that they are all acquired in the same order to prevent
+    // deadlocks.
     synchronized (abandonLock)
     {
       synchronized (connectLock)
@@ -354,180 +359,177 @@ public class LDAPStatistics
           {
             synchronized (readLock)
             {
-              tmpAbandonRequests        = abandonRequests;
-              tmpAddRequests            = addRequests;
-              tmpAddResponses           = addResponses;
-              tmpBindRequests           = bindRequests;
-              tmpBindResponses          = bindResponses;
-              tmpBytesRead              = bytesRead;
-              tmpBytesWritten           = bytesWritten;
-              tmpCompareRequests        = compareRequests;
-              tmpCompareResponses       = compareResponses;
-              tmpConnectionsClosed      = connectionsClosed;
+              tmpAbandonRequests = abandonRequests;
+              tmpAddRequests = addRequests;
+              tmpAddResponses = addResponses;
+              tmpBindRequests = bindRequests;
+              tmpBindResponses = bindResponses;
+              tmpBytesRead = bytesRead;
+              tmpBytesWritten = bytesWritten;
+              tmpCompareRequests = compareRequests;
+              tmpCompareResponses = compareResponses;
+              tmpConnectionsClosed = connectionsClosed;
               tmpConnectionsEstablished = connectionsEstablished;
-              tmpDeleteRequests         = deleteRequests;
-              tmpDeleteResponses        = deleteResponses;
-              tmpExtendedRequests       = extendedRequests;
-              tmpExtendedResponses      = extendedResponses;
-              tmpMessagesRead           = messagesRead;
-              tmpMessagesWritten        = messagesWritten;
-              tmpModifyRequests         = modifyRequests;
-              tmpModifyResponses        = modifyResponses;
-              tmpModifyDNRequests       = modifyDNRequests;
-              tmpModifyDNResponses      = modifyDNResponses;
-              tmpOperationsAbandoned    = operationsAbandoned;
-              tmpOperationsCompleted    = operationsCompleted;
-              tmpOperationsInitiated    = operationsInitiated;
-              tmpSearchRequests         = searchRequests;
-              tmpSearchEntries          = searchResultEntries;
-              tmpSearchReferences       = searchResultReferences;
-              tmpSearchResultsDone      = searchResultsDone;
-              tmpUnbindRequests         = unbindRequests;
+              tmpDeleteRequests = deleteRequests;
+              tmpDeleteResponses = deleteResponses;
+              tmpExtendedRequests = extendedRequests;
+              tmpExtendedResponses = extendedResponses;
+              tmpMessagesRead = messagesRead;
+              tmpMessagesWritten = messagesWritten;
+              tmpModifyRequests = modifyRequests;
+              tmpModifyResponses = modifyResponses;
+              tmpModifyDNRequests = modifyDNRequests;
+              tmpModifyDNResponses = modifyDNResponses;
+              tmpOperationsAbandoned = operationsAbandoned;
+              tmpOperationsCompleted = operationsCompleted;
+              tmpOperationsInitiated = operationsInitiated;
+              tmpSearchRequests = searchRequests;
+              tmpSearchEntries = searchResultEntries;
+              tmpSearchReferences = searchResultReferences;
+              tmpSearchResultsDone = searchResultsDone;
+              tmpUnbindRequests = unbindRequests;
             }
           }
         }
       }
     }
 
-
     // Construct the list of attributes to return.
-    attrs.add(createAttribute("connectionsEstablished",
-                              String.valueOf(tmpConnectionsEstablished)));
-    attrs.add(createAttribute("connectionsClosed",
-                              String.valueOf(tmpConnectionsClosed)));
-    attrs.add(createAttribute("bytesRead", String.valueOf(tmpBytesRead)));
-    attrs.add(createAttribute("bytesWritten", String.valueOf(tmpBytesWritten)));
-    attrs.add(createAttribute("ldapMessagesRead",
-                              String.valueOf(tmpMessagesRead)));
-    attrs.add(createAttribute("ldapMessagesWritten",
-                              String.valueOf(tmpMessagesWritten)));
-    attrs.add(createAttribute("operationsAbandoned",
-                              String.valueOf(tmpOperationsAbandoned)));
-    attrs.add(createAttribute("operationsInitiated",
-                              String.valueOf(tmpOperationsInitiated)));
-    attrs.add(createAttribute("operationsCompleted",
-                              String.valueOf(tmpOperationsCompleted)));
-    attrs.add(createAttribute("abandonRequests",
-                              String.valueOf(tmpAbandonRequests)));
-    attrs.add(createAttribute("addRequests", String.valueOf(tmpAddRequests)));
-    attrs.add(createAttribute("addResponses", String.valueOf(tmpAddResponses)));
-    attrs.add(createAttribute("bindRequests", String.valueOf(tmpBindRequests)));
-    attrs.add(createAttribute("bindResponses",
-                              String.valueOf(tmpBindResponses)));
-    attrs.add(createAttribute("compareRequests",
-                              String.valueOf(tmpCompareRequests)));
-    attrs.add(createAttribute("compareResponses",
-                              String.valueOf(tmpCompareResponses)));
-    attrs.add(createAttribute("deleteRequests",
-                              String.valueOf(tmpDeleteRequests)));
-    attrs.add(createAttribute("deleteResponses",
-                              String.valueOf(tmpDeleteResponses)));
-    attrs.add(createAttribute("extendedRequests",
-                              String.valueOf(tmpExtendedRequests)));
-    attrs.add(createAttribute("extendedResponses",
-                              String.valueOf(tmpExtendedResponses)));
-    attrs.add(createAttribute("modifyRequests",
-                              String.valueOf(tmpModifyRequests)));
-    attrs.add(createAttribute("modifyResponses",
-                              String.valueOf(tmpModifyResponses)));
-    attrs.add(createAttribute("modifyDNRequests",
-                              String.valueOf(tmpModifyDNRequests)));
-    attrs.add(createAttribute("modifyDNResponses",
-                              String.valueOf(tmpModifyDNResponses)));
-    attrs.add(createAttribute("searchRequests",
-                              String.valueOf(tmpSearchRequests)));
-    attrs.add(createAttribute("searchResultEntries",
-                              String.valueOf(tmpSearchEntries)));
-    attrs.add(createAttribute("searchResultReferences",
-                              String.valueOf(tmpSearchReferences)));
-    attrs.add(createAttribute("searchResultsDone",
-                              String.valueOf(tmpSearchResultsDone)));
-    attrs.add(createAttribute("unbindRequests",
-                              String.valueOf(tmpUnbindRequests)));
+    attrs.add(createAttribute("connectionsEstablished", String
+        .valueOf(tmpConnectionsEstablished)));
+    attrs.add(createAttribute("connectionsClosed", String
+        .valueOf(tmpConnectionsClosed)));
+    attrs
+        .add(createAttribute("bytesRead", String.valueOf(tmpBytesRead)));
+    attrs.add(createAttribute("bytesWritten", String
+        .valueOf(tmpBytesWritten)));
+    attrs.add(createAttribute("ldapMessagesRead", String
+        .valueOf(tmpMessagesRead)));
+    attrs.add(createAttribute("ldapMessagesWritten", String
+        .valueOf(tmpMessagesWritten)));
+    attrs.add(createAttribute("operationsAbandoned", String
+        .valueOf(tmpOperationsAbandoned)));
+    attrs.add(createAttribute("operationsInitiated", String
+        .valueOf(tmpOperationsInitiated)));
+    attrs.add(createAttribute("operationsCompleted", String
+        .valueOf(tmpOperationsCompleted)));
+    attrs.add(createAttribute("abandonRequests", String
+        .valueOf(tmpAbandonRequests)));
+    attrs.add(createAttribute("addRequests", String
+        .valueOf(tmpAddRequests)));
+    attrs.add(createAttribute("addResponses", String
+        .valueOf(tmpAddResponses)));
+    attrs.add(createAttribute("bindRequests", String
+        .valueOf(tmpBindRequests)));
+    attrs.add(createAttribute("bindResponses", String
+        .valueOf(tmpBindResponses)));
+    attrs.add(createAttribute("compareRequests", String
+        .valueOf(tmpCompareRequests)));
+    attrs.add(createAttribute("compareResponses", String
+        .valueOf(tmpCompareResponses)));
+    attrs.add(createAttribute("deleteRequests", String
+        .valueOf(tmpDeleteRequests)));
+    attrs.add(createAttribute("deleteResponses", String
+        .valueOf(tmpDeleteResponses)));
+    attrs.add(createAttribute("extendedRequests", String
+        .valueOf(tmpExtendedRequests)));
+    attrs.add(createAttribute("extendedResponses", String
+        .valueOf(tmpExtendedResponses)));
+    attrs.add(createAttribute("modifyRequests", String
+        .valueOf(tmpModifyRequests)));
+    attrs.add(createAttribute("modifyResponses", String
+        .valueOf(tmpModifyResponses)));
+    attrs.add(createAttribute("modifyDNRequests", String
+        .valueOf(tmpModifyDNRequests)));
+    attrs.add(createAttribute("modifyDNResponses", String
+        .valueOf(tmpModifyDNResponses)));
+    attrs.add(createAttribute("searchRequests", String
+        .valueOf(tmpSearchRequests)));
+    attrs.add(createAttribute("searchResultEntries", String
+        .valueOf(tmpSearchEntries)));
+    attrs.add(createAttribute("searchResultReferences", String
+        .valueOf(tmpSearchReferences)));
+    attrs.add(createAttribute("searchResultsDone", String
+        .valueOf(tmpSearchResultsDone)));
+    attrs.add(createAttribute("unbindRequests", String
+        .valueOf(tmpUnbindRequests)));
 
-     // adds
-     attrs.add(createAttribute(
-                "ds-mon-add-operations-total-count",
-                String.valueOf(addRequestsMonitor.getCounter().getCount())));
-     attrs.add(createAttribute(
-                "ds-mon-resident-time-add-operations-total-time",
-                String.valueOf(addRequestsMonitor.getTotalTime())));
+    // adds
+    attrs.add(createAttribute("ds-mon-add-operations-total-count",
+        String.valueOf(addRequestsMonitor.getCounter().getCount())));
+    attrs.add(createAttribute(
+        "ds-mon-resident-time-add-operations-total-time", String
+            .valueOf(addRequestsMonitor.getTotalTime())));
 
-     // search
-     attrs.add(createAttribute(
-              "ds-mon-search-operations-total-count",
-                String.valueOf(searchRequestsMonitor.getCounter().getCount())));
-     attrs.add(createAttribute(
-                "ds-mon-resident-time-search-operations-total-time",
-                String.valueOf(searchRequestsMonitor.getTotalTime())));
+    // search
+    attrs.add(createAttribute("ds-mon-search-operations-total-count",
+        String.valueOf(searchRequestsMonitor.getCounter().getCount())));
+    attrs.add(createAttribute(
+        "ds-mon-resident-time-search-operations-total-time", String
+            .valueOf(searchRequestsMonitor.getTotalTime())));
 
-     // bind
-     attrs.add(createAttribute(
-                "ds-mon-bind-operations-total-count",
-                String.valueOf(bindRequestsMonitor.getCounter().getCount())));
-     attrs.add(createAttribute(
-                "ds-mon-resident-time-bind-operations-total-time",
-                String.valueOf(bindRequestsMonitor.getTotalTime())));
+    // bind
+    attrs.add(createAttribute("ds-mon-bind-operations-total-count",
+        String.valueOf(bindRequestsMonitor.getCounter().getCount())));
+    attrs.add(createAttribute(
+        "ds-mon-resident-time-bind-operations-total-time", String
+            .valueOf(bindRequestsMonitor.getTotalTime())));
 
-     // unbind
-     attrs.add(createAttribute(
-              "ds-mon-unbind-operations-total-count",
-              String.valueOf(unbindRequestsMonitor.getCounter().getCount())));
-     attrs.add(createAttribute(
-                "ds-mon-resident-time-unbind-operations-total-time",
-                String.valueOf(unbindRequestsMonitor.getTotalTime())));
+    // unbind
+    attrs.add(createAttribute("ds-mon-unbind-operations-total-count",
+        String.valueOf(unbindRequestsMonitor.getCounter().getCount())));
+    attrs.add(createAttribute(
+        "ds-mon-resident-time-unbind-operations-total-time", String
+            .valueOf(unbindRequestsMonitor.getTotalTime())));
 
-     // compare
-     attrs.add(createAttribute(
-             "ds-mon-compare-operations-total-count",
-             String.valueOf(
-             compareRequestsMonitor.getCounter().getCount())));
-     attrs.add(createAttribute(
-             "ds-mon-resident-time-compare-operations-total-time",
-             String.valueOf(compareRequestsMonitor.getTotalTime())));
-     // del
-     attrs.add(createAttribute(
-             "ds-mon-delete-operations-total-count",
-             String.valueOf(delRequestsMonitor.getCounter().getCount())));
-     attrs.add(createAttribute(
-             "ds-mon-resident-time-delete-operations-total-time",
-             String.valueOf(delRequestsMonitor.getTotalTime())));
+    // compare
+    attrs
+        .add(createAttribute("ds-mon-compare-operations-total-count",
+            String.valueOf(compareRequestsMonitor.getCounter()
+                .getCount())));
+    attrs.add(createAttribute(
+        "ds-mon-resident-time-compare-operations-total-time", String
+            .valueOf(compareRequestsMonitor.getTotalTime())));
+    // del
+    attrs.add(createAttribute("ds-mon-delete-operations-total-count",
+        String.valueOf(delRequestsMonitor.getCounter().getCount())));
+    attrs.add(createAttribute(
+        "ds-mon-resident-time-delete-operations-total-time", String
+            .valueOf(delRequestsMonitor.getTotalTime())));
 
-     // mod
-     attrs.add(createAttribute(
-             "ds-mon-mod-operations-total-count",
-             String.valueOf(modRequestsMonitor.getCounter().getCount())));
-     attrs.add(createAttribute(
-            "ds-mon-resident-time-mod-operations-total-time",
-            String.valueOf(modRequestsMonitor.getTotalTime())));
+    // mod
+    attrs.add(createAttribute("ds-mon-mod-operations-total-count",
+        String.valueOf(modRequestsMonitor.getCounter().getCount())));
+    attrs.add(createAttribute(
+        "ds-mon-resident-time-mod-operations-total-time", String
+            .valueOf(modRequestsMonitor.getTotalTime())));
 
-     // moddn
-     attrs.add(createAttribute(
-            "ds-mon-moddn-operations-total-count",
-            String.valueOf(moddnRequestsMonitor.getCounter().getCount())));
-     attrs.add(createAttribute(
-            "ds-mon-resident-time-moddn-operations-total-time",
-            String.valueOf(moddnRequestsMonitor.getTotalTime())));
+    // moddn
+    attrs.add(createAttribute("ds-mon-moddn-operations-total-count",
+        String.valueOf(moddnRequestsMonitor.getCounter().getCount())));
+    attrs.add(createAttribute(
+        "ds-mon-resident-time-moddn-operations-total-time", String
+            .valueOf(moddnRequestsMonitor.getTotalTime())));
 
-     // abandon
-     attrs.add(createAttribute(
-             "ds-mon-abandon-operations-total-count",
-             String.valueOf(
-             abandonRequestsMonitor.getCounter().getCount())));
-     attrs.add(createAttribute(
-             "ds-mon-resident-time-abandon-operations-total-time",
-             String.valueOf(abandonRequestsMonitor.getTotalTime())));
+    // abandon
+    attrs
+        .add(createAttribute("ds-mon-abandon-operations-total-count",
+            String.valueOf(abandonRequestsMonitor.getCounter()
+                .getCount())));
+    attrs.add(createAttribute(
+        "ds-mon-resident-time-abandon-operations-total-time", String
+            .valueOf(abandonRequestsMonitor.getTotalTime())));
 
-     // extended
-     attrs.add(createAttribute(
-             "ds-mon-extended-operations-total-count",
-             String.valueOf(
-             extendedRequestsMonitor.getCounter().getCount())));
-     attrs.add(createAttribute(
-             "ds-mon-resident-time-extended-operations-total-time",
-             String.valueOf(extendedRequestsMonitor.getTotalTime())));
+    // extended
+    attrs
+        .add(createAttribute("ds-mon-extended-operations-total-count",
+            String.valueOf(extendedRequestsMonitor.getCounter()
+                .getCount())));
+    attrs.add(createAttribute(
+        "ds-mon-resident-time-extended-operations-total-time", String
+            .valueOf(extendedRequestsMonitor.getTotalTime())));
 
-     return attrs;
+    return attrs;
   }
 
 
@@ -537,9 +539,10 @@ public class LDAPStatistics
    */
   public void clearStatistics()
   {
-    // Quickly grab the locks and store consistent copies of the information.
-    // Note that when grabbing multiple locks, it is essential that they are all
-    // acquired in the same order to prevent deadlocks.
+    // Quickly grab the locks and store consistent copies of the
+    // information. Note that when grabbing multiple locks, it is
+    // essential that they are all acquired in the same order to prevent
+    // deadlocks.
     synchronized (abandonLock)
     {
       synchronized (connectLock)
@@ -550,35 +553,35 @@ public class LDAPStatistics
           {
             synchronized (readLock)
             {
-              abandonRequests        = 0;
-              addRequests            = 0;
-              addResponses           = 0;
-              bindRequests           = 0;
-              bindResponses          = 0;
-              bytesRead              = 0;
-              bytesWritten           = 0;
-              compareRequests        = 0;
-              compareResponses       = 0;
-              connectionsClosed      = 0;
+              abandonRequests = 0;
+              addRequests = 0;
+              addResponses = 0;
+              bindRequests = 0;
+              bindResponses = 0;
+              bytesRead = 0;
+              bytesWritten = 0;
+              compareRequests = 0;
+              compareResponses = 0;
+              connectionsClosed = 0;
               connectionsEstablished = 0;
-              deleteRequests         = 0;
-              deleteResponses        = 0;
-              extendedRequests       = 0;
-              extendedResponses      = 0;
-              messagesRead           = 0;
-              messagesWritten        = 0;
-              modifyRequests         = 0;
-              modifyResponses        = 0;
-              modifyDNRequests       = 0;
-              modifyDNResponses      = 0;
-              operationsAbandoned    = 0;
-              operationsCompleted    = 0;
-              operationsInitiated    = 0;
-              searchRequests         = 0;
-              searchResultEntries    = 0;
+              deleteRequests = 0;
+              deleteResponses = 0;
+              extendedRequests = 0;
+              extendedResponses = 0;
+              messagesRead = 0;
+              messagesWritten = 0;
+              modifyRequests = 0;
+              modifyResponses = 0;
+              modifyDNRequests = 0;
+              modifyDNResponses = 0;
+              operationsAbandoned = 0;
+              operationsCompleted = 0;
+              operationsInitiated = 0;
+              searchRequests = 0;
+              searchResultEntries = 0;
               searchResultReferences = 0;
-              searchResultsDone      = 0;
-              unbindRequests         = 0;
+              searchResultsDone = 0;
+              unbindRequests = 0;
             }
           }
         }
@@ -589,8 +592,8 @@ public class LDAPStatistics
 
 
   /**
-   * Updates the appropriate set of counters to indicate that a new connection
-   * has been established.
+   * Updates the appropriate set of counters to indicate that a new
+   * connection has been established.
    */
   public void updateConnect()
   {
@@ -609,8 +612,8 @@ public class LDAPStatistics
 
 
   /**
-   * Updates the appropriate set of counters to indicate that a connection has
-   * been closed.
+   * Updates the appropriate set of counters to indicate that a
+   * connection has been closed.
    */
   public void updateDisconnect()
   {
@@ -629,10 +632,11 @@ public class LDAPStatistics
 
 
   /**
-   * Updates the appropriate set of counters to indicate that the specified
-   * number of bytes have been read by the client.
+   * Updates the appropriate set of counters to indicate that the
+   * specified number of bytes have been read by the client.
    *
-   * @param  bytesRead  The number of bytes read by the client.
+   * @param bytesRead
+   *          The number of bytes read by the client.
    */
   public void updateBytesRead(int bytesRead)
   {
@@ -651,10 +655,11 @@ public class LDAPStatistics
 
 
   /**
-   * Updates the appropriate set of counters based on the provided message that
-   * has been read from the client.
+   * Updates the appropriate set of counters based on the provided
+   * message that has been read from the client.
    *
-   * @param  message  The message that was read from the client.
+   * @param message
+   *          The message that was read from the client.
    */
   public void updateMessageRead(LDAPMessage message)
   {
@@ -665,36 +670,36 @@ public class LDAPStatistics
 
       switch (message.getProtocolOp().getType())
       {
-        case OP_TYPE_ABANDON_REQUEST:
-          abandonRequests++;
-          break;
-        case OP_TYPE_ADD_REQUEST:
-          addRequests++;
-          break;
-        case OP_TYPE_BIND_REQUEST:
-          bindRequests++;
-          break;
-        case OP_TYPE_COMPARE_REQUEST:
-          compareRequests++;
-          break;
-        case OP_TYPE_DELETE_REQUEST:
-          deleteRequests++;
-          break;
-        case OP_TYPE_EXTENDED_REQUEST:
-          extendedRequests++;
-          break;
-        case OP_TYPE_MODIFY_REQUEST:
-          modifyRequests++;
-          break;
-        case OP_TYPE_MODIFY_DN_REQUEST:
-          modifyDNRequests++;
-          break;
-        case OP_TYPE_SEARCH_REQUEST:
-          searchRequests++;
-          break;
-        case OP_TYPE_UNBIND_REQUEST:
-          unbindRequests++;
-          break;
+      case OP_TYPE_ABANDON_REQUEST:
+        abandonRequests++;
+        break;
+      case OP_TYPE_ADD_REQUEST:
+        addRequests++;
+        break;
+      case OP_TYPE_BIND_REQUEST:
+        bindRequests++;
+        break;
+      case OP_TYPE_COMPARE_REQUEST:
+        compareRequests++;
+        break;
+      case OP_TYPE_DELETE_REQUEST:
+        deleteRequests++;
+        break;
+      case OP_TYPE_EXTENDED_REQUEST:
+        extendedRequests++;
+        break;
+      case OP_TYPE_MODIFY_REQUEST:
+        modifyRequests++;
+        break;
+      case OP_TYPE_MODIFY_DN_REQUEST:
+        modifyDNRequests++;
+        break;
+      case OP_TYPE_SEARCH_REQUEST:
+        searchRequests++;
+        break;
+      case OP_TYPE_UNBIND_REQUEST:
+        unbindRequests++;
+        break;
       }
     }
 
@@ -708,11 +713,13 @@ public class LDAPStatistics
 
 
   /**
-   * Updates the appropriate set of counters based on the provided message that
-   * has been written to the client.
+   * Updates the appropriate set of counters based on the provided
+   * message that has been written to the client.
    *
-   * @param  message       The message that was written to the client.
-   * @param  bytesWritten  The size of the message written in bytes.
+   * @param message
+   *          The message that was written to the client.
+   * @param bytesWritten
+   *          The size of the message written in bytes.
    */
   public void updateMessageWritten(LDAPMessage message, int bytesWritten)
   {
@@ -723,50 +730,50 @@ public class LDAPStatistics
 
       switch (message.getProtocolOp().getType())
       {
-        case OP_TYPE_ADD_RESPONSE:
-          addResponses++;
-          operationsCompleted++;
-          break;
-        case OP_TYPE_BIND_RESPONSE:
-          bindResponses++;
-          operationsCompleted++;
-          break;
-        case OP_TYPE_COMPARE_RESPONSE:
-          compareResponses++;
-          operationsCompleted++;
-          break;
-        case OP_TYPE_DELETE_RESPONSE:
-          deleteResponses++;
-          operationsCompleted++;
-          break;
-        case OP_TYPE_EXTENDED_RESPONSE:
-          extendedResponses++;
+      case OP_TYPE_ADD_RESPONSE:
+        addResponses++;
+        operationsCompleted++;
+        break;
+      case OP_TYPE_BIND_RESPONSE:
+        bindResponses++;
+        operationsCompleted++;
+        break;
+      case OP_TYPE_COMPARE_RESPONSE:
+        compareResponses++;
+        operationsCompleted++;
+        break;
+      case OP_TYPE_DELETE_RESPONSE:
+        deleteResponses++;
+        operationsCompleted++;
+        break;
+      case OP_TYPE_EXTENDED_RESPONSE:
+        extendedResponses++;
 
-          // We don't want to include unsolicited notifications as "completed"
-          // operations.
-          if (message.getMessageID() > 0)
-          {
-            operationsCompleted++;
-          }
-          break;
-        case OP_TYPE_MODIFY_RESPONSE:
-          modifyResponses++;
+        // We don't want to include unsolicited notifications as
+        // "completed" operations.
+        if (message.getMessageID() > 0)
+        {
           operationsCompleted++;
-          break;
-        case OP_TYPE_MODIFY_DN_RESPONSE:
-          modifyDNResponses++;
-          operationsCompleted++;
-          break;
-        case OP_TYPE_SEARCH_RESULT_ENTRY:
-          searchResultEntries++;
-          break;
-        case OP_TYPE_SEARCH_RESULT_REFERENCE:
-          searchResultReferences++;
-          break;
-        case OP_TYPE_SEARCH_RESULT_DONE:
-          searchResultsDone++;
-          operationsCompleted++;
-          break;
+        }
+        break;
+      case OP_TYPE_MODIFY_RESPONSE:
+        modifyResponses++;
+        operationsCompleted++;
+        break;
+      case OP_TYPE_MODIFY_DN_RESPONSE:
+        modifyDNResponses++;
+        operationsCompleted++;
+        break;
+      case OP_TYPE_SEARCH_RESULT_ENTRY:
+        searchResultEntries++;
+        break;
+      case OP_TYPE_SEARCH_RESULT_REFERENCE:
+        searchResultReferences++;
+        break;
+      case OP_TYPE_SEARCH_RESULT_DONE:
+        searchResultsDone++;
+        operationsCompleted++;
+        break;
       }
     }
 
@@ -780,8 +787,8 @@ public class LDAPStatistics
 
 
   /**
-   * Updates the appropriate set of counters to indicate that an operation was
-   * abandoned without sending a response to the client.
+   * Updates the appropriate set of counters to indicate that an
+   * operation was abandoned without sending a response to the client.
    */
   public void updateAbandonedOperation()
   {
@@ -800,34 +807,22 @@ public class LDAPStatistics
 
 
   /**
-   * Constructs an attribute using the provided information.  It will have the
-   * default syntax.
+   * Constructs an attribute using the provided information. It will
+   * have the default syntax.
    *
-   * @param  name   The name to use for the attribute.
-   * @param  value  The value to use for the attribute.
-   *
-   * @return  the constructed attribute.
+   * @param name
+   *          The name to use for the attribute.
+   * @param value
+   *          The value to use for the attribute.
+   * @return the constructed attribute.
    */
   private Attribute createAttribute(String name, String value)
   {
-    AttributeType attrType = DirectoryServer.getDefaultAttributeType(name);
+    AttributeType attrType =
+        DirectoryServer.getDefaultAttributeType(name);
 
-    ASN1OctetString encodedValue = new ASN1OctetString(value);
     AttributeBuilder builder = new AttributeBuilder(attrType, name);
-    try
-    {
-      builder.add(new AttributeValue(encodedValue, attrType
-          .normalize(encodedValue)));
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      builder.add(new AttributeValue(encodedValue, encodedValue));
-    }
+    builder.add(AttributeValues.create(attrType, value));
 
     return builder.toAttribute();
   }
@@ -854,7 +849,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of client connections that have been closed.
    *
-   * @return  The number of client connections that have been closed.
+   * @return The number of client connections that have been closed.
    */
   public long getConnectionsClosed()
   {
@@ -869,7 +864,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of bytes that have been received from clients.
    *
-   * @return  The number of bytes that have been received from clients.
+   * @return The number of bytes that have been received from clients.
    */
   public long getBytesRead()
   {
@@ -884,7 +879,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of bytes that have been written to clients.
    *
-   * @return  The number of bytes that have been written to clients.
+   * @return The number of bytes that have been written to clients.
    */
   public long getBytesWritten()
   {
@@ -897,9 +892,11 @@ public class LDAPStatistics
 
 
   /**
-   * Retrieves the number of LDAP messages that have been received from clients.
+   * Retrieves the number of LDAP messages that have been received from
+   * clients.
    *
-   * @return  The number of LDAP messages that have been received from clients.
+   * @return The number of LDAP messages that have been received from
+   *         clients.
    */
   public long getMessagesRead()
   {
@@ -912,9 +909,11 @@ public class LDAPStatistics
 
 
   /**
-   * Retrieves the number of LDAP messages that have been written to clients.
+   * Retrieves the number of LDAP messages that have been written to
+   * clients.
    *
-   * @return  The number of LDAP messages that have been written to clients.
+   * @return The number of LDAP messages that have been written to
+   *         clients.
    */
   public long getMessagesWritten()
   {
@@ -927,9 +926,11 @@ public class LDAPStatistics
 
 
   /**
-   * Retrieves the number of operations that have been initiated by clients.
+   * Retrieves the number of operations that have been initiated by
+   * clients.
    *
-   * @return  The number of operations that have been initiated by clients.
+   * @return The number of operations that have been initiated by
+   *         clients.
    */
   public long getOperationsInitiated()
   {
@@ -942,11 +943,11 @@ public class LDAPStatistics
 
 
   /**
-   * Retrieves the number of operations for which the server has completed
-   * processing.
+   * Retrieves the number of operations for which the server has
+   * completed processing.
    *
-   * @return  The number of operations for which the server has completed
-   *          processing.
+   * @return The number of operations for which the server has completed
+   *         processing.
    */
   public long getOperationsCompleted()
   {
@@ -959,9 +960,11 @@ public class LDAPStatistics
 
 
   /**
-   * Retrieves the number of operations that have been abandoned by clients.
+   * Retrieves the number of operations that have been abandoned by
+   * clients.
    *
-   * @return  The number of operations that have been abandoned by clients.
+   * @return The number of operations that have been abandoned by
+   *         clients.
    */
   public long getOperationsAbandoned()
   {
@@ -976,7 +979,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of abandon requests that have been received.
    *
-   * @return  The number of abandon requests that have been received.
+   * @return The number of abandon requests that have been received.
    */
   public long getAbandonRequests()
   {
@@ -991,7 +994,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of add requests that have been received.
    *
-   * @return  The number of add requests that have been received.
+   * @return The number of add requests that have been received.
    */
   public long getAddRequests()
   {
@@ -1006,7 +1009,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of add responses that have been sent.
    *
-   * @return  The number of add responses that have been sent.
+   * @return The number of add responses that have been sent.
    */
   public long getAddResponses()
   {
@@ -1021,7 +1024,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of bind requests that have been received.
    *
-   * @return  The number of bind requests that have been received.
+   * @return The number of bind requests that have been received.
    */
   public long getBindRequests()
   {
@@ -1036,7 +1039,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of bind responses that have been sent.
    *
-   * @return  The number of bind responses that have been sent.
+   * @return The number of bind responses that have been sent.
    */
   public long getBindResponses()
   {
@@ -1051,7 +1054,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of compare requests that have been received.
    *
-   * @return  The number of compare requests that have been received.
+   * @return The number of compare requests that have been received.
    */
   public long getCompareRequests()
   {
@@ -1066,7 +1069,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of compare responses that have been sent.
    *
-   * @return  The number of compare responses that have been sent.
+   * @return The number of compare responses that have been sent.
    */
   public long getCompareResponses()
   {
@@ -1081,7 +1084,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of delete requests that have been received.
    *
-   * @return  The number of delete requests that have been received.
+   * @return The number of delete requests that have been received.
    */
   public long getDeleteRequests()
   {
@@ -1096,7 +1099,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of delete responses that have been sent.
    *
-   * @return  The number of delete responses that have been sent.
+   * @return The number of delete responses that have been sent.
    */
   public long getDeleteResponses()
   {
@@ -1111,7 +1114,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of extended requests that have been received.
    *
-   * @return  The number of extended requests that have been received.
+   * @return The number of extended requests that have been received.
    */
   public long getExtendedRequests()
   {
@@ -1126,7 +1129,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of extended responses that have been sent.
    *
-   * @return  The number of extended responses that have been sent.
+   * @return The number of extended responses that have been sent.
    */
   public long getExtendedResponses()
   {
@@ -1141,7 +1144,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of modify requests that have been received.
    *
-   * @return  The number of modify requests that have been received.
+   * @return The number of modify requests that have been received.
    */
   public long getModifyRequests()
   {
@@ -1156,7 +1159,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of modify responses that have been sent.
    *
-   * @return  The number of modify responses that have been sent.
+   * @return The number of modify responses that have been sent.
    */
   public long getModifyResponses()
   {
@@ -1171,7 +1174,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of modify DN requests that have been received.
    *
-   * @return  The number of modify DN requests that have been received.
+   * @return The number of modify DN requests that have been received.
    */
   public long getModifyDNRequests()
   {
@@ -1186,7 +1189,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of modify DN responses that have been sent.
    *
-   * @return  The number of modify DN responses that have been sent.
+   * @return The number of modify DN responses that have been sent.
    */
   public long getModifyDNResponses()
   {
@@ -1201,7 +1204,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of search requests that have been received.
    *
-   * @return  The number of search requests that have been received.
+   * @return The number of search requests that have been received.
    */
   public long getSearchRequests()
   {
@@ -1216,7 +1219,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of search result entries that have been sent.
    *
-   * @return  The number of search result entries that have been sent.
+   * @return The number of search result entries that have been sent.
    */
   public long getSearchResultEntries()
   {
@@ -1229,9 +1232,10 @@ public class LDAPStatistics
 
 
   /**
-   * Retrieves the number of search result references that have been sent.
+   * Retrieves the number of search result references that have been
+   * sent.
    *
-   * @return  The number of search result references that have been sent.
+   * @return The number of search result references that have been sent.
    */
   public long getSearchResultReferences()
   {
@@ -1244,9 +1248,11 @@ public class LDAPStatistics
 
 
   /**
-   * Retrieves the number of search result done messages that have been sent.
+   * Retrieves the number of search result done messages that have been
+   * sent.
    *
-   * @return  The number of search result done messages that have been sent.
+   * @return The number of search result done messages that have been
+   *         sent.
    */
   public long getSearchResultsDone()
   {
@@ -1261,7 +1267,7 @@ public class LDAPStatistics
   /**
    * Retrieves the number of unbind requests that have been received.
    *
-   * @return  The number of unbind requests that have been received.
+   * @return The number of unbind requests that have been received.
    */
   public long getUnbindRequests()
   {
@@ -1274,61 +1280,69 @@ public class LDAPStatistics
 
 
   /**
-   * Retrieves the parent statistics tracker that will also be updated whenever
-   * this tracker is updated.
+   * Retrieves the parent statistics tracker that will also be updated
+   * whenever this tracker is updated.
    *
-   * @return  The parent statistics tracker, or {@code null} if there is none.
+   * @return The parent statistics tracker, or {@code null} if there is
+   *         none.
    */
   public LDAPStatistics getParent()
   {
     return parent;
   }
 
-   /**
-     * Updates the monitor object.
-     * @param opMonitor monitor object.
-     */
-    public void updateMonitor(OperationMonitor opMonitor) {
-        synchronized (readLock) {
-            switch (opMonitor.getType()) {
-                case ABANDON:
-                    this.abandonRequestsMonitor.add(opMonitor);
-                    break;
-                case ADD:
-                    this.addRequestsMonitor.add(opMonitor);
-                    break;
-                case BIND:
-                    this.bindRequestsMonitor.add(opMonitor);
-                    break;
-                case COMPARE:
-                    this.compareRequestsMonitor.add(opMonitor);
-                    break;
-                case DELETE:
-                    this.delRequestsMonitor.add(opMonitor);
-                    break;
-                case EXTENDED:
-                    this.extendedRequestsMonitor.add(opMonitor);
-                    break;
-                case MODIFY:
-                    this.modRequestsMonitor.add(opMonitor);
-                    break;
-                case MODIFY_DN:
-                    this.moddnRequestsMonitor.add(opMonitor);
-                    break;
-                case SEARCH:
-                    this.searchRequestsMonitor.add(opMonitor);
-                    break;
-                case UNBIND:
-                    this.unbindRequestsMonitor.add(opMonitor);
-                    break;
-                default:
-            }
-            if (parent!=null) {
-                parent.updateMonitor(opMonitor);
-            }
-            opMonitor.reset();
-        }
+
+
+  /**
+   * Updates the monitor object.
+   *
+   * @param opMonitor
+   *          monitor object.
+   */
+  public void updateMonitor(OperationMonitor opMonitor)
+  {
+    synchronized (readLock)
+    {
+      switch (opMonitor.getType())
+      {
+      case ABANDON:
+        this.abandonRequestsMonitor.add(opMonitor);
+        break;
+      case ADD:
+        this.addRequestsMonitor.add(opMonitor);
+        break;
+      case BIND:
+        this.bindRequestsMonitor.add(opMonitor);
+        break;
+      case COMPARE:
+        this.compareRequestsMonitor.add(opMonitor);
+        break;
+      case DELETE:
+        this.delRequestsMonitor.add(opMonitor);
+        break;
+      case EXTENDED:
+        this.extendedRequestsMonitor.add(opMonitor);
+        break;
+      case MODIFY:
+        this.modRequestsMonitor.add(opMonitor);
+        break;
+      case MODIFY_DN:
+        this.moddnRequestsMonitor.add(opMonitor);
+        break;
+      case SEARCH:
+        this.searchRequestsMonitor.add(opMonitor);
+        break;
+      case UNBIND:
+        this.unbindRequestsMonitor.add(opMonitor);
+        break;
+      default:
+      }
+      if (parent != null)
+      {
+        parent.updateMonitor(opMonitor);
+      }
+      opMonitor.reset();
     }
+  }
 
 }
-

@@ -64,15 +64,7 @@ import org.opends.guitools.controlpanel.ui.renderer.AttributeCellEditor;
 import org.opends.guitools.controlpanel.ui.renderer.LDAPEntryTableCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.OpenDsException;
-import org.opends.server.types.RDN;
-import org.opends.server.types.Schema;
+import org.opends.server.types.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ServerConstants;
 
@@ -314,7 +306,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
           String attrName = rdn.getAttributeName(i);
           AttributeValue value = rdn.getAttributeValue(i);
 
-          String sValue = value.getStringValue();
+          String sValue = value.getValue().toString();
 
           Set<String> values = getDisplayedStringValues(attrName);
           if (!values.contains(sValue))
@@ -336,7 +328,8 @@ public class TableViewEntryPanel extends ViewEntryPanel
                 AttributeType attr = rdn.getAttributeType(i);
                 attributeTypes.add(attr);
                 attributeNames.add(rdn.getAttributeName(i));
-                attributeValues.add(new AttributeValue(attr, firstNonEmpty));
+                attributeValues.add(AttributeValues.create(
+                    attr, firstNonEmpty));
               }
             }
           }
@@ -375,7 +368,8 @@ public class TableViewEntryPanel extends ViewEntryPanel
                 {
                   attributeTypes.add(attr);
                   attributeNames.add(attrName);
-                  attributeValues.add(new AttributeValue(attr, (String)o));
+                  attributeValues.add(AttributeValues.create(
+                      attr, (String)o));
                 }
                 break;
               }

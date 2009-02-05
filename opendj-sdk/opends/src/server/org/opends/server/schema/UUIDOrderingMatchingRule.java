@@ -26,22 +26,24 @@
  */
 package org.opends.server.schema;
 
-import java.util.Collections;
-import java.util.Collection;
-import org.opends.messages.Message;
 
-
-
-import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ResultCode;
 
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
+
+import java.util.Collection;
+import java.util.Collections;
+
+import org.opends.messages.Message;
+import org.opends.server.api.OrderingMatchingRule;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ResultCode;
+import org.opends.server.util.StaticUtils;
+
 
 
 /**
@@ -74,6 +76,7 @@ class UUIDOrderingMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getAllNames()
   {
     return Collections.singleton(getName());
@@ -87,6 +90,7 @@ class UUIDOrderingMatchingRule
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
    * it does not have a name.
    */
+  @Override
   public String getName()
   {
     return OMR_UUID_NAME;
@@ -99,6 +103,7 @@ class UUIDOrderingMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return OMR_UUID_OID;
@@ -112,6 +117,7 @@ class UUIDOrderingMatchingRule
    * @return  The description for this matching rule, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     // There is no standard description for this matching rule.
@@ -126,6 +132,7 @@ class UUIDOrderingMatchingRule
    *
    * @return  The OID of the syntax with which this matching rule is associated.
    */
+  @Override
   public String getSyntaxOID()
   {
     return SYNTAX_UUID_OID;
@@ -144,14 +151,14 @@ class UUIDOrderingMatchingRule
    * @throws  DirectoryException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
-  public ByteString normalizeValue(ByteString value)
+  @Override
+  public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
-    byte[] valueBytes = value.value();
-    if (valueBytes.length != 36)
+    if (value.length() != 36)
     {
       Message message = WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH.get(
-              value.stringValue(), valueBytes.length);
+              value.toString(), value.length());
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
         case REJECT:
@@ -159,28 +166,29 @@ class UUIDOrderingMatchingRule
                                        message);
         case WARN:
           ErrorLogger.logError(message);
-          return new ASN1OctetString(valueBytes);
+          return value.toByteString();
         default:
-          return new ASN1OctetString(valueBytes);
+          return value.toByteString();
       }
     }
 
-    byte[] normBytes = new byte[36];
-    System.arraycopy(valueBytes, 0, normBytes, 0, 36);
+    StringBuilder builder = new StringBuilder(36);
+    char c;
     for (int i=0; i < 36; i++)
     {
       // The 9th, 14th, 19th, and 24th characters must be dashes.  All others
       // must be hex.  Convert all uppercase hex characters to lowercase.
+      c = (char)value.byteAt(i);
       switch (i)
       {
         case 8:
         case 13:
         case 18:
         case 23:
-          if (normBytes[i] != '-')
+          if (c != '-')
           {
             Message message = WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH.get(
-                    value.stringValue(), i, String.valueOf(normBytes[i]));
+                    value.toString(), i, String.valueOf(c));
             switch (DirectoryServer.getSyntaxEnforcementPolicy())
             {
               case REJECT:
@@ -188,14 +196,15 @@ class UUIDOrderingMatchingRule
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
               case WARN:
                 ErrorLogger.logError(message);
-                return new ASN1OctetString(valueBytes);
+                return value.toByteString();
               default:
-                return new ASN1OctetString(valueBytes);
+                return value.toByteString();
             }
           }
+          builder.append(c);
           break;
         default:
-          switch (normBytes[i])
+          switch (c)
           {
             case '0':
             case '1':
@@ -214,28 +223,29 @@ class UUIDOrderingMatchingRule
             case 'e':
             case 'f':
               // These are all fine.
+              builder.append(c);
               break;
             case 'A':
-              normBytes[i] = 'a';
+              builder.append('a');
               break;
             case 'B':
-              normBytes[i] = 'b';
+              builder.append('b');
               break;
             case 'C':
-              normBytes[i] = 'c';
+              builder.append('c');
               break;
             case 'D':
-              normBytes[i] = 'd';
+              builder.append('d');
               break;
             case 'E':
-              normBytes[i] = 'e';
+              builder.append('e');
               break;
             case 'F':
-              normBytes[i] = 'f';
+              builder.append('f');
               break;
             default:
               Message message = WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX.get(
-                      value.stringValue(), i, String.valueOf(normBytes[i]));
+                      value.toString(), i, String.valueOf(c));
               switch (DirectoryServer.getSyntaxEnforcementPolicy())
               {
                 case REJECT:
@@ -243,15 +253,15 @@ class UUIDOrderingMatchingRule
                                  ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
                 case WARN:
                   ErrorLogger.logError(message);
-                  return new ASN1OctetString(valueBytes);
+                  return value.toByteString();
                 default:
-                  return new ASN1OctetString(valueBytes);
+                  return value.toByteString();
               }
           }
       }
     }
 
-    return new ASN1OctetString(normBytes);
+    return ByteString.valueOf(builder.toString());
   }
 
 
@@ -269,9 +279,10 @@ class UUIDOrderingMatchingRule
    *          ascending order, or zero if there is no difference between the
    *          values with regard to ordering.
    */
-  public int compareValues(ByteString value1, ByteString value2)
+  @Override
+  public int compareValues(ByteSequence value1, ByteSequence value2)
   {
-    return compare(value1.value(), value2.value());
+    return StaticUtils.compare(value1, value2);
   }
 
 
@@ -291,36 +302,7 @@ class UUIDOrderingMatchingRule
    */
   public int compare(byte[] b1, byte[] b2)
   {
-    int minLength = Math.min(b1.length, b2.length);
-
-    for (int i=0; i < minLength; i++)
-    {
-      if (b1[i] == b2[i])
-      {
-        continue;
-      }
-      else if (b1[i] < b2[i])
-      {
-        return -1;
-      }
-      else if (b1[i] > b2[i])
-      {
-        return 1;
-      }
-    }
-
-    if (b1.length == b2.length)
-    {
-      return 0;
-    }
-    else if (b1.length < b2.length)
-    {
-      return -1;
-    }
-    else
-    {
-      return 1;
-    }
+    return StaticUtils.compare(b1, b2);
   }
 }
 

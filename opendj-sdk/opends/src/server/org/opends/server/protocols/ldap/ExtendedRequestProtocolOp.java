@@ -25,23 +25,16 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
 
 
+import java.io.IOException;
 
-import java.util.ArrayList;
-
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
+import org.opends.server.protocols.asn1.*;
+import org.opends.server.types.ByteString;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -59,7 +52,7 @@ public class ExtendedRequestProtocolOp
   private static final DebugTracer TRACER = getTracer();
 
   // The value for this extended request.
-  private ASN1OctetString value;
+  private ByteString value;
 
   // The OID for this extended request.
   private String oid;
@@ -87,7 +80,7 @@ public class ExtendedRequestProtocolOp
    * @param  oid    The OID for this extended request.
    * @param  value  The value for this extended request.
    */
-  public ExtendedRequestProtocolOp(String oid, ASN1OctetString value)
+  public ExtendedRequestProtocolOp(String oid, ByteString value)
   {
     this.oid   = oid;
     this.value = value;
@@ -106,40 +99,15 @@ public class ExtendedRequestProtocolOp
   }
 
 
-
-  /**
-   * Specifies the OID for this extended request.
-   *
-   * @param  oid  The OID for this extended request.
-   */
-  public void setOID(String oid)
-  {
-    this.oid = oid;
-  }
-
-
-
   /**
    * Retrieves the value for this extended request.
    *
    * @return  The value for this extended request, or <CODE>null</CODE> if there
    *          is no value.
    */
-  public ASN1OctetString getValue()
+  public ByteString getValue()
   {
     return value;
-  }
-
-
-
-  /**
-   * Specifies the value for this extended request.
-   *
-   * @param  value  The value for this extended request.
-   */
-  public void setValue(ASN1OctetString value)
-  {
-    this.value = value;
   }
 
 
@@ -166,116 +134,23 @@ public class ExtendedRequestProtocolOp
     return "Extended Request";
   }
 
-
-
   /**
-   * Encodes this protocol op to an ASN.1 element suitable for including in an
-   * LDAP message.
+   * Writes this protocol op to an ASN.1 output stream.
    *
-   * @return  The ASN.1 element containing the encoded protocol op.
+   * @param stream The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public ASN1Element encode()
+  public void write(ASN1Writer stream) throws IOException
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1OctetString(TYPE_EXTENDED_REQUEST_OID, oid));
+    stream.writeStartSequence(OP_TYPE_EXTENDED_REQUEST);
+    stream.writeOctetString(TYPE_EXTENDED_REQUEST_OID, oid);
 
-    if (value != null)
+    if(value != null)
     {
-      value.setType(TYPE_EXTENDED_REQUEST_VALUE);
-      elements.add(value);
+      stream.writeOctetString(TYPE_EXTENDED_REQUEST_VALUE, value);
     }
 
-    return new ASN1Sequence(OP_TYPE_EXTENDED_REQUEST, elements);
-  }
-
-
-
-  /**
-   * Decodes the provided ASN.1 element as an LDAP extended request protocol op.
-   *
-   * @param  element  The ASN.1 element to be decoded.
-   *
-   * @return  The decoded extended request protocol op.
-   *
-   * @throws  LDAPException  If a problem occurs while attempting to decode the
-   *                         provided ASN.1 element as an LDAP extended request
-   *                         protocol op.
-   */
-  public static ExtendedRequestProtocolOp decodeExtendedRequest(ASN1Element
-                                                                     element)
-         throws LDAPException
-  {
-    ArrayList<ASN1Element> elements;
-    try
-    {
-      elements = element.decodeAsSequence().elements();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_EXTENDED_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    int numElements = elements.size();
-    if ((numElements < 1) || (numElements > 2))
-    {
-      Message message = ERR_LDAP_EXTENDED_REQUEST_DECODE_INVALID_ELEMENT_COUNT.
-          get(numElements);
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-
-    String oid;
-    try
-    {
-      oid = elements.get(0).decodeAsOctetString().stringValue();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_EXTENDED_REQUEST_DECODE_OID.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    ASN1OctetString value;
-    if (numElements == 2)
-    {
-      try
-      {
-        value = elements.get(1).decodeAsOctetString();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message =
-            ERR_LDAP_EXTENDED_REQUEST_DECODE_VALUE.get(String.valueOf(e));
-        throw new LDAPException(PROTOCOL_ERROR, message, e);
-      }
-    }
-    else
-    {
-      value = null;
-    }
-
-
-    return new ExtendedRequestProtocolOp(oid, value);
+    stream.writeEndSequence();
   }
 
 
@@ -294,7 +169,7 @@ public class ExtendedRequestProtocolOp
     if (value != null)
     {
       buffer.append(", value=");
-      value.toString(buffer);
+      buffer.append(value.toString());
     }
 
     buffer.append(")");
@@ -332,7 +207,7 @@ public class ExtendedRequestProtocolOp
       buffer.append(indentBuf);
       buffer.append("  Value:");
       buffer.append(EOL);
-      value.toString(buffer, indent+4);
+      value.toHexPlusAscii(buffer, indent+4);
     }
   }
 }

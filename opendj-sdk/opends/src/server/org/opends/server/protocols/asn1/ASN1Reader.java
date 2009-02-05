@@ -25,299 +25,209 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.asn1;
-import org.opends.messages.Message;
 
 
 
-import java.io.InputStream;
+import java.io.Closeable;
 import java.io.IOException;
-import java.net.Socket;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
-import static org.opends.messages.ProtocolMessages.*;
-
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringBuilder;
 
 
 /**
- * This class defines a utility that can be used to read ASN.1 elements from a
- * provided socket or input stream.
+ * An interface for decoding ASN.1 elements from a data source.
+ * <p>
+ * Methods for creating {@link ASN1Reader}s are provided in the
+ * {@link ASN1} class.
  */
-@org.opends.server.types.PublicAPI(
-     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
-     mayInstantiate=true,
-     mayExtend=false,
-     mayInvoke=true)
-public final class ASN1Reader
+public interface ASN1Reader extends Closeable
 {
+
   /**
-   * The tracer object for the debug logger.
+   * Closes this ASN.1 reader.
+   *
+   * @throws IOException if an I/O error occurs
    */
-  private static final DebugTracer TRACER = getTracer();
-
-
-
-
-  // The input stream from which to read the ASN.1 elements.
-  private InputStream inputStream;
-
-  // The largest element size (in bytes) that will be allowed.
-  private int maxElementSize;
-
-  // The socket with which the input stream is associated.
-  private Socket socket;
+  void close() throws IOException;
 
 
 
   /**
-   * Creates a new ASN.1 reader that will read elements from the provided
-   * socket.
+   * Determines if a complete ASN.1 element is waiting to be read.
    *
-   * @param  socket  The socket from which to read the ASN.1 elements.
-   *
-   * @throws  IOException  If a problem occurs while attempting to obtain the
-   *                       input stream for the socket.
+   * @return <code>true</code> if another complete element is available or
+   *         <code>false</code> otherwise.
+   * @throws ASN1Exception If an error occurs while trying to decode
+   *                       an ASN1 element.
    */
-  public ASN1Reader(Socket socket)
-         throws IOException
-  {
-    this.socket = socket;
-    inputStream = socket.getInputStream();
-
-    maxElementSize = -1;
-  }
+  public boolean elementAvailable() throws ASN1Exception;
 
 
 
   /**
-   * Creates a new ASN.1 reader that will read elements from the provided input
-   * stream.
+   * Determines if at least one ASN.1 element is waiting to be read.
    *
-   * @param  inputStream  The input stream from which to read the ASN.1
-   *                      elements.
+   * @return <code>true</code> if another element is available or
+   *         <code>false</code> if the EOF is reached.
+   * @throws ASN1Exception
+   *           If an error occurs while trying to decode an ASN1
+   *           element.
    */
-  public ASN1Reader(InputStream inputStream)
-  {
-    this.inputStream = inputStream;
-    socket           = null;
-    maxElementSize   = -1;
-  }
+  boolean hasNextElement() throws ASN1Exception;
 
 
 
   /**
-   * Retrieves the maximum size in bytes that will be allowed for elements read
-   * using this reader.  A negative value indicates that no limit should be
-   * enforced.
+   * Gets the data length of the next element without actually reading
+   * the element and advancing the cursor.
    *
-   * @return  The maximum size in bytes that will be allowed for elements.
+   * @return The data length of the next element or -1 if the EOF is
+   *         encountered.
+   * @throws ASN1Exception
+   *           If an error occurs while determining the length.
    */
-  public int getMaxElementSize()
-  {
-    return maxElementSize;
-  }
+  int peekLength() throws ASN1Exception;
 
 
 
   /**
-   * Specifies the maximum size in bytes that will be allowed for elements.  A
-   * negative value indicates that no limit should be enforced.
+   * Gets the BER type of the next element without actually reading
+   * the element and advancing the cursor.
    *
-   * @param  maxElementSize  The maximum size in bytes that will be allowed for
-   *                         elements read using this reader.
+   * @return The BER type of the next element or -1 if the EOF is
+   *         encountered.
+   * @throws ASN1Exception
+   *           If an error occurs while determining the BER type.
    */
-  public void setMaxElementSize(int maxElementSize)
-  {
-    this.maxElementSize = maxElementSize;
-  }
+  byte peekType() throws ASN1Exception;
 
 
 
   /**
-   * Retrieves the maximum length of time in milliseconds that this reader will
-   * be allowed to block while waiting to read data.  This is only applicable
-   * for readers created with sockets rather than input streams.
+   * Reads the next ASN.1 element as a boolean and advance the cursor.
    *
-   * @return  The maximum length of time in milliseconds that this reader will
-   *          be allowed to block while waiting to read data, or 0 if there is
-   *          no limit, or -1 if this ASN.1 reader is not associated with a
-   *          socket and no timeout can be enforced.
-   *
-   * @throws  IOException  If a problem occurs while polling the socket to
-   *                       determine the timeout.
+   * @return The decoded boolean value.
+   * @throws ASN1Exception
+   *           If the element cannot be decoded as a boolean.
    */
-  public int getIOTimeout()
-         throws IOException
-  {
-    if (socket == null)
-    {
-      return -1;
-    }
-    else
-    {
-      return socket.getSoTimeout();
-    }
-  }
+  boolean readBoolean() throws ASN1Exception;
 
 
 
   /**
-   * Specifies the maximum length of time in milliseconds that this reader
-   * should be allowed to block while waiting to read data.  This will only be
-   * applicable for readers created with sockets and will have no effect on
-   * readers created with input streams.
+   * Finishes reading a sequence. Any elements not read in the
+   * sequence will be discarded.
    *
-   * @param  ioTimeout  The maximum length of time in milliseconds that this
-   *                    reader should be allowed to block while waiting to read
-   *                    data, or 0 if there should be no limit.
-   *
-   * @throws  IOException  If a problem occurs while setting the underlying
-   *                       socket option.
+   * @throws ASN1Exception
+   *           If an error occurs while advancing to the end of the
+   *           sequence.
    */
-  public void setIOTimeout(int ioTimeout)
-         throws IOException
-  {
-    if (socket == null)
-    {
-      return;
-    }
-
-    socket.setSoTimeout(Math.max(0, ioTimeout));
-  }
+  void readEndSequence() throws ASN1Exception;
 
 
 
   /**
-   * Reads an ASN.1 element from the associated input stream.
+   * Reads the next ASN.1 element as an integer and advances the
+   * cursor.
    *
-   * @return  The ASN.1 element read from the associated input stream, or
-   *          <CODE>null</CODE> if the end of the stream has been reached.
-   *
-   * @throws  IOException  If a problem occurs while attempting to read from the
-   *                       input stream.
-   *
-   * @throws  ASN1Exception  If a problem occurs while attempting to decode the
-   *                         data read as an ASN.1 element.
+   * @return The decoded integer value.
+   * @throws ASN1Exception
+   *           If the element cannot be decoded as a integer.
    */
-  public ASN1Element readElement()
-         throws IOException, ASN1Exception
-  {
-    // First, read the BER type, which should be the first byte.
-    int typeValue = inputStream.read();
-    if (typeValue < 0)
-    {
-      return null;
-    }
-
-    byte type = (byte) (typeValue & 0xFF);
-
-
-
-    // Next, read the first byte of the length, and see if we need to read more.
-    int length         = inputStream.read();
-    int numLengthBytes = (length & 0x7F);
-    if (length != numLengthBytes)
-    {
-      // Make sure that there are an acceptable number of bytes in the length.
-      if (numLengthBytes > 4)
-      {
-        Message message =
-            ERR_ASN1_ELEMENT_SET_INVALID_NUM_LENGTH_BYTES.get(numLengthBytes);
-        throw new ASN1Exception(message);
-      }
-
-
-      length = 0;
-      for (int i=0; i < numLengthBytes; i++)
-      {
-        int lengthByte = inputStream.read();
-        if (lengthByte < 0)
-        {
-          // We've reached the end of the stream in the middle of the value.
-          // This is not good, so throw an exception.
-          Message message =
-              ERR_ASN1_ELEMENT_SET_TRUNCATED_LENGTH.get(numLengthBytes);
-          throw new IOException(message.toString());
-        }
-
-        length = (length << 8) | lengthByte;
-      }
-    }
-
-
-    // See how many bytes there are in the value.  If there are none, then just
-    // create an empty element with only a type.  If the length is larger than
-    // the maximum allowed, then fail.
-    if (length == 0)
-    {
-      return new ASN1Element(type);
-    }
-    else if ((maxElementSize > 0) && (length > maxElementSize))
-    {
-      Message message =
-          ERR_ASN1_READER_MAX_SIZE_EXCEEDED.get(length, maxElementSize);
-      throw new ASN1Exception(message);
-    }
-
-
-    // There is a value for the element, so create an array to hold it and read
-    // it from the stream.
-    byte[] value       = new byte[length];
-    int    readPos     = 0;
-    int    bytesNeeded = length;
-    while (bytesNeeded > 0)
-    {
-      int bytesRead = inputStream.read(value, readPos, bytesNeeded);
-      if (bytesRead < 0)
-      {
-        Message message =
-            ERR_ASN1_ELEMENT_SET_TRUNCATED_VALUE.get(length, bytesNeeded);
-        throw new IOException(message.toString());
-      }
-
-      bytesNeeded -= bytesRead;
-      readPos     += bytesRead;
-    }
-
-
-    // Return the constructed element.
-    return new ASN1Element(type, value);
-  }
+  long readInteger() throws ASN1Exception;
 
 
 
   /**
-   * Closes this ASN.1 reader and the underlying input stream and/or socket.
+   * Reads the next ASN.1 element as a null element and advances the
+   * cursor.
+   *
+   * @throws ASN1Exception
+   *           If the element cannot be decoded as an null element.
    */
-  public void close()
-  {
-    try
-    {
-      inputStream.close();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
+  void readNull() throws ASN1Exception;
 
-    if (socket != null)
-    {
-      try
-      {
-        socket.close();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
-    }
-  }
+
+
+  /**
+   * Reads the next ASN.1 element as an octet string and advances the
+   * cursor.
+   *
+   * @return The decoded octet string value represented using a
+   *         {@link ByteString}.
+   * @throws ASN1Exception
+   *           If the element cannot be decoded as an octet string.
+   */
+  ByteString readOctetString() throws ASN1Exception;
+
+
+
+  /**
+   * Reads the next ASN.1 element as an octet string and advances the
+   * cursor. The data will be appended to the provided
+   * {@link ByteStringBuilder}.
+   *
+   * @param buffer
+   *          The {@link ByteStringBuilder} to append the data to.
+   * @throws ASN1Exception
+   *           If the element cannot be decoded as an octet string.
+   */
+  void readOctetString(ByteStringBuilder buffer) throws ASN1Exception;
+
+
+
+  /**
+   * Reads the next ASN.1 element as an octet string and advances the
+   * cursor. The data will be decoded to a UTF-8 string. This method
+   * is equivalent to:
+   *
+   * <pre>
+   * readOctetStringAsString(&quot;UTF-8&quot;);
+   * </pre>
+   *
+   * @return The string representation of the octet string data.
+   * @throws ASN1Exception
+   *           If the element cannot be decoded as an octet string.
+   */
+  String readOctetStringAsString() throws ASN1Exception;
+
+
+
+  /**
+   * Reads the next ASN.1 element as an octet string and advances the
+   * cursor. The data will be decoded to a string using the provided
+   * character set.
+   *
+   * @param charSet
+   *          The character set to use in order to decode the data
+   *          into a string.
+   * @return The string representation of the octet string data.
+   * @throws ASN1Exception
+   *           If the element cannot be decoded as an octet string.
+   */
+  String readOctetStringAsString(String charSet) throws ASN1Exception;
+
+
+
+  /**
+   * Reads the next ASN.1 element as a sequence. All further reads
+   * will read the elements in the sequence until
+   * {@link #readEndSequence()} is called.
+   *
+   * @throws ASN1Exception
+   *           If the next element is not a sequence.
+   */
+  void readStartSequence() throws ASN1Exception;
+
+
+
+  /**
+   * Advances this ASN.1 reader beyond the next ASN.1 element without
+   * decoding it.
+   *
+   * @throws ASN1Exception
+   *           If the next ASN.1 element could not be skipped.
+   */
+  void skipElement() throws ASN1Exception;
 }
-

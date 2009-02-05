@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 import org.opends.messages.Message;
@@ -45,6 +45,8 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -53,26 +55,31 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import javax.net.ssl.SSLContext;
+
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
-import org.opends.server.api.ConnectionSecurityProvider;
+import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.api.ServerShutdownListener;
+import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.QueueingStrategy;
 import org.opends.server.core.WorkQueueStrategy;
-import org.opends.server.extensions.NullConnectionSecurityProvider;
-import org.opends.server.extensions.TLSConnectionSecurityProvider;
+import org.opends.server.extensions.NullKeyManagerProvider;
+import org.opends.server.extensions.NullTrustManagerProvider;
+import org.opends.server.extensions.TLSByteChannel;
 import org.opends.server.types.AddressMask;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 
 
@@ -80,6 +87,7 @@ import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SSLClientAuthPolicy;
+import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.StaticUtils;
 
 
@@ -188,10 +196,6 @@ public final class LDAPConnectionHandler extends
   // The protocol used by this connection handler.
   private String protocol;
 
-  // The connection security provider that will be used by default for
-  // new client connections.
-  private ConnectionSecurityProvider securityProvider;
-
 // Queueing strategy
   private final QueueingStrategy queueingStrategy;
 
@@ -202,6 +206,13 @@ public final class LDAPConnectionHandler extends
 
   // The friendly name of this connection handler.
   private String friendlyName;
+
+  //SSL instance name used in context creation.
+  private static final String SSL_CONTEXT_INSTANCE_NAME = "TLS";
+
+  //SSL context.
+  private SSLContext sslContext;
+  private boolean sslConfig = false;
 
   /**
    * Creates a new instance of this LDAP connection handler. It must
@@ -308,20 +319,10 @@ public final class LDAPConnectionHandler extends
         new AddressMask[0]);
     deniedClients = config.getDeniedClient().toArray(
         new AddressMask[0]);
+    //Reconfigure SSL context if needed.
+    if (config.isUseSSL() || config.isAllowStartTLS()) {
+            sslConfig = true;
 
-    // Get the supported SSL ciphers and protocols.
-    Set<String> ciphers = config.getSSLCipherSuite();
-    if (ciphers.isEmpty()) {
-      enabledSSLCipherSuites = null;
-    } else {
-      enabledSSLCipherSuites = ciphers.toArray(new String[0]);
-    }
-
-    Set<String> protocols = config.getSSLProtocol();
-    if (protocols.isEmpty()) {
-      enabledSSLProtocols = null;
-    } else {
-      enabledSSLProtocols = protocols.toArray(new String[0]);
     }
 
     if (config.isAllowLDAPV2())
@@ -491,21 +492,6 @@ public final class LDAPConnectionHandler extends
 
 
 
-  /**
-   * Retrieves the DN of the key manager provider that should be used
-   * for operations associated with this connection handler which need
-   * access to a key manager.
-   *
-   * @return The DN of the key manager provider that should be used
-   *         for operations associated with this connection handler
-   *         which need access to a key manager, or {@code null} if no
-   *         key manager provider has been configured for this
-   *         connection handler.
-   */
-  public DN getKeyManagerProviderDN() {
-    return currentConfig.getKeyManagerProviderDN();
-  }
-
 
 
   /**
@@ -575,16 +561,6 @@ public final class LDAPConnectionHandler extends
 
 
 
-  /**
-   * Retrieves the nickname of the server certificate that should be
-   * used in conjunction with this LDAP connection handler.
-   *
-   * @return The nickname of the server certificate that should be
-   *         used in conjunction with this LDAP connection handler.
-   */
-  public String getSSLServerCertNickname() {
-    return currentConfig.getSSLCertNickname();
-  }
 
 
 
@@ -614,22 +590,6 @@ public final class LDAPConnectionHandler extends
 
 
 
-  /**
-   * Retrieves the DN of the trust manager provider that should be
-   * used for operations associated with this connection handler which
-   * need access to a trust manager.
-   *
-   * @return The DN of the trust manager provider that should be used
-   *         for operations associated with this connection handler
-   *         which need access to a trust manager, or {@code null} if
-   *         no trust manager provider has been configured for this
-   *         connection handler.
-   */
-  public DN getTrustManagerProviderDN() {
-    return currentConfig.getTrustManagerProviderDN();
-  }
-
-
 
   /**
    * {@inheritDoc}
@@ -651,51 +611,7 @@ public final class LDAPConnectionHandler extends
       throw new InitializationException(message, e);
     }
 
-    // Get the SSL auth policy.
-    switch (config.getSSLClientAuthPolicy()) {
-    case DISABLED:
-      sslClientAuthPolicy = SSLClientAuthPolicy.DISABLED;
-      break;
-    case REQUIRED:
-      sslClientAuthPolicy = SSLClientAuthPolicy.REQUIRED;
-      break;
-    default:
-      sslClientAuthPolicy = SSLClientAuthPolicy.OPTIONAL;
-      break;
-    }
-
-    // Get the supported SSL ciphers and protocols.
-    Set<String> ciphers = config.getSSLCipherSuite();
-    if (ciphers.isEmpty()) {
-      enabledSSLCipherSuites = null;
-    } else {
-      enabledSSLCipherSuites = ciphers.toArray(new String[0]);
-    }
-
-    Set<String> protocols = config.getSSLProtocol();
-    if (protocols.isEmpty()) {
-      enabledSSLProtocols = null;
-    } else {
-      enabledSSLProtocols = protocols.toArray(new String[0]);
-    }
-
-    // Initialize the security provider.
-    if (config.isUseSSL()) {
-      TLSConnectionSecurityProvider tlsProvider =
-        new TLSConnectionSecurityProvider();
-      tlsProvider.initializeConnectionSecurityProvider(null);
-      tlsProvider.setSSLClientAuthPolicy(sslClientAuthPolicy);
-      tlsProvider.setEnabledProtocols(enabledSSLProtocols);
-      tlsProvider.setEnabledCipherSuites(enabledSSLCipherSuites);
-
-      // FIXME -- Need to do something with the requested cert
-      // nickname.
-
-      securityProvider = tlsProvider;
-    } else {
-      securityProvider = new NullConnectionSecurityProvider();
-      securityProvider.initializeConnectionSecurityProvider(null);
-    }
+     protocol = "LDAP";
 
     // Save this configuration for future reference.
     currentConfig = config;
@@ -705,6 +621,9 @@ public final class LDAPConnectionHandler extends
         new AddressMask[0]);
     deniedClients = config.getDeniedClient().toArray(
         new AddressMask[0]);
+    //Setup SSL context if needed.
+    if (config.isUseSSL() || config.isAllowStartTLS())
+        sslConfig=true;
 
     // Save properties that cannot be dynamically modified.
     allowReuseAddress = config.isAllowTCPReuseAddress();
@@ -727,13 +646,6 @@ public final class LDAPConnectionHandler extends
     nameBuffer.append(" port ");
     nameBuffer.append(listenPort);
     handlerName = nameBuffer.toString();
-
-    // Set the protocol for this connection handler.
-    if (config.isUseSSL()) {
-      protocol = "LDAP+SSL";
-    } else {
-      protocol = "LDAP";
-    }
 
     // Perform any additional initialization that might be required.
     statTracker = new LDAPStatistics(this, handlerName + " Statistics");
@@ -819,7 +731,6 @@ public final class LDAPConnectionHandler extends
         }
       }
     }
-
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
@@ -992,9 +903,8 @@ public final class LDAPConnectionHandler extends
                       .channel();
                   SocketChannel clientChannel = serverChannel
                       .accept();
-                  LDAPClientConnection clientConnection =
-                    new LDAPClientConnection(this, clientChannel);
-
+                  LDAPClientConnection clientConnection  =
+                                          createClientConnection(clientChannel);
                   // Check to see if the core server rejected the
                   // connection (e.g., already too many connections
                   // established).
@@ -1042,29 +952,6 @@ public final class LDAPConnectionHandler extends
                       currentConfig.isUseTCPKeepAlive());
                   clientChannel.socket().setTcpNoDelay(
                       currentConfig.isUseTCPNoDelay());
-
-                  try
-                  {
-                    ConnectionSecurityProvider connectionSecurityProvider =
-                         securityProvider.newInstance(clientConnection,
-                                                      clientChannel);
-                    clientConnection.setConnectionSecurityProvider(
-                         connectionSecurityProvider);
-                  }
-                  catch (Exception e)
-                  {
-                    if (debugEnabled())
-                    {
-                      TRACER.debugCaught(DebugLogLevel.ERROR, e);
-                    }
-
-                    clientConnection.disconnect(
-                         DisconnectReason.SECURITY_PROBLEM, false,
-                         ERR_LDAP_CONNHANDLER_CANNOT_SET_SECURITY_PROVIDER.get(
-                          String.valueOf(e)));
-                    iterator.remove();
-                    continue;
-                  }
 
                   // If we've gotten here, then we'll take the
                   // connection so invoke the post-connect plugins and
@@ -1274,6 +1161,85 @@ public final class LDAPConnectionHandler extends
    */
   public QueueingStrategy getQueueingStrategy() {
     return queueingStrategy;
+  }
+
+  private LDAPClientConnection
+  createClientConnection(SocketChannel socketChannel)
+  throws DirectoryException {
+      if(sslConfig) {
+          configSSL(currentConfig);
+          sslConfig=false;
+      }
+      LDAPClientConnection c =
+                                 new LDAPClientConnection(this, socketChannel);
+      if(currentConfig.isUseSSL()) {
+          TLSByteChannel tlsByteChannel =  getTLSByteChannel(c, socketChannel);
+          c.enableSSL(tlsByteChannel);
+      }
+      return c;
+  }
+
+  /**
+   * Creates a TLS Byte Channel instance using the specified LDAP
+   * client connection and socket channel.
+   *
+   * @param c The client connection to use in the creation.
+   * @param socketChannel The socket channel to use in the creation.
+   * @return A TLS Byte Channel instance.
+   * @throws DirectoryException If the channel cannot be created.
+   */
+  public TLSByteChannel
+  getTLSByteChannel(LDAPClientConnection c, SocketChannel socketChannel)
+                  throws DirectoryException {
+         return(TLSByteChannel.getTLSByteChannel(currentConfig, c,
+                                                    sslContext,
+                                                    socketChannel));
+  }
+
+  private void configSSL(LDAPConnectionHandlerCfg config)
+  throws DirectoryException {
+      ResultCode resCode = DirectoryServer.getServerErrorResultCode();
+      try {
+          String alias = config.getSSLCertNickname();
+          protocol += "+SSL";
+          DN keyMgrDN = config.getKeyManagerProviderDN();
+          DN trustMgrDN = config.getTrustManagerProviderDN();
+          KeyManagerProvider<?> keyManagerProvider =
+              DirectoryServer.getKeyManagerProvider(keyMgrDN);
+          if (keyManagerProvider == null)
+              keyManagerProvider = new NullKeyManagerProvider();
+          TrustManagerProvider<?> trustManagerProvider =
+              DirectoryServer.getTrustManagerProvider(trustMgrDN);
+          if (trustManagerProvider == null)
+              trustManagerProvider = new NullTrustManagerProvider();
+          sslContext = SSLContext.getInstance(SSL_CONTEXT_INSTANCE_NAME);
+          if (alias == null) {
+              sslContext.init(keyManagerProvider.getKeyManagers(),
+                      trustManagerProvider.getTrustManagers(), null);
+          } else {
+              sslContext.init(SelectableCertificateKeyManager.wrap(
+                      keyManagerProvider.getKeyManagers(), alias),
+                      trustManagerProvider.getTrustManagers(), null);
+          }
+      } catch (NoSuchAlgorithmException nsae) {
+          if (debugEnabled())
+              TRACER.debugCaught(DebugLogLevel.ERROR, nsae);
+          Message message =  ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE.
+                                                get(getExceptionMessage(nsae));
+          throw new DirectoryException(resCode, message, nsae);
+      } catch (KeyManagementException kme) {
+          if (debugEnabled())
+              TRACER.debugCaught(DebugLogLevel.ERROR, kme);
+          Message message = ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE
+                                                 .get(getExceptionMessage(kme));
+          throw new DirectoryException(resCode, message, kme);
+      } catch (DirectoryException de) {
+          if (debugEnabled())
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
+          Message message = ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE
+                                                 .get(getExceptionMessage(de));
+          throw new DirectoryException(resCode, message, de);
+      }
   }
 
 }

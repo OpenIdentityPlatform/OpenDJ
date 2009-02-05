@@ -39,16 +39,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.BooleanSyntax;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryConfig;
-import org.opends.server.types.ObjectClass;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -196,7 +187,7 @@ public class BackendMonitor
     DN[] baseDNs = backend.getBaseDNs();
     for (DN dn : baseDNs)
     {
-      builder.add(new AttributeValue(baseDNType, dn.toString()));
+      builder.add(AttributeValues.create(baseDNType, dn.toString()));
     }
     attrs.add(builder.toAttribute());
 
@@ -225,7 +216,7 @@ public class BackendMonitor
           }
         }
         String s = entryCount + " " + dn.toString();
-        builder.add(new AttributeValue(baseDNEntryCountType, s));
+        builder.add(AttributeValues.create(baseDNEntryCountType, s));
       }
     }
     else
@@ -234,7 +225,7 @@ public class BackendMonitor
       // using the hasNumSubordinates method in the case where the
       // backend has a single base DN.
       String s = backendCount + " " + baseDNs[0].toString();
-      builder.add(new AttributeValue(baseDNEntryCountType, s));
+      builder.add(AttributeValues.create(baseDNEntryCountType, s));
     }
     attrs.add(builder.toAttribute());
 

@@ -41,14 +41,7 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.InitializationException;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -245,23 +238,9 @@ public class SystemInfoMonitorProvider
   {
     AttributeType attrType = DirectoryServer.getDefaultAttributeType(name);
 
-    ASN1OctetString encodedValue = new ASN1OctetString(value);
     AttributeBuilder builder = new AttributeBuilder(attrType);
 
-    try
-    {
-      builder.add(new AttributeValue(encodedValue,
-                                    attrType.normalize(encodedValue)));
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      builder.add(new AttributeValue(encodedValue, encodedValue));
-    }
+    builder.add(AttributeValues.create(attrType, value));
 
     return builder.toAttribute();
   }

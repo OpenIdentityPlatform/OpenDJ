@@ -32,6 +32,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
 import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -39,9 +40,6 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
 import org.opends.server.util.Base64;
-import static
-    org.opends.server.util.ServerConstants.OID_SUBTREE_DELETE_CONTROL;
-
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
@@ -764,7 +762,7 @@ public class TestBackendImpl extends JebTestCase {
       "testMatchedDN", "testNumSubordinates",
       "testNumSubordinatesIndexEntryLimitExceeded"})
   public void testDeleteSubtree() throws Exception {
-    Control control = new Control(OID_SUBTREE_DELETE_CONTROL, false);
+    Control control = new SubtreeDeleteControl(false);
     ArrayList<Control> deleteSubTreeControl = new ArrayList<Control>();
     deleteSubTreeControl.add(control);
     InternalClientConnection conn =
@@ -923,16 +921,16 @@ public class TestBackendImpl extends JebTestCase {
 
       assertNotNull(entry);
       for (AttributeValue value : entry.getAttribute("cn").get(0)) {
-        assertEquals(value.getStringValue(), "Testing Test");
+        assertEquals(value.getValue().toString(), "Testing Test");
       }
       for (AttributeValue value : entry.getAttribute("sn").get(0)) {
-        assertEquals(value.getStringValue(), "Test");
+        assertEquals(value.getValue().toString(), "Test");
       }
       for (AttributeValue value : entry.getAttribute("givenname").get(0)) {
-        assertEquals(value.getStringValue(), "Testing");
+        assertEquals(value.getValue().toString(), "Testing");
       }
       for (AttributeValue value : entry.getAttribute("employeenumber").get(0)) {
-        assertEquals(value.getStringValue(), "777");
+        assertEquals(value.getValue().toString(), "777");
       }
 
       attribute = entry.getAttribute("cn").get(0).getAttributeType();
@@ -1123,20 +1121,20 @@ public class TestBackendImpl extends JebTestCase {
 
       assertTrue(entry.getAttribute("cn").get(0)
           .contains(
-              new AttributeValue(entry.getAttribute("cn").get(0)
+          AttributeValues.create(entry.getAttribute("cn").get(0)
                   .getAttributeType(), "Aaren Rigor")));
       assertTrue(entry.getAttribute("cn").get(0).contains(
-          new AttributeValue(
+          AttributeValues.create(
               entry.getAttribute("cn").get(0).getAttributeType(),
               "Aarenister Rigor")));
       assertFalse(entry.getAttribute("cn").get(0).contains(
-          new AttributeValue(
+          AttributeValues.create(
               entry.getAttribute("cn").get(0).getAttributeType(), "Aaren Atp")));
 
       Set<String> options = new LinkedHashSet<String>();
       options.add("lang-de");
       assertTrue(entry.getAttribute("givenname", options).get(0).contains(
-          new AttributeValue(entry.getAttribute("givenname", options).get(0)
+          AttributeValues.create(entry.getAttribute("givenname", options).get(0)
               .getAttributeType(), "test")));
       options = new LinkedHashSet<String>();
       options.add("lang-cn");
@@ -1144,12 +1142,12 @@ public class TestBackendImpl extends JebTestCase {
       options = new LinkedHashSet<String>();
       options.add("lang-es");
       assertTrue(entry.getAttribute("givenname", options).get(0).contains(
-          new AttributeValue(entry.getAttribute("givenname", options).get(0)
+          AttributeValues.create(entry.getAttribute("givenname", options).get(0)
               .getAttributeType(), "newtest3")));
       options = new LinkedHashSet<String>();
       options.add("lang-fr");
       assertTrue(entry.getAttribute("givenname", options).get(0).contains(
-          new AttributeValue(entry.getAttribute("givenname", options).get(0)
+          AttributeValues.create(entry.getAttribute("givenname", options).get(0)
               .getAttributeType(), "test2")));
 
       assertTrue(entry.getAttribute("employeenumber").contains(

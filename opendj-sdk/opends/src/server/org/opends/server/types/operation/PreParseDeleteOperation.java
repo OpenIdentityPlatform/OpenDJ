@@ -31,7 +31,6 @@ package org.opends.server.types.operation;
 import org.opends.server.types.ByteString;
 
 
-
 /**
  * This class defines a set of methods that are available for use by
  * pre-parse plugins for delete operations.  Note that this interface

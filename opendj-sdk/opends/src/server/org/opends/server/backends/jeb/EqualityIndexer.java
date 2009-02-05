@@ -172,7 +172,7 @@ public class EqualityIndexer extends Indexer
       {
         try
         {
-          byte[] keyBytes = value.getNormalizedValue().value();
+          byte[] keyBytes = value.getNormalizedValue().toByteArray();
 
           keys.add(keyBytes);
         }
@@ -207,7 +207,7 @@ public class EqualityIndexer extends Indexer
       {
         try
         {
-          byte[] keyBytes = value.getNormalizedValue().value();
+          byte[] keyBytes = value.getNormalizedValue().toByteArray();
 
           Boolean cInsert = modifiedKeys.get(keyBytes);
           if(cInsert == null)

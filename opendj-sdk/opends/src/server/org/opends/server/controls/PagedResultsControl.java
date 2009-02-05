@@ -29,19 +29,15 @@ import org.opends.messages.Message;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.PROTOCOL_ERROR;
 import static org.opends.server.util.ServerConstants.OID_PAGED_RESULTS_CONTROL;
 
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Integer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.types.Control;
-import org.opends.server.types.LDAPException;
+import org.opends.server.protocols.asn1.*;
+import static org.opends.server.protocols.asn1.ASN1Constants.
+    UNIVERSAL_OCTET_STRING_TYPE;
+import org.opends.server.types.*;
 
-import java.util.ArrayList;
+import java.io.IOException;
 
 /**
  * This class represents a paged results control value as defined in
@@ -61,6 +57,107 @@ import java.util.ArrayList;
 public class PagedResultsControl extends Control
 {
   /**
+   * ControlDecoder implentation to decode this control from a ByteString.
+   */
+  private final static class Decoder
+      implements ControlDecoder<PagedResultsControl>
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public PagedResultsControl decode(boolean isCritical, ByteString value)
+        throws DirectoryException
+    {
+      if (value == null)
+      {
+        Message message = ERR_LDAP_PAGED_RESULTS_DECODE_NULL.get();
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+      }
+
+      ASN1Reader reader = ASN1.getReader(value);
+      try
+      {
+        reader.readStartSequence();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message =
+            ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(String.valueOf(e));
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
+      }
+
+      int size;
+      try
+      {
+        size = (int)reader.readInteger();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message =
+            ERR_LDAP_PAGED_RESULTS_DECODE_SIZE.get(String.valueOf(e));
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
+      }
+
+      ByteString cookie;
+      try
+      {
+        cookie = reader.readOctetString();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message =
+            ERR_LDAP_PAGED_RESULTS_DECODE_COOKIE.get(String.valueOf(e));
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
+      }
+
+      try
+      {
+        reader.readEndSequence();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message =
+            ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(String.valueOf(e));
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
+      }
+
+      return new PagedResultsControl(isCritical, size, cookie);
+    }
+
+    public String getOID()
+    {
+      return OID_PAGED_RESULTS_CONTROL;
+    }
+
+  }
+
+  /**
+   * The Control Decoder that can be used to decode this control.
+   */
+  public static final  ControlDecoder<PagedResultsControl> DECODER =
+    new Decoder();
+
+  /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
@@ -77,7 +174,7 @@ public class PagedResultsControl extends Control
   /**
    * The control value cookie element.
    */
-  private ASN1OctetString cookie;
+  private ByteString cookie;
 
 
   /**
@@ -89,112 +186,36 @@ public class PagedResultsControl extends Control
    * @param  cookie      The cookie element.
    */
   public PagedResultsControl(boolean isCritical, int size,
-                             ASN1OctetString cookie)
+                             ByteString cookie)
   {
     super(OID_PAGED_RESULTS_CONTROL, isCritical);
 
 
     this.size   = size;
-    this.cookie = cookie;
-
-    this.setValue(encode());
+    if(cookie == null)
+        this.cookie=ByteString.empty();
+    else
+        this.cookie = cookie;
   }
 
 
   /**
-   * Creates a new paged results control by decoding the given information.
+   * Writes this control's value to an ASN.1 writer. The value (if any) must be
+   * written as an ASN1OctetString.
    *
-   * @param  isCritical  Indicates whether the control is considered
-   *                     critical in processing the request.
-   * @param  value       The value of the control.
-   *
-   * @throws  LDAPException  If a problem occurs while attempting to decode the
-   *                         provided information as a paged results control.
+   * @param writer The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public PagedResultsControl(boolean isCritical, ASN1OctetString value)
-       throws LDAPException
-  {
-    super(OID_PAGED_RESULTS_CONTROL, isCritical, value);
+  @Override
+  public void writeValue(ASN1Writer writer) throws IOException {
+    writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
 
-    if (value == null)
-    {
-      Message message = ERR_LDAP_PAGED_RESULTS_DECODE_NULL.get();
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
+    writer.writeStartSequence();
+    writer.writeInteger(size);
+    writer.writeOctetString(cookie);
+    writer.writeEndSequence();
 
-    ArrayList<ASN1Element> elements;
-    try
-    {
-      ASN1Element sequence = ASN1Element.decode(value.value());
-      elements = sequence.decodeAsSequence().elements();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-    int numElements = elements.size();
-    if (numElements != 2)
-    {
-      Message message =
-          ERR_LDAP_PAGED_RESULTS_DECODE_INVALID_ELEMENT_COUNT.get(numElements);
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-    try
-    {
-      size = elements.get(0).decodeAsInteger().intValue();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_PAGED_RESULTS_DECODE_SIZE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-    try
-    {
-      cookie = elements.get(1).decodeAsOctetString();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_PAGED_RESULTS_DECODE_COOKIE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-  }
-
-
-  /**
-   * Encodes this control value to an ASN.1 element.
-   *
-   * @return  The ASN.1 element containing the encoded control value.
-   */
-  public ASN1OctetString encode()
-  {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1Integer(size));
-    elements.add(cookie);
-
-    ASN1Sequence sequence = new ASN1Sequence(elements);
-    return new ASN1OctetString(sequence.encode());
+    writer.writeEndSequence();
   }
 
 
@@ -214,7 +235,7 @@ public class PagedResultsControl extends Control
    * Get the control value cookie element.
    * @return The control value cookie element.
    */
-  public ASN1OctetString getCookie()
+  public ByteString getCookie()
   {
     return cookie;
   }

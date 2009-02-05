@@ -40,16 +40,12 @@ import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.CompareRequestProtocolOp;
 import org.opends.server.protocols.ldap.CompareResponseProtocolOp;
-import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ProtocolOp;
-import org.opends.server.types.NullOutputStream;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
+import org.opends.server.types.*;
 import org.opends.server.util.Base64;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.PasswordReader;
@@ -67,6 +63,7 @@ import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
+import org.opends.server.controls.LDAPAssertionRequestControl;
 
 
 /**
@@ -191,9 +188,9 @@ public class LDAPCompare
                               LDAPCompareOptions compareOptions)
           throws IOException, LDAPException
   {
-    ArrayList<LDAPControl> controls = compareOptions.getControls();
-    ASN1OctetString dnOctetStr = new ASN1OctetString(line);
-    ASN1OctetString attrValOctetStr = new ASN1OctetString(attributeVal);
+    ArrayList<Control> controls = compareOptions.getControls();
+    ByteString dnOctetStr = ByteString.valueOf(line);
+    ByteString attrValOctetStr = ByteString.wrap(attributeVal);
 
     ProtocolOp protocolOp = new CompareRequestProtocolOp(dnOctetStr,
                                      attributeType, attrValOctetStr);
@@ -816,7 +813,7 @@ public class LDAPCompare
     {
       for (String ctrlString : controlStr.getValues())
       {
-        LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
+        Control ctrl = LDAPToolUtils.getControl(ctrlString, err);
         if(ctrl == null)
         {
           Message message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
@@ -836,9 +833,8 @@ public class LDAPCompare
       {
         filter = LDAPFilter.decode(filterString);
 
-        LDAPControl assertionControl =
-             new LDAPControl(OID_LDAP_ASSERTION, true,
-                             new ASN1OctetString(filter.encode().encode()));
+        Control assertionControl =
+            new LDAPAssertionRequestControl(true, filter);
         compareOptions.getControls().add(assertionControl);
       }
       catch (LDAPException le)

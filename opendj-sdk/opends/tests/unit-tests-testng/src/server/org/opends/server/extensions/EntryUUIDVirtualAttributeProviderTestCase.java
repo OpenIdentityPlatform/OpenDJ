@@ -45,17 +45,8 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Control;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
-import org.opends.server.types.VirtualAttributeRule;
+import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
 
@@ -145,7 +136,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     {
       assertTrue(!a.isEmpty());
       assertEquals(a.size(), 1);
-      assertTrue(a.contains(new AttributeValue(entryUUIDType, uuidString)));
+      assertTrue(a.contains(AttributeValues.create(entryUUIDType, uuidString)));
     }
   }
 
@@ -189,7 +180,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     {
       assertTrue(!a.isEmpty());
       assertEquals(a.size(), 1);
-      assertFalse(a.contains(new AttributeValue(entryUUIDType, uuidString)));
+      assertFalse(a.contains(AttributeValues.create(entryUUIDType, uuidString)));
     }
   }
 
@@ -474,7 +465,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     attrList.add("entryuuid");
 
     LinkedList<Control> requestControls = new LinkedList<Control>();
-    requestControls.add(new Control(OID_REAL_ATTRS_ONLY, true));
+    requestControls.add(new LDAPControl(OID_REAL_ATTRS_ONLY, true));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -514,7 +505,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     attrList.add("entryuuid");
 
     LinkedList<Control> requestControls = new LinkedList<Control>();
-    requestControls.add(new Control(OID_VIRTUAL_ATTRS_ONLY, true));
+    requestControls.add(new LDAPControl(OID_VIRTUAL_ATTRS_ONLY, true));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -578,7 +569,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     Set<AttributeValue> values = provider.getValues(entry, rule);
     assertNotNull(values);
     assertEquals(values.size(), 1);
-    assertTrue(values.contains(new AttributeValue(entryUUIDType, uuidString)));
+    assertTrue(values.contains(AttributeValues.create(entryUUIDType, uuidString)));
   }
 
 
@@ -645,7 +636,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     assertTrue(provider.hasValue(entry, rule,
-                                 new AttributeValue(entryUUIDType,
+        AttributeValues.create(entryUUIDType,
                                                     uuidString)));
   }
 
@@ -679,7 +670,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     assertFalse(provider.hasValue(entry, rule,
-                     new AttributeValue(entryUUIDType, "wrong")));
+        AttributeValues.create(entryUUIDType, "wrong")));
   }
 
 
@@ -746,7 +737,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-    values.add(new AttributeValue(entryUUIDType, uuidString));
+    values.add(AttributeValues.create(entryUUIDType, uuidString));
 
     assertTrue(provider.hasAnyValue(entry, rule, values));
   }
@@ -781,7 +772,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-    values.add(new AttributeValue(entryUUIDType, "wrong"));
+    values.add(AttributeValues.create(entryUUIDType, "wrong"));
 
     assertFalse(provider.hasAnyValue(entry, rule, values));
   }
@@ -818,9 +809,9 @@ public class EntryUUIDVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(3);
-    values.add(new AttributeValue(entryUUIDType, uuidString));
-    values.add(new AttributeValue(entryUUIDType, "wrong"));
-    values.add(new AttributeValue(entryUUIDType, "also wrong"));
+    values.add(AttributeValues.create(entryUUIDType, uuidString));
+    values.add(AttributeValues.create(entryUUIDType, "wrong"));
+    values.add(AttributeValues.create(entryUUIDType, "also wrong"));
 
     assertTrue(provider.hasAnyValue(entry, rule, values));
   }
@@ -855,9 +846,9 @@ public class EntryUUIDVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(3);
-    values.add(new AttributeValue(entryUUIDType, "wrong"));
-    values.add(new AttributeValue(entryUUIDType, "also wrong"));
-    values.add(new AttributeValue(entryUUIDType, "still wrong"));
+    values.add(AttributeValues.create(entryUUIDType, "wrong"));
+    values.add(AttributeValues.create(entryUUIDType, "also wrong"));
+    values.add(AttributeValues.create(entryUUIDType, "still wrong"));
 
     assertFalse(provider.hasAnyValue(entry, rule, values));
   }

@@ -32,16 +32,10 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
 import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
@@ -54,16 +48,8 @@ import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.protocols.ldap.ModifyDNRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyDNResponseProtocolOp;
-import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
 import org.opends.server.protocols.ldap.ProtocolOp;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DN;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.NullOutputStream;
-import org.opends.server.types.RawAttribute;
-import org.opends.server.types.RawModification;
+import org.opends.server.types.*;
 import org.opends.server.util.AddChangeRecordEntry;
 import org.opends.server.util.ChangeRecordEntry;
 import org.opends.server.util.EmbeddedUtils;
@@ -86,6 +72,8 @@ import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
+import org.opends.server.controls.*;
+import org.opends.server.plugins.ChangeNumberControlPlugin;
 
 
 
@@ -161,7 +149,7 @@ public class LDAPModify
                              LDAPModifyOptions modifyOptions)
          throws IOException, LDAPException
   {
-    ArrayList<LDAPControl> controls = modifyOptions.getControls();
+    ArrayList<Control> controls = modifyOptions.getControls();
     LDIFReader reader;
 
     // Create an LDIF import configuration to do this and then get the reader.
@@ -279,11 +267,10 @@ public class LDAPModify
       }
 
       ProtocolOp protocolOp = null;
-      ASN1OctetString asn1OctetStr =
-           new ASN1OctetString(entry.getDN().toString());
+      ByteString asn1OctetStr =
+          ByteString.valueOf(entry.getDN().toString());
 
       String operationType = "";
-      int msgID = 0;
       switch(entry.getChangeOperationType())
       {
         case ADD:
@@ -298,13 +285,13 @@ public class LDAPModify
           }
           protocolOp = new AddRequestProtocolOp(asn1OctetStr, attributes);
           out.println(INFO_PROCESSING_OPERATION.get(
-                  operationType, String.valueOf(asn1OctetStr)));
+                  operationType, asn1OctetStr.toString()));
           break;
         case DELETE:
           operationType = "DELETE";
           protocolOp = new DeleteRequestProtocolOp(asn1OctetStr);
           out.println(INFO_PROCESSING_OPERATION.get(
-                  operationType, String.valueOf(asn1OctetStr)));
+                  operationType, asn1OctetStr.toString()));
           break;
         case MODIFY:
           operationType = "MODIFY";
@@ -313,7 +300,7 @@ public class LDAPModify
             new ArrayList<RawModification>(modEntry.getModifications());
           protocolOp = new ModifyRequestProtocolOp(asn1OctetStr, mods);
           out.println(INFO_PROCESSING_OPERATION.get(
-                  operationType, String.valueOf(asn1OctetStr)));
+                  operationType, asn1OctetStr.toString()));
           break;
         case MODIFY_DN:
           operationType = "MODIFY DN";
@@ -322,19 +309,19 @@ public class LDAPModify
           if(modDNEntry.getNewSuperiorDN() != null)
           {
             protocolOp = new ModifyDNRequestProtocolOp(asn1OctetStr,
-                 new ASN1OctetString(modDNEntry.getNewRDN().toString()),
+                ByteString.valueOf(modDNEntry.getNewRDN().toString()),
                  modDNEntry.deleteOldRDN(),
-                 new ASN1OctetString(
+                ByteString.valueOf(
                           modDNEntry.getNewSuperiorDN().toString()));
           } else
           {
             protocolOp = new ModifyDNRequestProtocolOp(asn1OctetStr,
-                 new ASN1OctetString(modDNEntry.getNewRDN().toString()),
+                ByteString.valueOf(modDNEntry.getNewRDN().toString()),
                  modDNEntry.deleteOldRDN());
           }
 
           out.println(INFO_PROCESSING_OPERATION.get(
-                  operationType, String.valueOf(asn1OctetStr)));
+                  operationType, asn1OctetStr.toString()));
           break;
         default:
           break;
@@ -424,7 +411,7 @@ public class LDAPModify
         } else
         {
           Message msg = INFO_OPERATION_SUCCESSFUL.get(
-                  operationType, String.valueOf(asn1OctetStr));
+                  operationType, asn1OctetStr.toString());
           out.println(msg);
 
           if (errorMessage != null)
@@ -439,102 +426,91 @@ public class LDAPModify
         }
 
 
-        for (LDAPControl c : responseMessage.getControls())
+        for (Control c : responseMessage.getControls())
         {
           String oid = c.getOID();
           if (oid.equals(OID_LDAP_READENTRY_PREREAD))
           {
-            ASN1OctetString controlValue = c.getValue();
-            if (controlValue == null)
-            {
-
-              err.println(wrapText(
-                      ERR_LDAPMODIFY_PREREAD_NO_VALUE.get(),
-                      MAX_LINE_WIDTH));
-              continue;
-            }
-
-            SearchResultEntryProtocolOp searchEntry;
+            SearchResultEntry searchEntry;
             try
             {
-              byte[] valueBytes = controlValue.value();
-              ASN1Element valueElement = ASN1Element.decode(valueBytes);
-              searchEntry =
-                   SearchResultEntryProtocolOp.decodeSearchEntry(valueElement);
+              LDAPPreReadResponseControl prrc;
+              if(c instanceof LDAPControl)
+              {
+                // Control needs to be decoded
+                prrc = LDAPPreReadResponseControl.DECODER.decode(
+                    c.isCritical(), ((LDAPControl) c).getValue());
+
+              }
+              else
+              {
+                prrc = (LDAPPreReadResponseControl)c;
+              }
+              searchEntry = prrc.getSearchEntry();
             }
-            catch (ASN1Exception ae)
+            catch (DirectoryException de)
             {
 
               err.println(wrapText(
-                      ERR_LDAPMODIFY_PREREAD_CANNOT_DECODE_VALUE.get(
-                              ae.getMessage()),
-                      MAX_LINE_WIDTH));
-              continue;
-            }
-            catch (LDAPException le)
-            {
-
-              err.println(wrapText(
-                      ERR_LDAPMODIFY_PREREAD_CANNOT_DECODE_VALUE.get(
-                              le.getMessage()),
+                  ERR_LDAPMODIFY_PREREAD_CANNOT_DECODE_VALUE.get(
+                              de.getMessage()),
                       MAX_LINE_WIDTH));
               continue;
             }
 
             StringBuilder buffer = new StringBuilder();
-            searchEntry.toLDIF(buffer, 78);
+            searchEntry.toString(buffer, 78);
             out.println(INFO_LDAPMODIFY_PREREAD_ENTRY.get());
             out.println(buffer);
           }
           else if (oid.equals(OID_LDAP_READENTRY_POSTREAD))
           {
-            ASN1OctetString controlValue = c.getValue();
-            if (controlValue == null)
-            {
-
-              err.println(wrapText(
-                      ERR_LDAPMODIFY_POSTREAD_NO_VALUE.get(),
-                      MAX_LINE_WIDTH));
-              continue;
-            }
-
-            SearchResultEntryProtocolOp searchEntry;
+            SearchResultEntry searchEntry;
             try
             {
-              byte[] valueBytes = controlValue.value();
-              ASN1Element valueElement = ASN1Element.decode(valueBytes);
-              searchEntry =
-                   SearchResultEntryProtocolOp.decodeSearchEntry(valueElement);
+              LDAPPostReadResponseControl pprc;
+              if (c instanceof LDAPControl)
+              {
+                // Control needs to be decoded
+                pprc = LDAPPostReadResponseControl.DECODER.decode(c
+                    .isCritical(), ((LDAPControl) c).getValue());
+
+              }
+              else
+              {
+                pprc = (LDAPPostReadResponseControl)c;
+              }
+              searchEntry = pprc.getSearchEntry();
             }
-            catch (ASN1Exception ae)
+            catch (DirectoryException de)
             {
 
               err.println(wrapText(
                       ERR_LDAPMODIFY_POSTREAD_CANNOT_DECODE_VALUE.get(
-                              ae.getMessage()),
-                      MAX_LINE_WIDTH));
-              continue;
-            }
-            catch (LDAPException le)
-            {
-
-              err.println(wrapText(
-                      ERR_LDAPMODIFY_POSTREAD_CANNOT_DECODE_VALUE.get(
-                              le.getMessage()),
+                              de.getMessage()),
                       MAX_LINE_WIDTH));
               continue;
             }
 
             StringBuilder buffer = new StringBuilder();
-            searchEntry.toLDIF(buffer, 78);
+            searchEntry.toString(buffer, 78);
             out.println(INFO_LDAPMODIFY_POSTREAD_ENTRY.get());
             out.println(buffer);
           }
           else if (oid.equals(OID_CSN_CONTROL))
           {
-            ASN1OctetString controlValue = c.getValue();
-            out.println(INFO_CHANGE_NUMBER_CONTROL_RESULT.get(operationType,
-                String.valueOf(controlValue)));
+            if(c instanceof LDAPControl)
+            {
+              // Don't really need to decode since its just an octet string.
+              out.println(INFO_CHANGE_NUMBER_CONTROL_RESULT.get(operationType,
+                  ((LDAPControl)c).getValue().toString()));
+            }
+            else
+            {
+              out.println(INFO_CHANGE_NUMBER_CONTROL_RESULT.get(operationType,
+                  ((ChangeNumberControlPlugin.ChangeNumberControl)c).
+                      getChangeNumber().toString()));
+            }
           }
         }
       }
@@ -1052,7 +1028,7 @@ public class LDAPModify
     {
       for (String ctrlString : controlStr.getValues())
       {
-        LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
+        Control ctrl = LDAPToolUtils.getControl(ctrlString, err);
         if(ctrl == null)
         {
           Message message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
@@ -1066,10 +1042,9 @@ public class LDAPModify
 
     if (proxyAuthzID.isPresent())
     {
-      ASN1OctetString proxyValue = new ASN1OctetString(proxyAuthzID.getValue());
-
-      LDAPControl proxyControl =
-        new LDAPControl(OID_PROXIED_AUTH_V2, true, proxyValue);
+      Control proxyControl =
+          new ProxiedAuthV2Control(true,
+              ByteString.valueOf(proxyAuthzID.getValue()));
       modifyOptions.getControls().add(proxyControl);
     }
 
@@ -1081,9 +1056,8 @@ public class LDAPModify
       {
         filter = LDAPFilter.decode(filterString);
 
-        LDAPControl assertionControl =
-             new LDAPControl(OID_LDAP_ASSERTION, true,
-                             new ASN1OctetString(filter.encode().encode()));
+        Control assertionControl =
+            new LDAPAssertionRequestControl(true, filter);
         modifyOptions.getControls().add(assertionControl);
       }
       catch (LDAPException le)
@@ -1098,36 +1072,30 @@ public class LDAPModify
     if (preReadAttributes.isPresent())
     {
       String valueStr = preReadAttributes.getValue();
-      ArrayList<ASN1Element> attrElements = new ArrayList<ASN1Element>();
+      Set<String> attrElements = new LinkedHashSet<String>();
 
       StringTokenizer tokenizer = new StringTokenizer(valueStr, ", ");
       while (tokenizer.hasMoreTokens())
       {
-        attrElements.add(new ASN1OctetString(tokenizer.nextToken()));
+        attrElements.add(tokenizer.nextToken());
       }
 
-      ASN1OctetString controlValue =
-           new ASN1OctetString(new ASN1Sequence(attrElements).encode());
-      LDAPControl c = new LDAPControl(OID_LDAP_READENTRY_PREREAD, true,
-                                      controlValue);
+      Control c = new LDAPPreReadRequestControl(true, attrElements);
       modifyOptions.getControls().add(c);
     }
 
     if (postReadAttributes.isPresent())
     {
       String valueStr = postReadAttributes.getValue();
-      ArrayList<ASN1Element> attrElements = new ArrayList<ASN1Element>();
+      Set<String> attrElements = new LinkedHashSet<String>();
 
       StringTokenizer tokenizer = new StringTokenizer(valueStr, ", ");
       while (tokenizer.hasMoreTokens())
       {
-        attrElements.add(new ASN1OctetString(tokenizer.nextToken()));
+        attrElements.add(tokenizer.nextToken());
       }
 
-      ASN1OctetString controlValue =
-           new ASN1OctetString(new ASN1Sequence(attrElements).encode());
-      LDAPControl c = new LDAPControl(OID_LDAP_READENTRY_POSTREAD, true,
-                                      controlValue);
+      Control c = new LDAPPostReadRequestControl(true, attrElements);
       modifyOptions.getControls().add(c);
     }
 

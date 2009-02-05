@@ -44,6 +44,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -245,7 +246,7 @@ public class StaticGroup
             }
 
             Message message = ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN.
-                get(v.getStringValue(), memberAttributeType.getNameOrOID(),
+                get(v.getValue().toString(), memberAttributeType.getNameOrOID(),
                     String.valueOf(groupEntry.getDN()), de.getMessageObject());
             ErrorLogger.logError(message);
           }
@@ -395,7 +396,7 @@ public class StaticGroup
       mods.add(new Modification(ModificationType.ADD, attr));
 
       LinkedList<Control> requestControls = new LinkedList<Control>();
-      requestControls.add(new Control(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
+      requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
                                       false));
 
       InternalClientConnection conn =
@@ -455,7 +456,7 @@ public class StaticGroup
       mods.add(new Modification(ModificationType.DELETE, attr));
 
       LinkedList<Control> requestControls = new LinkedList<Control>();
-      requestControls.add(new Control(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
+      requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
                                       false));
 
       InternalClientConnection conn =
@@ -656,7 +657,7 @@ public class StaticGroup
       mods.add(new Modification(ModificationType.ADD, attr));
 
       LinkedList<Control> requestControls = new LinkedList<Control>();
-      requestControls.add(new Control(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
+      requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
                                       false));
 
       InternalClientConnection conn =
@@ -710,7 +711,7 @@ public class StaticGroup
       mods.add(new Modification(ModificationType.DELETE, attr));
 
       LinkedList<Control> requestControls = new LinkedList<Control>();
-      requestControls.add(new Control(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
+      requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
                                       false));
 
       InternalClientConnection conn =

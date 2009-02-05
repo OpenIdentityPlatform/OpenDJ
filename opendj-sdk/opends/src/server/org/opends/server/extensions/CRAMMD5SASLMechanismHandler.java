@@ -48,7 +48,6 @@ import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
@@ -215,8 +214,8 @@ public class CRAMMD5SASLMechanismHandler
       }
       challengeString.append('>');
 
-      ASN1OctetString challenge =
-           new ASN1OctetString(challengeString.toString());
+      ByteString challenge =
+          ByteString.valueOf(challengeString.toString());
       clientConnection.setSASLAuthStateInfo(challenge);
       bindOperation.setServerSASLCredentials(challenge);
       bindOperation.setResultCode(ResultCode.SASL_BIND_IN_PROGRESS);
@@ -238,7 +237,7 @@ public class CRAMMD5SASLMechanismHandler
       return;
     }
 
-    if (! (saslStateInfo instanceof ASN1OctetString))
+    if (! (saslStateInfo instanceof  ByteString))
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -247,7 +246,7 @@ public class CRAMMD5SASLMechanismHandler
       return;
     }
 
-    ASN1OctetString  challenge = (ASN1OctetString) saslStateInfo;
+    ByteString  challenge = (ByteString) saslStateInfo;
 
     // Wipe out the stored challenge so it can't be used again.
     clientConnection.setSASLAuthStateInfo(null);
@@ -257,7 +256,7 @@ public class CRAMMD5SASLMechanismHandler
     // It should be a username followed by a space and a digest string.  Since
     // the username itself may contain spaces but the digest string may not,
     // look for the last space and use it as the delimiter.
-    String credString = clientCredentials.stringValue();
+    String credString = clientCredentials.toString();
     int spacePos = credString.lastIndexOf(' ');
     if (spacePos < 0)
     {
@@ -516,8 +515,8 @@ public class CRAMMD5SASLMechanismHandler
   private byte[] generateDigest(ByteString password, ByteString challenge)
   {
     // Get the byte arrays backing the password and challenge.
-    byte[] p = password.value();
-    byte[] c = challenge.value();
+    byte[] p = password.toByteArray();
+    byte[] c = challenge.toByteArray();
 
 
     // Grab a lock to protect the MD5 digest generation.

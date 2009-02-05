@@ -40,9 +40,10 @@ import javax.management.MBeanParameterInfo;
 
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.AttributeValues;
+import org.opends.server.types.ByteString;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.messages.ConfigMessages.*;
@@ -241,13 +242,15 @@ public final class BooleanConfigAttribute
          new LinkedHashSet<AttributeValue>(1);
     if (booleanValue)
     {
-      valueSet.add(new AttributeValue(new ASN1OctetString(CONFIG_VALUE_TRUE),
-                                      new ASN1OctetString(CONFIG_VALUE_TRUE)));
+      valueSet.add(AttributeValues.create(
+          ByteString.valueOf(CONFIG_VALUE_TRUE),
+          ByteString.valueOf(CONFIG_VALUE_TRUE)));
     }
     else
     {
-      valueSet.add(new AttributeValue(new ASN1OctetString(CONFIG_VALUE_FALSE),
-                                      new ASN1OctetString(CONFIG_VALUE_FALSE)));
+      valueSet.add(AttributeValues.create(
+          ByteString.valueOf(CONFIG_VALUE_FALSE),
+          ByteString.valueOf(CONFIG_VALUE_FALSE)));
     }
 
     return valueSet;
@@ -288,7 +291,7 @@ public final class BooleanConfigAttribute
   public boolean valueIsAcceptable(AttributeValue value,
                                    StringBuilder rejectReason)
   {
-    String stringValue = value.getStringValue();
+    String stringValue = value.getValue().toString();
     if (stringValue.equalsIgnoreCase(CONFIG_VALUE_TRUE) ||
         stringValue.equalsIgnoreCase(CONFIG_VALUE_FALSE))
     {
@@ -464,7 +467,8 @@ public final class BooleanConfigAttribute
           {
             // Get the value and parse it as a Boolean.
             Iterator<AttributeValue> iterator = a.iterator();
-            String valueString = iterator.next().getStringValue().toLowerCase();
+            String valueString =
+                iterator.next().getValue().toString().toLowerCase();
 
             if (valueString.equals("true") || valueString.equals("yes") ||
                 valueString.equals("on") || valueString.equals("1"))
@@ -526,7 +530,8 @@ public final class BooleanConfigAttribute
         {
           // Get the value and parse it as a Boolean.
           Iterator<AttributeValue> iterator = a.iterator();
-          String valueString = iterator.next().getStringValue().toLowerCase();
+          String valueString =
+              iterator.next().getValue().toString().toLowerCase();
 
           if (valueString.equals("true") || valueString.equals("yes") ||
               valueString.equals("on") || valueString.equals("1"))

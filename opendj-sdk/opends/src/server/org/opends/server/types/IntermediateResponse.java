@@ -32,8 +32,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.opends.server.protocols.asn1.ASN1OctetString;
-
 
 
 
@@ -50,7 +48,7 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 public final class IntermediateResponse
 {
   // The value for this intermediate response.
-  private ASN1OctetString value;
+  private ByteString value;
 
   // The set of controls for this intermediate response.
   private List<Control> controls;
@@ -76,7 +74,7 @@ public final class IntermediateResponse
    *                    response.
    */
   public IntermediateResponse(Operation operation, String oid,
-                              ASN1OctetString value,
+                              ByteString value,
                               List<Control> controls)
   {
     this.operation = operation;
@@ -140,7 +138,7 @@ public final class IntermediateResponse
    * @return  The value for this intermediate response, or
    *          <CODE>null</CODE> if there is none.
    */
-  public ASN1OctetString getValue()
+  public ByteString getValue()
   {
     return value;
   }
@@ -152,7 +150,7 @@ public final class IntermediateResponse
    *
    * @param  value  The value for this intermediate response.
    */
-  public void setValue(ASN1OctetString value)
+  public void setValue(ByteString value)
   {
     this.value = value;
   }

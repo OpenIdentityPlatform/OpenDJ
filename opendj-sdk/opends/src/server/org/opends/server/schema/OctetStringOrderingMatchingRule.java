@@ -28,15 +28,16 @@ package org.opends.server.schema;
 
 
 
+import static org.opends.server.schema.SchemaConstants.*;
+
 import java.util.Collection;
 import java.util.Collections;
+
 import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.StaticUtils;
-
-import static org.opends.server.schema.SchemaConstants.*;
 
 
 
@@ -71,6 +72,7 @@ class OctetStringOrderingMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getAllNames()
   {
     return Collections.singleton(getName());
@@ -84,6 +86,7 @@ class OctetStringOrderingMatchingRule
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
    * it does not have a name.
    */
+  @Override
   public String getName()
   {
     return OMR_OCTET_STRING_NAME;
@@ -96,6 +99,7 @@ class OctetStringOrderingMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return OMR_OCTET_STRING_OID;
@@ -109,6 +113,7 @@ class OctetStringOrderingMatchingRule
    * @return  The description for this matching rule, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     // There is no standard description for this matching rule.
@@ -123,6 +128,7 @@ class OctetStringOrderingMatchingRule
    *
    * @return  The OID of the syntax with which this matching rule is associated.
    */
+  @Override
   public String getSyntaxOID()
   {
     return SYNTAX_OCTET_STRING_OID;
@@ -141,10 +147,11 @@ class OctetStringOrderingMatchingRule
    * @throws  DirectoryException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
-  public ByteString normalizeValue(ByteString value)
+  @Override
+  public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
-    return new ASN1OctetString(value.value());
+    return value.toByteString();
   }
 
 
@@ -162,9 +169,10 @@ class OctetStringOrderingMatchingRule
    *          ascending order, or zero if there is no difference between the
    *          values with regard to ordering.
    */
-  public int compareValues(ByteString value1, ByteString value2)
+  @Override
+  public int compareValues(ByteSequence value1, ByteSequence value2)
   {
-    return compare(value1.value(), value2.value());
+    return StaticUtils.compare(value1, value2);
   }
 
 

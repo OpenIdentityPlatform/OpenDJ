@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -30,12 +30,9 @@ import org.opends.messages.Message;
 
 
 import java.util.ArrayList;
+import java.io.IOException;
 
-import org.opends.server.protocols.asn1.ASN1Boolean;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.asn1.ASN1Set;
+import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.ldap.LDAPFilter;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -337,35 +334,12 @@ public abstract class RawFilter
 
 
   /**
-   * Specifies the set of subordinate filter components for AND or OR
-   * searches.  This will be ignored for all other filter types.
-   *
-   * @param  filterComponents  The set of subordinate filter
-   *                           components for AND or OR searches.
-   */
-  public abstract void setFilterComponents(
-                            ArrayList<RawFilter> filterComponents);
-
-
-
-  /**
    * Retrieves the subordinate filter component for NOT searches.
    *
    * @return  The subordinate filter component for NOT searches, or
    *          {@code null} if this is not a NOT search.
    */
   public abstract RawFilter getNOTComponent();
-
-
-
-  /**
-   * Specifies the subordinate filter component for NOT searches.
-   * This will be ignored for any other type of search.
-   *
-   * @param  notComponent  The subordinate filter component for NOT
-   *                       searches.
-   */
-  public abstract void setNOTComponent(RawFilter notComponent);
 
 
 
@@ -377,16 +351,6 @@ public abstract class RawFilter
    *          {@code null} if there is none.
    */
   public abstract String getAttributeType();
-
-
-
-  /**
-   * Specifies the attribute type for this search filter.  This will
-   * be ignored for AND, OR, and NOT searches.
-   *
-   * @param  attributeType  The attribute type for this search filter.
-   */
-  public abstract void setAttributeType(String attributeType);
 
 
 
@@ -403,18 +367,6 @@ public abstract class RawFilter
 
 
   /**
-   * Specifies the assertion value for this search filter.  This will
-   * be ignored for types of filters that do not have an assertion
-   * value.
-   *
-   * @param  assertionValue  The assertion value for this search
-   *                         filter.
-   */
-  public abstract void setAssertionValue(ByteString assertionValue);
-
-
-
-  /**
    * Retrieves the subInitial component for this substring filter.
    * This is only applicable for substring search filters, but even
    * substring filters might not have a value for this component.
@@ -423,18 +375,6 @@ public abstract class RawFilter
    *          {@code null} if there is none.
    */
   public abstract ByteString getSubInitialElement();
-
-
-
-  /**
-   * Specifies the subInitial element for this substring filter.
-   * This will be ignored for all other types of filters.
-   *
-   * @param  subInitialElement  The subInitial element for this
-   *                            substring filter.
-   */
-  public abstract void setSubInitialElement(
-                            ByteString subInitialElement);
 
 
 
@@ -451,18 +391,6 @@ public abstract class RawFilter
 
 
   /**
-   * Specifies the set of subAny values for this substring filter.
-   * This will be ignored for other filter types.
-   *
-   * @param  subAnyElements  The set of subAny elements for this
-   *                         substring filter.
-   */
-  public abstract void setSubAnyElements(ArrayList<ByteString>
-                                              subAnyElements);
-
-
-
-  /**
    * Retrieves the subFinal element for this substring filter.  This
    * is not applicable for any other filter type, and may not be
    * provided even for some substring filters.
@@ -471,17 +399,6 @@ public abstract class RawFilter
    *          {@code null} if there is none.
    */
   public abstract ByteString getSubFinalElement();
-
-
-
-  /**
-   * Specifies the subFinal element for this substring filter.  This
-   * will be ignored for all other filter types.
-   *
-   * @param  subFinalElement  The subFinal element for this substring
-   *                          filter.
-   */
-  public abstract void setSubFinalElement(ByteString subFinalElement);
 
 
 
@@ -498,17 +415,6 @@ public abstract class RawFilter
 
 
   /**
-   * Specifies the matching rule ID for this extensible match filter.
-   * It will be ignored for all other filter types.
-   *
-   * @param  matchingRuleID  The matching rule ID for this extensible
-   *                         match filter.
-   */
-  public abstract void setMatchingRuleID(String matchingRuleID);
-
-
-
-  /**
    * Retrieves the value of the DN attributes flag for this extensible
    * match filter, which indicates whether to perform matching on the
    * components of the DN.  This does not apply for any other type of
@@ -519,66 +425,50 @@ public abstract class RawFilter
    */
   public abstract boolean getDNAttributes();
 
-
-
   /**
-   * Specifies the value of the DN attributes flag for this extensible
-   * match filter.  It will be ignored for all other filter types.
+   * Writes this protocol op to an ASN.1 output stream.
    *
-   * @param  dnAttributes  The value of the DN attributes flag for
-   *                       this extensible match filter.
+   * @param stream The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the
+   *                     stream.
    */
-  public abstract void setDNAttributes(boolean dnAttributes);
-
-
-
-  /**
-   * Encodes this search filter to an ASN.1 element.
-   *
-   * @return  The ASN.1 element containing the encoded search filter.
-   */
-  public final ASN1Element encode()
+  public void write(ASN1Writer stream) throws IOException
   {
-    FilterType filterType = getFilterType();
+      FilterType filterType = getFilterType();
     switch (filterType)
     {
       case AND:
       case OR:
-        ArrayList<RawFilter> filterComponents = getFilterComponents();
-        ArrayList<ASN1Element> elements =
-             new ArrayList<ASN1Element>(filterComponents.size());
-        for (RawFilter f : filterComponents)
+        stream.writeStartSequence(filterType.getBERType());
+        for(RawFilter f : getFilterComponents())
         {
-          elements.add(f.encode());
+          f.write(stream);
         }
-        return new ASN1Set(filterType.getBERType(), elements);
+        stream.writeEndSequence();
+        return;
       case NOT:
-        return new ASN1Element(filterType.getBERType(),
-                               getNOTComponent().encode().encode());
+        stream.writeStartSequence(filterType.getBERType());
+        getNOTComponent().write(stream);
+        stream.writeEndSequence();
+        return;
       case EQUALITY:
       case GREATER_OR_EQUAL:
       case LESS_OR_EQUAL:
       case APPROXIMATE_MATCH:
-        String attributeType = getAttributeType();
-        ByteString assertionValue = getAssertionValue();
-        elements = new ArrayList<ASN1Element>(2);
-        elements.add(new ASN1OctetString(attributeType));
-        elements.add(assertionValue.toASN1OctetString());
-        return new ASN1Sequence(filterType.getBERType(), elements);
+        stream.writeStartSequence(filterType.getBERType());
+        stream.writeOctetString(getAttributeType());
+        stream.writeOctetString(getAssertionValue());
+        stream.writeEndSequence();
+        return;
       case SUBSTRING:
-        attributeType = getAttributeType();
-        elements = new ArrayList<ASN1Element>(2);
-        elements.add(new ASN1OctetString(attributeType));
+        stream.writeStartSequence(filterType.getBERType());
+        stream.writeOctetString(getAttributeType());
 
+        stream.writeStartSequence();
         ByteString subInitialElement = getSubInitialElement();
-        ArrayList<ASN1Element> subElements =
-             new ArrayList<ASN1Element>();
         if (subInitialElement != null)
         {
-          ASN1OctetString subInitialOS =
-               subInitialElement.toASN1OctetString();
-          subInitialOS.setType(TYPE_SUBINITIAL);
-          subElements.add(subInitialOS);
+          stream.writeOctetString(TYPE_SUBINITIAL, subInitialElement);
         }
 
         ArrayList<ByteString> subAnyElements = getSubAnyElements();
@@ -586,125 +476,121 @@ public abstract class RawFilter
         {
           for (ByteString s : subAnyElements)
           {
-            ASN1OctetString os = s.toASN1OctetString();
-            os.setType(TYPE_SUBANY);
-            subElements.add(os);
+            stream.writeOctetString(TYPE_SUBANY, s);
           }
         }
 
         ByteString subFinalElement = getSubFinalElement();
         if (subFinalElement != null)
         {
-          ASN1OctetString subFinalOS =
-               subFinalElement.toASN1OctetString();
-          subFinalOS.setType(TYPE_SUBFINAL);
-          subElements.add(subFinalOS);
+          stream.writeOctetString(TYPE_SUBFINAL, subFinalElement);
         }
+        stream.writeEndSequence();
 
-        elements.add(new ASN1Sequence(subElements));
-        return new ASN1Sequence(filterType.getBERType(), elements);
+        stream.writeEndSequence();
+        return;
       case PRESENT:
-        return new ASN1OctetString(filterType.getBERType(),
-                                   getAttributeType());
+        stream.writeOctetString(filterType.getBERType(),
+            getAttributeType());
+        return;
       case EXTENSIBLE_MATCH:
-        elements = new ArrayList<ASN1Element>(4);
+        stream.writeStartSequence(filterType.getBERType());
 
         String matchingRuleID = getMatchingRuleID();
         if (matchingRuleID != null)
         {
-          elements.add(new ASN1OctetString(TYPE_MATCHING_RULE_ID,
-                                           matchingRuleID));
+          stream.writeOctetString(TYPE_MATCHING_RULE_ID,
+              matchingRuleID);
         }
 
-        attributeType = getAttributeType();
+        String attributeType = getAttributeType();
         if (attributeType != null)
         {
-          elements.add(new ASN1OctetString(TYPE_MATCHING_RULE_TYPE,
-                                           attributeType));
+          stream.writeOctetString(TYPE_MATCHING_RULE_TYPE,
+              attributeType);
         }
 
-        ASN1OctetString assertionValueOS =
-             getAssertionValue().toASN1OctetString();
-        assertionValueOS.setType(TYPE_MATCHING_RULE_VALUE);
-        elements.add(assertionValueOS);
+        stream.writeOctetString(TYPE_MATCHING_RULE_VALUE,
+            getAssertionValue());
 
         if (getDNAttributes())
         {
-          elements.add(new ASN1Boolean(
-               TYPE_MATCHING_RULE_DN_ATTRIBUTES, true));
+          stream.writeBoolean(TYPE_MATCHING_RULE_DN_ATTRIBUTES, true);
         }
 
-        return new ASN1Sequence(filterType.getBERType(), elements);
+        stream.writeEndSequence();
+        return;
       default:
         if (debugEnabled())
         {
           TRACER.debugError("Invalid search filter type: %s",
                             filterType);
         }
-        return null;
     }
   }
 
-
-
   /**
-   * Decodes the provided ASN.1 element as a raw search filter.
+   * Decodes the elements from the provided ASN.1 reader as a
+   * raw search filter.
    *
-   * @param  element  The ASN.1 element to decode.
+   * @param  reader The ASN.1 reader.
    *
    * @return  The decoded search filter.
    *
    * @throws  LDAPException  If the provided ASN.1 element cannot be
    *                         decoded as a raw search filter.
    */
-  public static LDAPFilter decode(ASN1Element element)
+  public static LDAPFilter decode(ASN1Reader reader)
          throws LDAPException
   {
-    if (element == null)
+    byte type;
+    try
+    {
+      type = reader.peekType();
+    }
+    catch(Exception e)
     {
       Message message = ERR_LDAP_FILTER_DECODE_NULL.get();
       throw new LDAPException(PROTOCOL_ERROR, message);
     }
 
-    switch (element.getType())
+    switch (type)
     {
       case TYPE_FILTER_AND:
       case TYPE_FILTER_OR:
-        return decodeCompoundFilter(element);
+        return decodeCompoundFilter(reader);
 
       case TYPE_FILTER_NOT:
-        return decodeNotFilter(element);
+        return decodeNotFilter(reader);
 
       case TYPE_FILTER_EQUALITY:
       case TYPE_FILTER_GREATER_OR_EQUAL:
       case TYPE_FILTER_LESS_OR_EQUAL:
       case TYPE_FILTER_APPROXIMATE:
-        return decodeTypeAndValueFilter(element);
+        return decodeAVAFilter(reader);
 
       case TYPE_FILTER_SUBSTRING:
-        return decodeSubstringFilter(element);
+        return decodeSubstringFilter(reader);
 
       case TYPE_FILTER_PRESENCE:
-        return decodePresenceFilter(element);
+        return decodePresenceFilter(reader);
 
       case TYPE_FILTER_EXTENSIBLE_MATCH:
-        return decodeExtensibleMatchFilter(element);
+        return decodeExtensibleMatchFilter(reader);
 
       default:
-        Message message = ERR_LDAP_FILTER_DECODE_INVALID_TYPE.get(
-            element.getType());
+        Message message =
+            ERR_LDAP_FILTER_DECODE_INVALID_TYPE.get(type);
         throw new LDAPException(PROTOCOL_ERROR, message);
     }
   }
 
-
-
   /**
-   * Decodes the provided ASN.1 element as a compound filter (i.e.,
-   * one that holds a set of subordinate filter components, like AND
-   * or OR filters).
+   * Decodes the elements from the provided ASN.1 reader as a compound
+   * filter (i.e. one that holds a set of subordinate filter
+   * components, like AND  or OR filters).
    *
-   * @param  element  the ASN.1 element to decode.
+   * @param  reader The ASN.1 reader.
    *
    * @return  The decoded LDAP search filter.
    *
@@ -712,11 +598,22 @@ public abstract class RawFilter
    *                         decode the provided ASN.1 element as a
    *                         raw search filter.
    */
-  private static LDAPFilter decodeCompoundFilter(ASN1Element element)
-          throws LDAPException
+  private static LDAPFilter decodeCompoundFilter(ASN1Reader reader)
+      throws LDAPException
   {
+    byte type;
+    try
+    {
+      type = reader.peekType();
+    }
+    catch(Exception e)
+    {
+      Message message = ERR_LDAP_FILTER_DECODE_NULL.get();
+      throw new LDAPException(PROTOCOL_ERROR, message);
+    }
+
     FilterType filterType;
-    switch (element.getType())
+    switch (type)
     {
       case TYPE_FILTER_AND:
         filterType = FilterType.AND;
@@ -729,38 +626,21 @@ public abstract class RawFilter
         if (debugEnabled())
         {
           TRACER.debugError("Invalid filter type %x for a " +
-              "compound filter", element.getType());
+              "compound filter", type);
         }
         filterType = null;
     }
 
-
-    ArrayList<ASN1Element> elements;
-    try
-    {
-      elements = element.decodeAsSet().elements();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_FILTER_DECODE_COMPOUND_SET.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
     ArrayList<RawFilter> filterComponents =
-         new ArrayList<RawFilter>(elements.size());
+        new ArrayList<RawFilter>();
     try
     {
-      for (ASN1Element e : elements)
+      reader.readStartSequence();
+      while(reader.hasNextElement())
       {
-        filterComponents.add(LDAPFilter.decode(e));
+        filterComponents.add(LDAPFilter.decode(reader));
       }
+      reader.readEndSequence();
     }
     catch (LDAPException le)
     {
@@ -778,17 +658,15 @@ public abstract class RawFilter
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
-
     return new LDAPFilter(filterType, filterComponents, null, null,
-                          null, null, null, null, null, false);
+        null, null, null, null, null, false);
   }
 
-
-
   /**
-   * Decodes the provided ASN.1 element as a NOT filter.
+   * Decodes the elements from the provided ASN.1 reader as a NOT
+   * filter.
    *
-   * @param  element  the ASN.1 element to decode.
+   * @param  reader The ASN.1 reader.
    *
    * @return  The decoded LDAP search filter.
    *
@@ -796,31 +674,15 @@ public abstract class RawFilter
    *                         decode the provided ASN.1 element as a
    *                         raw search filter.
    */
-  private static LDAPFilter decodeNotFilter(ASN1Element element)
+  private static LDAPFilter decodeNotFilter(ASN1Reader reader)
           throws LDAPException
   {
-    ASN1Element notFilterElement;
-    try
-    {
-      notFilterElement = ASN1Element.decode(element.value());
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_FILTER_DECODE_NOT_ELEMENT.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
     RawFilter notComponent;
     try
     {
-      notComponent = decode(notFilterElement);
+      reader.readStartSequence();
+      notComponent = decode(reader);
+      reader.readEndSequence();
     }
     catch (LDAPException le)
     {
@@ -843,14 +705,13 @@ public abstract class RawFilter
                           null, null, null, null, null, false);
   }
 
-
-
   /**
-   * Decodes the provided ASN.1 element as a filter containing an
-   * attribute type and an assertion value.  This includes equality,
-   * greater or equal, less or equal, and approximate search filters.
+   * Decodes the elements from the provided ASN.1 read as as a filter
+   * containing an attribute type and an assertion value.  This
+   * includes equality, greater or equal, less or equal, and
+   * approximate search filters.
    *
-   * @param  element  the ASN.1 element to decode.
+   * @param  reader The ASN.1 reader.
    *
    * @return  The decoded LDAP search filter.
    *
@@ -858,12 +719,22 @@ public abstract class RawFilter
    *                         decode the provided ASN.1 element as a
    *                         raw search filter.
    */
-  private static LDAPFilter decodeTypeAndValueFilter(
-                                 ASN1Element element)
+  private static LDAPFilter decodeAVAFilter(ASN1Reader reader)
           throws LDAPException
   {
+    byte type;
+    try
+    {
+      type = reader.peekType();
+    }
+    catch(Exception e)
+    {
+      Message message = ERR_LDAP_FILTER_DECODE_NULL.get();
+      throw new LDAPException(PROTOCOL_ERROR, message);
+    }
+
     FilterType filterType;
-    switch (element.getType())
+    switch (type)
     {
       case TYPE_FILTER_EQUALITY:
         filterType = FilterType.EQUALITY;
@@ -882,16 +753,14 @@ public abstract class RawFilter
         if (debugEnabled())
         {
           TRACER.debugError("Invalid filter type %x for a " +
-              "type-and-value filter", element.getType());
+              "type-and-value filter", type);
         }
         filterType = null;
     }
 
-
-    ArrayList<ASN1Element> elements;
     try
     {
-      elements = element.decodeAsSequence().elements();
+      reader.readStartSequence();
     }
     catch (Exception e)
     {
@@ -905,21 +774,10 @@ public abstract class RawFilter
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
-
-    if (elements.size() != 2)
-    {
-      Message message =
-          ERR_LDAP_FILTER_DECODE_TV_INVALID_ELEMENT_COUNT.
-            get(elements.size());
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-
     String attributeType;
     try
     {
-      attributeType =
-           elements.get(0).decodeAsOctetString().stringValue();
+      attributeType = reader.readOctetStringAsString();
     }
     catch (Exception e)
     {
@@ -937,7 +795,7 @@ public abstract class RawFilter
     ByteString assertionValue;
     try
     {
-      assertionValue = elements.get(1).decodeAsOctetString();
+      assertionValue = reader.readOctetString();
     }
     catch (Exception e)
     {
@@ -951,18 +809,33 @@ public abstract class RawFilter
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
+    try
+    {
+      reader.readEndSequence();
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      Message message =
+          ERR_LDAP_FILTER_DECODE_TV_SEQUENCE.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
+    }
+
 
     return new LDAPFilter(filterType, null, null, attributeType,
                           assertionValue, null, null, null, null,
                           false);
   }
 
-
-
   /**
-   * Decodes the provided ASN.1 element as a substring filter.
+   * Decodes the elements from the provided ASN.1 reader as a
+   * substring filter.
    *
-   * @param  element  the ASN.1 element to decode.
+   * @param  reader The ASN.1 reader.
    *
    * @return  The decoded LDAP search filter.
    *
@@ -970,13 +843,12 @@ public abstract class RawFilter
    *                         decode the provided ASN.1 element as a
    *                         raw search filter.
    */
-  private static LDAPFilter decodeSubstringFilter(ASN1Element element)
+  private static LDAPFilter decodeSubstringFilter(ASN1Reader reader)
           throws LDAPException
   {
-    ArrayList<ASN1Element> elements;
     try
     {
-      elements = element.decodeAsSequence().elements();
+      reader.readStartSequence();
     }
     catch (Exception e)
     {
@@ -991,20 +863,10 @@ public abstract class RawFilter
     }
 
 
-    if (elements.size() != 2)
-    {
-      Message message =
-          ERR_LDAP_FILTER_DECODE_SUBSTRING_INVALID_ELEMENT_COUNT.
-            get(elements.size());
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-
     String attributeType;
     try
     {
-      attributeType =
-           elements.get(0).decodeAsOctetString().stringValue();
+      attributeType = reader.readOctetStringAsString();
     }
     catch (Exception e)
     {
@@ -1018,11 +880,9 @@ public abstract class RawFilter
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
-
-    ArrayList<ASN1Element> subElements;
     try
     {
-      subElements = elements.get(1).decodeAsSequence().elements();
+      reader.readStartSequence();
     }
     catch (Exception e)
     {
@@ -1037,7 +897,12 @@ public abstract class RawFilter
     }
 
 
-    if (subElements.isEmpty())
+    try
+    {
+      // Make sure we have at least 1 substring
+      reader.peekType();
+    }
+    catch (Exception e)
     {
       Message message =
           ERR_LDAP_FILTER_DECODE_SUBSTRING_NO_SUBELEMENTS.get();
@@ -1050,15 +915,15 @@ public abstract class RawFilter
     ArrayList<ByteString> subAnyElements = null;
     try
     {
-      for (ASN1Element e : subElements)
+      while(reader.hasNextElement())
       {
-        switch (e.getType())
+        switch (reader.peekType())
         {
           case TYPE_SUBINITIAL:
-            subInitialElement = e.decodeAsOctetString();
+            subInitialElement = reader.readOctetString();
             break;
           case TYPE_SUBFINAL:
-            subFinalElement = e.decodeAsOctetString();
+            subFinalElement = reader.readOctetString();
             break;
           case TYPE_SUBANY:
             if (subAnyElements == null)
@@ -1066,12 +931,12 @@ public abstract class RawFilter
               subAnyElements = new ArrayList<ByteString>();
             }
 
-            subAnyElements.add(e.decodeAsOctetString());
+            subAnyElements.add(reader.readOctetString());
             break;
           default:
             Message message =
                 ERR_LDAP_FILTER_DECODE_SUBSTRING_INVALID_SUBTYPE.
-                  get(e.getType());
+                  get(reader.peekType());
             throw new LDAPException(PROTOCOL_ERROR, message);
         }
       }
@@ -1092,6 +957,38 @@ public abstract class RawFilter
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
+    try
+    {
+      reader.readEndSequence();
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      Message message = ERR_LDAP_FILTER_DECODE_SUBSTRING_ELEMENTS.get(
+          String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
+    }
+
+    try
+    {
+      reader.readEndSequence();
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      Message message = ERR_LDAP_FILTER_DECODE_SUBSTRING_SEQUENCE.get(
+          String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
+    }
+
 
     return new LDAPFilter(FilterType.SUBSTRING, null, null,
                           attributeType, null, subInitialElement,
@@ -1099,12 +996,11 @@ public abstract class RawFilter
                           false);
   }
 
-
-
   /**
-   * Decodes the provided ASN.1 element as a presence filter.
+   * Decodes the elements from the provided ASN.1 reader as a
+   * presence filter.
    *
-   * @param  element  the ASN.1 element to decode.
+   * @param  reader The ASN.1 reader.
    *
    * @return  The decoded LDAP search filter.
    *
@@ -1112,13 +1008,13 @@ public abstract class RawFilter
    *                         decode the provided ASN.1 element as a
    *                         raw search filter.
    */
-  private static LDAPFilter decodePresenceFilter(ASN1Element element)
+  private static LDAPFilter decodePresenceFilter(ASN1Reader reader)
           throws LDAPException
   {
     String attributeType;
     try
     {
-      attributeType = element.decodeAsOctetString().stringValue();
+      attributeType = reader.readOctetStringAsString();
     }
     catch (Exception e)
     {
@@ -1138,12 +1034,11 @@ public abstract class RawFilter
                           false);
   }
 
-
-
   /**
-   * Decodes the provided ASN.1 element as an extensible match filter.
+   * Decodes the elements from the provided ASN.1 reader as an
+   * extensible match filter.
    *
-   * @param  element  the ASN.1 element to decode.
+   * @param  reader The ASN.1 reader.
    *
    * @return  The decoded LDAP search filter.
    *
@@ -1151,14 +1046,12 @@ public abstract class RawFilter
    *                         decode the provided ASN.1 element as a
    *                         raw search filter.
    */
-  private static LDAPFilter decodeExtensibleMatchFilter(ASN1Element
-                                                             element)
-          throws LDAPException
+  private static LDAPFilter decodeExtensibleMatchFilter(
+      ASN1Reader reader) throws LDAPException
   {
-    ArrayList<ASN1Element> elements;
     try
     {
-      elements = element.decodeAsSequence().elements();
+      reader.readStartSequence();
     }
     catch (Exception e)
     {
@@ -1179,26 +1072,26 @@ public abstract class RawFilter
     String     matchingRuleID = null;
     try
     {
-      for (ASN1Element e : elements)
+      while(reader.hasNextElement())
       {
-        switch (e.getType())
+        switch (reader.peekType())
         {
           case TYPE_MATCHING_RULE_ID:
-            matchingRuleID = e.decodeAsOctetString().stringValue();
+            matchingRuleID = reader.readOctetStringAsString();
             break;
           case TYPE_MATCHING_RULE_TYPE:
-            attributeType = e.decodeAsOctetString().stringValue();
+            attributeType = reader.readOctetStringAsString();
             break;
           case TYPE_MATCHING_RULE_VALUE:
-            assertionValue = e.decodeAsOctetString();
+            assertionValue = reader.readOctetString();
             break;
           case TYPE_MATCHING_RULE_DN_ATTRIBUTES:
-            dnAttributes = e.decodeAsBoolean().booleanValue();
+            dnAttributes = reader.readBoolean();
             break;
           default:
             Message message =
                 ERR_LDAP_FILTER_DECODE_EXTENSIBLE_INVALID_TYPE.
-                  get(e.getType());
+                  get(reader.peekType());
             throw new LDAPException(PROTOCOL_ERROR, message);
         }
       }
@@ -1215,6 +1108,22 @@ public abstract class RawFilter
       }
 
       Message message = ERR_LDAP_FILTER_DECODE_EXTENSIBLE_ELEMENTS.
+          get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
+    }
+
+    try
+    {
+      reader.readEndSequence();
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      Message message = ERR_LDAP_FILTER_DECODE_EXTENSIBLE_SEQUENCE.
           get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
@@ -1290,10 +1199,10 @@ public abstract class RawFilter
     // it to see if there are any unsafe characters.  If there are,
     // then escape them and replace them with a two-digit hex
     // equivalent.
-    byte[] valueBytes = value.value();
-    buffer.ensureCapacity(buffer.length() + valueBytes.length);
-    for (byte b : valueBytes)
+    buffer.ensureCapacity(buffer.length() + value.length());
+    for (int i = 0; i < value.length(); i++)
     {
+      byte b = value.byteAt(i);
       if (((b & 0x7F) != b) ||  // Not 7-bit clean
           (b <= 0x1F) ||        // Below the printable character range
           (b == 0x28) ||        // Open parenthesis

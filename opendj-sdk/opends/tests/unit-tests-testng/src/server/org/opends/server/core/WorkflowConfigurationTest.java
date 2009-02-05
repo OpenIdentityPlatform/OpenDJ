@@ -38,20 +38,12 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.RawModification;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.UtilTestCase;
 import org.opends.server.workflowelement.WorkflowElement;
@@ -234,7 +226,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
        InternalClientConnection.nextOperationID(),
        InternalClientConnection.nextMessageID(),
        new ArrayList<Control>(),
-       new ASN1OctetString(baseDN),
+       ByteString.valueOf(baseDN),
        scope,
        DereferencePolicy.NEVER_DEREF_ALIASES,
        Integer.MAX_VALUE,
@@ -264,8 +256,8 @@ public class WorkflowConfigurationTest extends UtilTestCase
       String           attributeType,
       String           attributeValue)
   {
-    ArrayList<ASN1OctetString> ldapValues = new ArrayList<ASN1OctetString>();
-    ldapValues.add(new ASN1OctetString(attributeValue));
+    ArrayList<ByteString> ldapValues = new ArrayList<ByteString>();
+    ldapValues.add(ByteString.valueOf(attributeValue));
 
     LDAPAttribute ldapAttr = new LDAPAttribute(attributeType, ldapValues);
 
@@ -277,7 +269,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(),
         new ArrayList<Control>(),
-        new ASN1OctetString(entryDN),
+        ByteString.valueOf(entryDN),
         ldapMods);
 
     return modifyOperation;

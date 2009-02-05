@@ -28,12 +28,7 @@ package org.opends.server.backends.jeb;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.tasks.TaskUtils;
-import org.opends.server.admin.std.server.LocalDBBackendCfg;
-import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
-import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.config.ConfigEntry;
-import org.opends.server.util.Base64;
 import static org.opends.server.util.ServerConstants.OC_TOP;
 import static org.opends.server.util.ServerConstants.OC_EXTENSIBLE_OBJECT;
 import org.opends.server.types.*;
@@ -495,7 +490,7 @@ public class TestImportJob extends JebTestCase
 
       AttributeType attribute = entry.getAttribute("cn").get(0).getAttributeType();
 
-      assertTrue(entry.hasValue(attribute, null, new AttributeValue(attribute,"Annalee Bogard")));
+      assertTrue(entry.hasValue(attribute, null, AttributeValues.create(attribute,"Annalee Bogard")));
 
       VerifyConfig verifyConfig = new VerifyConfig();
       verifyConfig.setBaseDN(DN.decode("dc=importtest1,dc=com"));
@@ -697,7 +692,7 @@ public class TestImportJob extends JebTestCase
     		attrType = DirectoryServer.getDefaultAttributeType(type);
     	List<Attribute> attrList = e.getAttribute(attrType, null);
     	AttributeValue v = attrList.get(0).iterator().next();
-    	long retVal = Long.parseLong(v.getStringValue());
+    	long retVal = Long.parseLong(v.getValue().toString());
     	return (retVal);
     }
 }

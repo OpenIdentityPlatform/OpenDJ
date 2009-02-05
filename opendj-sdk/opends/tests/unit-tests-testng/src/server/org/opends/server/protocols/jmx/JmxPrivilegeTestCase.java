@@ -61,24 +61,10 @@ import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.SchemaConfigManager;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.ByteStringFactory;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.RDN;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -512,7 +498,7 @@ public class JmxPrivilegeTestCase
   {
     assertEquals(conn.hasPrivilege(Privilege.JMX_READ, null), hasPrivilege);
 
-    ASN1OctetString dn = new ASN1OctetString(DN.decode("cn=config").toString());
+    ByteString dn = ByteString.valueOf("cn=config");
     LDAPFilter filter = new LDAPFilter(SearchFilter
         .createFilterFromString("(objectClass=*)"));
     InternalSearchOperation searchOperation = conn.processSearch(dn,
@@ -549,9 +535,8 @@ public class JmxPrivilegeTestCase
   {
     assertEquals(conn.hasPrivilege(Privilege.JMX_READ, null), hasPrivilege);
 
-    ASN1OctetString asn1 = new ASN1OctetString(DN.decode("cn=config")
-        .toString());
-    ASN1OctetString value = new ASN1OctetString("config");
+    ByteString asn1 = ByteString.valueOf("cn=config");
+    ByteString value = ByteString.valueOf("config");
     CompareOperation compareOperation =
          conn.processCompare(asn1,
                              "cn",
@@ -1269,7 +1254,7 @@ public class JmxPrivilegeTestCase
          new CompareOperationBasis(conn, conn.nextOperationID(),
                               conn.nextMessageID(), controls, targetDN,
                               DirectoryServer.getAttributeType("cn", true),
-                              ByteStringFactory.create("PWReset Target"));
+                              ByteString.valueOf("PWReset Target"));
     compareOperation.run();
 
     if (hasProxyPrivilege)
@@ -1341,7 +1326,7 @@ public class JmxPrivilegeTestCase
 
     ArrayList<Control> controls = new ArrayList<Control>(1);
     controls.add(new ProxiedAuthV2Control(
-                          new ASN1OctetString("dn:cn=PWReset Target,o=test")));
+                          ByteString.valueOf("dn:cn=PWReset Target,o=test")));
 
 
     // Try to add the entry.  If this fails with the proxy control, then add it
@@ -1468,7 +1453,7 @@ public class JmxPrivilegeTestCase
     DN targetDN = DN.decode("cn=PWReset Target,o=test");
     ArrayList<Control> controls = new ArrayList<Control>(1);
     controls.add(new ProxiedAuthV2Control(
-                          new ASN1OctetString("dn:" + targetDN.toString())));
+                          ByteString.valueOf("dn:" + targetDN.toString())));
 
 
     // Test a compare operation against the PWReset Target user.
@@ -1476,7 +1461,7 @@ public class JmxPrivilegeTestCase
          new CompareOperationBasis(conn, conn.nextOperationID(),
                               conn.nextMessageID(), controls, targetDN,
                               DirectoryServer.getAttributeType("cn", true),
-                              ByteStringFactory.create("PWReset Target"));
+                              ByteString.valueOf("PWReset Target"));
     compareOperation.run();
 
     if (hasProxyPrivilege)

@@ -47,15 +47,7 @@ import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.ExistingFileBehavior;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.NullOutputStream;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.RawAttribute;
+import org.opends.server.types.*;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.IntegerArgument;
@@ -71,7 +63,6 @@ import static org.opends.server.tools.ToolConstants.*;
 import org.opends.server.tools.tasks.TaskTool;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.tasks.ExportTask;
 
 
@@ -359,12 +350,12 @@ public class ExportLDIF extends TaskTool {
     //
     // Required attributes
     //
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>(1);
-    values.add(new ASN1OctetString(ldifFile.getValue()));
+    ArrayList<ByteString> values = new ArrayList<ByteString>(1);
+    values.add(ByteString.valueOf(ldifFile.getValue()));
     attributes.add(new LDAPAttribute(ATTR_TASK_EXPORT_LDIF_FILE, values));
 
-    values = new ArrayList<ASN1OctetString>(1);
-    values.add(new ASN1OctetString(backendID.getValue()));
+    values = new ArrayList<ByteString>(1);
+    values.add(ByteString.valueOf(backendID.getValue()));
     attributes.add(new LDAPAttribute(ATTR_TASK_EXPORT_BACKEND_ID, values));
 
     //
@@ -372,39 +363,39 @@ public class ExportLDIF extends TaskTool {
     //
     if (appendToLDIF.getValue() != null &&
             !appendToLDIF.getValue().equals(appendToLDIF.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(appendToLDIF.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(appendToLDIF.getValue()));
       attributes.add(
               new LDAPAttribute(ATTR_TASK_EXPORT_APPEND_TO_LDIF, values));
     }
 
     if (compressLDIF.getValue() != null &&
             !compressLDIF.getValue().equals(compressLDIF.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(compressLDIF.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(compressLDIF.getValue()));
       attributes.add(new LDAPAttribute(ATTR_TASK_EXPORT_COMPRESS_LDIF, values));
     }
 
     if (encryptLDIF.getValue() != null &&
             !encryptLDIF.getValue().equals(encryptLDIF.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(encryptLDIF.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(encryptLDIF.getValue()));
       attributes.add(new LDAPAttribute(ATTR_TASK_EXPORT_ENCRYPT_LDIF, values));
     }
 
     if (signHash.getValue() != null &&
             !signHash.getValue().equals(signHash.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(signHash.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(signHash.getValue()));
       attributes.add(
               new LDAPAttribute(ATTR_TASK_EXPORT_SIGN_HASH, values));
     }
 
     List<String> includeAttributes = includeAttributeStrings.getValues();
     if (includeAttributes != null && includeAttributes.size() > 0) {
-      values = new ArrayList<ASN1OctetString>(includeAttributes.size());
+      values = new ArrayList<ByteString>(includeAttributes.size());
       for (String includeAttribute : includeAttributes) {
-        values.add(new ASN1OctetString(includeAttribute));
+        values.add(ByteString.valueOf(includeAttribute));
       }
       attributes.add(
               new LDAPAttribute(ATTR_TASK_EXPORT_INCLUDE_ATTRIBUTE, values));
@@ -412,9 +403,9 @@ public class ExportLDIF extends TaskTool {
 
     List<String> excludeAttributes = excludeAttributeStrings.getValues();
     if (excludeAttributes != null && excludeAttributes.size() > 0) {
-      values = new ArrayList<ASN1OctetString>(excludeAttributes.size());
+      values = new ArrayList<ByteString>(excludeAttributes.size());
       for (String excludeAttribute : excludeAttributes) {
-        values.add(new ASN1OctetString(excludeAttribute));
+        values.add(ByteString.valueOf(excludeAttribute));
       }
       attributes.add(
               new LDAPAttribute(ATTR_TASK_EXPORT_EXCLUDE_ATTRIBUTE, values));
@@ -422,9 +413,9 @@ public class ExportLDIF extends TaskTool {
 
     List<String> includeFilters = includeFilterStrings.getValues();
     if (includeFilters != null && includeFilters.size() > 0) {
-      values = new ArrayList<ASN1OctetString>(includeFilters.size());
+      values = new ArrayList<ByteString>(includeFilters.size());
       for (String includeFilter : includeFilters) {
-        values.add(new ASN1OctetString(includeFilter));
+        values.add(ByteString.valueOf(includeFilter));
       }
       attributes.add(
               new LDAPAttribute(ATTR_TASK_EXPORT_INCLUDE_FILTER, values));
@@ -432,9 +423,9 @@ public class ExportLDIF extends TaskTool {
 
     List<String> excludeFilters = excludeFilterStrings.getValues();
     if (excludeFilters != null && excludeFilters.size() > 0) {
-      values = new ArrayList<ASN1OctetString>(excludeFilters.size());
+      values = new ArrayList<ByteString>(excludeFilters.size());
       for (String excludeFilter : excludeFilters) {
-        values.add(new ASN1OctetString(excludeFilter));
+        values.add(ByteString.valueOf(excludeFilter));
       }
       attributes.add(
               new LDAPAttribute(ATTR_TASK_EXPORT_EXCLUDE_FILTER, values));
@@ -442,9 +433,9 @@ public class ExportLDIF extends TaskTool {
 
     List<String> includeBranches = includeBranchStrings.getValues();
     if (includeBranches != null && includeBranches.size() > 0) {
-      values = new ArrayList<ASN1OctetString>(includeBranches.size());
+      values = new ArrayList<ByteString>(includeBranches.size());
       for (String includeBranche : includeBranches) {
-        values.add(new ASN1OctetString(includeBranche));
+        values.add(ByteString.valueOf(includeBranche));
       }
       attributes.add(
               new LDAPAttribute(ATTR_TASK_EXPORT_INCLUDE_BRANCH, values));
@@ -452,9 +443,9 @@ public class ExportLDIF extends TaskTool {
 
     List<String> excludeBranches = excludeBranchStrings.getValues();
     if (excludeBranches != null && excludeBranches.size() > 0) {
-      values = new ArrayList<ASN1OctetString>(excludeBranches.size());
+      values = new ArrayList<ByteString>(excludeBranches.size());
       for (String excludeBranche : excludeBranches) {
-        values.add(new ASN1OctetString(excludeBranche));
+        values.add(ByteString.valueOf(excludeBranche));
       }
       attributes.add(
               new LDAPAttribute(ATTR_TASK_EXPORT_EXCLUDE_BRANCH, values));
@@ -462,16 +453,16 @@ public class ExportLDIF extends TaskTool {
 
     if (wrapColumn.getValue() != null &&
             !wrapColumn.getValue().equals(wrapColumn.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(wrapColumn.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(wrapColumn.getValue()));
       attributes.add(
               new LDAPAttribute(ATTR_TASK_EXPORT_WRAP_COLUMN, values));
     }
 
     if (excludeOperationalAttrs.isPresent())
     {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString("false"));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf("false"));
       attributes.add(
           new LDAPAttribute(ATTR_TASK_EXPORT_INCLUDE_OPERATIONAL_ATTRIBUTES,
               values));

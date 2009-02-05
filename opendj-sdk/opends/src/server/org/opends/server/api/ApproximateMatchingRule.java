@@ -28,9 +28,8 @@ package org.opends.server.api;
 
 
 
-import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
-
+import org.opends.server.types.ByteSequence;
 
 
 /**
@@ -58,8 +57,8 @@ public abstract class ApproximateMatchingRule
    * @return  {@code true} if the provided values are approximately
    *          equal, or {@code false} if not.
    */
-  public abstract boolean approximatelyMatch(ByteString value1,
-                                             ByteString value2);
+  public abstract boolean approximatelyMatch(ByteSequence value1,
+                                             ByteSequence value2);
 
 
 
@@ -82,8 +81,8 @@ public abstract class ApproximateMatchingRule
    *          if it does not match, or {@code UNDEFINED} if the result
    *          is undefined.
    */
-  public ConditionResult valuesMatch(ByteString attributeValue,
-                                     ByteString assertionValue)
+  public ConditionResult valuesMatch(ByteSequence attributeValue,
+                                     ByteSequence assertionValue)
   {
     if (approximatelyMatch(attributeValue, assertionValue))
     {

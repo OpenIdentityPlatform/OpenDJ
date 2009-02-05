@@ -44,20 +44,10 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.RawModification;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
 
@@ -884,15 +874,15 @@ public class ExactMatchIdentityMapperTestCase
 
 
     // Create a modification to change the map attribute from uid to cn.
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("cn"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("cn"));
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("ds-cfg-match-attribute",
                                                     values)));
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString(mapperDNString), mods);
+         conn.processModify(ByteString.valueOf(mapperDNString), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -906,9 +896,9 @@ public class ExactMatchIdentityMapperTestCase
 
 
     // Change the configuration back to the way it was.
-    values.set(0, new ASN1OctetString("uid"));
+    values.set(0, ByteString.valueOf("uid"));
     modifyOperation =
-         conn.processModify(new ASN1OctetString(mapperDNString), mods);
+         conn.processModify(ByteString.valueOf(mapperDNString), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -969,15 +959,15 @@ public class ExactMatchIdentityMapperTestCase
 
 
     // Create a modification to set the map base DN to "dc=example,dc=com".
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("dc=example,dc=com"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("dc=example,dc=com"));
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("ds-cfg-match-base-dn",
                                                     values)));
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString(mapperDNString), mods);
+         conn.processModify(ByteString.valueOf(mapperDNString), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -987,9 +977,9 @@ public class ExactMatchIdentityMapperTestCase
 
 
     // Change the base DN to "o=test".
-    values.set(0, new ASN1OctetString("o=test"));
+    values.set(0, ByteString.valueOf("o=test"));
     modifyOperation =
-         conn.processModify(new ASN1OctetString(mapperDNString), mods);
+         conn.processModify(ByteString.valueOf(mapperDNString), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -1002,7 +992,7 @@ public class ExactMatchIdentityMapperTestCase
     // Change the configuration back to its original setting.
     values.clear();
     modifyOperation =
-         conn.processModify(new ASN1OctetString(mapperDNString), mods);
+         conn.processModify(ByteString.valueOf(mapperDNString), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -1032,7 +1022,7 @@ public class ExactMatchIdentityMapperTestCase
          InternalClientConnection.getRootConnection();
     String mapperDNString = "cn=Exact Match,cn=Identity Mappers,cn=config";
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString(mapperDNString), mods);
+         conn.processModify(ByteString.valueOf(mapperDNString), mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -1049,8 +1039,8 @@ public class ExactMatchIdentityMapperTestCase
          throws Exception
   {
     // Create a modification to remove the match attribute.
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("undefinedAttribute"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("undefinedAttribute"));
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
@@ -1060,7 +1050,7 @@ public class ExactMatchIdentityMapperTestCase
          InternalClientConnection.getRootConnection();
     String mapperDNString = "cn=Exact Match,cn=Identity Mappers,cn=config";
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString(mapperDNString), mods);
+         conn.processModify(ByteString.valueOf(mapperDNString), mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -1077,8 +1067,8 @@ public class ExactMatchIdentityMapperTestCase
          throws Exception
   {
     // Create a modification to remove the match attribute.
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("invalidDN"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("invalidDN"));
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
@@ -1088,7 +1078,7 @@ public class ExactMatchIdentityMapperTestCase
          InternalClientConnection.getRootConnection();
     String mapperDNString = "cn=Exact Match,cn=Identity Mappers,cn=config";
     ModifyOperation modifyOperation =
-         conn.processModify(new ASN1OctetString(mapperDNString), mods);
+         conn.processModify(ByteString.valueOf(mapperDNString), mods);
     assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
   }
 }

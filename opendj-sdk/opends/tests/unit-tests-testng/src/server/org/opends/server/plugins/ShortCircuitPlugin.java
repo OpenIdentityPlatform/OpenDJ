@@ -28,25 +28,30 @@ package org.opends.server.plugins;
 
 
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
+import java.io.IOException;
 
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.*;
 import org.opends.server.config.ConfigException;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Enumerated;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.operation.*;
+import org.opends.server.controls.ControlDecoder;
 import org.opends.messages.Message;
+
+import static org.opends.server.protocols.asn1.ASN1Constants.
+    UNIVERSAL_OCTET_STRING_TYPE;
 
 
 /**
@@ -65,6 +70,114 @@ public class ShortCircuitPlugin
    */
   public static final String OID_SHORT_CIRCUIT_REQUEST =
        "1.3.6.1.4.1.26027.1.999.3";
+
+  /**
+   * The control used by this plugin.
+   */
+  public static class ShortCircuitRequestControl extends Control
+  {
+    /**
+     * ControlDecoder implentation to decode this control from a ByteString.
+     */
+    private final static class Decoder
+        implements ControlDecoder<ShortCircuitRequestControl>
+    {
+      /**
+       * {@inheritDoc}
+       */
+      public ShortCircuitRequestControl decode(boolean isCritical,
+                                               ByteString value)
+          throws DirectoryException
+      {
+        ASN1Reader reader = ASN1.getReader(value);
+
+        try
+        {
+          reader.readStartSequence();
+          int resultCode = (int)reader.readInteger();
+          String section = reader.readOctetStringAsString();
+          reader.readEndSequence();
+
+          return new ShortCircuitRequestControl(isCritical,
+              resultCode, section);
+        }
+        catch (Exception e)
+        {
+          // TODO: Need a better message
+          throw new DirectoryException(ResultCode.PROTOCOL_ERROR, null, e);
+        }
+      }
+
+      public String getOID()
+      {
+        return OID_SHORT_CIRCUIT_REQUEST;
+      }
+
+    }
+
+    /**
+     * The Control Decoder that can be used to decode this control.
+     */
+    public static final ControlDecoder<ShortCircuitRequestControl> DECODER =
+      new Decoder();
+
+
+    private int resultCode;
+    private String section;
+
+    /**
+     * Constructs a new change number control.
+     *
+     * @param  isCritical   Indicates whether support for this control should be
+     *                      considered a critical part of the server processing.
+   * @param  resultCode  The result code to return to the client.
+   * @param  section     The section to use to determine when to short circuit.
+     */
+    public ShortCircuitRequestControl(boolean isCritical, int resultCode,
+                                      String section)
+    {
+      super(OID_SHORT_CIRCUIT_REQUEST, isCritical);
+      this.resultCode = resultCode;
+      this.section = section;
+    }
+
+    /**
+     * Writes this control's value to an ASN.1 writer. The value (if any)
+     * must be written as an ASN1OctetString.
+     *
+     * @param writer The ASN.1 writer to use.
+     * @throws IOException If a problem occurs while writing to the stream.
+     */
+    @Override
+    protected void writeValue(ASN1Writer writer) throws IOException {
+      writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
+      writer.writeStartSequence();
+      writer.writeInteger(resultCode);
+      writer.writeOctetString(section);
+      writer.writeEndSequence();
+      writer.writeEndSequence();
+    }
+
+    /**
+     * Retrieves the resultCode.
+     *
+     * @return The resultCode.
+     */
+    public int getResultCode()
+    {
+      return resultCode;
+    }
+
+    /**
+     * Retrieves the section.
+     *
+     * @return The section.
+     */
+    public String getSection()
+    {
+      return section;
+    }
+  }
 
 
 
@@ -530,35 +643,22 @@ public class ShortCircuitPlugin
    */
   private int shortCircuitInternal(PluginOperation operation, String section)
   {
-    List<Control> requestControls = operation.getRequestControls();
-    if (requestControls != null)
+    try
     {
-      for (Control c : requestControls)
+      ShortCircuitRequestControl control =
+          operation.getRequestControl(ShortCircuitRequestControl.DECODER);
+      
+      if (control != null && section.equalsIgnoreCase(control.getSection()))
       {
-        if (c.getOID().equals(OID_SHORT_CIRCUIT_REQUEST))
-        {
-          try
-          {
-            ASN1Sequence sequence =
-                 ASN1Sequence.decodeAsSequence(c.getValue().value());
-            ArrayList<ASN1Element> elements = sequence.elements();
-            int resultCode = elements.get(0).decodeAsEnumerated().intValue();
-            String controlSection =
-                        elements.get(1).decodeAsOctetString().stringValue();
-            if (section.equalsIgnoreCase(controlSection))
-            {
-              return resultCode;
-            }
-          }
-          catch (Exception e)
-          {
-            System.err.println("***** ERROR:  Could not decode short circuit " +
-                               "control value:  " + e);
-            e.printStackTrace();
-            return -1;
-          }
-        }
+        return control.resultCode;
       }
+    }
+    catch (Exception e)
+    {
+      System.err.println("***** ERROR:  Could not decode short circuit " +
+          "control value:  " + e);
+      e.printStackTrace();
+      return -1;
     }
 
     // Check for registered short circuits.
@@ -588,14 +688,7 @@ public class ShortCircuitPlugin
   public static Control createShortCircuitControl(int resultCode,
                                                   String section)
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1Enumerated(resultCode));
-    elements.add(new ASN1OctetString(section));
-
-    ASN1OctetString controlValue =
-         new ASN1OctetString(new ASN1Sequence(elements).encode());
-
-    return new Control(OID_SHORT_CIRCUIT_REQUEST, false, controlValue);
+    return new ShortCircuitRequestControl(false, resultCode, section);
   }
 
 
@@ -614,43 +707,6 @@ public class ShortCircuitPlugin
   {
     ArrayList<Control> controlList = new ArrayList<Control>(1);
     controlList.add(createShortCircuitControl(resultCode, section));
-    return controlList;
-  }
-
-
-
-  /**
-   * Creates a short circuit LDAP request control with the specified result code
-   * and section.
-   *
-   * @param  resultCode  The result code to return to the client.
-   * @param  section     The section to use to determine when to short circuit.
-   *
-   * @return  The appropriate short circuit LDAP request control.
-   */
-  public static LDAPControl createShortCircuitLDAPControl(int resultCode,
-                                                          String section)
-  {
-    return new LDAPControl(createShortCircuitControl(resultCode, section));
-  }
-
-
-
-  /**
-   * Retrieves a list containing a short circuit LDAP control with the specified
-   * result code and section.
-   *
-   * @param  resultCode  The result code to return to the client.
-   * @param  section     The section to use to determine when to short circuit.
-   *
-   * @return  A list containing the appropriate short circuit LDAP request
-   *          control.
-   */
-  public static ArrayList<LDAPControl> createShortCircuitLDAPControlList(
-                                            int resultCode, String section)
-  {
-    ArrayList<LDAPControl> controlList = new ArrayList<LDAPControl>(1);
-    controlList.add(createShortCircuitLDAPControl(resultCode, section));
     return controlList;
   }
 

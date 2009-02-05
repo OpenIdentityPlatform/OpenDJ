@@ -35,12 +35,12 @@ import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.BindOperationBasis;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.ByteString;
 
 import static org.testng.Assert.*;
 
@@ -167,7 +167,7 @@ public class AnonymousSASLMechanismHandlerTestCase
     BindOperationBasis bindOperation =
          new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                            new ArrayList<Control>(), "3", DN.nullDN(),
-                           SASL_MECHANISM_ANONYMOUS, new ASN1OctetString());
+                           SASL_MECHANISM_ANONYMOUS, ByteString.empty());
     handler.processSASLBind(bindOperation);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -194,7 +194,7 @@ public class AnonymousSASLMechanismHandlerTestCase
          new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                            new ArrayList<Control>(), "3", DN.nullDN(),
                            SASL_MECHANISM_ANONYMOUS,
-                           new ASN1OctetString("Internal Trace String"));
+                           ByteString.valueOf("Internal Trace String"));
     handler.processSASLBind(bindOperation);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
 

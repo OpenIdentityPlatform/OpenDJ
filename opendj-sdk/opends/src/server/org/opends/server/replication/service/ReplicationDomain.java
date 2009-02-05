@@ -985,6 +985,7 @@ public abstract class ReplicationDomain
     /**
      * Run method for this class.
      */
+    @Override
     public void run()
     {
       if (debugEnabled())
@@ -1124,6 +1125,7 @@ public abstract class ReplicationDomain
     /**
      * {@inheritDoc}
      */
+    @Override
     public String toString()
     {
       return new String("[ Entry count=" + this.entryCount +

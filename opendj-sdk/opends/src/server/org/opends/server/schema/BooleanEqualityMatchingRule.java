@@ -25,24 +25,24 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
-import org.opends.messages.Message;
 
 
-
-import java.util.Arrays;
-
-import java.util.Collection;
-import java.util.Collections;
-import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ResultCode;
 
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
+
+import java.util.Collection;
+import java.util.Collections;
+
+import org.opends.messages.Message;
+import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ResultCode;
+import org.opends.server.util.ServerConstants;
 
 
 /**
@@ -65,6 +65,7 @@ class BooleanEqualityMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getAllNames()
   {
     return Collections.singleton(getName());
@@ -78,6 +79,7 @@ class BooleanEqualityMatchingRule
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
    * it does not have a name.
    */
+  @Override
   public String getName()
   {
     return EMR_BOOLEAN_NAME;
@@ -90,6 +92,7 @@ class BooleanEqualityMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return EMR_BOOLEAN_OID;
@@ -103,6 +106,7 @@ class BooleanEqualityMatchingRule
    * @return  The description for this matching rule, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     // There is no standard description for this matching rule.
@@ -117,6 +121,7 @@ class BooleanEqualityMatchingRule
    *
    * @return  The OID of the syntax with which this matching rule is associated.
    */
+  @Override
   public String getSyntaxOID()
   {
     return SYNTAX_BOOLEAN_OID;
@@ -135,24 +140,25 @@ class BooleanEqualityMatchingRule
    * @throws  DirectoryException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
-  public ByteString normalizeValue(ByteString value)
+  @Override
+  public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
-    String valueString = value.stringValue().toUpperCase();
+    String valueString = value.toString().toUpperCase();
     if (valueString.equals("TRUE") || valueString.equals("YES") ||
         valueString.equals("ON") || valueString.equals("1"))
     {
-      return new ASN1OctetString("TRUE");
+      return ServerConstants.TRUE_VALUE;
     }
     else if (valueString.equals("FALSE") || valueString.equals("NO") ||
              valueString.equals("OFF") || valueString.equals("0"))
     {
-      return new ASN1OctetString("FALSE");
+      return ServerConstants.FALSE_VALUE;
     }
     else
     {
       Message message = WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(
-              value.stringValue());
+              value.toString());
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
@@ -161,30 +167,11 @@ class BooleanEqualityMatchingRule
                                        message);
         case WARN:
           ErrorLogger.logError(message);
-          return new ASN1OctetString(valueString);
+          return ByteString.valueOf(valueString);
         default:
-          return new ASN1OctetString(valueString);
+          return ByteString.valueOf(valueString);
       }
     }
-  }
-
-
-
-  /**
-   * Indicates whether the two provided normalized values are equal to each
-   * other.
-   *
-   * @param  value1  The normalized form of the first value to compare.
-   * @param  value2  The normalized form of the second value to compare.
-   *
-   * @return  <CODE>true</CODE> if the provided values are equal, or
-   *          <CODE>false</CODE> if not.
-   */
-  public boolean areEqual(ByteString value1, ByteString value2)
-  {
-    // Since the values are already normalized, we just need to compare the
-    // associated byte arrays.
-    return Arrays.equals(value1.value(), value2.value());
   }
 }
 

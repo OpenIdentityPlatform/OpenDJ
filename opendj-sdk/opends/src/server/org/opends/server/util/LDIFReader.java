@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 import org.opends.messages.Message;
@@ -38,7 +38,6 @@ import static org.opends.server.util.Validator.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -49,25 +48,11 @@ import java.util.List;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.types.AcceptRejectWarn;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.Entry;
 
 
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.RawModification;
-import org.opends.server.types.RDN;
+import org.opends.server.types.*;
 import org.opends.server.api.plugin.PluginResult;
 
 
@@ -264,7 +249,7 @@ public final class LDIFReader
       // import.
       Entry entry =  new Entry(entryDN, objectClasses, userAttributes,
                                operationalAttributes);
-      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, entry);
+      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, entry.toString());
 
       try
       {
@@ -857,7 +842,7 @@ public final class LDIFReader
     final String lowerName = toLowerCase(attrName);
 
     // Now parse the attribute value.
-    ASN1OctetString value = parseSingleValue(lines, line, entryDN,
+    ByteString value = parseSingleValue(lines, line, entryDN,
         colonPos, attrName);
 
     // See if this is an objectclass or an attribute.  Then get the
@@ -874,7 +859,7 @@ public final class LDIFReader
         return;
       }
 
-      String ocName      = value.stringValue();
+      String ocName      = value.toString();
       String lowerOCName = toLowerCase(ocName);
 
       ObjectClass objectClass = DirectoryServer.getObjectClass(lowerOCName);
@@ -932,7 +917,7 @@ public final class LDIFReader
         {
           Message message = WARN_LDIF_VALUE_VIOLATES_SYNTAX.get(
                   String.valueOf(entryDN),
-                  lastEntryLineNumber, value.stringValue(),
+                  lastEntryLineNumber, value.toString(),
                   attrName, invalidReason.toString());
           if (DirectoryServer.getSyntaxEnforcementPolicy() ==
                    AcceptRejectWarn.WARN)
@@ -948,7 +933,8 @@ public final class LDIFReader
         }
       }
 
-      AttributeValue attributeValue = new AttributeValue(attrType, value);
+      AttributeValue attributeValue =
+          AttributeValues.create(attrType, value);
       List<Attribute> attrList;
       if (attrType.isOperational())
       {
@@ -1001,7 +987,7 @@ public final class LDIFReader
                   Message message = WARN_LDIF_DUPLICATE_ATTR.get(
                           String.valueOf(entryDN),
                           lastEntryLineNumber, attrName,
-                          value.stringValue());
+                          value.toString());
                   logToRejectWriter(lines, message);
                   throw new LDIFException(message, lastEntryLineNumber,
                                           true);
@@ -1013,7 +999,7 @@ public final class LDIFReader
               Message message = WARN_LDIF_DUPLICATE_ATTR.get(
                       String.valueOf(entryDN),
                       lastEntryLineNumber, attrName,
-                      value.stringValue());
+                      value.toString());
               logToRejectWriter(lines, message);
               throw new LDIFException(message, lastEntryLineNumber,
                                       true);
@@ -1088,12 +1074,12 @@ public final class LDIFReader
     }
 
     //  Now parse the attribute value.
-    ASN1OctetString value = parseSingleValue(lines, line, entryDN,
+    ByteString value = parseSingleValue(lines, line, entryDN,
         colonPos, attrName);
 
     AttributeBuilder builder = new AttributeBuilder(attribute, true);
     AttributeType attrType = attribute.getAttributeType();
-    builder.add(new AttributeValue(attrType, value));
+    builder.add(AttributeValues.create(attrType, value));
 
     return builder.toAttribute();
   }
@@ -1406,7 +1392,7 @@ public final class LDIFReader
   {
     Attribute attr =
       readSingleValueAttribute(lines, line, entryDN, attributeName);
-    return attr.iterator().next().getStringValue();
+    return attr.iterator().next().getValue().toString();
   }
 
 
@@ -1436,7 +1422,7 @@ public final class LDIFReader
       String name = attr.getName();
 
       // Get the attribute description
-      String attrDescr = attr.iterator().next().getStringValue();
+      String attrDescr = attr.iterator().next().getValue().toString();
 
       String lowerName = toLowerCase(name);
       if (lowerName.equals("add"))
@@ -1541,7 +1527,7 @@ public final class LDIFReader
     AttributeType ocType = DirectoryServer.getObjectClassAttributeType();
     AttributeBuilder builder = new AttributeBuilder(ocType, "objectClass");
     for (String value : objectClasses.values()) {
-      AttributeValue av = new AttributeValue(ocType, value);
+      AttributeValue av = AttributeValues.create(ocType, value);
       builder.add(av);
     }
     List<Attribute> ocAttrList = new ArrayList<Attribute>(1);
@@ -1597,7 +1583,7 @@ public final class LDIFReader
    * @throws LDIFException
    *           If an error occurred when parsing the attribute value.
    */
-  private ASN1OctetString parseSingleValue(
+  private ByteString parseSingleValue(
       LinkedList<StringBuilder> lines,
       StringBuilder line,
       DN entryDN,
@@ -1609,10 +1595,10 @@ public final class LDIFReader
     // colon, then the value must be base64-encoded. If it is a less-than
     // sign, then assume that it is a URL. Otherwise, it is a regular value.
     int length = line.length();
-    ASN1OctetString value;
+    ByteString value;
     if (colonPos == (length-1))
     {
-      value = new ASN1OctetString();
+      value = ByteString.empty();
     }
     else
     {
@@ -1629,7 +1615,7 @@ public final class LDIFReader
 
         try
         {
-          value = new ASN1OctetString(Base64.decode(line.substring(pos)));
+          value = ByteString.wrap(Base64.decode(line.substring(pos)));
         }
         catch (Exception e)
         {
@@ -1680,19 +1666,19 @@ public final class LDIFReader
 
 
         InputStream inputStream = null;
-        ByteArrayOutputStream outputStream = null;
+        ByteStringBuilder builder = null;
         try
         {
-          outputStream = new ByteArrayOutputStream();
+          builder = new ByteStringBuilder();
           inputStream  = contentURL.openConnection().getInputStream();
 
           int bytesRead;
           while ((bytesRead = inputStream.read(buffer)) > 0)
           {
-            outputStream.write(buffer, 0, bytesRead);
+            builder.append(buffer, 0, bytesRead);
           }
 
-          value = new ASN1OctetString(outputStream.toByteArray());
+          value = builder.toByteString();
         }
         catch (Exception e)
         {
@@ -1713,14 +1699,6 @@ public final class LDIFReader
         }
         finally
         {
-          if (outputStream != null)
-          {
-            try
-            {
-              outputStream.close();
-            } catch (Exception e) {}
-          }
-
           if (inputStream != null)
           {
             try
@@ -1740,7 +1718,7 @@ public final class LDIFReader
           pos++;
         }
 
-        value = new ASN1OctetString(line.substring(pos));
+        value = ByteString.valueOf(line.substring(pos));
       }
     }
     return value;

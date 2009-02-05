@@ -37,12 +37,8 @@ import java.io.IOException;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.DN;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
@@ -383,8 +379,8 @@ public class RejectUnauthReqTests extends CoreTestCase
 
     InternalClientConnection conn = new InternalClientConnection(
         new AuthenticationInfo());
-    ASN1OctetString user = new ASN1OctetString("cn=Directory Manager");
-    ASN1OctetString password = new ASN1OctetString("password");
+    ByteString user = ByteString.valueOf("cn=Directory Manager");
+    ByteString password = ByteString.valueOf("password");
     BindOperation bindOperation = conn.processSimpleBind(user, password);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -429,10 +425,10 @@ public class RejectUnauthReqTests extends CoreTestCase
     AtomicInteger nextMessageID = new AtomicInteger(1);
     LDAPAuthenticationHandler authHandler = new LDAPAuthenticationHandler(
         reader, writer, "localhost", nextMessageID);
-    authHandler.doSimpleBind(3, new ASN1OctetString("cn=Directory Manager"),
-        new ASN1OctetString("password"), new ArrayList<LDAPControl>(),
-        new ArrayList<LDAPControl>());
-    ASN1OctetString authzID = authHandler.requestAuthorizationIdentity();
+    authHandler.doSimpleBind(3, ByteString.valueOf("cn=Directory Manager"),
+        ByteString.valueOf("password"), new ArrayList<Control>(),
+        new ArrayList<Control>());
+    ByteString authzID = authHandler.requestAuthorizationIdentity();
     assertNotNull(authzID);
 
     LDAPMessage unbindMessage = new LDAPMessage(
@@ -463,7 +459,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     AtomicInteger nextMessageID = new AtomicInteger(1);
     LDAPAuthenticationHandler authHandler = new LDAPAuthenticationHandler(
         reader, writer, "localhost", nextMessageID);
-    ASN1OctetString authzID = authHandler.requestAuthorizationIdentity();
+    ByteString authzID = authHandler.requestAuthorizationIdentity();
     assertNull(authzID);
 
     LDAPMessage unbindMessage = new LDAPMessage(
@@ -631,8 +627,8 @@ public class RejectUnauthReqTests extends CoreTestCase
 
       InternalClientConnection conn = new InternalClientConnection(
           new AuthenticationInfo());
-      ASN1OctetString user = new ASN1OctetString("cn=Directory Manager");
-      ASN1OctetString password = new ASN1OctetString("password");
+      ByteString user = ByteString.valueOf("cn=Directory Manager");
+      ByteString password = ByteString.valueOf("password");
       // Unauthenticated BIND request.
       BindOperation bindOperation = conn.processSimpleBind(DN.nullDN(), null);
       assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
@@ -748,7 +744,7 @@ public class RejectUnauthReqTests extends CoreTestCase
       AtomicInteger nextMessageID = new AtomicInteger(1);
       LDAPAuthenticationHandler authHandler = new LDAPAuthenticationHandler(
           reader, writer, "localhost", nextMessageID);
-      ASN1OctetString authzID = null;
+      ByteString authzID = null;
       try
       {
         authzID = authHandler.requestAuthorizationIdentity();

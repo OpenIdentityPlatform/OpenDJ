@@ -22,14 +22,21 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools;
 
 import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.protocols.asn1.ASN1Element;
+import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.ldap.LDAPMessage;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.RecordingOutputStream;
+import org.opends.server.types.ByteString;
+import org.opends.server.util.ServerConstants;
 
 import java.net.Socket;
 import java.io.IOException;
@@ -40,23 +47,14 @@ import java.io.IOException;
  */
 public class LDAPWriter
 {
-  ASN1Writer asn1Writer;
-  VerboseTracer tracer;
-
   /**
-   * Creates a new LDAP writer that will write messages to the provided
-   * socket.
-   *
-   * @param  socket  The socket to use to write LDAP messages.
-   *
-   * @throws  IOException  If a problem occurs while attempting to obtain an
-   *                       ASN.1 reader for the socket.
+   * The tracer object for the debug logger.
    */
-  public LDAPWriter(Socket socket)
-       throws IOException
-  {
-    this(socket, null);
-  }
+  private static final DebugTracer TRACER = getTracer();
+
+  Socket socket;
+  ASN1Writer asn1Writer;
+  private RecordingOutputStream debugOutputStream;
 
 
   /**
@@ -65,16 +63,16 @@ public class LDAPWriter
    *
    * @param  socket  The socket to use to write LDAP messages.
    *
-   * @param  tracer  Specifies a tracer to be used for tracing messages written.
-   *
    * @throws  IOException  If a problem occurs while attempting to obtain an
    *                       output stream for the socket.
    */
-  public LDAPWriter(Socket socket, VerboseTracer tracer)
+  public LDAPWriter(Socket socket)
        throws IOException
   {
-    this.asn1Writer = new ASN1Writer(socket);
-    this.tracer = tracer;
+    this.socket = socket;
+    this.debugOutputStream =
+        new RecordingOutputStream(socket.getOutputStream());
+    this.asn1Writer = ASN1.getWriter(debugOutputStream);
   }
 
   /**
@@ -88,12 +86,28 @@ public class LDAPWriter
   public void writeMessage(LDAPMessage message)
        throws IOException
   {
-    ASN1Element element = message.encode();
-    if (tracer != null)
+    if(debugEnabled())
     {
-      tracer.traceOutgoingMessage(message, element);
+      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, message.toString());
+      debugOutputStream.setRecordingEnabled(true);
     }
-    asn1Writer.writeElement(element);
+
+    message.write(asn1Writer);
+
+    if(debugOutputStream.isRecordingEnabled())
+    {
+      ByteString bytesRead = debugOutputStream.getRecordedBytes();
+      debugOutputStream.clearRecordedBytes();
+
+      StringBuilder builder = new StringBuilder();
+      builder.append("bytes written to wire(len=");
+      builder.append(bytesRead.length());
+      builder.append("):");
+      builder.append(ServerConstants.EOL);
+      bytesRead.toHexPlusAscii(builder, 4);
+
+      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, builder.toString());
+    }
   }
 
   /**
@@ -101,17 +115,32 @@ public class LDAPWriter
    */
   public void close()
   {
-    asn1Writer.close();
-  }
+    try
+    {
+      asn1Writer.close();
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
 
-  /**
-   * Get the underlying ASN1 writer.
-   *
-   * @return  The underlying ASN1 writer.
-   */
-  public ASN1Writer getASN1Writer()
-  {
-    return asn1Writer;
-  }
 
+    if (socket != null)
+    {
+      try
+      {
+        socket.close();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
+  }
 }

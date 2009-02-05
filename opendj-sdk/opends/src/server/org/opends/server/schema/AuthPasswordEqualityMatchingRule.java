@@ -28,23 +28,21 @@ package org.opends.server.schema;
 
 
 
-import java.util.Arrays;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.schema.SchemaConstants.*;
 
 import java.util.Collection;
 import java.util.Collections;
+
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.AttributeValue;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
-import org.opends.server.types.DirectoryException;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.schema.SchemaConstants.*;
+import org.opends.server.types.DirectoryException;
 
 
 
@@ -76,6 +74,7 @@ class AuthPasswordEqualityMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getAllNames()
   {
     return Collections.singleton(getName());
@@ -89,6 +88,7 @@ class AuthPasswordEqualityMatchingRule
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
    * it does not have a name.
    */
+  @Override
   public String getName()
   {
     return EMR_AUTH_PASSWORD_NAME;
@@ -101,6 +101,7 @@ class AuthPasswordEqualityMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return EMR_AUTH_PASSWORD_OID;
@@ -114,6 +115,7 @@ class AuthPasswordEqualityMatchingRule
    * @return  The description for this matching rule, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     // There is no standard description for this matching rule.
@@ -128,6 +130,7 @@ class AuthPasswordEqualityMatchingRule
    *
    * @return  The OID of the syntax with which this matching rule is associated.
    */
+  @Override
   public String getSyntaxOID()
   {
     return SYNTAX_AUTH_PASSWORD_OID;
@@ -146,35 +149,12 @@ class AuthPasswordEqualityMatchingRule
    * @throws  DirectoryException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
-  public ByteString normalizeValue(ByteString value)
+  @Override
+  public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
-    // We will not alter the value in any way, but we'll create a new value
-    // just in case something else is using the underlying array.
-    byte[] currentValue = value.value();
-    byte[] newValue     = new byte[currentValue.length];
-    System.arraycopy(currentValue, 0, newValue, 0, currentValue.length);
-
-    return new ASN1OctetString(newValue);
-  }
-
-
-
-  /**
-   * Indicates whether the two provided normalized values are equal to each
-   * other.
-   *
-   * @param  value1  The normalized form of the first value to compare.
-   * @param  value2  The normalized form of the second value to compare.
-   *
-   * @return  <CODE>true</CODE> if the provided values are equal, or
-   *          <CODE>false</CODE> if not.
-   */
-  public boolean areEqual(ByteString value1, ByteString value2)
-  {
-    // Since the values are already normalized, we just need to compare the
-    // associated byte arrays.
-    return Arrays.equals(value1.value(), value2.value());
+    // We will not alter the value in any way.
+    return value.toByteString();
   }
 
 
@@ -194,8 +174,9 @@ class AuthPasswordEqualityMatchingRule
    *          match for the provided assertion value, or <CODE>false</CODE> if
    *          not.
    */
-  public ConditionResult valuesMatch(ByteString attributeValue,
-                                     ByteString assertionValue)
+  @Override
+  public ConditionResult valuesMatch(ByteSequence attributeValue,
+                                     ByteSequence assertionValue)
   {
     // We must be able to decode the attribute value using the authentication
     // password syntax.
@@ -203,7 +184,7 @@ class AuthPasswordEqualityMatchingRule
     try
     {
       authPWComponents =
-           AuthPasswordSyntax.decodeAuthPassword(attributeValue.stringValue());
+           AuthPasswordSyntax.decodeAuthPassword(attributeValue.toString());
     }
     catch (Exception e)
     {
@@ -257,7 +238,8 @@ class AuthPasswordEqualityMatchingRule
    *
    * @return  The hash code generated for the provided attribute value.
    */
-  public int generateHashCode(AttributeValue attributeValue)
+  @Override
+  public int generateHashCode(ByteSequence attributeValue)
   {
     // Because of the variable encoding that may be used, we have no way of
     // comparing two auth password values by hash code and therefore we'll

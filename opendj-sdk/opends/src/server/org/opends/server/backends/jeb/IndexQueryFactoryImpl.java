@@ -25,34 +25,41 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-
 package org.opends.server.backends.jeb;
+
+
 
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.LockMode;
 import java.util.Collection;
 import java.util.Map;
 import org.opends.server.api.IndexQueryFactory;
+import org.opends.server.types.ByteSequence;
+
+
 
 /**
  * This class is an implementation of IndexQueryFactory which creates
  * IndexQuery objects as part of the query of the JEB index.
-*/
-public final class IndexQueryFactoryImpl
-        implements IndexQueryFactory<IndexQuery>
+ */
+public final class IndexQueryFactoryImpl implements
+    IndexQueryFactory<IndexQuery>
 {
   /**
-   * The Map containing the string type identifier and the corresponding index.
+   * The Map containing the string type identifier and the corresponding
+   * index.
    */
-  private Map<String,Index> indexMap;
+  private Map<String, Index> indexMap;
 
 
 
   /**
    * Creates a new IndexQueryFactoryImpl object.
-   * @param indexMap A map containing the index id and the corresponding index.
+   *
+   * @param indexMap
+   *          A map containing the index id and the corresponding index.
    */
-  public IndexQueryFactoryImpl(Map<String,Index> indexMap)
+  public IndexQueryFactoryImpl(Map<String, Index> indexMap)
   {
     this.indexMap = indexMap;
   }
@@ -60,62 +67,61 @@ public final class IndexQueryFactoryImpl
 
 
   /**
-   *{@inheritDoc}
+   * {@inheritDoc}
    */
   public IndexQuery createExactMatchQuery(final String indexID,
-          final byte[] value)
+      final ByteSequence value)
   {
     return new IndexQuery()
-    {
-
-      @Override
-      public EntryIDSet evaluate()
       {
-        //Read the database and get Record for the key.
-        DatabaseEntry key = new DatabaseEntry(value);
-        //Select the right index to be used.
-        Index index = indexMap.get(indexID);
-        EntryIDSet entrySet = index.readKey(key,null,LockMode.DEFAULT);
-        return entrySet;
-      }
-    };
+
+        @Override
+        public EntryIDSet evaluate()
+        {
+          // Read the database and get Record for the key.
+          DatabaseEntry key = new DatabaseEntry(value.toByteArray());
+
+          // Select the right index to be used.
+          Index index = indexMap.get(indexID);
+          EntryIDSet entrySet =
+              index.readKey(key, null, LockMode.DEFAULT);
+          return entrySet;
+        }
+      };
   }
 
 
 
   /**
-   *{@inheritDoc}
+   * {@inheritDoc}
    */
-  public IndexQuery createRangeMatchQuery(
-                                              final String indexID,
-                                              final byte[] lowerBound,
-                                              final byte[] upperBound,
-                                              final boolean includeLowerBound,
-                                              final boolean includeUpperBound)
+  public IndexQuery createRangeMatchQuery(final String indexID,
+      final ByteSequence lowerBound, final ByteSequence upperBound,
+      final boolean includeLowerBound, final boolean includeUpperBound)
   {
     return new IndexQuery()
-    {
-
-      @Override
-      public EntryIDSet evaluate()
       {
-        //Find the right index.
-        Index index = indexMap.get(indexID);
-        EntryIDSet entrySet =   index.readRange(lowerBound,upperBound,
-                includeLowerBound,
-            includeUpperBound);
-        return entrySet;
-      }
-    };
+
+        @Override
+        public EntryIDSet evaluate()
+        {
+          // Find the right index.
+          Index index = indexMap.get(indexID);
+          EntryIDSet entrySet =
+              index.readRange(lowerBound.toByteArray(), upperBound
+                  .toByteArray(), includeLowerBound, includeUpperBound);
+          return entrySet;
+        }
+      };
   }
 
 
 
   /**
-   *{@inheritDoc}
+   * {@inheritDoc}
    */
-  public IndexQuery  createIntersectionQuery(Collection<IndexQuery>
-                                                                subqueries)
+  public IndexQuery createIntersectionQuery(
+      Collection<IndexQuery> subqueries)
   {
     return IndexQuery.createIntersectionIndexQuery(subqueries);
   }
@@ -123,7 +129,7 @@ public final class IndexQueryFactoryImpl
 
 
   /**
-   *{@inheritDoc}
+   * {@inheritDoc}
    */
   public IndexQuery createUnionQuery(Collection<IndexQuery> subqueries)
   {
@@ -133,20 +139,21 @@ public final class IndexQueryFactoryImpl
 
 
   /**
-   *{@inheritDoc}
-   * It returns an empty EntryIDSet object  when either all or no record sets
-   * are requested.
+   * {@inheritDoc}
+   * <p>
+   * It returns an empty EntryIDSet object when either all or no record
+   * sets are requested.
    */
   public IndexQuery createMatchAllQuery()
   {
     return new IndexQuery()
-    {
-
-      @Override
-      public EntryIDSet evaluate()
       {
-        return new EntryIDSet();
-      }
-    };
+
+        @Override
+        public EntryIDSet evaluate()
+        {
+          return new EntryIDSet();
+        }
+      };
   }
 }

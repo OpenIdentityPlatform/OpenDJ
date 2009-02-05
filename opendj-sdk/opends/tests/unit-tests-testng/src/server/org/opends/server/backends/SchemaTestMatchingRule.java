@@ -30,12 +30,12 @@ package org.opends.server.backends;
 
 import java.util.Collection;
 import java.util.Collections;
+
 import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.api.MatchingRule;
 import org.opends.server.schema.CaseIgnoreEqualityMatchingRuleFactory;
+import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-
 
 
 /**
@@ -48,16 +48,16 @@ public class SchemaTestMatchingRule
        extends EqualityMatchingRule
 {
   // Indicates whether this matching rule should be considered OBSOLETE.
-  private boolean isObsolete;
+  private final boolean isObsolete;
 
   // The matching rule that will do all the real work behind the scenes.
-  private EqualityMatchingRule caseIgnoreMatchingRule;
+  private final EqualityMatchingRule caseIgnoreMatchingRule;
 
   // The name for this matching rule.
-  private String name;
+  private final String name;
 
   // The OID for this matching rule.
-  private String oid;
+  private final String oid;
 
 
 
@@ -118,6 +118,7 @@ public class SchemaTestMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getAllNames()
   {
     return Collections.singleton(getName());
@@ -131,6 +132,7 @@ public class SchemaTestMatchingRule
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
    * it does not have a name.
    */
+  @Override
   public String getName()
   {
     return name;
@@ -143,6 +145,7 @@ public class SchemaTestMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return oid;
@@ -156,6 +159,7 @@ public class SchemaTestMatchingRule
    * @return  The description for this matching rule, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     return null;
@@ -169,6 +173,7 @@ public class SchemaTestMatchingRule
    *
    * @return  The OID of the syntax with which this matching rule is associated.
    */
+  @Override
   public String getSyntaxOID()
   {
     return caseIgnoreMatchingRule.getSyntaxOID();
@@ -179,6 +184,7 @@ public class SchemaTestMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isObsolete()
   {
     return isObsolete;
@@ -197,7 +203,8 @@ public class SchemaTestMatchingRule
    * @throws  DirectoryException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
-  public ByteString normalizeValue(ByteString value)
+  @Override
+  public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
     return caseIgnoreMatchingRule.normalizeValue(value);
@@ -215,7 +222,8 @@ public class SchemaTestMatchingRule
    * @return  <CODE>true</CODE> if the provided values are equal, or
    *          <CODE>false</CODE> if not.
    */
-  public boolean areEqual(ByteString value1, ByteString value2)
+  @Override
+  public boolean areEqual(ByteSequence value1, ByteSequence value2)
   {
     return caseIgnoreMatchingRule.areEqual(value1, value2);
   }

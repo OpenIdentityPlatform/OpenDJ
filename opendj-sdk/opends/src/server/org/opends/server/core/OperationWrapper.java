@@ -34,6 +34,7 @@ import java.util.Map;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.types.*;
+import org.opends.server.controls.ControlDecoder;
 
 
 /**
@@ -291,6 +292,15 @@ public class OperationWrapper implements Operation
   public List<Control> getRequestControls()
   {
     return operation.getRequestControls();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public <T extends Control> T getRequestControl(
+      ControlDecoder<T> d)throws DirectoryException
+  {
+    return operation.getRequestControl(d);
   }
 
   /**

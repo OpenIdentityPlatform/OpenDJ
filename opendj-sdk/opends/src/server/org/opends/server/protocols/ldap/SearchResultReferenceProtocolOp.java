@@ -25,26 +25,19 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
-
 
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
+import java.io.IOException;
 
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
+import org.opends.server.protocols.asn1.*;
 import org.opends.server.types.SearchResultReference;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -141,84 +134,20 @@ public class SearchResultReferenceProtocolOp
     return "Search Result Reference";
   }
 
-
-
   /**
-   * Encodes this protocol op to an ASN.1 element suitable for including in an
-   * LDAP message.
+   * Writes this protocol op to an ASN.1 output stream.
    *
-   * @return  The ASN.1 element containing the encoded protocol op.
+   * @param stream The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public ASN1Element encode()
+  public void write(ASN1Writer stream) throws IOException
   {
-    ArrayList<ASN1Element> elements =
-         new ArrayList<ASN1Element>(referralURLs.size());
-    for (String url : referralURLs)
+    stream.writeStartSequence(OP_TYPE_SEARCH_RESULT_REFERENCE);
+    for(String url : referralURLs)
     {
-      elements.add(new ASN1OctetString(url));
+      stream.writeOctetString(url);
     }
-
-    return new ASN1Sequence(OP_TYPE_SEARCH_RESULT_REFERENCE, elements);
-  }
-
-
-
-  /**
-   * Decodes the provided ASN.1 element as a search result reference protocol
-   * op.
-   *
-   * @param  element  The ASN.1 element to decode.
-   *
-   * @return  The decoded search result reference protocol op.
-   *
-   * @throws  LDAPException  If a problem occurs while decoding the provided
-   *                         ASN.1 element as an LDAP search result reference
-   *                         protocol op.
-   */
-  public static SearchResultReferenceProtocolOp
-                     decodeSearchReference(ASN1Element element)
-         throws LDAPException
-  {
-    ArrayList<ASN1Element> elements;
-    try
-    {
-      elements = element.decodeAsSequence().elements();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_SEARCH_REFERENCE_DECODE_SEQUENCE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    ArrayList<String> referralURLs = new ArrayList<String>(elements.size());
-    try
-    {
-      for (ASN1Element e : elements)
-      {
-        referralURLs.add(e.decodeAsOctetString().stringValue());
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_SEARCH_REFERENCE_DECODE_URLS.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    return new SearchResultReferenceProtocolOp(referralURLs);
+    stream.writeEndSequence();
   }
 
 

@@ -29,8 +29,8 @@ package org.opends.server.replication.plugin;
 import java.util.Collection;
 import java.util.Collections;
 import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteSequence;
 
 /**
  * Used to establish an order between historical information and index them.
@@ -64,10 +64,10 @@ public class HistoricalCsnOrderingMatchingRule
    * @return 0 when equals, -1 or 1 to establish order
    */
   @Override
-  public int compareValues(ByteString value1, ByteString value2)
+  public int compareValues(ByteSequence value1, ByteSequence value2)
   {
-    String[] token1 = value1.stringValue().split(":", 3);
-    String[] token2 = value2.stringValue().split(":", 3);
+    String[] token1 = value1.toString().split(":", 3);
+    String[] token2 = value2.toString().split(":", 3);
 
     if ((token1[1] == null) || (token2[1] == null))
       return -1;
@@ -133,9 +133,9 @@ public class HistoricalCsnOrderingMatchingRule
    * comparison
    */
   @Override
-  public ByteString normalizeValue(ByteString value)
+  public ByteString normalizeValue(ByteSequence value)
   {
-    String[] token = value.stringValue().split(":", 3);
+    String[] token = value.toString().split(":", 3);
 
     /* Change the format of the value to index and start
      * with the serverId. In that manner, the search response
@@ -147,7 +147,7 @@ public class HistoricalCsnOrderingMatchingRule
     String serverId = token[1].substring(16,20);
     String seqNumber = token[1].substring(20, 28);
 
-    return new ASN1OctetString(serverId + timestamp + seqNumber);
+    return ByteString.valueOf(serverId + timestamp + seqNumber);
   }
 
   /**

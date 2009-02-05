@@ -38,23 +38,12 @@ import java.util.List;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.ResultCode;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.tools.*;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Control;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.ExistingFileBehavior;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.RawAttribute;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
@@ -209,7 +198,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString("o=test"),
+              ByteString.valueOf("o=test"),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -251,7 +240,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString("o=test"),
+              ByteString.valueOf("o=test"),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -281,19 +270,19 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
   {
     //Construct a V2 connection.
     Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    org.opends.server.tools.LDAPWriter w = new org.opends.server.tools.LDAPWriter(s);
 
     try
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                    new ASN1OctetString("cn=Directory Manager"), 2,
-                    new ASN1OctetString("password"));
+                    ByteString.valueOf("cn=Directory Manager"), 2,
+                    ByteString.valueOf("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      message = r.readMessage();
       BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
       assertEquals(bindResponse.getResultCode(), 0);
       ArrayList<RawAttribute> addAttrs = new ArrayList<RawAttribute>();
@@ -306,12 +295,12 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
       addAttrs.add(RawAttribute.create("userCertificate;binary", CERT));
 
       AddRequestProtocolOp addRequest =
-           new AddRequestProtocolOp(new ASN1OctetString("uid=user.7,o=test"),
+           new AddRequestProtocolOp(ByteString.valueOf("uid=user.7,o=test"),
                                     addAttrs);
       message = new LDAPMessage(2, addRequest);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      message = r.readMessage();
       AddResponseProtocolOp addResponse = message.getAddResponseProtocolOp();
       assertEquals(addResponse.getResultCode(),0);
 
@@ -321,22 +310,20 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
       attrs.add("sn");
       attrs.add("userCertificate;binary");
       SearchRequestProtocolOp searchRequest =
-         new SearchRequestProtocolOp(new ASN1OctetString("o=test"),
+         new SearchRequestProtocolOp(ByteString.valueOf("o=test"),
                                      SearchScope.WHOLE_SUBTREE,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
                                      0, false,
                                      LDAPFilter.decode("(uid=user.7)"),
                                      attrs);
       message = new LDAPMessage(2, searchRequest);
-      w.writeElement(message.encode());
-      //message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      w.writeMessage(message);
 
       SearchResultEntryProtocolOp searchResultEntry = null;
       SearchResultDoneProtocolOp searchResultDone = null;
-      ASN1Element element = null;
-      while (searchResultDone == null && (element = r.readElement()) != null)
+      while (searchResultDone == null && message != null)
       {
-        message = LDAPMessage.decode(element.decodeAsSequence());
+        message = r.readMessage();
         switch (message.getProtocolOpType())
         {
           case LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY:
@@ -359,10 +346,10 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
           certWithNoOption=true;
         else if(a.getAttributeType().equalsIgnoreCase("sn"))
         {
-          List<ASN1OctetString> lVal = a.getValues();
-          for(ASN1OctetString v:lVal)
+          List<ByteString> lVal = a.getValues();
+          for(ByteString v:lVal)
           {
-            String val = v.stringValue();
+            String val = v.toString();
             if(val.equals("sn#1") || val.equals("sn#2")
                     || val.equals("sn#3"))
             {

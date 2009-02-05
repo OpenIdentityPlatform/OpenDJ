@@ -25,17 +25,10 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
 
+import org.opends.server.protocols.asn1.ASN1Writer;
 
-
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.types.LDAPException;
-
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
-
+import java.io.IOException;
 
 
 /**
@@ -63,142 +56,12 @@ public abstract class ProtocolOp
 
 
   /**
-   * Encodes this protocol op to an ASN.1 element suitable for including in an
-   * LDAP message.
+   * Writes this protocol op to an ASN.1 output stream.
    *
-   * @return  The ASN.1 element containing the encoded protocol op.
+   * @param stream The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public abstract ASN1Element encode();
-
-
-
-  /**
-   * Decodes the provided ASN.1 element as an LDAP protocol op.
-   *
-   * @param  element  The ASN.1 element containing the encoded LDAP protocol op.
-   *
-   * @return  The LDAP protocol op decoded from the provided ASN.1 element.
-   *
-   * @throws  LDAPException  If a problem occurs while trying to decode the
-   *                         provided ASN.1 element as an LDAP protocol op.
-   */
-  public static ProtocolOp decode(ASN1Element element)
-         throws LDAPException
-  {
-    if (element == null)
-    {
-      Message message = ERR_LDAP_PROTOCOL_OP_DECODE_NULL.get();
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-    switch (element.getType())
-    {
-      case OP_TYPE_UNBIND_REQUEST:                                       // 0x42
-        return UnbindRequestProtocolOp.decodeUnbindRequest(element);
-      case 0x43:                                                         // 0x43
-      case 0x44:                                                         // 0x44
-      case 0x45:                                                         // 0x45
-      case 0x46:                                                         // 0x46
-      case 0x47:                                                         // 0x47
-      case 0x48:                                                         // 0x48
-      case 0x49:                                                         // 0x49
-        Message message =
-            ERR_LDAP_PROTOCOL_OP_DECODE_INVALID_TYPE.get(element.getType());
-        throw new LDAPException(PROTOCOL_ERROR, message);
-      case OP_TYPE_DELETE_REQUEST:                                       // 0x4A
-        return DeleteRequestProtocolOp.decodeDeleteRequest(element);
-      case 0x4B:                                                         // 0x4B
-      case 0x4C:                                                         // 0x4C
-      case 0x4D:                                                         // 0x4D
-      case 0x4E:                                                         // 0x4E
-      case 0x4F:                                                         // 0x4F
-        message =
-            ERR_LDAP_PROTOCOL_OP_DECODE_INVALID_TYPE.get(element.getType());
-        throw new LDAPException(PROTOCOL_ERROR, message);
-      case OP_TYPE_ABANDON_REQUEST:                                      // 0x50
-        return AbandonRequestProtocolOp.decodeAbandonRequest(element);
-      case 0x51:                                                         // 0x51
-      case 0x52:                                                         // 0x52
-      case 0x53:                                                         // 0x53
-      case 0x54:                                                         // 0x54
-      case 0x55:                                                         // 0x55
-      case 0x56:                                                         // 0x56
-      case 0x57:                                                         // 0x57
-      case 0x58:                                                         // 0x58
-      case 0x59:                                                         // 0x59
-      case 0x5A:                                                         // 0x5A
-      case 0x5B:                                                         // 0x5B
-      case 0x5C:                                                         // 0x5C
-      case 0x5D:                                                         // 0x5D
-      case 0x5E:                                                         // 0x5E
-      case 0x5F:                                                         // 0x5F
-        message =
-            ERR_LDAP_PROTOCOL_OP_DECODE_INVALID_TYPE.get(element.getType());
-        throw new LDAPException(PROTOCOL_ERROR, message);
-      case OP_TYPE_BIND_REQUEST:                                         // 0x60
-        return BindRequestProtocolOp.decodeBindRequest(element);
-      case OP_TYPE_BIND_RESPONSE:                                        // 0x61
-        return BindResponseProtocolOp.decodeBindResponse(element);
-      case 0x62:                                                         // 0x62
-        message =
-            ERR_LDAP_PROTOCOL_OP_DECODE_INVALID_TYPE.get(element.getType());
-        throw new LDAPException(PROTOCOL_ERROR, message);
-      case OP_TYPE_SEARCH_REQUEST:                                       // 0x63
-        return SearchRequestProtocolOp.decodeSearchRequest(element);
-      case OP_TYPE_SEARCH_RESULT_ENTRY:                                  // 0x64
-        return SearchResultEntryProtocolOp.decodeSearchEntry(element);
-      case OP_TYPE_SEARCH_RESULT_DONE:                                   // 0x65
-        return SearchResultDoneProtocolOp.decodeSearchDone(element);
-      case OP_TYPE_MODIFY_REQUEST:                                       // 0x66
-        return ModifyRequestProtocolOp.decodeModifyRequest(element);
-      case OP_TYPE_MODIFY_RESPONSE:                                      // 0x67
-        return ModifyResponseProtocolOp.decodeModifyResponse(element);
-      case OP_TYPE_ADD_REQUEST:                                          // 0x68
-        return AddRequestProtocolOp.decodeAddRequest(element);
-      case OP_TYPE_ADD_RESPONSE:                                         // 0x69
-        return AddResponseProtocolOp.decodeAddResponse(element);
-      case 0x6A:                                                         // 0x6A
-        message =
-            ERR_LDAP_PROTOCOL_OP_DECODE_INVALID_TYPE.get(element.getType());
-        throw new LDAPException(PROTOCOL_ERROR, message);
-      case OP_TYPE_DELETE_RESPONSE:                                      // 0x6B
-        return DeleteResponseProtocolOp.decodeDeleteResponse(element);
-      case OP_TYPE_MODIFY_DN_REQUEST:                                    // 0x6C
-        return ModifyDNRequestProtocolOp.decodeModifyDNRequest(element);
-      case OP_TYPE_MODIFY_DN_RESPONSE:                                   // 0x6D
-        return ModifyDNResponseProtocolOp.decodeModifyDNResponse(element);
-      case OP_TYPE_COMPARE_REQUEST:                                      // 0x6E
-        return CompareRequestProtocolOp.decodeCompareRequest(element);
-      case OP_TYPE_COMPARE_RESPONSE:                                     // 0x6F
-        return CompareResponseProtocolOp.decodeCompareResponse(element);
-      case 0x70:                                                         // 0x70
-      case 0x71:                                                         // 0x71
-      case 0x72:                                                         // 0x72
-        message =
-            ERR_LDAP_PROTOCOL_OP_DECODE_INVALID_TYPE.get(element.getType());
-        throw new LDAPException(PROTOCOL_ERROR, message);
-      case OP_TYPE_SEARCH_RESULT_REFERENCE:                              // 0x73
-        return SearchResultReferenceProtocolOp.decodeSearchReference(element);
-      case 0x74:                                                         // 0x74
-      case 0x75:                                                         // 0x75
-      case 0x76:                                                         // 0x76
-        message =
-            ERR_LDAP_PROTOCOL_OP_DECODE_INVALID_TYPE.get(element.getType());
-        throw new LDAPException(PROTOCOL_ERROR, message);
-      case OP_TYPE_EXTENDED_REQUEST:                                     // 0x77
-        return ExtendedRequestProtocolOp.decodeExtendedRequest(element);
-      case OP_TYPE_EXTENDED_RESPONSE:                                    // 0x78
-        return ExtendedResponseProtocolOp.decodeExtendedResponse(element);
-      case OP_TYPE_INTERMEDIATE_RESPONSE:                                // 0x79
-        return
-             IntermediateResponseProtocolOp.decodeIntermediateResponse(element);
-      default:
-        message =
-            ERR_LDAP_PROTOCOL_OP_DECODE_INVALID_TYPE.get(element.getType());
-        throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-  }
-
+  public abstract void write(ASN1Writer stream) throws IOException;
 
 
   /**

@@ -572,11 +572,11 @@ public class SMTPAccountStatusNotificationHandler
               if (debugEnabled())
               {
                 TRACER.debugInfo("Adding end user recipient " +
-                                 v.getStringValue() + " from attr " +
+                                 v.getValue().toString() + " from attr " +
                                  a.getNameWithOptions());
               }
 
-              recipients.add(v.getStringValue());
+              recipients.add(v.getValue().toString());
             }
           }
         }

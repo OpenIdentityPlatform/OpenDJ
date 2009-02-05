@@ -31,11 +31,7 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.*;
 import org.opends.server.protocols.asn1.*;
-import org.opends.server.types.DN;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.RDN;
+import org.opends.server.types.*;
 import org.opends.server.core.DirectoryServer;
 import static org.opends.server.util.ServerConstants.EOL;
 import org.opends.messages.Message;
@@ -82,7 +78,7 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
     AttributeType attribute =
         DirectoryServer.getDefaultAttributeType("testAttribute");
 
-    AttributeValue attributeValue = new AttributeValue(attribute, "testValue");
+    AttributeValue attributeValue = AttributeValues.create(attribute, "testValue");
 
     RDN[] rdns = new RDN[1];
     rdns[0] = RDN.create(attribute, attributeValue);
@@ -152,34 +148,6 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
   }
 
   /**
-   * Test to make sure that setter methods work.
-   *
-   * @throws Exception If the test failed unexpectedly.
-   */
-  @Test
-  public void testSetMethods() throws Exception
-  {
-    DeleteResponseProtocolOp deleteResponse;
-    deleteResponse = new DeleteResponseProtocolOp(resultCode);
-
-    deleteResponse.setResultCode(resultCode + 1);
-    assertEquals(deleteResponse.getResultCode(), resultCode + 1);
-
-    deleteResponse.setErrorMessage(resultMsg);
-    assertEquals(deleteResponse.getErrorMessage(), resultMsg);
-
-    deleteResponse.setMatchedDN(dn);
-    assertEquals(deleteResponse.getMatchedDN(), dn);
-
-    ArrayList<String> referralURLs = new ArrayList<String>();
-    referralURLs.add("ds1.example.com");
-    referralURLs.add("ds2.example.com");
-    referralURLs.add("ds3.example.com");
-    deleteResponse.setReferralURLs(referralURLs);
-    assertEquals(deleteResponse.getReferralURLs(), referralURLs);
-  }
-
-  /**
    * Test the decode method when an empty element is passed
    *
    * @throws Exception If the test failed unexpectedly.
@@ -187,9 +155,13 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeEmptyElement() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>();
-    DeleteResponseProtocolOp.decode(new ASN1Sequence(OP_TYPE_DELETE_RESPONSE,
-                                                  elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_DELETE_RESPONSE);
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -201,12 +173,16 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeInvalidResultCode() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1OctetString("Invalid Data"));
-    elements.add(new ASN1Null());
-    elements.add(new ASN1Null());
-    DeleteResponseProtocolOp.decode(new ASN1Sequence(OP_TYPE_DELETE_RESPONSE,
-                                                 elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_DELETE_RESPONSE);
+    writer.writeOctetString("Invalid Data");
+    writer.writeNull();
+    writer.writeNull();
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -219,12 +195,16 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
   @Test
   public void testDecodeInvalidDN() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1Enumerated(resultCode));
-    elements.add(new ASN1Null());
-    elements.add(new ASN1Null());
-    DeleteResponseProtocolOp.decode(new ASN1Sequence(OP_TYPE_DELETE_RESPONSE,
-                                                 elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_DELETE_RESPONSE);
+    writer.writeInteger(resultCode);
+    writer.writeNull();
+    writer.writeNull();
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -237,12 +217,16 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
   @Test
   public void testDecodeInvalidResultMsg() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1Enumerated(resultCode));
-    elements.add(new ASN1OctetString(dn.toString()));
-    elements.add(new ASN1Null());
-    DeleteResponseProtocolOp.decode(new ASN1Sequence(OP_TYPE_DELETE_RESPONSE,
-                                                 elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_DELETE_RESPONSE);
+    writer.writeInteger(resultCode);
+    writer.writeOctetString(dn.toString());
+    writer.writeNull();
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -255,13 +239,17 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
   @Test
   public void testDecodeInvalidReferralURLs() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1Enumerated(resultCode));
-    elements.add(new ASN1OctetString(dn.toString()));
-    elements.add(new ASN1OctetString(String.valueOf(resultMsg)));
-    elements.add(new ASN1Null());
-    DeleteResponseProtocolOp.decode(new ASN1Sequence(OP_TYPE_DELETE_RESPONSE,
-                                                 elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_DELETE_RESPONSE);
+    writer.writeInteger(resultCode);
+    writer.writeOctetString(dn.toString());
+    writer.writeOctetString(resultMsg.toString());
+    writer.writeNull();
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -272,9 +260,10 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
   @Test
   public void testEncodeDecode() throws Exception
   {
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
     DeleteResponseProtocolOp deleteEncoded;
     DeleteResponseProtocolOp deleteDecoded;
-    ASN1Element element;
 
     ArrayList<String> referralURLs = new ArrayList<String>();
     referralURLs.add("ds1.example.com");
@@ -285,9 +274,9 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
     //Test case for a full encode decode operation with normal params.
     deleteEncoded = new DeleteResponseProtocolOp(resultCode, resultMsg, dn,
                                            referralURLs);
-    element = deleteEncoded.encode();
-    deleteDecoded = (DeleteResponseProtocolOp)DeleteResponseProtocolOp.decode(
-        element);
+    deleteEncoded.write(writer);
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    deleteDecoded = (DeleteResponseProtocolOp)LDAPReader.readProtocolOp(reader);
 
     assertEquals(deleteEncoded.getType(), OP_TYPE_DELETE_RESPONSE);
     assertEquals(deleteEncoded.getMatchedDN().compareTo(
@@ -303,25 +292,28 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
     //Test case for a full encode decode operation with an empty DN params.
     deleteEncoded = new DeleteResponseProtocolOp(resultCode, resultMsg, DN.nullDN(),
                                            referralURLs);
-    element = deleteEncoded.encode();
-    deleteDecoded = (DeleteResponseProtocolOp)DeleteResponseProtocolOp.decode(
-        element);
+    builder.clear();
+    deleteEncoded.write(writer);
+    reader = ASN1.getReader(builder.toByteString());
+    deleteDecoded = (DeleteResponseProtocolOp)LDAPReader.readProtocolOp(reader);
     assertEquals(deleteDecoded.getMatchedDN(), null);
 
     //Test case for a full empty referral url param.
     ArrayList<String> emptyReferralURLs = new ArrayList<String>();
     deleteEncoded = new DeleteResponseProtocolOp(resultCode, resultMsg, dn,
                                            emptyReferralURLs);
-    element = deleteEncoded.encode();
-    deleteDecoded = (DeleteResponseProtocolOp)DeleteResponseProtocolOp.decode(
-        element);
+    builder.clear();
+    deleteEncoded.write(writer);
+    reader = ASN1.getReader(builder.toByteString());
+    deleteDecoded = (DeleteResponseProtocolOp)LDAPReader.readProtocolOp(reader);
     assertTrue(deleteDecoded.getReferralURLs() == null);
 
     //Test case for a full encode decode operation with resultCode param only.
     deleteEncoded = new DeleteResponseProtocolOp(resultCode);
-    element = deleteEncoded.encode();
-    deleteDecoded = (DeleteResponseProtocolOp)DeleteResponseProtocolOp.decode(
-        element);
+    builder.clear();
+    deleteEncoded.write(writer);
+    reader = ASN1.getReader(builder.toByteString());
+    deleteDecoded = (DeleteResponseProtocolOp)LDAPReader.readProtocolOp(reader);
 
     assertEquals(deleteDecoded.getMatchedDN(), null);
     assertEquals(deleteDecoded.getErrorMessage(), null);

@@ -38,11 +38,11 @@ import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.controls.PagedResultsControl;
 import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.controls.ServerSideSortResponseControl;
+import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
@@ -59,7 +59,6 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.util.ServerConstants.*;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
 import org.opends.server.admin.std.server.LocalDBVLVIndexCfg;
@@ -74,7 +73,7 @@ import org.opends.server.config.ConfigException;
  * the guts of the backend API methods for LDAP operations.
  */
 public class EntryContainer
-    implements ConfigurationChangeListener<LocalDBBackendCfg>
+implements ConfigurationChangeListener<LocalDBBackendCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -130,17 +129,17 @@ public class EntryContainer
   /**
    * The backend to which this entry entryContainer belongs.
    */
-  private Backend backend;
+  private final Backend backend;
 
   /**
    * The root container in which this entryContainer belongs.
    */
-  private RootContainer rootContainer;
+  private final RootContainer rootContainer;
 
   /**
    * The baseDN this entry container is responsible for.
    */
-  private DN baseDN;
+  private final DN baseDN;
 
   /**
    * The backend configuration.
@@ -150,7 +149,7 @@ public class EntryContainer
   /**
    * The JE database environment.
    */
-  private Environment env;
+  private final Environment env;
 
   /**
    * The DN database maps a normalized DN string to an entry ID (8 bytes).
@@ -185,12 +184,12 @@ public class EntryContainer
   /**
    * The set of attribute indexes.
    */
-  private HashMap<AttributeType, AttributeIndex> attrIndexMap;
+  private final HashMap<AttributeType, AttributeIndex> attrIndexMap;
 
   /**
    * The set of VLV indexes.
    */
-  private HashMap<String, VLVIndex> vlvIndexMap;
+  private final HashMap<String, VLVIndex> vlvIndexMap;
 
   private String databasePrefix;
   /**
@@ -198,15 +197,15 @@ public class EntryContainer
    * indexes used within this entry container.
    */
   public class AttributeJEIndexCfgManager implements
-      ConfigurationAddListener<LocalDBIndexCfg>,
-      ConfigurationDeleteListener<LocalDBIndexCfg>
+  ConfigurationAddListener<LocalDBIndexCfg>,
+  ConfigurationDeleteListener<LocalDBIndexCfg>
   {
     /**
      * {@inheritDoc}
      */
     public boolean isConfigurationAddAcceptable(
-            LocalDBIndexCfg cfg,
-            List<Message> unacceptableReasons)
+        LocalDBIndexCfg cfg,
+        List<Message> unacceptableReasons)
     {
       // TODO: validate more before returning true?
       return true;
@@ -224,7 +223,7 @@ public class EntryContainer
       try
       {
         AttributeIndex index =
-            new AttributeIndex(cfg, state, env, EntryContainer.this);
+          new AttributeIndex(cfg, state, env, EntryContainer.this);
         index.open();
         if(!index.isTrusted())
         {
@@ -238,13 +237,13 @@ public class EntryContainer
       {
         messages.add(Message.raw(StaticUtils.stackTraceToSingleLineString(e)));
         ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-                                     adminActionRequired,
-                                     messages);
+            adminActionRequired,
+            messages);
         return ccr;
       }
 
       return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
-                                    messages);
+          messages);
     }
 
     /**
@@ -277,8 +276,8 @@ public class EntryContainer
       {
         messages.add(Message.raw(StaticUtils.stackTraceToSingleLineString(de)));
         ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-                                     adminActionRequired,
-                                     messages);
+            adminActionRequired,
+            messages);
         return ccr;
       }
       finally
@@ -287,7 +286,7 @@ public class EntryContainer
       }
 
       return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
-                                    messages);
+          messages);
     }
   }
 
@@ -296,8 +295,8 @@ public class EntryContainer
    * used within this entry container.
    */
   public class VLVJEIndexCfgManager implements
-      ConfigurationAddListener<LocalDBVLVIndexCfg>,
-      ConfigurationDeleteListener<LocalDBVLVIndexCfg>
+  ConfigurationAddListener<LocalDBVLVIndexCfg>,
+  ConfigurationDeleteListener<LocalDBVLVIndexCfg>
   {
     /**
      * {@inheritDoc}
@@ -321,7 +320,7 @@ public class EntryContainer
       String[] sortAttrs = cfg.getSortOrder().split(" ");
       SortKey[] sortKeys = new SortKey[sortAttrs.length];
       OrderingMatchingRule[] orderingRules =
-          new OrderingMatchingRule[sortAttrs.length];
+        new OrderingMatchingRule[sortAttrs.length];
       boolean[] ascending = new boolean[sortAttrs.length];
       for(int i = 0; i < sortAttrs.length; i++)
       {
@@ -344,14 +343,14 @@ public class EntryContainer
         catch(Exception e)
         {
           Message msg =
-              ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
-                  String.valueOf(sortKeys[i]), cfg.getName());
+            ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
+                String.valueOf(sortKeys[i]), cfg.getName());
           unacceptableReasons.add(msg);
           return false;
         }
 
         AttributeType attrType =
-            DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
+          DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
         if(attrType == null)
         {
           Message msg = ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
@@ -391,21 +390,21 @@ public class EntryContainer
       {
         messages.add(Message.raw(StaticUtils.stackTraceToSingleLineString(e)));
         ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-                                     adminActionRequired,
-                                     messages);
+            adminActionRequired,
+            messages);
         return ccr;
       }
 
       return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
-                                    messages);
+          messages);
     }
 
     /**
      * {@inheritDoc}
      */
     public boolean isConfigurationDeleteAcceptable(
-            LocalDBVLVIndexCfg cfg,
-            List<Message> unacceptableReasons)
+        LocalDBVLVIndexCfg cfg,
+        List<Message> unacceptableReasons)
     {
       // TODO: validate more before returning true?
       return true;
@@ -424,7 +423,7 @@ public class EntryContainer
       try
       {
         VLVIndex vlvIndex =
-            vlvIndexMap.get(cfg.getName().toLowerCase());
+          vlvIndexMap.get(cfg.getName().toLowerCase());
         vlvIndex.close();
         deleteDatabase(vlvIndex);
         vlvIndexMap.remove(cfg.getName());
@@ -433,8 +432,8 @@ public class EntryContainer
       {
         messages.add(Message.raw(StaticUtils.stackTraceToSingleLineString(de)));
         ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-                                     adminActionRequired,
-                                     messages);
+            adminActionRequired,
+            messages);
         return ccr;
       }
       finally
@@ -443,7 +442,7 @@ public class EntryContainer
       }
 
       return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
-                                    messages);
+          messages);
     }
 
   }
@@ -471,9 +470,9 @@ public class EntryContainer
    * @throws ConfigException if a configuration related error occurs.
    */
   public EntryContainer(DN baseDN, String databasePrefix, Backend backend,
-                        LocalDBBackendCfg config, Environment env,
-                        RootContainer rootContainer)
-      throws ConfigException
+      LocalDBBackendCfg config, Environment env,
+      RootContainer rootContainer)
+  throws ConfigException
   {
     this.backend = backend;
     this.baseDN = baseDN;
@@ -505,12 +504,12 @@ public class EntryContainer
     config.addLocalDBChangeListener(this);
 
     attributeJEIndexCfgManager =
-        new AttributeJEIndexCfgManager();
+      new AttributeJEIndexCfgManager();
     config.addLocalDBIndexAddListener(attributeJEIndexCfgManager);
     config.addLocalDBIndexDeleteListener(attributeJEIndexCfgManager);
 
     vlvJEIndexCfgManager =
-        new VLVJEIndexCfgManager();
+      new VLVJEIndexCfgManager();
     config.addLocalDBVLVIndexAddListener(vlvJEIndexCfgManager);
     config.addLocalDBVLVIndexDeleteListener(vlvJEIndexCfgManager);
   }
@@ -522,17 +521,17 @@ public class EntryContainer
    * @throws ConfigException if a configuration related error occurs.
    */
   public void open()
-      throws DatabaseException, ConfigException
+  throws DatabaseException, ConfigException
   {
     try
     {
       DataConfig entryDataConfig =
-          new DataConfig(config.isEntriesCompressed(),
-                         config.isCompactEncoding(),
-                         rootContainer.getCompressedSchema());
+        new DataConfig(config.isEntriesCompressed(),
+            config.isCompactEncoding(),
+            rootContainer.getCompressedSchema());
 
       id2entry = new ID2Entry(databasePrefix + "_" + ID2ENTRY_DATABASE_NAME,
-                              entryDataConfig, env, this);
+          entryDataConfig, env, this);
       id2entry.open();
 
       dn2id = new DN2ID(databasePrefix + "_" + DN2ID_DATABASE_NAME, env, this);
@@ -542,9 +541,9 @@ public class EntryContainer
       state.open();
 
       id2children = new Index(databasePrefix + "_" + ID2CHILDREN_DATABASE_NAME,
-                              new ID2CIndexer(), state,
-                              config.getIndexEntryLimit(), 0, true,
-                              env,this);
+          new ID2CIndexer(), state,
+          config.getIndexEntryLimit(), 0, true,
+          env,this);
       id2children.open();
 
       if(!id2children.isTrusted())
@@ -554,9 +553,9 @@ public class EntryContainer
       }
 
       id2subtree = new Index(databasePrefix + "_" + ID2SUBTREE_DATABASE_NAME,
-                             new ID2SIndexer(), state,
-                             config.getIndexEntryLimit(), 0, true,
-                             env, this);
+          new ID2SIndexer(), state,
+          config.getIndexEntryLimit(), 0, true,
+          env, this);
       id2subtree.open();
 
       if(!id2subtree.isTrusted())
@@ -566,7 +565,7 @@ public class EntryContainer
       }
 
       dn2uri = new DN2URI(databasePrefix + "_" + REFERRAL_DATABASE_NAME,
-                          env, this);
+          env, this);
       dn2uri.open();
 
       for (String idx : config.listLocalDBIndexes())
@@ -574,7 +573,7 @@ public class EntryContainer
         LocalDBIndexCfg indexCfg = config.getLocalDBIndex(idx);
 
         AttributeIndex index =
-            new AttributeIndex(indexCfg, state, env, this);
+          new AttributeIndex(indexCfg, state, env, this);
         index.open();
         if(!index.isTrusted())
         {
@@ -617,7 +616,7 @@ public class EntryContainer
    * @throws DatabaseException If an error occurs in the JE database.
    */
   public void close()
-      throws DatabaseException
+  throws DatabaseException
   {
     // Close core indexes.
     dn2id.close();
@@ -819,13 +818,13 @@ public class EntryContainer
    * @throws DatabaseException If an error occurs in the JE database.
    */
   public long getNumSubordinates(DN entryDN, boolean subtree)
-      throws DatabaseException
+  throws DatabaseException
   {
     EntryID entryID = dn2id.get(null, entryDN, LockMode.DEFAULT);
     if (entryID != null)
     {
       DatabaseEntry key =
-          new DatabaseEntry(JebFormat.entryIDToDatabase(entryID.longValue()));
+        new DatabaseEntry(JebFormat.entryIDToDatabase(entryID.longValue()));
       EntryIDSet entryIDSet;
       if(!subtree)
       {
@@ -857,97 +856,22 @@ public class EntryContainer
    * @throws CanceledOperationException if this operation should be cancelled.
    */
   public void search(SearchOperation searchOperation)
-       throws DirectoryException, DatabaseException, CanceledOperationException
+  throws DirectoryException, DatabaseException, CanceledOperationException
   {
     DN baseDN = searchOperation.getBaseDN();
     SearchScope searchScope = searchOperation.getScope();
 
-    List<Control> controls = searchOperation.getRequestControls();
-    PagedResultsControl pageRequest = null;
-    ServerSideSortRequestControl sortRequest = null;
-    VLVRequestControl vlvRequest = null;
-    if (controls != null)
+    PagedResultsControl pageRequest = searchOperation
+    .getRequestControl(PagedResultsControl.DECODER);
+    ServerSideSortRequestControl sortRequest = searchOperation
+    .getRequestControl(ServerSideSortRequestControl.DECODER);
+    VLVRequestControl vlvRequest = searchOperation
+    .getRequestControl(VLVRequestControl.DECODER);
+
+    if (vlvRequest != null && pageRequest != null)
     {
-      for (Control control : controls)
-      {
-        if (control.getOID().equals(OID_PAGED_RESULTS_CONTROL))
-        {
-          // Ignore all but the first paged results control.
-          if (pageRequest == null)
-          {
-            try
-            {
-              pageRequest = new PagedResultsControl(control.isCritical(),
-                                                    control.getValue());
-            }
-            catch (LDAPException e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-              throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                           e.getMessageObject(), e);
-            }
-
-            if (vlvRequest != null)
-            {
-              Message message =
-                  ERR_JEB_SEARCH_CANNOT_MIX_PAGEDRESULTS_AND_VLV.get();
-              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                           message);
-            }
-          }
-        }
-        else if (control.getOID().equals(OID_SERVER_SIDE_SORT_REQUEST_CONTROL))
-        {
-          // Ignore all but the first sort request control.
-          if (sortRequest == null)
-          {
-            try
-            {
-              sortRequest = ServerSideSortRequestControl.decodeControl(control);
-            }
-            catch (LDAPException e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-              throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                           e.getMessageObject(), e);
-            }
-          }
-        }
-        else if (control.getOID().equals(OID_VLV_REQUEST_CONTROL))
-        {
-          // Ignore all but the first VLV request control.
-          if (vlvRequest == null)
-          {
-            try
-            {
-              vlvRequest = VLVRequestControl.decodeControl(control);
-            }
-            catch (LDAPException e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-              throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                           e.getMessageObject(), e);
-            }
-
-            if (pageRequest != null)
-            {
-              Message message =
-                  ERR_JEB_SEARCH_CANNOT_MIX_PAGEDRESULTS_AND_VLV.get();
-              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                           message);
-            }
-          }
-        }
-      }
+      Message message = ERR_JEB_SEARCH_CANNOT_MIX_PAGEDRESULTS_AND_VLV.get();
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     // Handle client abandon of paged results.
@@ -956,8 +880,7 @@ public class EntryContainer
       if (pageRequest.getSize() == 0)
       {
         PagedResultsControl control;
-        control = new PagedResultsControl(pageRequest.isCritical(), 0,
-                                          new ASN1OctetString());
+        control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
         searchOperation.getResponseControls().add(control);
         return;
       }
@@ -1006,8 +929,7 @@ public class EntryContainer
       {
         // Indicate no more pages.
         PagedResultsControl control;
-        control = new PagedResultsControl(pageRequest.isCritical(), 0,
-                                          new ASN1OctetString());
+        control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
         searchOperation.getResponseControls().add(control);
       }
 
@@ -1031,13 +953,13 @@ public class EntryContainer
         try
         {
           entryIDList =
-              vlvIndex.evaluate(null, searchOperation, sortRequest, vlvRequest,
-                                debugBuffer);
+            vlvIndex.evaluate(null, searchOperation, sortRequest, vlvRequest,
+                debugBuffer);
           if(entryIDList != null)
           {
             searchOperation.addResponseControl(
                 new ServerSideSortResponseControl(LDAPResultCode.SUCCESS,
-                                                  null));
+                    null));
             candidatesAreInScope = true;
             break;
           }
@@ -1060,7 +982,7 @@ public class EntryContainer
     {
       // Create an index filter to get the search result candidate entries.
       IndexFilter indexFilter =
-          new IndexFilter(this, searchOperation, debugBuffer);
+        new IndexFilter(this, searchOperation, debugBuffer);
 
       // Evaluate the filter against the attribute indexes.
       entryIDList = indexFilter.evaluate();
@@ -1074,7 +996,7 @@ public class EntryContainer
         if (baseID == null)
         {
           Message message =
-                  ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(baseDN.toString());
+            ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(baseDN.toString());
           DN matchedDN = getMatchedDN(baseDN);
           throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
               message, matchedDN, null);
@@ -1114,9 +1036,9 @@ public class EntryContainer
         try
         {
           entryIDList = EntryIDSetSorter.sort(this, entryIDList,
-                                              searchOperation,
-                                              sortRequest.getSortOrder(),
-                                              vlvRequest);
+              searchOperation,
+              sortRequest.getSortOrder(),
+              vlvRequest);
           searchOperation.addResponseControl(
               new ServerSideSortResponseControl(LDAPResultCode.SUCCESS, null));
         }
@@ -1155,7 +1077,7 @@ public class EntryContainer
     if (entryIDList.isDefined())
     {
       searchIndexed(entryIDList, candidatesAreInScope, searchOperation,
-                    pageRequest);
+          pageRequest);
     }
     else
     {
@@ -1170,14 +1092,14 @@ public class EntryContainer
       }
 
       ClientConnection clientConnection =
-          searchOperation.getClientConnection();
+        searchOperation.getClientConnection();
       if(! clientConnection.hasPrivilege(Privilege.UNINDEXED_SEARCH,
-                                         searchOperation))
+          searchOperation))
       {
         Message message =
-            ERR_JEB_SEARCH_UNINDEXED_INSUFFICIENT_PRIVILEGES.get();
+          ERR_JEB_SEARCH_UNINDEXED_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                                     message);
+            message);
       }
 
       if (sortRequest != null)
@@ -1185,14 +1107,14 @@ public class EntryContainer
         // FIXME -- Add support for sorting unindexed searches using indexes
         //          like DSEE currently does.
         searchOperation.addResponseControl(
-             new ServerSideSortResponseControl(
-                      LDAPResultCode.UNWILLING_TO_PERFORM, null));
+            new ServerSideSortResponseControl(
+                LDAPResultCode.UNWILLING_TO_PERFORM, null));
 
         if (sortRequest.isCritical())
         {
           Message message = ERR_JEB_SEARCH_CANNOT_SORT_UNINDEXED.get();
           throw new DirectoryException(
-                         ResultCode.UNAVAILABLE_CRITICAL_EXTENSION, message);
+              ResultCode.UNAVAILABLE_CRITICAL_EXTENSION, message);
         }
       }
 
@@ -1219,8 +1141,8 @@ public class EntryContainer
    * processed.
    */
   private void searchNotIndexed(SearchOperation searchOperation,
-                                PagedResultsControl pageRequest)
-       throws DirectoryException, CanceledOperationException
+      PagedResultsControl pageRequest)
+  throws DirectoryException, CanceledOperationException
   {
     EntryCache<?> entryCache = DirectoryServer.getEntryCache();
     DN baseDN = searchOperation.getBaseDN();
@@ -1230,7 +1152,7 @@ public class EntryContainer
     // The base entry must already have been processed if this is
     // a request for the next page in paged results.  So we skip
     // the base entry processing if the cookie is set.
-    if (pageRequest == null || pageRequest.getCookie().value().length == 0)
+    if (pageRequest == null || pageRequest.getCookie().length() == 0)
     {
       // Fetch the base entry.
       Entry baseEntry = null;
@@ -1284,7 +1206,7 @@ public class EntryContainer
             // Indicate no more pages.
             PagedResultsControl control;
             control = new PagedResultsControl(pageRequest.isCritical(), 0,
-                                              new ASN1OctetString());
+                null);
             searchOperation.getResponseControls().add(control);
           }
         }
@@ -1312,7 +1234,7 @@ public class EntryContainer
 
     // Set the starting value.
     byte[] begin;
-    if (pageRequest != null && pageRequest.getCookie().value().length != 0)
+    if (pageRequest != null && pageRequest.getCookie().length() != 0)
     {
       // The cookie contains the DN of the next entry to be returned.
       try
@@ -1326,10 +1248,10 @@ public class EntryContainer
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-        String str = StaticUtils.bytesToHex(pageRequest.getCookie().value());
+        String str = pageRequest.getCookie().toHex();
         Message msg = ERR_JEB_INVALID_PAGED_RESULTS_COOKIE.get(str);
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                     msg, e);
+            msg, e);
       }
     }
     else
@@ -1344,7 +1266,7 @@ public class EntryContainer
 
     int lookthroughCount = 0;
     int lookthroughLimit =
-        searchOperation.getClientConnection().getLookthroughLimit();
+      searchOperation.getClientConnection().getLookthroughLimit();
 
     try
     {
@@ -1364,7 +1286,7 @@ public class EntryContainer
             //Lookthrough limit exceeded
             searchOperation.setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
             searchOperation.appendErrorMessage(
-              NOTE_JEB_LOOKTHROUGH_LIMIT_EXCEEDED.get(lookthroughLimit));
+                NOTE_JEB_LOOKTHROUGH_LIMIT_EXCEEDED.get(lookthroughLimit));
             return;
           }
           int cmp = dn2id.getComparator().compare(key.getData(), end);
@@ -1377,14 +1299,14 @@ public class EntryContainer
           // We have found a subordinate entry.
 
           EntryID entryID = new EntryID(data);
-          DN dn = DN.decode(new ASN1OctetString(key.getData()));
+          DN dn = DN.decode(ByteString.wrap(key.getData()));
 
           boolean isInScope = true;
           if (searchScope == SearchScope.SINGLE_LEVEL)
           {
             // Check if this entry is an immediate child.
             if ((dn.getNumComponents() !=
-                 baseDN.getNumComponents() + 1))
+              baseDN.getNumComponents() + 1))
             {
               isInScope = false;
             }
@@ -1398,7 +1320,7 @@ public class EntryContainer
             // Try the entry cache first. Note no need to take a lock.
             lockList.clear();
             cacheEntry = entryCache.getEntry(backend, entryID.longValue(),
-                                             LockType.NONE, lockList);
+                LockType.NONE, lockList);
 
             if (cacheEntry == null)
             {
@@ -1420,15 +1342,15 @@ public class EntryContainer
                 if (searchOperation.getFilter().matchesEntry(entry))
                 {
                   if (pageRequest != null &&
-                       searchOperation.getEntriesSent() ==
-                       pageRequest.getSize())
+                      searchOperation.getEntriesSent() ==
+                        pageRequest.getSize())
                   {
                     // The current page is full.
                     // Set the cookie to remember where we were.
-                    ASN1OctetString cookie = new ASN1OctetString(key.getData());
+                    ByteString cookie = ByteString.wrap(key.getData());
                     PagedResultsControl control;
                     control = new PagedResultsControl(pageRequest.isCritical(),
-                                                      0, cookie);
+                        0, cookie);
                     searchOperation.getResponseControls().add(control);
                     return;
                   }
@@ -1468,8 +1390,7 @@ public class EntryContainer
     {
       // Indicate no more pages.
       PagedResultsControl control;
-      control = new PagedResultsControl(pageRequest.isCritical(), 0,
-                                        new ASN1OctetString());
+      control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
       searchOperation.getResponseControls().add(control);
     }
 
@@ -1498,10 +1419,10 @@ public class EntryContainer
    * processed.
    */
   private void searchIndexed(EntryIDSet entryIDList,
-                             boolean candidatesAreInScope,
-                             SearchOperation searchOperation,
-                             PagedResultsControl pageRequest)
-       throws DirectoryException, CanceledOperationException
+      boolean candidatesAreInScope,
+      SearchOperation searchOperation,
+      PagedResultsControl pageRequest)
+  throws DirectoryException, CanceledOperationException
   {
     EntryCache<?> entryCache = DirectoryServer.getEntryCache();
     SearchScope searchScope = searchOperation.getScope();
@@ -1511,12 +1432,12 @@ public class EntryContainer
 
     // Set the starting value.
     EntryID begin = null;
-    if (pageRequest != null && pageRequest.getCookie().value().length != 0)
+    if (pageRequest != null && pageRequest.getCookie().length() != 0)
     {
       // The cookie contains the ID of the next entry to be returned.
       try
       {
-        begin = new EntryID(new DatabaseEntry(pageRequest.getCookie().value()));
+        begin = new EntryID(pageRequest.getCookie().toLong());
       }
       catch (Exception e)
       {
@@ -1524,10 +1445,10 @@ public class EntryContainer
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-        String str = StaticUtils.bytesToHex(pageRequest.getCookie().value());
+        String str = pageRequest.getCookie().toHex();
         Message msg = ERR_JEB_INVALID_PAGED_RESULTS_COOKIE.get(str);
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                     msg, e);
+            msg, e);
       }
     }
     else
@@ -1541,7 +1462,7 @@ public class EntryContainer
 
     // Make sure the candidate list is smaller than the lookthrough limit
     int lookthroughLimit =
-        searchOperation.getClientConnection().getLookthroughLimit();
+      searchOperation.getClientConnection().getLookthroughLimit();
     if(lookthroughLimit > 0 && entryIDList.size() > lookthroughLimit)
     {
       //Lookthrough limit exceeded
@@ -1565,7 +1486,7 @@ public class EntryContainer
         // Try the entry cache first. Note no need to take a lock.
         lockList.clear();
         cacheEntry = entryCache.getEntry(backend, id.longValue(),
-                                         LockType.NONE, lockList);
+            LockType.NONE, lockList);
 
         // Release any entry lock whatever happens during this block.
         // (This is actually redundant since we did not take a lock).
@@ -1606,8 +1527,8 @@ public class EntryContainer
             {
               // Check if this entry is an immediate child.
               if ((entryDN.getNumComponents() ==
-                   baseDN.getNumComponents() + 1) &&
-                   entryDN.isDescendantOf(baseDN))
+                baseDN.getNumComponents() + 1) &&
+                entryDN.isDescendantOf(baseDN))
               {
                 isInScope = true;
               }
@@ -1622,8 +1543,8 @@ public class EntryContainer
             else if (searchScope == SearchScope.SUBORDINATE_SUBTREE)
             {
               if ((entryDN.getNumComponents() >
-                   baseDN.getNumComponents()) &&
-                   entryDN.isDescendantOf(baseDN))
+              baseDN.getNumComponents()) &&
+              entryDN.isDescendantOf(baseDN))
               {
                 isInScope = true;
               }
@@ -1646,16 +1567,16 @@ public class EntryContainer
                 if (searchOperation.getFilter().matchesEntry(entry))
                 {
                   if (pageRequest != null &&
-                       searchOperation.getEntriesSent() ==
-                       pageRequest.getSize())
+                      searchOperation.getEntriesSent() ==
+                        pageRequest.getSize())
                   {
                     // The current page is full.
                     // Set the cookie to remember where we were.
                     byte[] cookieBytes = id.getDatabaseEntry().getData();
-                    ASN1OctetString cookie = new ASN1OctetString(cookieBytes);
+                    ByteString cookie = ByteString.wrap(cookieBytes);
                     PagedResultsControl control;
                     control = new PagedResultsControl(pageRequest.isCritical(),
-                                                      0, cookie);
+                        0, cookie);
                     searchOperation.getResponseControls().add(control);
                     return;
                   }
@@ -1689,7 +1610,7 @@ public class EntryContainer
     // exists. However, if we have returned at least one entry or subordinate
     // reference it implies the base does exist, so we can omit the check.
     if (searchOperation.getEntriesSent() == 0 &&
-         searchOperation.getReferencesSent() == 0)
+        searchOperation.getReferencesSent() == 0)
     {
       // Fetch the base entry if it exists.
       Entry baseEntry = null;
@@ -1727,8 +1648,7 @@ public class EntryContainer
     {
       // Indicate no more pages.
       PagedResultsControl control;
-      control = new PagedResultsControl(pageRequest.isCritical(), 0,
-                                        new ASN1OctetString());
+      control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
       searchOperation.getResponseControls().add(control);
     }
 
@@ -1750,7 +1670,7 @@ public class EntryContainer
    * @throws CanceledOperationException if this operation should be cancelled.
    */
   public void addEntry(Entry entry, AddOperation addOperation)
-      throws DatabaseException, DirectoryException, CanceledOperationException
+  throws DatabaseException, DirectoryException, CanceledOperationException
   {
     Transaction txn = beginTransaction();
     DN parentDN = getParentWithinBase(entry.getDN());
@@ -1761,7 +1681,7 @@ public class EntryContainer
       if (dn2id.get(txn, entry.getDN(), LockMode.DEFAULT) != null)
       {
         Message message =
-            ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getDN().toString());
+          ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getDN().toString());
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
             message);
       }
@@ -1792,7 +1712,7 @@ public class EntryContainer
       {
         // Do not ever expect to come through here.
         Message message =
-            ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getDN().toString());
+          ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getDN().toString());
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
             message);
       }
@@ -1802,7 +1722,7 @@ public class EntryContainer
       {
         // Do not ever expect to come through here.
         Message message =
-            ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getDN().toString());
+          ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getDN().toString());
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
             message);
       }
@@ -1812,7 +1732,7 @@ public class EntryContainer
       {
         // Do not ever expect to come through here.
         Message message =
-            ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getDN().toString());
+          ERR_JEB_ADD_ENTRY_ALREADY_EXISTS.get(entry.getDN().toString());
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
             message);
       }
@@ -1834,14 +1754,14 @@ public class EntryContainer
 
         // Iterate up through the superior entries, starting above the parent.
         for (DN dn = getParentWithinBase(parentDN); dn != null;
-             dn = getParentWithinBase(dn))
+        dn = getParentWithinBase(dn))
         {
           // Read the ID from dn2id.
           EntryID nodeID = dn2id.get(txn, dn, LockMode.DEFAULT);
           if (nodeID == null)
           {
             Message msg =
-                ERR_JEB_MISSING_DN2ID_RECORD.get(dn.toNormalizedString());
+              ERR_JEB_MISSING_DN2ID_RECORD.get(dn.toNormalizedString());
             throw new JebException(msg);
           }
 
@@ -1913,7 +1833,7 @@ public class EntryContainer
    * @throws CanceledOperationException if this operation should be cancelled.
    */
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
-      throws DirectoryException, DatabaseException, CanceledOperationException
+  throws DirectoryException, DatabaseException, CanceledOperationException
   {
     Transaction txn = beginTransaction();
     IndexBuffer indexBuffer = null;
@@ -1926,37 +1846,29 @@ public class EntryContainer
       // Determine whether this is a subtree delete.
       boolean isSubtreeDelete = false;
 
-      if(deleteOperation != null)
+      if (deleteOperation != null
+          && deleteOperation
+              .getRequestControl(SubtreeDeleteControl.DECODER) != null)
       {
-        List<Control> controls = deleteOperation.getRequestControls();
-        if (controls != null)
-        {
-          for (Control control : controls)
-          {
-            if (control.getOID().equals(OID_SUBTREE_DELETE_CONTROL))
-            {
-              isSubtreeDelete = true;
-            }
-          }
-        }
+        isSubtreeDelete = true;
       }
 
       /*
-      * We will iterate backwards through a range of the dn2id keys to
-      * find subordinates of the target entry from the bottom of the tree
-      * upwards. For example, any subordinates of "dc=example,dc=com" appear
-      * in dn2id with a key ending in ",dc=example,dc=com". The entry
-      * "cn=joe,ou=people,dc=example,dc=com" will appear after the entry
-      * "ou=people,dc=example,dc=com".
-      */
+       * We will iterate backwards through a range of the dn2id keys to
+       * find subordinates of the target entry from the bottom of the tree
+       * upwards. For example, any subordinates of "dc=example,dc=com" appear
+       * in dn2id with a key ending in ",dc=example,dc=com". The entry
+       * "cn=joe,ou=people,dc=example,dc=com" will appear after the entry
+       * "ou=people,dc=example,dc=com".
+       */
       byte[] suffix = StaticUtils.getBytes("," + entryDN.toNormalizedString());
 
       /*
-      * Set the starting value to a value of equal length but slightly
-      * greater than the target DN. Since keys are compared in
-      * reverse order we must set the first byte (the comma).
-      * No possibility of overflow here.
-      */
+       * Set the starting value to a value of equal length but slightly
+       * greater than the target DN. Since keys are compared in
+       * reverse order we must set the first byte (the comma).
+       * No possibility of overflow here.
+       */
       byte[] begin = suffix.clone();
       begin[0] = (byte) (begin[0] + 1);
       int subordinateEntriesDeleted = 0;
@@ -2003,7 +1915,7 @@ public class EntryContainer
             // the target entry is not a leaf.
 
             Message message =
-                ERR_JEB_DELETE_NOT_ALLOWED_ON_NONLEAF.get(entryDN.toString());
+              ERR_JEB_DELETE_NOT_ALLOWED_ON_NONLEAF.get(entryDN.toString());
             throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF,
                 message);
           }
@@ -2016,11 +1928,11 @@ public class EntryContainer
           }
 
           /*
-          * Delete this entry which by now must be a leaf because
-          * we have been deleting from the bottom of the tree upwards.
-          */
+           * Delete this entry which by now must be a leaf because
+           * we have been deleting from the bottom of the tree upwards.
+           */
           EntryID entryID = new EntryID(data);
-          DN subordinateDN = DN.decode(new ASN1OctetString(key.getData()));
+          DN subordinateDN = DN.decode(ByteString.wrap(key.getData()));
           deleteEntry(txn, indexBuffer, true, entryDN, subordinateDN, entryID);
           subordinateEntriesDeleted++;
 
@@ -2098,12 +2010,12 @@ public class EntryContainer
   }
 
   private void deleteEntry(Transaction txn,
-                           IndexBuffer indexBuffer,
-                           boolean manageDsaIT,
-                           DN targetDN,
-                           DN leafDN,
-                           EntryID leafID)
-      throws DatabaseException, DirectoryException, JebException
+      IndexBuffer indexBuffer,
+      boolean manageDsaIT,
+      DN targetDN,
+      DN leafDN,
+      EntryID leafID)
+  throws DatabaseException, DirectoryException, JebException
   {
     if(leafID == null || leafDN == null)
     {
@@ -2113,7 +2025,7 @@ public class EntryContainer
       if (leafID == null)
       {
         Message message =
-            ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDN.toString());
+          ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDN.toString());
         DN matchedDN = getMatchedDN(baseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
             message, matchedDN, null);
@@ -2169,7 +2081,7 @@ public class EntryContainer
     if(indexBuffer != null)
     {
       byte[] leafIDKeyBytes =
-          JebFormat.entryIDToDatabase(leafID.longValue());
+        JebFormat.entryIDToDatabase(leafID.longValue());
       id2children.delete(indexBuffer, leafIDKeyBytes);
       id2subtree.delete(indexBuffer, leafIDKeyBytes);
     }
@@ -2183,21 +2095,21 @@ public class EntryContainer
     // Iterate up through the superior entries from the target entry.
     boolean isParent = true;
     for (DN parentDN = getParentWithinBase(targetDN); parentDN != null;
-         parentDN = getParentWithinBase(parentDN))
+    parentDN = getParentWithinBase(parentDN))
     {
       // Read the ID from dn2id.
       EntryID parentID = dn2id.get(txn, parentDN, LockMode.DEFAULT);
       if (parentID == null)
       {
         Message msg =
-            ERR_JEB_MISSING_DN2ID_RECORD.get(parentDN.toNormalizedString());
+          ERR_JEB_MISSING_DN2ID_RECORD.get(parentDN.toNormalizedString());
         throw new JebException(msg);
       }
 
       if(indexBuffer != null)
       {
         byte[] parentIDBytes =
-            JebFormat.entryIDToDatabase(parentID.longValue());
+          JebFormat.entryIDToDatabase(parentID.longValue());
         // Remove from id2children.
         if (isParent)
         {
@@ -2239,7 +2151,7 @@ public class EntryContainer
    *                              determination.
    */
   public boolean entryExists(DN entryDN)
-      throws DirectoryException
+  throws DirectoryException
   {
     EntryCache<?> entryCache = DirectoryServer.getEntryCache();
 
@@ -2283,7 +2195,7 @@ public class EntryContainer
    * @throws DatabaseException An error occurred during a database operation.
    */
   public Entry getEntry(DN entryDN)
-      throws DatabaseException, DirectoryException
+  throws DatabaseException, DirectoryException
   {
     EntryCache<?> entryCache = DirectoryServer.getEntryCache();
     Entry entry = null;
@@ -2316,7 +2228,7 @@ public class EntryContainer
         // The entryID does not exist.
         Message msg = ERR_JEB_MISSING_ID2ENTRY_RECORD.get(entryID.toString());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          msg);
+            msg);
       }
 
       // Put the entry in the cache making sure not to overwrite
@@ -2347,7 +2259,7 @@ public class EntryContainer
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DatabaseException,
       DirectoryException, CanceledOperationException
-  {
+      {
     Transaction txn = beginTransaction();
 
     try
@@ -2358,7 +2270,7 @@ public class EntryContainer
       {
         // The entry does not exist.
         Message message =
-            ERR_JEB_MODIFY_NO_SUCH_OBJECT.get(newEntry.getDN().toString());
+          ERR_JEB_MODIFY_NO_SUCH_OBJECT.get(newEntry.getDN().toString());
         DN matchedDN = getMatchedDN(baseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
             message, matchedDN, null);
@@ -2443,7 +2355,7 @@ public class EntryContainer
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
           message, e);
     }
-  }
+      }
 
   /**
    * Moves and/or renames the provided entry in this backend, altering any
@@ -2467,8 +2379,8 @@ public class EntryContainer
    * @throws DatabaseException If an error occurs in the JE database.
    */
   public void renameEntry(DN currentDN, Entry entry,
-                          ModifyDNOperation modifyDNOperation)
-      throws DatabaseException, DirectoryException, CanceledOperationException
+      ModifyDNOperation modifyDNOperation)
+  throws DatabaseException, DirectoryException, CanceledOperationException
   {
     Transaction txn = beginTransaction();
     DN oldSuperiorDN = getParentWithinBase(currentDN);
@@ -2498,7 +2410,7 @@ public class EntryContainer
         Message message = ERR_JEB_MODIFYDN_ALREADY_EXISTS.get(
             entry.getDN().toString());
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
-                                     message);
+            message);
       }
 
       EntryID oldApexID = dn2id.get(txn, currentDN, LockMode.DEFAULT);
@@ -2508,7 +2420,7 @@ public class EntryContainer
         dn2uri.targetEntryReferrals(currentDN, null);
 
         Message message =
-                ERR_JEB_MODIFYDN_NO_SUCH_OBJECT.get(currentDN.toString());
+          ERR_JEB_MODIFYDN_NO_SUCH_OBJECT.get(currentDN.toString());
         DN matchedDN = getMatchedDN(baseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
             message, matchedDN, null);
@@ -2519,7 +2431,7 @@ public class EntryContainer
       {
         Message msg = ERR_JEB_MISSING_ID2ENTRY_RECORD.get(oldApexID.toString());
         throw new DirectoryException(
-              DirectoryServer.getServerErrorResultCode(), msg);
+            DirectoryServer.getServerErrorResultCode(), msg);
       }
 
       if (!isManageDsaITOperation(modifyDNOperation))
@@ -2539,8 +2451,8 @@ public class EntryContainer
         if (newSuperiorID == null)
         {
           Message msg =
-                  ERR_JEB_NEW_SUPERIOR_NO_SUCH_OBJECT.get(
-                          newSuperiorDN.toString());
+            ERR_JEB_NEW_SUPERIOR_NO_SUCH_OBJECT.get(
+                newSuperiorDN.toString());
           DN matchedDN = getMatchedDN(baseDN);
           throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
               msg, matchedDN, null);
@@ -2626,8 +2538,8 @@ public class EntryContainer
 
           // Construct the new DN of the entry.
           DN newDN = modDN(oldEntry.getDN(),
-                           currentDN.getNumComponents(),
-                           entry.getDN());
+              currentDN.getNumComponents(),
+              entry.getDN());
 
           // Assign a new entry ID if we are renumbering.
           EntryID newID = oldID;
@@ -2709,12 +2621,12 @@ public class EntryContainer
   }
 
   private void renameApexEntry(Transaction txn, IndexBuffer buffer,
-                               DN oldSuperiorDN, DN newSuperiorDN,
-                               EntryID oldID, EntryID newID,
-                               Entry oldEntry, Entry newEntry,
-                               boolean isApexEntryMoved,
-                               ModifyDNOperation modifyDNOperation)
-      throws DirectoryException, DatabaseException
+      DN oldSuperiorDN, DN newSuperiorDN,
+      EntryID oldID, EntryID newID,
+      Entry oldEntry, Entry newEntry,
+      boolean isApexEntryMoved,
+      ModifyDNOperation modifyDNOperation)
+  throws DirectoryException, DatabaseException
   {
     DN oldDN = oldEntry.getDN();
     DN newDN = newEntry.getDN();
@@ -2752,7 +2664,7 @@ public class EntryContainer
       {
         parentID = dn2id.get(txn, dn, LockMode.DEFAULT);
         parentIDKeyBytes =
-            JebFormat.entryIDToDatabase(parentID.longValue());
+          JebFormat.entryIDToDatabase(parentID.longValue());
         if(isParent)
         {
           id2children.removeID(buffer, parentIDKeyBytes, oldID);
@@ -2791,7 +2703,7 @@ public class EntryContainer
       {
         parentID = dn2id.get(txn, dn, LockMode.DEFAULT);
         parentIDKeyBytes =
-            JebFormat.entryIDToDatabase(parentID.longValue());
+          JebFormat.entryIDToDatabase(parentID.longValue());
         if(isParent)
         {
           id2children.insertID(buffer, parentIDKeyBytes, newID);
@@ -2810,18 +2722,18 @@ public class EntryContainer
   }
 
   private void renameSubordinateEntry(Transaction txn, IndexBuffer buffer,
-                                      DN oldSuperiorDN, DN newSuperiorDN,
-                                      EntryID oldID, EntryID newID,
-                                      Entry oldEntry, DN newDN,
-                                      boolean isApexEntryMoved,
-                                      ModifyDNOperation modifyDNOperation)
-      throws DirectoryException, DatabaseException
+      DN oldSuperiorDN, DN newSuperiorDN,
+      EntryID oldID, EntryID newID,
+      Entry oldEntry, DN newDN,
+      boolean isApexEntryMoved,
+      ModifyDNOperation modifyDNOperation)
+  throws DirectoryException, DatabaseException
   {
     DN oldDN = oldEntry.getDN();
     Entry newEntry = oldEntry.duplicate(false);
     newEntry.setDN(newDN);
     List<Modification> modifications =
-        Collections.unmodifiableList(new ArrayList<Modification>(0));
+      Collections.unmodifiableList(new ArrayList<Modification>(0));
 
     // Create a new entry that is a copy of the old entry but with the new DN.
     // Also invoke any subordinate modify DN plugins on the entry.
@@ -2834,10 +2746,10 @@ public class EntryContainer
     if (! modifyDNOperation.isSynchronizationOperation())
     {
       PluginConfigManager pluginManager =
-          DirectoryServer.getPluginConfigManager();
+        DirectoryServer.getPluginConfigManager();
       PluginResult.SubordinateModifyDN pluginResult =
-          pluginManager.invokeSubordinateModifyDNPlugins(
-              modifyDNOperation, oldEntry, newEntry, modifications);
+        pluginManager.invokeSubordinateModifyDNPlugins(
+            modifyDNOperation, oldEntry, newEntry, modifications);
 
       if (!pluginResult.continueProcessing())
       {
@@ -2854,10 +2766,10 @@ public class EntryContainer
             invalidReason))
         {
           Message message =
-              ERR_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_SCHEMA_ERROR.get(
-                  oldDN.toString(),
-                  newDN.toString(),
-                  invalidReason.toString());
+            ERR_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_SCHEMA_ERROR.get(
+                oldDN.toString(),
+                newDN.toString(),
+                invalidReason.toString());
           throw new DirectoryException(
               DirectoryServer.getServerErrorResultCode(), message);
         }
@@ -2893,7 +2805,7 @@ public class EntryContainer
       {
         EntryID parentID = dn2id.get(txn, dn, LockMode.DEFAULT);
         byte[] parentIDKeyBytes =
-            JebFormat.entryIDToDatabase(parentID.longValue());
+          JebFormat.entryIDToDatabase(parentID.longValue());
         id2subtree.removeID(buffer, parentIDKeyBytes, oldID);
       }
     }
@@ -2912,11 +2824,11 @@ public class EntryContainer
       byte[] parentIDKeyBytes;
       boolean isParent = true;
       for (DN superiorDN = newDN; superiorDN != null;
-           superiorDN = getParentWithinBase(superiorDN))
+      superiorDN = getParentWithinBase(superiorDN))
       {
         newParentID = dn2id.get(txn, superiorDN, LockMode.DEFAULT);
         parentIDKeyBytes =
-            JebFormat.entryIDToDatabase(newParentID.longValue());
+          JebFormat.entryIDToDatabase(newParentID.longValue());
         if(isParent)
         {
           id2children.insertID(buffer, parentIDKeyBytes, newID);
@@ -2944,7 +2856,7 @@ public class EntryContainer
         {
           EntryID parentID = dn2id.get(txn, dn, LockMode.DEFAULT);
           byte[] parentIDKeyBytes =
-              JebFormat.entryIDToDatabase(parentID.longValue());
+            JebFormat.entryIDToDatabase(parentID.longValue());
           id2subtree.insertID(buffer, parentIDKeyBytes, newID);
         }
       }
@@ -3010,7 +2922,7 @@ public class EntryContainer
     public int compare(byte[] a, byte[] b)
     {
       for (int ai = a.length - 1, bi = b.length - 1;
-           ai >= 0 && bi >= 0; ai--, bi--)
+      ai >= 0 && bi >= 0; ai--, bi--)
       {
         if (a[ai] > b[bi])
         {
@@ -3047,7 +2959,7 @@ public class EntryContainer
    * @throws JebException If an error occurs in the JE backend.
    */
   private void indexInsertEntry(Transaction txn, Entry entry, EntryID entryID)
-      throws DatabaseException, DirectoryException, JebException
+  throws DatabaseException, DirectoryException, JebException
   {
     for (AttributeIndex index : attrIndexMap.values())
     {
@@ -3070,8 +2982,8 @@ public class EntryContainer
    * @throws DirectoryException If a Directory Server error occurs.
    */
   private void indexInsertEntry(IndexBuffer buffer, Entry entry,
-                                EntryID entryID)
-      throws DatabaseException, DirectoryException
+      EntryID entryID)
+  throws DatabaseException, DirectoryException
   {
     for (AttributeIndex index : attrIndexMap.values())
     {
@@ -3095,7 +3007,7 @@ public class EntryContainer
    * @throws JebException If an error occurs in the JE backend.
    */
   private void indexRemoveEntry(Transaction txn, Entry entry, EntryID entryID)
-      throws DatabaseException, DirectoryException, JebException
+  throws DatabaseException, DirectoryException, JebException
   {
     for (AttributeIndex index : attrIndexMap.values())
     {
@@ -3118,8 +3030,8 @@ public class EntryContainer
    * @throws DirectoryException If a Directory Server error occurs.
    */
   private void indexRemoveEntry(IndexBuffer buffer, Entry entry,
-                                EntryID entryID)
-      throws DatabaseException, DirectoryException
+      EntryID entryID)
+  throws DatabaseException, DirectoryException
   {
     for (AttributeIndex index : attrIndexMap.values())
     {
@@ -3146,9 +3058,9 @@ public class EntryContainer
    * @throws JebException If an error occurs in the JE backend.
    */
   private void indexModifications(Transaction txn, Entry oldEntry,
-                                  Entry newEntry,
-                                  EntryID entryID, List<Modification> mods)
-      throws DatabaseException, DirectoryException, JebException
+      Entry newEntry,
+      EntryID entryID, List<Modification> mods)
+  throws DatabaseException, DirectoryException, JebException
   {
     // Process in index configuration order.
     for (AttributeIndex index : attrIndexMap.values())
@@ -3157,7 +3069,7 @@ public class EntryContainer
       boolean attributeModified = false;
       AttributeType indexAttributeType = index.getAttributeType();
       Iterable<AttributeType> subTypes =
-          DirectoryServer.getSchema().getSubTypes(indexAttributeType);
+        DirectoryServer.getSchema().getSubTypes(indexAttributeType);
 
       for (Modification mod : mods)
       {
@@ -3202,9 +3114,9 @@ public class EntryContainer
    * @throws DirectoryException If a Directory Server error occurs.
    */
   private void indexModifications(IndexBuffer buffer, Entry oldEntry,
-                                  Entry newEntry,
-                                  EntryID entryID, List<Modification> mods)
-      throws DatabaseException, DirectoryException
+      Entry newEntry,
+      EntryID entryID, List<Modification> mods)
+  throws DatabaseException, DirectoryException
   {
     // Process in index configuration order.
     for (AttributeIndex index : attrIndexMap.values())
@@ -3213,7 +3125,7 @@ public class EntryContainer
       boolean attributeModified = false;
       AttributeType indexAttributeType = index.getAttributeType();
       Iterable<AttributeType> subTypes =
-          DirectoryServer.getSchema().getSubTypes(indexAttributeType);
+        DirectoryServer.getSchema().getSubTypes(indexAttributeType);
 
       for (Modification mod : mods)
       {
@@ -3257,7 +3169,7 @@ public class EntryContainer
     if (entryID != null)
     {
       DatabaseEntry key =
-          new DatabaseEntry(JebFormat.entryIDToDatabase(entryID.longValue()));
+        new DatabaseEntry(JebFormat.entryIDToDatabase(entryID.longValue()));
       EntryIDSet entryIDSet;
       entryIDSet = id2subtree.readKey(key, null, LockMode.DEFAULT);
 
@@ -3371,7 +3283,7 @@ public class EntryContainer
    * a new transaction.
    */
   public Transaction beginTransaction()
-      throws DatabaseException
+  throws DatabaseException
   {
     Transaction parentTxn = null;
     TransactionConfig txnConfig = null;
@@ -3391,7 +3303,7 @@ public class EntryContainer
    * the transaction.
    */
   public static void transactionCommit(Transaction txn)
-      throws DatabaseException
+  throws DatabaseException
   {
     if (txn != null)
     {
@@ -3411,7 +3323,7 @@ public class EntryContainer
    * transaction.
    */
   public static void transactionAbort(Transaction txn)
-      throws DatabaseException
+  throws DatabaseException
   {
     if (txn != null)
     {
@@ -3476,7 +3388,7 @@ public class EntryContainer
    * database.
    */
   public void deleteDatabase(DatabaseContainer database)
-      throws DatabaseException
+  throws DatabaseException
   {
     if(database == state)
     {
@@ -3521,7 +3433,7 @@ public class EntryContainer
    * to delete the index.
    */
   public void deleteAttributeIndex(AttributeIndex index)
-      throws DatabaseException
+  throws DatabaseException
   {
     index.close();
     if(env.getConfig().getTransactional())
@@ -3613,7 +3525,7 @@ public class EntryContainer
    * @throws JebException If an error occurs in the JE backend.
    */
   public void setDatabasePrefix(String newDatabasePrefix)
-      throws DatabaseException, JebException
+  throws DatabaseException, JebException
 
   {
     List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
@@ -3671,13 +3583,13 @@ public class EntryContainer
         {
           transactionAbort(txn);
 
-        String msg = e.getMessage();
-        if (msg == null)
-        {
-          msg = stackTraceToSingleLineString(e);
-        }
-        Message message = ERR_JEB_UNCHECKED_EXCEPTION.get(msg);
-        throw new JebException(message, e);
+          String msg = e.getMessage();
+          if (msg == null)
+          {
+            msg = stackTraceToSingleLineString(e);
+          }
+          Message message = ERR_JEB_UNCHECKED_EXCEPTION.get(msg);
+          throw new JebException(message, e);
         }
       }
       else
@@ -3756,8 +3668,8 @@ public class EntryContainer
       {
         adminActionRequired = true;
         Message message =
-                NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
-                        id2children.getName());
+          NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
+              id2children.getName());
         messages.add(message);
       }
 
@@ -3765,21 +3677,21 @@ public class EntryContainer
       {
         adminActionRequired = true;
         Message message =
-                NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
-                        id2subtree.getName());
+          NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
+              id2subtree.getName());
         messages.add(message);
       }
     }
 
     DataConfig entryDataConfig =
-        new DataConfig(cfg.isEntriesCompressed(),
-                       cfg.isCompactEncoding(),
-                       rootContainer.getCompressedSchema());
+      new DataConfig(cfg.isEntriesCompressed(),
+          cfg.isCompactEncoding(),
+          rootContainer.getCompressedSchema());
     id2entry.setDataConfig(entryDataConfig);
 
     this.config = cfg;
     return new ConfigChangeResult(ResultCode.SUCCESS,
-                                  adminActionRequired, messages);
+        adminActionRequired, messages);
   }
 
   /**
@@ -3791,7 +3703,7 @@ public class EntryContainer
    *                           configuration object.
    */
   public EnvironmentConfig getEnvironmentConfig()
-      throws DatabaseException
+  throws DatabaseException
   {
     return env.getConfig();
   }
@@ -3903,7 +3815,7 @@ public class EntryContainer
    * @throws DatabaseException if a JE database error occurs.
    */
   public long clearDatabase(DatabaseContainer database)
-      throws DatabaseException
+  throws DatabaseException
   {
     long count = 0;
     database.close();
@@ -3948,7 +3860,7 @@ public class EntryContainer
    * @throws DatabaseException if a JE database error occurs.
    */
   public long clearAttributeIndex(AttributeIndex index)
-      throws DatabaseException
+  throws DatabaseException
   {
     long count = 0;
 
@@ -3963,27 +3875,27 @@ public class EntryContainer
           if(index.equalityIndex != null)
           {
             count += env.truncateDatabase(txn, index.equalityIndex.getName(),
-                                          true);
+                true);
           }
           if(index.presenceIndex != null)
           {
             count += env.truncateDatabase(txn, index.presenceIndex.getName(),
-                                          true);
+                true);
           }
           if(index.substringIndex != null)
           {
             count += env.truncateDatabase(txn, index.substringIndex.getName(),
-                                          true);
+                true);
           }
           if(index.orderingIndex != null)
           {
             count += env.truncateDatabase(txn, index.orderingIndex.getName(),
-                                          true);
+                true);
           }
           if(index.approximateIndex != null)
           {
             count += env.truncateDatabase(txn, index.approximateIndex.getName(),
-                                          true);
+                true);
           }
           transactionCommit(txn);
         }
@@ -3998,27 +3910,27 @@ public class EntryContainer
         if(index.equalityIndex != null)
         {
           count += env.truncateDatabase(null, index.equalityIndex.getName(),
-                                        true);
+              true);
         }
         if(index.presenceIndex != null)
         {
           count += env.truncateDatabase(null, index.presenceIndex.getName(),
-                                        true);
+              true);
         }
         if(index.substringIndex != null)
         {
           count += env.truncateDatabase(null, index.substringIndex.getName(),
-                                        true);
+              true);
         }
         if(index.orderingIndex != null)
         {
           count += env.truncateDatabase(null, index.orderingIndex.getName(),
-                                        true);
+              true);
         }
         if(index.approximateIndex != null)
         {
           count += env.truncateDatabase(null, index.approximateIndex.getName(),
-                                        true);
+              true);
         }
       }
     }
@@ -4044,7 +3956,7 @@ public class EntryContainer
    * existing entry from being performed
    */
   private DN getMatchedDN(DN baseDN)
-    throws DirectoryException
+  throws DirectoryException
   {
     DN matchedDN = null;
     DN parentDN  = baseDN.getParentDNInSuffix();

@@ -31,7 +31,6 @@ package org.opends.server.backends;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import java.util.List;
 import java.util.Map;
 import org.opends.messages.Category;
 import org.opends.messages.Message;
@@ -48,19 +47,16 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.ConditionResult;
-import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IndexType;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDAPException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
@@ -80,34 +76,29 @@ import static org.opends.server.util.StaticUtils.*;
 
 
 /**
- * This class implements /dev/null like backend for development and testing.
- *
- * The following behaviors of this backend implementation should be noted:
- *
- * * All read operations return success but no data.
- *
- * * All write operations return success but do nothing.
- *
- * * Bind operations fail with invalid credentials.
- *
- * * Compare operations are only possible on objectclass and return true
- *   for the following objeclasses only: top, nullbackendobject,
- *   extensibleobject. Otherwise comparison result is false or comparison
- *   fails altogether.
- *
- * * Controls are supported although this implementation does not provide
- *   any specific emulation for controls. Generally known request controls
- *   are accepted and default response controls returned where applicable.
- *
- * * Searches within this backend are always considered indexed.
- *
- * * Backend Import is supported by iterating over ldif reader on a single
- *   thread and issuing add operations which essentially do nothing at all.
- *
- * * Backend Export is supported but does nothing producing an empty ldif.
- *
- * * Backend Backup and Restore are not supported.
- *
+ * This class implements /dev/null like backend for development and
+ * testing. The following behaviors of this backend implementation
+ * should be noted:
+ * <ul>
+ * <li>All read operations return success but no data.
+ * <li>All write operations return success but do nothing.
+ * <li>Bind operations fail with invalid credentials.
+ * <li>Compare operations are only possible on objectclass and return
+ * true for the following objeclasses only: top, nullbackendobject,
+ * extensibleobject. Otherwise comparison result is false or comparison
+ * fails altogether.
+ * <li>Controls are supported although this implementation does not
+ * provide any specific emulation for controls. Generally known request
+ * controls are accepted and default response controls returned where
+ * applicable.
+ * <li>Searches within this backend are always considered indexed.
+ * <li>Backend Import is supported by iterating over ldif reader on a
+ * single thread and issuing add operations which essentially do nothing
+ * at all.
+ * <li>Backend Export is supported but does nothing producing an empty
+ * ldif.
+ * <li>Backend Backup and Restore are not supported.
+ * </ul>
  * This backend implementation is for development and testing only, does
  * not represent a complete and stable API, should be considered private
  * and subject to change without notice.
@@ -405,34 +396,14 @@ public class NullBackend extends Backend
   public void search(SearchOperation searchOperation)
          throws DirectoryException
   {
-    List<Control> controls = searchOperation.getRequestControls();
-    PagedResultsControl pageRequest = null;
-
-    if (controls != null) {
-      for (Control control : controls) {
-        if (control.getOID().equals(OID_PAGED_RESULTS_CONTROL)) {
-          // Ignore all but the first paged results control.
-          if (pageRequest == null) {
-            try {
-              pageRequest = new PagedResultsControl(control.isCritical(),
-                control.getValue());
-            } catch (LDAPException e) {
-              if (debugEnabled()) {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-              throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                e.getMessageObject(), e);
-            }
-          }
-        }
-      }
-    }
+    PagedResultsControl pageRequest =
+        searchOperation.getRequestControl(PagedResultsControl.DECODER);
 
     if (pageRequest != null) {
       // Indicate no more pages.
       PagedResultsControl control;
-      control = new PagedResultsControl(pageRequest.isCritical(), 0,
-        new ASN1OctetString());
+      control =
+          new PagedResultsControl(pageRequest.isCritical(), 0, null);
       searchOperation.getResponseControls().add(control);
     }
 
@@ -659,6 +630,7 @@ public class NullBackend extends Backend
   /**
    * {@inheritDoc}
    */
+  @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
   }

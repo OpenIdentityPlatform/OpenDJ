@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -31,9 +31,8 @@ package org.opends.server.api;
 import java.io.Serializable;
 import java.util.Comparator;
 
-import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
-
+import org.opends.server.types.ByteSequence;
 
 
 /**
@@ -76,8 +75,8 @@ public abstract class OrderingMatchingRule
    *          ascending order, or zero if there is no difference
    *          between the values with regard to ordering.
    */
-  public abstract int compareValues(ByteString value1,
-                                    ByteString value2);
+  public abstract int compareValues(ByteSequence value1,
+                                    ByteSequence value2);
 
 
 
@@ -103,8 +102,8 @@ public abstract class OrderingMatchingRule
    *          a match for the provided assertion value, or
    *          {@code false} if not.
    */
-  public ConditionResult valuesMatch(ByteString attributeValue,
-                                     ByteString assertionValue)
+  public ConditionResult valuesMatch(ByteSequence attributeValue,
+                                     ByteSequence assertionValue)
   {
     return ConditionResult.UNDEFINED;
   }

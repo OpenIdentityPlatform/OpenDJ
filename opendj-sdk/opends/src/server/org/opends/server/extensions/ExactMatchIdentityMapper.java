@@ -46,24 +46,9 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.IndexType;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
-
-import static org.opends.server.util.StaticUtils.*;
-
 
 
 /**
@@ -193,7 +178,7 @@ public class ExactMatchIdentityMapper
     SearchFilter filter;
     if (attributeTypes.length == 1)
     {
-      AttributeValue value = new AttributeValue(attributeTypes[0], id);
+      AttributeValue value = AttributeValues.create(attributeTypes[0], id);
       filter = SearchFilter.createEqualityFilter(attributeTypes[0], value);
     }
     else
@@ -202,7 +187,7 @@ public class ExactMatchIdentityMapper
            new ArrayList<SearchFilter>(attributeTypes.length);
       for (AttributeType t : attributeTypes)
       {
-        AttributeValue value = new AttributeValue(t, id);
+        AttributeValue value = AttributeValues.create(t, id);
         filterComps.add(SearchFilter.createEqualityFilter(t, value));
       }
 

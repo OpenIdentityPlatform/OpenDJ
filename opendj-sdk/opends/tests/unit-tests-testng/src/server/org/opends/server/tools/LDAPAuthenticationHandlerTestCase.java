@@ -49,12 +49,9 @@ import org.opends.server.controls.PasswordPolicyRequestControl;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.AnonymousSASLMechanismHandler;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
 
@@ -179,13 +176,13 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSimpleBind(3, new ASN1OctetString("cn=Directory Manager"),
-                             new ASN1OctetString("password"), requestControls,
+    authHandler.doSimpleBind(3, ByteString.valueOf("cn=Directory Manager"),
+                             ByteString.valueOf("password"), requestControls,
                              responseControls);
 
     s.close();
@@ -208,8 +205,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
@@ -235,12 +232,12 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSimpleBind(3, new ASN1OctetString(), new ASN1OctetString(),
+    authHandler.doSimpleBind(3, ByteString.empty(), ByteString.empty(),
                              requestControls, responseControls);
 
     s.close();
@@ -263,16 +260,16 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
 
     try
     {
-      authHandler.doSimpleBind(3, new ASN1OctetString("cn=Directory Manager"),
-                               new ASN1OctetString(), requestControls,
+      authHandler.doSimpleBind(3, ByteString.valueOf("cn=Directory Manager"),
+                               ByteString.empty(), requestControls,
                                responseControls);
     }
     finally
@@ -298,16 +295,16 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
 
     try
     {
-      authHandler.doSimpleBind(3, new ASN1OctetString("cn=Directory Manager"),
-                               new ASN1OctetString("wrongPassword"),
+      authHandler.doSimpleBind(3, ByteString.valueOf("cn=Directory Manager"),
+                               ByteString.valueOf("wrongPassword"),
                                requestControls, responseControls);
     }
     finally
@@ -333,15 +330,15 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
-    requestControls.add(new LDAPControl(new PasswordPolicyRequestControl()));
+    requestControls.add(new PasswordPolicyRequestControl());
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSimpleBind(3, new ASN1OctetString("cn=Directory Manager"),
-                             new ASN1OctetString("password"),
+    authHandler.doSimpleBind(3, ByteString.valueOf("cn=Directory Manager"),
+                             ByteString.valueOf("password"),
                              requestControls, responseControls);
 
     s.close();
@@ -363,8 +360,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -399,8 +396,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -435,8 +432,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -472,8 +469,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -486,7 +483,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(), new ASN1OctetString(),
+      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
                              "ANONYMOUS", saslProperties, requestControls,
                              responseControls);
     }
@@ -516,8 +513,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -528,7 +525,7 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
 
-    authHandler.doSASLBind(new ASN1OctetString(), new ASN1OctetString(),
+    authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
                            "ANONYMOUS", saslProperties, requestControls,
                            responseControls);
     s.close();
@@ -555,8 +552,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -564,7 +561,7 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
 
-    authHandler.doSASLBind(new ASN1OctetString(), new ASN1OctetString(),
+    authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
                            "ANONYMOUS", saslProperties, requestControls,
                            responseControls);
     s.close();
@@ -592,8 +589,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -607,7 +604,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(), new ASN1OctetString(),
+      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
                              "ANONYMOUS", saslProperties, requestControls,
                              responseControls);
     }
@@ -639,8 +636,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -653,7 +650,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(), new ASN1OctetString(),
+      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
                              "ANONYMOUS", saslProperties, requestControls,
                              responseControls);
     }
@@ -685,10 +682,10 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
-    requestControls.add(new LDAPControl(new PasswordPolicyRequestControl()));
+    requestControls.add(new PasswordPolicyRequestControl());
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -699,7 +696,7 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
 
-    authHandler.doSASLBind(new ASN1OctetString(), new ASN1OctetString(),
+    authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
                            "ANONYMOUS", saslProperties, requestControls,
                            responseControls);
     s.close();
@@ -752,8 +749,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -766,8 +763,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "CRAM-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -819,8 +816,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -831,8 +828,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
 
-    authHandler.doSASLBind(new ASN1OctetString(),
-                           new ASN1OctetString("password"),
+    authHandler.doSASLBind(ByteString.empty(),
+                           ByteString.valueOf("password"),
                            "CRAM-MD5", saslProperties, requestControls,
                            responseControls);
     s.close();
@@ -857,8 +854,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -871,8 +868,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "CRAM-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -901,8 +898,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -915,8 +912,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "CRAM-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -967,8 +964,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -981,8 +978,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("invalidPassword"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("invalidPassword"),
                              "CRAM-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1031,8 +1028,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -1045,8 +1042,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "CRAM-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1073,8 +1070,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties = null;
 
@@ -1083,8 +1080,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "CRAM-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1111,8 +1108,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -1122,8 +1119,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "CRAM-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1152,8 +1149,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -1167,8 +1164,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "CRAM-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1197,8 +1194,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -1215,8 +1212,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "CRAM-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1268,10 +1265,10 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
-    requestControls.add(new LDAPControl(new PasswordPolicyRequestControl()));
+    requestControls.add(new PasswordPolicyRequestControl());
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -1282,8 +1279,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
 
-    authHandler.doSASLBind(new ASN1OctetString(),
-                           new ASN1OctetString("password"),
+    authHandler.doSASLBind(ByteString.empty(),
+                           ByteString.valueOf("password"),
                            "CRAM-MD5", saslProperties, requestControls,
                            responseControls);
     s.close();
@@ -1335,8 +1332,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -1353,8 +1350,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1407,8 +1404,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -1420,8 +1417,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, this.hostname, messageID);
-    authHandler.doSASLBind(new ASN1OctetString(),
-                           new ASN1OctetString("password"),
+    authHandler.doSASLBind(ByteString.empty(),
+                           ByteString.valueOf("password"),
                            "DIGEST-MD5", saslProperties, requestControls,
                            responseControls);
 
@@ -1469,8 +1466,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -1479,11 +1476,11 @@ public class LDAPAuthenticationHandlerTestCase
     saslProperties.put("authid", propList);
 
     propList = new ArrayList<String>();
- 
+
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, this.hostname, messageID);
-    authHandler.doSASLBind(new ASN1OctetString(),
-                           new ASN1OctetString("password"),
+    authHandler.doSASLBind(ByteString.empty(),
+                           ByteString.valueOf("password"),
                            "DIGEST-MD5", saslProperties, requestControls,
                            responseControls);
 
@@ -1507,8 +1504,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties = null;
 
@@ -1517,8 +1514,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1545,8 +1542,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -1556,8 +1553,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1584,8 +1581,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -1598,8 +1595,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1626,8 +1623,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -1641,8 +1638,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1669,8 +1666,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -1683,8 +1680,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1711,8 +1708,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -1731,8 +1728,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1783,8 +1780,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -1799,8 +1796,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, this.hostname, messageID);
-    authHandler.doSASLBind(new ASN1OctetString(),
-                           new ASN1OctetString("password"),
+    authHandler.doSASLBind(ByteString.empty(),
+                           ByteString.valueOf("password"),
                            "DIGEST-MD5", saslProperties, requestControls,
                            responseControls);
 
@@ -1825,8 +1822,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -1848,8 +1845,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1877,8 +1874,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -1900,8 +1897,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1928,8 +1925,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -1951,8 +1948,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1979,8 +1976,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -2004,8 +2001,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -2032,8 +2029,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -2056,8 +2053,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -2084,8 +2081,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -2108,8 +2105,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -2136,8 +2133,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -2155,8 +2152,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -2185,8 +2182,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -2204,8 +2201,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -2256,8 +2253,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -2275,8 +2272,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("wrongPassword"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("wrongPassword"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -2325,8 +2322,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -2344,8 +2341,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"),
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -2397,10 +2394,10 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
-    requestControls.add(new LDAPControl(new PasswordPolicyRequestControl()));
+    requestControls.add(new PasswordPolicyRequestControl());
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -2412,8 +2409,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, this.hostname, messageID);
-    authHandler.doSASLBind(new ASN1OctetString(),
-                           new ASN1OctetString("password"),
+    authHandler.doSASLBind(ByteString.empty(),
+                           ByteString.valueOf("password"),
                            "DIGEST-MD5", saslProperties, requestControls,
                            responseControls);
 
@@ -2475,8 +2472,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -2486,7 +2483,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(), null, "EXTERNAL",
+      authHandler.doSASLBind(ByteString.empty(), null, "EXTERNAL",
                              saslProperties, requestControls, responseControls);
     }
     finally
@@ -2546,15 +2543,15 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSASLBind(new ASN1OctetString(), null, "EXTERNAL",
+    authHandler.doSASLBind(ByteString.empty(), null, "EXTERNAL",
                            saslProperties, requestControls, responseControls);
 
     s.close();
@@ -2615,8 +2612,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -2629,7 +2626,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(), null, "EXTERNAL",
+      authHandler.doSASLBind(ByteString.empty(), null, "EXTERNAL",
                              saslProperties, requestControls, responseControls);
     }
     finally
@@ -2690,17 +2687,17 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
-    requestControls.add(new LDAPControl(new PasswordPolicyRequestControl()));
+    requestControls.add(new PasswordPolicyRequestControl());
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSASLBind(new ASN1OctetString(), null, "EXTERNAL",
+    authHandler.doSASLBind(ByteString.empty(), null, "EXTERNAL",
                            saslProperties, requestControls, responseControls);
 
     s.close();
@@ -2723,8 +2720,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties = null;
 
@@ -2733,7 +2730,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(), new ASN1OctetString(),
+      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
                              "GSSAPI", saslProperties, requestControls,
                              responseControls);
     }
@@ -2760,8 +2757,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -2771,7 +2768,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(), new ASN1OctetString(),
+      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
                              "GSSAPI", saslProperties, requestControls,
                              responseControls);
     }
@@ -2798,8 +2795,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -2813,7 +2810,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(), new ASN1OctetString(),
+      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
                              "GSSAPI", saslProperties, requestControls,
                              responseControls);
     }
@@ -2840,8 +2837,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -2856,7 +2853,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(), new ASN1OctetString(),
+      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
                              "GSSAPI", saslProperties, requestControls,
                              responseControls);
     }
@@ -2883,8 +2880,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -2903,7 +2900,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(), new ASN1OctetString(),
+      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
                              "GSSAPI", saslProperties, requestControls,
                              responseControls);
     }
@@ -2930,8 +2927,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -2950,7 +2947,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(), new ASN1OctetString(),
+      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
                              "GSSAPI", saslProperties, requestControls,
                              responseControls);
     }
@@ -2977,8 +2974,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -2998,7 +2995,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(), new ASN1OctetString(),
+      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
                              "GSSAPI", saslProperties, requestControls,
                              responseControls);
     }
@@ -3026,8 +3023,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -3045,7 +3042,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(), new ASN1OctetString(),
+      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
                              "GSSAPI", saslProperties, requestControls,
                              responseControls);
     }
@@ -3073,8 +3070,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -3092,7 +3089,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(), new ASN1OctetString(),
+      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
                              "GSSAPI", saslProperties, requestControls,
                              responseControls);
     }
@@ -3119,8 +3116,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -3138,7 +3135,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(), new ASN1OctetString(),
+      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
                              "GSSAPI", saslProperties, requestControls,
                              responseControls);
     }
@@ -3165,8 +3162,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -3185,7 +3182,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(), new ASN1OctetString(),
+      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
                              "GSSAPI", saslProperties, requestControls,
                              responseControls);
     }
@@ -3212,8 +3209,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -3231,7 +3228,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(), new ASN1OctetString(),
+      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
                              "GSSAPI", saslProperties, requestControls,
                              responseControls);
     }
@@ -3258,8 +3255,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -3273,7 +3270,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(), new ASN1OctetString(),
+      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
                              "GSSAPI", saslProperties, requestControls,
                              responseControls);
     }
@@ -3327,8 +3324,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -3341,8 +3338,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"), "PLAIN",
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"), "PLAIN",
                              saslProperties, requestControls, responseControls);
     }
     finally
@@ -3392,8 +3389,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -3403,8 +3400,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSASLBind(new ASN1OctetString(),
-                           new ASN1OctetString("password"), "PLAIN",
+    authHandler.doSASLBind(ByteString.empty(),
+                           ByteString.valueOf("password"), "PLAIN",
                            saslProperties, requestControls, responseControls);
 
     s.close();
@@ -3427,8 +3424,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties = null;
 
@@ -3437,8 +3434,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"), "PLAIN",
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"), "PLAIN",
                              saslProperties, requestControls, responseControls);
     }
     finally
@@ -3464,8 +3461,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -3475,8 +3472,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"), "PLAIN",
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"), "PLAIN",
                              saslProperties, requestControls, responseControls);
     }
     finally
@@ -3502,8 +3499,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -3518,8 +3515,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"), "PLAIN",
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"), "PLAIN",
                              saslProperties, requestControls, responseControls);
     }
     finally
@@ -3545,8 +3542,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -3560,8 +3557,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"), "PLAIN",
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"), "PLAIN",
                              saslProperties, requestControls, responseControls);
     }
     finally
@@ -3587,8 +3584,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -3607,8 +3604,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"), "PLAIN",
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"), "PLAIN",
                              saslProperties, requestControls, responseControls);
     }
     finally
@@ -3634,8 +3631,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -3653,8 +3650,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"), "PLAIN",
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"), "PLAIN",
                              saslProperties, requestControls, responseControls);
     }
     finally
@@ -3680,8 +3677,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -3695,8 +3692,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSASLBind(new ASN1OctetString(),
-                             new ASN1OctetString("password"), "PLAIN",
+      authHandler.doSASLBind(ByteString.empty(),
+                             ByteString.valueOf("password"), "PLAIN",
                              saslProperties, requestControls, responseControls);
     }
     finally
@@ -3725,8 +3722,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -3736,8 +3733,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSASLBind(new ASN1OctetString(),
-                           new ASN1OctetString("password"), "PLAIN",
+    authHandler.doSASLBind(ByteString.empty(),
+                           ByteString.valueOf("password"), "PLAIN",
                            saslProperties, requestControls, responseControls);
 
     s.close();
@@ -3782,8 +3779,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -3793,8 +3790,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSASLBind(new ASN1OctetString(),
-                           new ASN1OctetString("wrongPassword"), "PLAIN",
+    authHandler.doSASLBind(ByteString.empty(),
+                           ByteString.valueOf("wrongPassword"), "PLAIN",
                            saslProperties, requestControls, responseControls);
 
     s.close();
@@ -3840,10 +3837,10 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
-    requestControls.add(new LDAPControl(new PasswordPolicyRequestControl()));
+    requestControls.add(new PasswordPolicyRequestControl());
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -3853,8 +3850,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSASLBind(new ASN1OctetString(),
-                           new ASN1OctetString("password"), "PLAIN",
+    authHandler.doSASLBind(ByteString.empty(),
+                           ByteString.valueOf("password"), "PLAIN",
                            saslProperties, requestControls, responseControls);
 
     s.close();
@@ -3901,12 +3898,12 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSimpleBind(3, new ASN1OctetString(), new ASN1OctetString(),
+    authHandler.doSimpleBind(3, ByteString.empty(), ByteString.empty(),
                              requestControls, responseControls);
     assertNull(authHandler.requestAuthorizationIdentity());
 
@@ -3930,13 +3927,13 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSimpleBind(3, new ASN1OctetString("cn=Directory Manager"),
-                             new ASN1OctetString("password"), requestControls,
+    authHandler.doSimpleBind(3, ByteString.valueOf("cn=Directory Manager"),
+                             ByteString.valueOf("password"), requestControls,
                              responseControls);
     assertNotNull(authHandler.requestAuthorizationIdentity());
 
@@ -3982,13 +3979,13 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSimpleBind(3, new ASN1OctetString("uid=test.user,o=test"),
-                             new ASN1OctetString("password"), requestControls,
+    authHandler.doSimpleBind(3, ByteString.valueOf("uid=test.user,o=test"),
+                             ByteString.valueOf("password"), requestControls,
                              responseControls);
     assertNotNull(authHandler.requestAuthorizationIdentity());
 
@@ -4015,8 +4012,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -4027,7 +4024,7 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
 
-    authHandler.doSASLBind(new ASN1OctetString(), new ASN1OctetString(),
+    authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
                            "ANONYMOUS", saslProperties, requestControls,
                            responseControls);
     assertNull(authHandler.requestAuthorizationIdentity());
@@ -4077,8 +4074,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -4089,8 +4086,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
 
-    authHandler.doSASLBind(new ASN1OctetString(),
-                           new ASN1OctetString("password"),
+    authHandler.doSASLBind(ByteString.empty(),
+                           ByteString.valueOf("password"),
                            "CRAM-MD5", saslProperties, requestControls,
                            responseControls);
     assertNotNull(authHandler.requestAuthorizationIdentity());
@@ -4139,8 +4136,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -4152,8 +4149,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, this.hostname, messageID);
-    authHandler.doSASLBind(new ASN1OctetString(),
-                           new ASN1OctetString("password"),
+    authHandler.doSASLBind(ByteString.empty(),
+                           ByteString.valueOf("password"),
                            "DIGEST-MD5", saslProperties, requestControls,
                            responseControls);
     assertNotNull(authHandler.requestAuthorizationIdentity());
@@ -4211,15 +4208,15 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSASLBind(new ASN1OctetString(), null, "EXTERNAL",
+    authHandler.doSASLBind(ByteString.empty(), null, "EXTERNAL",
                            saslProperties, requestControls, responseControls);
     assertNotNull(authHandler.requestAuthorizationIdentity());
 
@@ -4265,8 +4262,8 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
-    ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl>();
+    ArrayList<Control> requestControls  = new ArrayList<Control>();
+    ArrayList<Control> responseControls = new ArrayList<Control>();
 
     LinkedHashMap<String,List<String>> saslProperties =
          new LinkedHashMap<String,List<String>>();
@@ -4276,8 +4273,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSASLBind(new ASN1OctetString(),
-                           new ASN1OctetString("password"), "PLAIN",
+    authHandler.doSASLBind(ByteString.empty(),
+                           ByteString.valueOf("password"), "PLAIN",
                            saslProperties, requestControls, responseControls);
     assertNotNull(authHandler.requestAuthorizationIdentity());
 
@@ -4291,6 +4288,6 @@ public class LDAPAuthenticationHandlerTestCase
          this.hostname = "localhost";
       }
   }
-  
+
 }
 

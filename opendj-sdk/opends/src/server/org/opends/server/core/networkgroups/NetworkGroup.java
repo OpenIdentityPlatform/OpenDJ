@@ -719,7 +719,7 @@ public class NetworkGroup
   private static String getNameFromConfiguration(NetworkGroupCfg configuration)
   {
     DN dn = configuration.dn();
-    return dn.getRDN().getAttributeValue(0).getStringValue();
+    return dn.getRDN().getAttributeValue(0).toString();
   }
 
 

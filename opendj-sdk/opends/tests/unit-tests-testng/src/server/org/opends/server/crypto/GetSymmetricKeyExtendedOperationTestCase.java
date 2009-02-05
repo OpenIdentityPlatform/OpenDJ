@@ -36,7 +36,6 @@ import org.opends.server.types.*;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.admin.ads.ADSContext;
@@ -127,7 +126,7 @@ public class GetSymmetricKeyExtendedOperationTestCase
     for (Entry e : searchOp.getSearchEntries()) {
       final String symmetricKeyAttributeValue
               = e.getAttributeValue(attrSymmetricKey, DirectoryStringSyntax.DECODER);
-      final ASN1OctetString requestValue =
+      final ByteString requestValue =
            GetSymmetricKeyExtendedOperation.encodeRequestValue(
                 symmetricKeyAttributeValue, instanceKeyID);
       final ExtendedOperation extendedOperation =
@@ -138,7 +137,7 @@ public class GetSymmetricKeyExtendedOperationTestCase
       // The key should be re-wrapped, and hence have a different binary
       // representation....
       final String responseValue
-              = extendedOperation.getResponseValue().stringValue();
+              = extendedOperation.getResponseValue().toString();
       assertFalse(symmetricKeyAttributeValue.equals(responseValue));
       // ... but the keyIDs should be equal (ideally, the validity of
       // the returned value would be checked by decoding the
@@ -158,7 +157,7 @@ public class GetSymmetricKeyExtendedOperationTestCase
     String symmetricKey = "1";
     String instanceKeyID = cm.getInstanceKeyID();
 
-    ASN1OctetString requestValue =
+    ByteString requestValue =
          GetSymmetricKeyExtendedOperation.encodeRequestValue(
               symmetricKey, instanceKeyID);
 

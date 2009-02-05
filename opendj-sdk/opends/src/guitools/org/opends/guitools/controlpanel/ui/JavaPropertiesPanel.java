@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -174,6 +174,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getTitle()
   {
     return INFO_CTRL_PANEL_JAVA_PROPERTIES_TITLE.get();
@@ -182,6 +183,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return javaHome;
@@ -190,6 +192,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean requiresScroll()
   {
     return false;
@@ -198,6 +201,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setInfo(ControlPanelInfo info)
   {
     super.setInfo(info);
@@ -425,6 +429,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void toBeDisplayed(boolean visible)
   {
     if (visible && (firstDisplay || !updatedByUser()))
@@ -557,6 +562,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       /**
        * {@inheritDoc}
        */
+      @Override
       public Void processBackgroundTask() throws Throwable
       {
         String propertiesFile = getPropertiesFile();
@@ -623,6 +629,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       /**
        * {@inheritDoc}
        */
+      @Override
       public void backgroundTaskCompleted(Void returnValue,
           Throwable t)
       {
@@ -701,6 +708,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void okClicked()
   {
     editor.stopCellEditing();
@@ -748,6 +756,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
           new BackgroundTask<Set<String>>()
         {
           private String jvm;
+          @Override
           public Set<String> processBackgroundTask() throws Throwable
           {
             Set<String> notWorkingArgs = new HashSet<String>();
@@ -776,6 +785,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
           /**
            * {@inheritDoc}
            */
+          @Override
           public void backgroundTaskCompleted(Set<String> returnValue,
               Throwable t)
           {
@@ -949,6 +959,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public int hashCode()
     {
       return hashCode;
@@ -957,6 +968,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public String toString()
     {
       return toString;
@@ -965,6 +977,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean equals(Object o)
     {
       boolean equals = o == this;
@@ -1055,6 +1068,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
      * Updates the table model contents and sorts its contents depending on the
      * sort options set by the user.
      */
+    @Override
     public void forceResort()
     {
       updateDataArray();
@@ -1090,6 +1104,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public String getColumnName(int col) {
       return COLUMN_NAMES[col];
     }
@@ -1110,6 +1125,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
      * @return <CODE>true</CODE> if the sort is ascending and <CODE>false</CODE>
      * otherwise.
      */
+    @Override
     public boolean isSortAscending()
     {
       return sortAscending;
@@ -1119,6 +1135,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
      * Sets whether to sort ascending of descending.
      * @param sortAscending whether to sort ascending or descending.
      */
+    @Override
     public void setSortAscending(boolean sortAscending)
     {
       this.sortAscending = sortAscending;
@@ -1128,6 +1145,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
      * Returns the column index used to sort.
      * @return the column index used to sort.
      */
+    @Override
     public int getSortColumn()
     {
       return sortColumn;
@@ -1137,6 +1155,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
      * Sets the column index used to sort.
      * @param sortColumn column index used to sort..
      */
+    @Override
     public void setSortColumn(int sortColumn)
     {
       this.sortColumn = sortColumn;
@@ -1145,6 +1164,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isCellEditable(int row, int col) {
       if (col == 0)
       {
@@ -1158,6 +1178,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setValueAt(Object value, int row, int col)
     {
       dataArray.get(row)[col] = (String)value;
@@ -1248,6 +1269,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public Type getType()
     {
       return Type.JAVA_SETTINGS_UPDATE;
@@ -1256,6 +1278,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public Set<String> getBackends()
     {
       return backendSet;
@@ -1264,6 +1287,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public Message getTaskDescription()
     {
       return INFO_CTRL_PANEL_UPDATE_JAVA_SETTINGS_TASK_DESCRIPTION.get();
@@ -1272,6 +1296,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<Message> incompatibilityReasons)
     {
@@ -1300,6 +1325,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     protected String getCommandLinePath()
     {
       return null;
@@ -1308,6 +1334,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     protected ArrayList<String> getCommandLineArguments()
     {
       return new ArrayList<String>();
@@ -1316,6 +1343,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public void runTask()
     {
       state = State.RUNNING;

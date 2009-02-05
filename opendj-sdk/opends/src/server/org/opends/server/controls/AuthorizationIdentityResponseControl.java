@@ -29,15 +29,13 @@ import org.opends.messages.Message;
 
 
 
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.LDAPException;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
+import java.io.IOException;
 
 
 /**
@@ -49,7 +47,50 @@ import static org.opends.server.util.ServerConstants.*;
 public class AuthorizationIdentityResponseControl
        extends Control
 {
+  /**
+   * ControlDecoder implentation to decode this control from a ByteString.
+   */
+  private final static class Decoder
+      implements ControlDecoder<AuthorizationIdentityResponseControl>
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public AuthorizationIdentityResponseControl decode(boolean isCritical,
+                                                       ByteString value)
+        throws DirectoryException
+    {
+      if (value == null)
+      {
+        Message message = ERR_AUTHZIDRESP_NO_CONTROL_VALUE.get();
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+      }
 
+      try
+      {
+        String authID = value.toString();
+        return new AuthorizationIdentityResponseControl(isCritical,
+            authID);
+      }
+      catch(Exception e)
+      {
+        // TODO: message.
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, Message.EMPTY);
+      }
+    }
+
+    public String getOID()
+    {
+      return OID_AUTHZID_RESPONSE;
+    }
+
+  }
+
+  /**
+   * The Control Decoder that can be used to decode this control.
+   */
+  public static final ControlDecoder<AuthorizationIdentityResponseControl>
+      DECODER = new Decoder();
 
 
   // The authorization ID for this control.
@@ -63,8 +104,20 @@ public class AuthorizationIdentityResponseControl
    */
   public AuthorizationIdentityResponseControl()
   {
-    super(OID_AUTHZID_RESPONSE, false, new ASN1OctetString());
+    this(false);
+  }
 
+  /**
+   * Creates a new authorization identity response control using the default
+   * settings to indicate an anonymous authentication.
+   *
+   * @param  isCritical  Indicates whether this control should be
+   *                     considered critical in processing the
+   *                     request.
+   */
+  public AuthorizationIdentityResponseControl(boolean isCritical)
+  {
+    super(OID_AUTHZID_RESPONSE, isCritical);
   }
 
 
@@ -77,11 +130,28 @@ public class AuthorizationIdentityResponseControl
    */
   public AuthorizationIdentityResponseControl(String authorizationID)
   {
-    super(OID_AUTHZID_RESPONSE, false, encodeValue(authorizationID));
+    this(false, authorizationID);
+  }
+
+
+  /**
+   * Creates a new authorization identity response control with the provided
+   * information.
+   *
+   * @param  isCritical  Indicates whether this control should be
+   *                     considered critical in processing the
+   *                     request.
+   * @param  authorizationID  The authorization ID for this control.
+   */
+  public AuthorizationIdentityResponseControl(boolean isCritical,
+                                              String authorizationID)
+  {
+    super(OID_AUTHZID_RESPONSE, isCritical);
 
 
     this.authorizationID = authorizationID;
   }
+
 
 
 
@@ -93,7 +163,7 @@ public class AuthorizationIdentityResponseControl
    */
   public AuthorizationIdentityResponseControl(DN authorizationDN)
   {
-    super(OID_AUTHZID_RESPONSE, false, encodeValue(authorizationDN));
+    super(OID_AUTHZID_RESPONSE, false);
 
 
     if (authorizationDN == null)
@@ -109,142 +179,14 @@ public class AuthorizationIdentityResponseControl
 
 
   /**
-   * Creates a new authorization identity response control with the provided
-   * information.
+   * Writes this control's value to an ASN.1 writer. The value (if any) must be
+   * written as an ASN1OctetString.
    *
-   * @param  oid              The OID to use for this control.
-   * @param  isCritical       Indicates whether this control should be
-   *                          considered a critical part of the response
-   *                          processing.
-   * @param  authorizationID  The authorization ID for this control.
+   * @param writer The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public AuthorizationIdentityResponseControl(String oid, boolean isCritical,
-                                              String authorizationID)
-  {
-    super(oid, isCritical, encodeValue(authorizationID));
-
-
-    this.authorizationID = authorizationID;
-  }
-
-
-
-  /**
-   * Creates a new authorization identity response control with the provided
-   * information.
-   *
-   * @param  oid              The OID to use for this control.
-   * @param  isCritical       Indicates whether this control should be
-   *                          considered a critical part of the response
-   *                          processing.
-   * @param  authorizationDN  The authorization DN for this control.
-   */
-  public AuthorizationIdentityResponseControl(String oid, boolean isCritical,
-                                              DN authorizationDN)
-  {
-    super(oid, isCritical, encodeValue(authorizationDN));
-
-
-    if (authorizationDN == null)
-    {
-      this.authorizationID = "dn:";
-    }
-    else
-    {
-      this.authorizationID = "dn:" + authorizationDN.toString();
-    }
-  }
-
-
-
-  /**
-   * Creates a new authorization identity response control with the provided
-   * information.
-   *
-   * @param  oid              The OID to use for this control.
-   * @param  isCritical       Indicates whether this control should be
-   *                          considered a critical part of the response
-   *                          processing.
-   * @param  authorizationID  The authorization ID for this control.
-   * @param  encodedValue     The encoded value for the control.
-   */
-  private AuthorizationIdentityResponseControl(String oid, boolean isCritical,
-                                               String authorizationID,
-                                               ASN1OctetString encodedValue)
-  {
-    super(oid, isCritical, encodedValue);
-
-
-    this.authorizationID = authorizationID;
-  }
-
-
-
-  /**
-   * Encodes the provided information into an ASN.1 octet string suitable for
-   * use as the control value.
-   *
-   * @param  authorizationID  The authorization ID for this authorization ID
-   *                          response control.
-   *
-   * @return  An ASN.1 octet string containing the encoded information.
-   */
-  private static ASN1OctetString encodeValue(String authorizationID)
-  {
-    return new ASN1OctetString(authorizationID);
-  }
-
-
-
-  /**
-   * Encodes the provided information into an ASN.1 octet string suitable for
-   * use as the control value.
-   *
-   * @param  authorizationDN  The authorization DN for this authorization ID
-   *                          response control.
-   *
-   * @return  An ASN.1 octet string containing the encoded information.
-   */
-  private static ASN1OctetString encodeValue(DN authorizationDN)
-  {
-    if (authorizationDN == null)
-    {
-      return new ASN1OctetString("dn:");
-    }
-    else
-    {
-      return new ASN1OctetString("dn:" + authorizationDN.toString());
-    }
-  }
-
-
-
-  /**
-   * Creates a new authorization identity response control from the contents of
-   * the provided control.
-   *
-   * @param  control  The generic control containing the information to use to
-   *                  create this authorization identity response control.
-   *
-   * @return  The authorization identity response control decoded from the
-   *          provided control.
-   *
-   * @throws  LDAPException  If this control cannot be decoded as a valid
-   *                         authorization identity response control.
-   */
-  public static AuthorizationIdentityResponseControl decodeControl(
-                                                          Control control)
-         throws LDAPException
-  {
-    if (! control.hasValue())
-    {
-      Message message = ERR_AUTHZIDRESP_NO_CONTROL_VALUE.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-    }
-
-    return new AuthorizationIdentityResponseControl(control.getOID(),
-                    control.isCritical(), control.getValue().stringValue(),
-                    control.getValue());
+  public void writeValue(ASN1Writer writer) throws IOException {
+    writer.writeOctetString(authorizationID);
   }
 
 
@@ -259,37 +201,6 @@ public class AuthorizationIdentityResponseControl
   public String getAuthorizationID()
   {
     return authorizationID;
-  }
-
-
-
-  /**
-   * Specifies the authorization ID for this authorization identity response
-   * control.
-   *
-   * @param  authorizationID  The authorization ID for this authorization
-   *                          identity response control.
-   */
-  public void setAuthorizationID(String authorizationID)
-  {
-    this.authorizationID = authorizationID;
-    setValue(encodeValue(authorizationID));
-  }
-
-
-
-  /**
-   * Retrieves a string representation of this authorization identity response
-   * control.
-   *
-   * @return  A string representation of this authorization identity response
-   *          control.
-   */
-  public String toString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
   }
 
 

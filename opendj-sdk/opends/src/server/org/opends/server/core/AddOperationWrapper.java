@@ -29,12 +29,7 @@ package org.opends.server.core;
 import java.util.List;
 import java.util.Map;
 
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DN;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.RawAttribute;
+import org.opends.server.types.*;
 
 
 /**

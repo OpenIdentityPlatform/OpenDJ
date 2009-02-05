@@ -45,21 +45,16 @@ import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPConstants;
-import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tasks.ShutdownTask;
 import org.opends.server.tools.tasks.TaskTool;
-import org.opends.server.types.Control;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.NullOutputStream;
-import org.opends.server.types.RawAttribute;
+import org.opends.server.types.*;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
@@ -641,61 +636,61 @@ public class StopDS
 
     // Construct the add request to send to the server.
     String taskID = UUID.randomUUID().toString();
-    ASN1OctetString entryDN =
-         new ASN1OctetString(ATTR_TASK_ID + "=" + taskID + "," +
-                             SCHEDULED_TASK_BASE_RDN + "," + DN_TASK_ROOT);
+    ByteString entryDN =
+        ByteString.valueOf(ATTR_TASK_ID + "=" + taskID + "," +
+                            SCHEDULED_TASK_BASE_RDN + "," + DN_TASK_ROOT);
 
     ArrayList<RawAttribute> attributes = new ArrayList<RawAttribute>();
 
-    ArrayList<ASN1OctetString> ocValues = new ArrayList<ASN1OctetString>(3);
-    ocValues.add(new ASN1OctetString("top"));
-    ocValues.add(new ASN1OctetString("ds-task"));
-    ocValues.add(new ASN1OctetString("ds-task-shutdown"));
+    ArrayList<ByteString> ocValues = new ArrayList<ByteString>(3);
+    ocValues.add(ByteString.valueOf("top"));
+    ocValues.add(ByteString.valueOf("ds-task"));
+    ocValues.add(ByteString.valueOf("ds-task-shutdown"));
     attributes.add(new LDAPAttribute(ATTR_OBJECTCLASS, ocValues));
 
-    ArrayList<ASN1OctetString> taskIDValues = new ArrayList<ASN1OctetString>(1);
-    taskIDValues.add(new ASN1OctetString(taskID));
+    ArrayList<ByteString> taskIDValues = new ArrayList<ByteString>(1);
+    taskIDValues.add(ByteString.valueOf(taskID));
     attributes.add(new LDAPAttribute(ATTR_TASK_ID, taskIDValues));
 
-    ArrayList<ASN1OctetString> classValues = new ArrayList<ASN1OctetString>(1);
-    classValues.add(new ASN1OctetString(ShutdownTask.class.getName()));
+    ArrayList<ByteString> classValues = new ArrayList<ByteString>(1);
+    classValues.add(ByteString.valueOf(ShutdownTask.class.getName()));
     attributes.add(new LDAPAttribute(ATTR_TASK_CLASS, classValues));
 
     if (restart.isPresent())
     {
-      ArrayList<ASN1OctetString> restartValues =
-           new ArrayList<ASN1OctetString>(1);
-      restartValues.add(new ASN1OctetString("true"));
+      ArrayList<ByteString> restartValues =
+           new ArrayList<ByteString>(1);
+      restartValues.add(ByteString.valueOf("true"));
       attributes.add(new LDAPAttribute(ATTR_RESTART_SERVER, restartValues));
     }
 
     if (stopReason.isPresent())
     {
-      ArrayList<ASN1OctetString> stopReasonValues =
-           new ArrayList<ASN1OctetString>(1);
-      stopReasonValues.add(new ASN1OctetString(stopReason.getValue()));
+      ArrayList<ByteString> stopReasonValues =
+           new ArrayList<ByteString>(1);
+      stopReasonValues.add(ByteString.valueOf(stopReason.getValue()));
       attributes.add(new LDAPAttribute(ATTR_SHUTDOWN_MESSAGE,
                                        stopReasonValues));
     }
 
     if (stopTime != null)
     {
-      ArrayList<ASN1OctetString> stopTimeValues =
-           new ArrayList<ASN1OctetString>(1);
+      ArrayList<ByteString> stopTimeValues =
+           new ArrayList<ByteString>(1);
 
       SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
       dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-      stopTimeValues.add(new ASN1OctetString(dateFormat.format(stopTime)));
+      stopTimeValues.add(ByteString.valueOf(dateFormat.format(stopTime)));
       attributes.add(new LDAPAttribute(ATTR_TASK_SCHEDULED_START_TIME,
                                        stopTimeValues));
     }
 
-    ArrayList<LDAPControl> controls = new ArrayList<LDAPControl>();
+    ArrayList<Control> controls = new ArrayList<Control>();
     if (proxyAuthzID.isPresent())
     {
       Control c = new ProxiedAuthV2Control(
-                           new ASN1OctetString(proxyAuthzID.getValue()));
-      controls.add(new LDAPControl(c));
+          ByteString.valueOf(proxyAuthzID.getValue()));
+      controls.add(c);
     }
 
     AddRequestProtocolOp addRequest = new AddRequestProtocolOp(entryDN,

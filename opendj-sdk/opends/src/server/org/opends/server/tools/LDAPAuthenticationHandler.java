@@ -37,7 +37,6 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.PrivilegedExceptionAction;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -58,15 +57,16 @@ import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslClient;
 
 import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
-import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.LDAPException;
+import org.opends.server.types.Control;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteSequence;
 import org.opends.server.util.Base64;
 import org.opends.server.util.PasswordReader;
 
@@ -100,7 +100,7 @@ public class LDAPAuthenticationHandler
        implements PrivilegedExceptionAction<Object>, CallbackHandler
 {
   // The bind DN for GSSAPI authentication.
-  private ASN1OctetString gssapiBindDN;
+  private ByteSequence gssapiBindDN;
 
   // The LDAP reader that will be used to read data from the server.
   private LDAPReader reader;
@@ -276,10 +276,10 @@ public class LDAPAuthenticationHandler
    * @throws  LDAPException  If the bind fails or some other server-side problem
    *                         occurs during processing.
    */
-  public String doSimpleBind(int ldapVersion, ASN1OctetString bindDN,
-                             ASN1OctetString bindPassword,
-                             ArrayList<LDAPControl> requestControls,
-                             ArrayList<LDAPControl> responseControls)
+  public String doSimpleBind(int ldapVersion, ByteSequence bindDN,
+                             ByteSequence bindPassword,
+                             List<Control> requestControls,
+                             List<Control> responseControls)
          throws ClientException, LDAPException
   {
     // See if we need to prompt the user for the password.
@@ -287,21 +287,21 @@ public class LDAPAuthenticationHandler
     {
       if (bindDN == null)
       {
-        bindPassword = new ASN1OctetString();
+        bindPassword = ByteString.empty();
       }
       else
       {
         System.out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(
-                bindDN.stringValue()));
+                bindDN.toString()));
         System.out.flush();
         char[] pwChars = PasswordReader.readPassword();
         if (pwChars == null)
         {
-          bindPassword = new ASN1OctetString();
+          bindPassword = ByteString.empty();
         }
         else
         {
-          bindPassword = new ASN1OctetString(getBytes(pwChars));
+          bindPassword = ByteString.wrap(getBytes(pwChars));
           Arrays.fill(pwChars, '\u0000');
         }
       }
@@ -311,13 +311,14 @@ public class LDAPAuthenticationHandler
     // Make sure that critical elements aren't null.
     if (bindDN == null)
     {
-      bindDN = new ASN1OctetString();
+      bindDN = ByteString.empty();
     }
 
 
     // Create the bind request and send it to the server.
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(bindDN, ldapVersion, bindPassword);
+         new BindRequestProtocolOp(bindDN.toByteString(), ldapVersion,
+             bindPassword.toByteString());
     LDAPMessage bindRequestMessage =
          new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest,
                          requestControls);
@@ -387,7 +388,7 @@ public class LDAPAuthenticationHandler
 
     // See if there are any controls in the response.  If so, then add them to
     // the response controls list.
-    ArrayList<LDAPControl> respControls = responseMessage.getControls();
+    List<Control> respControls = responseMessage.getControls();
     if ((respControls != null) && (! respControls.isEmpty()))
     {
       responseControls.addAll(respControls);
@@ -482,17 +483,17 @@ public class LDAPAuthenticationHandler
    * @throws  LDAPException  If the bind fails or some other server-side problem
    *                         occurs during processing.
    */
-  public String doSASLBind(ASN1OctetString bindDN, ASN1OctetString bindPassword,
+  public String doSASLBind(ByteSequence bindDN, ByteSequence bindPassword,
                            String mechanism,
                            Map<String,List<String>> saslProperties,
-                           ArrayList<LDAPControl> requestControls,
-                           ArrayList<LDAPControl> responseControls)
+                           List<Control> requestControls,
+                           List<Control> responseControls)
          throws ClientException, LDAPException
   {
     // Make sure that critical elements aren't null.
     if (bindDN == null)
     {
-      bindDN = new ASN1OctetString();
+      bindDN = ByteString.empty();
     }
 
     if ((mechanism == null) || (mechanism.length() == 0))
@@ -569,10 +570,10 @@ public class LDAPAuthenticationHandler
    * @throws  LDAPException  If the bind fails or some other server-side problem
    *                         occurs during processing.
    */
-  public String doSASLAnonymous(ASN1OctetString bindDN,
+  public String doSASLAnonymous(ByteSequence bindDN,
                      Map<String,List<String>> saslProperties,
-                     ArrayList<LDAPControl> requestControls,
-                     ArrayList<LDAPControl> responseControls)
+                     List<Control> requestControls,
+                     List<Control> responseControls)
          throws ClientException, LDAPException
   {
     String trace = null;
@@ -620,19 +621,19 @@ public class LDAPAuthenticationHandler
 
 
     // Construct the bind request and send it to the server.
-    ASN1OctetString saslCredentials;
+    ByteString saslCredentials;
     if (trace == null)
     {
       saslCredentials = null;
     }
     else
     {
-      saslCredentials = new ASN1OctetString(trace);
+      saslCredentials = ByteString.valueOf(trace);
     }
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(bindDN, SASL_MECHANISM_ANONYMOUS,
-                                   saslCredentials);
+         new BindRequestProtocolOp(bindDN.toByteString(),
+             SASL_MECHANISM_ANONYMOUS, saslCredentials);
     LDAPMessage requestMessage =
          new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest,
                          requestControls);
@@ -702,7 +703,7 @@ public class LDAPAuthenticationHandler
 
     // See if there are any controls in the response.  If so, then add them to
     // the response controls list.
-    ArrayList<LDAPControl> respControls = responseMessage.getControls();
+    List<Control> respControls = responseMessage.getControls();
     if ((respControls != null) && (! respControls.isEmpty()))
     {
       responseControls.addAll(respControls);
@@ -813,11 +814,11 @@ public class LDAPAuthenticationHandler
    * @throws  LDAPException  If the bind fails or some other server-side problem
    *                         occurs during processing.
    */
-  public String doSASLCRAMMD5(ASN1OctetString bindDN,
-                     ASN1OctetString bindPassword,
+  public String doSASLCRAMMD5(ByteSequence bindDN,
+                     ByteSequence bindPassword,
                      Map<String,List<String>> saslProperties,
-                     ArrayList<LDAPControl> requestControls,
-                     ArrayList<LDAPControl> responseControls)
+                     List<Control> requestControls,
+                     List<Control> responseControls)
          throws ClientException, LDAPException
   {
     String authID  = null;
@@ -883,11 +884,11 @@ public class LDAPAuthenticationHandler
       char[] pwChars = PasswordReader.readPassword();
       if (pwChars == null)
       {
-        bindPassword = new ASN1OctetString();
+        bindPassword = ByteString.empty();
       }
       else
       {
-        bindPassword = new ASN1OctetString(getBytes(pwChars));
+        bindPassword = ByteString.wrap(getBytes(pwChars));
         Arrays.fill(pwChars, '\u0000');
       }
     }
@@ -897,7 +898,8 @@ public class LDAPAuthenticationHandler
     // we'll simply indicate that we want to use CRAM-MD5 so the server will
     // send us the challenge.
     BindRequestProtocolOp bindRequest1 =
-         new BindRequestProtocolOp(bindDN, SASL_MECHANISM_CRAM_MD5, null);
+         new BindRequestProtocolOp(bindDN.toByteString(),
+             SASL_MECHANISM_CRAM_MD5, null);
     // FIXME -- Should we include request controls in both stages or just the
     // second stage?
     LDAPMessage requestMessage1 =
@@ -1026,7 +1028,7 @@ public class LDAPAuthenticationHandler
 
     // Make sure that the bind response contains SASL credentials with the
     // challenge to use for the next stage of the bind.
-    ASN1OctetString serverChallenge = bindResponse1.getServerSASLCredentials();
+    ByteString serverChallenge = bindResponse1.getServerSASLCredentials();
     if (serverChallenge == null)
     {
       Message message = ERR_LDAPAUTH_NO_CRAMMD5_SERVER_CREDENTIALS.get();
@@ -1044,8 +1046,8 @@ public class LDAPAuthenticationHandler
 
     // Create and send the second bind request to the server.
     BindRequestProtocolOp bindRequest2 =
-         new BindRequestProtocolOp(bindDN, SASL_MECHANISM_CRAM_MD5,
-                                   new ASN1OctetString(buffer.toString()));
+         new BindRequestProtocolOp(bindDN.toByteString(),
+             SASL_MECHANISM_CRAM_MD5, ByteString.valueOf(buffer.toString()));
     LDAPMessage requestMessage2 =
          new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest2,
                          requestControls);
@@ -1115,7 +1117,7 @@ public class LDAPAuthenticationHandler
 
     // See if there are any controls in the response.  If so, then add them to
     // the response controls list.
-    ArrayList<LDAPControl> respControls = responseMessage2.getControls();
+    List<Control> respControls = responseMessage2.getControls();
     if ((respControls != null) && (! respControls.isEmpty()))
     {
       responseControls.addAll(respControls);
@@ -1193,8 +1195,8 @@ public class LDAPAuthenticationHandler
    * @throws  ClientException  If a problem occurs while attempting to perform
    *                           the necessary initialization.
    */
-  private String generateCRAMMD5Digest(ASN1OctetString password,
-                                       ASN1OctetString challenge)
+  private String generateCRAMMD5Digest(ByteSequence password,
+                                       ByteSequence challenge)
           throws ClientException
   {
     // Perform the necessary initialization if it hasn't been done yet.
@@ -1223,13 +1225,13 @@ public class LDAPAuthenticationHandler
 
 
     // Get the byte arrays backing the password and challenge.
-    byte[] p = password.value();
-    byte[] c = challenge.value();
+    byte[] p = password.toByteArray();
+    byte[] c = challenge.toByteArray();
 
 
     // If the password is longer than the HMAC-MD5 block length, then use an
     // MD5 digest of the password rather than the password itself.
-    if (p.length > HMAC_MD5_BLOCK_LENGTH)
+    if (password.length() > HMAC_MD5_BLOCK_LENGTH)
     {
       p = md5Digest.digest(p);
     }
@@ -1321,11 +1323,11 @@ public class LDAPAuthenticationHandler
    * @throws  LDAPException  If the bind fails or some other server-side problem
    *                         occurs during processing.
    */
-  public String doSASLDigestMD5(ASN1OctetString bindDN,
-                     ASN1OctetString bindPassword,
+  public String doSASLDigestMD5(ByteSequence bindDN,
+                     ByteSequence bindPassword,
                      Map<String,List<String>> saslProperties,
-                     ArrayList<LDAPControl> requestControls,
-                     ArrayList<LDAPControl> responseControls)
+                     List<Control> requestControls,
+                     List<Control> responseControls)
          throws ClientException, LDAPException
   {
     String  authID               = null;
@@ -1480,11 +1482,11 @@ public class LDAPAuthenticationHandler
       char[] pwChars = PasswordReader.readPassword();
       if (pwChars == null)
       {
-        bindPassword = new ASN1OctetString();
+        bindPassword = ByteString.empty();
       }
       else
       {
-        bindPassword = new ASN1OctetString(getBytes(pwChars));
+        bindPassword = ByteString.wrap(getBytes(pwChars));
         Arrays.fill(pwChars, '\u0000');
       }
     }
@@ -1494,7 +1496,8 @@ public class LDAPAuthenticationHandler
     // we'll simply indicate that we want to use DIGEST-MD5 so the server will
     // send us the challenge.
     BindRequestProtocolOp bindRequest1 =
-         new BindRequestProtocolOp(bindDN, SASL_MECHANISM_DIGEST_MD5, null);
+         new BindRequestProtocolOp(bindDN.toByteString(),
+             SASL_MECHANISM_DIGEST_MD5, null);
     // FIXME -- Should we include request controls in both stages or just the
     // second stage?
     LDAPMessage requestMessage1 =
@@ -1623,7 +1626,7 @@ public class LDAPAuthenticationHandler
 
     // Make sure that the bind response contains SASL credentials with the
     // information to use for the next stage of the bind.
-    ASN1OctetString serverCredentials =
+    ByteString serverCredentials =
          bindResponse1.getServerSASLCredentials();
     if (serverCredentials == null)
     {
@@ -1636,7 +1639,7 @@ public class LDAPAuthenticationHandler
     // particular, look at the realm, the nonce, the QoP modes, and the charset.
     // We'll only care about the realm if none was provided in the SASL
     // properties and only one was provided in the server SASL credentials.
-    String  credString = serverCredentials.stringValue();
+    String  credString = serverCredentials.toString();
     String  lowerCreds = toLowerCase(credString);
     String  nonce      = null;
     boolean useUTF8    = false;
@@ -1751,7 +1754,7 @@ public class LDAPAuthenticationHandler
     try
     {
       responseDigest = generateDigestMD5Response(authID, authzID,
-                                                 bindPassword.value(), realm,
+                                                 bindPassword, realm,
                                                  nonce, cnonce, nonceCount,
                                                  digestURI, qop, charset);
     }
@@ -1809,8 +1812,9 @@ public class LDAPAuthenticationHandler
 
     // Generate and send the second bind request.
     BindRequestProtocolOp bindRequest2 =
-         new BindRequestProtocolOp(bindDN, SASL_MECHANISM_DIGEST_MD5,
-                                   new ASN1OctetString(credBuffer.toString()));
+         new BindRequestProtocolOp(bindDN.toByteString(),
+             SASL_MECHANISM_DIGEST_MD5,
+             ByteString.valueOf(credBuffer.toString()));
     LDAPMessage requestMessage2 =
          new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest2,
                          requestControls);
@@ -1880,7 +1884,7 @@ public class LDAPAuthenticationHandler
 
     // See if there are any controls in the response.  If so, then add them to
     // the response controls list.
-    ArrayList<LDAPControl> respControls = responseMessage2.getControls();
+    List<Control> respControls = responseMessage2.getControls();
     if ((respControls != null) && (! respControls.isEmpty()))
     {
       responseControls.addAll(respControls);
@@ -1941,14 +1945,14 @@ public class LDAPAuthenticationHandler
 
     // Make sure that the bind response included server SASL credentials with
     // the appropriate rspauth value.
-    ASN1OctetString rspAuthCreds = bindResponse2.getServerSASLCredentials();
+    ByteString rspAuthCreds = bindResponse2.getServerSASLCredentials();
     if (rspAuthCreds == null)
     {
       Message message = ERR_LDAPAUTH_DIGESTMD5_NO_RSPAUTH_CREDS.get();
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
 
-    String credStr = toLowerCase(rspAuthCreds.stringValue());
+    String credStr = toLowerCase(rspAuthCreds.toString());
     if (! credStr.startsWith("rspauth="))
     {
       Message message = ERR_LDAPAUTH_DIGESTMD5_NO_RSPAUTH_CREDS.get();
@@ -1972,7 +1976,7 @@ public class LDAPAuthenticationHandler
     try
     {
       clientRspAuth =
-           generateDigestMD5RspAuth(authID, authzID, bindPassword.value(),
+           generateDigestMD5RspAuth(authID, authzID, bindPassword,
                                     realm, nonce, cnonce, nonceCount, digestURI,
                                     qop, charset);
     }
@@ -2195,7 +2199,7 @@ public class LDAPAuthenticationHandler
    *                                        invalid for some reason.
    */
   private String generateDigestMD5Response(String authID, String authzID,
-                                           byte[] password, String realm,
+                                           ByteSequence password, String realm,
                                            String nonce, String cnonce,
                                            String nonceCount, String digestURI,
                                            String qop, String charset)
@@ -2226,9 +2230,9 @@ public class LDAPAuthenticationHandler
     a1String1.append(':');
 
     byte[] a1Bytes1a = a1String1.toString().getBytes(charset);
-    byte[] a1Bytes1  = new byte[a1Bytes1a.length + password.length];
+    byte[] a1Bytes1  = new byte[a1Bytes1a.length + password.length()];
     System.arraycopy(a1Bytes1a, 0, a1Bytes1, 0, a1Bytes1a.length);
-    System.arraycopy(password, 0, a1Bytes1, a1Bytes1a.length, password.length);
+    password.copyTo(a1Bytes1, a1Bytes1a.length);
     byte[] urpHash = md5Digest.digest(a1Bytes1);
 
 
@@ -2308,7 +2312,7 @@ public class LDAPAuthenticationHandler
    *                                        invalid for some reason.
    */
   public byte[] generateDigestMD5RspAuth(String authID, String authzID,
-                                         byte[] password, String realm,
+                                         ByteSequence password, String realm,
                                          String nonce, String cnonce,
                                          String nonceCount, String digestURI,
                                          String qop, String charset)
@@ -2322,10 +2326,9 @@ public class LDAPAuthenticationHandler
     a1String1.append(':');
 
     byte[] a1Bytes1a = a1String1.toString().getBytes(charset);
-    byte[] a1Bytes1  = new byte[a1Bytes1a.length + password.length];
+    byte[] a1Bytes1  = new byte[a1Bytes1a.length + password.length()];
     System.arraycopy(a1Bytes1a, 0, a1Bytes1, 0, a1Bytes1a.length);
-    System.arraycopy(password, 0, a1Bytes1, a1Bytes1a.length,
-                     password.length);
+    password.copyTo(a1Bytes1, a1Bytes1a.length);
     byte[] urpHash = md5Digest.digest(a1Bytes1);
 
 
@@ -2460,10 +2463,10 @@ public class LDAPAuthenticationHandler
    * @throws  LDAPException  If the bind fails or some other server-side problem
    *                         occurs during processing.
    */
-  public String doSASLExternal(ASN1OctetString bindDN,
+  public String doSASLExternal(ByteSequence bindDN,
                      Map<String,List<String>> saslProperties,
-                     ArrayList<LDAPControl> requestControls,
-                     ArrayList<LDAPControl> responseControls)
+                     List<Control> requestControls,
+                     List<Control> responseControls)
          throws ClientException, LDAPException
   {
     // Make sure that no SASL properties were provided.
@@ -2478,7 +2481,8 @@ public class LDAPAuthenticationHandler
 
     // Construct the bind request and send it to the server.
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(bindDN, SASL_MECHANISM_EXTERNAL, null);
+         new BindRequestProtocolOp(bindDN.toByteString(),
+             SASL_MECHANISM_EXTERNAL, null);
     LDAPMessage requestMessage =
          new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest,
                          requestControls);
@@ -2548,7 +2552,7 @@ public class LDAPAuthenticationHandler
 
     // See if there are any controls in the response.  If so, then add them to
     // the response controls list.
-    ArrayList<LDAPControl> respControls = responseMessage.getControls();
+    List<Control> respControls = responseMessage.getControls();
     if ((respControls != null) && (! respControls.isEmpty()))
     {
       responseControls.addAll(respControls);
@@ -2656,11 +2660,11 @@ public class LDAPAuthenticationHandler
    * @throws  LDAPException  If the bind fails or some other server-side problem
    *                         occurs during processing.
    */
-  public String doSASLGSSAPI(ASN1OctetString bindDN,
-                     ASN1OctetString bindPassword,
+  public String doSASLGSSAPI(ByteSequence bindDN,
+                     ByteSequence bindPassword,
                      Map<String,List<String>> saslProperties,
-                     ArrayList<LDAPControl> requestControls,
-                     ArrayList<LDAPControl> responseControls)
+                     List<Control> requestControls,
+                     List<Control> responseControls)
          throws ClientException, LDAPException
   {
     String kdc     = null;
@@ -2677,7 +2681,7 @@ public class LDAPAuthenticationHandler
     }
     else
     {
-      gssapiAuthPW = bindPassword.stringValue().toCharArray();
+      gssapiAuthPW = bindPassword.toString().toCharArray();
     }
 
 
@@ -2975,11 +2979,11 @@ public class LDAPAuthenticationHandler
    * @throws  LDAPException  If the bind fails or some other server-side problem
    *                         occurs during processing.
    */
-  public String doSASLPlain(ASN1OctetString bindDN,
-                     ASN1OctetString bindPassword,
+  public String doSASLPlain(ByteSequence bindDN,
+                     ByteSequence bindPassword,
                      Map<String,List<String>> saslProperties,
-                     ArrayList<LDAPControl> requestControls,
-                     ArrayList<LDAPControl> responseControls)
+                     List<Control> requestControls,
+                     List<Control> responseControls)
          throws ClientException, LDAPException
   {
     String authID  = null;
@@ -3062,11 +3066,11 @@ public class LDAPAuthenticationHandler
       char[] pwChars = PasswordReader.readPassword();
       if (pwChars == null)
       {
-        bindPassword = new ASN1OctetString();
+        bindPassword = ByteString.empty();
       }
       else
       {
-        bindPassword = new ASN1OctetString(getBytes(pwChars));
+        bindPassword = ByteString.wrap(getBytes(pwChars));
         Arrays.fill(pwChars, '\u0000');
       }
     }
@@ -3081,12 +3085,12 @@ public class LDAPAuthenticationHandler
     credBuffer.append('\u0000');
     credBuffer.append(authID);
     credBuffer.append('\u0000');
-    credBuffer.append(bindPassword.stringValue());
+    credBuffer.append(bindPassword.toString());
 
-    ASN1OctetString saslCredentials =
-         new ASN1OctetString(credBuffer.toString());
+    ByteString saslCredentials =
+        ByteString.valueOf(credBuffer.toString());
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(bindDN, SASL_MECHANISM_PLAIN,
+         new BindRequestProtocolOp(bindDN.toByteString(), SASL_MECHANISM_PLAIN,
                                 saslCredentials);
     LDAPMessage requestMessage =
          new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest,
@@ -3157,7 +3161,7 @@ public class LDAPAuthenticationHandler
 
     // See if there are any controls in the response.  If so, then add them to
     // the response controls list.
-    ArrayList<LDAPControl> respControls = responseMessage.getControls();
+    List<Control> respControls = responseMessage.getControls();
     if ((respControls != null) && (! respControls.isEmpty()))
     {
       responseControls.addAll(respControls);
@@ -3294,13 +3298,13 @@ public class LDAPAuthenticationHandler
 
 
       // Get the SASL credentials to include in the initial bind request.
-      ASN1OctetString saslCredentials;
+      ByteString saslCredentials;
       if (saslClient.hasInitialResponse())
       {
         try
         {
           byte[] credBytes = saslClient.evaluateChallenge(new byte[0]);
-          saslCredentials = new ASN1OctetString(credBytes);
+          saslCredentials = ByteString.wrap(credBytes);
         }
         catch (Exception e)
         {
@@ -3318,8 +3322,8 @@ public class LDAPAuthenticationHandler
 
 
       BindRequestProtocolOp bindRequest =
-           new BindRequestProtocolOp(gssapiBindDN, SASL_MECHANISM_GSSAPI,
-                                     saslCredentials);
+           new BindRequestProtocolOp(gssapiBindDN.toByteString(),
+               SASL_MECHANISM_GSSAPI, saslCredentials);
       // FIXME -- Add controls here?
       LDAPMessage requestMessage =
            new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest);
@@ -3436,13 +3440,13 @@ public class LDAPAuthenticationHandler
         {
           // We should be done after this, but we still need to look for and
           // handle the server SASL credentials.
-          ASN1OctetString serverSASLCredentials =
+          ByteString serverSASLCredentials =
                bindResponse.getServerSASLCredentials();
           if (serverSASLCredentials != null)
           {
             try
             {
-              saslClient.evaluateChallenge(serverSASLCredentials.value());
+              saslClient.evaluateChallenge(serverSASLCredentials.toByteArray());
             }
             catch (Exception e)
             {
@@ -3469,7 +3473,7 @@ public class LDAPAuthenticationHandler
         else if (resultCode == LDAPResultCode.SASL_BIND_IN_PROGRESS)
         {
           // Read the response and process the server SASL credentials.
-          ASN1OctetString serverSASLCredentials =
+          ByteString serverSASLCredentials =
                bindResponse.getServerSASLCredentials();
           byte[] credBytes;
           try
@@ -3480,8 +3484,8 @@ public class LDAPAuthenticationHandler
             }
             else
             {
-              credBytes =
-                   saslClient.evaluateChallenge(serverSASLCredentials.value());
+              credBytes = saslClient.evaluateChallenge(
+                  serverSASLCredentials.toByteArray());
             }
           }
           catch (Exception e)
@@ -3495,8 +3499,8 @@ public class LDAPAuthenticationHandler
 
           // Send the next bind in the sequence to the server.
           bindRequest =
-               new BindRequestProtocolOp(gssapiBindDN, SASL_MECHANISM_GSSAPI,
-                                         new ASN1OctetString(credBytes));
+               new BindRequestProtocolOp(gssapiBindDN.toByteString(),
+                   SASL_MECHANISM_GSSAPI, ByteString.wrap(credBytes));
           // FIXME -- Add controls here?
           requestMessage =
                new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest);
@@ -3700,7 +3704,7 @@ public class LDAPAuthenticationHandler
    * @throws  LDAPException  If a server-side problem occurs during the request
    *                         processing.
    */
-  public ASN1OctetString requestAuthorizationIdentity()
+  public ByteString requestAuthorizationIdentity()
          throws ClientException, LDAPException
   {
     // Construct the extended request and send it to the server.
@@ -3810,14 +3814,13 @@ public class LDAPAuthenticationHandler
 
 
     // Get the authorization ID (if there is one) and return it to the caller.
-    ASN1OctetString authzID = extendedResponse.getValue();
-    if ((authzID == null) || (authzID.value() == null) ||
-        (authzID.value().length == 0))
+    ByteString authzID = extendedResponse.getValue();
+    if ((authzID == null) || (authzID.length() == 0))
     {
       return null;
     }
 
-    String valueString = authzID.stringValue();
+    String valueString = authzID.toString();
     if ((valueString == null) || (valueString.length() == 0) ||
         valueString.equalsIgnoreCase("dn:"))
     {

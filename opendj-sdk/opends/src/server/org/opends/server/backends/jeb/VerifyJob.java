@@ -44,7 +44,6 @@ import com.sleepycat.je.Transaction;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.ServerConstants;
 
@@ -472,8 +471,9 @@ public class VerifyJob
         Entry entry;
         try
         {
-          entry = JebFormat.entryFromDatabase(data.getData(),
-                                 rootContainer.getCompressedSchema());
+          entry = ID2Entry.entryFromDatabase(
+              ByteString.wrap(data.getData()),
+              rootContainer.getCompressedSchema());
         }
         catch (Exception e)
         {
@@ -578,7 +578,7 @@ public class VerifyJob
         DN dn;
         try
         {
-          dn = DN.decode(new ASN1OctetString(key.getData()));
+          dn = DN.decode(ByteString.wrap(key.getData()));
         }
         catch (DirectoryException e)
         {
@@ -955,7 +955,7 @@ public class VerifyJob
       hashMap = new HashMap<ByteString, Long>();
       entryLimitMap.put(index, hashMap);
     }
-    ByteString octetString = new ASN1OctetString(key);
+    ByteString octetString = ByteString.wrap(key);
     Long counter = hashMap.get(octetString);
     if (counter == null)
     {
@@ -1142,7 +1142,7 @@ public class VerifyJob
           attrType.getOrderingMatchingRule();
       ApproximateMatchingRule approximateMatchingRule =
           attrType.getApproximateMatchingRule();
-      ASN1OctetString previousValue = null;
+      ByteString previousValue = null;
 
       OperationStatus status;
       for (status = cursor.getFirst(key, data, LockMode.DEFAULT);
@@ -1184,7 +1184,7 @@ public class VerifyJob
             case SUBSTRING:
               ArrayList<ByteString> subAnyElements =
                    new ArrayList<ByteString>(1);
-              subAnyElements.add(new ASN1OctetString(value));
+              subAnyElements.add(ByteString.wrap(value));
 
               sf = SearchFilter.createSubstringFilter(attrType,null,
                                                       subAnyElements,null);
@@ -1197,13 +1197,14 @@ public class VerifyJob
               // 2. Make sure the key value is greater then the previous key
               //    value.
               assertionValue =
-                  new AttributeValue(attrType, new ASN1OctetString(value));
+                  AttributeValues.create(attrType,
+                      ByteString.wrap(value));
 
               sf = SearchFilter.createEqualityFilter(attrType,assertionValue);
 
               if(orderingMatchingRule != null && previousValue != null)
               {
-                ASN1OctetString thisValue = new ASN1OctetString(value);
+                ByteString thisValue = ByteString.wrap(value);
                 int order = orderingMatchingRule.compareValues(thisValue,
                                                                previousValue);
                 if(order > 0)
@@ -1214,8 +1215,8 @@ public class VerifyJob
                     TRACER.debugError("Reversed ordering of index keys " +
                         "(keys dumped in the order found in database)%n" +
                         "Key 1:%n%s%nKey 2:%n%s",
-                               keyDump(index, thisValue.value()),
-                               keyDump(index,previousValue.value()));
+                               keyDump(index, thisValue.toByteArray()),
+                               keyDump(index,previousValue.toByteArray()));
                   }
                   continue;
                 }
@@ -1225,8 +1226,9 @@ public class VerifyJob
                   if(debugEnabled())
                   {
                     TRACER.debugError("Duplicate index keys%nKey 1:%n%s%n" +
-                        "Key2:%n%s", keyDump(index, thisValue.value()),
-                                     keyDump(index,previousValue.value()));
+                        "Key2:%n%s", keyDump(index, thisValue.toByteArray()),
+                                     keyDump(index,
+                                         previousValue.toByteArray()));
                   }
                   continue;
                 }
@@ -1238,7 +1240,8 @@ public class VerifyJob
               break;
             case EQ:
               assertionValue =
-                   new AttributeValue(attrType, new ASN1OctetString(value));
+                  AttributeValues.create(attrType,
+                      ByteString.wrap(value));
 
               sf = SearchFilter.createEqualityFilter(attrType,assertionValue);
               break;
@@ -1310,7 +1313,7 @@ public class VerifyJob
               }
               else
               {
-                ByteString normalizedValue = new ASN1OctetString(value);
+                ByteString normalizedValue = ByteString.wrap(value);
                 List<Attribute> attrs = entry.getAttribute(attrType);
                 if ((attrs != null) && (!attrs.isEmpty()))
                 {
@@ -1839,7 +1842,7 @@ public class VerifyJob
       {
         for (AttributeValue value : attr)
         {
-          byte[] normalizedBytes = value.getNormalizedValue().value();
+          byte[] normalizedBytes = value.getNormalizedValue().toByteArray();
 
           // Equality index.
           if (equalityIndex != null)
@@ -1886,7 +1889,7 @@ public class VerifyJob
             DatabaseEntry key = new DatabaseEntry();
             for (ByteString keyBytes : keyBytesSet)
             {
-              key.setData(keyBytes.value());
+              key.setData(keyBytes.toByteArray());
               try
               {
                 ConditionResult cr;
@@ -1929,7 +1932,7 @@ public class VerifyJob
                  attr.getAttributeType().getOrderingMatchingRule();
 
             normalizedBytes =
-                 orderingRule.normalizeValue(value.getValue()).value();
+                 orderingRule.normalizeValue(value.getValue()).toByteArray();
 
             DatabaseEntry key = new DatabaseEntry(normalizedBytes);
             try
@@ -1972,7 +1975,7 @@ public class VerifyJob
                 attr.getAttributeType().getApproximateMatchingRule();
 
             normalizedBytes =
-                approximateRule.normalizeValue(value.getValue()).value();
+                approximateRule.normalizeValue(value.getValue()).toByteArray();
 
             DatabaseEntry key = new DatabaseEntry(normalizedBytes);
             try

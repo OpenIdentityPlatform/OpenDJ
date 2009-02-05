@@ -41,13 +41,9 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DirectoryException;
 
 
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
@@ -99,7 +95,7 @@ public class DirectoryStringSyntax
     {
       // Make sure that the value is valid.
       value.getNormalizedValue();
-      return value.getStringValue();
+      return value.getValue().toString();
     }
   };
 
@@ -291,10 +287,10 @@ public class DirectoryStringSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteString value,
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
-    if (allowZeroLengthValues || (value.value().length > 0))
+    if (allowZeroLengthValues || (value.length() > 0))
     {
       return true;
     }

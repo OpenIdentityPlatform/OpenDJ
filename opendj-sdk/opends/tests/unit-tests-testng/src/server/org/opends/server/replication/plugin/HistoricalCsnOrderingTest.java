@@ -40,7 +40,6 @@ import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.ReplicationTestCase;
@@ -164,8 +163,8 @@ extends ReplicationTestCase
     ChangeNumber del1 = new ChangeNumber(1, (short) 0, (short) 1);
     ChangeNumber del2 = new ChangeNumber(1, (short) 1, (short) 1);
 
-    ByteString v1 = new ASN1OctetString("a"+":"+del1.toString());
-    ByteString v2 = new ASN1OctetString("a"+":"+del2.toString());
+    ByteString v1 = ByteString.valueOf("a"+":"+del1.toString());
+    ByteString v2 = ByteString.valueOf("a"+":"+del2.toString());
 
     int cmp = r.compareValues(v1, v1);
     assertTrue(cmp == 0);
@@ -222,7 +221,7 @@ extends ReplicationTestCase
     assertTrue(attrs1.isEmpty() != true);
 
     String histValue =
-      attrs1.get(0).iterator().next().getStringValue();
+      attrs1.get(0).iterator().next().getValue().toString();
 
     logError(Message.raw(Category.SYNC, Severity.INFORMATION,
         "First historical value:" + histValue));
@@ -244,7 +243,7 @@ extends ReplicationTestCase
 
     for (AttributeValue av : attrs2.get(0)) {
       logError(Message.raw(Category.SYNC, Severity.INFORMATION,
-          "Second historical value:" + av.getStringValue()));
+          "Second historical value:" + av.getValue().toString()));
     }
 
     // Build a change number from the first modification

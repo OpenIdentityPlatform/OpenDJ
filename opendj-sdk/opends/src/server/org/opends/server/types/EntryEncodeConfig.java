@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -91,7 +91,7 @@ public final class EntryEncodeConfig
   private final boolean excludeDN;
 
   // The encoded representation of this encode configuration.
-  private final byte[] encodedRepresentation;
+  private final byte encodedRepresentation;
 
   // The compressed schema handler for this encode configuration.
   private final CompressedSchema compressedSchema;
@@ -110,7 +110,7 @@ public final class EntryEncodeConfig
 
     compressedSchema = DirectoryServer.getDefaultCompressedSchema();
 
-    encodedRepresentation = new byte[] { 0x00 };
+    encodedRepresentation = 0x00;
   }
 
 
@@ -152,7 +152,7 @@ public final class EntryEncodeConfig
       flagByte |= ENCODE_FLAG_COMPRESS_OCS;
     }
 
-    encodedRepresentation = new byte[] { flagByte };
+    encodedRepresentation = flagByte;
   }
 
 
@@ -196,7 +196,7 @@ public final class EntryEncodeConfig
       flagByte |= ENCODE_FLAG_COMPRESS_OCS;
     }
 
-    encodedRepresentation = new byte[] { flagByte };
+    encodedRepresentation = flagByte;
   }
 
 
@@ -262,23 +262,21 @@ public final class EntryEncodeConfig
    * Encodes this entry encode configuration into a byte array
    * suitable for inclusion in the encoded entry.
    *
-   * @return  A byte array containing the encoded configuration.
+   * @param buffer The buffer to encode this configuration to.
    */
-  public byte[] encode()
+  public void encode(ByteStringBuilder buffer)
   {
-    return encodedRepresentation;
+    buffer.appendBERLength(1);
+    buffer.append(encodedRepresentation);
   }
 
 
-
   /**
-   * Decodes the entry encode configuration from the specified portion
-   * of the given byte array.
+   * Decodes the entry encode configuration from current position and
+   * length of the given byte array.
    *
-   * @param  encodedEntry      The byte array containing the encoded
+   * @param  buffer            The byte array containing the encoded
    *                           entry.
-   * @param  startPos          The position at which to start decoding
-   *                           the encode configuration.
    * @param  length            The number of bytes contained in the
    *                           encode configuration.
    * @param  compressedSchema  The compressed schema manager to use
@@ -290,8 +288,8 @@ public final class EntryEncodeConfig
    *                              properly decoded.
    */
   public static EntryEncodeConfig
-                     decode(byte[] encodedEntry, int startPos,
-                     int length, CompressedSchema compressedSchema)
+                     decode(ByteSequenceReader buffer, int length,
+                            CompressedSchema compressedSchema)
          throws DirectoryException
   {
     if (length != 1)
@@ -303,21 +301,22 @@ public final class EntryEncodeConfig
     }
 
     boolean excludeDN = false;
-    if ((encodedEntry[startPos] & ENCODE_FLAG_EXCLUDE_DN) ==
+    byte b = buffer.get();
+    if ((b & ENCODE_FLAG_EXCLUDE_DN) ==
         ENCODE_FLAG_EXCLUDE_DN)
     {
       excludeDN = true;
     }
 
     boolean compressAttrDescriptions = false;
-    if ((encodedEntry[startPos] & ENCODE_FLAG_COMPRESS_ADS) ==
+    if ((b & ENCODE_FLAG_COMPRESS_ADS) ==
         ENCODE_FLAG_COMPRESS_ADS)
     {
       compressAttrDescriptions = true;
     }
 
     boolean compressObjectClassSets = false;
-    if ((encodedEntry[startPos] & ENCODE_FLAG_COMPRESS_OCS) ==
+    if ((b & ENCODE_FLAG_COMPRESS_OCS) ==
         ENCODE_FLAG_COMPRESS_OCS)
     {
       compressObjectClassSets = true;

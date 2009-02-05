@@ -41,19 +41,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.MemberList;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
-import org.opends.server.types.VirtualAttributeRule;
+import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -125,7 +113,7 @@ public class IsMemberOfVirtualAttributeProvider
       {
         if (g.isMember(entry))
         {
-          values.add(new AttributeValue(rule.getAttributeType(),
+          values.add(AttributeValues.create(rule.getAttributeType(),
                                         g.getGroupDN().toString()));
         }
       }

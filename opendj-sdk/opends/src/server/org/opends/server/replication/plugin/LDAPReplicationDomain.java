@@ -87,7 +87,6 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -115,7 +114,8 @@ import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.opends.server.types.AttributeValues;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
@@ -178,18 +178,19 @@ public class LDAPReplicationDomain extends ReplicationDomain
 
   // The update to replay message queue where the listener thread is going to
   // push incoming update messages.
-  private LinkedBlockingQueue<UpdateToReplay> updateToReplayQueue;
-  private AtomicInteger numResolvedNamingConflicts = new AtomicInteger();
-  private AtomicInteger numResolvedModifyConflicts = new AtomicInteger();
-  private AtomicInteger numUnresolvedNamingConflicts = new AtomicInteger();
-  private int debugCount = 0;
+  private final LinkedBlockingQueue<UpdateToReplay> updateToReplayQueue;
+  private final AtomicInteger numResolvedNamingConflicts = new AtomicInteger();
+  private final AtomicInteger numResolvedModifyConflicts = new AtomicInteger();
+  private final AtomicInteger numUnresolvedNamingConflicts =
+    new AtomicInteger();
+  private final int debugCount = 0;
   private final PersistentServerState state;
   private int numReplayedPostOpCalled = 0;
 
   private long generationId = -1;
   private boolean generationIdSavedStatus = false;
 
-  private ChangeNumberGenerator generator;
+  private final ChangeNumberGenerator generator;
 
   /**
    * This object is used to store the list of update currently being
@@ -198,7 +199,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
    * correct order to the replication server and that the ServerState
    * is not updated too early.
    */
-  private PendingChanges pendingChanges;
+  private final PendingChanges pendingChanges;
 
   /**
    * It contain the updates that were done on other servers, transmitted
@@ -207,15 +208,15 @@ public class LDAPReplicationDomain extends ReplicationDomain
    * are correctly fulfilled and to to make sure that the ServerState is
    * not updated too early.
    */
-  private RemotePendingChanges remotePendingChanges;
+  private final RemotePendingChanges remotePendingChanges;
 
-  private short serverId;
+  private final short serverId;
 
-  private DN baseDn;
+  private final DN baseDn;
 
   private boolean shutdown = false;
 
-  private InternalClientConnection conn =
+  private final InternalClientConnection conn =
       InternalClientConnection.getRootConnection();
 
   private boolean solveConflictFlag = true;
@@ -225,7 +226,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
 
   // This list is used to temporary store operations that needs
   // to be replayed at session establishment time.
-  private TreeSet<FakeOperation> replayOperations  =
+  private final TreeSet<FakeOperation> replayOperations  =
     new TreeSet<FakeOperation>(new FakeOperationComparator());;
 
   /**
@@ -240,7 +241,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
   /**
    * The DN of the configuration entry of this domain.
    */
-  private DN configDn;
+  private final DN configDn;
 
   /**
    * A boolean indicating if the thread used to save the persistentServerState
@@ -1071,8 +1072,9 @@ public class LDAPReplicationDomain extends ReplicationDomain
                * different operation.
                */
               op = msg.createOperation(conn);
-              if (op instanceof DeleteOperation)
-                op.addRequestControl(new SubtreeDeleteControl());
+              if (op instanceof DeleteOperation) {
+                op.addRequestControl(new SubtreeDeleteControl(false));
+              }
             }
           }
           else
@@ -1787,7 +1789,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
     AttributeType attrType = DirectoryServer.getAttributeType(DS_SYNC_CONFLICT,
         true);
-    Attribute attr = Attributes.create(attrType, new AttributeValue(
+    Attribute attr = Attributes.create(attrType, AttributeValues.create(
         attrType, conflictDN.toString()));
     List<Modification> mods = new ArrayList<Modification>();
     Modification mod = new Modification(ModificationType.REPLACE, attr);
@@ -2002,6 +2004,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getGenerationID()
   {
     return generationId;
@@ -2021,10 +2024,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   public ResultCode saveGenerationId(long generationId)
   {
     // The generationId is stored in the root entry of the domain.
-    ASN1OctetString asn1BaseDn = new ASN1OctetString(baseDn.toString());
+    ByteString asn1BaseDn = ByteString.valueOf(baseDn.toString());
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    ASN1OctetString value = new ASN1OctetString(Long.toString(generationId));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    ByteString value = ByteString.valueOf(Long.toString(generationId));
     values.add(value);
 
     LDAPAttribute attr =
@@ -2084,7 +2087,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       TRACER.debugInfo(
           "Attempt to read generation ID from DB " + baseDn.toString());
 
-    ASN1OctetString asn1BaseDn = new ASN1OctetString(baseDn.toString());
+    ByteString asn1BaseDn = ByteString.valueOf(baseDn.toString());
     boolean found = false;
     LDAPFilter filter;
     try
@@ -2145,8 +2148,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
             found=true;
             try
             {
-              generationId = Long.decode(attr.iterator().next().
-                  getStringValue());
+              generationId = Long.decode(attr.iterator().next().toString());
             }
             catch(Exception e)
             {
@@ -2262,6 +2264,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    *                             be produced.
    * @throws DirectoryException  When needed.
    */
+  @Override
   protected void exportBackend(OutputStream output) throws DirectoryException
   {
     exportBackend(output, false);
@@ -2472,6 +2475,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @param input                The InputStream from which
    * @throws DirectoryException  When needed.
    */
+  @Override
   public void importBackend(InputStream input) throws DirectoryException
   {
     LDIFImportConfig importConfig = null;
@@ -2912,7 +2916,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     attrs.add(Historical.ENTRYUIDNAME);
     attrs.add("*");
     return conn.processSearch(
-      new ASN1OctetString(baseDn.toString()),
+      ByteString.valueOf(baseDn.toString()),
       SearchScope.WHOLE_SUBTREE,
       DereferencePolicy.NEVER_DEREF_ALIASES,
       0, 0, false, filter,
@@ -2963,6 +2967,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    *
    * @return The number of objects in the replication domain.
    */
+  @Override
   public long countEntries() throws DirectoryException
   {
     Backend backend = retrievesBackend(baseDn);
@@ -3008,6 +3013,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    *
    * @return Monitoring attributes specific to the LDAPReplicationDomain.
    */
+  @Override
   public Collection<Attribute> getAdditionalMonitoring()
   {
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();

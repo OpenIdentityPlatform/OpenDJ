@@ -25,21 +25,18 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
 
 
 
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.types.ByteString;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
+
+import java.io.IOException;
 
 
 /**
@@ -55,7 +52,7 @@ public class DeleteRequestProtocolOp
   private static final DebugTracer TRACER = getTracer();
 
   // The DN for this delete request.
-  private ASN1OctetString dn;
+  private ByteString dn;
 
 
 
@@ -64,7 +61,7 @@ public class DeleteRequestProtocolOp
    *
    * @param  dn  The DN for this delete request protocol op.
    */
-  public DeleteRequestProtocolOp(ASN1OctetString dn)
+  public DeleteRequestProtocolOp(ByteString dn)
   {
     this.dn = dn;
   }
@@ -76,21 +73,20 @@ public class DeleteRequestProtocolOp
    *
    * @return  The DN for this delete request.
    */
-  public ASN1OctetString getDN()
+  public ByteString getDN()
   {
     return dn;
   }
 
-
-
   /**
-   * Specifies the DN for this delete request.
+   * Writes this protocol op to an ASN.1 output stream.
    *
-   * @param  dn  The DN for this delete request.
+   * @param stream The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public void setDN(ASN1OctetString dn)
+  public void write(ASN1Writer stream) throws IOException
   {
-    this.dn = dn;
+    stream.writeOctetString(OP_TYPE_DELETE_REQUEST, dn);
   }
 
 
@@ -118,53 +114,6 @@ public class DeleteRequestProtocolOp
   }
 
 
-
-  /**
-   * Encodes this protocol op to an ASN.1 element suitable for including in an
-   * LDAP message.
-   *
-   * @return  The ASN.1 element containing the encoded protocol op.
-   */
-  public ASN1Element encode()
-  {
-    dn.setType(OP_TYPE_DELETE_REQUEST);
-    return dn;
-  }
-
-
-
-  /**
-   * Decodes the provided ASN.1 element as an LDAP delete request protocol op.
-   *
-   * @param  element  The ASN.1 element to be decoded.
-   *
-   * @return  The decoded delete request protocol op.
-   *
-   * @throws  LDAPException  If a problem occurs while decoding the provided
-   *                         ASN.1 element as a delete request protocol op.
-   */
-  public static DeleteRequestProtocolOp decodeDeleteRequest(ASN1Element element)
-         throws LDAPException
-  {
-    try
-    {
-      return new DeleteRequestProtocolOp(element.decodeAsOctetString());
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_DELETE_REQUEST_DECODE_DN.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-  }
-
-
-
   /**
    * Appends a string representation of this LDAP protocol op to the provided
    * buffer.
@@ -174,7 +123,7 @@ public class DeleteRequestProtocolOp
   public void toString(StringBuilder buffer)
   {
     buffer.append("DeleteRequest(dn=");
-    dn.toString(buffer);
+    buffer.append(dn.toString());
     buffer.append(")");
   }
 
@@ -202,7 +151,7 @@ public class DeleteRequestProtocolOp
 
     buffer.append(indentBuf);
     buffer.append("  Entry DN:  ");
-    dn.toString(buffer);
+    buffer.append(dn.toString());
     buffer.append(EOL);
   }
 }

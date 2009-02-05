@@ -37,11 +37,11 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 
 
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.ByteSequence;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
@@ -78,6 +78,7 @@ public class AuthPasswordSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException
   {
@@ -97,6 +98,7 @@ public class AuthPasswordSyntax
    *
    * @return  The common name for this attribute syntax.
    */
+  @Override
   public String getSyntaxName()
   {
     return SYNTAX_AUTH_PASSWORD_NAME;
@@ -109,6 +111,7 @@ public class AuthPasswordSyntax
    *
    * @return  The OID for this attribute syntax.
    */
+  @Override
   public String getOID()
   {
     return SYNTAX_AUTH_PASSWORD_OID;
@@ -121,6 +124,7 @@ public class AuthPasswordSyntax
    *
    * @return  A description for this attribute syntax.
    */
+  @Override
   public String getDescription()
   {
     return SYNTAX_AUTH_PASSWORD_DESCRIPTION;
@@ -136,6 +140,7 @@ public class AuthPasswordSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if equality
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public EqualityMatchingRule getEqualityMatchingRule()
   {
     return defaultEqualityMatchingRule;
@@ -151,6 +156,7 @@ public class AuthPasswordSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if ordering
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public OrderingMatchingRule getOrderingMatchingRule()
   {
     // There is no ordering matching rule by default.
@@ -167,6 +173,7 @@ public class AuthPasswordSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if substring
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public SubstringMatchingRule getSubstringMatchingRule()
   {
     // There is no substring matching rule by default.
@@ -183,6 +190,7 @@ public class AuthPasswordSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if approximate
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
     // There is no approximate matching rule by default.
@@ -203,12 +211,13 @@ public class AuthPasswordSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteString value,
+  @Override
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     try
     {
-      decodeAuthPassword(value.stringValue());
+      decodeAuthPassword(value.toString());
       return true;
     }
     catch (DirectoryException de)
@@ -408,7 +417,6 @@ readAuthInfo:
 
     // The final component must be the authValue element, containing only
     // printable characters other than the dollar sign and space character.
-readAuthValue:
     while (pos < length)
     {
       char c = authPasswordValue.charAt(pos);
@@ -477,7 +485,7 @@ readAuthValue:
    * @return  <CODE>true</CODE> if the value appears to be encoded using the
    *          auth password syntax, or <CODE>false</CODE> if not.
    */
-  public static boolean isEncoded(ByteString value)
+  public static boolean isEncoded(ByteSequence value)
   {
     // FIXME -- Make this more efficient, and don't use exceptions for flow
     // control.
@@ -485,7 +493,7 @@ readAuthValue:
 
     try
     {
-      decodeAuthPassword(value.stringValue());
+      decodeAuthPassword(value.toString());
       return true;
     }
     catch (Exception e)
@@ -499,6 +507,7 @@ readAuthValue:
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isBinary()
   {
     return false;

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -45,6 +45,8 @@ import static org.opends.server.loggers.debug.
     DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.controls.ControlDecoder;
+import org.opends.server.protocols.ldap.LDAPControl;
 
 
 /**
@@ -378,6 +380,34 @@ public abstract class AbstractOperation
     return requestControls;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @SuppressWarnings("unchecked")
+  public final <T extends Control> T getRequestControl(
+      ControlDecoder<T> d) throws DirectoryException
+  {
+    String oid = d.getOID();
+    for(int i = 0; i < requestControls.size(); i++)
+    {
+      Control c = requestControls.get(i);
+      if(c.getOID().equals(oid))
+      {
+        if(c instanceof LDAPControl)
+        {
+          T decodedControl = d.decode(c.isCritical(),
+              ((LDAPControl) c).getValue());
+          requestControls.set(i, decodedControl);
+          return decodedControl;
+        }
+        else
+        {
+          return (T)c;
+        }
+      }
+    }
+    return null;
+  }
 
 
   /**

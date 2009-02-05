@@ -32,12 +32,12 @@ import java.io.IOException;
 
 import org.opends.messages.Message;
 import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.CompareRequestProtocolOp;
 import org.opends.server.protocols.ldap.CompareResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.tools.LDAPConnection;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.LDAPException;
 
 
@@ -87,10 +87,8 @@ public class DSMLCompareOperation
     // Read the attribute name and value for the compare request.
     AttributeValueAssertion attrValAssertion = compareRequest.getAssertion();
     String attrName = attrValAssertion.getName();
-    ASN1OctetString attrValue =
-      new ASN1OctetString(attrValAssertion.getValue());
-
-    ASN1OctetString dnStr = new ASN1OctetString(compareRequest.getDn());
+    ByteString attrValue = ByteString.valueOf(attrValAssertion.getValue());
+    ByteString dnStr = ByteString.valueOf(compareRequest.getDn());
 
     // Create and send the LDAP compare request to the server.
     ProtocolOp op = new CompareRequestProtocolOp(dnStr, attrName, attrValue);

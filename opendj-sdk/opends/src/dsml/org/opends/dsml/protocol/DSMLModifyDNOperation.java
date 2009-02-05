@@ -33,11 +33,11 @@ import java.io.IOException;
 import org.opends.messages.Message;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ModifyDNRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyDNResponseProtocolOp;
 import org.opends.server.protocols.ldap.ProtocolOp;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.LDAPException;
 
 
@@ -84,22 +84,21 @@ public class DSMLModifyDNOperation
   {
     LDAPResult modDNResponse = objFactory.createLDAPResult();
     modDNResponse.setRequestID(modifyDNRequest.getRequestID());
-
-    ASN1OctetString dnStr = new ASN1OctetString(modifyDNRequest.getDn());
-
+    ByteString dnStr = ByteString.valueOf(modifyDNRequest.getDn());
     ProtocolOp op = null;
 
-    if(modifyDNRequest.getNewSuperior() != null)
+    if (modifyDNRequest.getNewSuperior() != null)
     {
-      op = new ModifyDNRequestProtocolOp(dnStr,
-    new ASN1OctetString(modifyDNRequest.getNewrdn()),
-    modifyDNRequest.isDeleteoldrdn(),
-    new ASN1OctetString(modifyDNRequest.getNewSuperior()));
-    } else
+      op = new ModifyDNRequestProtocolOp(dnStr, ByteString
+          .valueOf(modifyDNRequest.getNewrdn()), modifyDNRequest
+          .isDeleteoldrdn(), ByteString.valueOf(modifyDNRequest
+          .getNewSuperior()));
+    }
+    else
     {
-      op = new ModifyDNRequestProtocolOp(dnStr,
-    new ASN1OctetString(modifyDNRequest.getNewrdn()),
-    modifyDNRequest.isDeleteoldrdn());
+      op = new ModifyDNRequestProtocolOp(dnStr, ByteString
+          .valueOf(modifyDNRequest.getNewrdn()), modifyDNRequest
+          .isDeleteoldrdn());
     }
 
     // Create and send the LDAP request to the server.

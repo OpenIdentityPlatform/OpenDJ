@@ -481,7 +481,7 @@ bindProcessing:
     // See if this is an anonymous bind.  If so, then determine whether
     // to allow it.
     ByteString simplePassword = getSimplePassword();
-    if ((simplePassword == null) || (simplePassword.value().length == 0))
+    if ((simplePassword == null) || (simplePassword.length() == 0))
     {
       return processAnonymousSimpleBind();
     }
@@ -1141,7 +1141,7 @@ bindProcessing:
         {
           try
           {
-            sizeLimit = Integer.parseInt(v.getStringValue());
+            sizeLimit = Integer.parseInt(v.getValue().toString());
           }
           catch (Exception e)
           {
@@ -1151,7 +1151,7 @@ bindProcessing:
             }
 
             logError(WARN_BIND_CANNOT_PROCESS_USER_SIZE_LIMIT.get(
-                          v.getStringValue(),
+                          v.getValue().toString(),
                           String.valueOf(userEntry.getDN())));
           }
         }
@@ -1178,7 +1178,7 @@ bindProcessing:
         {
           try
           {
-            timeLimit = Integer.parseInt(v.getStringValue());
+            timeLimit = Integer.parseInt(v.getValue().toString());
           }
           catch (Exception e)
           {
@@ -1188,7 +1188,7 @@ bindProcessing:
             }
 
             logError(WARN_BIND_CANNOT_PROCESS_USER_TIME_LIMIT.get(
-                          v.getStringValue(),
+                          v.getValue().toString(),
                           String.valueOf(userEntry.getDN())));
           }
         }
@@ -1216,7 +1216,7 @@ bindProcessing:
         {
           try
           {
-            idleTimeLimit = 1000L * Long.parseLong(v.getStringValue());
+            idleTimeLimit = 1000L * Long.parseLong(v.getValue().toString());
           }
           catch (Exception e)
           {
@@ -1226,7 +1226,7 @@ bindProcessing:
             }
 
             logError(WARN_BIND_CANNOT_PROCESS_USER_IDLE_TIME_LIMIT.get(
-                          v.getStringValue(),
+                          v.getValue().toString(),
                           String.valueOf(userEntry.getDN())));
           }
         }
@@ -1254,7 +1254,7 @@ bindProcessing:
         {
           try
           {
-            lookthroughLimit = Integer.parseInt(v.getStringValue());
+            lookthroughLimit = Integer.parseInt(v.getValue().toString());
           }
           catch (Exception e)
           {
@@ -1264,7 +1264,7 @@ bindProcessing:
             }
 
             logError(WARN_BIND_CANNOT_PROCESS_USER_LOOKTHROUGH_LIMIT.get(
-                          v.getStringValue(),
+                          v.getValue().toString(),
                           String.valueOf(userEntry.getDN())));
           }
         }

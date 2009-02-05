@@ -40,18 +40,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringFactory;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
-import org.opends.server.types.VirtualAttributeRule;
+import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -115,9 +104,9 @@ public class EntryDNVirtualAttributeProvider
                                        VirtualAttributeRule rule)
   {
     String normDNString = entry.getDN().toNormalizedString();
-    AttributeValue value = new AttributeValue(
-                                  ByteStringFactory.create(normDNString),
-                                  ByteStringFactory.create(normDNString));
+    AttributeValue value = AttributeValues.create(
+                                  ByteString.valueOf(normDNString),
+                                  ByteString.valueOf(normDNString));
     return Collections.singleton(value);
   }
 
@@ -145,7 +134,7 @@ public class EntryDNVirtualAttributeProvider
     try
     {
       String normalizedDN    = entry.getDN().toNormalizedString();
-      String normalizedValue = value.getNormalizedStringValue();
+      String normalizedValue = value.getNormalizedValue().toString();
       return normalizedDN.equals(normalizedValue);
     }
     catch (Exception e)
@@ -170,8 +159,8 @@ public class EntryDNVirtualAttributeProvider
   {
     String ndnString = entry.getDN().toNormalizedString();
 
-    AttributeValue v = new AttributeValue(ByteStringFactory.create(ndnString),
-                                          ByteStringFactory.create(ndnString));
+    AttributeValue v = AttributeValues.create(ByteString.valueOf(ndnString),
+        ByteString.valueOf(ndnString));
     return values.contains(v);
   }
 

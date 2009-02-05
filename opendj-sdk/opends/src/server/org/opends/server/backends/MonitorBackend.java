@@ -432,7 +432,7 @@ public class MonitorBackend
 
     // Get the RDN value and see if it matches the instance name for one of
     // the directory server monitor providers.
-    String rdnValue = entryRDN.getAttributeValue(0).getStringValue();
+    String rdnValue = entryRDN.getAttributeValue(0).getValue().toString();
     MonitorProvider<? extends MonitorProviderCfg> monitorProvider =
          DirectoryServer.getMonitorProvider(rdnValue.toLowerCase());
     if (monitorProvider == null)
@@ -506,7 +506,7 @@ public class MonitorBackend
   public boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-      return this.isATreeNode(entryDN);
+    return this.isATreeNode(entryDN);
   }
 
 
@@ -1295,6 +1295,7 @@ public class MonitorBackend
   /**
    * {@inheritDoc}
    */
+  @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
   }

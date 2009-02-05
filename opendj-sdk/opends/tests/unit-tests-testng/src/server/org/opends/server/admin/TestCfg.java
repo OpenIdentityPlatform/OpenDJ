@@ -34,7 +34,6 @@ import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.schema.ObjectClassSyntax;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.ObjectClass;
 
 
@@ -100,7 +99,7 @@ public final class TestCfg {
           + "MAY ( ds-cfg-base-dn $ ds-cfg-group-dn $ "
           + "ds-cfg-filter $ ds-cfg-conflict-behavior ) "
           + "X-ORIGIN 'OpenDS Directory Server' )";
-      ByteString b = ByteStringFactory.create(ocd);
+      ByteString b = ByteString.valueOf(ocd);
 
       TEST_PARENT_OCD = ObjectClassSyntax.decodeObjectClass(b, DirectoryServer
           .getSchema(), false);
@@ -115,7 +114,7 @@ public final class TestCfg {
           + "MAY ( ds-cfg-base-dn $ ds-cfg-group-dn $ "
           + "ds-cfg-filter $ ds-cfg-conflict-behavior $"
           + "ds-cfg-rotation-policy) " + "X-ORIGIN 'OpenDS Directory Server' )";
-      ByteString b = ByteStringFactory.create(ocd);
+      ByteString b = ByteString.valueOf(ocd);
 
       TEST_CHILD_OCD = ObjectClassSyntax.decodeObjectClass(b, DirectoryServer
           .getSchema(), false);

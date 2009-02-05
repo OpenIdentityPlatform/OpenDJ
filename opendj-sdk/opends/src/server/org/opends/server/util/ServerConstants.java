@@ -26,7 +26,7 @@
  */
 package org.opends.server.util;
 
-
+import org.opends.server.types.ByteString;
 
 /**
  * This class defines a set of constants that may be referenced throughout the
@@ -2969,5 +2969,20 @@ public final class ServerConstants
     "",
     "CDDL HEADER END"
   };
+
+  /**
+   * The value representing just one space character.
+   */
+  public static final ByteString SINGLE_SPACE_VALUE = ByteString.valueOf(" ");
+
+  /**
+   * The normalized true value.
+   */
+  public static final ByteString TRUE_VALUE = ByteString.valueOf("TRUE");
+
+  /**
+   * The normalized false value.
+   */
+  public static final ByteString FALSE_VALUE = ByteString.valueOf("FALSE");
 }
 

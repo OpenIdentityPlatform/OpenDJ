@@ -32,12 +32,12 @@ import java.io.IOException;
 
 import org.opends.messages.Message;
 import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.tools.LDAPConnection;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.LDAPException;
 
 
@@ -86,7 +86,7 @@ public class DSMLExtendedOperation
 
     String requestName = extendedRequest.getRequestName();
     Object value = extendedRequest.getRequestValue();
-    ASN1OctetString asnValue = new ASN1OctetString(value.toString());
+    ByteString asnValue = ByteString.valueOf(value.toString());
 
     // Create and send the LDAP request to the server.
     ProtocolOp op = new ExtendedRequestProtocolOp(requestName, asnValue);

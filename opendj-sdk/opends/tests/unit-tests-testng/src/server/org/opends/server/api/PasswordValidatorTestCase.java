@@ -39,10 +39,6 @@ import org.testng.annotations.AfterClass;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
 import org.opends.server.extensions.TestPasswordValidator;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
@@ -52,6 +48,7 @@ import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.tools.LDAPPasswordModify;
+import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
@@ -157,8 +154,8 @@ public class PasswordValidatorTestCase
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
                  0);
 
-    assertEquals(TestPasswordValidator.getLastNewPassword().value(),
-                 new ASN1OctetString("newPassword").value());
+    assertEquals(TestPasswordValidator.getLastNewPassword(),
+                 ByteString.valueOf("newPassword"));
     assertFalse(TestPasswordValidator.getLastCurrentPasswords().isEmpty());
   }
 
@@ -218,8 +215,8 @@ public class PasswordValidatorTestCase
                                                            null);
     assertFalse(returnCode == 0);
 
-    assertEquals(TestPasswordValidator.getLastNewPassword().value(),
-                 new ASN1OctetString("newPassword").value());
+    assertEquals(TestPasswordValidator.getLastNewPassword(),
+                 ByteString.valueOf("newPassword"));
     assertFalse(TestPasswordValidator.getLastCurrentPasswords().isEmpty());
 
     TestPasswordValidator.setNextReturnValue(true);
@@ -339,8 +336,8 @@ public class PasswordValidatorTestCase
          TestPasswordValidator.getLastCurrentPasswords();
     assertFalse(currentPasswords.isEmpty());
     assertEquals(currentPasswords.size(), 1);
-    assertEquals(currentPasswords.iterator().next().value(),
-                 new ASN1OctetString("password").value());
+    assertEquals(currentPasswords.iterator().next(),
+                 ByteString.valueOf("password"));
   }
 
 
@@ -401,8 +398,8 @@ public class PasswordValidatorTestCase
          TestPasswordValidator.getLastCurrentPasswords();
     assertFalse(currentPasswords.isEmpty());
     assertEquals(currentPasswords.size(), 1);
-    assertEquals(currentPasswords.iterator().next().value(),
-                 new ASN1OctetString("password").value());
+    assertEquals(currentPasswords.iterator().next(),
+                 ByteString.valueOf("password"));
   }
 
 
@@ -464,8 +461,8 @@ public class PasswordValidatorTestCase
          TestPasswordValidator.getLastCurrentPasswords();
     assertFalse(currentPasswords.isEmpty());
     assertEquals(currentPasswords.size(), 1);
-    assertEquals(currentPasswords.iterator().next().value(),
-                 new ASN1OctetString("password").value());
+    assertEquals(currentPasswords.iterator().next(),
+                 ByteString.valueOf("password"));
   }
 
 
@@ -509,40 +506,40 @@ public class PasswordValidatorTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(3000);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(3000);
 
     BindRequestProtocolOp bindRequest =
       new BindRequestProtocolOp(
-               new ASN1OctetString("uid=test.user,o=test"),
-                                3, new ASN1OctetString("password"));
+               ByteString.valueOf("uid=test.user,o=test"),
+                                3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("newPassword"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("newPassword"));
     LDAPAttribute attr = new LDAPAttribute("userPassword", values);
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
-                  new ASN1OctetString("uid=test.user,o=test"), mods);
+                  ByteString.valueOf("uid=test.user,o=test"), mods);
     message = new LDAPMessage(2, modifyRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     ModifyResponseProtocolOp modifyResponse =
          message.getModifyResponseProtocolOp();
     assertEquals(modifyResponse.getResultCode(), 0);
 
-    assertEquals(TestPasswordValidator.getLastNewPassword().value(),
-                 new ASN1OctetString("newPassword").value());
+    assertEquals(TestPasswordValidator.getLastNewPassword(),
+                 ByteString.valueOf("newPassword"));
     assertTrue(TestPasswordValidator.getLastCurrentPasswords().isEmpty());
   }
 
@@ -587,41 +584,41 @@ public class PasswordValidatorTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(3000);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(3000);
 
     BindRequestProtocolOp bindRequest =
       new BindRequestProtocolOp(
-               new ASN1OctetString("uid=test.user,o=test"),
-                                3, new ASN1OctetString("password"));
+               ByteString.valueOf("uid=test.user,o=test"),
+                                3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("newPassword"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("newPassword"));
     LDAPAttribute attr = new LDAPAttribute("userPassword", values);
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     TestPasswordValidator.setNextReturnValue(false);
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
-                  new ASN1OctetString("uid=test.user,o=test"), mods);
+                  ByteString.valueOf("uid=test.user,o=test"), mods);
     message = new LDAPMessage(2, modifyRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     ModifyResponseProtocolOp modifyResponse =
          message.getModifyResponseProtocolOp();
     assertFalse(modifyResponse.getResultCode() == 0);
 
-    assertEquals(TestPasswordValidator.getLastNewPassword().value(),
-                 new ASN1OctetString("newPassword").value());
+    assertEquals(TestPasswordValidator.getLastNewPassword(),
+                 ByteString.valueOf("newPassword"));
     assertTrue(TestPasswordValidator.getLastCurrentPasswords().isEmpty());
 
     TestPasswordValidator.setNextReturnValue(true);
@@ -669,39 +666,39 @@ public class PasswordValidatorTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(3000);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(3000);
 
     BindRequestProtocolOp bindRequest =
       new BindRequestProtocolOp(
-               new ASN1OctetString("uid=test.user,o=test"),
-                                3, new ASN1OctetString("password"));
+               ByteString.valueOf("uid=test.user,o=test"),
+                                3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("password"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("password"));
     LDAPAttribute attr = new LDAPAttribute("userPassword", values);
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("newPassword"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("newPassword"));
     attr = new LDAPAttribute("userPassword", values);
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
-                  new ASN1OctetString("uid=test.user,o=test"), mods);
+                  ByteString.valueOf("uid=test.user,o=test"), mods);
     message = new LDAPMessage(2, modifyRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     ModifyResponseProtocolOp modifyResponse =
          message.getModifyResponseProtocolOp();
     assertEquals(modifyResponse.getResultCode(), 0);
@@ -710,8 +707,8 @@ public class PasswordValidatorTestCase
          TestPasswordValidator.getLastCurrentPasswords();
     assertFalse(currentPasswords.isEmpty());
     assertEquals(currentPasswords.size(), 1);
-    assertEquals(currentPasswords.iterator().next().value(),
-                 new ASN1OctetString("password").value());
+    assertEquals(currentPasswords.iterator().next(),
+                 ByteString.valueOf("password"));
   }
 
 
@@ -758,34 +755,34 @@ public class PasswordValidatorTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(3000);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(3000);
 
     BindRequestProtocolOp bindRequest =
       new BindRequestProtocolOp(
-               new ASN1OctetString("uid=test.user,o=test"),
-                                3, new ASN1OctetString("password"));
+               ByteString.valueOf("uid=test.user,o=test"),
+                                3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("newPassword"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("newPassword"));
     LDAPAttribute attr = new LDAPAttribute("userPassword", values);
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
-                  new ASN1OctetString("uid=test.user,o=test"), mods);
+                  ByteString.valueOf("uid=test.user,o=test"), mods);
     message = new LDAPMessage(2, modifyRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     ModifyResponseProtocolOp modifyResponse =
          message.getModifyResponseProtocolOp();
     assertEquals(modifyResponse.getResultCode(), 0);
@@ -794,8 +791,8 @@ public class PasswordValidatorTestCase
          TestPasswordValidator.getLastCurrentPasswords();
     assertFalse(currentPasswords.isEmpty());
     assertEquals(currentPasswords.size(), 1);
-    assertEquals(currentPasswords.iterator().next().value(),
-                 new ASN1OctetString("password").value());
+    assertEquals(currentPasswords.iterator().next(),
+                 ByteString.valueOf("password"));
   }
 
 
@@ -842,39 +839,39 @@ public class PasswordValidatorTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(3000);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(3000);
 
     BindRequestProtocolOp bindRequest =
       new BindRequestProtocolOp(
-               new ASN1OctetString("uid=test.user,o=test"),
-                                3, new ASN1OctetString("password"));
+               ByteString.valueOf("uid=test.user,o=test"),
+                                3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("password"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("password"));
     LDAPAttribute attr = new LDAPAttribute("userPassword", values);
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("newPassword"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("newPassword"));
     attr = new LDAPAttribute("userPassword", values);
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
-                  new ASN1OctetString("uid=test.user,o=test"), mods);
+                  ByteString.valueOf("uid=test.user,o=test"), mods);
     message = new LDAPMessage(2, modifyRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     ModifyResponseProtocolOp modifyResponse =
          message.getModifyResponseProtocolOp();
     assertEquals(modifyResponse.getResultCode(), 0);
@@ -883,8 +880,8 @@ public class PasswordValidatorTestCase
          TestPasswordValidator.getLastCurrentPasswords();
     assertFalse(currentPasswords.isEmpty());
     assertEquals(currentPasswords.size(), 1);
-    assertEquals(currentPasswords.iterator().next().value(),
-                 new ASN1OctetString("password").value());
+    assertEquals(currentPasswords.iterator().next(),
+                 ByteString.valueOf("password"));
   }
 }
 

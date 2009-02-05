@@ -28,20 +28,12 @@ package org.opends.server.controls;
 import org.opends.messages.Message;
 
 
+import java.io.IOException;
 
-import java.util.ArrayList;
-
-import org.opends.server.protocols.asn1.ASN1Constants;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Enumerated;
-import org.opends.server.protocols.asn1.ASN1Long;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
+import org.opends.server.protocols.asn1.*;
+import static org.opends.server.protocols.asn1.ASN1Constants.
+    UNIVERSAL_OCTET_STRING_TYPE;
+import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -60,6 +52,94 @@ public class EntryChangeNotificationControl
        extends Control
 {
   /**
+   * ControlDecoder implentation to decode this control from a ByteString.
+   */
+  private final static class Decoder
+      implements ControlDecoder<EntryChangeNotificationControl>
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public EntryChangeNotificationControl decode(
+        boolean isCritical, ByteString value) throws DirectoryException
+    {
+      if (value == null)
+      {
+        Message message = ERR_ECN_NO_CONTROL_VALUE.get();
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+      }
+
+
+      DN                         previousDN   = null;
+      long                       changeNumber = -1;
+      PersistentSearchChangeType changeType;
+      ASN1Reader reader = ASN1.getReader(value);
+      try
+      {
+        reader.readStartSequence();
+
+        int changeTypeValue = (int)reader.readInteger();
+        changeType = PersistentSearchChangeType.valueOf(changeTypeValue);
+
+        while(reader.hasNextElement()) {
+          switch(reader.peekType()) {
+            case ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE :
+              if (changeType != PersistentSearchChangeType.MODIFY_DN)
+              {
+                Message message =
+                    ERR_ECN_ILLEGAL_PREVIOUS_DN.get(String.valueOf(changeType));
+                throw new DirectoryException(
+                    ResultCode.PROTOCOL_ERROR, message);
+              }
+
+              previousDN = DN.decode(reader.readOctetStringAsString());
+              break;
+            case ASN1Constants.UNIVERSAL_INTEGER_TYPE :
+              changeNumber = reader.readInteger();
+              break;
+            default :
+              Message message =
+                  ERR_ECN_INVALID_ELEMENT_TYPE.get(
+                      byteToHex(reader.peekType()));
+              throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+          }
+        }
+      }
+      catch (DirectoryException de)
+      {
+        throw de;
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message =
+            ERR_ECN_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
+      }
+
+
+      return new EntryChangeNotificationControl(isCritical, changeType,
+          previousDN, changeNumber);
+    }
+
+    public String getOID()
+    {
+      return OID_ENTRY_CHANGE_NOTIFICATION;
+    }
+
+  }
+
+  /**
+   * The Control Decoder that can be used to decode this control.
+   */
+  public static final ControlDecoder<EntryChangeNotificationControl> DECODER =
+    new Decoder();
+
+  /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
@@ -77,20 +157,22 @@ public class EntryChangeNotificationControl
   private PersistentSearchChangeType changeType;
 
 
-
   /**
    * Creates a new entry change notification control with the provided
    * information.
    *
+   * @param  isCritical  Indicates whether this control should be
+   *                     considered critical in processing the
+   *                     request.
    * @param  changeType    The change type for this change notification control.
    * @param  changeNumber  The change number for the associated change, or a
    *                       negative value if no change number is available.
    */
-  public EntryChangeNotificationControl(PersistentSearchChangeType changeType,
+  public EntryChangeNotificationControl(boolean isCritical,
+                                        PersistentSearchChangeType changeType,
                                         long changeNumber)
   {
-    super(OID_ENTRY_CHANGE_NOTIFICATION, false,
-          encodeValue(changeType, null, changeNumber));
+    super(OID_ENTRY_CHANGE_NOTIFICATION, isCritical);
 
 
     this.changeType   = changeType;
@@ -105,6 +187,49 @@ public class EntryChangeNotificationControl
    * Creates a new entry change notification control with the provided
    * information.
    *
+   * @param  isCritical  Indicates whether this control should be
+   *                     considered critical in processing the
+   *                     request.
+   * @param  changeType    The change type for this change notification control.
+   * @param  previousDN    The DN that the entry had prior to a modify DN
+   *                       operation, or <CODE>null</CODE> if the operation was
+   *                       not a modify DN.
+   * @param  changeNumber  The change number for the associated change, or a
+   *                       negative value if no change number is available.
+   */
+  public EntryChangeNotificationControl(boolean isCritical,
+                                        PersistentSearchChangeType changeType,
+                                        DN previousDN, long changeNumber)
+  {
+    super(OID_ENTRY_CHANGE_NOTIFICATION, isCritical);
+
+
+    this.changeType   = changeType;
+    this.previousDN   = previousDN;
+    this.changeNumber = changeNumber;
+  }
+
+
+  /**
+   * Creates a new entry change notification control with the provided
+   * information.
+   *
+   * @param  changeType    The change type for this change notification control.
+   * @param  changeNumber  The change number for the associated change, or a
+   *                       negative value if no change number is available.
+   */
+  public EntryChangeNotificationControl(PersistentSearchChangeType changeType,
+                                        long changeNumber)
+  {
+    this(false, changeType, changeNumber);
+  }
+
+
+
+  /**
+   * Creates a new entry change notification control with the provided
+   * information.
+   *
    * @param  changeType    The change type for this change notification control.
    * @param  previousDN    The DN that the entry had prior to a modify DN
    *                       operation, or <CODE>null</CODE> if the operation was
@@ -115,213 +240,36 @@ public class EntryChangeNotificationControl
   public EntryChangeNotificationControl(PersistentSearchChangeType changeType,
                                         DN previousDN, long changeNumber)
   {
-    super(OID_ENTRY_CHANGE_NOTIFICATION, false,
-          encodeValue(changeType, previousDN, changeNumber));
-
-
-    this.changeType   = changeType;
-    this.previousDN   = previousDN;
-    this.changeNumber = changeNumber;
+    this(false, changeType, previousDN, changeNumber);
   }
 
 
 
   /**
-   * Creates a new entry change notification control with the provided
-   * information.
+   * Writes this control's value to an ASN.1 writer. The value (if any) must be
+   * written as an ASN1OctetString.
    *
-   * @param  oid           The OID to use for this control.
-   * @param  isCritical    Indicates whether this control should be considered
-   *                       critical to the operation processing.
-   * @param  changeType    The change type for this change notification control.
-   * @param  previousDN    The DN that the entry had prior to a modify DN
-   *                       operation, or <CODE>null</CODE> if the operation was
-   *                       not a modify DN.
-   * @param  changeNumber  The change number for the associated change, or a
-   *                       negative value if no change number is available.
+   * @param writer The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public EntryChangeNotificationControl(String oid, boolean isCritical,
-                                        PersistentSearchChangeType changeType,
-                                        DN previousDN, long changeNumber)
-  {
-    super(oid, isCritical, encodeValue(changeType, previousDN, changeNumber));
+  public void writeValue(ASN1Writer writer) throws IOException {
+    writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
 
-
-    this.changeType   = changeType;
-    this.previousDN   = previousDN;
-    this.changeNumber = changeNumber;
-  }
-
-
-
-  /**
-   * Creates a new entry change notification control with the provided
-   * information.
-   *
-   * @param  oid           The OID to use for this control.
-   * @param  isCritical    Indicates whether this control should be considered
-   *                       critical to the operation processing.
-   * @param  changeType    The change type for this change notification control.
-   * @param  previousDN    The DN that the entry had prior to a modify DN
-   *                       operation, or <CODE>null</CODE> if the operation was
-   *                       not a modify DN.
-   * @param  changeNumber  The change number for the associated change, or a
-   *                       negative value if no change number is available.
-   * @param  encodedValue  The pre-encoded value for this change notification
-   *                       control.
-   */
-  private EntryChangeNotificationControl(String oid, boolean isCritical,
-                                         PersistentSearchChangeType changeType,
-                                         DN previousDN, long changeNumber,
-                                         ASN1OctetString encodedValue)
-  {
-    super(oid, isCritical, encodedValue);
-
-
-    this.changeType   = changeType;
-    this.previousDN   = previousDN;
-    this.changeNumber = changeNumber;
-  }
-
-
-
-  /**
-   * Encodes the provided information into an ASN.1 octet string suitable for
-   * use as the control value.
-   *
-   * @param  changeType    The change type for this change notification control.
-   * @param  previousDN    The DN that the entry had prior to a modify DN
-   *                       operation, or <CODE>null</CODE> if the operation was
-   *                       not a modify DN.
-   * @param  changeNumber  The change number for the associated change, or a
-   *                       negative value if no change number is available.
-   *
-   * @return  An ASN.1 octet string containing the encoded information.
-   */
-  private static ASN1OctetString encodeValue(PersistentSearchChangeType
-                                                  changeType,
-                                             DN previousDN, long changeNumber)
-  {
-    ArrayList<ASN1Element> elements =
-         new ArrayList<ASN1Element>(3);
-    elements.add(new ASN1Enumerated(changeType.intValue()));
+    writer.writeStartSequence();
+    writer.writeInteger(changeType.intValue());
 
     if (previousDN != null)
     {
-      elements.add(new ASN1OctetString(previousDN.toString()));
+      writer.writeOctetString(previousDN.toString());
     }
 
     if (changeNumber > 0)
     {
-      elements.add(new ASN1Long(changeNumber));
+      writer.writeInteger(changeNumber);
     }
+    writer.writeEndSequence();
 
-
-    return new ASN1OctetString(new ASN1Sequence(elements).encode());
-  }
-
-
-
-  /**
-   * Creates a new entry change notification control from the contents of the
-   * provided control.
-   *
-   * @param  control  The generic control containing the information to use to
-   *                  create this entry change notification control.
-   *
-   * @return  The entry change notification control decoded from the provided
-   *          control.
-   *
-   * @throws  LDAPException  If this control cannot be decoded as a valid
-   *                         entry change notification control.
-   */
-  public static EntryChangeNotificationControl decodeControl(Control control)
-         throws LDAPException
-  {
-    if (! control.hasValue())
-    {
-      Message message = ERR_ECN_NO_CONTROL_VALUE.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-    }
-
-
-    DN                         previousDN   = null;
-    long                       changeNumber = -1;
-    PersistentSearchChangeType changeType;
-    try
-    {
-      ArrayList<ASN1Element> elements =
-           ASN1Sequence.decodeAsSequence(control.getValue().value()).elements();
-      if ((elements.size() < 1) || (elements.size() > 3))
-      {
-        Message message = ERR_ECN_INVALID_ELEMENT_COUNT.get(elements.size());
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-      }
-
-      int changeTypeValue = elements.get(0).decodeAsEnumerated().intValue();
-      changeType = PersistentSearchChangeType.valueOf(changeTypeValue);
-
-      if (elements.size() == 2)
-      {
-        ASN1Element e = elements.get(1);
-        if (e.getType() == ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE)
-        {
-          if (changeType != PersistentSearchChangeType.MODIFY_DN)
-          {
-            Message message =
-                ERR_ECN_ILLEGAL_PREVIOUS_DN.get(String.valueOf(changeType));
-            throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-          }
-
-          ASN1OctetString rawPreviousDN = e.decodeAsOctetString();
-          previousDN = DN.decode(rawPreviousDN);
-        }
-        else if (e.getType() == ASN1Constants.UNIVERSAL_INTEGER_TYPE)
-        {
-          changeNumber = e.decodeAsLong().longValue();
-        }
-        else
-        {
-          Message message =
-              ERR_ECN_INVALID_ELEMENT_TYPE.get(byteToHex(e.getType()));
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-        }
-      }
-      else if (elements.size() == 3)
-      {
-        if (changeType != PersistentSearchChangeType.MODIFY_DN)
-        {
-          Message message =
-              ERR_ECN_ILLEGAL_PREVIOUS_DN.get(String.valueOf(changeType));
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-        }
-
-        ASN1OctetString rawPreviousDN = elements.get(1).decodeAsOctetString();
-        previousDN = DN.decode(rawPreviousDN);
-
-        changeNumber = elements.get(2).decodeAsLong().longValue();
-      }
-    }
-    catch (LDAPException le)
-    {
-      throw le;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_ECN_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message, e);
-    }
-
-
-    return new EntryChangeNotificationControl(control.getOID(),
-                                              control.isCritical(), changeType,
-                                              previousDN, changeNumber,
-                                              control.getValue());
+    writer.writeEndSequence();
   }
 
 
@@ -335,22 +283,6 @@ public class EntryChangeNotificationControl
   {
     return changeType;
   }
-
-
-
-  /**
-   * Sets the change type for this entry change notification control.
-   *
-   * @param  changeType  The change type for this entry change notification
-   *                     control.
-   */
-  public void setChangeType(PersistentSearchChangeType changeType)
-  {
-    this.changeType = changeType;
-
-    setValue(encodeValue(changeType, previousDN, changeNumber));
-  }
-
 
 
   /**
@@ -367,21 +299,6 @@ public class EntryChangeNotificationControl
 
 
   /**
-   * Specifies the previous DN for this entry change notification control.
-   *
-   * @param  previousDN  The previous DN for this entry change notification
-   *                     control.
-   */
-  public void setPreviousDN(DN previousDN)
-  {
-    this.previousDN = previousDN;
-
-    setValue(encodeValue(changeType, previousDN, changeNumber));
-  }
-
-
-
-  /**
    * Retrieves the change number for this entry change notification control.
    *
    * @return  The change number for this entry change notification control, or a
@@ -390,36 +307,6 @@ public class EntryChangeNotificationControl
   public long getChangeNumber()
   {
     return changeNumber;
-  }
-
-
-
-  /**
-   * Specifies the change number for this entry change notification control.
-   *
-   * @param  changeNumber  The change number for this entry change notification
-   *                       control.
-   */
-  public void setChangeNumber(long changeNumber)
-  {
-    this.changeNumber = changeNumber;
-
-    setValue(encodeValue(changeType, previousDN, changeNumber));
-  }
-
-
-
-  /**
-   * Retrieves a string representation of this entry change notification
-   * control.
-   *
-   * @return  A string representation of this entry change notification control.
-   */
-  public String toString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
   }
 
 

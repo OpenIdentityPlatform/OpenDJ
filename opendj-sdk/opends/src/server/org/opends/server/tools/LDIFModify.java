@@ -332,7 +332,7 @@ public class LDIFModify
         {
           for (AttributeValue v : a)
           {
-            String stringValue = v.getStringValue();
+            String stringValue = v.getValue().toString();
             String lowerValue  = toLowerCase(stringValue);
             ObjectClass oc = DirectoryServer.getObjectClass(lowerValue, true);
             objectClasses.put(oc, stringValue);

@@ -389,7 +389,7 @@ public class BasicNode extends DefaultMutableTreeNode {
           }
           else
           {
-            result = rdn.getAttributeValue(0).getStringValue();
+            result = rdn.getAttributeValue(0).getValue().toString();
           }
         }
         else {

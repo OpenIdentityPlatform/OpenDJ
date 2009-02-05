@@ -28,8 +28,8 @@
 package org.opends.server.authorization.dseecompat;
 import org.opends.messages.Message;
 
-import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
+import org.opends.server.types.ByteSequence;
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.util.StaticUtils.isDigit;
 
@@ -362,9 +362,9 @@ public class Aci  {
      * @return  Returns a decoded ACI representing the string argument.
      * @throws AciException If the parsing of the ACI string fails.
      */
-    public static Aci decode (ByteString byteString, DN dn)
+    public static Aci decode (ByteSequence byteString, DN dn)
     throws AciException {
-        String input=byteString.stringValue();
+        String input=byteString.toString();
         //Perform a quick pattern check against the string to catch any
         //obvious syntax errors.
         if (!Pattern.matches(aciRegex, input)) {
@@ -387,7 +387,7 @@ public class Aci  {
      * @return A string representation of the ACI.
      */
     public String toString() {
-        return new String(aciString);
+        return aciString;
     }
 
     /**

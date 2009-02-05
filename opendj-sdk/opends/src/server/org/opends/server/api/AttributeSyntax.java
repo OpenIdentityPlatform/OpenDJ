@@ -33,8 +33,8 @@ import java.util.List;
 
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.config.ConfigException;
-import org.opends.server.types.ByteString;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.ByteSequence;
 
 import org.opends.messages.MessageBuilder;
 
@@ -209,7 +209,7 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    * @return  {@code true} if the provided value is acceptable for use
    *          with this syntax, or {@code false} if not.
    */
-  public abstract boolean valueIsAcceptable(ByteString value,
+  public abstract boolean valueIsAcceptable(ByteSequence value,
                                MessageBuilder invalidReason);
 
 

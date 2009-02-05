@@ -28,18 +28,10 @@
 package org.opends.server.core;
 
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.*;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.Control;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.Operation;
+import org.opends.server.types.*;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.tools.LDAPWriter;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
@@ -128,6 +120,7 @@ public class CompareOperationTestCase extends OperationTestCase
   }
 
 
+  @Override
   protected Operation[] createTestOperations() throws Exception
   {
     InternalClientConnection conn =
@@ -139,8 +132,8 @@ public class CompareOperationTestCase extends OperationTestCase
                            conn, InternalClientConnection.nextOperationID(),
                            InternalClientConnection.nextMessageID(),
                            new ArrayList<Control>(),
-                           new ASN1OctetString(entry.getDN().toString()),
-                           "uid", new ASN1OctetString("rogasawara"))
+                           ByteString.valueOf(entry.getDN().toString()),
+                           "uid", ByteString.valueOf("rogasawara"))
     };
   }
 
@@ -219,8 +212,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              new ASN1OctetString(entry.getDN().toString()),
-                              "uid", new ASN1OctetString("rogasawara"));
+                              ByteString.valueOf(entry.getDN().toString()),
+                              "uid", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -244,8 +237,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              new ASN1OctetString(entry.getDN().toString()),
-                              "uid", new ASN1OctetString("rogasawala"));
+                              ByteString.valueOf(entry.getDN().toString()),
+                              "uid", ByteString.valueOf("rogasawala"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -268,8 +261,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              new ASN1OctetString("o=nonexistent,o=test"),
-                              "o", new ASN1OctetString("nonexistent"));
+                              ByteString.valueOf("o=nonexistent,o=test"),
+                              "o", ByteString.valueOf("nonexistent"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -291,8 +284,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              new ASN1OctetString("rogasawara,o=test"),
-                              "uid", new ASN1OctetString("rogasawara"));
+                              ByteString.valueOf("rogasawara,o=test"),
+                              "uid", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -314,8 +307,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              new ASN1OctetString(entry.getDN().toString()),
-                              "description", new ASN1OctetString("rogasawara"));
+                              ByteString.valueOf(entry.getDN().toString()),
+                              "description", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -338,9 +331,9 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              new ASN1OctetString(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getDN().toString()),
                               "NotAnAttribute",
-                              new ASN1OctetString("rogasawara"));
+                              ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -361,9 +354,9 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              new ASN1OctetString(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getDN().toString()),
                               "name",
-                              new ASN1OctetString("Ogasawara"));
+                              ByteString.valueOf("Ogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -381,9 +374,9 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              new ASN1OctetString(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getDN().toString()),
                               "sn",
-                              new ASN1OctetString("Ogasawara"));
+                              ByteString.valueOf("Ogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -401,9 +394,9 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              new ASN1OctetString(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getDN().toString()),
                               "sn;lang-ja",
-                              new ASN1OctetString("Ogasawara"));
+                              ByteString.valueOf("Ogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -421,9 +414,9 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              new ASN1OctetString(entry.getDN().toString()),
+                              ByteString.valueOf(entry.getDN().toString()),
                               "givenName;lAnG-En",
-                              new ASN1OctetString("Rodney"));
+                              ByteString.valueOf("Rodney"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -449,8 +442,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              new ASN1OctetString(entry.getDN().toString()),
-                              "uid", new ASN1OctetString("rogasawara"));
+                              ByteString.valueOf(entry.getDN().toString()),
+                              "uid", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -479,8 +472,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              new ASN1OctetString(entry.getDN().toString()),
-                              "uid", new ASN1OctetString("rogasawara"));
+                              ByteString.valueOf(entry.getDN().toString()),
+                              "uid", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -495,7 +488,7 @@ public class CompareOperationTestCase extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     ProxiedAuthV1Control authV1Control =
-         new ProxiedAuthV1Control(new ASN1OctetString(
+         new ProxiedAuthV1Control(ByteString.valueOf(
               "cn=Directory Manager,cn=Root DNs,cn=config"));
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV1Control);
@@ -506,8 +499,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              new ASN1OctetString(entry.getDN().toString()),
-                              "uid", new ASN1OctetString("rogasawara"));
+                              ByteString.valueOf(entry.getDN().toString()),
+                              "uid", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -525,7 +518,7 @@ public class CompareOperationTestCase extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     ProxiedAuthV1Control authV1Control =
-         new ProxiedAuthV1Control(new ASN1OctetString("cn=nonexistent,o=test"));
+         new ProxiedAuthV1Control(ByteString.valueOf("cn=nonexistent,o=test"));
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV1Control);
 
@@ -535,8 +528,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              new ASN1OctetString(entry.getDN().toString()),
-                              "uid", new ASN1OctetString("rogasawara"));
+                              ByteString.valueOf(entry.getDN().toString()),
+                              "uid", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -551,7 +544,7 @@ public class CompareOperationTestCase extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     ProxiedAuthV2Control authV2Control =
-         new ProxiedAuthV2Control(new ASN1OctetString(
+         new ProxiedAuthV2Control(ByteString.valueOf(
                   "dn:cn=Directory Manager,cn=Root DNs,cn=config"));
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV2Control);
@@ -562,8 +555,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              new ASN1OctetString(entry.getDN().toString()),
-                              "uid", new ASN1OctetString("rogasawara"));
+                              ByteString.valueOf(entry.getDN().toString()),
+                              "uid", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -579,7 +572,7 @@ public class CompareOperationTestCase extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     ProxiedAuthV2Control authV2Control = new ProxiedAuthV2Control(
-         new ASN1OctetString("dn:cn=nonexistent,o=test"));
+         ByteString.valueOf("dn:cn=nonexistent,o=test"));
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV2Control);
 
@@ -589,8 +582,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              new ASN1OctetString(entry.getDN().toString()),
-                              "uid", new ASN1OctetString("rogasawara"));
+                              ByteString.valueOf(entry.getDN().toString()),
+                              "uid", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -605,8 +598,8 @@ public class CompareOperationTestCase extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     Control authV2Control =
-         new Control(ServerConstants.OID_PROXIED_AUTH_V2, false,
-                     new ASN1OctetString());
+         new LDAPControl(ServerConstants.OID_PROXIED_AUTH_V2, false,
+                     ByteString.empty());
 
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV2Control);
@@ -617,8 +610,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              new ASN1OctetString(entry.getDN().toString()),
-                              "uid", new ASN1OctetString("rogasawara"));
+                              ByteString.valueOf(entry.getDN().toString()),
+                              "uid", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -635,9 +628,9 @@ public class CompareOperationTestCase extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    LDAPFilter ldapFilter = LDAPFilter.decode("(preferredlanguage=ja)");
-    LDAPAssertionRequestControl assertControl =
-         new LDAPAssertionRequestControl("1.1.1.1.1.1", true, ldapFilter);
+    LDAPFilter.decode("(preferredlanguage=ja)");
+    LDAPControl assertControl =
+         new LDAPControl("1.1.1.1.1.1", true);
     List<Control> controls = new ArrayList<Control>();
     controls.add(assertControl);
     CompareOperationBasis compareOperation =
@@ -645,8 +638,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              new ASN1OctetString(entry.getDN().toString()),
-                              "uid", new ASN1OctetString("rogasawara"));
+                              ByteString.valueOf(entry.getDN().toString()),
+                              "uid", ByteString.valueOf("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -666,18 +659,19 @@ public class CompareOperationTestCase extends OperationTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     try
     {
-      ASN1Reader r = new ASN1Reader(s);
-      ASN1Writer w = new ASN1Writer(s);
-      r.setIOTimeout(15000);
+      org.opends.server.tools.LDAPReader r =
+          new org.opends.server.tools.LDAPReader(s);
+      LDAPWriter w = new LDAPWriter(s);
+      s.setSoTimeout(15000);
 
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                new ASN1OctetString("cn=Directory Manager"),
-                3, new ASN1OctetString("password"));
+                ByteString.valueOf("cn=Directory Manager"),
+                3, ByteString.valueOf("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      message = r.readMessage();
       BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
       assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
@@ -699,12 +693,12 @@ public class CompareOperationTestCase extends OperationTestCase
 
         CompareRequestProtocolOp compareRequest =
           new CompareRequestProtocolOp(
-               new ASN1OctetString(entry.getDN().toString()),
-               "uid", new ASN1OctetString("rogasawara"));
+               ByteString.valueOf(entry.getDN().toString()),
+               "uid", ByteString.valueOf("rogasawara"));
         message = new LDAPMessage(2, compareRequest);
-        w.writeElement(message.encode());
+        w.writeMessage(message);
 
-        message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+        message = r.readMessage();
         CompareResponseProtocolOp compareResponse =
              message.getCompareResponseProtocolOp();
 
@@ -714,8 +708,9 @@ public class CompareOperationTestCase extends OperationTestCase
 //        assertEquals(InvocationCounterPlugin.getPreParseCount(), 1);
 //        assertEquals(InvocationCounterPlugin.getPreOperationCount(), 0);
 //        assertEquals(InvocationCounterPlugin.getPostOperationCount(), 0);
-//        // The post response might not have been called yet.
-//        assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
+
+        // The post response might not have been called yet.
+        assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
 
         assertEquals(ldapStatistics.getCompareRequests(), compareRequests+1);
         assertEquals(ldapStatistics.getCompareResponses(), compareResponses+1);

@@ -33,9 +33,16 @@ import static org.opends.messages.JebMessages.*;
 
 import com.sleepycat.je.*;
 
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
+import org.opends.server.types.*;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1Exception;
+import org.opends.server.api.CompressedSchema;
+
+import java.io.IOException;
+import java.util.zip.DataFormatException;
 
 /**
  * Represents the database containing the LDAP entries. The database key is
@@ -53,6 +60,139 @@ public class ID2Entry extends DatabaseContainer
    * Parameters for compression and encryption.
    */
   private DataConfig dataConfig;
+
+  private static ThreadLocal<EntryCoder> entryCodingBuffers =
+      new ThreadLocal<EntryCoder>();
+
+  /**
+   * A cached set of ByteStringBuilder buffers and ASN1Writer used to encode
+   * entries.
+   */
+  private static class EntryCoder
+  {
+    ByteStringBuilder encodedBuffer;
+    private ByteStringBuilder entryBuffer;
+    private ByteStringBuilder compressedEntryBuffer;
+    private ASN1Writer writer;
+
+    private EntryCoder()
+    {
+      encodedBuffer = new ByteStringBuilder();
+      entryBuffer = new ByteStringBuilder();
+      compressedEntryBuffer = new ByteStringBuilder();
+      writer = ASN1.getWriter(encodedBuffer);
+    }
+
+    private Entry decode(ByteString bytes, CompressedSchema compressedSchema)
+        throws DirectoryException,ASN1Exception,LDAPException,
+        DataFormatException, IOException
+    {
+      // Get the format version.
+      byte formatVersion = bytes.byteAt(0);
+      if(formatVersion != JebFormat.FORMAT_VERSION)
+      {
+        Message message =
+            ERR_JEB_INCOMPATIBLE_ENTRY_VERSION.get(formatVersion);
+        throw new ASN1Exception(message);
+      }
+
+      // Read the ASN1 sequence.
+      ASN1Reader reader = ASN1.getReader(bytes.subSequence(1, bytes.length()));
+      reader.readStartSequence();
+
+      // See if it was compressed.
+      int uncompressedSize = (int)reader.readInteger();
+
+      if(uncompressedSize > 0)
+      {
+        // We will use the cached buffers to avoid allocations.
+        // Reset the buffers;
+        entryBuffer.clear();
+        compressedEntryBuffer.clear();
+
+        // It was compressed.
+        reader.readOctetString(compressedEntryBuffer);
+        CryptoManager cryptoManager = DirectoryServer.getCryptoManager();
+        // TODO: Should handle the case where uncompress returns < 0
+        compressedEntryBuffer.uncompress(entryBuffer, cryptoManager,
+            uncompressedSize);
+
+        // Since we are used the cached buffers (ByteStringBuilders),
+        // the decoded attribute values will not refer back to the
+        // original buffer.
+        return Entry.decode(entryBuffer.asReader(), compressedSchema);
+      }
+      else
+      {
+        // Since we don't have to do any decompression, we can just decode
+        // the entry off the
+        ByteString encodedEntry = reader.readOctetString();
+        return Entry.decode(encodedEntry.asReader(), compressedSchema);
+      }
+    }
+
+    private ByteString encodeCopy(Entry entry, DataConfig dataConfig)
+        throws DirectoryException
+    {
+      encodeVolatile(entry, dataConfig);
+      return encodedBuffer.toByteString();
+    }
+
+    private DatabaseEntry encodeInternal(Entry entry, DataConfig dataConfig)
+        throws DirectoryException
+    {
+      encodeVolatile(entry, dataConfig);
+      return new DatabaseEntry(encodedBuffer.getBackingArray(), 0,
+          encodedBuffer.length());
+    }
+
+    private void encodeVolatile(Entry entry, DataConfig dataConfig)
+        throws DirectoryException
+    {
+      // Reset the buffers;
+      encodedBuffer.clear();
+      entryBuffer.clear();
+      compressedEntryBuffer.clear();
+
+      // Encode the entry for later use.
+      entry.encode(entryBuffer, dataConfig.getEntryEncodeConfig());
+
+      // First write the DB format version byte.
+      encodedBuffer.append(JebFormat.FORMAT_VERSION);
+
+      try
+      {
+        // Then start the ASN1 sequence.
+        writer.writeStartSequence(JebFormat.TAG_DATABASE_ENTRY);
+
+        // Do optional compression.
+        CryptoManager cryptoManager = DirectoryServer.getCryptoManager();
+        if (dataConfig.isCompressed() && cryptoManager != null &&
+            entryBuffer.compress(compressedEntryBuffer, cryptoManager))
+        {
+          // Compression needed and successful.
+          writer.writeInteger(entryBuffer.length());
+          writer.writeOctetString(compressedEntryBuffer);
+        }
+        else
+        {
+          writer.writeInteger(0);
+          writer.writeOctetString(entryBuffer);
+        }
+
+        writer.writeEndSequence();
+      }
+      catch(IOException ioe)
+      {
+        // TODO: This should never happen with byte buffer.
+        if(debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
+        }
+
+      }
+    }
+  }
 
   /**
    * Create a new ID2Entry object.
@@ -96,20 +236,75 @@ public class ID2Entry extends DatabaseContainer
   }
 
   /**
-   * Convert an entry to its database format.
+   * Decodes an entry from its database representation.
+   * <p>
+   * An entry on disk is ASN1 encoded in this format:
    *
-   * @param entry The LDAP entry to be converted.
-   * @return The database entry.
+   * <pre>
+   * DatabaseEntry ::= [APPLICATION 0] IMPLICIT SEQUENCE {
+   *  uncompressedSize      INTEGER,      -- A zero value means not compressed.
+   *  dataBytes             OCTET STRING  -- Optionally compressed encoding of
+   *                                         the data bytes.
+   * }
+   *
+   * ID2EntryValue ::= DatabaseEntry
+   *  -- Where dataBytes contains an encoding of DirectoryServerEntry.
+   *
+   * DirectoryServerEntry ::= [APPLICATION 1] IMPLICIT SEQUENCE {
+   *  dn                      LDAPDN,
+   *  objectClasses           SET OF LDAPString,
+   *  userAttributes          AttributeList,
+   *  operationalAttributes   AttributeList
+   * }
+   * </pre>
+   *
+   * @param bytes A byte array containing the encoded database value.
+   * @param compressedSchema The compressed schema manager to use when decoding.
+   * @return The decoded entry.
+   * @throws ASN1Exception If the data is not in the expected ASN.1 encoding
+   * format.
+   * @throws LDAPException If the data is not in the expected ASN.1 encoding
+   * format.
+   * @throws DataFormatException If an error occurs while trying to decompress
+   * compressed data.
+   * @throws DirectoryException If a Directory Server error occurs.
+   * @throws IOException if an error occurs while reading the ASN1 sequence.
+   */
+  static public Entry entryFromDatabase(ByteString bytes,
+                                        CompressedSchema compressedSchema)
+      throws DirectoryException,ASN1Exception,LDAPException,
+      DataFormatException,IOException
+  {
+    EntryCoder coder = entryCodingBuffers.get();
+    if(coder == null)
+    {
+      coder = new EntryCoder();
+      entryCodingBuffers.set(coder);
+    }
+    return coder.decode(bytes, compressedSchema);
+  }
+
+  /**
+   * Encodes an entry to the raw database format, with optional compression.
+   *
+   * @param entry The entry to encode.
+   * @param dataConfig Compression and cryptographic options.
+   * @return A ByteSTring containing the encoded database value.
    *
    * @throws  DirectoryException  If a problem occurs while attempting to encode
    *                              the entry.
    */
-  public DatabaseEntry entryData(Entry entry)
-          throws DirectoryException
+  static public ByteString entryToDatabase(Entry entry, DataConfig dataConfig)
+      throws DirectoryException
   {
-    byte[] entryBytes;
-    entryBytes = JebFormat.entryToDatabase(entry, dataConfig);
-    return new DatabaseEntry(entryBytes);
+    EntryCoder coder = entryCodingBuffers.get();
+    if(coder == null)
+    {
+      coder = new EntryCoder();
+      entryCodingBuffers.set(coder);
+    }
+
+    return coder.encodeCopy(entry, dataConfig);
   }
 
   /**
@@ -128,7 +323,13 @@ public class ID2Entry extends DatabaseContainer
        throws DatabaseException, DirectoryException
   {
     DatabaseEntry key = id.getDatabaseEntry();
-    DatabaseEntry data = entryData(entry);
+    EntryCoder coder = entryCodingBuffers.get();
+    if(coder == null)
+    {
+      coder = new EntryCoder();
+      entryCodingBuffers.set(coder);
+    }
+    DatabaseEntry data = coder.encodeInternal(entry, dataConfig);
 
     OperationStatus status;
     status = insert(txn, key, data);
@@ -154,7 +355,13 @@ public class ID2Entry extends DatabaseContainer
        throws DatabaseException, DirectoryException
   {
     DatabaseEntry key = id.getDatabaseEntry();
-    DatabaseEntry data = entryData(entry);
+    EntryCoder coder = entryCodingBuffers.get();
+    if(coder == null)
+    {
+      coder = new EntryCoder();
+      entryCodingBuffers.set(coder);
+    }
+    DatabaseEntry data = coder.encodeInternal(entry, dataConfig);
 
     OperationStatus status;
     status = put(txn, key, data);
@@ -231,44 +438,19 @@ public class ID2Entry extends DatabaseContainer
       return null;
     }
 
-    byte[] entryBytes = data.getData();
-    byte entryVersion = JebFormat.getEntryVersion(entryBytes);
-
-    //Try to decode the entry based on the version number. On later versions,
-    //a case could be written to upgrade entries if it is not the current
-    //version
-    Entry entry = null;
-    switch(entryVersion)
+    try
     {
-      case JebFormat.FORMAT_VERSION :
-        try
-        {
-          entry = JebFormat.entryFromDatabase(entryBytes,
-                       entryContainer.getRootContainer().getCompressedSchema());
-        }
-        catch (Exception e)
-        {
-          Message message = ERR_JEB_ENTRY_DATABASE_CORRUPT.get(id.toString());
-          throw new DirectoryException(
-              DirectoryServer.getServerErrorResultCode(), message);
-        }
-        break;
-
-      //case 0x00                     :
-      //  Call upgrade method? Call 0x00 decode method?
-      default   :
-        Message message =
-            ERR_JEB_INCOMPATIBLE_ENTRY_VERSION.get(id.toString(), entryVersion);
-        throw new DirectoryException(
-              DirectoryServer.getServerErrorResultCode(), message);
-    }
-
-    if (entry != null)
-    {
+      Entry entry = entryFromDatabase(ByteString.wrap(data.getData()),
+          entryContainer.getRootContainer().getCompressedSchema());
       entry.processVirtualAttributes();
+      return entry;
     }
-
-    return entry;
+    catch (Exception e)
+    {
+      Message message = ERR_JEB_ENTRY_DATABASE_CORRUPT.get(id.toString());
+      throw new DirectoryException(
+          DirectoryServer.getServerErrorResultCode(), message);
+    }
   }
 
   /**

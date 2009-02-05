@@ -34,6 +34,7 @@ import static org.opends.server.util.ServerConstants.OID_REAL_ATTRS_ONLY;
 import static org.opends.server.util.ServerConstants.OID_VIRTUAL_ATTRS_ONLY;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.core.DirectoryServer;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -223,10 +224,10 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
     {
       assertTrue(!a.isEmpty());
       assertEquals(a.size(), 1);
-      assertTrue(a.contains(new AttributeValue(ByteStringFactory
-          .create(toUpperCase(String.valueOf(hasSubs))), ByteStringFactory
-          .create(toUpperCase(String.valueOf(hasSubs))))));
-      assertTrue(a.contains(new AttributeValue(hasSubordinatesType,
+      assertTrue(a.contains(AttributeValues.create(
+          ByteString.valueOf(toUpperCase(String.valueOf(hasSubs))),
+          ByteString.valueOf(toUpperCase(String.valueOf(hasSubs))))));
+      assertTrue(a.contains(AttributeValues.create(hasSubordinatesType,
           toUpperCase(String.valueOf(hasSubs)))));
     }
   }
@@ -506,7 +507,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
     attrList.add("hasSubordinates");
 
     LinkedList<Control> requestControls = new LinkedList<Control>();
-    requestControls.add(new Control(OID_REAL_ATTRS_ONLY, true));
+    requestControls.add(new LDAPControl(OID_REAL_ATTRS_ONLY, true));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -546,7 +547,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
     attrList.add("hasSubordinates");
 
     LinkedList<Control> requestControls = new LinkedList<Control>();
-    requestControls.add(new Control(OID_VIRTUAL_ATTRS_ONLY, true));
+    requestControls.add(new LDAPControl(OID_VIRTUAL_ATTRS_ONLY, true));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();

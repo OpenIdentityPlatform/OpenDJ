@@ -26,7 +26,11 @@
  */
 package org.opends.server.api;
 
+
+
 import java.util.Collection;
+
+import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.types.DirectoryException;
@@ -39,17 +43,17 @@ import org.opends.server.types.DirectoryException;
  * rule.
  */
 @org.opends.server.types.PublicAPI(
-     stability=org.opends.server.types.StabilityLevel.VOLATILE,
-     mayInstantiate=false,
-     mayExtend=true,
-     mayInvoke=false)
+    stability = org.opends.server.types.StabilityLevel.VOLATILE,
+    mayInstantiate = false,
+    mayExtend = true,
+    mayInvoke = false)
 public abstract class MatchingRule
 {
   /**
    * Retrieves the common name for this matching rule.
    *
-   * @return  The common name for this matching rule, or {@code null}
-   *          if it does not have a name.
+   * @return The common name for this matching rule, or {@code null}
+   *         if it does not have a name.
    */
   public abstract String getName();
 
@@ -58,7 +62,7 @@ public abstract class MatchingRule
   /**
    * Retrieves all names for this matching rule.
    *
-   * @return  All names for this matching rule.
+   * @return All names for this matching rule.
    */
   public abstract Collection<String> getAllNames();
 
@@ -67,40 +71,39 @@ public abstract class MatchingRule
   /**
    * Retrieves the OID for this matching rule.
    *
-   * @return  The OID for this matching rule.
+   * @return The OID for this matching rule.
    */
   public abstract String getOID();
 
 
 
- /**
+  /**
    * Retrieves the normalized form of the provided assertion value,
    * which is best suite for efficiently performing matching
    * operations on that value.
    *
-   * @param  value  The assertion value to be normalized.
-   *
-   * @return  The normalized version of the provided value.
-   *
-   * @throws  DirectoryException  If the provided value is invalid
-   *                              according to the associated
-   *                              attribute syntax.
+   * @param value
+   *          The assertion value to be normalized.
+   * @return The normalized version of the provided value.
+   * @throws DirectoryException
+   *           If the provided value is invalid according to the
+   *           associated attribute syntax.
    */
-  public ByteString normalizeAssertionValue(ByteString value)
-         throws DirectoryException
+  public ByteString normalizeAssertionValue(ByteSequence value)
+      throws DirectoryException
   {
     // Default implementation is to use attribute value normalization.
-     return normalizeValue(value);
+    return normalizeValue(value);
   }
 
 
 
   /**
-   * Retrieves the name or OID for this matching rule.  If it has a
-   * name, then it will be returned.  Otherwise, the OID will be
+   * Retrieves the name or OID for this matching rule. If it has a
+   * name, then it will be returned. Otherwise, the OID will be
    * returned.
    *
-   * @return  The name or OID for this matching rule.
+   * @return The name or OID for this matching rule.
    */
   public final String getNameOrOID()
   {
@@ -120,8 +123,8 @@ public abstract class MatchingRule
   /**
    * Retrieves the description for this matching rule.
    *
-   * @return  The description for this matching rule, or {@code null}
-   *          if there is none.
+   * @return The description for this matching rule, or {@code null}
+   *         if there is none.
    */
   public abstract String getDescription();
 
@@ -131,22 +134,22 @@ public abstract class MatchingRule
    * Retrieves the OID of the syntax with which this matching rule is
    * associated.
    *
-   * @return  The OID of the syntax with which this matching rule is
-   *          associated.
+   * @return The OID of the syntax with which this matching rule is
+   *         associated.
    */
   public abstract String getSyntaxOID();
 
 
 
   /**
-   * Indicates whether this matching rule is declared "OBSOLETE".
-   * The default implementation will always return {@code false}.  If
-   * that is not acceptable for a particular matching rule
-   * implementation, then it should override this method and perform
-   * the appropriate processing to return the correct value.
+   * Indicates whether this matching rule is declared "OBSOLETE". The
+   * default implementation will always return {@code false}. If that
+   * is not acceptable for a particular matching rule implementation,
+   * then it should override this method and perform the appropriate
+   * processing to return the correct value.
    *
-   * @return  {@code true} if this matching rule is declared
-   *          "OBSOLETE", or {@code false} if not.
+   * @return {@code true} if this matching rule is declared
+   *         "OBSOLETE", or {@code false} if not.
    */
   public boolean isObsolete()
   {
@@ -157,60 +160,58 @@ public abstract class MatchingRule
 
   /**
    * Retrieves the normalized form of the provided value, which is
-   * best suite for efficiently performing matching operations on that
-   * value.
+   * best suite for efficiently performing matching operations on
+   * that value.
    *
-   * @param  value  The value to be normalized.
-   *
-   * @return  The normalized version of the provided value.
-   *
-   * @throws  DirectoryException  If the provided value is invalid
-   *                              according to the associated
-   *                              attribute syntax.
+   * @param value
+   *          The value to be normalized.
+   * @return The normalized version of the provided value.
+   * @throws DirectoryException
+   *           If the provided value is invalid according to the
+   *           associated attribute syntax.
    */
-  public abstract ByteString normalizeValue(ByteString value)
-         throws DirectoryException;
+  public abstract ByteString normalizeValue(ByteSequence value)
+      throws DirectoryException;
 
 
 
   /**
    * Indicates whether the provided attribute value should be
-   * considered a match for the given assertion value.  This will only
-   * be used for the purpose of extensible matching.  Subclasses
+   * considered a match for the given assertion value. This will only
+   * be used for the purpose of extensible matching. Subclasses
    * should define more specific methods that are appropriate to the
    * matching rule type.
    *
-   * @param  attributeValue  The attribute value in a form that has
-   *                         been normalized according to this
-   *                         matching rule.
-   * @param  assertionValue  The assertion value in a form that has
-   *                         been normalized according to this
-   *                         matching rule.
-   *
-   * @return  {@code TRUE} if the attribute value should be considered
-   *          a match for the provided assertion value, {@code FALSE}
-   *          if it does not match, or {@code UNDEFINED} if the result
-   *          is undefined.
+   * @param attributeValue
+   *          The attribute value in a form that has been normalized
+   *          according to this matching rule.
+   * @param assertionValue
+   *          The assertion value in a form that has been normalized
+   *          according to this matching rule.
+   * @return {@code TRUE} if the attribute value should be considered
+   *         a match for the provided assertion value, {@code FALSE}
+   *         if it does not match, or {@code UNDEFINED} if the result
+   *         is undefined.
    */
-  public abstract ConditionResult
-                       valuesMatch(ByteString attributeValue,
-                                   ByteString assertionValue);
+  public abstract ConditionResult valuesMatch(
+      ByteSequence attributeValue, ByteSequence assertionValue);
 
 
 
   /**
-   * Retrieves the hash code for this matching rule.  It will be
+   * Retrieves the hash code for this matching rule. It will be
    * calculated as the sum of the characters in the OID.
    *
-   * @return  The hash code for this matching rule.
+   * @return The hash code for this matching rule.
    */
+  @Override
   public final int hashCode()
   {
     int hashCode = 0;
 
     String oidString = getOID();
-    int    oidLength = oidString.length();
-    for (int i=0; i < oidLength; i++)
+    int oidLength = oidString.length();
+    for (int i = 0; i < oidLength; i++)
     {
       hashCode += oidString.charAt(i);
     }
@@ -222,14 +223,15 @@ public abstract class MatchingRule
 
   /**
    * Indicates whether the provided object is equal to this matching
-   * rule.  The provided object will be considered equal to this
+   * rule. The provided object will be considered equal to this
    * matching rule only if it is a matching rule with the same OID.
    *
-   * @param  o  The object for which to make the determination.
-   *
-   * @return  {@code true} if the provided object is equal to this
-   *          matching rule, or {@code false} if it is not.
+   * @param o
+   *          The object for which to make the determination.
+   * @return {@code true} if the provided object is equal to this
+   *         matching rule, or {@code false} if it is not.
    */
+  @Override
   public final boolean equals(Object o)
   {
     if (o == null)
@@ -242,7 +244,7 @@ public abstract class MatchingRule
       return true;
     }
 
-    if (! (o instanceof MatchingRule))
+    if (!(o instanceof MatchingRule))
     {
       return false;
     }
@@ -256,9 +258,10 @@ public abstract class MatchingRule
    * Retrieves a string representation of this matching rule in the
    * format defined in RFC 2252.
    *
-   * @return  A string representation of this matching rule in the
-   *          format defined in RFC 2252.
+   * @return A string representation of this matching rule in the
+   *         format defined in RFC 2252.
    */
+  @Override
   public final String toString()
   {
     StringBuilder buffer = new StringBuilder();
@@ -272,15 +275,15 @@ public abstract class MatchingRule
    * Appends a string representation of this matching rule in the
    * format defined in RFC 2252 to the provided buffer.
    *
-   * @param  buffer  The buffer to which the information should be
-   *                 appended.
+   * @param buffer
+   *          The buffer to which the information should be appended.
    */
   public final void toString(StringBuilder buffer)
   {
     buffer.append("( ");
     buffer.append(getOID());
     buffer.append(" NAME '");
-      buffer.append(getName());
+    buffer.append(getName());
 
     String description = getDescription();
     if ((description != null) && (description.length() > 0))
@@ -302,4 +305,3 @@ public abstract class MatchingRule
     buffer.append(" )");
   }
 }
-

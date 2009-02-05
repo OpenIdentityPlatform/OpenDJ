@@ -36,19 +36,10 @@ import org.testng.annotations.Test;
 import org.testng.annotations.AfterClass;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.api.MonitorProvider;
-import static org.opends.server.util.ServerConstants.ATTR_COMMON_NAME;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.types.DN;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchScope;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.RDN;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
 

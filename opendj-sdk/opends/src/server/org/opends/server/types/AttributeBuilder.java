@@ -442,14 +442,14 @@ public final class AttributeBuilder
         }
       }
 
-      ArrayList<ByteString> normalizedSubAny;
+      ArrayList<ByteSequence> normalizedSubAny;
       if (subAny == null)
       {
         normalizedSubAny = null;
       }
       else
       {
-        normalizedSubAny = new ArrayList<ByteString>(subAny.size());
+        normalizedSubAny = new ArrayList<ByteSequence>(subAny.size());
         for (ByteString subAnyElement : subAny)
         {
           try
@@ -1296,7 +1296,7 @@ public final class AttributeBuilder
   public boolean add(String valueString)
   {
     AttributeValue value =
-      new AttributeValue(attributeType, valueString);
+        AttributeValues.create(attributeType, valueString);
     return add(value);
   }
 
@@ -1459,7 +1459,7 @@ public final class AttributeBuilder
   public boolean remove(String valueString)
   {
     AttributeValue value =
-      new AttributeValue(attributeType, valueString);
+        AttributeValues.create(attributeType, valueString);
     return remove(value);
   }
 
@@ -1530,7 +1530,7 @@ public final class AttributeBuilder
   public void replace(String valueString)
   {
     AttributeValue value =
-      new AttributeValue(attributeType, valueString);
+        AttributeValues.create(attributeType, valueString);
     replace(value);
   }
 

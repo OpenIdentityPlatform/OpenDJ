@@ -25,29 +25,28 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
-import org.opends.messages.Message;
 
 
 
-import java.util.Arrays;
-
-import java.util.Collections;
-import java.util.Collection;
-import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.AcceptRejectWarn;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.ResultCode;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+
+import java.util.Collection;
+import java.util.Collections;
+
+import org.opends.messages.Message;
+import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.AcceptRejectWarn;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ResultCode;
 
 
 
@@ -79,6 +78,7 @@ class DistinguishedNameEqualityMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getAllNames()
   {
     return Collections.singleton(getName());
@@ -92,6 +92,7 @@ class DistinguishedNameEqualityMatchingRule
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
    * it does not have a name.
    */
+  @Override
   public String getName()
   {
     return EMR_DN_NAME;
@@ -104,6 +105,7 @@ class DistinguishedNameEqualityMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return EMR_DN_OID;
@@ -117,6 +119,7 @@ class DistinguishedNameEqualityMatchingRule
    * @return  The description for this matching rule, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     // There is no standard description for this matching rule.
@@ -131,6 +134,7 @@ class DistinguishedNameEqualityMatchingRule
    *
    * @return  The OID of the syntax with which this matching rule is associated.
    */
+  @Override
   public String getSyntaxOID()
   {
     return SYNTAX_DN_OID;
@@ -149,7 +153,8 @@ class DistinguishedNameEqualityMatchingRule
    * @throws  DirectoryException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
-  public ByteString normalizeValue(ByteString value)
+  @Override
+  public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
     // Since the normalization for DNs is so complex, it will be handled
@@ -157,7 +162,7 @@ class DistinguishedNameEqualityMatchingRule
     DN dn;
     try
     {
-      dn = DN.decode(value.stringValue());
+      dn = DN.decode(value.toString());
     }
     catch (DirectoryException de)
     {
@@ -173,7 +178,7 @@ class DistinguishedNameEqualityMatchingRule
         throw de;
       }
 
-      return bestEffortNormalize(toLowerCase(value.stringValue()));
+      return bestEffortNormalize(toLowerCase(value.toString()));
     }
     catch (Exception e)
     {
@@ -186,17 +191,17 @@ class DistinguishedNameEqualityMatchingRule
           AcceptRejectWarn.REJECT)
       {
         Message message = ERR_ATTR_SYNTAX_DN_INVALID.get(
-            value.stringValue(), String.valueOf(e));
+            value.toString(), String.valueOf(e));
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                      message);
       }
       else
       {
-        return bestEffortNormalize(toLowerCase(value.stringValue()));
+        return bestEffortNormalize(toLowerCase(value.toString()));
       }
     }
 
-    return new ASN1OctetString(dn.toNormalizedString());
+    return ByteString.valueOf(dn.toNormalizedString());
   }
 
 
@@ -270,26 +275,7 @@ class DistinguishedNameEqualityMatchingRule
       }
     }
 
-    return new ASN1OctetString(buffer.toString());
-  }
-
-
-
-  /**
-   * Indicates whether the two provided normalized values are equal to each
-   * other.
-   *
-   * @param  value1  The normalized form of the first value to compare.
-   * @param  value2  The normalized form of the second value to compare.
-   *
-   * @return  <CODE>true</CODE> if the provided values are equal, or
-   *          <CODE>false</CODE> if not.
-   */
-  public boolean areEqual(ByteString value1, ByteString value2)
-  {
-    // Since the values are already normalized, we just need to compare the
-    // associated byte arrays.
-    return Arrays.equals(value1.value(), value2.value());
+    return ByteString.valueOf(buffer.toString());
   }
 }
 

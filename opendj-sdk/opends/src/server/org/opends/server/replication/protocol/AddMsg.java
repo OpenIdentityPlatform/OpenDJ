@@ -28,9 +28,6 @@ package org.opends.server.replication.protocol;
 
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -41,14 +38,12 @@ import java.util.zip.DataFormatException;
 
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Exception;
+import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.RawAttribute;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationAddOperation;
 
 import static org.opends.server.replication.protocol.OperationContext.*;
@@ -70,7 +65,7 @@ public class AddMsg extends LDAPUpdateMsg
   public AddMsg(PostOperationAddOperation op)
   {
     super((AddContext) op.getAttachment(SYNCHROCONTEXT),
-          op.getRawEntryDN().stringValue());
+          op.getRawEntryDN().toString());
 
     AddContext ctx = (AddContext) op.getAttachment(SYNCHROCONTEXT);
     this.parentUniqueId = ctx.getParentUid();
@@ -86,43 +81,51 @@ public class AddMsg extends LDAPUpdateMsg
       Map<AttributeType, List<Attribute>> userAttributes,
       Map<AttributeType, List<Attribute>> operationalAttributes)
   {
-    //  Encode the object classes (SET OF LDAPString).
-    AttributeBuilder builder = new AttributeBuilder(
-        DirectoryServer.getObjectClassAttributeType());
-    builder.setInitialCapacity(objectClasses.size());
-    for (String s : objectClasses.values())
+    ByteStringBuilder byteBuilder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(byteBuilder);
+
+    try
     {
-      builder.add(new AttributeValue(new ASN1OctetString(s),
-                         new ASN1OctetString(toLowerCase(s))));
-    }
-    Attribute attr = builder.toAttribute();
-
-    ArrayList<ASN1Element> elems = new ArrayList<ASN1Element>();
-
-    elems.add(new LDAPAttribute(attr).encode());
-
-    // Encode the user attributes (AttributeList).
-    for (List<Attribute> list : userAttributes.values())
-    {
-      for (Attribute a : list)
+      //  Encode the object classes (SET OF LDAPString).
+      AttributeBuilder builder = new AttributeBuilder(
+          DirectoryServer.getObjectClassAttributeType());
+      builder.setInitialCapacity(objectClasses.size());
+      for (String s : objectClasses.values())
       {
-        if (!a.isVirtual())
-          elems.add(new LDAPAttribute(a).encode());
+        builder.add(AttributeValues.create(ByteString.valueOf(s),
+            ByteString.valueOf(toLowerCase(s))));
+      }
+      Attribute attr = builder.toAttribute();
+
+      new LDAPAttribute(attr).write(writer);
+
+      // Encode the user attributes (AttributeList).
+      for (List<Attribute> list : userAttributes.values())
+      {
+        for (Attribute a : list)
+        {
+          if (!a.isVirtual())
+            new LDAPAttribute(a).write(writer);
+        }
+      }
+
+      // Encode the operational attributes (AttributeList).
+      for (List<Attribute> list : operationalAttributes.values())
+      {
+        for (Attribute a : list)
+        {
+          if (!a.isVirtual())
+            new LDAPAttribute(a).write(writer);
+        }
       }
     }
-
-    // Encode the operational attributes (AttributeList).
-    for (List<Attribute> list : operationalAttributes.values())
+    catch(Exception e)
     {
-      for (Attribute a : list)
-      {
-        if (!a.isVirtual())
-          elems.add(new LDAPAttribute(a).encode());
-      }
+      // TODO: DO something
     }
 
     // Encode the sequence.
-    return ASN1Element.encodeValue(elems);
+    return byteBuilder.toByteArray();
   }
 
   /**
@@ -175,17 +178,26 @@ public class AddMsg extends LDAPUpdateMsg
     super (cn, uniqueId, dn);
     this.parentUniqueId = parentId;
 
-    ArrayList<ASN1Element> elems = new ArrayList<ASN1Element>();
-    elems.add(new LDAPAttribute(objectClass).encode());
+    ByteStringBuilder byteBuilder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(byteBuilder);
 
-    for (Attribute a : userAttributes)
-      elems.add(new LDAPAttribute(a).encode());
+    try
+    {
+      new LDAPAttribute(objectClass).write(writer);
 
-    if (operationalAttributes != null)
-      for (Attribute a : operationalAttributes)
-        elems.add(new LDAPAttribute(a).encode());
+      for (Attribute a : userAttributes)
+        new LDAPAttribute(a).write(writer);
 
-    encodedAttributes = ASN1Element.encodeValue(elems);
+      if (operationalAttributes != null)
+        for (Attribute a : operationalAttributes)
+          new LDAPAttribute(a).write(writer);
+    }
+    catch(Exception e)
+    {
+      // Do something
+    }
+
+    encodedAttributes = byteBuilder.toByteArray();
   }
 
   /**
@@ -233,19 +245,18 @@ public class AddMsg extends LDAPUpdateMsg
          InternalClientConnection connection, String newDn)
          throws LDAPException, ASN1Exception
   {
+    ASN1Reader asn1Reader = ASN1.getReader(encodedAttributes);
     ArrayList<RawAttribute> attr = new ArrayList<RawAttribute>();
-    ArrayList<ASN1Element> elems;
 
-    elems = ASN1Element.decodeElements(encodedAttributes);
-    for (ASN1Element elem : elems)
+    while(asn1Reader.hasNextElement())
     {
-      attr.add(LDAPAttribute.decode(elem));
+      attr.add(LDAPAttribute.decode(asn1Reader));
     }
 
     AddOperationBasis add =  new AddOperationBasis(connection,
                             InternalClientConnection.nextOperationID(),
                             InternalClientConnection.nextMessageID(), null,
-                            new ASN1OctetString(newDn), attr);
+        ByteString.valueOf(newDn), attr);
     AddContext ctx = new AddContext(getChangeNumber(), getUniqueId(),
                                     parentUniqueId);
     add.setAttachment(SYNCHROCONTEXT, ctx);
@@ -335,11 +346,21 @@ public class AddMsg extends LDAPUpdateMsg
   public void addAttribute(String name, String value)
          throws ASN1Exception
   {
-    RawAttribute newAttr = new LDAPAttribute(name, value);
-    ArrayList<ASN1Element> elems;
-    elems = ASN1Element.decodeElements(encodedAttributes);
-    elems.add(newAttr.encode());
-    encodedAttributes = ASN1Element.encodeValue(elems);
+    ByteStringBuilder byteBuilder = new ByteStringBuilder();
+    byteBuilder.append(encodedAttributes);
+
+    ASN1Writer writer = ASN1.getWriter(byteBuilder);
+
+    try
+    {
+      new LDAPAttribute(name, value).write(writer);
+
+      encodedAttributes = byteBuilder.toByteArray();
+    }
+    catch(Exception e)
+    {
+      // DO SOMETHING
+    }
   }
 
   /**

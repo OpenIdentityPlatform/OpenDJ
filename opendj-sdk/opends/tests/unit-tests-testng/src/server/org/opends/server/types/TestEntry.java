@@ -35,11 +35,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.util.StaticUtils;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.api.SubtreeSpecificationSet;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.RFC3672SubtreeSpecification;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.schema.IntegerSyntax;
@@ -272,7 +272,8 @@ public final class TestEntry extends TypesTestCase {
         + "SYNTAX 1.3.6.1.4.1.1466.115.121.1.45 )";
 
     AttributeType type = AttributeTypeSyntax.decodeAttributeType(
-        new ASN1OctetString(string), DirectoryServer.getSchema(), false);
+        ByteString.valueOf(string),
+        DirectoryServer.getSchema(), false);
 
     // Test values.
     String[] values = new String[] { "{ }",

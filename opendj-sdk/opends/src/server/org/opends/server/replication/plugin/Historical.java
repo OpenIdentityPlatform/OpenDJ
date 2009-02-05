@@ -42,14 +42,7 @@ import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.OperationContext;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
@@ -250,7 +243,7 @@ public class Historical
       DirectoryServer.getSchema().getAttributeType(HISTORICALATTRIBUTENAME);
 
     String strValue = "dn:" + cn.toString() +":add";
-    AttributeValue val = new AttributeValue(historicalAttrType, strValue);
+    AttributeValue val = AttributeValues.create(historicalAttrType, strValue);
     return val;
   }
 
@@ -271,7 +264,7 @@ public class Historical
       DirectoryServer.getSchema().getAttributeType(HISTORICALATTRIBUTENAME);
 
     String strValue = "dn:" + cn.toString() +":moddn";
-    AttributeValue val = new AttributeValue(historicalAttrType, strValue);
+    AttributeValue val = AttributeValues.create(historicalAttrType, strValue);
     return val;
   }
 
@@ -371,7 +364,7 @@ public class Historical
             strValue = type.getNormalizedPrimaryName() + optionsString + ":" +
             valInfo.getValueDeleteTime().toString() +
             ":del:" + valInfo.getValue().toString();
-            AttributeValue val = new AttributeValue(historicalAttrType,
+            AttributeValue val = AttributeValues.create(historicalAttrType,
                                                     strValue);
             builder.add(val);
           }
@@ -401,7 +394,7 @@ public class Historical
               }
             }
 
-            AttributeValue val = new AttributeValue(historicalAttrType,
+            AttributeValue val = AttributeValues.create(historicalAttrType,
                                                     strValue);
             builder.add(val);
           }
@@ -412,7 +405,8 @@ public class Historical
           String strValue = type.getNormalizedPrimaryName()
               + optionsString + ":" + deleteTime.toString()
               + ":attrDel";
-          AttributeValue val = new AttributeValue(historicalAttrType, strValue);
+          AttributeValue val =
+              AttributeValues.create(historicalAttrType, strValue);
           builder.add(val);
         }
       }
@@ -480,7 +474,7 @@ public class Historical
       {
         for (AttributeValue val : attr)
         {
-          HistVal histVal = new HistVal(val.getStringValue());
+          HistVal histVal = new HistVal(val.getValue().toString());
           AttributeType attrType = histVal.getAttrType();
           Set<String> options = histVal.getOptions();
           ChangeNumber cn = histVal.getCn();
@@ -577,7 +571,7 @@ public class Historical
       {
         for (AttributeValue val : attr)
         {
-          HistVal histVal = new HistVal(val.getStringValue());
+          HistVal histVal = new HistVal(val.getValue().toString());
           if (histVal.isADDOperation())
           {
             // Found some historical information indicating that this
@@ -662,7 +656,7 @@ public class Historical
       if (!uuid.isEmpty())
       {
         AttributeValue uuidVal = uuid.iterator().next();
-        uuidString =  uuidVal.getStringValue();
+        uuidString =  uuidVal.getValue().toString();
       }
     }
     return uuidString;
@@ -690,7 +684,7 @@ public class Historical
       if (!uuid.isEmpty())
       {
         AttributeValue uuidVal = uuid.iterator().next();
-        uuidString =  uuidVal.getStringValue();
+        uuidString =  uuidVal.getValue().toString();
       }
     }
     return uuidString;

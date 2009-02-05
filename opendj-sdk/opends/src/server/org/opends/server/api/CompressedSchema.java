@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -30,10 +30,7 @@ package org.opends.server.api;
 
 import java.util.Map;
 
-import org.opends.server.types.Attribute;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ObjectClass;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -52,28 +49,27 @@ public abstract class CompressedSchema
    * the same set had been previously encoded, then the cached value
    * will be used.  Otherwise, a new value will be created.
    *
-   * @param  objectClasses  The set of object classes for which to
-   *                        retrieve the corresponding byte array
-   *                        token.
-   *
-   * @return  A byte array containing the identifier assigned to the
-   *          object class set.
+   * @param  entryBuffer   The buffer to encode the object classes to.
+   * @param  objectClasses The set of object classes for which to
+   *                       retrieve the corresponding byte array
+   *                       token.
    *
    * @throws  DirectoryException  If a problem occurs while attempting
    *                              to determine the appropriate
    *                              identifier.
    */
-  public abstract byte[]
-         encodeObjectClasses(Map<ObjectClass,String> objectClasses)
+  public abstract void
+         encodeObjectClasses(ByteStringBuilder entryBuffer,
+                             Map<ObjectClass,String> objectClasses)
          throws DirectoryException;
 
 
 
   /**
-   * Decodes an object class set from the provided byte array.
+   * Decodes an object class set from the provided byte string.
    *
-   * @param  encodedObjectClasses  The byte array containing the
-   *                               object class set identifier.
+   * @param  entryBuffer         The byte string containing the
+   *                             object class set identifier.
    *
    * @return  The decoded object class set.
    *
@@ -81,7 +77,7 @@ public abstract class CompressedSchema
    *                              decoded as an object class set.
    */
   public abstract Map<ObjectClass,String>
-         decodeObjectClasses(byte[] encodedObjectClasses)
+         decodeObjectClasses(ByteSequenceReader entryBuffer)
          throws DirectoryException;
 
 
@@ -90,36 +86,32 @@ public abstract class CompressedSchema
    * Encodes the information in the provided attribute to a byte
    * array.
    *
-   * @param  attribute  The attribute to be encoded.
-   *
-   * @return  An encoded representation of the provided attribute.
+   * @param  entryBuffer The buffer to encode the attribute to.
+   * @param  attribute   The attribute to be encoded.
    *
    * @throws  DirectoryException  If a problem occurs while attempting
    *                              to determine the appropriate
    *                              identifier.
    */
-  public abstract byte[] encodeAttribute(Attribute attribute)
+  public abstract void encodeAttribute(ByteStringBuilder entryBuffer,
+                                       Attribute attribute)
          throws DirectoryException;
 
 
 
   /**
-   * Decodes the contents of the provided array as an attribute.
+   * Decodes the contents of the provided array as an attribute at the
+   * current position.
    *
-   * @param  encodedEntry  The byte array containing the encoded
+   * @param  entryBuffer   The byte array containing the encoded
    *                       entry.
-   * @param  startPos      The position within the array of the first
-   *                       byte for the attribute to decode.
-   * @param  length        The number of bytes contained in the
-   *                       encoded attribute.
    *
    * @return  The decoded attribute.
    *
    * @throws  DirectoryException  If the attribute could not be
    *                              decoded properly for some reason.
    */
-  public abstract Attribute decodeAttribute(byte[] encodedEntry,
-                                            int startPos, int length)
-          throws DirectoryException;
+  public abstract Attribute decodeAttribute(
+      ByteSequenceReader entryBuffer) throws DirectoryException;
 }
 

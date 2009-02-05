@@ -352,7 +352,7 @@ public final class ServerManagementContext {
      */
     public static <PD> PD decode(PropertyDefinition<PD> pd,
         AttributeValue value) throws IllegalPropertyValueStringException {
-      String s = value.getStringValue();
+      String s = value.getValue().toString();
       return pd.castValue(pd.accept(new ValueDecoder(), s));
     }
 
@@ -664,7 +664,7 @@ public final class ServerManagementContext {
     for (DN child : children) {
       // Assume that RDNs are single-valued and can be trimmed.
       AttributeValue av = child.getRDN().getAttributeValue(0);
-      names.add(av.getStringValue().trim());
+      names.add(av.getValue().toString().trim());
     }
 
     return names.toArray(new String[names.size()]);
@@ -716,7 +716,7 @@ public final class ServerManagementContext {
     for (DN child : children) {
       // Assume that RDNs are single-valued and can be trimmed.
       AttributeValue av = child.getRDN().getAttributeValue(0);
-      names.add(av.getStringValue().trim());
+      names.add(av.toString().trim());
     }
 
     return names.toArray(new String[names.size()]);

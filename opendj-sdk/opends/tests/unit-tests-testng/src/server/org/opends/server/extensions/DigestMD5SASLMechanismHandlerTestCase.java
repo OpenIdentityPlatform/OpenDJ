@@ -48,15 +48,9 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
 
@@ -1023,7 +1017,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_DIGEST_MD5,
-                              new ASN1OctetString("invalid"));
+                              ByteString.valueOf("invalid"));
     assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -1048,7 +1042,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
 
     bindOperation =
          conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_DIGEST_MD5,
-                              new ASN1OctetString("malformed"));
+                              ByteString.valueOf("malformed"));
     assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
   }
 }

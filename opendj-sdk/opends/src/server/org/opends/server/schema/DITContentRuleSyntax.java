@@ -42,19 +42,10 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DITContentRule;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.ObjectClassType;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.Schema;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 import static org.opends.messages.SchemaMessages.*;
 import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -212,7 +203,7 @@ public class DITContentRuleSyntax
   /**
    * {@inheritDoc}
    */
-  public boolean valueIsAcceptable(ByteString value,
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // We'll use the decodeDITContentRule method to determine if the value is
@@ -259,13 +250,13 @@ public class DITContentRuleSyntax
    * @throws  DirectoryException  If the provided value cannot be decoded as an
    *                              DIT content rule definition.
    */
-  public static DITContentRule decodeDITContentRule(ByteString value,
+  public static DITContentRule decodeDITContentRule(ByteSequence value,
                                     Schema schema, boolean allowUnknownElements)
          throws DirectoryException
   {
     // Get string representations of the provided value using the provided form
     // and with all lowercase characters.
-    String valueStr = value.stringValue();
+    String valueStr = value.toString();
     String lowerStr = toLowerCase(valueStr);
 
 
@@ -943,7 +934,7 @@ public class DITContentRuleSyntax
     }
 
 
-    return new DITContentRule(value.stringValue(), structuralClass, names,
+    return new DITContentRule(value.toString(), structuralClass, names,
                               description, auxiliaryClasses, requiredAttributes,
                               optionalAttributes, prohibitedAttributes,
                               isObsolete, extraProperties);

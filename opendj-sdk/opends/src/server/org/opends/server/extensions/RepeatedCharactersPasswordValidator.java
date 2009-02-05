@@ -37,11 +37,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.
             RepeatedCharactersPasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
 import org.opends.messages.MessageBuilder;
@@ -121,7 +117,7 @@ public class RepeatedCharactersPasswordValidator
 
     // Get the password as a string.  If we should use case-insensitive
     // validation, then convert it to use all lowercase characters.
-    String passwordString = newPassword.stringValue();
+    String passwordString = newPassword.toString();
     if (! config.isCaseSensitiveValidation())
     {
       passwordString = passwordString.toLowerCase();

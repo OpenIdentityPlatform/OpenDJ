@@ -29,6 +29,7 @@ package org.opends.server.backends.jeb;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ByteString;
 
 import java.util.Comparator;
 import java.io.Serializable;
@@ -282,12 +283,12 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
         break;
       }
 
-      byte[] b1Bytes = set.getValue((index * orderingRules.length) + j);
-      byte[] b2Bytes = null;
+      ByteString b1Bytes = set.getValue((index * orderingRules.length) + j);
+      ByteString b2Bytes = null;
 
       if(values[j] != null)
       {
-        b2Bytes = values[j].getNormalizedValueBytes();
+        b2Bytes = values[j].getNormalizedValue();
       }
 
       // A null value will always come after a non-null value.
@@ -310,11 +311,11 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
       int result;
       if(ascending[j])
       {
-        result = orderingRules[j].compare(b1Bytes, b2Bytes);
+        result = orderingRules[j].compareValues(b1Bytes, b2Bytes);
       }
       else
       {
-        result = orderingRules[j].compare(b2Bytes, b1Bytes);
+        result = orderingRules[j].compareValues(b2Bytes, b1Bytes);
       }
 
       if(result != 0)

@@ -50,13 +50,8 @@ import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.GeneralizedTimeSyntax;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DN;
-import org.opends.server.types.InitializationException;
+import org.opends.server.types.*;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -502,7 +497,7 @@ public class PasswordPolicy
     {
       if (requireChangeBy != null)
       {
-        ByteString valueString = new ASN1OctetString(requireChangeBy);
+        ByteString valueString = ByteString.valueOf(requireChangeBy);
 
         GeneralizedTimeSyntax syntax =
              (GeneralizedTimeSyntax)

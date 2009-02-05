@@ -29,7 +29,6 @@ package org.opends.server.extensions;
 
 
 import java.security.MessageDigest;
-import java.util.Arrays;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.SHA1PasswordStorageSchemeCfg;
@@ -37,12 +36,7 @@ import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringFactory;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.util.Base64;
 
 import static org.opends.messages.ExtensionMessages.*;
@@ -142,7 +136,7 @@ public class SHA1PasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString encodePassword(ByteString plaintext)
+  public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
   {
     byte[] digestBytes;
@@ -151,7 +145,9 @@ public class SHA1PasswordStorageScheme
     {
       try
       {
-        digestBytes = messageDigest.digest(plaintext.value());
+        // TODO: Can we avoid this copy?
+        byte[] plaintextBytes = plaintext.toByteArray();
+        digestBytes = messageDigest.digest(plaintextBytes);
       }
       catch (Exception e)
       {
@@ -167,7 +163,7 @@ public class SHA1PasswordStorageScheme
       }
     }
 
-    return ByteStringFactory.create(Base64.encode(digestBytes));
+    return ByteString.valueOf(Base64.encode(digestBytes));
   }
 
 
@@ -176,7 +172,7 @@ public class SHA1PasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString encodePasswordWithScheme(ByteString plaintext)
+  public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
   {
     StringBuilder buffer = new StringBuilder();
@@ -184,13 +180,15 @@ public class SHA1PasswordStorageScheme
     buffer.append(STORAGE_SCHEME_NAME_SHA_1);
     buffer.append('}');
 
+    // TODO: Can we avoid this copy?
+    byte[] plaintextBytes = plaintext.toByteArray();
     byte[] digestBytes;
 
     synchronized (digestLock)
     {
       try
       {
-        digestBytes = messageDigest.digest(plaintext.value());
+        digestBytes = messageDigest.digest(plaintextBytes);
       }
       catch (Exception e)
       {
@@ -208,7 +206,7 @@ public class SHA1PasswordStorageScheme
 
     buffer.append(Base64.encode(digestBytes));
 
-    return ByteStringFactory.create(buffer.toString());
+    return ByteString.valueOf(buffer.toString());
   }
 
 
@@ -217,16 +215,19 @@ public class SHA1PasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public boolean passwordMatches(ByteString plaintextPassword,
-                                 ByteString storedPassword)
+  public boolean passwordMatches(ByteSequence plaintextPassword,
+                                 ByteSequence storedPassword)
   {
-    byte[] userPWDigestBytes;
+    // TODO: Can we avoid this copy?
+    byte[] plaintextPasswordBytes = plaintextPassword.toByteArray();
+    ByteString userPWDigestBytes;
 
     synchronized (digestLock)
     {
       try
       {
-        userPWDigestBytes = messageDigest.digest(plaintextPassword.value());
+        userPWDigestBytes =
+            ByteString.wrap(messageDigest.digest(plaintextPasswordBytes));
       }
       catch (Exception e)
       {
@@ -239,10 +240,11 @@ public class SHA1PasswordStorageScheme
       }
     }
 
-    byte[] storedPWDigestBytes;
+    ByteString storedPWDigestBytes;
     try
     {
-      storedPWDigestBytes = Base64.decode(storedPassword.stringValue());
+      storedPWDigestBytes =
+          ByteString.wrap(Base64.decode(storedPassword.toString()));
     }
     catch (Exception e)
     {
@@ -252,12 +254,12 @@ public class SHA1PasswordStorageScheme
       }
 
       logError(ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(
-          storedPassword.stringValue(), String.valueOf(e)));
+          storedPassword.toString(), String.valueOf(e)));
 
       return false;
     }
 
-    return Arrays.equals(userPWDigestBytes, storedPWDigestBytes);
+    return userPWDigestBytes.equals(storedPWDigestBytes);
   }
 
 
@@ -278,7 +280,7 @@ public class SHA1PasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString encodeAuthPassword(ByteString plaintext)
+  public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
   {
     Message message =
@@ -292,7 +294,7 @@ public class SHA1PasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public boolean authPasswordMatches(ByteString plaintextPassword,
+  public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
   {
     // This storage scheme does not support the authentication password syntax.
@@ -316,7 +318,7 @@ public class SHA1PasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString getPlaintextValue(ByteString storedPassword)
+  public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
   {
     Message message =

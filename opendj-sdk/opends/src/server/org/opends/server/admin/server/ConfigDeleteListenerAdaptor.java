@@ -217,7 +217,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
       MessageBuilder unacceptableReason) {
     DN dn = configEntry.getDN();
     AttributeValue av = dn.getRDN().getAttributeValue(0);
-    String name = av.getStringValue().trim();
+    String name = av.getValue().toString().trim();
 
     try {
       ManagedObjectPath<?, ? extends S> childPath;

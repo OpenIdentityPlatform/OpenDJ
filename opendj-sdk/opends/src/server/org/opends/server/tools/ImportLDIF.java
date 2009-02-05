@@ -59,12 +59,12 @@ import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.TextDebugLogPublisher;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.tasks.ImportTask;
 import org.opends.server.tools.makeldif.TemplateFile;
 import org.opends.server.tools.tasks.TaskTool;
 import org.opends.server.types.AttributeType;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ExistingFileBehavior;
@@ -79,6 +79,7 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import org.opends.server.util.args.StringArgument;
+
 
 
 /**
@@ -476,15 +477,15 @@ public class ImportLDIF extends TaskTool {
     //
     // Required attributes
     //
-    ArrayList<ASN1OctetString> values;
+    ArrayList<ByteString> values;
 
     List<String> fileList = ldifFiles.getValues();
     if ((fileList != null) && (fileList.size() > 0))
     {
       if (fileList != null && fileList.size() > 0) {
-        values = new ArrayList<ASN1OctetString>(fileList.size());
+        values = new ArrayList<ByteString>(fileList.size());
         for (String file : fileList) {
-          values.add(new ASN1OctetString(file));
+          values.add(ByteString.valueOf(file));
         }
         attributes.add(new LDAPAttribute(ATTR_IMPORT_LDIF_FILE, values));
       }
@@ -493,16 +494,16 @@ public class ImportLDIF extends TaskTool {
     String templateFileValue = templateFile.getValue();
     if (templateFileValue != null)
     {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(templateFileValue));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(templateFileValue));
       attributes.add(new LDAPAttribute(ATTR_IMPORT_TEMPLATE_FILE, values));
     }
 
     String randomSeedValue = randomSeed.getValue();
     if (randomSeedValue != null)
     {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(randomSeedValue));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(randomSeedValue));
       attributes.add(new LDAPAttribute(ATTR_IMPORT_RANDOM_SEED, values));
     }
 
@@ -511,77 +512,77 @@ public class ImportLDIF extends TaskTool {
     //
     if (append.getValue() != null &&
             !append.getValue().equals(append.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(append.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(append.getValue()));
       attributes.add(new LDAPAttribute(ATTR_IMPORT_APPEND, values));
     }
 
     if (replaceExisting.getValue() != null &&
             !replaceExisting.getValue().equals(
                     replaceExisting.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(replaceExisting.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(replaceExisting.getValue()));
       attributes.add(new LDAPAttribute(ATTR_IMPORT_REPLACE_EXISTING, values));
     }
 
     if (backendID.getValue() != null &&
             !backendID.getValue().equals(
                     backendID.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(backendID.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(backendID.getValue()));
       attributes.add(new LDAPAttribute(ATTR_IMPORT_BACKEND_ID, values));
     }
 
     List<String> includeAttributes = includeAttributeStrings.getValues();
     if (includeAttributes != null && includeAttributes.size() > 0) {
-      values = new ArrayList<ASN1OctetString>(includeAttributes.size());
+      values = new ArrayList<ByteString>(includeAttributes.size());
       for (String includeAttribute : includeAttributes) {
-        values.add(new ASN1OctetString(includeAttribute));
+        values.add(ByteString.valueOf(includeAttribute));
       }
       attributes.add(new LDAPAttribute(ATTR_IMPORT_INCLUDE_ATTRIBUTE, values));
     }
 
     List<String> excludeAttributes = excludeAttributeStrings.getValues();
     if (excludeAttributes != null && excludeAttributes.size() > 0) {
-      values = new ArrayList<ASN1OctetString>(excludeAttributes.size());
+      values = new ArrayList<ByteString>(excludeAttributes.size());
       for (String excludeAttribute : excludeAttributes) {
-        values.add(new ASN1OctetString(excludeAttribute));
+        values.add(ByteString.valueOf(excludeAttribute));
       }
       attributes.add(new LDAPAttribute(ATTR_IMPORT_EXCLUDE_ATTRIBUTE, values));
     }
 
     List<String> includeFilters = includeFilterStrings.getValues();
     if (includeFilters != null && includeFilters.size() > 0) {
-      values = new ArrayList<ASN1OctetString>(includeFilters.size());
+      values = new ArrayList<ByteString>(includeFilters.size());
       for (String includeFilter : includeFilters) {
-        values.add(new ASN1OctetString(includeFilter));
+        values.add(ByteString.valueOf(includeFilter));
       }
       attributes.add(new LDAPAttribute(ATTR_IMPORT_INCLUDE_FILTER, values));
     }
 
     List<String> excludeFilters = excludeFilterStrings.getValues();
     if (excludeFilters != null && excludeFilters.size() > 0) {
-      values = new ArrayList<ASN1OctetString>(excludeFilters.size());
+      values = new ArrayList<ByteString>(excludeFilters.size());
       for (String excludeFilter : excludeFilters) {
-        values.add(new ASN1OctetString(excludeFilter));
+        values.add(ByteString.valueOf(excludeFilter));
       }
       attributes.add(new LDAPAttribute(ATTR_IMPORT_EXCLUDE_FILTER, values));
     }
 
     List<String> includeBranches = includeBranchStrings.getValues();
     if (includeBranches != null && includeBranches.size() > 0) {
-      values = new ArrayList<ASN1OctetString>(includeBranches.size());
+      values = new ArrayList<ByteString>(includeBranches.size());
       for (String includeBranche : includeBranches) {
-        values.add(new ASN1OctetString(includeBranche));
+        values.add(ByteString.valueOf(includeBranche));
       }
       attributes.add(new LDAPAttribute(ATTR_IMPORT_INCLUDE_BRANCH, values));
     }
 
     List<String> excludeBranches = excludeBranchStrings.getValues();
     if (excludeBranches != null && excludeBranches.size() > 0) {
-      values = new ArrayList<ASN1OctetString>(excludeBranches.size());
+      values = new ArrayList<ByteString>(excludeBranches.size());
       for (String excludeBranch : excludeBranches) {
-        values.add(new ASN1OctetString(excludeBranch));
+        values.add(ByteString.valueOf(excludeBranch));
       }
       attributes.add(new LDAPAttribute(ATTR_IMPORT_EXCLUDE_BRANCH, values));
     }
@@ -589,32 +590,32 @@ public class ImportLDIF extends TaskTool {
     if (rejectFile.getValue() != null &&
             !rejectFile.getValue().equals(
                     rejectFile.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(rejectFile.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(rejectFile.getValue()));
       attributes.add(new LDAPAttribute(ATTR_IMPORT_REJECT_FILE, values));
     }
 
     if (skipFile.getValue() != null &&
             !skipFile.getValue().equals(
                     skipFile.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(skipFile.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(skipFile.getValue()));
       attributes.add(new LDAPAttribute(ATTR_IMPORT_SKIP_FILE, values));
     }
 
     if (overwrite.getValue() != null &&
             !overwrite.getValue().equals(
                     overwrite.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(overwrite.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(overwrite.getValue()));
       attributes.add(new LDAPAttribute(ATTR_IMPORT_OVERWRITE, values));
     }
 
     if (skipSchemaValidation.getValue() != null &&
             !skipSchemaValidation.getValue().equals(
                     skipSchemaValidation.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(skipSchemaValidation.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(skipSchemaValidation.getValue()));
       attributes.add(
               new LDAPAttribute(ATTR_IMPORT_SKIP_SCHEMA_VALIDATION, values));
     }
@@ -622,8 +623,8 @@ public class ImportLDIF extends TaskTool {
     if (isCompressed.getValue() != null &&
             !isCompressed.getValue().equals(
                     isCompressed.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(isCompressed.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(isCompressed.getValue()));
       attributes.add(
               new LDAPAttribute(ATTR_IMPORT_IS_COMPRESSED, values));
     }
@@ -631,8 +632,8 @@ public class ImportLDIF extends TaskTool {
     if (isEncrypted.getValue() != null &&
             !isEncrypted.getValue().equals(
                     isEncrypted.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(isEncrypted.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(isEncrypted.getValue()));
       attributes.add(
               new LDAPAttribute(ATTR_IMPORT_IS_ENCRYPTED, values));
     }
@@ -640,8 +641,8 @@ public class ImportLDIF extends TaskTool {
     if (clearBackend.getValue() != null &&
             !clearBackend.getValue().equals(
                     clearBackend.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(clearBackend.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(clearBackend.getValue()));
       attributes.add(
               new LDAPAttribute(ATTR_IMPORT_CLEAR_BACKEND, values));
     }

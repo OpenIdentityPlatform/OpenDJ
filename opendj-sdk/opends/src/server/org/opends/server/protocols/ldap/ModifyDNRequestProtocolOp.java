@@ -25,24 +25,16 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
 
 
+import java.io.IOException;
 
-import java.util.ArrayList;
-
-import org.opends.server.protocols.asn1.ASN1Boolean;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
+import org.opends.server.protocols.asn1.*;
+import org.opends.server.types.ByteString;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -60,13 +52,13 @@ public class ModifyDNRequestProtocolOp
   private static final DebugTracer TRACER = getTracer();
 
   // The current entry DN for this modify DN request.
-  private ASN1OctetString entryDN;
+  private ByteString entryDN;
 
   // The new RDN for this modify DN request.
-  private ASN1OctetString newRDN;
+  private ByteString newRDN;
 
   // The new superior DN for this modify DN request.
-  private ASN1OctetString newSuperior;
+  private ByteString newSuperior;
 
   // Indicates whether to delete the current RDN value(s).
   private boolean deleteOldRDN;
@@ -80,8 +72,8 @@ public class ModifyDNRequestProtocolOp
    * @param  newRDN        The new RDN for this modify DN request.
    * @param  deleteOldRDN  Indicates whether to delete the current RDN value(s).
    */
-  public ModifyDNRequestProtocolOp(ASN1OctetString entryDN,
-                                   ASN1OctetString newRDN, boolean deleteOldRDN)
+  public ModifyDNRequestProtocolOp(ByteString entryDN,
+                                   ByteString newRDN, boolean deleteOldRDN)
   {
     this.entryDN      = entryDN;
     this.newRDN       = newRDN;
@@ -99,9 +91,9 @@ public class ModifyDNRequestProtocolOp
    * @param  deleteOldRDN  Indicates whether to delete the current RDN value(s).
    * @param  newSuperior   The new superior DN for this modify DN request.
    */
-  public ModifyDNRequestProtocolOp(ASN1OctetString entryDN,
-                                   ASN1OctetString newRDN, boolean deleteOldRDN,
-                                   ASN1OctetString newSuperior)
+  public ModifyDNRequestProtocolOp(ByteString entryDN,
+                                   ByteString newRDN, boolean deleteOldRDN,
+                                   ByteString newSuperior)
   {
     this.entryDN      = entryDN;
     this.newRDN       = newRDN;
@@ -116,21 +108,9 @@ public class ModifyDNRequestProtocolOp
    *
    * @return  The current entry DN for this modify DN request.
    */
-  public ASN1OctetString getEntryDN()
+  public ByteString getEntryDN()
   {
     return entryDN;
-  }
-
-
-
-  /**
-   * Specifies the current entry DN for this modify DN request.
-   *
-   * @param  entryDN  The current entry DN for this modify DN request.
-   */
-  public void setEntryDN(ASN1OctetString entryDN)
-  {
-    this.entryDN = entryDN;
   }
 
 
@@ -140,21 +120,9 @@ public class ModifyDNRequestProtocolOp
    *
    * @return  The new RDN for this modify DN request.
    */
-  public ASN1OctetString getNewRDN()
+  public ByteString getNewRDN()
   {
     return newRDN;
-  }
-
-
-
-  /**
-   * Specifies the new RDN for this modify DN request.
-   *
-   * @param  newRDN  The new RDN for this modify DN request.
-   */
-  public void setNewRDN(ASN1OctetString newRDN)
-  {
-    this.newRDN = newRDN;
   }
 
 
@@ -173,39 +141,14 @@ public class ModifyDNRequestProtocolOp
 
 
   /**
-   * Specifies whether the current RDN value(s) should be deleted.
-   *
-   * @param  deleteOldRDN  Specifies whether the current RDN value(s) should be
-   *                       deleted.
-   */
-  public void setDeleteOldRDN(boolean deleteOldRDN)
-  {
-    this.deleteOldRDN = deleteOldRDN;
-  }
-
-
-
-  /**
    * Retrieves the new superior DN for this modify DN request.
    *
    * @return  The new superior DN for this modify DN request, or
    *          <CODE>null</CODE> if none was provided.
    */
-  public ASN1OctetString getNewSuperior()
+  public ByteString getNewSuperior()
   {
     return newSuperior;
-  }
-
-
-
-  /**
-   * Specifies the new superior DN for this modify DN request.
-   *
-   * @param  newSuperior  The new superior DN for this modify DN request.
-   */
-  public void setNewSuperior(ASN1OctetString newSuperior)
-  {
-    this.newSuperior = newSuperior;
   }
 
 
@@ -232,155 +175,25 @@ public class ModifyDNRequestProtocolOp
     return "Modify DN Request";
   }
 
-
-
   /**
-   * Encodes this protocol op to an ASN.1 element suitable for including in an
-   * LDAP message.
+   * Writes this protocol op to an ASN.1 output stream.
    *
-   * @return  The ASN.1 element containing the encoded protocol op.
+   * @param stream The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public ASN1Element encode()
+  public void write(ASN1Writer stream) throws IOException
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(4);
-    elements.add(entryDN);
-    elements.add(newRDN);
-    elements.add(new ASN1Boolean(deleteOldRDN));
+    stream.writeStartSequence(OP_TYPE_MODIFY_DN_REQUEST);
+    stream.writeOctetString(entryDN);
+    stream.writeOctetString(newRDN);
+    stream.writeBoolean(deleteOldRDN);
 
-    if (newSuperior != null)
+    if(newSuperior != null)
     {
-      newSuperior.setType(TYPE_MODIFY_DN_NEW_SUPERIOR);
-      elements.add(newSuperior);
+      stream.writeOctetString(TYPE_MODIFY_DN_NEW_SUPERIOR, newSuperior);
     }
 
-    return new ASN1Sequence(OP_TYPE_MODIFY_DN_REQUEST, elements);
-  }
-
-
-
-  /**
-   * Decodes the provided ASN.1 element as a modify DN request protocol op.
-   *
-   * @param  element  The ASN.1 element to decode.
-   *
-   * @return  The decoded modify DN request protocol op.
-   *
-   * @throws  LDAPException  If a problem occurs while trying to decode the
-   *                         provided ASN.1 element as an LDAP modify DN request
-   *                         protocol op.
-   */
-  public static ModifyDNRequestProtocolOp decodeModifyDNRequest(ASN1Element
-                                                                     element)
-         throws LDAPException
-  {
-    ArrayList<ASN1Element> elements;
-    try
-    {
-      elements = element.decodeAsSequence().elements();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_MODIFY_DN_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    int numElements = elements.size();
-    if ((numElements < 3) || (numElements > 4))
-    {
-      Message message = ERR_LDAP_MODIFY_DN_REQUEST_DECODE_INVALID_ELEMENT_COUNT.
-          get(numElements);
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-
-    ASN1OctetString entryDN;
-    try
-    {
-      entryDN = elements.get(0).decodeAsOctetString();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_MODIFY_DN_REQUEST_DECODE_DN.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    ASN1OctetString newRDN;
-    try
-    {
-      newRDN = elements.get(1).decodeAsOctetString();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_MODIFY_DN_REQUEST_DECODE_NEW_RDN.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    boolean deleteOldRDN;
-    try
-    {
-      deleteOldRDN = elements.get(2).decodeAsBoolean().booleanValue();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_LDAP_MODIFY_DN_REQUEST_DECODE_DELETE_OLD_RDN.get(
-          String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    ASN1OctetString newSuperior;
-    if (numElements == 4)
-    {
-      try
-      {
-        newSuperior = elements.get(3).decodeAsOctetString();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_LDAP_MODIFY_DN_REQUEST_DECODE_NEW_SUPERIOR.get(
-            String.valueOf(e));
-        throw new LDAPException(PROTOCOL_ERROR, message, e);
-      }
-    }
-    else
-    {
-      newSuperior = null;
-    }
-
-
-    return new ModifyDNRequestProtocolOp(entryDN, newRDN, deleteOldRDN,
-                                         newSuperior);
+    stream.writeEndSequence();
   }
 
 
@@ -394,16 +207,16 @@ public class ModifyDNRequestProtocolOp
   public void toString(StringBuilder buffer)
   {
     buffer.append("ModifyDNRequest(dn=");
-    entryDN.toString(buffer);
+    buffer.append(entryDN.toString());
     buffer.append(", newRDN=");
-    newRDN.toString(buffer);
+    buffer.append(newRDN.toString());
     buffer.append(", deleteOldRDN=");
     buffer.append(deleteOldRDN);
 
     if (newSuperior != null)
     {
       buffer.append(", newSuperior=");
-      newSuperior.toString(buffer);
+      buffer.append(newSuperior.toString());
     }
 
     buffer.append(")");
@@ -433,12 +246,12 @@ public class ModifyDNRequestProtocolOp
 
     buffer.append(indentBuf);
     buffer.append("  Entry DN:  ");
-    entryDN.toString(buffer);
+    buffer.append(entryDN.toString());
     buffer.append(EOL);
 
     buffer.append(indentBuf);
     buffer.append("  New RDN:  ");
-    newRDN.toString(buffer);
+    buffer.append(newRDN.toString());
     buffer.append(EOL);
 
     buffer.append(indentBuf);
@@ -450,7 +263,7 @@ public class ModifyDNRequestProtocolOp
     {
       buffer.append(indentBuf);
       buffer.append("  New Superior:  ");
-      newSuperior.toString(buffer);
+      buffer.append(newSuperior.toString());
       buffer.append(EOL);
     }
   }
