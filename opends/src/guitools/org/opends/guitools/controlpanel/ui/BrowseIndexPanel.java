@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -33,6 +33,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -79,6 +80,7 @@ import org.opends.guitools.controlpanel.ui.nodes.IndexTreeNode;
 import org.opends.guitools.controlpanel.ui.nodes.VLVIndexTreeNode;
 import org.opends.guitools.controlpanel.ui.renderer.TreeCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.guitools.controlpanel.util.ViewPositions;
 import org.opends.messages.Message;
 
 /**
@@ -95,6 +97,8 @@ implements IndexModifiedListener
 
   private IndexBrowserRightPanel entryPane;
   private TreePanel treePane;
+
+  private JScrollPane treeScroll;
 
   private JButton newIndex;
   private JButton newVLVIndex;
@@ -309,7 +313,7 @@ implements IndexModifiedListener
     Utilities.setBorder(treePane, new EmptyBorder(10, 0, 10, 0));
 
     entryPane = new IndexBrowserRightPanel();
-    JScrollPane treeScroll = Utilities.createScrollPane(treePane);
+    treeScroll = Utilities.createScrollPane(treePane);
 
     entryPane.addIndexSelectionListener(new IndexSelectionListener()
     {
@@ -580,6 +584,8 @@ implements IndexModifiedListener
   private void repopulateTree(JTree tree)
   {
     ignoreSelectionEvents = true;
+
+    final Point currentPosition = treeScroll.getViewport().getViewPosition();
     DefaultMutableTreeNode root = getRoot(tree);
 
     TreePath path = tree.getSelectionPath();
@@ -710,6 +716,20 @@ implements IndexModifiedListener
 
     updateEntryPane();
 
+    SwingUtilities.invokeLater(new Runnable()
+    {
+      public void run()
+      {
+        if (firstTreeRepopulate)
+        {
+          treeScroll.getViewport().setViewPosition(new Point(0, 0));
+        }
+        else
+        {
+          treeScroll.getViewport().setViewPosition(currentPosition);
+        }
+      }
+    });
     firstTreeRepopulate = false;
     ignoreSelectionEvents = false;
   }
@@ -720,6 +740,7 @@ implements IndexModifiedListener
    */
   private void updateEntryPane()
   {
+    ViewPositions pos = Utilities.getViewPositions(entryPane);
     TreePath[] paths = treePane.getTree().getSelectionPaths();
     TreePath path = null;
     if ((paths != null) && (paths.length == 1))
@@ -765,6 +786,7 @@ implements IndexModifiedListener
         entryPane.displayVoid();
       }
     }
+    Utilities.updateViewPositions(pos);
   }
 
   private DefaultMutableTreeNode getRoot(JTree tree)

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -41,6 +41,7 @@ import java.util.SortedSet;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JScrollPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 
@@ -59,6 +60,7 @@ import org.opends.guitools.controlpanel.ui.components.AddRemovePanel;
 import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.ui.renderer.IndexCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.guitools.controlpanel.util.ViewPositions;
 import org.opends.messages.Message;
 
 /**
@@ -256,11 +258,25 @@ implements IndexModifiedListener
        */
       public void run()
       {
+        ViewPositions pos;
+        JScrollPane scroll =
+          Utilities.getContainingScroll(RebuildIndexPanel.this);
+        if (scroll != null)
+        {
+          pos = Utilities.getViewPositions(scroll);
+        }
+        else
+        {
+          pos = Utilities.getViewPositions(RebuildIndexPanel.this);
+        }
+
         boolean comboVisible = baseDNs.getModel().getSize() > 0;
         baseDNs.setVisible(comboVisible);
         lNoBaseDNsFound.setVisible(!comboVisible);
         addRemove.getAvailableList().repaint();
         addRemove.getSelectedList().repaint();
+
+        Utilities.updateViewPositions(pos);
       }
     });
   }
