@@ -25,22 +25,17 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
 
 
 
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Null;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
+import org.opends.server.protocols.asn1.ASN1Writer;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 
+import java.io.IOException;
 
 
 /**
@@ -87,49 +82,15 @@ public class UnbindRequestProtocolOp
     return "Unbind Request";
   }
 
-
-
   /**
-   * Encodes this protocol op to an ASN.1 element suitable for including in an
-   * LDAP message.
+   * Writes this protocol op to an ASN.1 output stream.
    *
-   * @return  The ASN.1 element containing the encoded protocol op.
+   * @param stream The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public ASN1Element encode()
+  public void write(ASN1Writer stream) throws IOException
   {
-    return new ASN1Null(OP_TYPE_UNBIND_REQUEST);
-  }
-
-
-
-  /**
-   * Decodes the provided ASN.1 element as an LDAP unbind request protocol op.
-   *
-   * @param  element  The ASN.1 element to decode.
-   *
-   * @return  The decoded LDAP unbind request protocol op.
-   *
-   * @throws  LDAPException  If the provided ASN.1 element cannot be decoded as
-   *                         an unbind request protocol op.
-   */
-  public static UnbindRequestProtocolOp decodeUnbindRequest(ASN1Element element)
-         throws LDAPException
-  {
-    try
-    {
-      element.decodeAsNull();
-      return new UnbindRequestProtocolOp();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_LDAP_UNBIND_DECODE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
+    stream.writeNull(OP_TYPE_UNBIND_REQUEST);
   }
 
 

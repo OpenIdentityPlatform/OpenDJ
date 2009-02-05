@@ -42,20 +42,7 @@ import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.ByteStringFactory;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryConfig;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
@@ -64,7 +51,6 @@ import static org.opends.messages.PluginMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.TimeThread.*;
-
 
 
 /**
@@ -184,13 +170,13 @@ public final class LastModPlugin
     {
       // This must mean that the operation was performed anonymously.
       // Even so, we still need to update the creatorsName attribute.
-      builder.add(new AttributeValue(creatorsNameType, ByteStringFactory
-          .create()));
+      builder.add(AttributeValues.create(creatorsNameType,
+          ByteString.empty()));
     }
     else
     {
-      builder.add(new AttributeValue(creatorsNameType, ByteStringFactory
-          .create(creatorDN.toString())));
+      builder.add(AttributeValues.create(creatorsNameType,
+          ByteString.valueOf(creatorDN.toString())));
     }
     Attribute nameAttr = builder.toAttribute();
     ArrayList<Attribute> nameList = new ArrayList<Attribute>(1);
@@ -200,8 +186,9 @@ public final class LastModPlugin
 
     //  Create the attribute list for the createTimestamp attribute.
     Attribute timeAttr = Attributes.create(createTimestampType,
-        OP_ATTR_CREATE_TIMESTAMP, new AttributeValue(createTimestampType,
-            ByteStringFactory.create(getGMTTime())));
+        OP_ATTR_CREATE_TIMESTAMP,
+        AttributeValues.create(createTimestampType,
+            ByteString.valueOf(getGMTTime())));
     ArrayList<Attribute> timeList = new ArrayList<Attribute>(1);
     timeList.add(timeAttr);
     addOperation.setAttribute(createTimestampType, timeList);
@@ -228,13 +215,13 @@ public final class LastModPlugin
     {
       // This must mean that the operation was performed anonymously.
       // Even so, we still need to update the modifiersName attribute.
-      builder.add(new AttributeValue(modifiersNameType, ByteStringFactory
-          .create()));
+      builder.add(AttributeValues.create(modifiersNameType,
+          ByteString.empty()));
     }
     else
     {
-      builder.add(new AttributeValue(modifiersNameType, ByteStringFactory
-          .create(modifierDN.toString())));
+      builder.add(AttributeValues.create(modifiersNameType,
+          ByteString.valueOf(modifierDN.toString())));
     }
     Attribute nameAttr = builder.toAttribute();
     try
@@ -257,8 +244,9 @@ public final class LastModPlugin
 
     //  Create the modifyTimestamp attribute.
     Attribute timeAttr = Attributes.create(modifyTimestampType,
-        OP_ATTR_MODIFY_TIMESTAMP, new AttributeValue(modifyTimestampType,
-            ByteStringFactory.create(getGMTTime())));
+        OP_ATTR_MODIFY_TIMESTAMP,
+        AttributeValues.create(modifyTimestampType,
+            ByteString.valueOf(getGMTTime())));
     try
     {
       modifyOperation.addModification(new Modification(ModificationType.REPLACE,
@@ -298,13 +286,13 @@ public final class LastModPlugin
     {
       // This must mean that the operation was performed anonymously.
       // Even so, we still need to update the modifiersName attribute.
-      builder.add(new AttributeValue(modifiersNameType, ByteStringFactory
-          .create()));
+      builder.add(AttributeValues.create(modifiersNameType,
+          ByteString.empty()));
     }
     else
     {
-      builder.add(new AttributeValue(modifiersNameType, ByteStringFactory
-          .create(modifierDN.toString())));
+      builder.add(AttributeValues.create(modifiersNameType,
+          ByteString.valueOf(modifierDN.toString())));
     }
     Attribute nameAttr = builder.toAttribute();
     modifyDNOperation.addModification(new Modification(
@@ -313,8 +301,9 @@ public final class LastModPlugin
 
     // Create the modifyTimestamp attribute.
     Attribute timeAttr = Attributes.create(modifyTimestampType,
-        OP_ATTR_MODIFY_TIMESTAMP, new AttributeValue(modifyTimestampType,
-            ByteStringFactory.create(getGMTTime())));
+        OP_ATTR_MODIFY_TIMESTAMP,
+        AttributeValues.create(modifyTimestampType,
+            ByteString.valueOf(getGMTTime())));
     modifyDNOperation.addModification(new Modification(
         ModificationType.REPLACE, timeAttr, true));
 

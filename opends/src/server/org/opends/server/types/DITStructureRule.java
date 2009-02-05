@@ -218,7 +218,7 @@ public final class DITStructureRule
   public DITStructureRule recreateFromDefinition()
          throws DirectoryException
   {
-    ByteString value  = ByteStringFactory.create(definition);
+    ByteString value  = ByteString.valueOf(definition);
     Schema     schema = DirectoryConfig.getSchema();
 
     DITStructureRule dsr =

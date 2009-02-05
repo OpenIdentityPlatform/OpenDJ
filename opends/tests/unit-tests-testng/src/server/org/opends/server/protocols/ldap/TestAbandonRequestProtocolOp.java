@@ -26,12 +26,13 @@
  */
 package org.opends.server.protocols.ldap;
 
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Long;
-import org.opends.server.protocols.ldap.AbandonRequestProtocolOp;
 import org.opends.server.types.LDAPException;
+import org.opends.server.types.ByteStringBuilder;
 import org.testng.annotations.Test;
 import static org.opends.server.protocols.ldap.LDAPConstants.OP_TYPE_ABANDON_REQUEST;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.asn1.ASN1Reader;
 import static org.testng.Assert.*;
 
 public class
@@ -47,27 +48,24 @@ TestAbandonRequestProtocolOp extends LdapTestCase {
 
   @Test()
   public void testAbandonRequestEncodeDecode() throws Exception {
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
     AbandonRequestProtocolOp req = new AbandonRequestProtocolOp(id);
-    ASN1Element reqElem=req.encode();
-    ProtocolOp reqOp= ProtocolOp.decode(reqElem);
+    req.write(writer);
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    ProtocolOp reqOp= LDAPReader.readProtocolOp(reader);
     assertTrue(reqOp.getProtocolOpName() == req.getProtocolOpName());
     assertTrue(reqOp.getType() == req.getType());
   }
 
-  @Test()
-  public void testSetters() throws Exception {
-    AbandonRequestProtocolOp req = new AbandonRequestProtocolOp(id);
-    req.encode();
-    req.setIDToAbandon(id+1);
-    ASN1Element reqElem=req.encode();
-    ProtocolOp reqDec= ProtocolOp.decode(reqElem);
-    AbandonRequestProtocolOp reqOp =
-      (AbandonRequestProtocolOp)reqDec;
-    assertTrue(reqOp.getIDToAbandon() == req.getIDToAbandon());
-  }
-
   @Test (expectedExceptions = LDAPException.class)
   public void testAbandonRequestBadID() throws Exception {
-    ProtocolOp.decode(new ASN1Long(OP_TYPE_ABANDON_REQUEST, Long.MAX_VALUE));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeOctetString(OP_TYPE_ABANDON_REQUEST, "invalid value");
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 }

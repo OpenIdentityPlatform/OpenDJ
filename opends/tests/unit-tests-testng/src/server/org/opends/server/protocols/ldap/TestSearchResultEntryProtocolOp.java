@@ -28,9 +28,7 @@
 
 package org.opends.server.protocols.ldap;
 
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.*;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.asn1.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.
@@ -196,15 +194,19 @@ public class TestSearchResultEntryProtocolOp extends LdapTestCase
   @Test(dataProvider = "entries")
   public void testEncodeDecode(Entry entry) throws Exception
   {
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+
     SearchResultEntryProtocolOp protocolOp =
          new SearchResultEntryProtocolOp(new SearchResultEntry(entry));
 
     // Encode to ASN1.
-    ASN1Element element = protocolOp.encode();
+    protocolOp.write(writer);
 
     // Decode to a new protocol op.
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
     SearchResultEntryProtocolOp decodedProtocolOp =
-         (SearchResultEntryProtocolOp)ProtocolOp.decode(element);
+        (SearchResultEntryProtocolOp)LDAPReader.readProtocolOp(reader);
 
     assertEquals(decodedProtocolOp.getDN(), protocolOp.getDN());
     assertTrue(testEqual(decodedProtocolOp.getAttributes(),
@@ -214,40 +216,66 @@ public class TestSearchResultEntryProtocolOp extends LdapTestCase
   @Test (expectedExceptions = LDAPException.class)
   public void testInvalidSequence() throws Exception
   {
-    ProtocolOp.decode(new ASN1Integer(OP_TYPE_SEARCH_RESULT_ENTRY, 0));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeInteger(OP_TYPE_SEARCH_RESULT_ENTRY, 0);
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   @Test (dataProvider = "entries", expectedExceptions = LDAPException.class)
   public void testTooManyElements(Entry entry) throws Exception
   {
-    SearchResultEntryProtocolOp protocolOp =
-         new SearchResultEntryProtocolOp(new SearchResultEntry(entry));
-    ASN1Element element = protocolOp.encode();
-    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-    elements.add(new ASN1Boolean(true));
-    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_RESULT_ENTRY, elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_SEARCH_RESULT_ENTRY);
+    writer.writeBoolean(true);
+    writer.writeOctetString(entry.getDN().toString());
+
+    writer.writeStartSequence();
+    for(Attribute attr : entry.getAttributes())
+    {
+      new LDAPAttribute(attr).write(writer);
+    }
+    writer.writeEndSequence();
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   @Test (dataProvider = "entries", expectedExceptions = LDAPException.class)
   public void testTooFewElements(Entry entry) throws Exception
   {
-    SearchResultEntryProtocolOp protocolOp =
-         new SearchResultEntryProtocolOp(new SearchResultEntry(entry));
-    ASN1Element element = protocolOp.encode();
-    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-    elements.remove(0);
-    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_RESULT_ENTRY, elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_SEARCH_RESULT_ENTRY);
+
+    writer.writeStartSequence();
+    for(Attribute attr : entry.getAttributes())
+    {
+      new LDAPAttribute(attr).write(writer);
+    }
+    writer.writeEndSequence();
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   @Test (dataProvider = "entries", expectedExceptions = LDAPException.class)
   public void testInvalidElement1(Entry entry) throws Exception
   {
-    SearchResultEntryProtocolOp protocolOp =
-         new SearchResultEntryProtocolOp(new SearchResultEntry(entry));
-    ASN1Element element = protocolOp.encode();
-    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-    elements.set(1, new ASN1OctetString("cn"));
-    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_RESULT_ENTRY, elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_SEARCH_RESULT_ENTRY);
+    writer.writeOctetString(entry.getDN().toString());
+    writer.writeOctetString("cn");
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
 }

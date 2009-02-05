@@ -35,7 +35,6 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -68,36 +67,10 @@ import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
-import org.opends.server.types.AcceptRejectWarn;
-import org.opends.server.types.AccountStatusNotification;
-import org.opends.server.types.AccountStatusNotificationType;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.CanceledOperationException;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.RDN;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SynchronizationProviderResult;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyOperation;
@@ -767,30 +740,8 @@ modifyProcessing:
 
         if (oid.equals(OID_LDAP_ASSERTION))
         {
-          LDAPAssertionRequestControl assertControl;
-          if (c instanceof LDAPAssertionRequestControl)
-          {
-            assertControl = (LDAPAssertionRequestControl) c;
-          }
-          else
-          {
-            try
-            {
-              assertControl = LDAPAssertionRequestControl.decodeControl(c);
-              requestControls.set(i, assertControl);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              throw new DirectoryException(
-                             ResultCode.valueOf(le.getResultCode()),
-                             le.getMessageObject());
-            }
-          }
+          LDAPAssertionRequestControl assertControl =
+                getRequestControl(LDAPAssertionRequestControl.DECODER);
 
           try
           {
@@ -828,29 +779,8 @@ modifyProcessing:
         }
         else if (oid.equals(OID_LDAP_READENTRY_PREREAD))
         {
-          if (c instanceof LDAPPreReadRequestControl)
-          {
-            preReadRequest = (LDAPPreReadRequestControl) c;
-          }
-          else
-          {
-            try
-            {
-              preReadRequest = LDAPPreReadRequestControl.decodeControl(c);
-              requestControls.set(i, preReadRequest);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              throw new DirectoryException(
-                             ResultCode.valueOf(le.getResultCode()),
-                             le.getMessageObject());
-            }
-          }
+          preReadRequest =
+                getRequestControl(LDAPPreReadRequestControl.DECODER);
         }
         else if (oid.equals(OID_LDAP_READENTRY_POSTREAD))
         {
@@ -860,22 +790,9 @@ modifyProcessing:
           }
           else
           {
-            try
-            {
-              postReadRequest = LDAPPostReadRequestControl.decodeControl(c);
-              requestControls.set(i, postReadRequest);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              throw new DirectoryException(
-                             ResultCode.valueOf(le.getResultCode()),
-                             le.getMessageObject());
-            }
+            postReadRequest =
+                getRequestControl(LDAPPostReadRequestControl.DECODER);
+            requestControls.set(i, postReadRequest);
           }
         }
         else if (oid.equals(OID_PROXIED_AUTH_V1))
@@ -888,31 +805,8 @@ modifyProcessing:
                            ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
           }
 
-
-          ProxiedAuthV1Control proxyControl;
-          if (c instanceof ProxiedAuthV1Control)
-          {
-            proxyControl = (ProxiedAuthV1Control) c;
-          }
-          else
-          {
-            try
-            {
-              proxyControl = ProxiedAuthV1Control.decodeControl(c);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              throw new DirectoryException(
-                             ResultCode.valueOf(le.getResultCode()),
-                             le.getMessageObject());
-            }
-          }
-
+          ProxiedAuthV1Control proxyControl =
+                  getRequestControl(ProxiedAuthV1Control.DECODER);
 
           Entry authorizationEntry = proxyControl.getAuthorizationEntry();
           setAuthorizationEntry(authorizationEntry);
@@ -935,31 +829,8 @@ modifyProcessing:
                            ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
           }
 
-
-          ProxiedAuthV2Control proxyControl;
-          if (c instanceof ProxiedAuthV2Control)
-          {
-            proxyControl = (ProxiedAuthV2Control) c;
-          }
-          else
-          {
-            try
-            {
-              proxyControl = ProxiedAuthV2Control.decodeControl(c);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              throw new DirectoryException(
-                             ResultCode.valueOf(le.getResultCode()),
-                             le.getMessageObject());
-            }
-          }
-
+          ProxiedAuthV2Control proxyControl =
+              getRequestControl(ProxiedAuthV2Control.DECODER);
 
           Entry authorizationEntry = proxyControl.getAuthorizationEntry();
           setAuthorizationEntry(authorizationEntry);
@@ -1071,7 +942,7 @@ modifyProcessing:
             try
             {
               isEnabled =
-                  (! BooleanSyntax.decodeBooleanValue(v.getNormalizedValue()));
+                  (! BooleanSyntax.DECODER.decode(v));
             }
             catch (DirectoryException de)
             {
@@ -1349,7 +1220,8 @@ modifyProcessing:
 
         for (ByteString s : pwPolicyState.encodePassword(v.getValue()))
         {
-          builder.add(new AttributeValue(pwAttr.getAttributeType(), s));
+          builder.add(AttributeValues.create(
+              pwAttr.getAttributeType(), s));
         }
       }
     }
@@ -1412,7 +1284,7 @@ modifyProcessing:
               if (AuthPasswordSyntax.isEncoded(av.getValue()))
               {
                 StringBuilder[] components = AuthPasswordSyntax
-                    .decodeAuthPassword(av.getStringValue());
+                    .decodeAuthPassword(av.getValue().toString());
                 PasswordStorageScheme<?> scheme = DirectoryServer
                     .getAuthPasswordStorageScheme(components[0].toString());
                 if (scheme != null)
@@ -1439,12 +1311,12 @@ modifyProcessing:
               if (UserPasswordSyntax.isEncoded(av.getValue()))
               {
                 String[] components = UserPasswordSyntax.decodeUserPassword(av
-                    .getStringValue());
+                    .getValue().toString());
                 PasswordStorageScheme<?> scheme = DirectoryServer
                     .getPasswordStorageScheme(toLowerCase(components[0]));
                 if (scheme != null)
                 {
-                  if (scheme.passwordMatches(v.getValue(), new ASN1OctetString(
+                  if (scheme.passwordMatches(v.getValue(), ByteString.valueOf(
                       components[1])))
                   {
                     builder.add(av);
@@ -1528,7 +1400,7 @@ modifyProcessing:
           {
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                 ERR_MODIFY_ADD_INVALID_SYNTAX.get(String.valueOf(entryDN), attr
-                    .getName(), v.getStringValue(), invalidReason));
+                    .getName(), v.getValue().toString(), invalidReason));
           }
         }
       }
@@ -1541,7 +1413,7 @@ modifyProcessing:
           {
             setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
             logError(ERR_MODIFY_ADD_INVALID_SYNTAX.get(String.valueOf(entryDN),
-                attr.getName(), v.getStringValue(), invalidReason));
+                attr.getName(), v.getValue().toString(), invalidReason));
             invalidReason = new MessageBuilder();
           }
         }
@@ -1566,11 +1438,11 @@ modifyProcessing:
     {
       StringBuilder buffer = new StringBuilder();
       Iterator<AttributeValue> iterator = duplicateValues.iterator();
-      buffer.append(iterator.next().getStringValue());
+      buffer.append(iterator.next().getValue().toString());
       while (iterator.hasNext())
       {
         buffer.append(", ");
-        buffer.append(iterator.next().getStringValue());
+        buffer.append(iterator.next().getValue().toString());
       }
 
       throw new DirectoryException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
@@ -1596,12 +1468,12 @@ modifyProcessing:
     Validator.ensureTrue(attr.getAttributeType().isObjectClassType());
     for (AttributeValue v : attr)
     {
-      String name = v.getStringValue();
+      String name = v.getValue().toString();
 
       String lowerName;
       try
       {
-        lowerName = v.getNormalizedStringValue();
+        lowerName = v.getNormalizedValue().toString();
       }
       catch (Exception e)
       {
@@ -1610,7 +1482,7 @@ modifyProcessing:
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        lowerName = toLowerCase(v.getStringValue());
+        lowerName = toLowerCase(v.getValue().toString());
       }
 
       ObjectClass oc = DirectoryServer.getObjectClass(lowerName);
@@ -1672,11 +1544,11 @@ modifyProcessing:
       {
         StringBuilder buffer = new StringBuilder();
         Iterator<AttributeValue> iterator = missingValues.iterator();
-        buffer.append(iterator.next().getStringValue());
+        buffer.append(iterator.next().getValue().toString());
         while (iterator.hasNext())
         {
           buffer.append(", ");
-          buffer.append(iterator.next().getStringValue());
+          buffer.append(iterator.next().getValue().toString());
         }
 
         throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
@@ -1725,7 +1597,7 @@ modifyProcessing:
           {
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                 ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(String.valueOf(entryDN),
-                    attr.getName(), v.getStringValue(), invalidReason));
+                    attr.getName(), v.getValue().toString(), invalidReason));
           }
         }
       }
@@ -1738,7 +1610,7 @@ modifyProcessing:
           {
             setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
             logError(ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(String
-                .valueOf(entryDN), attr.getName(), v.getStringValue(),
+                .valueOf(entryDN), attr.getName(), v.getValue().toString(),
                 invalidReason));
             invalidReason = new MessageBuilder();
           }
@@ -1817,7 +1689,7 @@ modifyProcessing:
     long incrementValue;
     try
     {
-      incrementValue = Long.parseLong(v.getNormalizedStringValue());
+      incrementValue = Long.parseLong(v.getNormalizedValue().toString());
     }
     catch (Exception e)
     {
@@ -1828,7 +1700,7 @@ modifyProcessing:
 
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
           ERR_MODIFY_INCREMENT_PROVIDED_VALUE_NOT_INTEGER.get(String
-              .valueOf(entryDN), attr.getName(), v.getStringValue()), e);
+              .valueOf(entryDN), attr.getName(), v.getValue().toString()), e);
     }
 
     // Get the attribute that is to be incremented.
@@ -1844,7 +1716,7 @@ modifyProcessing:
     AttributeBuilder builder = new AttributeBuilder(a, true);
     for (AttributeValue existingValue : a)
     {
-      String s = existingValue.getStringValue();
+      String s = existingValue.getValue().toString();
       long currentValue;
       try
       {
@@ -1860,12 +1732,13 @@ modifyProcessing:
         throw new DirectoryException(
             ResultCode.INVALID_ATTRIBUTE_SYNTAX,
             ERR_MODIFY_INCREMENT_REQUIRES_INTEGER_VALUE.get(String
-                .valueOf(entryDN), a.getName(), existingValue.getStringValue()),
+                .valueOf(entryDN), a.getName(),
+                existingValue.getValue().toString()),
             e);
       }
 
       long newValue = currentValue + incrementValue;
-      builder.add(new AttributeValue(t, String.valueOf(newValue)));
+      builder.add(AttributeValues.create(t, String.valueOf(newValue)));
     }
 
     // Replace the existing attribute with the incremented version.
@@ -1942,7 +1815,7 @@ modifyProcessing:
               boolean found = false;
               for (ByteString s : clearPasswords)
               {
-                if (Arrays.equals(s.value(), pw.value()))
+                if (s.equals(pw))
                 {
                   found = true;
                   break;
@@ -2209,8 +2082,7 @@ modifyProcessing:
       //          returned or if any attributes need to be stripped out..
       SearchResultEntry searchEntry = new SearchResultEntry(entry);
       LDAPPreReadResponseControl responseControl =
-           new LDAPPreReadResponseControl(preReadRequest.getOID(),
-                                          preReadRequest.isCritical(),
+           new LDAPPreReadResponseControl(preReadRequest.isCritical(),
                                           searchEntry);
       getResponseControls().add(responseControl);
     }
@@ -2258,9 +2130,7 @@ modifyProcessing:
       //          returned or if any attributes need to be stripped out..
       SearchResultEntry searchEntry = new SearchResultEntry(entry);
       LDAPPostReadResponseControl responseControl =
-           new LDAPPostReadResponseControl(postReadRequest.getOID(),
-                                           postReadRequest.isCritical(),
-                                           searchEntry);
+           new LDAPPostReadResponseControl(searchEntry);
 
       getResponseControls().add(responseControl);
     }

@@ -45,12 +45,7 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -272,7 +267,7 @@ public class GeneralizedTimeSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteString value,
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     try
@@ -341,8 +336,8 @@ public class GeneralizedTimeSyntax
       valueString = dateFormat.format(new Date(time));
     }
 
-    return new AttributeValue(new ASN1OctetString(valueString),
-                              new ASN1OctetString(valueString));
+    return AttributeValues.create(ByteString.valueOf(valueString),
+        ByteString.valueOf(valueString));
   }
 
 
@@ -359,7 +354,7 @@ public class GeneralizedTimeSyntax
    * @throws  DirectoryException  If the provided value cannot be parsed as a
    *                              valid generalized time string.
    */
-  public static long decodeGeneralizedTimeValue(ByteString value)
+  public static long decodeGeneralizedTimeValue(ByteSequence value)
          throws DirectoryException
   {
     int year        = 0;
@@ -372,7 +367,7 @@ public class GeneralizedTimeSyntax
 
     // Get the value as a string and verify that it is at least long enough for
     // "YYYYMMDDhhZ", which is the shortest allowed value.
-    String valueString = value.stringValue().toUpperCase();
+    String valueString = value.toString().toUpperCase();
     int    length      = valueString.length();
     if (length < 11)
     {

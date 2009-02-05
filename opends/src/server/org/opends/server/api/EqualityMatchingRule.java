@@ -28,13 +28,7 @@ package org.opends.server.api;
 
 
 
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.DebugLogLevel;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.types.*;
 
 
 
@@ -51,11 +45,6 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 public abstract class EqualityMatchingRule extends MatchingRule
 {
   /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
-  /**
    * Indicates whether the two provided normalized values are equal to
    * each other.
    *
@@ -67,10 +56,10 @@ public abstract class EqualityMatchingRule extends MatchingRule
    * @return  {@code true} if the provided values are equal, or
    *          {@code false} if not.
    */
-  public abstract boolean areEqual(ByteString value1,
-                                   ByteString value2);
-
-
+  public boolean areEqual(ByteSequence value1, ByteSequence value2)
+  {
+    return value1.equals(value2);
+  }
 
   /**
    * Indicates whether the provided attribute value should be
@@ -90,8 +79,9 @@ public abstract class EqualityMatchingRule extends MatchingRule
    *          a match for the provided assertion value, or
    *          {@code false} if not.
    */
-  public ConditionResult valuesMatch(ByteString attributeValue,
-                                     ByteString assertionValue)
+  @Override
+  public ConditionResult valuesMatch(ByteSequence attributeValue,
+                                     ByteSequence assertionValue)
   {
     if (areEqual(attributeValue, assertionValue))
     {
@@ -122,33 +112,9 @@ public abstract class EqualityMatchingRule extends MatchingRule
    * @return  The hash code generated for the provided attribute
    *          value.
    */
-  public int generateHashCode(AttributeValue attributeValue)
+  public int generateHashCode(ByteSequence attributeValue)
   {
-    try
-    {
-      return attributeValue.getNormalizedValue().hashCode();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      try
-      {
-        return attributeValue.getValue().hashCode();
-      }
-      catch (Exception e2)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-        }
-
-        return 0;
-      }
-    }
+    return attributeValue.hashCode();
   }
 }
 

@@ -60,7 +60,6 @@ import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.SchemaConfigManager;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.tools.LDAPModify;
@@ -475,7 +474,7 @@ public class PrivilegeTestCase
     CompareOperation compareOperation =
          conn.processCompare(DN.decode("cn=config"),
                              DirectoryServer.getAttributeType("cn"),
-                             ByteStringFactory.create("config"));
+             ByteString.valueOf("config"));
     if (hasPrivilege)
     {
       assertEquals(compareOperation.getResultCode(), ResultCode.COMPARE_TRUE);
@@ -1343,7 +1342,7 @@ public class PrivilegeTestCase
          new CompareOperationBasis(conn, conn.nextOperationID(),
                               conn.nextMessageID(), controls, targetDN,
                               DirectoryServer.getAttributeType("cn", true),
-                              ByteStringFactory.create("PWReset Target"));
+             ByteString.valueOf("PWReset Target"));
     compareOperation.run();
 
     if (hasProxyPrivilege)
@@ -1415,7 +1414,7 @@ public class PrivilegeTestCase
 
     ArrayList<Control> controls = new ArrayList<Control>(1);
     controls.add(new ProxiedAuthV2Control(
-                          new ASN1OctetString("dn:cn=PWReset Target,o=test")));
+        ByteString.valueOf("dn:cn=PWReset Target,o=test")));
 
 
     // Try to add the entry.  If this fails with the proxy control, then add it
@@ -1540,7 +1539,7 @@ public class PrivilegeTestCase
     DN targetDN = DN.decode("cn=PWReset Target,o=test");
     ArrayList<Control> controls = new ArrayList<Control>(1);
     controls.add(new ProxiedAuthV2Control(
-                          new ASN1OctetString("dn:" + targetDN.toString())));
+        ByteString.valueOf("dn:" + targetDN.toString())));
 
 
     // Test a compare operation against the PWReset Target user.
@@ -1548,7 +1547,7 @@ public class PrivilegeTestCase
          new CompareOperationBasis(conn, conn.nextOperationID(),
                               conn.nextMessageID(), controls, targetDN,
                               DirectoryServer.getAttributeType("cn", true),
-                              ByteStringFactory.create("PWReset Target"));
+             ByteString.valueOf("PWReset Target"));
     compareOperation.run();
 
     if (hasProxyPrivilege)

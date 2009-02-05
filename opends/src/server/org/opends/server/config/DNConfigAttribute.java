@@ -40,11 +40,7 @@ import javax.management.MBeanParameterInfo;
 
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -448,8 +444,8 @@ public final class DNConfigAttribute
       }
 
       AttributeValue attrValue =
-           new AttributeValue(new ASN1OctetString(value.toString()),
-                              new ASN1OctetString(value.toNormalizedString()));
+          AttributeValues.create(ByteString.valueOf(value.toString()),
+              ByteString.valueOf(value.toNormalizedString()));
 
       if (valueSet.contains(attrValue))
       {
@@ -496,8 +492,8 @@ public final class DNConfigAttribute
     else
     {
       valueSet = new LinkedHashSet<AttributeValue>(1);
-      valueSet.add(new AttributeValue(new ASN1OctetString(value.toString()),
-                            new ASN1OctetString(value.toNormalizedString())));
+      valueSet.add(AttributeValues.create(ByteString.valueOf(value.toString()),
+          ByteString.valueOf(value.toNormalizedString())));
     }
 
     return valueSet;
@@ -524,8 +520,8 @@ public final class DNConfigAttribute
 
     for (DN value : values)
     {
-      valueSet.add(new AttributeValue(new ASN1OctetString(value.toString()),
-                            new ASN1OctetString(value.toNormalizedString())));
+      valueSet.add(AttributeValues.create(ByteString.valueOf(value.toString()),
+          ByteString.valueOf(value.toNormalizedString())));
     }
 
     return valueSet;
@@ -577,7 +573,7 @@ public final class DNConfigAttribute
     // Make sure that it can be parsed as a DN.
     try
     {
-      DN.decode(value.getStringValue());
+      DN.decode(value.getValue().toString());
     }
     catch (Exception e)
     {
@@ -587,7 +583,7 @@ public final class DNConfigAttribute
       }
 
       rejectReason.append(ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
-              value.getStringValue(), getName(),
+              value.getValue().toString(), getName(),
               String.valueOf(e)));
       return false;
     }
@@ -692,8 +688,8 @@ public final class DNConfigAttribute
       }
 
 
-      valueSet.add(new AttributeValue(new ASN1OctetString(dn.toString()),
-                            new ASN1OctetString(dn.toNormalizedString())));
+      valueSet.add(AttributeValues.create(ByteString.valueOf(dn.toString()),
+          ByteString.valueOf(dn.toNormalizedString())));
     }
 
 
@@ -841,7 +837,7 @@ public final class DNConfigAttribute
               DN dn;
               try
               {
-                dn = DN.decode(v.getStringValue());
+                dn = DN.decode(v.getValue().toString());
               }
               catch (Exception e)
               {
@@ -851,7 +847,7 @@ public final class DNConfigAttribute
                 }
 
                 Message message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
-                    v.getStringValue(), getName(), String.valueOf(e));
+                    v.getValue().toString(), getName(), String.valueOf(e));
                 throw new ConfigException(message, e);
               }
 
@@ -911,7 +907,7 @@ public final class DNConfigAttribute
             DN dn;
             try
             {
-              dn = DN.decode(v.getStringValue());
+              dn = DN.decode(v.getValue().toString());
             }
             catch (Exception e)
             {
@@ -921,7 +917,7 @@ public final class DNConfigAttribute
               }
 
               Message message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
-                  v.getStringValue(), getName(), String.valueOf(e));
+                  v.getValue().toString(), getName(), String.valueOf(e));
               throw new ConfigException(message, e);
             }
 

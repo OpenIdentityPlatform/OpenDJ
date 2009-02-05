@@ -394,7 +394,7 @@ public class AciList {
         for(Aci aci : hashEntry.getValue()) {
           try {
              Aci newAci =
-               Aci.decode(ByteStringFactory.create(aci.toString()), relocateDN);
+               Aci.decode(ByteString.valueOf(aci.toString()), relocateDN);
              acis.add(newAci);
           } catch (AciException ex) {
             //This should never happen since only a copy of the

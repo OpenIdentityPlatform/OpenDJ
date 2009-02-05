@@ -22,29 +22,28 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
-import java.util.Collections;
-import java.util.Collection;
-import org.opends.messages.Message;
 
-
-
-import java.util.List;
-
-import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ResultCode;
 
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+
+import java.util.Collection;
+import java.util.Collections;
+
+import org.opends.messages.Message;
+import org.opends.server.api.SubstringMatchingRule;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ResultCode;
+
 
 
 /**
@@ -67,6 +66,7 @@ class NumericStringSubstringMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getAllNames()
   {
     return Collections.singleton(getName());
@@ -80,6 +80,7 @@ class NumericStringSubstringMatchingRule
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
    * it does not have a name.
    */
+  @Override
   public String getName()
   {
     return SMR_NUMERIC_STRING_NAME;
@@ -92,6 +93,7 @@ class NumericStringSubstringMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return SMR_NUMERIC_STRING_OID;
@@ -105,6 +107,7 @@ class NumericStringSubstringMatchingRule
    * @return  The description for this matching rule, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     // There is no standard description for this matching rule.
@@ -119,6 +122,7 @@ class NumericStringSubstringMatchingRule
    *
    * @return  The OID of the syntax with which this matching rule is associated.
    */
+  @Override
   public String getSyntaxOID()
   {
     return SYNTAX_SUBSTRING_ASSERTION_OID;
@@ -137,10 +141,11 @@ class NumericStringSubstringMatchingRule
    * @throws  DirectoryException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
-  public ByteString normalizeValue(ByteString value)
+  @Override
+  public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
-    String        valueString = value.stringValue();
+    String        valueString = value.toString();
     int           valueLength = valueString.length();
     StringBuilder valueBuffer = new StringBuilder(valueLength);
 
@@ -174,7 +179,7 @@ class NumericStringSubstringMatchingRule
       }
     }
 
-    return new ASN1OctetString(getBytes(valueBuffer.toString()));
+    return ByteString.valueOf(valueBuffer.toString());
   }
 
 
@@ -190,10 +195,11 @@ class NumericStringSubstringMatchingRule
    * @throws  DirectoryException  If the provided value fragment is not
    *                              acceptable according to the associated syntax.
    */
-  public ByteString normalizeSubstring(ByteString substring)
+  @Override
+  public ByteString normalizeSubstring(ByteSequence substring)
          throws DirectoryException
   {
-    String        valueString = substring.stringValue();
+    String        valueString = substring.toString();
     int           valueLength = valueString.length();
     StringBuilder valueBuffer = new StringBuilder(valueLength);
 
@@ -227,126 +233,7 @@ class NumericStringSubstringMatchingRule
       }
     }
 
-    return new ASN1OctetString(getBytes(valueBuffer.toString()));
-  }
-
-
-
-  /**
-   * Determines whether the provided value matches the given substring filter
-   * components.  Note that any of the substring filter components may be
-   * <CODE>null</CODE> but at least one of them must be non-<CODE>null</CODE>.
-   *
-   * @param  value           The normalized value against which to compare the
-   *                         substring components.
-   * @param  subInitial      The normalized substring value fragment that should
-   *                         appear at the beginning of the target value.
-   * @param  subAnyElements  The normalized substring value fragments that
-   *                         should appear in the middle of the target value.
-   * @param  subFinal        The normalized substring value fragment that should
-   *                         appear at the end of the target value.
-   *
-   * @return  <CODE>true</CODE> if the provided value does match the given
-   *          substring components, or <CODE>false</CODE> if not.
-   */
-  public boolean valueMatchesSubstring(ByteString value, ByteString subInitial,
-                                       List<ByteString> subAnyElements,
-                                       ByteString subFinal)
-  {
-    byte[] valueBytes = value.value();
-    int valueLength = valueBytes.length;
-
-    int pos = 0;
-    if (subInitial != null)
-    {
-      byte[] initialBytes = subInitial.value();
-      int initialLength = initialBytes.length;
-      if (initialLength > valueLength)
-      {
-        return false;
-      }
-
-      for (; pos < initialLength; pos++)
-      {
-        if (initialBytes[pos] != valueBytes[pos])
-        {
-          return false;
-        }
-      }
-    }
-
-
-    if ((subAnyElements != null) && (! subAnyElements.isEmpty()))
-    {
-      for (ByteString element : subAnyElements)
-      {
-        byte[] anyBytes = element.value();
-        int anyLength = anyBytes.length;
-
-        int end = valueLength - anyLength;
-        boolean match = false;
-        if (anyLength == 0)
-        {
-          // empty element is not considered as unmatching
-          match = true;
-          continue;
-        }
-        for (; pos <= end; pos++)
-        {
-          if (anyBytes[0] == valueBytes[pos])
-          {
-            boolean subMatch = true;
-            for (int i=1; i < anyLength; i++)
-            {
-              if (anyBytes[i] != valueBytes[pos+i])
-              {
-                subMatch = false;
-                break;
-              }
-            }
-
-            if (subMatch)
-            {
-              match = subMatch;
-              break;
-            }
-          }
-        }
-
-        if (match)
-        {
-          pos += anyLength;
-        }
-        else
-        {
-          return false;
-        }
-      }
-    }
-
-
-    if (subFinal != null)
-    {
-      byte[] finalBytes = subFinal.value();
-      int finalLength = finalBytes.length;
-
-      if ((valueLength - finalLength) < pos)
-      {
-        return false;
-      }
-
-      pos = valueLength - finalLength;
-      for (int i=0; i < finalLength; i++,pos++)
-      {
-        if (finalBytes[i] != valueBytes[pos])
-        {
-          return false;
-        }
-      }
-    }
-
-
-    return true;
+    return ByteString.valueOf(valueBuffer.toString());
   }
 }
 

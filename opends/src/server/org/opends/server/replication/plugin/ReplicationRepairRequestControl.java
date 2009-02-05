@@ -27,9 +27,13 @@
 package org.opends.server.replication.plugin;
 
 
+import org.opends.server.types.ByteString;
 import org.opends.server.types.Control;
-import org.opends.server.types.LDAPException;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.controls.ControlDecoder;
+import org.opends.server.protocols.asn1.ASN1Writer;
 
+import java.io.IOException;
 
 
 /**
@@ -40,9 +44,40 @@ import org.opends.server.types.LDAPException;
  * It also allows to modify attributes like entryuuid and ds-sync-hist that
  * are normally not modifiable from an external connection.
  */
-public class ReplicationRepairRequestControl
-       extends Control
+public class ReplicationRepairRequestControl extends Control
 {
+  /**
+   * ControlDecoder implentation to decode this control from a ByteString.
+   */
+  private final static class Decoder
+      implements ControlDecoder<ReplicationRepairRequestControl>
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public ReplicationRepairRequestControl decode(boolean isCritical,
+                                                  ByteString value)
+           throws DirectoryException
+    {
+      return new ReplicationRepairRequestControl(isCritical);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getOID()
+    {
+      return OID_REPLICATION_REPAIR_CONTROL;
+    }
+
+  }
+
+  /**
+   * The Control Decoder that can be used to decode this control.
+   */
+  public static final ControlDecoder<ReplicationRepairRequestControl> DECODER =
+    new Decoder();
+
   /**
    * The OID of the Replication repair Control.
    */
@@ -66,52 +101,25 @@ public class ReplicationRepairRequestControl
    * Creates a new instance of the replication repair control with the
    * provided information.
    *
-   * @param  oid         The OID to use for this control.
    * @param  isCritical  Indicates whether support for this control should be
    *                     considered a critical part of the client processing.
    */
-  public ReplicationRepairRequestControl(String oid, boolean isCritical)
+  public ReplicationRepairRequestControl(boolean isCritical)
   {
-    super(oid, isCritical);
+    super(OID_REPLICATION_REPAIR_CONTROL, isCritical);
 
   }
 
-
-
   /**
-   * Creates a new replication repair request control from the contents of the
-   * provided control.
+   * Writes this control's value to an ASN.1 writer. The value (if any) must be
+   * written as an ASN1OctetString.
    *
-   * @param  control  The generic control containing the information to use to
-   *                  create this replication repair request control.
-   *
-   * @return  The replication repair request control decoded from the provided
-   *          control.
-   *
-   * @throws  LDAPException  If this control cannot be decoded as a valid
-   *                         replication repair request control.
+   * @param writer The ASN.1 writer to use.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public static ReplicationRepairRequestControl decodeControl(Control control)
-         throws LDAPException
-  {
-    return new ReplicationRepairRequestControl(control.getOID(),
-                                           control.isCritical());
-  }
-
-
-
-  /**
-   * Retrieves a string representation of this replication repair request
-   * control.
-   *
-   * @return  A string representation of this replication repair request
-   *          control.
-   */
-  public String toString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
+  @Override
+  protected void writeValue(ASN1Writer writer) throws IOException {
+    // No value element
   }
 
 
@@ -122,6 +130,7 @@ public class ReplicationRepairRequestControl
    *
    * @param  buffer  The buffer to which the information should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("ReplicationRepairRequestControl()");

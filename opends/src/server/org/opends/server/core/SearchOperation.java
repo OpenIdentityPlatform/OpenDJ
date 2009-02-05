@@ -30,18 +30,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.opends.server.controls.MatchedValuesControl;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Operation;
-import org.opends.server.types.RawFilter;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchResultReference;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 
 /**
  * This interface defines an operation used to search for entries

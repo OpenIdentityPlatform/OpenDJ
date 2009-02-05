@@ -25,55 +25,25 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
 
 
+import java.io.IOException;
 
-import java.util.ArrayList;
-
-import org.opends.server.protocols.asn1.ASN1Boolean;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
+import org.opends.server.protocols.asn1.*;
 import org.opends.server.types.Control;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
+import org.opends.server.types.ByteString;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.protocols.asn1.ASN1Constants.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
-
 
 
 /**
  * This class defines the data structures and methods to use when interacting
- * with a generic LDAP control or set of controls.
+ * with a generic LDAP control.
  */
-public class LDAPControl
+public class LDAPControl extends Control
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
-  // The control wrapped by this LDAP control.
-  private Control control;
-
-
-
-  /**
-   * Creates a new LDAP control with the information in the provided control.
-   *
-   * @param  control  The control to use to create this LDAP control.
-   */
-  public LDAPControl(Control control)
-  {
-    this.control = control;
-  }
+  // The control value.
+  private ByteString value;
 
 
 
@@ -85,7 +55,7 @@ public class LDAPControl
    */
   public LDAPControl(String oid)
   {
-    control = new Control(oid, false);
+    super(oid, false);
   }
 
 
@@ -100,7 +70,7 @@ public class LDAPControl
    */
   public LDAPControl(String oid, boolean isCritical)
   {
-    control = new Control(oid, isCritical);
+    super(oid, isCritical);
   }
 
 
@@ -113,326 +83,46 @@ public class LDAPControl
    *                     critical.
    * @param  value       The value for this LDAP control.
    */
-  public LDAPControl(String oid, boolean isCritical, ASN1OctetString value)
+  public LDAPControl(String oid, boolean isCritical, ByteString value)
   {
-    control = new Control(oid, isCritical, value);
+    super(oid, isCritical);
+    this.value = value;
   }
-
-
-
-  /**
-   * Retrieves the control wrapped by this LDAP control.
-   *
-   * @return  The control wrapped by this LDAP control.
-   */
-  public Control getControl()
-  {
-    return control;
-  }
-
-
-
-  /**
-   * Encodes this control to an ASN.1 element.
-   *
-   * @return  The ASN.1 element containing the encoded control.
-   */
-  public ASN1Element encode()
-  {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(3);
-    elements.add(new ASN1OctetString(control.getOID()));
-
-    if (control.isCritical())
-    {
-      elements.add(new ASN1Boolean(control.isCritical()));
-    }
-
-    ASN1OctetString value = control.getValue();
-    if (value != null)
-    {
-      elements.add(value);
-    }
-
-    return new ASN1Sequence(elements);
-  }
-
-
-
-  /**
-   * Encodes the provided set of controls into an ASN.1 sequence.
-   *
-   * @param  controls  The set of controls to encode.
-   *
-   * @return  The ASN.1 element containing the encoded set of controls.
-   */
-  public static ASN1Element encodeControls(ArrayList<LDAPControl> controls)
-  {
-    ArrayList<ASN1Element> elements =
-         new ArrayList<ASN1Element>(controls.size());
-    for (LDAPControl c : controls)
-    {
-      elements.add(c.encode());
-    }
-
-    return new ASN1Sequence(TYPE_CONTROL_SEQUENCE, elements);
-  }
-
-
-
-  /**
-   * Decodes the provided ASN.1 element as an LDAP control.
-   *
-   * @param  element  The ASN.1 element to decode.
-   *
-   * @return  The decoded LDAP control.
-   *
-   * @throws  LDAPException  If a problem occurs while attempting to decode the
-   *                         provided ASN.1 element as an LDAP control.
-   */
-  public static LDAPControl decode(ASN1Element element)
-         throws LDAPException
-  {
-    if (element == null)
-    {
-      Message message = ERR_LDAP_CONTROL_DECODE_NULL.get();
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-
-    ArrayList<ASN1Element> elements;
-    try
-    {
-      elements = element.decodeAsSequence().elements();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_LDAP_CONTROL_DECODE_SEQUENCE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    int numElements = elements.size();
-    if ((numElements < 1) || (numElements > 3))
-    {
-      Message message =
-          ERR_LDAP_CONTROL_DECODE_INVALID_ELEMENT_COUNT.get(numElements);
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-
-    String oid;
-    try
-    {
-      oid = elements.get(0).decodeAsOctetString().stringValue();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_LDAP_CONTROL_DECODE_OID.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    if (numElements == 1)
-    {
-      return new LDAPControl(oid);
-    }
-    else if (numElements == 2)
-    {
-      boolean         isCritical;
-      ASN1OctetString value;
-
-      ASN1Element e = elements.get(1);
-      switch (e.getType())
-      {
-        case UNIVERSAL_BOOLEAN_TYPE:
-          value = null;
-
-          try
-          {
-            isCritical = e.decodeAsBoolean().booleanValue();
-          }
-          catch (Exception e2)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-            }
-
-            Message message =
-                ERR_LDAP_CONTROL_DECODE_CRITICALITY.get(String.valueOf(e));
-            throw new LDAPException(PROTOCOL_ERROR, message, e2);
-          }
-          break;
-        case UNIVERSAL_OCTET_STRING_TYPE:
-          isCritical = false;
-
-          try
-          {
-            value = e.decodeAsOctetString();
-          }
-          catch (Exception e2)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-            }
-
-            Message message =
-                ERR_LDAP_CONTROL_DECODE_VALUE.get(String.valueOf(e));
-            throw new LDAPException(PROTOCOL_ERROR, message, e2);
-          }
-          break;
-        default:
-          Message message =
-              ERR_LDAP_CONTROL_DECODE_INVALID_TYPE.get(e.getType());
-          throw new LDAPException(PROTOCOL_ERROR, message);
-      }
-
-      return new LDAPControl(oid, isCritical, value);
-    }
-    else
-    {
-      boolean isCritical;
-      try
-      {
-        isCritical = elements.get(1).decodeAsBoolean().booleanValue();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message =
-            ERR_LDAP_CONTROL_DECODE_CRITICALITY.get(String.valueOf(e));
-        throw new LDAPException(PROTOCOL_ERROR, message, e);
-      }
-
-      ASN1OctetString value;
-      try
-      {
-        value = elements.get(2).decodeAsOctetString();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_LDAP_CONTROL_DECODE_VALUE.get(String.valueOf(e));
-        throw new LDAPException(PROTOCOL_ERROR, message, e);
-      }
-
-      return new LDAPControl(oid, isCritical, value);
-    }
-  }
-
-
-
-  /**
-   * Decodes the provided ASN.1 element as a set of controls.
-   *
-   * @param  element  The ASN.1 element containing the encoded set of controls.
-   *
-   * @return  The decoded set of controls.
-   *
-   * @throws  LDAPException  If a problem occurs while attempting to decode the
-   *                         controls.
-   */
-  public static ArrayList<LDAPControl> decodeControls(ASN1Element element)
-         throws LDAPException
-  {
-    if (element == null)
-    {
-      Message message = ERR_LDAP_CONTROL_DECODE_CONTROLS_NULL.get();
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-
-    ArrayList<ASN1Element> elements;
-    try
-    {
-      elements = element.decodeAsSequence().elements();
-    }
-    catch (Exception e)
-    {
-      Message message =
-          ERR_LDAP_CONTROL_DECODE_CONTROLS_SEQUENCE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    ArrayList<LDAPControl> controls =
-         new ArrayList<LDAPControl>(elements.size());
-    for (ASN1Element e : elements)
-    {
-      controls.add(decode(e));
-    }
-
-    return controls;
-  }
-
-
-
-  /**
-   * Retrieves the OID for this control.
-   *
-   * @return  The OID for this control.
-   */
-  public String getOID()
-  {
-    return control.getOID();
-  }
-
-
-
-  /**
-   * Indicates whether this control should be considered critical.
-   *
-   * @return  <CODE>true</CODE> if this control should be considered critical,
-   *          or <CODE>false</CODE> if not.
-   */
-  public boolean isCritical()
-  {
-    return control.isCritical();
-  }
-
 
 
   /**
    * Retrieves the value for this control.
    *
-   * @return  The value for this control, or <CODE>null</CODE> if there is none.
+   * @return  The value for this control, or <CODE>null</CODE> if
+   *          there is no value.
    */
-  public ASN1OctetString getValue()
+  public final ByteString getValue()
   {
-    return control.getValue();
+    return value;
   }
 
 
 
   /**
-   * Retrieves a string representation of this LDAP control.
+   * Indicates whether this control has a value.
    *
-   * @return  A string representation of this LDAP control.
+   * @return  <CODE>true</CODE> if this control has a value, or
+   *          <CODE>false</CODE> if it does not.
    */
-  public String toString()
+  public final boolean hasValue()
   {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
+    return (value != null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void writeValue(ASN1Writer stream) throws IOException
+  {
+    if (value != null)
+    {
+      stream.writeOctetString(value);
+    }
   }
 
 
@@ -446,15 +136,14 @@ public class LDAPControl
   public void toString(StringBuilder buffer)
   {
     buffer.append("LDAPControl(oid=");
-    buffer.append(control.getOID());
+    buffer.append(getOID());
     buffer.append(", criticality=");
-    buffer.append(control.isCritical());
+    buffer.append(isCritical());
 
-    ASN1OctetString value = control.getValue();
     if (value != null)
     {
       buffer.append(", value=");
-      buffer.append(String.valueOf(value));
+      value.toHexPlusAscii(buffer, 4);
     }
 
     buffer.append(")");
@@ -483,20 +172,19 @@ public class LDAPControl
 
     buffer.append(indentBuf);
     buffer.append("  OID:  ");
-    buffer.append(control.getOID());
+    buffer.append(getOID());
     buffer.append(EOL);
 
     buffer.append(indentBuf);
     buffer.append("  Criticality:  ");
-    buffer.append(control.isCritical());
+    buffer.append(isCritical());
     buffer.append(EOL);
 
-    ASN1OctetString value = control.getValue();
     if (value != null)
     {
       buffer.append(indentBuf);
       buffer.append("  Value:");
-      value.toString(buffer, indent+4);
+      value.toHexPlusAscii(buffer, indent+4);
     }
   }
 }

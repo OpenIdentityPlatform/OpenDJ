@@ -28,6 +28,8 @@ package org.opends.server.protocols.ldap;
 
 import org.opends.server.protocols.asn1.*;
 import org.opends.server.types.LDAPException;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringBuilder;
 import static org.opends.server.util.ServerConstants.EOL;
 import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.Test;
@@ -55,38 +57,38 @@ public class TestModifyDNRequestProtocolOp extends DirectoryServerTestCase {
   /**
    * The DN for modify DN requests in this test case.
    */
-  private static final ASN1OctetString dn =
-      new ASN1OctetString("dc=example,dc=com");
+  private static final ByteString dn =
+      ByteString.valueOf("dc=example,dc=com");
 
   /**
    * The alt DN for modify DN requests in this test case.
    */
-  private static final ASN1OctetString altDn =
-      new ASN1OctetString("dc=alt,dc=example,dc=com");
+  private static final ByteString altDn =
+      ByteString.valueOf("dc=alt,dc=example,dc=com");
 
   /**
    * The new DN for modify DN requests in this test case.
    */
-  private static final ASN1OctetString newRdn =
-      new ASN1OctetString("dc=example-new");
+  private static final ByteString newRdn =
+      ByteString.valueOf("dc=example-new");
 
   /**
    * The alt new DN for modify DN requests in this test case.
    */
-  private static final ASN1OctetString altNewRdn =
-      new ASN1OctetString("ou=alt,dc=example-new");
+  private static final ByteString altNewRdn =
+      ByteString.valueOf("ou=alt,dc=example-new");
 
   /**
    * The new superiour DN for modify DN requests in this test case.
    */
-  private static final ASN1OctetString newSuperiorDn =
-      new ASN1OctetString("dc=widget,dc=com");
+  private static final ByteString newSuperiorDn =
+      ByteString.valueOf("dc=widget,dc=com");
 
   /**
    * The alt new superiour DN for modify DN requests in this test case.
    */
-  private static final ASN1OctetString altNewSuperiorDn =
-      new ASN1OctetString("dc=alt,dc=widget,dc=com");
+  private static final ByteString altNewSuperiorDn =
+      ByteString.valueOf("dc=alt,dc=widget,dc=com");
 
   /**
    * Test to make sure the class processes the right LDAP op type.
@@ -139,31 +141,6 @@ public class TestModifyDNRequestProtocolOp extends DirectoryServerTestCase {
   }
 
   /**
-   * Test to make sure that setter methods work.
-   *
-   * @throws Exception If the test failed unexpectedly.
-   */
-  @Test
-  public void testSetMethods() throws Exception
-  {
-    ModifyDNRequestProtocolOp modifyRequest;
-    modifyRequest = new ModifyDNRequestProtocolOp(dn, newRdn, true,
-                                                  newSuperiorDn);
-
-    modifyRequest.setEntryDN(altDn);
-    assertEquals(modifyRequest.getEntryDN(), altDn);
-
-    modifyRequest.setNewRDN(altNewRdn);
-    assertEquals(modifyRequest.getNewRDN(), altNewRdn);
-
-    modifyRequest.setNewSuperior(altNewSuperiorDn);
-    assertEquals(modifyRequest.getNewSuperior(), altNewSuperiorDn);
-
-    modifyRequest.setDeleteOldRDN(false);
-    assertEquals(modifyRequest.deleteOldRDN(), false);
-  }
-
-  /**
    * Test the decode method when an null element is passed
    *
    * @throws Exception If the test failed unexpectedly.
@@ -171,7 +148,7 @@ public class TestModifyDNRequestProtocolOp extends DirectoryServerTestCase {
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeNullElement() throws Exception
   {
-    ModifyDNRequestProtocolOp.decodeModifyDNRequest(null);
+    LDAPReader.readProtocolOp(null);
   }
 
   /**
@@ -182,9 +159,13 @@ public class TestModifyDNRequestProtocolOp extends DirectoryServerTestCase {
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeEmptyElement() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>();
-    ModifyDNRequestProtocolOp.decode(new ASN1Sequence(OP_TYPE_MODIFY_DN_REQUEST,
-                                                 elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_MODIFY_DN_REQUEST);
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -195,11 +176,15 @@ public class TestModifyDNRequestProtocolOp extends DirectoryServerTestCase {
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeInvalidElementNum() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1Null());
-    elements.add(new ASN1Null());
-    ModifyDNRequestProtocolOp.decode(new ASN1Sequence(OP_TYPE_MODIFY_DN_REQUEST,
-                                                 elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_MODIFY_DN_REQUEST);
+    writer.writeNull();
+    writer.writeNull();
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -210,12 +195,16 @@ public class TestModifyDNRequestProtocolOp extends DirectoryServerTestCase {
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeInvalidElement() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(3);
-    elements.add(new ASN1Null());
-    elements.add(new ASN1Null());
-    elements.add(new ASN1Null());
-    ModifyDNRequestProtocolOp.decode(new ASN1Sequence(OP_TYPE_MODIFY_DN_REQUEST,
-                                                 elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_MODIFY_DN_REQUEST);
+    writer.writeNull();
+    writer.writeNull();
+    writer.writeNull();
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -226,12 +215,16 @@ public class TestModifyDNRequestProtocolOp extends DirectoryServerTestCase {
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeWrongElementType() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(3);
-    elements.add(dn);
-    elements.add(newRdn);
-    elements.add(new ASN1Boolean(true));
-    ModifyDNRequestProtocolOp.decode(new ASN1Sequence(OP_TYPE_MODIFY_DN_RESPONSE,
-                                                 elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_MODIFY_DN_RESPONSE);
+    writer.writeOctetString(dn);
+    writer.writeOctetString(newRdn);
+    writer.writeBoolean(true);
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -242,14 +235,16 @@ public class TestModifyDNRequestProtocolOp extends DirectoryServerTestCase {
   @Test(expectedExceptions = Exception.class)
   public void testNullEncodeDecode() throws Exception
   {
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
     ModifyDNRequestProtocolOp modifyEncoded;
     ModifyDNRequestProtocolOp modifyDecoded;
-    ASN1Element element;
 
     modifyEncoded = new ModifyDNRequestProtocolOp(null, null, true);
-    element = modifyEncoded.encode();
-    modifyDecoded = (ModifyDNRequestProtocolOp)ModifyDNRequestProtocolOp.decode(
-        element);
+    modifyEncoded.write(writer);
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    modifyDecoded = (ModifyDNRequestProtocolOp)LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -260,25 +255,29 @@ public class TestModifyDNRequestProtocolOp extends DirectoryServerTestCase {
   @Test
   public void testEncodeDecode() throws Exception
   {
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
     ModifyDNRequestProtocolOp modifyEncoded;
     ModifyDNRequestProtocolOp modifyDecoded;
-    ASN1Element element;
 
     modifyEncoded = new ModifyDNRequestProtocolOp(dn, newRdn, true,
                                                   newSuperiorDn);
-    element = modifyEncoded.encode();
-    modifyDecoded = (ModifyDNRequestProtocolOp)ModifyDNRequestProtocolOp.decode(
-        element);
+    modifyEncoded.write(writer);
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    modifyDecoded = (ModifyDNRequestProtocolOp)LDAPReader.readProtocolOp(reader);
 
     assertEquals(modifyEncoded.getEntryDN(), modifyDecoded.getEntryDN());
     assertEquals(modifyEncoded.getNewRDN(), modifyDecoded.getNewRDN());
     assertEquals(modifyEncoded.getNewSuperior(), modifyDecoded.getNewSuperior());
     assertEquals(modifyEncoded.deleteOldRDN(), modifyDecoded.deleteOldRDN());
 
+    builder.clear();
     modifyEncoded = new ModifyDNRequestProtocolOp(dn, newRdn, true);
-    element = modifyEncoded.encode();
-    modifyDecoded = (ModifyDNRequestProtocolOp)ModifyDNRequestProtocolOp.decode(
-        element);
+    modifyEncoded.write(writer);
+
+    reader = ASN1.getReader(builder.toByteString());
+    modifyDecoded = (ModifyDNRequestProtocolOp)LDAPReader.readProtocolOp(reader);
 
     assertEquals(modifyEncoded.getEntryDN(), modifyDecoded.getEntryDN());
     assertEquals(modifyEncoded.getNewRDN(), modifyDecoded.getNewRDN());
@@ -339,7 +338,7 @@ public class TestModifyDNRequestProtocolOp extends DirectoryServerTestCase {
 
     key.append(indentBuf);
     key.append("  Entry DN:  ");
-    dn.toString(key);
+    key.append(dn);
     key.append(EOL);
 
     key.append(indentBuf);

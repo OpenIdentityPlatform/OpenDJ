@@ -33,7 +33,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 
 
-
 /**
  * This class defines a set of methods that are available for use by
  * post-response plugins for delete operations.  Note that this

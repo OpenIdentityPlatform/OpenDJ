@@ -76,23 +76,23 @@ public class RecurringTask
 
 
   // The DN of the entry that actually defines this task.
-  private DN recurringTaskEntryDN;
+  private final DN recurringTaskEntryDN;
 
   // The entry that actually defines this task.
-  private Entry recurringTaskEntry;
+  private final Entry recurringTaskEntry;
 
   // The unique ID for this recurring task.
-  private String recurringTaskID;
+  private final String recurringTaskID;
 
   // The fully-qualified name of the class that will be used to implement the
   // class.
-  private String taskClassName;
+  private final String taskClassName;
 
   // Task instance.
   private Task task;
 
   // Task scheduler for this task.
-  private TaskScheduler taskScheduler;
+  private final TaskScheduler taskScheduler;
 
   // Number of tokens in the task schedule tab.
   private static final int TASKTAB_NUM_TOKENS = 5;
@@ -180,7 +180,7 @@ public class RecurringTask
       throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
     }
 
-    recurringTaskID = value.getStringValue();
+    recurringTaskID = value.getValue().toString();
 
 
     // Get the schedule for this task.
@@ -224,7 +224,7 @@ public class RecurringTask
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
-    String taskScheduleTab = value.getStringValue();
+    String taskScheduleTab = value.toString();
     parseTaskTab(taskScheduleTab);
 
     // Get the class name from the entry.  If there isn't one, then fail.
@@ -267,7 +267,7 @@ public class RecurringTask
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
-    taskClassName = value.getStringValue();
+    taskClassName = value.getValue().toString();
 
 
     // Make sure that the specified class can be loaded.

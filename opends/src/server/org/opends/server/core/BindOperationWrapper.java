@@ -28,13 +28,7 @@ package org.opends.server.core;
 import org.opends.messages.Message;
 
 
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.AuthenticationType;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -110,7 +104,7 @@ public abstract class BindOperationWrapper extends OperationWrapper
   /**
    * {@inheritDoc}
    */
-  public ASN1OctetString getSASLCredentials()
+  public ByteString getSASLCredentials()
   {
     return bind.getSASLCredentials();
   }
@@ -126,7 +120,7 @@ public abstract class BindOperationWrapper extends OperationWrapper
   /**
    * {@inheritDoc}
    */
-  public ASN1OctetString getServerSASLCredentials()
+  public ByteString getServerSASLCredentials()
   {
     return bind.getServerSASLCredentials();
   }
@@ -190,7 +184,7 @@ public abstract class BindOperationWrapper extends OperationWrapper
    * {@inheritDoc}
    */
   public void setSASLCredentials(String saslMechanism,
-      ASN1OctetString saslCredentials)
+      ByteString saslCredentials)
   {
     bind.setSASLCredentials(saslMechanism, saslCredentials);
   }
@@ -198,7 +192,7 @@ public abstract class BindOperationWrapper extends OperationWrapper
   /**
    * {@inheritDoc}
    */
-  public void setServerSASLCredentials(ASN1OctetString serverSASLCredentials)
+  public void setServerSASLCredentials(ByteString serverSASLCredentials)
   {
     bind.setServerSASLCredentials(serverSASLCredentials);
   }

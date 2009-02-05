@@ -404,7 +404,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
     for (Attribute a : attrList){
       for (AttributeValue v : a)
-        pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
+        pluginTypes.add(PluginType.forName(
+            v.getValue().toString().toLowerCase()));
     }
     ReferentialIntegrityPluginCfg configuration =
             AdminTestCaseUtils.getConfiguration(
@@ -553,7 +554,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
     for (Attribute a : attrList){
       for (AttributeValue v : a)
-        pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
+        pluginTypes.add(PluginType.forName(
+            v.getValue().toString().toLowerCase()));
     }
     ReferentialIntegrityPluginCfg configuration =
             AdminTestCaseUtils.getConfiguration(
@@ -921,7 +923,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
             null);
     for (SearchResultEntry entry : operation.getSearchEntries()) {
       for(String dn : dns) {
-        AttributeValue value = new AttributeValue(type, dn);
+        AttributeValue value = AttributeValues.create(type, dn);
         assertEquals(entry.hasValue(type, null, value), expected);
       }
     }

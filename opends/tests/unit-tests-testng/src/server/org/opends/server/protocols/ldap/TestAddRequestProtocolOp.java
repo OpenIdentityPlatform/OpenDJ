@@ -26,13 +26,15 @@
  */
 package org.opends.server.protocols.ldap;
 
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.RawAttribute;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringBuilder;
 import static org.opends.server.util.ServerConstants.EOL;
 import org.opends.server.util.Base64;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,14 +66,14 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   /**
    * The DN for add requests in this test case.
    */
-  private static final ASN1OctetString dn =
-      new ASN1OctetString("dc=example,dc=com");
+  private static final ByteString dn =
+      ByteString.valueOf("dc=example,dc=com");
 
   /**
    * The alternative DN for add requests in this test case.
    */
-  private static final ASN1OctetString dnAlt =
-      new ASN1OctetString("dc=sun,dc=com");
+  private static final ByteString dnAlt =
+      ByteString.valueOf("dc=sun,dc=com");
 
   /**
    * Generate attributes for use in test cases. Attributes will have names
@@ -93,15 +95,15 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   {
     ArrayList<RawAttribute> attributes = new ArrayList<RawAttribute>();
     LDAPAttribute attribute;
-    ASN1OctetString value;
+    ByteString value;
     int i, j;
 
     for(i = 0; i < numAttributes; i++)
     {
-      ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
+      ArrayList<ByteString> values = new ArrayList<ByteString>();
       for(j = 0; j < numValues; j++)
       {
-        value = new ASN1OctetString(prefix + "Value"+i+"."+j);
+        value = ByteString.valueOf(prefix + "Value"+i+"."+j);
         values.add(value);
       }
       attribute = new LDAPAttribute("testAttribute"+i, values);
@@ -122,8 +124,8 @@ public class TestAddRequestProtocolOp extends LdapTestCase
     int i, j;
     RawAttribute attribute1;
     RawAttribute attribute2;
-    ArrayList<ASN1OctetString> values1;
-    ArrayList<ASN1OctetString> values2;
+    ArrayList<ByteString> values1;
+    ArrayList<ByteString> values2;
 
     for(i = 0; i < attributes1.size(); i++)
     {
@@ -207,22 +209,6 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   }
 
   /**
-   * Test to make sure that setter methods work.
-   *
-   * @throws Exception If the test failed unexpectedly.
-   */
-  @Test
-  public void testSetMethods() throws Exception
-  {
-    AddRequestProtocolOp addRequest;
-
-    addRequest = new AddRequestProtocolOp(dn);
-    assertEquals(addRequest.getDN(), dn);
-    addRequest.setDN(dnAlt);
-    assertEquals(addRequest.getDN(), dnAlt);
-  }
-
-  /**
    * Test the decode method when an null element is passed
    *
    * @throws Exception If the test failed unexpectedly.
@@ -230,7 +216,7 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeNullElement() throws Exception
   {
-    AddRequestProtocolOp.decodeAddRequest(null);
+    LDAPReader.readProtocolOp(null);
   }
 
   /**
@@ -241,9 +227,13 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeEmptyElement() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>();
-    AddRequestProtocolOp.decode(new ASN1Sequence(OP_TYPE_ADD_REQUEST,
-                                                 elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_ADD_REQUEST);
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -254,13 +244,16 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeInvalidElement() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    ArrayList<ASN1Element> attrElements =
-         new ArrayList<ASN1Element>();
-    elements.add(new ASN1Sequence(attrElements));
-    elements.add(dn);
-    AddRequestProtocolOp.decode(new ASN1Sequence(OP_TYPE_ADD_REQUEST,
-                                                 elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_ADD_REQUEST);
+    writer.writeStartSequence();
+    writer.writeEndSequence();
+    writer.writeOctetString(dn);
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -271,13 +264,16 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeWrongElementType() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    ArrayList<ASN1Element> attrElements =
-         new ArrayList<ASN1Element>();
-    elements.add(dn);
-    elements.add(new ASN1Sequence(attrElements));
-    AddRequestProtocolOp.decode(new ASN1Sequence(OP_TYPE_ADD_RESPONSE,
-                                                 elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_ADD_RESPONSE);
+    writer.writeOctetString(dn);
+    writer.writeStartSequence();
+    writer.writeEndSequence();
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -288,13 +284,16 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   @Test(expectedExceptions = Exception.class)
   public void testNullEncodeDecode() throws Exception
   {
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
     AddRequestProtocolOp addEncoded;
     AddRequestProtocolOp addDecoded;
-    ASN1Element element;
 
     addEncoded = new AddRequestProtocolOp(null, null);
-    element = addEncoded.encode();
-    addDecoded = (AddRequestProtocolOp)AddRequestProtocolOp.decode(element);
+    addEncoded.write(writer);
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    addDecoded = (AddRequestProtocolOp)LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -305,17 +304,19 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   @Test
   public void testEncodeDecode() throws Exception
   {
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
     AddRequestProtocolOp addEncoded;
     AddRequestProtocolOp addDecoded;
-    ASN1Element element;
     ArrayList<RawAttribute> attributes;
 
 
     //Test case for a full encode decode operation with normal params.
     attributes = generateAttributes(10,5, "test");
     addEncoded = new AddRequestProtocolOp(dn, attributes);
-    element = addEncoded.encode();
-    addDecoded = (AddRequestProtocolOp)AddRequestProtocolOp.decode(element);
+    addEncoded.write(writer);
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    addDecoded = (AddRequestProtocolOp)LDAPReader.readProtocolOp(reader);
 
     assertEquals(addEncoded.getType(), OP_TYPE_ADD_REQUEST);
     assertEquals(addEncoded.getDN(), addDecoded.getDN());
@@ -325,8 +326,10 @@ public class TestAddRequestProtocolOp extends LdapTestCase
     //Test case for a full encode decode operation with large attributes.
     attributes = generateAttributes(100,50, "test");
     addEncoded = new AddRequestProtocolOp(dn, attributes);
-    element = addEncoded.encode();
-    addDecoded = (AddRequestProtocolOp)AddRequestProtocolOp.decode(element);
+    builder.clear();
+    addEncoded.write(writer);
+    reader = ASN1.getReader(builder.toByteString());
+    addDecoded = (AddRequestProtocolOp)LDAPReader.readProtocolOp(reader);
 
     assertEquals(addEncoded.getDN(), addDecoded.getDN());
     assertTrue(attributesEquals(addEncoded.getAttributes(),
@@ -334,8 +337,10 @@ public class TestAddRequestProtocolOp extends LdapTestCase
 
     //Test case for a full encode decode operation with no attributes.
     addEncoded = new AddRequestProtocolOp(dn, null);
-    element = addEncoded.encode();
-    addDecoded = (AddRequestProtocolOp)AddRequestProtocolOp.decode(element);
+    builder.clear();
+    addEncoded.write(writer);
+    reader = ASN1.getReader(builder.toByteString());
+    addDecoded = (AddRequestProtocolOp)LDAPReader.readProtocolOp(reader);
 
     assertEquals(addEncoded.getDN(), addDecoded.getDN());
     assertTrue(attributesEquals(addEncoded.getAttributes(),
@@ -398,15 +403,15 @@ public class TestAddRequestProtocolOp extends LdapTestCase
     numValues = 5;
     attributes = generateAttributes(numAttributes, numValues, " test");
 
-    ASN1OctetString dnNeedsBase64 =
-      new ASN1OctetString("dc=example,dc=com ");
+    ByteString dnNeedsBase64 =
+      ByteString.valueOf("dc=example,dc=com ");
 
     addRequest = new AddRequestProtocolOp(dnNeedsBase64, attributes);
     addRequest.toLDIF(buffer, 80);
 
     reader = new BufferedReader(new StringReader(buffer.toString()));
     line = reader.readLine();
-    assertEquals(line, "dn:: "+Base64.encode(dnNeedsBase64.value()));
+    assertEquals(line, "dn:: "+Base64.encode(dnNeedsBase64));
     for(i = 0; i < numAttributes; i++)
     {
       for(j = 0; j < numValues; j++)
@@ -487,7 +492,7 @@ public class TestAddRequestProtocolOp extends LdapTestCase
 
     key.append(indentBuf);
     key.append("  DN:  ");
-    dn.toString(key);
+    key.append(dn.toString());
     key.append(EOL);
 
     key.append("  Attributes:");

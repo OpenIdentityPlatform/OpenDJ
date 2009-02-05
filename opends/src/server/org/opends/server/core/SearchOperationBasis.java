@@ -42,7 +42,6 @@ import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseSearchOperation;
@@ -300,7 +299,7 @@ public class SearchOperationBasis
       this.attributes  = attributes;
     }
 
-    rawBaseDN = new ASN1OctetString(baseDN.toString());
+    rawBaseDN = ByteString.valueOf(baseDN.toString());
     rawFilter = new LDAPFilter(filter);
 
 
@@ -620,7 +619,7 @@ public class SearchOperationBasis
                 (f.getAttributeType().isObjectClassType()))
             {
               AttributeValue v = f.getAssertionValue();
-              if (toLowerCase(v.getStringValue()).equals("ldapsubentry"))
+              if (toLowerCase(v.getValue().toString()).equals("ldapsubentry"))
               {
                 setReturnLDAPSubentries(true);
               }
@@ -633,7 +632,7 @@ public class SearchOperationBasis
           if (t.isObjectClassType())
           {
             AttributeValue v = filter.getAssertionValue();
-            if (toLowerCase(v.getStringValue()).equals("ldapsubentry"))
+            if (toLowerCase(v.getValue().toString()).equals("ldapsubentry"))
             {
               setReturnLDAPSubentries(true);
             }
@@ -729,8 +728,8 @@ public class SearchOperationBasis
       while (ocIterator.hasNext())
       {
         String ocName = ocIterator.next();
-        AttributeValue v = new AttributeValue(attrType,
-                                              new ASN1OctetString(ocName));
+        AttributeValue v =
+            AttributeValues.create(attrType,ocName);
         if (! matchedValuesControl.valueMatches(attrType, v))
         {
           ocIterator.remove();

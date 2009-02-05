@@ -26,8 +26,6 @@
  */
 package org.opends.server.core;
 
-
-import java.util.ArrayList;
 import java.util.List;
 
 import org.opends.server.api.ClientConnection;
@@ -67,7 +65,7 @@ public class UnbindOperationBasis
    */
   public UnbindOperationBasis(ClientConnection clientConnection,
                          long operationID,
-                         int messageID, ArrayList<Control> requestControls)
+                         int messageID, List<Control> requestControls)
   {
     super(clientConnection, operationID, messageID, requestControls);
 

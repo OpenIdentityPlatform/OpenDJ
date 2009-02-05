@@ -34,7 +34,6 @@ import java.util.List;
 
 import org.opends.messages.Message;
 import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPModification;
@@ -42,6 +41,7 @@ import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.tools.LDAPConnection;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.RawModification;
@@ -109,12 +109,12 @@ public class DSMLModifyOperation
 
       // Read the attribute name and values.
       String attrType = attr.getName();
-      ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString> ();
+      ArrayList<ByteString> values = new ArrayList<ByteString> ();
 
       List<String> vals = attr.getValue();
       for(String val : vals)
       {
-        values.add(new ASN1OctetString(val));
+        values.add(ByteString.valueOf(val));
       }
       LDAPAttribute ldapAttr = new LDAPAttribute(attrType, values);
 
@@ -123,7 +123,7 @@ public class DSMLModifyOperation
 
     }
 
-    ASN1OctetString dnStr = new ASN1OctetString(modifyRequest.getDn());
+    ByteString dnStr = ByteString.valueOf(modifyRequest.getDn());
 
     // Create and send the LDAP request to the server.
     ProtocolOp op = new ModifyRequestProtocolOp(dnStr, modifications);

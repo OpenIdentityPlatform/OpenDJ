@@ -26,13 +26,11 @@
  */
 package org.opends.server.protocols.ldap;
 
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Sequence;
 import static org.opends.server.util.ServerConstants.EOL;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.RawModification;
+import org.opends.server.types.*;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -63,14 +61,14 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
   /**
    * The DN for modify requests in this test case.
    */
-  private static final ASN1OctetString dn =
-      new ASN1OctetString("dc=example,dc=com");
+  private static final ByteString dn =
+      ByteString.valueOf("dc=example,dc=com");
 
   /**
    * The alternative DN for add requests in this test case.
    */
-  private static final ASN1OctetString dnAlt =
-      new ASN1OctetString("dc=sun,dc=com");
+  private static final ByteString dnAlt =
+      ByteString.valueOf("dc=sun,dc=com");
 
   /**
    * Generate modifications for use in test cases. Attributes will have names
@@ -204,23 +202,6 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
   }
 
   /**
-   * Test to make sure that setter methods work.
-   *
-   * @throws Exception If the test failed unexpectedly.
-   */
-  @Test
-  public void testSetMethods() throws Exception
-  {
-    ModifyRequestProtocolOp modifyRequest;
-
-    modifyRequest = new ModifyRequestProtocolOp(dn);
-    assertEquals(modifyRequest.getDN(), dn);
-    modifyRequest.setDN(dnAlt);
-    assertEquals(modifyRequest.getDN(), dnAlt);
-
-  }
-
-  /**
    * Test the decode method when an null element is passed
    *
    * @throws Exception If the test failed unexpectedly.
@@ -228,7 +209,7 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeNullElement() throws Exception
   {
-    ModifyRequestProtocolOp.decodeModifyRequest(null);
+    LDAPReader.readProtocolOp(null);
   }
 
   /**
@@ -239,9 +220,13 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeEmptyElement() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>();
-    ModifyRequestProtocolOp.decode(new ASN1Sequence(OP_TYPE_MODIFY_REQUEST,
-                                                    elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_MODIFY_REQUEST);
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -252,13 +237,16 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeInvalidElement() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    ArrayList<ASN1Element> attrElements =
-         new ArrayList<ASN1Element>();
-    elements.add(new ASN1Sequence(attrElements));
-    elements.add(dn);
-    ModifyRequestProtocolOp.decode(new ASN1Sequence(OP_TYPE_MODIFY_REQUEST,
-                                                    elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_MODIFY_REQUEST);
+    writer.writeStartSequence();
+    writer.writeEndSequence();
+    writer.writeOctetString(dn);
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -269,13 +257,16 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeWrongElementType() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    ArrayList<ASN1Element> attrElements =
-         new ArrayList<ASN1Element>();
-    elements.add(dn);
-    elements.add(new ASN1Sequence(attrElements));
-    ModifyRequestProtocolOp.decode(new ASN1Sequence(OP_TYPE_MODIFY_RESPONSE,
-                                                    elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_MODIFY_RESPONSE);
+    writer.writeOctetString(dn);
+    writer.writeStartSequence();
+    writer.writeEndSequence();
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -286,14 +277,16 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
   @Test(expectedExceptions = Exception.class)
   public void testNullEncodeDecode() throws Exception
   {
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
     ModifyRequestProtocolOp modifyEncoded;
     ModifyRequestProtocolOp modifyDecoded;
-    ASN1Element element;
 
     modifyEncoded = new ModifyRequestProtocolOp(null, null);
-    element = modifyEncoded.encode();
-    modifyDecoded = (ModifyRequestProtocolOp)ModifyRequestProtocolOp.decode(
-        element);
+    modifyEncoded.write(writer);
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    modifyDecoded = (ModifyRequestProtocolOp)LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -304,18 +297,19 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
   @Test
   public void testEncodeDecode() throws Exception
   {
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
     ModifyRequestProtocolOp modifyEncoded;
     ModifyRequestProtocolOp modifyDecoded;
-    ASN1Element element;
     ArrayList<RawModification> modifies;
 
 
     //Test case for a full encode decode operation with normal params.
     modifies = generateModifications(10,"test");
     modifyEncoded = new ModifyRequestProtocolOp(dn, modifies);
-    element = modifyEncoded.encode();
-    modifyDecoded = (ModifyRequestProtocolOp)ModifyRequestProtocolOp.decode(
-        element);
+    modifyEncoded.write(writer);
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    modifyDecoded = (ModifyRequestProtocolOp)LDAPReader.readProtocolOp(reader);
 
     assertEquals(modifyEncoded.getType(), OP_TYPE_MODIFY_REQUEST);
     assertEquals(modifyEncoded.getDN(), modifyDecoded.getDN());
@@ -325,9 +319,10 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
     //Test case for a full encode decode operation with large modifications.
     modifies = generateModifications(100,"test");
     modifyEncoded = new ModifyRequestProtocolOp(dn, modifies);
-    element = modifyEncoded.encode();
-    modifyDecoded = (ModifyRequestProtocolOp)ModifyRequestProtocolOp.decode(
-        element);
+    builder.clear();
+    modifyEncoded.write(writer);
+    reader = ASN1.getReader(builder.toByteString());
+    modifyDecoded = (ModifyRequestProtocolOp)LDAPReader.readProtocolOp(reader);
 
     assertEquals(modifyEncoded.getDN(), modifyDecoded.getDN());
     assertTrue(modificationsEquals(modifyEncoded.getModifications(),
@@ -335,9 +330,10 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
 
     //Test case for a full encode decode operation with no attributes.
     modifyEncoded = new ModifyRequestProtocolOp(dn, null);
-    element = modifyEncoded.encode();
-    modifyDecoded = (ModifyRequestProtocolOp)ModifyRequestProtocolOp.decode(
-        element);
+    builder.clear();
+    modifyEncoded.write(writer);
+    reader = ASN1.getReader(builder.toByteString());
+    modifyDecoded = (ModifyRequestProtocolOp)LDAPReader.readProtocolOp(reader);
 
     assertEquals(modifyEncoded.getDN(), modifyDecoded.getDN());
     assertTrue(modificationsEquals(modifyEncoded.getModifications(),
@@ -411,9 +407,9 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
 
     key.append(indentBuf);
     key.append("  DN:  ");
-    dn.toString(key);
-    key.append(EOL);
+    key.append(dn);
 
+    key.append(EOL);
     key.append("  Modifications:");
     key.append(EOL);
 

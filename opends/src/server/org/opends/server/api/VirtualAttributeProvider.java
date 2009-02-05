@@ -37,13 +37,7 @@ import java.util.Set;
 import org.opends.server.admin.std.server.VirtualAttributeCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.VirtualAttributeRule;
+import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -317,7 +311,7 @@ public abstract class VirtualAttributeProvider
     }
 
 
-    ArrayList<ByteString> normalizedSubAny;
+    ArrayList<ByteSequence> normalizedSubAny;
     if (subAny == null)
     {
       normalizedSubAny = null;
@@ -325,7 +319,7 @@ public abstract class VirtualAttributeProvider
     else
     {
       normalizedSubAny =
-           new ArrayList<ByteString>(subAny.size());
+           new ArrayList<ByteSequence>(subAny.size());
       for (ByteString subAnyElement : subAny)
       {
         try

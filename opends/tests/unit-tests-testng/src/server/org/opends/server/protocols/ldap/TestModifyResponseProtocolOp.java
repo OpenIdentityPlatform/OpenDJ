@@ -26,11 +26,7 @@
  */
 package org.opends.server.protocols.ldap;
 
-import org.opends.server.types.DN;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.RDN;
+import org.opends.server.types.*;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.*;
 import static org.opends.server.util.ServerConstants.EOL;
@@ -84,7 +80,7 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
     AttributeType attribute =
         DirectoryServer.getDefaultAttributeType("testAttribute");
 
-    AttributeValue attributeValue = new AttributeValue(attribute, "testValue");
+    AttributeValue attributeValue = AttributeValues.create(attribute, "testValue");
 
     RDN[] rdns = new RDN[1];
     rdns[0] = RDN.create(attribute, attributeValue);
@@ -154,34 +150,6 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
   }
 
   /**
-   * Test to make sure that setter methods work.
-   *
-   * @throws Exception If the test failed unexpectedly.
-   */
-  @Test
-  public void testSetMethods() throws Exception
-  {
-    ModifyResponseProtocolOp modifyResponse;
-    modifyResponse = new ModifyResponseProtocolOp(resultCode);
-
-    modifyResponse.setResultCode(resultCode + 1);
-    assertEquals(modifyResponse.getResultCode(), resultCode + 1);
-
-    modifyResponse.setErrorMessage(resultMsg);
-    assertEquals(modifyResponse.getErrorMessage(), resultMsg);
-
-    modifyResponse.setMatchedDN(dn);
-    assertEquals(modifyResponse.getMatchedDN(), dn);
-
-    ArrayList<String> referralURLs = new ArrayList<String>();
-    referralURLs.add("ds1.example.com");
-    referralURLs.add("ds2.example.com");
-    referralURLs.add("ds3.example.com");
-    modifyResponse.setReferralURLs(referralURLs);
-    assertEquals(modifyResponse.getReferralURLs(), referralURLs);
-  }
-
-  /**
    * Test the decode method when an empty element is passed
    *
    * @throws Exception If the test failed unexpectedly.
@@ -189,9 +157,13 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeEmptyElement() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>();
-    ModifyResponseProtocolOp.decode(new ASN1Sequence(OP_TYPE_MODIFY_RESPONSE,
-                                                     elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_MODIFY_RESPONSE);
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -203,12 +175,16 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
   @Test(expectedExceptions = LDAPException.class)
   public void testDecodeInvalidResultCode() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1OctetString("Invalid Data"));
-    elements.add(new ASN1Null());
-    elements.add(new ASN1Null());
-    ModifyResponseProtocolOp.decode(new ASN1Sequence(OP_TYPE_MODIFY_RESPONSE,
-                                                    elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_MODIFY_RESPONSE);
+    writer.writeOctetString("Invalid Data");
+    writer.writeNull();
+    writer.writeNull();
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -221,12 +197,16 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
   @Test
   public void testDecodeInvalidDN() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1Enumerated(resultCode));
-    elements.add(new ASN1Null());
-    elements.add(new ASN1Null());
-    ModifyResponseProtocolOp.decode(new ASN1Sequence(OP_TYPE_MODIFY_RESPONSE,
-                                                    elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_MODIFY_RESPONSE);
+    writer.writeInteger(resultCode);
+    writer.writeNull();
+    writer.writeNull();
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -239,12 +219,16 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
   @Test
   public void testDecodeInvalidResultMsg() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1Enumerated(resultCode));
-    elements.add(new ASN1OctetString(dn.toString()));
-    elements.add(new ASN1Null());
-    ModifyResponseProtocolOp.decode(new ASN1Sequence(OP_TYPE_MODIFY_RESPONSE,
-                                                    elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_MODIFY_RESPONSE);
+    writer.writeInteger(resultCode);
+    writer.writeOctetString(dn.toString());
+    writer.writeNull();
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -257,13 +241,17 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
   @Test
   public void testDecodeInvalidReferralURLs() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1Enumerated(resultCode));
-    elements.add(new ASN1OctetString(dn.toString()));
-    elements.add(new ASN1OctetString(String.valueOf(resultMsg)));
-    elements.add(new ASN1Null());
-    ModifyResponseProtocolOp.decode(new ASN1Sequence(OP_TYPE_MODIFY_RESPONSE,
-                                                    elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_MODIFY_RESPONSE);
+    writer.writeInteger(resultCode);
+    writer.writeOctetString(dn.toString());
+    writer.writeOctetString(resultMsg.toString());
+    writer.writeNull();
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   /**
@@ -274,9 +262,10 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
   @Test
   public void testEncodeDecode() throws Exception
   {
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
     ModifyResponseProtocolOp modifyEncoded;
     ModifyResponseProtocolOp modifyDecoded;
-    ASN1Element element;
 
     ArrayList<String> referralURLs = new ArrayList<String>();
     referralURLs.add("ds1.example.com");
@@ -287,9 +276,9 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
     //Test case for a full encode decode operation with normal params.
     modifyEncoded = new ModifyResponseProtocolOp(resultCode, resultMsg, dn,
                                                  referralURLs);
-    element = modifyEncoded.encode();
-    modifyDecoded = (ModifyResponseProtocolOp)ModifyResponseProtocolOp.decode(
-        element);
+    modifyEncoded.write(writer);
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    modifyDecoded = (ModifyResponseProtocolOp)LDAPReader.readProtocolOp(reader);
 
     assertEquals(modifyEncoded.getType(), OP_TYPE_MODIFY_RESPONSE);
     assertEquals(modifyEncoded.getMatchedDN().compareTo(
@@ -305,25 +294,28 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
     //Test case for a full encode decode operation with an empty DN params.
     modifyEncoded = new ModifyResponseProtocolOp(resultCode, resultMsg, DN.nullDN(),
                                                  referralURLs);
-    element = modifyEncoded.encode();
-    modifyDecoded = (ModifyResponseProtocolOp)ModifyResponseProtocolOp.decode(
-        element);
+    builder.clear();
+    modifyEncoded.write(writer);
+    reader = ASN1.getReader(builder.toByteString());
+    modifyDecoded = (ModifyResponseProtocolOp)LDAPReader.readProtocolOp(reader);
     assertEquals(modifyDecoded.getMatchedDN(), null);
 
     //Test case for a full empty referral url param.
     ArrayList<String> emptyReferralURLs = new ArrayList<String>();
     modifyEncoded = new ModifyResponseProtocolOp(resultCode, resultMsg, dn,
                                                  emptyReferralURLs);
-    element = modifyEncoded.encode();
-    modifyDecoded = (ModifyResponseProtocolOp)ModifyResponseProtocolOp.decode(
-        element);
+    builder.clear();
+    modifyEncoded.write(writer);
+    reader = ASN1.getReader(builder.toByteString());
+    modifyDecoded = (ModifyResponseProtocolOp)LDAPReader.readProtocolOp(reader);
     assertTrue(modifyDecoded.getReferralURLs() == null);
 
     //Test case for a full encode decode operation with resultCode param only.
     modifyEncoded = new ModifyResponseProtocolOp(resultCode);
-    element = modifyEncoded.encode();
-    modifyDecoded = (ModifyResponseProtocolOp)ModifyResponseProtocolOp.decode(
-        element);
+    builder.clear();
+    modifyEncoded.write(writer);
+    reader = ASN1.getReader(builder.toByteString());
+    modifyDecoded = (ModifyResponseProtocolOp)LDAPReader.readProtocolOp(reader);
 
     assertEquals(modifyDecoded.getMatchedDN(), null);
     assertEquals(modifyDecoded.getErrorMessage(), null);

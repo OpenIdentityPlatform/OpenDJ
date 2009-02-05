@@ -25,29 +25,30 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
+
+
+
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
+import java.util.Collection;
+import java.util.Collections;
+
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-
-
-import java.util.Arrays;
-
-import java.util.Collections;
-import java.util.Collection;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types. AttributeType;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.loggers.ErrorLogger;
 
 
 /**
@@ -71,6 +72,7 @@ class ObjectIdentifierEqualityMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getAllNames()
   {
     return Collections.singleton(getName());
@@ -84,6 +86,7 @@ class ObjectIdentifierEqualityMatchingRule
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
    * it does not have a name.
    */
+  @Override
   public String getName()
   {
     return EMR_OID_NAME;
@@ -96,6 +99,7 @@ class ObjectIdentifierEqualityMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return EMR_OID_OID;
@@ -109,6 +113,7 @@ class ObjectIdentifierEqualityMatchingRule
    * @return  The description for this matching rule, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     // There is no standard description for this matching rule.
@@ -123,6 +128,7 @@ class ObjectIdentifierEqualityMatchingRule
    *
    * @return  The OID of the syntax with which this matching rule is associated.
    */
+  @Override
   public String getSyntaxOID()
   {
     return SYNTAX_OID_OID;
@@ -141,11 +147,12 @@ class ObjectIdentifierEqualityMatchingRule
    * @throws  DirectoryException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
-  public ByteString normalizeValue(ByteString value)
+  @Override
+  public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
     StringBuilder buffer = new StringBuilder();
-    toLowerCase(value.value(), buffer, true);
+    toLowerCase(value, buffer, true);
     String lowerValue = buffer.toString();
 
     // Normalize OIDs into schema names, and secondary schema names into
@@ -188,7 +195,7 @@ class ObjectIdentifierEqualityMatchingRule
 
     if (schemaName != null)
     {
-      return new ASN1OctetString(toLowerCase(schemaName));
+      return ByteString.valueOf(toLowerCase(schemaName));
     }
 
     // There were no schema matches so we must check the syntax.
@@ -199,7 +206,7 @@ class ObjectIdentifierEqualityMatchingRule
         if (isValidSchemaElement(lowerValue, 0, lowerValue.length(),
                                 invalidReason))
         {
-          return new ASN1OctetString(lowerValue);
+          return ByteString.valueOf(lowerValue);
         }
         else
         {
@@ -219,10 +226,10 @@ class ObjectIdentifierEqualityMatchingRule
           ErrorLogger.logError(message);
         }
 
-        return new ASN1OctetString(lowerValue);
+        return ByteString.valueOf(lowerValue);
 
       default:
-        return new ASN1OctetString(lowerValue);
+        return ByteString.valueOf(lowerValue);
     }
   }
 
@@ -238,10 +245,11 @@ class ObjectIdentifierEqualityMatchingRule
    * @return  <CODE>true</CODE> if the provided values are equal, or
    *          <CODE>false</CODE> if not.
    */
-  public boolean areEqual(ByteString value1, ByteString value2)
+  @Override
+  public boolean areEqual(ByteSequence value1, ByteSequence value2)
   {
     // First, compare the normalized values to see if they are the same.
-    if (Arrays.equals(value1.value(), value2.value()))
+    if (value1.equals(value2))
     {
       return true;
     }

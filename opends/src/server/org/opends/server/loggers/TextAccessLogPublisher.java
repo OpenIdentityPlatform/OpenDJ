@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 
@@ -406,7 +406,7 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     appendHeader(abandonOperation, "ABANDON", CATEGORY_REQUEST, buffer);
     buffer.append(" idToAbandon=");
     buffer.append(abandonOperation.getIDToAbandon());
@@ -433,7 +433,7 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     appendHeader(abandonOperation, "ABANDON", CATEGORY_RESPONSE, buffer);
     buffer.append(" result=");
     buffer.append(abandonOperation.getResultCode().getIntValue());
@@ -487,10 +487,10 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     appendHeader(addOperation, "ADD", CATEGORY_REQUEST, buffer);
     buffer.append(" dn=\"");
-    addOperation.getRawEntryDN().toString(buffer);
+    buffer.append(addOperation.getRawEntryDN().toString());
     buffer.append("\"");
     if (addOperation.isSynchronizationOperation())
       buffer.append(" type=synchronization");
@@ -515,7 +515,7 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     appendHeader(addOperation, "ADD", CATEGORY_RESPONSE, buffer);
     buffer.append(" result=");
     buffer.append(addOperation.getResultCode().getIntValue());
@@ -578,7 +578,7 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     appendHeader(bindOperation, "BIND", CATEGORY_REQUEST, buffer);
 
     switch (bindOperation.getAuthenticationType())
@@ -597,7 +597,7 @@ public class TextAccessLogPublisher extends
     }
 
     buffer.append(" dn=\"");
-    bindOperation.getRawBindDN().toString(buffer);
+    buffer.append(bindOperation.getRawBindDN().toString());
     buffer.append("\"");
     if (bindOperation.isSynchronizationOperation())
       buffer.append(" type=synchronization");
@@ -622,7 +622,7 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     appendHeader(bindOperation, "BIND", CATEGORY_RESPONSE, buffer);
     buffer.append(" result=");
     buffer.append(bindOperation.getResultCode().getIntValue());
@@ -722,10 +722,10 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     appendHeader(compareOperation, "COMPARE", CATEGORY_REQUEST, buffer);
     buffer.append(" dn=\"");
-    compareOperation.getRawEntryDN().toString(buffer);
+    buffer.append(compareOperation.getRawEntryDN().toString());
     buffer.append("\" attr=");
     buffer.append(compareOperation.getAttributeType());
     if (compareOperation.isSynchronizationOperation())
@@ -751,7 +751,7 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     appendHeader(compareOperation, "COMPARE", CATEGORY_RESPONSE, buffer);
     buffer.append(" result=");
     buffer.append(compareOperation.getResultCode().getIntValue());
@@ -809,7 +809,7 @@ public class TextAccessLogPublisher extends
     {
       return;
     }
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     buffer.append("[");
     buffer.append(TimeThread.getLocalTime());
     buffer.append("]");
@@ -854,10 +854,10 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     appendHeader(deleteOperation, "DELETE", CATEGORY_REQUEST, buffer);
     buffer.append(" dn=\"");
-    deleteOperation.getRawEntryDN().toString(buffer);
+    buffer.append(deleteOperation.getRawEntryDN().toString());
     buffer.append("\"");
     if (deleteOperation.isSynchronizationOperation())
       buffer.append(" type=synchronization");
@@ -882,7 +882,7 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     appendHeader(deleteOperation, "DELETE", CATEGORY_RESPONSE, buffer);
     buffer.append(" result=");
     buffer.append(deleteOperation.getResultCode().getIntValue());
@@ -945,7 +945,7 @@ public class TextAccessLogPublisher extends
     {
       return;
     }
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     buffer.append("[");
     buffer.append(TimeThread.getLocalTime());
     buffer.append("]");
@@ -994,7 +994,7 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     appendHeader(extendedOperation, "EXTENDED", CATEGORY_REQUEST, buffer);
     buffer.append(" oid=\"");
     buffer.append(extendedOperation.getRequestOID());
@@ -1023,7 +1023,7 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     appendHeader(extendedOperation, "EXTENDED", CATEGORY_RESPONSE, buffer);
 
     String oid = extendedOperation.getResponseOID();
@@ -1094,12 +1094,12 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     appendHeader(modifyDNOperation, "MODIFYDN", CATEGORY_REQUEST, buffer);
     buffer.append(" dn=\"");
-    modifyDNOperation.getRawEntryDN().toString(buffer);
+    buffer.append(modifyDNOperation.getRawEntryDN().toString());
     buffer.append("\" newRDN=\"");
-    modifyDNOperation.getRawNewRDN().toString(buffer);
+    buffer.append(modifyDNOperation.getRawNewRDN().toString());
     buffer.append("\" deleteOldRDN=");
     buffer.append(modifyDNOperation.deleteOldRDN());
 
@@ -1107,7 +1107,7 @@ public class TextAccessLogPublisher extends
     if (newSuperior != null)
     {
       buffer.append(" newSuperior=\"");
-      newSuperior.toString(buffer);
+      buffer.append(newSuperior.toString());
     }
     if (modifyDNOperation.isSynchronizationOperation())
       buffer.append(" type=synchronization");
@@ -1133,7 +1133,7 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     appendHeader(modifyDNOperation, "MODIFYDN", CATEGORY_RESPONSE, buffer);
     buffer.append(" result=");
     buffer.append(modifyDNOperation.getResultCode().getIntValue());
@@ -1201,10 +1201,10 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     appendHeader(modifyOperation, "MODIFY", CATEGORY_REQUEST, buffer);
     buffer.append(" dn=\"");
-    modifyOperation.getRawEntryDN().toString(buffer);
+    buffer.append(modifyOperation.getRawEntryDN().toString());
     buffer.append("\"");
     if (modifyOperation.isSynchronizationOperation())
       buffer.append(" type=synchronization");
@@ -1229,7 +1229,7 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     appendHeader(modifyOperation, "MODIFY", CATEGORY_RESPONSE, buffer);
     buffer.append(" result=");
     buffer.append(modifyOperation.getResultCode().getIntValue());
@@ -1297,10 +1297,10 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     appendHeader(searchOperation, "SEARCH", CATEGORY_REQUEST, buffer);
     buffer.append(" base=\"");
-    searchOperation.getRawBaseDN().toString(buffer);
+    buffer.append(searchOperation.getRawBaseDN().toString());
     buffer.append("\" scope=");
     buffer.append(searchOperation.getScope());
     buffer.append(" filter=\"");
@@ -1348,7 +1348,7 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     appendHeader(searchOperation, "SEARCH", CATEGORY_RESPONSE, buffer);
     buffer.append(" result=");
     buffer.append(searchOperation.getResultCode().getIntValue());
@@ -1408,7 +1408,7 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     appendHeader(unbindOperation, "UNBIND", CATEGORY_REQUEST, buffer);
     if (unbindOperation.isSynchronizationOperation())
       buffer.append(" type=synchronization");
@@ -1474,7 +1474,7 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(50);
+    StringBuilder buffer = new StringBuilder(100);
     appendHeader(operation, opType, category, buffer);
 
     for (Map.Entry<String, String> entry : content.entrySet())

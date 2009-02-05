@@ -28,15 +28,17 @@ package org.opends.server.schema;
 
 
 
+import static org.opends.server.schema.SchemaConstants.*;
+
 import java.util.Collection;
 import java.util.Collections;
+
 import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.util.ServerConstants;
+import org.opends.server.util.StaticUtils;
 
 
 
@@ -70,6 +72,7 @@ class CaseExactOrderingMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getAllNames()
   {
     return Collections.singleton(getName());
@@ -83,6 +86,7 @@ class CaseExactOrderingMatchingRule
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
    * it does not have a name.
    */
+  @Override
   public String getName()
   {
     return OMR_CASE_EXACT_NAME;
@@ -95,6 +99,7 @@ class CaseExactOrderingMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return OMR_CASE_EXACT_OID;
@@ -108,6 +113,7 @@ class CaseExactOrderingMatchingRule
    * @return  The description for this matching rule, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     // There is no standard description for this matching rule.
@@ -122,6 +128,7 @@ class CaseExactOrderingMatchingRule
    *
    * @return  The OID of the syntax with which this matching rule is associated.
    */
+  @Override
   public String getSyntaxOID()
   {
     return SYNTAX_DIRECTORY_STRING_OID;
@@ -140,25 +147,26 @@ class CaseExactOrderingMatchingRule
    * @throws  DirectoryException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
-  public ByteString normalizeValue(ByteString value)
+  @Override
+  public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
     StringBuilder buffer = new StringBuilder();
-    buffer.append(value.stringValue().trim());
+    buffer.append(value.toString().trim());
 
     int bufferLength = buffer.length();
     if (bufferLength == 0)
     {
-      if (value.value().length > 0)
+      if (value.length() > 0)
       {
         // This should only happen if the value is composed entirely of spaces.
         // In that case, the normalized value is a single space.
-        return new ASN1OctetString(" ");
+        return ServerConstants.SINGLE_SPACE_VALUE;
       }
       else
       {
         // The value is empty, so it is already normalized.
-        return new ASN1OctetString();
+        return ByteString.empty();
       }
     }
 
@@ -175,7 +183,7 @@ class CaseExactOrderingMatchingRule
       }
     }
 
-    return new ASN1OctetString(buffer.toString());
+    return ByteString.valueOf(buffer.toString());
   }
 
 
@@ -193,9 +201,10 @@ class CaseExactOrderingMatchingRule
    *          ascending order, or zero if there is no difference between the
    *          values with regard to ordering.
    */
-  public int compareValues(ByteString value1, ByteString value2)
+  @Override
+  public int compareValues(ByteSequence value1, ByteSequence value2)
   {
-    return compare(value1.value(), value2.value());
+    return StaticUtils.compare(value1, value2);
   }
 
 
@@ -215,36 +224,7 @@ class CaseExactOrderingMatchingRule
    */
   public int compare(byte[] b1, byte[] b2)
   {
-    int minLength = Math.min(b1.length, b2.length);
-
-    for (int i=0; i < minLength; i++)
-    {
-      if (b1[i] == b2[i])
-      {
-        continue;
-      }
-      else if (b1[i] < b2[i])
-      {
-        return -1;
-      }
-      else if (b1[i] > b2[i])
-      {
-        return 1;
-      }
-    }
-
-    if (b1.length == b2.length)
-    {
-      return 0;
-    }
-    else if (b1.length < b2.length)
-    {
-      return -1;
-    }
-    else
-    {
-      return 1;
-    }
+    return StaticUtils.compare(b1, b2);
   }
 }
 

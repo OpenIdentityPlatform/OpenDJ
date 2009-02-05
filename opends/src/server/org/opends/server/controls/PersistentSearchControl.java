@@ -28,22 +28,16 @@ package org.opends.server.controls;
 import org.opends.messages.Message;
 
 
-
-import java.util.ArrayList;
 import java.util.Set;
+import java.io.IOException;
 
-import org.opends.server.protocols.asn1.ASN1Boolean;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Integer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.Control;
-import org.opends.server.types.LDAPException;
-
+import org.opends.server.protocols.asn1.*;
+import static org.opends.server.protocols.asn1.ASN1Constants.
+    UNIVERSAL_OCTET_STRING_TYPE;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
+
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -58,6 +52,74 @@ import static org.opends.server.util.StaticUtils.*;
 public class PersistentSearchControl
        extends Control
 {
+  /**
+   * ControlDecoder implentation to decode this control from a ByteString.
+   */
+  private final static class Decoder
+      implements ControlDecoder<PersistentSearchControl>
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public PersistentSearchControl decode(boolean isCritical, ByteString value)
+        throws DirectoryException
+    {
+      if (value == null)
+      {
+        Message message = ERR_PSEARCH_NO_CONTROL_VALUE.get();
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+      }
+
+      ASN1Reader reader = ASN1.getReader(value);
+      boolean                         changesOnly;
+      boolean                         returnECs;
+      Set<PersistentSearchChangeType> changeTypes;
+      try
+      {
+        reader.readStartSequence();
+
+        int changeTypesValue = (int)reader.readInteger();
+        changeTypes = PersistentSearchChangeType.intToTypes(changeTypesValue);
+        changesOnly = reader.readBoolean();
+        returnECs   = reader.readBoolean();
+
+        reader.readEndSequence();
+      }
+      catch (LDAPException le)
+      {
+        throw new DirectoryException(ResultCode.valueOf(le.getResultCode()), le
+            .getMessageObject());
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message =
+            ERR_PSEARCH_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
+      }
+
+
+      return new PersistentSearchControl(isCritical,
+          changeTypes, changesOnly, returnECs);
+    }
+
+    public String getOID()
+    {
+      return OID_PERSISTENT_SEARCH;
+    }
+
+  }
+
+  /**
+   * The Control Decoder that can be used to decode this control.
+   */
+  public static final ControlDecoder<PersistentSearchControl> DECODER =
+    new Decoder();
+
   /**
    * The tracer object for the debug logger.
    */
@@ -94,13 +156,7 @@ public class PersistentSearchControl
   public PersistentSearchControl(Set<PersistentSearchChangeType> changeTypes,
                                  boolean changesOnly, boolean returnECs)
   {
-    super(OID_PERSISTENT_SEARCH, true,
-          encodeValue(changeTypes, changesOnly, returnECs));
-
-
-    this.changeTypes = changeTypes;
-    this.changesOnly = changesOnly;
-    this.returnECs   = returnECs;
+    this(true, changeTypes, changesOnly, returnECs);
   }
 
 
@@ -108,7 +164,6 @@ public class PersistentSearchControl
   /**
    * Creates a new persistent search control with the provided information.
    *
-   * @param  oid          The OID to use for the control.
    * @param  isCritical   Indicates whether the control should be considered
    *                      critical for the operation processing.
    * @param  changeTypes  The set of change types for which to provide
@@ -120,11 +175,11 @@ public class PersistentSearchControl
    *                      notification control in updated entries that match the
    *                      associated search criteria.
    */
-  public PersistentSearchControl(String oid, boolean isCritical,
+  public PersistentSearchControl(boolean isCritical,
                                  Set<PersistentSearchChangeType> changeTypes,
                                  boolean changesOnly, boolean returnECs)
   {
-    super(oid, isCritical, encodeValue(changeTypes, changesOnly, returnECs));
+    super(OID_PERSISTENT_SEARCH, isCritical);
 
 
     this.changeTypes = changeTypes;
@@ -135,130 +190,24 @@ public class PersistentSearchControl
 
 
   /**
-   * Creates a new persistent search control with the provided information.
+   * Writes this control's value to an ASN.1 writer. The value (if any) must be
+   * written as an ASN1OctetString.
    *
-   * @param  oid           The OID to use for the control.
-   * @param  isCritical    Indicates whether the control should be considered
-   *                       critical for the operation processing.
-   * @param  changeTypes   The set of change types for which to provide
-   *                       notification to the client.
-   * @param  changesOnly   Indicates whether to only return changes that match
-   *                       the associated search criteria, or to also return all
-   *                       existing entries that match the filter.
-   * @param  returnECs     Indicates whether to include the entry change
-   *                       notification control in updated entries that match
-   *                       the associated search criteria.
-   * @param  encodedValue  The pre-encoded value for the control.
+   * @param writer The ASN.1 writer to use.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  private PersistentSearchControl(String oid, boolean isCritical,
-                                  Set<PersistentSearchChangeType> changeTypes,
-                                  boolean changesOnly, boolean returnECs,
-                                  ASN1OctetString encodedValue)
-  {
-    super(oid, isCritical, encodedValue);
+  @Override
+  protected void writeValue(ASN1Writer writer) throws IOException {
+    writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
 
+    writer.writeStartSequence();
+    writer.writeInteger(
+        PersistentSearchChangeType.changeTypesToInt(changeTypes));
+    writer.writeBoolean(changesOnly);
+    writer.writeBoolean(returnECs);
+    writer.writeEndSequence();
 
-    this.changeTypes = changeTypes;
-    this.changesOnly = changesOnly;
-    this.returnECs   = returnECs;
-  }
-
-
-
-  /**
-   * Encodes the provided information into an ASN.1 octet string suitable for
-   * use as the control value.
-   *
-   * @param  changeTypes  The set of change types for which to provide
-   *                      notification to the client.
-   * @param  changesOnly  Indicates whether to only return changes that match
-   *                      the associated search criteria, or to also return all
-   *                      existing entries that match the filter.
-   * @param  returnECs    Indicates whether to include the entry change
-   *                      notification control in updated entries that match the
-   *                      associated search criteria.
-   *
-   * @return  An ASN.1 octet string containing the encoded information.
-   */
-  private static ASN1OctetString encodeValue(Set<PersistentSearchChangeType>
-                                                  changeTypes,
-                                             boolean changesOnly,
-                                             boolean returnECs)
-  {
-    ArrayList<ASN1Element> elements =
-         new ArrayList<ASN1Element>(3);
-    elements.add(new ASN1Integer(
-         PersistentSearchChangeType.changeTypesToInt(changeTypes)));
-    elements.add(new ASN1Boolean(changesOnly));
-    elements.add(new ASN1Boolean(returnECs));
-
-
-    return new ASN1OctetString(new ASN1Sequence(elements).encode());
-  }
-
-
-
-  /**
-   * Creates a new persistent search control from the contents of the provided
-   * control.
-   *
-   * @param  control  The generic control containing the information to use to
-   *                  create this persistent search control.
-   *
-   * @return  The persistent search control decoded from the provided control.
-   *
-   * @throws  LDAPException  If this control cannot be decoded as a valid
-   *                         persistent search control.
-   */
-  public static PersistentSearchControl decodeControl(Control control)
-         throws LDAPException
-  {
-    if (! control.hasValue())
-    {
-      Message message = ERR_PSEARCH_NO_CONTROL_VALUE.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-    }
-
-
-    boolean                         changesOnly;
-    boolean                         returnECs;
-    Set<PersistentSearchChangeType> changeTypes;
-    try
-    {
-      ArrayList<ASN1Element> elements =
-           ASN1Sequence.decodeAsSequence(control.getValue().value()).elements();
-      if (elements.size() != 3)
-      {
-        Message message =
-            ERR_PSEARCH_INVALID_ELEMENT_COUNT.get(elements.size());
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-      }
-
-      int changeTypesValue = elements.get(0).decodeAsInteger().intValue();
-      changeTypes = PersistentSearchChangeType.intToTypes(changeTypesValue);
-      changesOnly = elements.get(1).decodeAsBoolean().booleanValue();
-      returnECs   = elements.get(2).decodeAsBoolean().booleanValue();
-    }
-    catch (LDAPException le)
-    {
-      throw le;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_PSEARCH_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message, e);
-    }
-
-
-    return new PersistentSearchControl(control.getOID(), control.isCritical(),
-                                       changeTypes, changesOnly, returnECs,
-                                       control.getValue());
+    writer.writeEndSequence();
   }
 
 
@@ -271,21 +220,6 @@ public class PersistentSearchControl
   public Set<PersistentSearchChangeType> getChangeTypes()
   {
     return changeTypes;
-  }
-
-
-
-  /**
-   * Specifies the set of change types for this persistent search control.
-   *
-   * @param  changeTypes  The set of change types for this persistent search
-   *                      control.
-   */
-  public void setChangeTypes(Set<PersistentSearchChangeType> changeTypes)
-  {
-    this.changeTypes = changeTypes;
-
-    setValue(encodeValue(changeTypes, changesOnly, returnECs));
   }
 
 
@@ -306,23 +240,6 @@ public class PersistentSearchControl
 
 
   /**
-   * Specifies whether to only return changes that match teh associated search
-   * criteria, or to also return all existing entries that match the filter.
-   *
-   * @param  changesOnly  Indicates whether to only return changes that match
-   *                      the associated search criteria, or to also return all
-   *                      existing entries that match the filter.
-   */
-  public void setChangesOnly(boolean changesOnly)
-  {
-    this.changesOnly = changesOnly;
-
-    setValue(encodeValue(changeTypes, changesOnly, returnECs));
-  }
-
-
-
-  /**
    * Indicates whether to include the entry change notification control in
    * entries returned to the client as the result of a change in the Directory
    * Server data.
@@ -338,43 +255,12 @@ public class PersistentSearchControl
 
 
   /**
-   * Specifies whether to include the entry change notification control in
-   * entries returned to the client as a result of a change in the Directory
-   * Server data.
-   *
-   * @param  returnECs  Indicates whether to include the entry change
-   *                    notification control in updated entries that match the
-   *                    associated search criteria.
-   */
-  public void setReturnECs(boolean returnECs)
-  {
-    this.returnECs = returnECs;
-
-    setValue(encodeValue(changeTypes, changesOnly, returnECs));
-  }
-
-
-
-  /**
-   * Retrieves a string representation of this persistent search control.
-   *
-   * @return  A string representation of this persistent search control.
-   */
-  public String toString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
-  }
-
-
-
-  /**
    * Appends a string representation of this persistent search control to the
    * provided buffer.
    *
    * @param  buffer  The buffer to which the information should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("PersistentSearchControl(changeTypes=\"");

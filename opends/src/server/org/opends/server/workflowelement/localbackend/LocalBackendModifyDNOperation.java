@@ -64,7 +64,6 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.LDAPException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
@@ -156,6 +155,7 @@ public class LocalBackendModifyDNOperation
    * @return  The current entry, or <CODE>null</CODE> if it is not yet
    *           available.
    */
+  @Override
   public final Entry getOriginalEntry()
   {
     return currentEntry;
@@ -171,6 +171,7 @@ public class LocalBackendModifyDNOperation
    * @return  The updated entry, or <CODE>null</CODE> if it is not yet
    *           available.
    */
+  @Override
   public final Entry getUpdatedEntry()
   {
     return newEntry;
@@ -703,30 +704,8 @@ modifyDNProcessing:
 
         if (oid.equals(OID_LDAP_ASSERTION))
         {
-          LDAPAssertionRequestControl assertControl;
-          if (c instanceof LDAPAssertionRequestControl)
-          {
-            assertControl = (LDAPAssertionRequestControl) c;
-          }
-          else
-          {
-            try
-            {
-              assertControl = LDAPAssertionRequestControl.decodeControl(c);
-              requestControls.set(i, assertControl);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              throw new DirectoryException(
-                             ResultCode.valueOf(le.getResultCode()),
-                             le.getMessageObject());
-            }
-          }
+          LDAPAssertionRequestControl assertControl =
+                getRequestControl(LDAPAssertionRequestControl.DECODER);
 
           try
           {
@@ -764,29 +743,9 @@ modifyDNProcessing:
         }
         else if (oid.equals(OID_LDAP_READENTRY_PREREAD))
         {
-          if (c instanceof LDAPPreReadRequestControl)
-          {
-            preReadRequest = (LDAPPreReadRequestControl) c;
-          }
-          else
-          {
-            try
-            {
-              preReadRequest = LDAPPreReadRequestControl.decodeControl(c);
-              requestControls.set(i, preReadRequest);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              throw new DirectoryException(
-                             ResultCode.valueOf(le.getResultCode()),
-                             le.getMessageObject());
-            }
-          }
+          preReadRequest =
+                getRequestControl(LDAPPreReadRequestControl.DECODER);
+          requestControls.set(i, preReadRequest);
         }
         else if (oid.equals(OID_LDAP_READENTRY_POSTREAD))
         {
@@ -796,22 +755,9 @@ modifyDNProcessing:
           }
           else
           {
-            try
-            {
-              postReadRequest = LDAPPostReadRequestControl.decodeControl(c);
-              requestControls.set(i, postReadRequest);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              throw new DirectoryException(
-                             ResultCode.valueOf(le.getResultCode()),
-                             le.getMessageObject());
-            }
+            postReadRequest =
+                  getRequestControl(LDAPPostReadRequestControl.DECODER);
+            requestControls.set(i, postReadRequest);
           }
         }
         else if (oid.equals(OID_PROXIED_AUTH_V1))
@@ -824,31 +770,8 @@ modifyDNProcessing:
                            ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
           }
 
-
-          ProxiedAuthV1Control proxyControl;
-          if (c instanceof ProxiedAuthV1Control)
-          {
-            proxyControl = (ProxiedAuthV1Control) c;
-          }
-          else
-          {
-            try
-            {
-              proxyControl = ProxiedAuthV1Control.decodeControl(c);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              throw new DirectoryException(
-                             ResultCode.valueOf(le.getResultCode()),
-                             le.getMessageObject());
-            }
-          }
-
+          ProxiedAuthV1Control proxyControl =
+              getRequestControl(ProxiedAuthV1Control.DECODER);
 
           Entry authorizationEntry = proxyControl.getAuthorizationEntry();
           setAuthorizationEntry(authorizationEntry);
@@ -871,31 +794,8 @@ modifyDNProcessing:
                            ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
           }
 
-
-          ProxiedAuthV2Control proxyControl;
-          if (c instanceof ProxiedAuthV2Control)
-          {
-            proxyControl = (ProxiedAuthV2Control) c;
-          }
-          else
-          {
-            try
-            {
-              proxyControl = ProxiedAuthV2Control.decodeControl(c);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              throw new DirectoryException(
-                             ResultCode.valueOf(le.getResultCode()),
-                             le.getMessageObject());
-            }
-          }
-
+          ProxiedAuthV2Control proxyControl =
+              getRequestControl(ProxiedAuthV2Control.DECODER);
 
           Entry authorizationEntry = proxyControl.getAuthorizationEntry();
           setAuthorizationEntry(authorizationEntry);
@@ -1153,8 +1053,7 @@ modifyDNProcessing:
       //          out..
       SearchResultEntry searchEntry = new SearchResultEntry(entry);
       LDAPPreReadResponseControl responseControl =
-           new LDAPPreReadResponseControl(preReadRequest.getOID(),
-                                          preReadRequest.isCritical(),
+           new LDAPPreReadResponseControl(preReadRequest.isCritical(),
                                           searchEntry);
 
       addResponseControl(responseControl);
@@ -1204,9 +1103,7 @@ modifyDNProcessing:
       //          out..
       SearchResultEntry searchEntry = new SearchResultEntry(entry);
       LDAPPostReadResponseControl responseControl =
-           new LDAPPostReadResponseControl(postReadRequest.getOID(),
-                                           postReadRequest.isCritical(),
-                                           searchEntry);
+           new LDAPPostReadResponseControl(searchEntry);
 
       addResponseControl(responseControl);
     }

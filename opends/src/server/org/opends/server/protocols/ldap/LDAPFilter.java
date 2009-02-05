@@ -28,8 +28,6 @@ package org.opends.server.protocols.ldap;
 import org.opends.messages.Message;
 
 
-
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -39,17 +37,7 @@ import java.util.Collection;
 
 import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.FilterType;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.RawFilter;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
+import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -189,8 +177,7 @@ public class LDAPFilter
       case LESS_OR_EQUAL:
       case APPROXIMATE_MATCH:
         attributeType  = filter.getAttributeType().getNameOrOID();
-        assertionValue =
-             filter.getAssertionValue().getValue().toASN1OctetString();
+        assertionValue = filter.getAssertionValue().getValue();
 
         filterComponents  = null;
         notComponent      = null;
@@ -210,7 +197,7 @@ public class LDAPFilter
         }
         else
         {
-          subInitialElement = bs.toASN1OctetString();
+          subInitialElement = bs;
         }
 
         bs = filter.getSubFinalElement();
@@ -220,7 +207,7 @@ public class LDAPFilter
         }
         else
         {
-          subFinalElement = bs.toASN1OctetString();
+          subFinalElement = bs;
         }
 
         List<ByteString> subAnyStrings = filter.getSubAnyElements();
@@ -272,7 +259,7 @@ public class LDAPFilter
         }
         else
         {
-          assertionValue = av.getValue().toASN1OctetString();
+          assertionValue = av.getValue();
         }
 
         filterComponents  = null;
@@ -569,7 +556,7 @@ public class LDAPFilter
     if (valueStr.length() == 0)
     {
       return new LDAPFilter(filterType, null, null, attrType,
-                            new ASN1OctetString(), null, null, null, null,
+                            ByteString.empty(), null, null, null, null,
                             false);
     }
     else if (valueStr.equals("*"))
@@ -594,10 +581,11 @@ public class LDAPFilter
         }
       }
 
-      ASN1OctetString  value;
+      ByteString value;
       if (hasEscape)
       {
-        ByteBuffer valueBuffer = ByteBuffer.allocate(valueStr.length());
+        ByteStringBuilder valueBuffer =
+            new ByteStringBuilder(valueStr.length());
         for (int i=0; i < valueBytes.length; i++)
         {
           if (valueBytes[i] == 0x5C) // The backslash character
@@ -734,22 +722,19 @@ public class LDAPFilter
                 throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
 
-            valueBuffer.put(byteValue);
+            valueBuffer.append(byteValue);
           }
           else
           {
-            valueBuffer.put(valueBytes[i]);
+            valueBuffer.append(valueBytes[i]);
           }
         }
 
-        valueBytes = new byte[valueBuffer.position()];
-        valueBuffer.flip();
-        valueBuffer.get(valueBytes);
-        value = new ASN1OctetString(valueBytes);
+        value = valueBuffer.toByteString();
       }
       else
       {
-        value = new ASN1OctetString(valueBytes);
+        value = ByteString.wrap(valueBytes);
       }
 
       return new LDAPFilter(filterType, null, null, attrType, value, null, null,
@@ -954,7 +939,7 @@ public class LDAPFilter
     {
       if (hasEscape)
       {
-        ByteBuffer buffer = ByteBuffer.allocate(firstPos);
+        ByteStringBuilder buffer = new ByteStringBuilder(firstPos);
         for (int i=0; i < firstPos; i++)
         {
           if (valueBytes[i] == 0x5C)
@@ -1091,24 +1076,19 @@ public class LDAPFilter
                 throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
 
-            buffer.put(byteValue);
+            buffer.append(byteValue);
           }
           else
           {
-            buffer.put(valueBytes[i]);
+            buffer.append(valueBytes[i]);
           }
         }
 
-        byte[] subInitialBytes = new byte[buffer.position()];
-        buffer.flip();
-        buffer.get(subInitialBytes);
-        subInitial = new ASN1OctetString(subInitialBytes);
+        subInitial = buffer.toByteString();
       }
       else
       {
-        byte[] subInitialBytes = new byte[firstPos];
-        System.arraycopy(valueBytes, 0, subInitialBytes, 0, firstPos);
-        subInitial = new ASN1OctetString(subInitialBytes);
+        subInitial = ByteString.wrap(valueBytes, 0, firstPos);
       }
     }
 
@@ -1121,7 +1101,7 @@ public class LDAPFilter
 
       if (hasEscape)
       {
-        ByteBuffer buffer = ByteBuffer.allocate(length);
+        ByteStringBuilder buffer = new ByteStringBuilder(length);
         for (int i=firstPos+1; i < asteriskPos; i++)
         {
           if (valueBytes[i] == 0x5C)
@@ -1258,24 +1238,20 @@ public class LDAPFilter
                 throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
 
-            buffer.put(byteValue);
+            buffer.append(byteValue);
           }
           else
           {
-            buffer.put(valueBytes[i]);
+            buffer.append(valueBytes[i]);
           }
         }
 
-        byte[] subAnyBytes = new byte[buffer.position()];
-        buffer.flip();
-        buffer.get(subAnyBytes);
-        subAny.add(new ASN1OctetString(subAnyBytes));
+        subAny.add(buffer.toByteString());
+        buffer.clear();
       }
       else
       {
-        byte[] subAnyBytes = new byte[length];
-        System.arraycopy(valueBytes, firstPos+1, subAnyBytes, 0, length);
-        subAny.add(new ASN1OctetString(subAnyBytes));
+        subAny.add(ByteString.wrap(valueBytes, firstPos+1, length));
       }
 
 
@@ -1296,7 +1272,7 @@ public class LDAPFilter
 
       if (hasEscape)
       {
-        ByteBuffer buffer = ByteBuffer.allocate(length);
+        ByteStringBuilder buffer = new ByteStringBuilder(length);
         for (int i=firstPos+1; i < valueBytes.length; i++)
         {
           if (valueBytes[i] == 0x5C)
@@ -1433,24 +1409,19 @@ public class LDAPFilter
                 throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
 
-            buffer.put(byteValue);
+            buffer.append(byteValue);
           }
           else
           {
-            buffer.put(valueBytes[i]);
+            buffer.append(valueBytes[i]);
           }
         }
 
-        byte[] subFinalBytes = new byte[buffer.position()];
-        buffer.flip();
-        buffer.get(subFinalBytes);
-        subFinal = new ASN1OctetString(subFinalBytes);
+        subFinal = buffer.toByteString();
       }
       else
       {
-        byte[] subFinalBytes = new byte[length];
-        System.arraycopy(valueBytes, firstPos+1, subFinalBytes, 0, length);
-        subFinal = new ASN1OctetString(subFinalBytes);
+        subFinal = ByteString.wrap(valueBytes, firstPos+1, length);
       }
     }
 
@@ -1563,7 +1534,7 @@ public class LDAPFilter
     ByteString value;
     if (hasEscape)
     {
-      ByteBuffer valueBuffer = ByteBuffer.allocate(valueBytes.length);
+      ByteStringBuilder valueBuffer = new ByteStringBuilder(valueBytes.length);
       for (int i=0; i < valueBytes.length; i++)
       {
         if (valueBytes[i] == 0x5C) // The backslash character
@@ -1700,22 +1671,19 @@ public class LDAPFilter
               throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
           }
 
-          valueBuffer.put(byteValue);
+          valueBuffer.append(byteValue);
         }
         else
         {
-          valueBuffer.put(valueBytes[i]);
+          valueBuffer.append(valueBytes[i]);
         }
       }
 
-      valueBytes = new byte[valueBuffer.position()];
-      valueBuffer.flip();
-      valueBuffer.get(valueBytes);
-      value = new ASN1OctetString(valueBytes);
+      value = valueBuffer.toByteString();
     }
     else
     {
-      value = new ASN1OctetString(valueBytes);
+      value = ByteString.wrap(valueBytes);
     }
 
 
@@ -1763,20 +1731,6 @@ public class LDAPFilter
 
 
   /**
-   * Specifies the set of subordinate filter components for AND or OR searches.
-   * This will be ignored for all other filter types.
-   *
-   * @param  filterComponents  The set of subordinate filter components for AND
-   *                           or OR searches.
-   */
-  public void setFilterComponents(ArrayList<RawFilter> filterComponents)
-  {
-    this.filterComponents = filterComponents;
-  }
-
-
-
-  /**
    * Retrieves the subordinate filter component for NOT searches.
    *
    * @return  The subordinate filter component for NOT searches, or
@@ -1785,19 +1739,6 @@ public class LDAPFilter
   public RawFilter getNOTComponent()
   {
     return notComponent;
-  }
-
-
-
-  /**
-   * Specifies the subordinate filter component for NOT searches.  This will be
-   * ignored for any other type of search.
-   *
-   * @param  notComponent  The subordinate filter component for NOT searches.
-   */
-  public void setNOTComponent(RawFilter notComponent)
-  {
-    this.notComponent = notComponent;
   }
 
 
@@ -1817,19 +1758,6 @@ public class LDAPFilter
 
 
   /**
-   * Specifies the attribute type for this search filter.  This will be ignored
-   * for AND, OR, and NOT searches.
-   *
-   * @param  attributeType  The attribute type for this search filter.
-   */
-  public void setAttributeType(String attributeType)
-  {
-    this.attributeType = attributeType;
-  }
-
-
-
-  /**
    * Retrieves the assertion value for this search filter.  This will only be
    * applicable for equality, greater or equal, less or equal, approximate, or
    * extensible matching filters.
@@ -1840,19 +1768,6 @@ public class LDAPFilter
   public ByteString getAssertionValue()
   {
     return assertionValue;
-  }
-
-
-
-  /**
-   * Specifies the assertion value for this search filter.  This will be ignored
-   * for types of filters that do not have an assertion value.
-   *
-   * @param  assertionValue  The assertion value for this search filter.
-   */
-  public void setAssertionValue(ByteString assertionValue)
-  {
-    this.assertionValue = assertionValue;
   }
 
 
@@ -1902,20 +1817,6 @@ public class LDAPFilter
 
 
   /**
-   * Specifies the set of subAny values for this substring filter.  This will be
-   * ignored for other filter types.
-   *
-   * @param  subAnyElements  The set of subAny elements for this substring
-   *                         filter.
-   */
-  public void setSubAnyElements(ArrayList<ByteString> subAnyElements)
-  {
-    this.subAnyElements = subAnyElements;
-  }
-
-
-
-  /**
    * Retrieves the subFinal element for this substring filter.  This is not
    * applicable for any other filter type, and may not be provided even for some
    * substring filters.
@@ -1926,19 +1827,6 @@ public class LDAPFilter
   public ByteString getSubFinalElement()
   {
     return subFinalElement;
-  }
-
-
-
-  /**
-   * Specifies the subFinal element for this substring filter.  This will be
-   * ignored for all other filter types.
-   *
-   * @param  subFinalElement  The subFinal element for this substring filter.
-   */
-  public void setSubFinalElement(ByteString subFinalElement)
-  {
-    this.subFinalElement = subFinalElement;
   }
 
 
@@ -1959,20 +1847,6 @@ public class LDAPFilter
 
 
   /**
-   * Specifies the matching rule ID for this extensible match filter.  It will
-   * be ignored for all other filter types.
-   *
-   * @param  matchingRuleID  The matching rule ID for this extensible match
-   *                         filter.
-   */
-  public void setMatchingRuleID(String matchingRuleID)
-  {
-    this.matchingRuleID = matchingRuleID;
-  }
-
-
-
-  /**
    * Retrieves the value of the DN attributes flag for this extensible match
    * filter, which indicates whether to perform matching on the components of
    * the DN.  This does not apply for any other type of filter.
@@ -1983,20 +1857,6 @@ public class LDAPFilter
   public boolean getDNAttributes()
   {
     return dnAttributes;
-  }
-
-
-
-  /**
-   * Specifies the value of the DN attributes flag for this extensible match
-   * filter.  It will be ignored for all other filter types.
-   *
-   * @param  dnAttributes  The value of the DN attributes flag for this
-   *                       extensible match filter.
-   */
-  public void setDNAttributes(boolean dnAttributes)
-  {
-    this.dnAttributes = dnAttributes;
   }
 
 
@@ -2105,13 +1965,14 @@ public class LDAPFilter
         else
         {
           ByteString normalizedValue = mr.normalizeValue(assertionValue);
-          value = new AttributeValue(assertionValue, normalizedValue);
+          value = AttributeValues.create(assertionValue,
+              normalizedValue);
         }
       }
     }
     else
     {
-      value = new AttributeValue(attrType, assertionValue);
+      value = AttributeValues.create(attrType, assertionValue);
     }
 
 

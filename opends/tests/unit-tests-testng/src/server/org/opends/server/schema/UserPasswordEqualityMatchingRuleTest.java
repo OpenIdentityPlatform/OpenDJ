@@ -33,7 +33,6 @@ import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.SaltedMD5PasswordStorageScheme;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.testng.annotations.DataProvider;
@@ -71,7 +70,7 @@ public class UserPasswordEqualityMatchingRuleTest extends
 
   private Object[] generateValues(String password) throws Exception
   {
-    ByteString bytePassword = new ASN1OctetString(password);
+    ByteString bytePassword = ByteString.valueOf(password);
     SaltedMD5PasswordStorageScheme scheme = new SaltedMD5PasswordStorageScheme();
 
     ConfigEntry configEntry =

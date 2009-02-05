@@ -36,23 +36,10 @@ import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyDNOperationBasis;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.ByteStringFactory;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.RDN;
 
 import static org.testng.Assert.*;
-
-import static org.opends.server.util.StaticUtils.*;
-
 
 
 /**

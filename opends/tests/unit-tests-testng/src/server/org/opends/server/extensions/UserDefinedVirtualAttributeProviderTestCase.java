@@ -40,15 +40,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DN;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.VirtualAttributeRule;
+import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
 
@@ -272,7 +264,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
 
     Attribute attr = attrList.get(0);
     assertEquals(attr.size(), 1);
-    assertTrue(attr.contains(new AttributeValue(descriptionType, value)));
+    assertTrue(attr.contains(AttributeValues.create(descriptionType, value)));
 
     DeleteOperation deleteOperation = conn.processDelete(DN.decode(ruleDN));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
@@ -336,8 +328,8 @@ public class UserDefinedVirtualAttributeProviderTestCase
 
     Attribute attr = attrList.get(0);
     assertEquals(attr.size(), 2);
-    assertTrue(attr.contains(new AttributeValue(descriptionType, value1)));
-    assertTrue(attr.contains(new AttributeValue(descriptionType, value2)));
+    assertTrue(attr.contains(AttributeValues.create(descriptionType, value1)));
+    assertTrue(attr.contains(AttributeValues.create(descriptionType, value2)));
 
     DeleteOperation deleteOperation = conn.processDelete(DN.decode(ruleDN));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
@@ -401,7 +393,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
 
     Attribute attr = attrList.get(0);
     assertEquals(attr.size(), 1);
-    assertTrue(attr.contains(new AttributeValue(descriptionType, realValue)));
+    assertTrue(attr.contains(AttributeValues.create(descriptionType, realValue)));
 
     DeleteOperation deleteOperation = conn.processDelete(DN.decode(ruleDN));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
@@ -465,7 +457,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
 
     Attribute attr = attrList.get(0);
     assertEquals(attr.size(), 1);
-    assertTrue(attr.contains(new AttributeValue(descriptionType,
+    assertTrue(attr.contains(AttributeValues.create(descriptionType,
                                                 virtualValue)));
 
     DeleteOperation deleteOperation = conn.processDelete(DN.decode(ruleDN));
@@ -537,9 +529,9 @@ public class UserDefinedVirtualAttributeProviderTestCase
       }
     }
 
-    assertTrue(allValues.contains(new AttributeValue(descriptionType,
+    assertTrue(allValues.contains(AttributeValues.create(descriptionType,
                                                      realValue)));
-    assertTrue(allValues.contains(new AttributeValue(descriptionType,
+    assertTrue(allValues.contains(AttributeValues.create(descriptionType,
                                                      virtualValue)));
 
     DeleteOperation deleteOperation = conn.processDelete(DN.decode(ruleDN));

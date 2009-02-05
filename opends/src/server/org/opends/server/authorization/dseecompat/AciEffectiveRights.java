@@ -29,7 +29,6 @@ package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.authorization.dseecompat.Aci.*;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.*;
 
 import java.util.LinkedHashSet;
@@ -326,15 +325,15 @@ public class AciEffectiveRights {
       //Write right is more complicated. Create a dummy value and set that as
       //the attribute's value. Call the special writeRightsString method, rather
       //than rightsString.
-      AttributeValue val=new AttributeValue(a, "dum###Val");
+      AttributeValue val= AttributeValues.create(a, "dum###Val");
       container.setCurrentAttributeValue(val);
       evalInfo.append(attributeLevelWriteRights(container, handler, skipCheck));
       addAttrLevelRightsInfo(container, mask, a, retEntry, "write");
       evalInfo.append(',');
       //Perform both selfwrite_add and selfwrite_delete and append results.
-      ByteString clientDNStr=
-              new ASN1OctetString(container.getClientDN().toString());
-      AttributeValue val1=new AttributeValue(a, clientDNStr);
+      AttributeValue val1=
+          AttributeValues.create(a,
+              container.getClientDN().toString());
       if(!specificAttr)
         container.setCurrentAttributeType(dnAttributeType);
       container.setCurrentAttributeValue(val1);

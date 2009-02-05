@@ -36,19 +36,8 @@ import java.util.regex.Pattern;
 import java.util.Collection;
 
 import org.opends.messages.Message;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.Modification;
-import org.opends.server.types.RawAttribute;
-import org.opends.server.types.RawModification;
-import org.opends.server.types.RDN;
+import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -283,7 +272,7 @@ public boolean writeEntries(Collection <Entry> entries)
     StringBuilder dnLine = new StringBuilder();
     dnLine.append("dn");
     appendLDIFSeparatorAndValue(dnLine,
-                                getBytes(changeRecord.getDN().toString()));
+        ByteString.valueOf(changeRecord.getDN().toString()));
     writeLDIFLine(dnLine, writer, wrapLines, wrapColumn);
 
 
@@ -300,17 +289,7 @@ public boolean writeEntries(Collection <Entry> entries)
         {
           StringBuilder line = new StringBuilder();
           line.append(a.getNameWithOptions());
-          String stringValue = v.getStringValue();
-          if (needsBase64Encoding(stringValue))
-          {
-            line.append(":: ");
-            line.append(Base64.encode(v.getValueBytes()));
-          }
-          else
-          {
-            line.append(": ");
-            line.append(stringValue);
-          }
+          appendLDIFSeparatorAndValue(line, v.getValue());
           writeLDIFLine(line, writer, wrapLines, wrapColumn);
         }
       }
@@ -340,16 +319,16 @@ public boolean writeEntries(Collection <Entry> entries)
         modTypeLine.append(attrName);
         writeLDIFLine(modTypeLine, writer, wrapLines, wrapColumn);
 
-        for (ASN1OctetString s : a.getValues())
+        for (ByteString s : a.getValues())
         {
           StringBuilder valueLine = new StringBuilder();
-          String stringValue = s.stringValue();
+          String stringValue = s.toString();
 
           valueLine.append(attrName);
           if (needsBase64Encoding(stringValue))
           {
             valueLine.append(":: ");
-            valueLine.append(Base64.encode(s.value()));
+            valueLine.append(Base64.encode(s));
           }
           else
           {
@@ -434,7 +413,8 @@ public boolean writeEntries(Collection <Entry> entries)
     // First, write the DN.
     StringBuilder dnLine = new StringBuilder();
     dnLine.append("dn");
-    appendLDIFSeparatorAndValue(dnLine, getBytes(entry.getDN().toString()));
+    appendLDIFSeparatorAndValue(dnLine,
+        ByteString.valueOf(entry.getDN().toString()));
     writeLDIFLine(dnLine, writer, wrapLines, wrapColumn);
 
 
@@ -470,7 +450,7 @@ public boolean writeEntries(Collection <Entry> entries)
         {
           StringBuilder attrLine = new StringBuilder();
           attrLine.append(attrName);
-          appendLDIFSeparatorAndValue(attrLine, v.getValueBytes());
+          appendLDIFSeparatorAndValue(attrLine, v.getValue());
           writeLDIFLine(attrLine, writer, wrapLines, wrapColumn);
         }
       }
@@ -510,7 +490,8 @@ public boolean writeEntries(Collection <Entry> entries)
     // Add the DN and changetype lines.
     StringBuilder dnLine = new StringBuilder();
     dnLine.append("dn");
-    appendLDIFSeparatorAndValue(dnLine, getBytes(entry.getDN().toString()));
+    appendLDIFSeparatorAndValue(dnLine,
+        ByteString.valueOf(entry.getDN().toString()));
     writeLDIFLine(dnLine, writer, wrapLines, wrapColumn);
 
     StringBuilder changeTypeLine = new StringBuilder("changetype: delete");
@@ -549,7 +530,7 @@ public boolean writeEntries(Collection <Entry> entries)
           {
             StringBuilder attrLine = new StringBuilder();
             attrLine.append(attrName);
-            appendLDIFSeparatorAndValue(attrLine, v.getValueBytes());
+            appendLDIFSeparatorAndValue(attrLine, v.getValue());
             writeLDIFLine(attrLine, writer, wrapLines, wrapColumn);
           }
         }
@@ -595,7 +576,7 @@ public boolean writeEntries(Collection <Entry> entries)
     // Write the DN and changetype.
     StringBuilder dnLine = new StringBuilder();
     dnLine.append("dn");
-    appendLDIFSeparatorAndValue(dnLine, getBytes(dn.toString()));
+    appendLDIFSeparatorAndValue(dnLine, ByteString.valueOf(dn.toString()));
     writeLDIFLine(dnLine, writer, wrapLines, wrapColumn);
 
     StringBuilder changeTypeLine = new StringBuilder("changetype: modify");
@@ -646,7 +627,7 @@ public boolean writeEntries(Collection <Entry> entries)
       {
         StringBuilder valueLine = new StringBuilder();
         valueLine.append(name);
-        appendLDIFSeparatorAndValue(valueLine, v.getValueBytes());
+        appendLDIFSeparatorAndValue(valueLine, v.getValue());
         writeLDIFLine(valueLine, writer, wrapLines, wrapColumn);
       }
 
@@ -699,7 +680,7 @@ public boolean writeEntries(Collection <Entry> entries)
     // Write the current DN.
     StringBuilder dnLine = new StringBuilder();
     dnLine.append("dn");
-    appendLDIFSeparatorAndValue(dnLine, getBytes(dn.toString()));
+    appendLDIFSeparatorAndValue(dnLine, ByteString.valueOf(dn.toString()));
     writeLDIFLine(dnLine, writer, wrapLines, wrapColumn);
 
 
@@ -721,7 +702,7 @@ public boolean writeEntries(Collection <Entry> entries)
     // Write the newRDN element.
     StringBuilder rdnLine = new StringBuilder();
     rdnLine.append("newrdn");
-    appendLDIFSeparatorAndValue(rdnLine, getBytes(newRDN.toString()));
+    appendLDIFSeparatorAndValue(rdnLine, ByteString.valueOf(newRDN.toString()));
     writeLDIFLine(rdnLine, writer, wrapLines, wrapColumn);
 
 
@@ -736,7 +717,7 @@ public boolean writeEntries(Collection <Entry> entries)
       StringBuilder newSuperiorLine = new StringBuilder();
       newSuperiorLine.append("newsuperior");
       appendLDIFSeparatorAndValue(newSuperiorLine,
-                                  getBytes(newSuperior.toString()));
+          ByteString.valueOf(newSuperior.toString()));
       writeLDIFLine(newSuperiorLine, writer, wrapLines, wrapColumn);
     }
 
@@ -787,14 +768,14 @@ public boolean writeEntries(Collection <Entry> entries)
    *                     <CODE>null</CODE>.
    */
   public static void appendLDIFSeparatorAndValue(StringBuilder buffer,
-                                                 byte[] valueBytes)
+                                                 ByteSequence valueBytes)
   {
     ensureNotNull(buffer, valueBytes);
 
 
     // If the value is empty, then just append a single colon and a single
     // space.
-    if ((valueBytes == null) || (valueBytes.length == 0))
+    if ((valueBytes == null) || (valueBytes.length() == 0))
     {
       buffer.append(": ");
       return;
@@ -809,20 +790,7 @@ public boolean writeEntries(Collection <Entry> entries)
     else
     {
       buffer.append(": ");
-
-      try
-      {
-        buffer.append(new String(valueBytes, "UTF-8"));
-      }
-      catch (Exception e)
-      {
-        // This should never happen.
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-        buffer.append(new String(valueBytes));
-      }
+      buffer.append(valueBytes.toString());
     }
   }
 

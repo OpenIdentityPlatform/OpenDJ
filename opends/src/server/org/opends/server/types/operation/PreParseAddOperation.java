@@ -34,7 +34,6 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.RawAttribute;
 
 
-
 /**
  * This class defines a set of methods that are available for use by
  * pre-parse plugins for add operations.  Note that this interface is

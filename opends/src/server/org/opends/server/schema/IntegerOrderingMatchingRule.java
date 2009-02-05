@@ -26,22 +26,23 @@
  */
 package org.opends.server.schema;
 
-import java.util.Collections;
+
+
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.schema.SchemaConstants.*;
+
 import java.util.Collection;
+import java.util.Collections;
+
 import org.opends.messages.Message;
-
-
-
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.schema.SchemaConstants.*;
 
 
 /**
@@ -74,6 +75,7 @@ class IntegerOrderingMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getAllNames()
   {
     return Collections.singleton(getName());
@@ -87,6 +89,7 @@ class IntegerOrderingMatchingRule
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
    * it does not have a name.
    */
+  @Override
   public String getName()
   {
     return OMR_INTEGER_NAME;
@@ -99,6 +102,7 @@ class IntegerOrderingMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return OMR_INTEGER_OID;
@@ -112,6 +116,7 @@ class IntegerOrderingMatchingRule
    * @return  The description for this matching rule, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     // There is no standard description for this matching rule.
@@ -126,6 +131,7 @@ class IntegerOrderingMatchingRule
    *
    * @return  The OID of the syntax with which this matching rule is associated.
    */
+  @Override
   public String getSyntaxOID()
   {
     return SYNTAX_INTEGER_OID;
@@ -144,18 +150,17 @@ class IntegerOrderingMatchingRule
    * @throws  DirectoryException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
-  public ByteString normalizeValue(ByteString value)
+  @Override
+  public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
-    byte[] valueBytes = value.value();
-
-    int length = valueBytes.length;
+    int length = value.length();
     StringBuilder buffer = new StringBuilder(length);
 
     boolean logged = false;
     for (int i=0; i < length; i++)
     {
-      switch (valueBytes[i])
+      switch (value.byteAt(i))
       {
         case '0':
           switch (buffer.length())
@@ -170,7 +175,7 @@ class IntegerOrderingMatchingRule
               {
 
                 Message message = WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(
-                        value.stringValue());
+                        value.toString());
 
                 switch (DirectoryServer.getSyntaxEnforcementPolicy())
                 {
@@ -193,7 +198,7 @@ class IntegerOrderingMatchingRule
               {
 
                 Message message = WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(
-                        value.stringValue());
+                        value.toString());
 
                 switch (DirectoryServer.getSyntaxEnforcementPolicy())
                 {
@@ -257,7 +262,7 @@ class IntegerOrderingMatchingRule
           else
           {
             Message message = WARN_ATTR_SYNTAX_INTEGER_MISPLACED_DASH.get(
-                    value.stringValue());
+                    value.toString());
 
             switch (DirectoryServer.getSyntaxEnforcementPolicy())
             {
@@ -277,8 +282,8 @@ class IntegerOrderingMatchingRule
           break;
         default:
           Message message = WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
-                  value.stringValue(),
-                  ((char) valueBytes[i]), i);
+                  value.toString(),
+                  ((char) value.byteAt(i)), i);
           switch (DirectoryServer.getSyntaxEnforcementPolicy())
           {
             case REJECT:
@@ -299,7 +304,7 @@ class IntegerOrderingMatchingRule
     if (buffer.length() == 0)
     {
       Message message = WARN_ATTR_SYNTAX_INTEGER_EMPTY_VALUE.get(
-              value.stringValue());
+              value.toString());
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
@@ -326,7 +331,7 @@ class IntegerOrderingMatchingRule
     else if ((buffer.length() == 1) && (buffer.charAt(0) == '-'))
     {
       Message message = WARN_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE.get(
-              value.stringValue());
+              value.toString());
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
@@ -351,7 +356,7 @@ class IntegerOrderingMatchingRule
       }
     }
 
-    return new ASN1OctetString(buffer.toString());
+    return ByteString.valueOf(buffer.toString());
   }
 
 
@@ -369,9 +374,108 @@ class IntegerOrderingMatchingRule
    *          ascending order, or zero if there is no difference between the
    *          values with regard to ordering.
    */
-  public int compareValues(ByteString value1, ByteString value2)
+  @Override
+  public int compareValues(ByteSequence value1, ByteSequence value2)
   {
-    return compare(value1.value(), value2.value());
+    int b1Length = value1.length();
+    int b2Length = value2.length();
+
+
+    // A length of zero should be considered a value of zero.
+    if (b1Length == 0)
+    {
+      if (b2Length == 0)
+      {
+        return 0;
+      }
+      else if (value2.byteAt(0) == '-')
+      {
+        return 1;
+      }
+      else
+      {
+        return -1;
+      }
+    }
+    else if (b2Length == 0)
+    {
+      if (value1.byteAt(0) == '-')
+      {
+        return -1;
+      }
+      else
+      {
+        return 1;
+      }
+    }
+
+
+    // Starting with a dash should be an indicator of a negative value.
+    if (value1.byteAt(0) == '-')
+    {
+      if (value2.byteAt(0) == '-')
+      {
+        if (b1Length > b2Length)
+        {
+          return -1;
+        }
+        else if (b2Length > b1Length)
+        {
+          return 1;
+        }
+        else
+        {
+          for (int i=1; i < b1Length; i++)
+          {
+            if (value1.byteAt(i) > value2.byteAt(i))
+            {
+              return -1;
+            }
+            else if (value1.byteAt(i) < value2.byteAt(i))
+            {
+              return 1;
+            }
+          }
+
+          return 0;
+        }
+      }
+      else
+      {
+        return -1;
+      }
+    }
+    else if (value2.byteAt(0) == '-')
+    {
+      return 1;
+    }
+
+
+    // They are both positive, so see which one's bigger.
+    if (b1Length > b2Length)
+    {
+      return 1;
+    }
+    else if (b2Length > b1Length)
+    {
+      return -1;
+    }
+    else
+    {
+      for (int i=0; i < b1Length; i++)
+      {
+        if (value1.byteAt(i) > value2.byteAt(i))
+        {
+          return 1;
+        }
+        else if (value1.byteAt(i) < value2.byteAt(i))
+        {
+          return -1;
+        }
+      }
+
+      return 0;
+    }
   }
 
 

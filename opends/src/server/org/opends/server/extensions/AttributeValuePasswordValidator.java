@@ -37,14 +37,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.AttributeValuePasswordValidatorCfg;
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
 import org.opends.messages.MessageBuilder;
@@ -117,7 +110,7 @@ public class AttributeValuePasswordValidator
 
     // Get the string representation (both forward and reversed) for the
     // password.
-    String password = newPassword.stringValue();
+    String password = newPassword.toString();
     String reversed = new StringBuilder(password).reverse().toString();
 
 
@@ -137,8 +130,8 @@ public class AttributeValuePasswordValidator
         continue;
       }
 
-      AttributeValue vf = new AttributeValue(t, password);
-      AttributeValue vr = new AttributeValue(t, reversed);
+      AttributeValue vf = AttributeValues.create(t, password);
+      AttributeValue vr = AttributeValues.create(t, reversed);
 
       for (Attribute a : attrList)
       {

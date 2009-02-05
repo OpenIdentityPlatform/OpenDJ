@@ -230,7 +230,7 @@ public class AttributeTypeSyntax
   /**
    * {@inheritDoc}
    */
-  public boolean valueIsAcceptable(ByteString value,
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // We'll use the decodeAttributeType method to determine if the value is
@@ -277,14 +277,14 @@ public class AttributeTypeSyntax
    * @throws  DirectoryException  If the provided value cannot be decoded as an
    *                              attribute type definition.
    */
-  public static AttributeType decodeAttributeType(ByteString value,
+  public static AttributeType decodeAttributeType(ByteSequence value,
                                                   Schema schema,
                                                   boolean allowUnknownElements)
          throws DirectoryException
   {
     // Get string representations of the provided value using the provided form
     // and with all lowercase characters.
-    String valueStr = value.stringValue();
+    String valueStr = value.toString();
     String lowerStr = toLowerCase(valueStr);
 
 
@@ -927,7 +927,7 @@ public class AttributeTypeSyntax
     }
 
 
-    return new AttributeType(value.stringValue(), primaryName, typeNames, oid,
+    return new AttributeType(value.toString(), primaryName, typeNames, oid,
                              description, superiorType, syntax,
                              approximateMatchingRule, equalityMatchingRule,
                              orderingMatchingRule, substringMatchingRule,

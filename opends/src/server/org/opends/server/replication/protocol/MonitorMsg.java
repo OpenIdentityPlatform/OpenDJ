@@ -26,7 +26,6 @@
  */
 package org.opends.server.replication.protocol;
 
-import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,10 +33,13 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.asn1.ASN1Element;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.types.ByteStringBuilder;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteSequenceReader;
 
 /**
  * This message is part of the replication protocol.
@@ -178,93 +180,75 @@ public class MonitorMsg extends RoutableMsg
    */
   public MonitorMsg(byte[] in) throws DataFormatException
   {
+    ByteSequenceReader reader = ByteString.wrap(in).asReader();
+
+    /* first byte is the type */
+    if (reader.get() != MSG_TYPE_REPL_SERVER_MONITOR)
+      throw new DataFormatException("input is not a valid " +
+          this.getClass().getCanonicalName());
+    int pos = 1;
+
+    // sender
+    this.senderID = reader.getShort();
+
+    // destination
+    this.destination = reader.getShort();
+
+    ASN1Reader asn1Reader = ASN1.getReader(reader);
     try
     {
-      /* first byte is the type */
-      if (in[0] != MSG_TYPE_REPL_SERVER_MONITOR)
-        throw new DataFormatException("input is not a valid " +
-            this.getClass().getCanonicalName());
-      int pos = 1;
-
-      // sender
-      int length = getNextLength(in, pos);
-      String senderIDString = new String(in, pos, length, "UTF-8");
-      this.senderID = Short.valueOf(senderIDString);
-      pos += length +1;
-
-      // destination
-      length = getNextLength(in, pos);
-      String destinationString = new String(in, pos, length, "UTF-8");
-      this.destination = Short.valueOf(destinationString);
-      pos += length +1;
-
-       /* Read the states : all the remaining bytes but the terminating 0 */
-      byte[] encodedS = new byte[in.length-pos-1];
-      int i =0;
-      while (pos<in.length-1)
+      asn1Reader.readStartSequence();
+      // loop on the servers
+      while(asn1Reader.hasNextElement())
       {
-        encodedS[i++] = in[pos++];
-      }
+        ServerState newState = new ServerState();
+        short serverId = 0;
+        Long outime = (long)0;
+        boolean isLDAPServer = false;
 
-
-      try
-      {
-        ASN1Sequence s0 = ASN1Sequence.decodeAsSequence(encodedS);
-        // loop on the servers
-        for (ASN1Element el0 : s0.elements())
+        asn1Reader.readStartSequence();
+        // loop on the list of CN of the state
+        while(asn1Reader.hasNextElement())
         {
-          ServerState newState = new ServerState();
-          short serverId = 0;
-          Long outime = (long)0;
-          boolean isLDAPServer = false;
-          ASN1Sequence s1 = el0.decodeAsSequence();
-
-          // loop on the list of CN of the state
-          for (ASN1Element el1 : s1.elements())
+          String s = asn1Reader.readOctetStringAsString();
+          ChangeNumber cn = new ChangeNumber(s);
+          if ((data.replServerDbState != null) && (serverId == 0))
           {
-            ASN1OctetString o = el1.decodeAsOctetString();
-            String s = o.stringValue();
-            ChangeNumber cn = new ChangeNumber(s);
-            if ((data.replServerDbState != null) && (serverId == 0))
-            {
-              // we are on the first CN that is a fake CN to store the serverId
-              // and the older update time
-              serverId = cn.getServerId();
-              outime = cn.getTime();
-              isLDAPServer = (cn.getSeqnum()>0);
-            }
-            else
-            {
-              // we are on a normal CN
-              newState.update(cn);
-            }
-          }
-
-          if (data.replServerDbState == null)
-          {
-            // the first state is the replication state
-            data.replServerDbState = newState;
+            // we are on the first CN that is a fake CN to store the serverId
+            // and the older update time
+            serverId = cn.getServerId();
+            outime = cn.getTime();
+            isLDAPServer = (cn.getSeqnum()>0);
           }
           else
           {
-            // the next states are the server states
-            ServerData sd = new ServerData();
-            sd.state = newState;
-            sd.approxFirstMissingDate = outime;
-            if (isLDAPServer)
-              data.ldapStates.put(serverId, sd);
-            else
-              data.rsStates.put(serverId, sd);
+            // we are on a normal CN
+            newState.update(cn);
           }
         }
-      } catch(Exception e)
-      {
+        asn1Reader.readEndSequence();
 
+        if (data.replServerDbState == null)
+        {
+          // the first state is the replication state
+          data.replServerDbState = newState;
+        }
+        else
+        {
+          // the next states are the server states
+          ServerData sd = new ServerData();
+          sd.state = newState;
+          sd.approxFirstMissingDate = outime;
+          if (isLDAPServer)
+            data.ldapStates.put(serverId, sd);
+          else
+            data.rsStates.put(serverId, sd);
+        }
       }
-    }
-    catch (UnsupportedEncodingException e)
+      asn1Reader.readEndSequence();
+    } catch(Exception e)
     {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
+
     }
   }
 
@@ -276,128 +260,30 @@ public class MonitorMsg extends RoutableMsg
   {
     try
     {
-      byte[] senderBytes = String.valueOf(senderID).getBytes("UTF-8");
-      byte[] destinationBytes = String.valueOf(destination).getBytes("UTF-8");
-
-      int length = 1 + senderBytes.length +
-                   1 + destinationBytes.length;
-
-      ASN1Sequence stateElementSequence = new ASN1Sequence();
-      ArrayList<ASN1Element> stateElementList = new ArrayList<ASN1Element>();
-
-      /**
-       * First loop computes the length
-       */
-
-      /* Put the serverStates ... */
-      stateElementSequence = new ASN1Sequence();
-      stateElementList = new ArrayList<ASN1Element>();
-
-      /* first put the Replication Server state */
-      ArrayList<ASN1OctetString> cnOctetList =
-        data.replServerDbState.toASN1ArrayList();
-      ArrayList<ASN1Element> cnElementList = new ArrayList<ASN1Element>();
-      for (ASN1OctetString soci : cnOctetList)
-      {
-        cnElementList.add(soci);
-      }
-      ASN1Sequence cnSequence = new ASN1Sequence(cnElementList);
-      stateElementList.add(cnSequence);
-
-      // then the LDAP server data
-      Set<Short> servers = data.ldapStates.keySet();
-      for (Short sid : servers)
-      {
-        // State
-        ServerState statei = data.ldapStates.get(sid).state;
-        // First missing date
-        Long outime =  data.ldapStates.get(sid).approxFirstMissingDate;
-
-        // retrieves the change numbers as an arrayList of ANSN1OctetString
-        cnOctetList = statei.toASN1ArrayList();
-        cnElementList = new ArrayList<ASN1Element>();
-
-        // a fake changenumber helps storing the LDAP server ID
-        // and the olderupdatetime
-        ChangeNumber cn = new ChangeNumber(outime,0,sid);
-        cnElementList.add(new ASN1OctetString(cn.toString()));
-
-        // the changenumbers
-        for (ASN1OctetString soci : cnOctetList)
-        {
-          cnElementList.add(soci);
-        }
-
-        cnSequence = new ASN1Sequence(cnElementList);
-        stateElementList.add(cnSequence);
-      }
-
-      // then the rs server data
-      servers = data.rsStates.keySet();
-      for (Short sid : servers)
-      {
-        // State
-        ServerState statei = data.rsStates.get(sid).state;
-        // First missing date
-        Long outime =  data.rsStates.get(sid).approxFirstMissingDate;
-
-        // retrieves the change numbers as an arrayList of ANSN1OctetString
-        cnOctetList = statei.toASN1ArrayList();
-        cnElementList = new ArrayList<ASN1Element>();
-
-        // a fake changenumber helps storing the LDAP server ID
-        // and the olderupdatetime
-        ChangeNumber cn = new ChangeNumber(outime,0,sid);
-        cnElementList.add(new ASN1OctetString(cn.toString()));
-
-        // the changenumbers
-        for (ASN1OctetString soci : cnOctetList)
-        {
-          cnElementList.add(soci);
-        }
-
-        cnSequence = new ASN1Sequence(cnElementList);
-        stateElementList.add(cnSequence);
-      }
-
-      stateElementSequence.setElements(stateElementList);
-      int seqLen = stateElementSequence.encode().length;
-
-      //
-      length += seqLen;
-      length += 2;
-
-      // Allocate the array sized from the computed length
-      byte[] resultByteArray = new byte[length];
-
-      /**
-       * Second loop really builds the array
-       */
+      ByteStringBuilder byteBuilder = new ByteStringBuilder();
+      ASN1Writer writer = ASN1.getWriter(byteBuilder);
 
       /* put the type of the operation */
-      resultByteArray[0] = MSG_TYPE_REPL_SERVER_MONITOR;
-      int pos = 1;
+      byteBuilder.append(MSG_TYPE_REPL_SERVER_MONITOR);
 
-      pos = addByteArray(senderBytes, resultByteArray, pos);
-      pos = addByteArray(destinationBytes, resultByteArray, pos);
+      byteBuilder.append(senderID);
+      byteBuilder.append(destination);
 
       /* Put the serverStates ... */
-      stateElementSequence = new ASN1Sequence();
-      stateElementList = new ArrayList<ASN1Element>();
+      writer.writeStartSequence();
 
       /* first put the Replication Server state */
-      cnOctetList =
+      writer.writeStartSequence();
+      ArrayList<ByteString> cnOctetList =
         data.replServerDbState.toASN1ArrayList();
-      cnElementList = new ArrayList<ASN1Element>();
-      for (ASN1OctetString soci : cnOctetList)
+      for (ByteString soci : cnOctetList)
       {
-        cnElementList.add(soci);
+        writer.writeOctetString(soci);
       }
-      cnSequence = new ASN1Sequence(cnElementList);
-      stateElementList.add(cnSequence);
+      writer.writeEndSequence();
 
       // then the LDAP server datas
-      servers = data.ldapStates.keySet();
+      Set<Short> servers = data.ldapStates.keySet();
       for (Short sid : servers)
       {
         ServerState statei = data.ldapStates.get(sid).state;
@@ -405,20 +291,19 @@ public class MonitorMsg extends RoutableMsg
 
         // retrieves the change numbers as an arrayList of ANSN1OctetString
         cnOctetList = statei.toASN1ArrayList();
-        cnElementList = new ArrayList<ASN1Element>();
 
+        writer.writeStartSequence();
         // a fake changenumber helps storing the LDAP server ID
         ChangeNumber cn = new ChangeNumber(outime,1,sid);
-        cnElementList.add(new ASN1OctetString(cn.toString()));
+        writer.writeOctetString(cn.toString());
 
         // the changenumbers that make the state
-        for (ASN1OctetString soci : cnOctetList)
+        for (ByteString soci : cnOctetList)
         {
-          cnElementList.add(soci);
+          writer.writeOctetString(soci);
         }
 
-        cnSequence = new ASN1Sequence(cnElementList);
-        stateElementList.add(cnSequence);
+        writer.writeEndSequence();
       }
 
       // then the RS server datas
@@ -430,29 +315,26 @@ public class MonitorMsg extends RoutableMsg
 
         // retrieves the change numbers as an arrayList of ANSN1OctetString
         cnOctetList = statei.toASN1ArrayList();
-        cnElementList = new ArrayList<ASN1Element>();
 
+        writer.writeStartSequence();
         // a fake changenumber helps storing the LDAP server ID
         ChangeNumber cn = new ChangeNumber(outime,0,sid);
-        cnElementList.add(new ASN1OctetString(cn.toString()));
+        writer.writeOctetString(cn.toString());
 
         // the changenumbers that make the state
-        for (ASN1OctetString soci : cnOctetList)
+        for (ByteString soci : cnOctetList)
         {
-          cnElementList.add(soci);
+          writer.writeOctetString(soci);
         }
 
-        cnSequence = new ASN1Sequence(cnElementList);
-        stateElementList.add(cnSequence);
+        writer.writeEndSequence();
       }
 
+      writer.writeEndSequence();
 
-      stateElementSequence.setElements(stateElementList);
-      pos = addByteArray(stateElementSequence.encode(), resultByteArray, pos);
-
-      return resultByteArray;
+      return byteBuilder.toByteArray();
     }
-    catch (UnsupportedEncodingException e)
+    catch (Exception e)
     {
       return null;
     }

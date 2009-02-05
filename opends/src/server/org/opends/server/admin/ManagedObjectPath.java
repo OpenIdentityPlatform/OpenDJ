@@ -39,12 +39,7 @@ import org.opends.server.admin.std.client.RootCfgClient;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.RDN;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -162,7 +157,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
       String type = profile.getRelationChildRDNType(r);
       AttributeType atype = DirectoryServer.getAttributeType(
           type.toLowerCase(), true);
-      AttributeValue avalue = new AttributeValue(atype, name);
+      AttributeValue avalue = AttributeValues.create(atype, name);
       dn = dn.concat(RDN.create(atype, avalue));
     }
 
@@ -182,7 +177,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
       String type = profile.getRelationChildRDNType(r);
       AttributeType atype = DirectoryServer.getAttributeType(
           type.toLowerCase(), true);
-      AttributeValue avalue = new AttributeValue(atype, d.getName());
+      AttributeValue avalue = AttributeValues.create(atype, d.getName());
       dn = dn.concat(RDN.create(atype, avalue));
     }
 

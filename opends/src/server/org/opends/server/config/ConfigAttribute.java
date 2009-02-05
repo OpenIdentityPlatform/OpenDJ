@@ -449,7 +449,7 @@ public abstract class ConfigAttribute
     if (! valueIsAcceptable(value, rejectReason))
     {
       Message message = ERR_CONFIG_ATTR_REJECTED_VALUE.get(
-          value.getStringValue(), name, rejectReason.toString());
+          value.getValue().toString(), name, rejectReason.toString());
       throw new ConfigException(message);
     }
 
@@ -470,7 +470,7 @@ public abstract class ConfigAttribute
       if (! valueIsAcceptable(value, rejectReason))
       {
         Message message = ERR_CONFIG_ATTR_REJECTED_VALUE.get(
-            value.getStringValue(), name, rejectReason.toString());
+            value.getValue().toString(), name, rejectReason.toString());
         throw new ConfigException(message);
       }
     }
@@ -589,14 +589,14 @@ public abstract class ConfigAttribute
       if (tempValues.contains(value))
       {
         Message message = ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(
-            name, value.getStringValue());
+            name, value.getValue().toString());
         throw new ConfigException(message);
       }
 
       if (! valueIsAcceptable(value, rejectReason))
       {
         Message message = ERR_CONFIG_ATTR_REJECTED_VALUE.get(
-            value.getStringValue(), name, rejectReason.toString());
+            value.getValue().toString(), name, rejectReason.toString());
         throw new ConfigException(message);
       }
     }
@@ -657,7 +657,7 @@ public abstract class ConfigAttribute
       if (! tempValues.remove(value))
       {
         Message message =
-            ERR_CONFIG_ATTR_NO_SUCH_VALUE.get(name, value.getStringValue());
+           ERR_CONFIG_ATTR_NO_SUCH_VALUE.get(name, value.getValue().toString());
         throw new ConfigException(message);
       }
     }

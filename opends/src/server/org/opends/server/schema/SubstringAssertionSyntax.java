@@ -36,8 +36,7 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ByteString;
-
+import org.opends.server.types.ByteSequence;
 
 
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -221,14 +220,14 @@ public class SubstringAssertionSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteString value,
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // Get the string representation of the value and check its length.  A
     // zero-length value is acceptable.  A one-length value is acceptable as
     // long as it is not an asterisk.  For all other lengths, just ensure that
     // there are no consecutive wildcards.
-    String valueString = value.stringValue();
+    String valueString = value.toString();
     int    valueLength = valueString.length();
     if (valueLength == 0)
     {

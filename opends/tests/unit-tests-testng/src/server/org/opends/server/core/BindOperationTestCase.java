@@ -39,16 +39,13 @@ import org.opends.server.core.BindOperation;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.BindRequestProtocolOp;
-import org.opends.server.protocols.ldap.BindResponseProtocolOp;
-import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.LDAPSearch;
+import org.opends.server.tools.LDAPReader;
+import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
@@ -77,41 +74,41 @@ public class BindOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     ArrayList<Control> noControls = new ArrayList<Control>(0);
-    ASN1OctetString nullOS = null;
+    ByteString nullOS = null;
     DN nullDN = null;
 
     BindOperation[] simpleBinds = new BindOperation[]
     {
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        null, "3", new ASN1OctetString(),
-                        new ASN1OctetString()),
+                        null, "3", ByteString.empty(),
+                        ByteString.empty()),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        noControls, "3", new ASN1OctetString(),
-                        new ASN1OctetString()),
+                        noControls, "3", ByteString.empty(),
+                        ByteString.empty()),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        null, "3", nullOS, new ASN1OctetString()),
+                        null, "3", nullOS, ByteString.empty()),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        noControls, "3", nullOS, new ASN1OctetString()),
+                        noControls, "3", nullOS, ByteString.empty()),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        null, "3", new ASN1OctetString(), nullOS),
+                        null, "3", ByteString.empty(), nullOS),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        noControls, "3", new ASN1OctetString(), nullOS),
+                        noControls, "3", ByteString.empty(), nullOS),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", nullOS, nullOS),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", nullOS, nullOS),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3",
-                        new ASN1OctetString("cn=Directory Manager"),
-                        new ASN1OctetString("password")),
+                        ByteString.valueOf("cn=Directory Manager"),
+                        ByteString.valueOf("password")),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        null, "3", DN.nullDN(), new ASN1OctetString()),
+                        null, "3", DN.nullDN(), ByteString.empty()),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        noControls, "3", DN.nullDN(), new ASN1OctetString()),
+                        noControls, "3", DN.nullDN(), ByteString.empty()),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        null, "3", nullDN, new ASN1OctetString()),
+                        null, "3", nullDN, ByteString.empty()),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        noControls, "3", nullDN, new ASN1OctetString()),
+                        noControls, "3", nullDN, ByteString.empty()),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", DN.nullDN(), nullOS),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
@@ -122,7 +119,7 @@ public class BindOperationTestCase
                         noControls, "3", nullDN, nullOS),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", DN.decode("cn=Directory Manager"),
-                        new ASN1OctetString("password"))
+                        ByteString.valueOf("password"))
     };
 
     Object[][] array = new Object[simpleBinds.length][1];
@@ -150,32 +147,32 @@ public class BindOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     ArrayList<Control> noControls = new ArrayList<Control>(0);
-    ASN1OctetString nullOS = null;
+    ByteString nullOS = null;
     DN nullDN = null;
 
     BindOperation[] saslBinds = new BindOperation[]
     {
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        null, "3", new ASN1OctetString(), "EXTERNAL", null),
+                        null, "3", ByteString.empty(), "EXTERNAL", null),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        noControls, "3", new ASN1OctetString(), "EXTERNAL",
+                        noControls, "3", ByteString.empty(), "EXTERNAL",
                         null),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", nullOS, "EXTERNAL", null),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", nullOS, "EXTERNAL", null),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        null, "3", new ASN1OctetString(), "PLAIN",
-                        new ASN1OctetString("\u0000u:test.user\u0000password")),
+                        null, "3", ByteString.empty(), "PLAIN",
+                        ByteString.valueOf("\u0000u:test.user\u0000password")),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                        noControls, "3", new ASN1OctetString(), "PLAIN",
-                        new ASN1OctetString("\u0000u:test.user\u0000password")),
+                        noControls, "3", ByteString.empty(), "PLAIN",
+                        ByteString.valueOf("\u0000u:test.user\u0000password")),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", nullOS, "PLAIN",
-                        new ASN1OctetString("\u0000u:test.user\u0000password")),
+                        ByteString.valueOf("\u0000u:test.user\u0000password")),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", nullOS, "PLAIN",
-                        new ASN1OctetString("\u0000u:test.user\u0000password")),
+                        ByteString.valueOf("\u0000u:test.user\u0000password")),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", DN.nullDN(), "EXTERNAL", null),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
@@ -186,16 +183,16 @@ public class BindOperationTestCase
                         noControls, "3", nullDN, "EXTERNAL", null),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", DN.nullDN(), "PLAIN",
-                        new ASN1OctetString("\u0000u:test.user\u0000password")),
+                        ByteString.valueOf("\u0000u:test.user\u0000password")),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", DN.nullDN(), "PLAIN",
-                        new ASN1OctetString("\u0000u:test.user\u0000password")),
+                        ByteString.valueOf("\u0000u:test.user\u0000password")),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", nullDN, "PLAIN",
-                        new ASN1OctetString("\u0000u:test.user\u0000password")),
+                        ByteString.valueOf("\u0000u:test.user\u0000password")),
       new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", nullDN, "PLAIN",
-                        new ASN1OctetString("\u0000u:test.user\u0000password"))
+                        ByteString.valueOf("\u0000u:test.user\u0000password"))
     };
 
     Object[][] array = new Object[saslBinds.length][1];
@@ -332,13 +329,13 @@ public class BindOperationTestCase
     assertNotNull(originalRawBindDN);
 
     o.setRawBindDN(null);
-    assertEquals(o.getRawBindDN(), new ASN1OctetString());
+    assertEquals(o.getRawBindDN(), ByteString.empty());
 
-    o.setRawBindDN(new ASN1OctetString());
-    assertEquals(o.getRawBindDN(), new ASN1OctetString());
+    o.setRawBindDN(ByteString.empty());
+    assertEquals(o.getRawBindDN(), ByteString.empty());
 
-    o.setRawBindDN(new ASN1OctetString("cn=Directory Manager"));
-    assertEquals(o.getRawBindDN(), new ASN1OctetString("cn=Directory Manager"));
+    o.setRawBindDN(ByteString.valueOf("cn=Directory Manager"));
+    assertEquals(o.getRawBindDN(), ByteString.valueOf("cn=Directory Manager"));
 
     o.setRawBindDN(originalRawBindDN);
     assertEquals(o.getRawBindDN(), originalRawBindDN);
@@ -358,13 +355,13 @@ public class BindOperationTestCase
     assertNotNull(originalRawBindDN);
 
     o.setRawBindDN(null);
-    assertEquals(o.getRawBindDN(), new ASN1OctetString());
+    assertEquals(o.getRawBindDN(), ByteString.empty());
 
-    o.setRawBindDN(new ASN1OctetString());
-    assertEquals(o.getRawBindDN(), new ASN1OctetString());
+    o.setRawBindDN(ByteString.empty());
+    assertEquals(o.getRawBindDN(), ByteString.empty());
 
-    o.setRawBindDN(new ASN1OctetString("cn=Directory Manager"));
-    assertEquals(o.getRawBindDN(), new ASN1OctetString("cn=Directory Manager"));
+    o.setRawBindDN(ByteString.valueOf("cn=Directory Manager"));
+    assertEquals(o.getRawBindDN(), ByteString.valueOf("cn=Directory Manager"));
 
     o.setRawBindDN(originalRawBindDN);
     assertEquals(o.getRawBindDN(), originalRawBindDN);
@@ -502,7 +499,7 @@ public class BindOperationTestCase
     assertNull(o.getSASLCredentials());
 
     o.setSASLCredentials("PLAIN",
-         new ASN1OctetString("\u0000u:test.user\u0000password"));
+         ByteString.valueOf("\u0000u:test.user\u0000password"));
     assertEquals(o.getAuthenticationType(), AuthenticationType.SASL);
     assertNotNull(o.getSASLMechanism());
     assertNotNull(o.getSASLCredentials());
@@ -528,7 +525,7 @@ public class BindOperationTestCase
     assertNull(o.getSimplePassword());
 
     String          originalMech  = o.getSASLMechanism();
-    ASN1OctetString originalCreds = o.getSASLCredentials();
+    ByteString originalCreds = o.getSASLCredentials();
     assertNotNull(originalMech);
 
     o.setSimplePassword(null);
@@ -539,7 +536,7 @@ public class BindOperationTestCase
     assertEquals(o.getAuthenticationType(), AuthenticationType.SASL);
     assertNull(o.getSimplePassword());
 
-    o.setSimplePassword(new ASN1OctetString());
+    o.setSimplePassword(ByteString.empty());
     assertEquals(o.getAuthenticationType(), AuthenticationType.SIMPLE);
     assertNotNull(o.getSimplePassword());
 
@@ -547,7 +544,7 @@ public class BindOperationTestCase
     assertEquals(o.getAuthenticationType(), AuthenticationType.SASL);
     assertNull(o.getSimplePassword());
 
-    o.setSimplePassword(new ASN1OctetString("password"));
+    o.setSimplePassword(ByteString.valueOf("password"));
     assertEquals(o.getAuthenticationType(), AuthenticationType.SIMPLE);
     assertNotNull(o.getSimplePassword());
 
@@ -624,8 +621,8 @@ public class BindOperationTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
 
-    ASN1OctetString saslCreds =
-         new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
+    ByteString saslCreds =
+         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperation bindOperation =
                        conn.processSASLBind(DN.nullDN(), "PLAIN", saslCreds);
@@ -660,8 +657,8 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     BindOperation bindOperation =
-         conn.processSimpleBind(new ASN1OctetString("cn=Directory Manager"),
-                                new ASN1OctetString("password"));
+         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
+                                ByteString.valueOf("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(bindOperation.getUserEntryDN());
   }
@@ -692,8 +689,8 @@ public class BindOperationTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
 
-    ASN1OctetString saslCreds =
-         new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
+    ByteString saslCreds =
+         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperation bindOperation =
          conn.processSASLBind(DN.nullDN(), "PLAIN", saslCreds);
@@ -715,8 +712,8 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     BindOperation bindOperation =
-         conn.processSimpleBind(new ASN1OctetString("cn=Directory Manager"),
-                                new ASN1OctetString("password"));
+         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
+                                ByteString.valueOf("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(bindOperation.getProcessingStartTime() > 0);
     assertTrue(bindOperation.getProcessingStopTime() >=
@@ -737,8 +734,8 @@ public class BindOperationTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
 
-    ASN1OctetString saslCreds =
-         new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
+    ByteString saslCreds =
+         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperation bindOperation =
          conn.processSASLBind(DN.nullDN(), "PLAIN", saslCreds);
@@ -790,8 +787,8 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     BindOperation bindOperation =
-         conn.processSimpleBind(new ASN1OctetString("cn=Directory Manager"),
-                                new ASN1OctetString("password"));
+         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
+                                ByteString.valueOf("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(bindOperation.getResponseLogElements());
     assertTrue(bindOperation.getResponseLogElements().length > 0);
@@ -809,8 +806,8 @@ public class BindOperationTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
 
-    ASN1OctetString saslCreds =
-         new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
+    ByteString saslCreds =
+         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperation bindOperation =
          conn.processSASLBind(DN.nullDN(), "PLAIN", saslCreds);
@@ -837,8 +834,8 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     BindOperation bindOperation =
-         conn.processSimpleBind(new ASN1OctetString("uid=test,o=test"),
-                                new ASN1OctetString("password"));
+         conn.processSimpleBind(ByteString.valueOf("uid=test,o=test"),
+                                ByteString.valueOf("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
     assertNotNull(bindOperation.getResponseLogElements());
     assertTrue(bindOperation.getResponseLogElements().length > 0);
@@ -859,8 +856,8 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     BindOperation bindOperation =
-         conn.processSimpleBind(new ASN1OctetString("cn=Directory Manager"),
-                                new ASN1OctetString("password"));
+         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
+                                ByteString.valueOf("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
 
 //    assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
@@ -884,8 +881,8 @@ public class BindOperationTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
 
-    ASN1OctetString saslCreds =
-         new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
+    ByteString saslCreds =
+         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperation bindOperation =
          conn.processSASLBind(DN.nullDN(), "PLAIN", saslCreds);
@@ -911,23 +908,22 @@ public class BindOperationTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString(), 3,
-                                   new ASN1OctetString());
+         new BindRequestProtocolOp(ByteString.empty(), 3,
+                                   ByteString.empty());
     LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList("PreParse"));
-    w.writeElement(message.encode());
+         DisconnectClientPlugin.createDisconnectControlList("PreParse"));
+    w.writeMessage(message);
 
-    ASN1Element element = r.readElement();
-    if (element != null)
+    message = r.readMessage();
+    if (message != null)
     {
       // If we got an element back, then it must be a notice of disconnect
       // unsolicited notification.
-      message = LDAPMessage.decode(element.decodeAsSequence());
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
@@ -951,24 +947,23 @@ public class BindOperationTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString(), 3,
-                                   new ASN1OctetString());
+         new BindRequestProtocolOp(ByteString.empty(), 3,
+                                   ByteString.empty());
     LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList(
+         DisconnectClientPlugin.createDisconnectControlList(
               "PreOperation"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    ASN1Element element = r.readElement();
-    if (element != null)
+    message = r.readMessage();
+    if (message != null)
     {
       // If we got an element back, then it must be a notice of disconnect
       // unsolicited notification.
-      message = LDAPMessage.decode(element.decodeAsSequence());
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
@@ -992,24 +987,23 @@ public class BindOperationTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString(), 3,
-                                   new ASN1OctetString());
+         new BindRequestProtocolOp(ByteString.empty(), 3,
+                                   ByteString.empty());
     LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList(
+         DisconnectClientPlugin.createDisconnectControlList(
               "PostOperation"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    ASN1Element element = r.readElement();
-    if (element != null)
+    message = r.readMessage();
+    if (message != null)
     {
       // If we got an element back, then it must be a notice of disconnect
       // unsolicited notification.
-      message = LDAPMessage.decode(element.decodeAsSequence());
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
@@ -1033,25 +1027,24 @@ public class BindOperationTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString(), 3,
-                                   new ASN1OctetString());
+         new BindRequestProtocolOp(ByteString.empty(), 3,
+                                   ByteString.empty());
     LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList(
+         DisconnectClientPlugin.createDisconnectControlList(
               "PostResponse"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    ASN1Element element = r.readElement();
-    while (element != null)
+    message = r.readMessage();
+    while (message != null)
     {
-      message = LDAPMessage.decode(element.decodeAsSequence());
       assertTrue((message.getProtocolOpType() == OP_TYPE_BIND_RESPONSE) ||
                  (message.getProtocolOpType() == OP_TYPE_EXTENDED_RESPONSE));
-      element = r.readElement();
+      message = r.readMessage();
     }
 
     try
@@ -1073,23 +1066,22 @@ public class BindOperationTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList("PreParse"));
-    w.writeElement(message.encode());
+         DisconnectClientPlugin.createDisconnectControlList("PreParse"));
+    w.writeMessage(message);
 
-    ASN1Element element = r.readElement();
-    if (element != null)
+    message = r.readMessage();
+    if (message != null)
     {
       // If we got an element back, then it must be a notice of disconnect
       // unsolicited notification.
-      message = LDAPMessage.decode(element.decodeAsSequence());
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
@@ -1113,24 +1105,23 @@ public class BindOperationTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList(
+         DisconnectClientPlugin.createDisconnectControlList(
               "PreOperation"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    ASN1Element element = r.readElement();
-    if (element != null)
+    message = r.readMessage();
+    if (message != null)
     {
       // If we got an element back, then it must be a notice of disconnect
       // unsolicited notification.
-      message = LDAPMessage.decode(element.decodeAsSequence());
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
@@ -1154,24 +1145,23 @@ public class BindOperationTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList(
+         DisconnectClientPlugin.createDisconnectControlList(
               "PostOperation"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    ASN1Element element = r.readElement();
-    if (element != null)
+    message = r.readMessage();
+    if (message != null)
     {
       // If we got an element back, then it must be a notice of disconnect
       // unsolicited notification.
-      message = LDAPMessage.decode(element.decodeAsSequence());
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
@@ -1195,25 +1185,24 @@ public class BindOperationTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList(
+         DisconnectClientPlugin.createDisconnectControlList(
               "PostResponse"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    ASN1Element element = r.readElement();
-    while (element != null)
+    message = r.readMessage();
+    while (message != null)
     {
-      message = LDAPMessage.decode(element.decodeAsSequence());
       assertTrue((message.getProtocolOpType() == OP_TYPE_BIND_RESPONSE) ||
                  (message.getProtocolOpType() == OP_TYPE_EXTENDED_RESPONSE));
-      element = r.readElement();
+      message = r.readMessage();
     }
 
     try
@@ -1235,25 +1224,24 @@ public class BindOperationTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(6000);
 
-    ASN1OctetString saslCreds =
-         new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
+    ByteString saslCreds =
+         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString(), "PLAIN", saslCreds);
+         new BindRequestProtocolOp(ByteString.empty(), "PLAIN", saslCreds);
     LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList("PreParse"));
-    w.writeElement(message.encode());
+         DisconnectClientPlugin.createDisconnectControlList("PreParse"));
+    w.writeMessage(message);
 
-    ASN1Element element = r.readElement();
-    if (element != null)
+    message = r.readMessage();
+    if (message != null)
     {
       // If we got an element back, then it must be a notice of disconnect
       // unsolicited notification.
-      message = LDAPMessage.decode(element.decodeAsSequence());
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
@@ -1276,26 +1264,25 @@ public class BindOperationTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(6000);
 
-    ASN1OctetString saslCreds =
-         new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
+    ByteString saslCreds =
+         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString(), "PLAIN", saslCreds);
+         new BindRequestProtocolOp(ByteString.empty(), "PLAIN", saslCreds);
     LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList(
+         DisconnectClientPlugin.createDisconnectControlList(
               "PreOperation"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    ASN1Element element = r.readElement();
-    if (element != null)
+    message = r.readMessage();
+    if (message != null)
     {
       // If we got an element back, then it must be a notice of disconnect
       // unsolicited notification.
-      message = LDAPMessage.decode(element.decodeAsSequence());
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
@@ -1318,26 +1305,25 @@ public class BindOperationTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(6000);
 
-    ASN1OctetString saslCreds =
-         new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
+    ByteString saslCreds =
+         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString(), "PLAIN", saslCreds);
+         new BindRequestProtocolOp(ByteString.empty(), "PLAIN", saslCreds);
     LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList(
+         DisconnectClientPlugin.createDisconnectControlList(
               "PostOperation"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    ASN1Element element = r.readElement();
-    if (element != null)
+    message = r.readMessage();
+    if (message != null)
     {
       // If we got an element back, then it must be a notice of disconnect
       // unsolicited notification.
-      message = LDAPMessage.decode(element.decodeAsSequence());
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
@@ -1360,27 +1346,26 @@ public class BindOperationTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(6000);
 
-    ASN1OctetString saslCreds =
-         new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
+    ByteString saslCreds =
+         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString(), "PLAIN", saslCreds);
+         new BindRequestProtocolOp(ByteString.empty(), "PLAIN", saslCreds);
     LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList(
+         DisconnectClientPlugin.createDisconnectControlList(
               "PostResponse"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    ASN1Element element = r.readElement();
-    while (element != null)
+    message = r.readMessage();
+    while (message != null)
     {
-      message = LDAPMessage.decode(element.decodeAsSequence());
       assertTrue((message.getProtocolOpType() == OP_TYPE_BIND_RESPONSE) ||
                  (message.getProtocolOpType() == OP_TYPE_EXTENDED_RESPONSE));
-      element = r.readElement();
+      message = r.readMessage();
     }
 
     try
@@ -1403,18 +1388,18 @@ public class BindOperationTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString(), 3,
-                                   new ASN1OctetString());
+         new BindRequestProtocolOp(ByteString.empty(), 3,
+                                   ByteString.empty());
     LDAPMessage message = new LDAPMessage(1, bindRequest,
-         ShortCircuitPlugin.createShortCircuitLDAPControlList(80, "PreParse"));
-    w.writeElement(message.encode());
+         ShortCircuitPlugin.createShortCircuitControlList(80, "PreParse"));
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 80);
 
@@ -1438,19 +1423,19 @@ public class BindOperationTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString(), 3,
-                                   new ASN1OctetString());
+         new BindRequestProtocolOp(ByteString.empty(), 3,
+                                   ByteString.empty());
     LDAPMessage message = new LDAPMessage(1, bindRequest,
-         ShortCircuitPlugin.createShortCircuitLDAPControlList(80,
+         ShortCircuitPlugin.createShortCircuitControlList(80,
                                                               "PreOperation"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 80);
 
@@ -1474,18 +1459,18 @@ public class BindOperationTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest,
-         ShortCircuitPlugin.createShortCircuitLDAPControlList(80, "PreParse"));
-    w.writeElement(message.encode());
+         ShortCircuitPlugin.createShortCircuitControlList(80, "PreParse"));
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 80);
 
@@ -1509,19 +1494,19 @@ public class BindOperationTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(6000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest,
-         ShortCircuitPlugin.createShortCircuitLDAPControlList(80,
+         ShortCircuitPlugin.createShortCircuitControlList(80,
                                                               "PreOperation"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 80);
 
@@ -1544,20 +1529,20 @@ public class BindOperationTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(6000);
 
-    ASN1OctetString saslCreds =
-         new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
+    ByteString saslCreds =
+         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString(), "PLAIN", saslCreds);
+         new BindRequestProtocolOp(ByteString.empty(), "PLAIN", saslCreds);
     LDAPMessage message = new LDAPMessage(1, bindRequest,
-         ShortCircuitPlugin.createShortCircuitLDAPControlList(80, "PreParse"));
-    w.writeElement(message.encode());
+         ShortCircuitPlugin.createShortCircuitControlList(80, "PreParse"));
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 80);
 
@@ -1580,21 +1565,21 @@ public class BindOperationTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(6000);
 
-    ASN1OctetString saslCreds =
-         new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
+    ByteString saslCreds =
+         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString(), "PLAIN", saslCreds);
+         new BindRequestProtocolOp(ByteString.empty(), "PLAIN", saslCreds);
     LDAPMessage message = new LDAPMessage(1, bindRequest,
-         ShortCircuitPlugin.createShortCircuitLDAPControlList(80,
+         ShortCircuitPlugin.createShortCircuitControlList(80,
                                                               "PreOperation"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 80);
 
@@ -1616,8 +1601,8 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     BindOperation bindOperation =
-         conn.processSimpleBind(new ASN1OctetString("invaliddn"),
-                                new ASN1OctetString("password"));
+         conn.processSimpleBind(ByteString.valueOf("invaliddn"),
+                                ByteString.valueOf("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
   }
 
@@ -1632,11 +1617,11 @@ public class BindOperationTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
 
-    ASN1OctetString saslCreds =
-         new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
+    ByteString saslCreds =
+         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperation bindOperation =
-         conn.processSASLBind(new ASN1OctetString("invaliddn"), "PLAIN",
+         conn.processSASLBind(ByteString.valueOf("invaliddn"), "PLAIN",
                               saslCreds);
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
   }
@@ -1654,12 +1639,12 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     ArrayList<Control> requestControls = new ArrayList<Control>(1);
-    requestControls.add(new Control("1.2.3.4", true));
+    requestControls.add(new LDAPControl("1.2.3.4", true));
 
     BindOperationBasis bindOperation =
          new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                            requestControls, "3", DN.nullDN(),
-                        new ASN1OctetString());
+                        ByteString.empty());
     bindOperation.run();
     assertEquals(bindOperation.getResultCode(),
                  ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
@@ -1678,10 +1663,10 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     ArrayList<Control> requestControls = new ArrayList<Control>(1);
-    requestControls.add(new Control("1.2.3.4", true));
+    requestControls.add(new LDAPControl("1.2.3.4", true));
 
-    ASN1OctetString saslCreds =
-         new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
+    ByteString saslCreds =
+         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperationBasis bindOperation =
          new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
@@ -1705,12 +1690,12 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     ArrayList<Control> requestControls = new ArrayList<Control>(1);
-    requestControls.add(new Control("1.2.3.4", false));
+    requestControls.add(new LDAPControl("1.2.3.4", false));
 
     BindOperationBasis bindOperation =
          new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                            requestControls, "3", DN.nullDN(),
-                           new ASN1OctetString());
+                           ByteString.empty());
 
     bindOperation.run();
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1729,10 +1714,10 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     ArrayList<Control> requestControls = new ArrayList<Control>(1);
-    requestControls.add(new Control("1.2.3.4", false));
+    requestControls.add(new LDAPControl("1.2.3.4", false));
 
-    ASN1OctetString saslCreds =
-         new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
+    ByteString saslCreds =
+         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperationBasis bindOperation =
          new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
@@ -1760,8 +1745,8 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     BindOperation bindOperation =
-         conn.processSimpleBind(new ASN1OctetString("uid=test,o=test"),
-                                new ASN1OctetString("password"));
+         conn.processSimpleBind(ByteString.valueOf("uid=test,o=test"),
+                                ByteString.valueOf("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
   }
 
@@ -1784,8 +1769,8 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     BindOperation bindOperation =
-         conn.processSimpleBind(new ASN1OctetString("cn=Directory Manager"),
-                                new ASN1OctetString());
+         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
+                                ByteString.empty());
     assertEquals(bindOperation.getResultCode(), ResultCode.UNWILLING_TO_PERFORM);
   }
 
@@ -1816,8 +1801,8 @@ public class BindOperationTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     BindOperation bindOperation =
-         conn.processSimpleBind(new ASN1OctetString("cn=Directory Manager"),
-                                new ASN1OctetString());
+         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
+                                ByteString.empty());
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
 
     mods.clear();
@@ -1862,8 +1847,8 @@ public class BindOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     BindOperation bindOperation =
-         conn.processSimpleBind(new ASN1OctetString("uid=test,o=test"),
-                                new ASN1OctetString("password"));
+         conn.processSimpleBind(ByteString.valueOf("uid=test,o=test"),
+                                ByteString.valueOf("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
   }
 
@@ -1880,8 +1865,8 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     BindOperation bindOperation =
-         conn.processSimpleBind(new ASN1OctetString("cn=Directory Manager"),
-                                new ASN1OctetString("wrongpassword"));
+         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
+                                ByteString.valueOf("wrongpassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
   }
 
@@ -1898,8 +1883,8 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     BindOperation bindOperation =
-         conn.processSimpleBind(new ASN1OctetString("cn=Directory Manager"),
-                                new ASN1OctetString("wrongpassword"));
+         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
+                                ByteString.valueOf("wrongpassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
     assertTrue(((bindOperation.getErrorMessage() == null) ||
                 (bindOperation.getErrorMessage().length() == 0)),
@@ -1913,8 +1898,8 @@ public class BindOperationTestCase
       "--set", "return-bind-error-messages:true");
 
     bindOperation =
-         conn.processSimpleBind(new ASN1OctetString("cn=Directory Manager"),
-                                new ASN1OctetString("wrongpassword"));
+         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
+                                ByteString.valueOf("wrongpassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
     assertTrue(bindOperation.getErrorMessage().length() > 0);
 
@@ -1926,8 +1911,8 @@ public class BindOperationTestCase
       "--set", "return-bind-error-messages:false");
 
     bindOperation =
-         conn.processSimpleBind(new ASN1OctetString("cn=Directory Manager"),
-                                new ASN1OctetString("wrongpassword"));
+         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
+                                ByteString.valueOf("wrongpassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
     assertTrue(((bindOperation.getErrorMessage() == null) ||
                 (bindOperation.getErrorMessage().length() == 0)),
@@ -1963,17 +1948,17 @@ public class BindOperationTestCase
     DN userDN = DN.decode(dnString);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(6000);
+    s.setSoTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString(dnString),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf(dnString),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
@@ -1986,12 +1971,12 @@ public class BindOperationTestCase
     // for previous ops to complete.
     TestCaseUtils.quiesceServer();
     bindRequest = new BindRequestProtocolOp(
-                           new ASN1OctetString("cn=Directory Manager"), 3,
-                           new ASN1OctetString("password"));
+                           ByteString.valueOf("cn=Directory Manager"), 3,
+                           ByteString.valueOf("password"));
     message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0, message.toString());
 

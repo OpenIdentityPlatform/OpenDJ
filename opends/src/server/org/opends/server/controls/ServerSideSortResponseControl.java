@@ -28,16 +28,15 @@ package org.opends.server.controls;
 import org.opends.messages.Message;
 
 
+import java.io.IOException;
 
-import java.util.ArrayList;
-
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Enumerated;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.protocols.asn1.*;
+import static org.opends.server.protocols.asn1.ASN1Constants.
+    UNIVERSAL_OCTET_STRING_TYPE;
 import org.opends.server.types.Control;
-import org.opends.server.types.LDAPException;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ResultCode;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -79,6 +78,63 @@ public class ServerSideSortResponseControl
        extends Control
 {
   /**
+   * ControlDecoder implentation to decode this control from a ByteString.
+   */
+  private final static class Decoder
+      implements ControlDecoder<ServerSideSortResponseControl>
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public ServerSideSortResponseControl decode(boolean isCritical,
+                                                ByteString value)
+        throws DirectoryException
+    {
+      if (value == null)
+      {
+        Message message = INFO_SORTRES_CONTROL_NO_VALUE.get();
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+      }
+
+      ASN1Reader reader = ASN1.getReader(value);
+      try
+      {
+        reader.readStartSequence();
+        int resultCode = (int)reader.readInteger();
+
+        String attributeType = null;
+        if(reader.hasNextElement())
+        {
+          attributeType = reader.readOctetStringAsString();
+        }
+
+        return new ServerSideSortResponseControl(isCritical,
+            resultCode,
+            attributeType);
+      }
+      catch (Exception e)
+      {
+        Message message =
+            INFO_SORTRES_CONTROL_CANNOT_DECODE_VALUE.get(
+                getExceptionMessage(e));
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
+      }
+    }
+
+    public String getOID()
+    {
+      return OID_SERVER_SIDE_SORT_RESPONSE_CONTROL;
+    }
+
+  }
+
+  /**
+   * The Control Decoder that can be used to decode this control.
+   */
+  public static final ControlDecoder<ServerSideSortResponseControl> DECODER =
+    new Decoder();
+
+  /**
    * The BER type to use when encoding the attribute type element.
    */
   private static final byte TYPE_ATTRIBUTE_TYPE = (byte) 0x80;
@@ -103,11 +159,7 @@ public class ServerSideSortResponseControl
    */
   public ServerSideSortResponseControl(int resultCode, String attributeType)
   {
-    super(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL, false,
-          encodeControlValue(resultCode, attributeType));
-
-    this.resultCode    = resultCode;
-    this.attributeType = attributeType;
+    this(false, resultCode, attributeType);
   }
 
 
@@ -116,19 +168,16 @@ public class ServerSideSortResponseControl
    * Creates a new server-side sort response control with the provided
    * information.
    *
-   * @param  oid            The OID to use for this control.
    * @param  isCritical     Indicates whether support for this control should be
    *                        considered a critical part of the server processing.
-   * @param  controlValue   The encoded value for this control.
    * @param  resultCode     The result code for the sort result.
    * @param  attributeType  The attribute type for the sort result.
    */
-  private ServerSideSortResponseControl(String oid, boolean isCritical,
-                                        ASN1OctetString controlValue,
-                                        int resultCode,
-                                        String attributeType)
+  public ServerSideSortResponseControl(boolean isCritical,
+                                       int resultCode,
+                                       String attributeType)
   {
-    super(oid, isCritical, controlValue);
+    super(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL, isCritical);
 
     this.resultCode    = resultCode;
     this.attributeType = attributeType;
@@ -162,93 +211,25 @@ public class ServerSideSortResponseControl
 
 
   /**
-   * Encodes the provided set of result codes and attribute types in a manner
-   * suitable for use as the value of this control.
+   * Writes this control's value to an ASN.1 writer. The value (if any) must be
+   * written as an ASN1OctetString.
    *
-   * @param  resultCode     The result code for the sort result.
-   * @param  attributeType  The attribute type for the sort result, or
-   *                        {@code null} if there is none.
-   *
-   * @return  The ASN.1 octet string containing the encoded sort result.
+   * @param writer The ASN.1 writer to use.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  private static ASN1OctetString encodeControlValue(int resultCode,
-                                                    String attributeType)
-  {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1Enumerated(resultCode));
+  @Override
+  protected void writeValue(ASN1Writer writer) throws IOException {
+    writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
 
+    writer.writeStartSequence();
+    writer.writeInteger(resultCode);
     if (attributeType != null)
     {
-      elements.add(new ASN1OctetString(TYPE_ATTRIBUTE_TYPE, attributeType));
+      writer.writeOctetString(TYPE_ATTRIBUTE_TYPE, attributeType);
     }
+    writer.writeEndSequence();
 
-    return new ASN1OctetString(new ASN1Sequence(elements).encode());
-  }
-
-
-
-  /**
-   * Creates a new server-side sort response control from the contents of the
-   * provided control.
-   *
-   * @param  control  The generic control containing the information to use to
-   *                  create this server-side sort response control.  It must
-   *                  not be {@code null}.
-   *
-   * @return  The server-side sort response control decoded from the provided
-   *          control.
-   *
-   * @throws  LDAPException  If this control cannot be decoded as a valid
-   *                         server-side sort response control.
-   */
-  public static ServerSideSortResponseControl decodeControl(Control control)
-         throws LDAPException
-  {
-    ASN1OctetString controlValue = control.getValue();
-    if (controlValue == null)
-    {
-      Message message = INFO_SORTRES_CONTROL_NO_VALUE.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-    }
-
-    try
-    {
-      ArrayList<ASN1Element> elements =
-           ASN1Sequence.decodeAsSequence(control.getValue().value()).elements();
-      int resultCode = elements.get(0).decodeAsEnumerated().intValue();
-
-      String attributeType = null;
-      if (elements.size() > 1)
-      {
-        attributeType = elements.get(1).decodeAsOctetString().stringValue();
-      }
-
-      return new ServerSideSortResponseControl(control.getOID(),
-                                               control.isCritical(),
-                                               control.getValue(), resultCode,
-                                               attributeType);
-    }
-    catch (Exception e)
-    {
-      Message message =
-          INFO_SORTRES_CONTROL_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message, e);
-    }
-  }
-
-
-
-  /**
-   * Retrieves a string representation of this server-side sort response
-   * control.
-   *
-   * @return  A string representation of this server-side sort response control.
-   */
-  public String toString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
+    writer.writeEndSequence();
   }
 
 
@@ -259,6 +240,7 @@ public class ServerSideSortResponseControl
    *
    * @param  buffer  The buffer to which the information should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("ServerSideSortResponseControl(resultCode=");

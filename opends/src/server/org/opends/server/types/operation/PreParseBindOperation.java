@@ -29,10 +29,8 @@ import org.opends.messages.Message;
 
 
 
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.AuthenticationType;
 import org.opends.server.types.ByteString;
-
 
 
 /**
@@ -97,7 +95,6 @@ public interface PreParseBindOperation
    * Specifies the raw, unprocessed bind DN for this bind operation.
    *
    * @param  rawBindDN  The raw, unprocessed bind DN for this bind
-   *                    operation.
    */
   public void setRawBindDN(ByteString rawBindDN);
 
@@ -143,7 +140,7 @@ public interface PreParseBindOperation
    *          <CODE>null</CODE> if there are none or if the bind does
    *          not use SASL authentication.
    */
-  public ASN1OctetString getSASLCredentials();
+  public ByteString getSASLCredentials();
 
 
 
@@ -157,7 +154,7 @@ public interface PreParseBindOperation
    *                          are none.
    */
   public void setSASLCredentials(String saslMechanism,
-                                 ASN1OctetString saslCredentials);
+                                 ByteString saslCredentials);
 
 
 
@@ -168,7 +165,7 @@ public interface PreParseBindOperation
    * @param  serverSASLCredentials  The set of server SASL credentials
    *                                to include in the bind response.
    */
-  public void setServerSASLCredentials(ASN1OctetString
+  public void setServerSASLCredentials(ByteString
                                             serverSASLCredentials);
 
 

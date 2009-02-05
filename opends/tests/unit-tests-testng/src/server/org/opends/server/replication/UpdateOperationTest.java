@@ -52,7 +52,6 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.extensions.DummyAlertHandler;
 import org.opends.server.plugins.ShortCircuitPlugin;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
@@ -68,20 +67,7 @@ import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.OperationContext;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.schema.DirectoryStringSyntax;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.Operation;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.RDN;
-import org.opends.server.types.RawModification;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -521,7 +507,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
     Entry entry = DirectoryServer.getEntry(dn1);
     List<Attribute> attrs = entry.getAttribute(entryuuidType);
     String entryuuid =
-         attrs.get(0).iterator().next().getStringValue();
+         attrs.get(0).iterator().next().getValue().toString();
 
     // A change on a first server.
     ChangeNumber t1 = new ChangeNumber(1, (short) 0, (short) 3);
@@ -556,7 +542,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
     entry = DirectoryServer.getEntry(dn1);
     attrs = entry.getAttribute(attrType);
     String attrValue1 =
-         attrs.get(0).iterator().next().getStringValue();
+         attrs.get(0).iterator().next().getValue().toString();
 
     // the value should be the last (time t2) value added
     assertEquals(attrValue1, "B");
@@ -1557,7 +1543,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
           for (AttributeValue val : tmpAttr)
           {
-            found = val.getStringValue();
+            found = val.getValue().toString();
             break;
           }
         }
@@ -1698,14 +1684,14 @@ public class  UpdateOperationTest extends ReplicationTestCase
    */
   private static void setReceiveStatus(String syncConfigDN, boolean enable)
   {
-    ArrayList<ASN1OctetString> valueList = new ArrayList<ASN1OctetString>(1);
+    ArrayList<ByteString> valueList = new ArrayList<ByteString>(1);
     if (enable)
     {
-      valueList.add(new ASN1OctetString("TRUE"));
+      valueList.add(ByteString.valueOf("TRUE"));
     }
     else
     {
-      valueList.add(new ASN1OctetString("FALSE"));
+      valueList.add(ByteString.valueOf("FALSE"));
     }
     LDAPAttribute a = new LDAPAttribute("ds-cfg-receive-status", valueList);
 
@@ -1716,8 +1702,8 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    ASN1OctetString rawEntryDN =
-         new ASN1OctetString(syncConfigDN);
+    ByteString rawEntryDN =
+         ByteString.valueOf(syncConfigDN);
     ModifyOperation internalModify = conn.processModify(rawEntryDN, modList);
 
     ResultCode resultCode = internalModify.getResultCode();

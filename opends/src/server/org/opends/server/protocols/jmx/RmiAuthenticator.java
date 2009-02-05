@@ -37,21 +37,13 @@ import org.opends.server.core.BindOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.messages.CoreMessages;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.Control;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.DN;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ProtocolMessages.*;
 
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 
 /**
  * A <code>RMIAuthenticator</code> manages authentication for the secure
@@ -263,14 +255,14 @@ public class RmiAuthenticator implements JMXAuthenticator
       se.initCause(ldapEx);
       throw se;
     }
-    ASN1OctetString bindPW;
+    ByteString bindPW;
     if (password == null)
     {
       bindPW = null;
     }
     else
     {
-      bindPW = new ASN1OctetString(password);
+      bindPW = ByteString.valueOf(password);
     }
 
     AuthenticationInfo authInfo = new AuthenticationInfo();
@@ -281,7 +273,7 @@ public class RmiAuthenticator implements JMXAuthenticator
         jmxClientConnection.nextOperationID(),
         jmxClientConnection.nextMessageID(), requestControls,
         jmxConnectionHandler.getRMIConnector().getProtocolVersion(),
-        new ASN1OctetString(authcID), bindPW);
+        ByteString.valueOf(authcID), bindPW);
 
     bindOp.run();
     if (bindOp.getResultCode() == ResultCode.SUCCESS)

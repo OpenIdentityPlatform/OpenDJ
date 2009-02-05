@@ -224,7 +224,7 @@ public class NewEntryTask extends Task
         BasicAttribute a = new BasicAttribute(attrName);
         for (AttributeValue value : values)
         {
-          a.add(value.getValueBytes());
+          a.add(value.getValue().toByteArray());
         }
         attrs.put(a);
       }

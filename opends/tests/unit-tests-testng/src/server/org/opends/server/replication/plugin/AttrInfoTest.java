@@ -36,6 +36,7 @@ import org.opends.server.replication.plugin.ValueInfo;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Attributes;
+import org.opends.server.types.AttributeValues;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -55,9 +56,9 @@ public class AttrInfoTest
   {
     AttributeType type = DirectoryServer.getAttributeType("description");
 
-    AttributeValue att1 = new AttributeValue(type, "string");
-    AttributeValue att2 = new AttributeValue(type, "value");
-    AttributeValue att3 = new AttributeValue(type, "again");
+    AttributeValue att1 = AttributeValues.create(type, "string");
+    AttributeValue att2 = AttributeValues.create(type, "value");
+    AttributeValue att3 = AttributeValues.create(type, "again");
 
     ChangeNumber del1 = new ChangeNumber(1, (short) 0, (short) 1);
     ChangeNumber del2 = new ChangeNumber(1, (short) 1, (short) 1);

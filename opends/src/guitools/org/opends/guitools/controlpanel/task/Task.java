@@ -54,7 +54,6 @@ import org.opends.guitools.controlpanel.util.ProcessReader;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.DN;
 import org.opends.server.types.Schema;
 import org.opends.server.util.Base64;
@@ -473,8 +472,8 @@ public abstract class Task
           else
           {
             // Get the String value
-            ByteString v = ByteStringFactory.create(bytes);
-            return v.stringValue();
+            ByteString v = ByteString.wrap(bytes);
+            return v.toString();
           }
         }
       }

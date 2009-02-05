@@ -25,27 +25,17 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
 
 
+import java.io.IOException;
 
-import java.util.ArrayList;
-
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
+import org.opends.server.protocols.asn1.*;
+import org.opends.server.types.ByteString;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 
 
 /**
@@ -62,7 +52,7 @@ public class IntermediateResponseProtocolOp
   private static final DebugTracer TRACER = getTracer();
 
   // The value for this intermediate response.
-  private ASN1OctetString value;
+  private ByteString value;
 
   // The OID for this intermediate response.
   private String oid;
@@ -90,7 +80,7 @@ public class IntermediateResponseProtocolOp
    * @param  oid    The OID for this intermediate response.
    * @param  value  The value for this intermediate response.
    */
-  public IntermediateResponseProtocolOp(String oid, ASN1OctetString value)
+  public IntermediateResponseProtocolOp(String oid, ByteString value)
   {
     this.oid   = oid;
     this.value = value;
@@ -110,40 +100,15 @@ public class IntermediateResponseProtocolOp
   }
 
 
-
-  /**
-   * Specifies the OID for this intermediate response.
-   *
-   * @param  oid  The OID for this intermediate response.
-   */
-  public void setOID(String oid)
-  {
-    this.oid = oid;
-  }
-
-
-
   /**
    * Retrieves the value for this intermediate response.
    *
    * @return  The value for this intermediate response, or <CODE>null</CODE> if
    *          there is no value.
    */
-  public ASN1OctetString getValue()
+  public ByteString getValue()
   {
     return value;
-  }
-
-
-
-  /**
-   * Specifies the value for this intermediate response.
-   *
-   * @param  value  The value for this intermediate response.
-   */
-  public void setValue(ASN1OctetString value)
-  {
-    this.value = value;
   }
 
 
@@ -170,165 +135,27 @@ public class IntermediateResponseProtocolOp
     return "Intermediate Response";
   }
 
-
-
   /**
-   * Encodes this protocol op to an ASN.1 element suitable for including in an
-   * LDAP message.
+   * Writes this protocol op to an ASN.1 output stream.
    *
-   * @return  The ASN.1 element containing the encoded protocol op.
+   * @param stream The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public ASN1Element encode()
+  public void write(ASN1Writer stream) throws IOException
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
+    stream.writeStartSequence(OP_TYPE_INTERMEDIATE_RESPONSE);
 
     if (oid != null)
     {
-      elements.add(new ASN1OctetString(TYPE_INTERMEDIATE_RESPONSE_OID, oid));
+      stream.writeOctetString(TYPE_INTERMEDIATE_RESPONSE_OID, oid);
     }
 
     if (value != null)
     {
-      value.setType(TYPE_INTERMEDIATE_RESPONSE_VALUE);
-      elements.add(value);
+      stream.writeOctetString(TYPE_INTERMEDIATE_RESPONSE_VALUE, value);
     }
 
-    return new ASN1Sequence(OP_TYPE_INTERMEDIATE_RESPONSE, elements);
-  }
-
-
-
-  /**
-   * Decodes the provided ASN.1 element as an LDAP intermediate response
-   * protocol op.
-   *
-   * @param  element  The ASN.1 element to be decoded.
-   *
-   * @return  The decoded intermediate response protocol op.
-   *
-   * @throws  LDAPException  If a problem occurs while attempting to decode the
-   *                         provided ASN.1 element as an LDAP intermediate
-   *                         response protocol op.
-   */
-  public static IntermediateResponseProtocolOp
-                     decodeIntermediateResponse(ASN1Element element)
-         throws LDAPException
-  {
-    ArrayList<ASN1Element> elements;
-    try
-    {
-      elements = element.decodeAsSequence().elements();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_INTERMEDIATE_RESPONSE_DECODE_SEQUENCE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    int numElements = elements.size();
-    if (numElements > 2)
-    {
-      Message message =
-          ERR_LDAP_INTERMEDIATE_RESPONSE_DECODE_INVALID_ELEMENT_COUNT.
-            get(numElements);
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-
-    String          oid   = null;
-    ASN1OctetString value = null;
-
-    if (elements.size() == 1)
-    {
-      ASN1Element e = elements.get(0);
-
-      switch (e.getType())
-      {
-        case TYPE_INTERMEDIATE_RESPONSE_OID:
-          try
-          {
-            oid = e.decodeAsOctetString().stringValue();
-          }
-          catch (ASN1Exception ae)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-            }
-
-            Message message = ERR_LDAP_INTERMEDIATE_RESPONSE_CANNOT_DECODE_OID.
-                get(ae.getMessage());
-            throw new LDAPException(PROTOCOL_ERROR, message);
-          }
-          break;
-        case TYPE_INTERMEDIATE_RESPONSE_VALUE:
-          try
-          {
-            value = e.decodeAsOctetString();
-          }
-          catch (ASN1Exception ae)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-            }
-
-            Message message =
-                ERR_LDAP_INTERMEDIATE_RESPONSE_CANNOT_DECODE_VALUE.
-                  get(ae.getMessage());
-            throw new LDAPException(PROTOCOL_ERROR, message);
-          }
-          break;
-        default:
-          Message message = ERR_LDAP_INTERMEDIATE_RESPONSE_INVALID_ELEMENT_TYPE.
-              get(byteToHex(e.getType()));
-          throw new LDAPException(PROTOCOL_ERROR, message);
-      }
-    }
-    else if (elements.size() == 2)
-    {
-      try
-      {
-        oid = elements.get(0).decodeAsOctetString().stringValue();
-      }
-      catch (ASN1Exception ae)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-        }
-
-        Message message = ERR_LDAP_INTERMEDIATE_RESPONSE_CANNOT_DECODE_OID.get(
-            ae.getMessage());
-        throw new LDAPException(PROTOCOL_ERROR, message);
-      }
-
-      try
-      {
-        value = elements.get(1).decodeAsOctetString();
-      }
-      catch (ASN1Exception ae)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-        }
-
-        Message message = ERR_LDAP_INTERMEDIATE_RESPONSE_CANNOT_DECODE_OID.get(
-            ae.getMessage());
-        throw new LDAPException(PROTOCOL_ERROR, message);
-      }
-    }
-
-
-    return new IntermediateResponseProtocolOp(oid, value);
+    stream.writeEndSequence();
   }
 
 
@@ -347,7 +174,7 @@ public class IntermediateResponseProtocolOp
     if (value != null)
     {
       buffer.append(", value=");
-      value.toString(buffer);
+      buffer.append(value.toString());
     }
 
     buffer.append(")");
@@ -388,7 +215,7 @@ public class IntermediateResponseProtocolOp
       buffer.append(indentBuf);
       buffer.append("  Value:");
       buffer.append(EOL);
-      value.toString(buffer, indent+4);
+      value.toHexPlusAscii(buffer, indent+4);
     }
   }
 }

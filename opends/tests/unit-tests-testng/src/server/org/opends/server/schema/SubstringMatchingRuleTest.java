@@ -30,8 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteSequence;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -86,16 +86,17 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase
 
     // normalize the 2 provided values and check that they are equals
     ByteString normalizedValue =
-      rule.normalizeValue(new ASN1OctetString(value));
+      rule.normalizeValue(ByteString.valueOf(value));
 
     StringBuilder printableMiddleSubs = new StringBuilder();
-    List<ByteString> middleList = new ArrayList<ByteString>(middleSubs.length);
+    List<ByteSequence> middleList =
+        new ArrayList<ByteSequence>(middleSubs.length);
     for (int i=0; i<middleSubs.length; i++)
     {
       printableMiddleSubs.append(middleSubs[i]);
       printableMiddleSubs.append(",");
       middleList.add(
-          rule.normalizeSubstring(new ASN1OctetString(middleSubs[i])));
+          rule.normalizeSubstring(ByteString.valueOf(middleSubs[i])));
     }
 
     Boolean liveResult =
@@ -120,10 +121,10 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase
 
     // normalize the 2 provided values and check that they are equals
     ByteString normalizedValue =
-      rule.normalizeValue(new ASN1OctetString(value));
+      rule.normalizeValue(ByteString.valueOf(value));
 
     ByteString normalizedInitial =
-      rule.normalizeValue(new ASN1OctetString(initial));
+      rule.normalizeValue(ByteString.valueOf(initial));
     Boolean liveResult = rule.valueMatchesSubstring(
         normalizedValue, normalizedInitial, null, null);
     if (result != liveResult)
@@ -146,10 +147,10 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase
 
     // normalize the 2 provided values and check that they are equals
     ByteString normalizedValue =
-      rule.normalizeValue(new ASN1OctetString(value));
+      rule.normalizeValue(ByteString.valueOf(value));
 
     ByteString normalizedFinal =
-      rule.normalizeValue(new ASN1OctetString(finalValue));
+      rule.normalizeValue(ByteString.valueOf(finalValue));
     Boolean liveResult = rule.valueMatchesSubstring(
         normalizedValue, null, null, normalizedFinal);
     if (result != liveResult)

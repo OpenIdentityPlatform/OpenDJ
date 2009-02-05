@@ -39,14 +39,7 @@ import org.opends.server.controls.VLVResponseControl;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
-import org.opends.server.types.SortOrder;
+import org.opends.server.types.*;
 
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -206,9 +199,10 @@ public class EntryIDSetSorter
       }
       else
       {
-        AttributeValue assertionValue = new
-             AttributeValue(sortOrder.getSortKeys()[0].getAttributeType(),
-                            vlvRequest.getGreaterThanOrEqualAssertion());
+        AttributeValue assertionValue =
+            AttributeValues.create(
+                sortOrder.getSortKeys()[0].getAttributeType(),
+                vlvRequest.getGreaterThanOrEqualAssertion());
 
         boolean targetFound     = false;
         int targetOffset        = 0;

@@ -29,14 +29,16 @@ import org.opends.messages.Message;
 
 
 
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.Control;
-import org.opends.server.types.LDAPException;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ResultCode;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
+import java.io.IOException;
 
 
 /**
@@ -48,75 +50,77 @@ public class PasswordExpiredControl
        extends Control
 {
   /**
+   * ControlDecoder implentation to decode this control from a ByteString.
+   */
+  private final static class Decoder
+      implements ControlDecoder<PasswordExpiredControl>
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public PasswordExpiredControl decode(boolean isCritical, ByteString value)
+        throws DirectoryException
+    {
+      if (value != null)
+      {
+        try
+        {
+          Integer.parseInt(value.toString());
+        }
+        catch (Exception e)
+        {
+          Message message = ERR_PWEXPIRED_CONTROL_INVALID_VALUE.get();
+          throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+        }
+      }
+
+      return new PasswordExpiredControl(isCritical);
+    }
+
+    public String getOID()
+    {
+      return OID_NS_PASSWORD_EXPIRED;
+    }
+
+  }
+
+  /**
+   * The Control Decoder that can be used to decode this control.
+   */
+  public static final ControlDecoder<PasswordExpiredControl> DECODER =
+    new Decoder();
+
+  /**
    * Creates a new instance of the password expired control with the default
    * settings.
    */
   public PasswordExpiredControl()
   {
-    super(OID_NS_PASSWORD_EXPIRED, false, new ASN1OctetString("0"));
+    this(false);
   }
-
-
 
   /**
    * Creates a new instance of the password expired control with the provided
    * information.
    *
-   * @param  oid         The OID to use for this control.
    * @param  isCritical  Indicates whether support for this control should be
    *                     considered a critical part of the client processing.
    */
-  public PasswordExpiredControl(String oid, boolean isCritical)
+  public PasswordExpiredControl(boolean isCritical)
   {
-    super(oid, isCritical, new ASN1OctetString("0"));
+    super(OID_NS_PASSWORD_EXPIRED, isCritical);
   }
 
-
-
   /**
-   * Creates a new password expired control from the contents of the provided
-   * control.
+   * Writes this control's value to an ASN.1 writer. The value (if any) must be
+   * written as an ASN1OctetString.
    *
-   * @param  control  The generic control containing the information to use to
-   *                  create this password expired control.
-   *
-   * @return  The password expired control decoded from the provided control.
-   *
-   * @throws  LDAPException  If this control cannot be decoded as a valid
-   *                         password expired control.
+   * @param writer The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public static PasswordExpiredControl decodeControl(Control control)
-         throws LDAPException
-  {
-    if (control.hasValue())
-    {
-      String valueStr = control.getValue().stringValue();
-      try
-      {
-        Integer.parseInt(valueStr);
-      }
-      catch (Exception e)
-      {
-        Message message = ERR_PWEXPIRED_CONTROL_INVALID_VALUE.get();
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-      }
-    }
-
-    return new PasswordExpiredControl(control.getOID(), control.isCritical());
-  }
-
-
-
-  /**
-   * Retrieves a string representation of this password expired control.
-   *
-   * @return  A string representation of this password expired control.
-   */
-  public String toString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
+  @Override
+  public void writeValue(ASN1Writer writer) throws IOException {
+    writer.writeOctetString("0");
   }
 
 
@@ -127,6 +131,7 @@ public class PasswordExpiredControl
    *
    * @param  buffer  The buffer to which the information should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("PasswordExpiredControl()");

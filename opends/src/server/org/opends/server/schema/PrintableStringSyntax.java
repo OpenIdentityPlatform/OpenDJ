@@ -36,8 +36,7 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ByteString;
-
+import org.opends.server.types.ByteSequence;
 
 
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -232,7 +231,7 @@ public class PrintableStringSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteString value,
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // Check to see if the provided value was null.  If so, then that's not
@@ -247,7 +246,7 @@ public class PrintableStringSyntax
 
     // Get the value as a string and determine its length.  If it is empty, then
     // that's not acceptable.
-    String valueString = value.stringValue();
+    String valueString = value.toString();
     int    valueLength = valueString.length();
     if (valueLength == 0)
     {

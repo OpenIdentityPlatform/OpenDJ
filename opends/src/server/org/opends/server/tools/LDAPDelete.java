@@ -39,15 +39,11 @@ import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
 import org.opends.server.protocols.ldap.DeleteResponseProtocolOp;
-import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ProtocolOp;
-import org.opends.server.types.NullOutputStream;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
+import org.opends.server.types.*;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.PasswordReader;
 import org.opends.server.util.args.ArgumentException;
@@ -58,6 +54,8 @@ import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+
+import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
@@ -85,13 +83,13 @@ public class LDAPDelete
 
 
   // The message ID counter to use for requests.
-  private AtomicInteger nextMessageID;
+  private final AtomicInteger nextMessageID;
 
   // The print stream to use for standard error.
-  private PrintStream err;
+  private final PrintStream err;
 
   // The print stream to use for standard output.
-  private PrintStream out;
+  private final PrintStream out;
 
 
 
@@ -177,9 +175,9 @@ public class LDAPDelete
                              LDAPDeleteOptions deleteOptions)
           throws IOException, LDAPException
   {
-    ArrayList<LDAPControl> controls = deleteOptions.getControls();
+    ArrayList<Control> controls = deleteOptions.getControls();
     ProtocolOp protocolOp = null;
-    ASN1OctetString asn1OctetStr = new ASN1OctetString(line);
+    ByteString asn1OctetStr = ByteString.valueOf(line);
 
     protocolOp = new DeleteRequestProtocolOp(asn1OctetStr);
 
@@ -702,7 +700,7 @@ public class LDAPDelete
     {
       for (String ctrlString : controlStr.getValues())
       {
-        LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
+        Control ctrl = LDAPToolUtils.getControl(ctrlString, err);
         if(ctrl == null)
         {
           Message message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
@@ -716,7 +714,7 @@ public class LDAPDelete
 
     if(deleteOptions.getDeleteSubtree())
     {
-      LDAPControl control = new LDAPControl(OID_SUBTREE_DELETE_CONTROL);
+      Control control = new SubtreeDeleteControl(false);
       deleteOptions.getControls().add(control);
     }
 

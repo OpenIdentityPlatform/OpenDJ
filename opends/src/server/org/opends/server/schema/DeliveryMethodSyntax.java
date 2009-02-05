@@ -39,8 +39,7 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ByteString;
-
+import org.opends.server.types.ByteSequence;
 
 
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -277,15 +276,15 @@ public class DeliveryMethodSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteString value,
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
-    String stringValue = toLowerCase(value.stringValue());
+    String stringValue = toLowerCase(value.toString());
     StringTokenizer tokenizer = new StringTokenizer(stringValue, " $");
     if (! tokenizer.hasMoreTokens())
     {
       invalidReason.append(ERR_ATTR_SYNTAX_DELIVERY_METHOD_NO_ELEMENTS.get(
-              value.stringValue()));
+              value.toString()));
       return false;
     }
 
@@ -295,7 +294,7 @@ public class DeliveryMethodSyntax
       if (! allowedValues.contains(token))
       {
         invalidReason.append(ERR_ATTR_SYNTAX_DELIVERY_METHOD_INVALID_ELEMENT
-                .get(value.stringValue(), token));
+                .get(value.toString(), token));
         return false;
       }
     }

@@ -34,12 +34,13 @@ import java.util.Set;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.opends.server.util.ServerConstants.OID_NS_PASSWORD_EXPIRED;
 import static org.testng.Assert.*;
 
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.LDAPException;
+import org.opends.server.types.*;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.ldap.LDAPReader;
+import org.opends.server.protocols.ldap.LDAPControl;
 
 /**
  * Test ChangeNumber and ChangeNumberGenerator
@@ -229,10 +230,8 @@ public class PersistentSearchControlTest
 
     return new Object[][]
     {
-    { OID_NS_PASSWORD_EXPIRED, true , true, true },
-    { OID_NS_PASSWORD_EXPIRED, false  ,true, false },
-    {OID_PERSISTENT_SEARCH , true,  false, true },
-    {OID_PERSISTENT_SEARCH ,  false, false, false }, };
+    {true,  false, true },
+    {false, false, false }, };
   }
 
   /**
@@ -240,7 +239,7 @@ public class PersistentSearchControlTest
    */
   @Test(dataProvider = "persistentSearchControl")
   public void checkPersistentSearchControlTest(
-      String oid, boolean isCritical, boolean changesOnly, boolean returnECs)
+      boolean isCritical, boolean changesOnly, boolean returnECs)
       throws Exception
   {
     // Test contructor
@@ -267,50 +266,35 @@ public class PersistentSearchControlTest
     for (int i = 1; i <= 15; i++)
     {
       returnTypes = PersistentSearchChangeType.intToTypes(i);
-      PersistentSearchControl psc = new PersistentSearchControl(oid,
+      PersistentSearchControl psc = new PersistentSearchControl(
           isCritical, returnTypes, changesOnly, returnECs);
       assertNotNull(psc);
       assertEquals(isCritical, psc.isCritical());
-      assertEquals(oid, psc.getOID());
+      assertEquals(OID_PERSISTENT_SEARCH, psc.getOID());
       assertEquals(changesOnly, psc.getChangesOnly());
       assertEquals(returnECs, psc.getReturnECs());
       assertEquals(returnTypes.size(), psc.getChangeTypes().size());
     }
 
 
-    // Test decodeControl
+    // Test encode/decode
+    ByteStringBuilder bsb = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(bsb);
     for (int i = 1; i <= 15; i++)
     {
+      bsb.clear();
       returnTypes = PersistentSearchChangeType.intToTypes(i);
-      Control control = new PersistentSearchControl(oid,
+      PersistentSearchControl psc = new PersistentSearchControl(
           isCritical, returnTypes, changesOnly, returnECs);
-      PersistentSearchControl psc = PersistentSearchControl.decodeControl(control);
+      psc.write(writer);
+      LDAPControl control = LDAPReader.readControl(ASN1.getReader(bsb));
+      psc = PersistentSearchControl.DECODER.decode(control.isCritical(), control.getValue());
       assertNotNull(psc);
       assertEquals(isCritical, psc.isCritical());
-      assertEquals(oid, psc.getOID());
+      assertEquals(OID_PERSISTENT_SEARCH, psc.getOID());
       assertEquals(changesOnly, psc.getChangesOnly());
       assertEquals(returnECs, psc.getReturnECs());
       assertEquals(returnTypes.size(), psc.getChangeTypes().size());
-
-      // Check setChangeTypes
-      Set<PersistentSearchChangeType> newChangetype =
-        new HashSet<PersistentSearchChangeType>();
-      psc.setChangeTypes(newChangetype);
-      assertEquals(0, psc.getChangeTypes().size());
-      psc.setChangeTypes(returnTypes);
-      assertEquals(returnTypes.size(), psc.getChangeTypes().size());
-
-      // Check setChangesOnly
-      psc.setChangesOnly(!psc.getChangesOnly());
-      assertEquals(!changesOnly,psc.getChangesOnly());
-      psc.setChangesOnly(!psc.getChangesOnly());
-      assertEquals(changesOnly,psc.getChangesOnly());
-
-      // Check setReturnECs
-      psc.setReturnECs(!psc.getReturnECs());
-      assertEquals(!returnECs,psc.getReturnECs());
-      psc.setReturnECs(!psc.getReturnECs());
-      assertEquals(returnECs,psc.getReturnECs());
 
       // Check the toString
       String toString = "PersistentSearchControl(changeTypes=\"" +
@@ -323,27 +307,25 @@ public class PersistentSearchControlTest
       // check null value for the control
       try
       {
-        control.setValue(null);
-        psc = PersistentSearchControl.decodeControl(control);
+        control = new LDAPControl(OID_PERSISTENT_SEARCH, isCritical);
+        psc = PersistentSearchControl.DECODER.decode(control.isCritical(), control.getValue());
         assertTrue(false,"the control should have a value");
       }
-      catch (LDAPException e)
+      catch (DirectoryException e)
       {
         // normal case
         assertTrue(true,"the control should have a value");
       }
 
       // check invalid value for the control
-      control = new PasswordPolicyResponseControl(oid, isCritical,
-          PasswordPolicyWarningType.GRACE_LOGINS_REMAINING, 2,
-          PasswordPolicyErrorType.ACCOUNT_LOCKED);
-
       try
       {
-        psc = PersistentSearchControl.decodeControl(control);
+        control = new LDAPControl(OID_PERSISTENT_SEARCH, isCritical,
+            ByteString.valueOf("invalid value"));
+        psc = PersistentSearchControl.DECODER.decode(control.isCritical(), control.getValue());
         assertTrue(false, "the control should have a value");
       }
-      catch (LDAPException e)
+      catch (DirectoryException e)
       {
         // normal case
         assertTrue(true, "the control should have a value");
@@ -361,17 +343,17 @@ public class PersistentSearchControlTest
   {
     return new Object[][]
     {
-    { OID_NS_PASSWORD_EXPIRED, true, 1, "cn=test" },
-    { OID_NS_PASSWORD_EXPIRED, false, 2, "dc=example,dc=com" },
-    { OID_PERSISTENT_SEARCH, true, 3, "cn=test, dc=example,dc=com" },
-    { OID_PERSISTENT_SEARCH, false, 4, "cn= new test, dc=example,dc=com" } };
+    { true, 1, "cn=test" },
+    { false, 2, "dc=example,dc=com" },
+    { true, 3, "cn=test, dc=example,dc=com" },
+    { false, 4, "cn= new test, dc=example,dc=com" } };
   }
   /**
    * Test EntryChangeNotificationControl
    */
   @Test(dataProvider = "entryChangeNotificationControl")
   public void checkEntryChangeNotificationControlTest(
-      String oid, boolean isCritical, long changeNumber, String dnString)
+      boolean isCritical, long changeNumber, String dnString)
       throws Exception
   {
     // Test contructor EntryChangeNotificationControl
@@ -379,6 +361,8 @@ public class PersistentSearchControlTest
     PersistentSearchChangeType[] types = PersistentSearchChangeType.values();
     EntryChangeNotificationControl ecnc = null ;
     EntryChangeNotificationControl newEcnc ;
+    ByteStringBuilder bsb = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(bsb);
     for (PersistentSearchChangeType type : types)
     {
       ecnc = new EntryChangeNotificationControl(type, changeNumber);
@@ -390,10 +374,13 @@ public class PersistentSearchControlTest
       assertEquals(false, ecnc.isCritical()) ;
       checkEntryChangeNotificationControlToString(ecnc);
 
-      // also check encode
+      // also check encode/decode
       try
       {
-        newEcnc = EntryChangeNotificationControl.decodeControl(ecnc);
+        bsb.clear();
+        ecnc.write(writer);
+        LDAPControl control = LDAPReader.readControl(ASN1.getReader(bsb));
+        newEcnc = EntryChangeNotificationControl.DECODER.decode(control.isCritical(), control.getValue());
         assertNotNull(newEcnc);
         assertEquals(ecnc.getOID(), newEcnc.getOID());
         assertEquals(ecnc.getChangeNumber(), newEcnc.getChangeNumber());
@@ -401,7 +388,7 @@ public class PersistentSearchControlTest
         assertNull(newEcnc.getPreviousDN());
         assertEquals(ecnc.isCritical(), newEcnc.isCritical());
       }
-      catch (LDAPException e)
+      catch (DirectoryException e)
       {
         if (type.compareTo(PersistentSearchChangeType.MODIFY_DN) == 0)
         {
@@ -431,10 +418,13 @@ public class PersistentSearchControlTest
       assertEquals(false, ecnc.isCritical()) ;
       checkEntryChangeNotificationControlToString(ecnc);
 
-      // also check encode
+      // also check encode/decode
       try
       {
-        newEcnc = EntryChangeNotificationControl.decodeControl(ecnc);
+        bsb.clear();
+        ecnc.write(writer);
+        LDAPControl control = LDAPReader.readControl(ASN1.getReader(bsb));
+        newEcnc = EntryChangeNotificationControl.DECODER.decode(control.isCritical(), control.getValue());
         assertNotNull(newEcnc);
         assertEquals(ecnc.getOID(),newEcnc.getOID());
         assertEquals(ecnc.getChangeNumber(),newEcnc.getChangeNumber());
@@ -442,7 +432,7 @@ public class PersistentSearchControlTest
         assertEquals(ecnc.getPreviousDN(),newEcnc.getPreviousDN());
         assertEquals(ecnc.isCritical(),newEcnc.isCritical()) ;
       }
-      catch (LDAPException e)
+      catch (DirectoryException e)
       {
         if (type.compareTo(PersistentSearchChangeType.MODIFY_DN) == 0)
         {
@@ -458,25 +448,28 @@ public class PersistentSearchControlTest
     }
 
 
-    // Test contructor EntryChangeNotificationControl(String oid, boolean
+    // Test contructor EntryChangeNotificationControl(boolean
     // isCritical, PersistentSearchChangeType changeType,
     // DN previousDN, long changeNumber)
     for (PersistentSearchChangeType type : types)
     {
-      ecnc = new EntryChangeNotificationControl(oid, isCritical, type, dn,
+      ecnc = new EntryChangeNotificationControl(isCritical, type, dn,
           changeNumber);
       assertNotNull(ecnc);
-      assertEquals(oid, ecnc.getOID());
+      assertEquals(OID_ENTRY_CHANGE_NOTIFICATION, ecnc.getOID());
       assertEquals(changeNumber, ecnc.getChangeNumber());
       assertEquals(type, ecnc.getChangeType());
       assertEquals(dn, ecnc.getPreviousDN());
       assertEquals(isCritical, ecnc.isCritical()) ;
       checkEntryChangeNotificationControlToString(ecnc);
 
-      // also check encode
+      // also check encode/decode
       try
       {
-        newEcnc = EntryChangeNotificationControl.decodeControl(ecnc);
+        bsb.clear();
+        ecnc.write(writer);
+        LDAPControl control = LDAPReader.readControl(ASN1.getReader(bsb));
+        newEcnc = EntryChangeNotificationControl.DECODER.decode(control.isCritical(), control.getValue());
         assertNotNull(newEcnc);
         assertEquals(ecnc.getOID(),newEcnc.getOID());
         assertEquals(ecnc.getChangeNumber(),newEcnc.getChangeNumber());
@@ -484,7 +477,7 @@ public class PersistentSearchControlTest
         assertEquals(ecnc.getPreviousDN(),newEcnc.getPreviousDN());
         assertEquals(ecnc.isCritical(),newEcnc.isCritical()) ;
       }
-      catch (LDAPException e)
+      catch (DirectoryException e)
       {
         if (type.compareTo(PersistentSearchChangeType.MODIFY_DN) == 0)
         {
@@ -499,31 +492,15 @@ public class PersistentSearchControlTest
       }
     }
 
-    // check setPreviousDN
-    ecnc.setPreviousDN(null) ;
-    assertNull(ecnc.getPreviousDN()) ;
-    ecnc.setPreviousDN(dn) ;
-    assertEquals(dn, ecnc.getPreviousDN());
-
-    // Check setChangeNumber
-    ecnc.setChangeNumber(changeNumber +1) ;
-    assertEquals(changeNumber +1, ecnc.getChangeNumber());
-
-    // Check setChangeType
-    for (PersistentSearchChangeType type : types)
-    {
-      ecnc.setChangeType(type) ;
-      assertEquals(type, ecnc.getChangeType());
-    }
-
     // Check error on decode
     try
     {
-      ecnc.setValue(null) ;
-      newEcnc = EntryChangeNotificationControl.decodeControl(ecnc);
+      LDAPControl control =
+          new LDAPControl(OID_ENTRY_CHANGE_NOTIFICATION, isCritical);
+      newEcnc = EntryChangeNotificationControl.DECODER.decode(control.isCritical(), control.getValue());
       assertTrue(false,"couldn't decode a control with null");
     }
-    catch (LDAPException e)
+    catch (DirectoryException e)
     {
       assertTrue(true,"couldn't decode a control with null");
     }

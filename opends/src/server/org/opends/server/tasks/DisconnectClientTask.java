@@ -113,13 +113,13 @@ connIDLoop:
         {
           try
           {
-            connectionID = Long.parseLong(v.getStringValue());
+            connectionID = Long.parseLong(v.getValue().toString());
             break connIDLoop;
           }
           catch (Exception e)
           {
             Message message =
-                ERR_TASK_DISCONNECT_INVALID_CONN_ID.get(v.getStringValue());
+               ERR_TASK_DISCONNECT_INVALID_CONN_ID.get(v.getValue().toString());
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message, e);
           }
@@ -149,7 +149,7 @@ notifyClientLoop:
       {
         for (AttributeValue v : a)
         {
-          String stringValue = toLowerCase(v.getStringValue());
+          String stringValue = toLowerCase(v.getValue().toString());
           if (stringValue.equals("true"))
           {
             notifyClient = true;
@@ -183,7 +183,7 @@ disconnectMessageLoop:
       {
         for (AttributeValue v : a)
         {
-          disconnectMessage = Message.raw(v.getStringValue());
+          disconnectMessage = Message.raw(v.getValue().toString());
           break disconnectMessageLoop;
         }
       }

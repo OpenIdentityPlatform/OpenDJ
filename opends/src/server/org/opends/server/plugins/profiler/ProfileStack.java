@@ -28,10 +28,9 @@ package org.opends.server.plugins.profiler;
 
 
 
-import java.util.ArrayList;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
+import java.io.IOException;
+
+import org.opends.server.protocols.asn1.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -306,22 +305,22 @@ public class ProfileStack
 
 
   /**
-   * Encodes this profile stack for writing to the capture file.
+   * Encodes and writes this profile stack to the capture file.
    *
-   * @return  The ASN.1 element containing the encoded representation of this
-   *          profile stack.
+   * @param  writer The writer to use.
+   * @throws IOException if an error occurs while writing.
    */
-  public ASN1Element encode()
+  public void write(ASN1Writer writer) throws IOException
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(3*numFrames);
+    writer.writeStartSequence();
+    writer.writeInteger(numFrames);
     for (int i=0; i < numFrames; i++)
     {
-      elements.add(new ASN1OctetString(classNames[i]));
-      elements.add(new ASN1OctetString(methodNames[i]));
-      elements.add(new ASN1OctetString(String.valueOf(lineNumbers[i])));
+      writer.writeOctetString(classNames[i]);
+      writer.writeOctetString(methodNames[i]);
+      writer.writeInteger(lineNumbers[i]);
     }
-
-    return new ASN1Sequence(elements);
+    writer.writeEndSequence();
   }
 
 
@@ -329,44 +328,34 @@ public class ProfileStack
   /**
    * Decodes the contents of the provided element as a profile stack.
    *
-   * @param  stackElement  The ASN.1 element containing the encoded profile
-   *                       stack information.
+   * @param  reader  The ASN.1 reader to read the encoded profile stack
+   *                 information from.
    *
-   * @return  The decoded profile stack, or <CODE>null</CODE> if the element
-   *          could not be decoded for some reason.
+   * @return  The decoded profile stack.
+   * @throws ASN1Exception If the element could not be decoded for some reason.
+   *
    */
-  public static ProfileStack decode(ASN1Element stackElement)
+  public static ProfileStack decode(ASN1Reader reader) throws ASN1Exception
   {
-    try
+    reader.readStartSequence();
+
+    int      numFrames   = (int)reader.readInteger();
+    String[] classNames  = new String[numFrames];
+    String[] methodNames = new String[numFrames];
+    int[]    lineNumbers = new int[numFrames];
+
+    int i = 0;
+    while(reader.hasNextElement())
     {
-      ArrayList<ASN1Element> elements =
-           stackElement.decodeAsSequence().elements();
-
-      int      numFrames   = (elements.size() / 3);
-      String[] classNames  = new String[numFrames];
-      String[] methodNames = new String[numFrames];
-      int[]    lineNumbers = new int[numFrames];
-
-      for (int i=0,j=0; i < numFrames; i++, j+=3)
-      {
-        classNames[i]  = elements.get(j).decodeAsOctetString().stringValue();
-        methodNames[i] = elements.get(j+1).decodeAsOctetString().stringValue();
-        lineNumbers[i] =
-             Integer.parseInt(
-                  elements.get(j+2).decodeAsOctetString().stringValue());
-      }
-
-      return new ProfileStack(classNames, methodNames, lineNumbers);
+      classNames[i]  = reader.readOctetStringAsString();
+      methodNames[i] = reader.readOctetStringAsString();
+      lineNumbers[i] = (int)reader.readInteger();
+      i++;
     }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
 
-      return null;
-    }
+    reader.readEndSequence();
+
+    return new ProfileStack(classNames, methodNames, lineNumbers);
   }
 }
 

@@ -27,12 +27,12 @@
 package org.opends.server.admin;
 
 
+
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
@@ -40,6 +40,7 @@ import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
@@ -52,10 +53,11 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 
 
+
 /**
  * Check if information found in "cn=admin data" is coherent with
- * cn=config. If and inconsistancy is detected, we log a warning message
- * and update "cn=admin data"
+ * cn=config. If and inconsistency is detected, we log a warning
+ * message and update "cn=admin data"
  */
 public final class AdministrationDataSync
 {
@@ -66,25 +68,31 @@ public final class AdministrationDataSync
   private InternalClientConnection internalConnection;
 
   /**
-   * The attribute name used to store the port.
-   * TODO Use the default one.
+   * The attribute name used to store the port. TODO Use the default
+   * one.
    */
   private static final String LDAP_PORT = "ds-cfg-listen-port";
 
+
+
   /**
-   * Create an object that will syncrhonize configuration and the admin data.
+   * Create an object that will syncrhonize configuration and the
+   * admin data.
    *
-   * @param internalConnection The root connection.
+   * @param internalConnection
+   *          The root connection.
    */
   public AdministrationDataSync(InternalClientConnection internalConnection)
   {
-    this.internalConnection = internalConnection ;
+    this.internalConnection = internalConnection;
   }
+
+
 
   /**
    * Check if information found in "cn=admin data" is coherent with
-   * cn=config. If and inconsistancy is detected, we log a warning message
-   * and update "cn=admin data"
+   * cn=config. If and inconsistancy is detected, we log a warning
+   * message and update "cn=admin data"
    */
   public void synchronize()
   {
@@ -92,9 +100,11 @@ public final class AdministrationDataSync
     checkAdminConnector();
   }
 
+
+
   /**
-   * Check if the admin connector is in sync. The desynchronization could
-   * occurs after the upgrade from 1.0.
+   * Check if the admin connector is in sync. The desynchronization
+   * could occurs after the upgrade from 1.0.
    */
   private void checkAdminConnector()
   {
@@ -107,25 +117,25 @@ public final class AdministrationDataSync
     }
 
     // Get the admin port
-    String adminPort =
-      getAttr("cn=Administration Connector,cn=config", LDAP_PORT);
+    String adminPort = getAttr("cn=Administration Connector,cn=config",
+        LDAP_PORT);
     if (adminPort == null)
     {
       // best effort.
-      return ;
+      return;
     }
 
     LinkedList<Modification> mods = new LinkedList<Modification>();
     // adminport
     String attName = "adminport";
-    AttributeType attrType =
-    DirectoryServer.getAttributeType(attName.toLowerCase());
+    AttributeType attrType = DirectoryServer.getAttributeType(attName
+        .toLowerCase());
     if (attrType == null)
     {
       attrType = DirectoryServer.getDefaultAttributeType(attName.toLowerCase());
     }
-    mods.add(new Modification(ModificationType.REPLACE, Attributes
-        .create(attrType, adminPort)));
+    mods.add(new Modification(ModificationType.REPLACE, Attributes.create(
+        attrType, adminPort)));
 
     // adminEnabled
     attName = "adminEnabled";
@@ -134,16 +144,18 @@ public final class AdministrationDataSync
     {
       attrType = DirectoryServer.getDefaultAttributeType(attName.toLowerCase());
     }
-    mods.add(new Modification(ModificationType.REPLACE, Attributes
-        .create(attrType, "true")));
+    mods.add(new Modification(ModificationType.REPLACE, Attributes.create(
+        attrType, "true")));
 
     // Process modification
-    internalConnection.processModify(serverEntryDN,mods);
+    internalConnection.processModify(serverEntryDN, mods);
   }
 
+
+
   /**
-   * Look for the DN of the local register server.
-   * Assumption: default Connection Handler naming is used.
+   * Look for the DN of the local register server. Assumption: default
+   * Connection Handler naming is used.
    *
    * @return The DN of the local register server or null.
    */
@@ -152,16 +164,16 @@ public final class AdministrationDataSync
     DN returnDN = null;
 
     // Get the LDAP and LDAPS port
-    String ldapPort =
-      getAttr("cn=LDAP Connection Handler,cn=Connection Handlers,cn=config",
-          LDAP_PORT);
-    String ldapsPort =
-      getAttr("cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config",
-          LDAP_PORT);
+    String ldapPort = getAttr(
+        "cn=LDAP Connection Handler,cn=Connection Handlers,cn=config",
+        LDAP_PORT);
+    String ldapsPort = getAttr(
+        "cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config",
+        LDAP_PORT);
     boolean ldapsPortEnable = false;
-    String val =
-      getAttr("cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config",
-          "ds-cfg-enabled");
+    String val = getAttr(
+        "cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config",
+        "ds-cfg-enabled");
     if (val != null)
     {
       ldapsPortEnable = val.toLowerCase().equals("true");
@@ -169,7 +181,7 @@ public final class AdministrationDataSync
     if ((ldapPort == null) && (ldapsPort == null))
     {
       // best effort (see assumption)
-      return null ;
+      return null;
     }
 
     // Get the IP address of the local host.
@@ -180,7 +192,7 @@ public final class AdministrationDataSync
     }
     catch (Throwable t)
     {
-     // best effort.
+      // best effort.
       return null;
     }
 
@@ -198,7 +210,7 @@ public final class AdministrationDataSync
           SearchScope.SINGLE_LEVEL, "objectclass=*");
       if (op.getResultCode() == ResultCode.SUCCESS)
       {
-        Entry entry =  null;
+        Entry entry = null;
         for (Entry currentEntry : op.getSearchEntries())
         {
           String currentHostname = currentEntry.getAttributeValue(hostnameType,
@@ -211,8 +223,8 @@ public final class AdministrationDataSync
             {
               // Check if one of the port match
               attrName = "ldapport";
-              AttributeType portType =
-                DirectoryServer.getAttributeType(attrName);
+              AttributeType portType = DirectoryServer
+                  .getAttributeType(attrName);
               if (portType == null)
               {
                 portType = DirectoryServer.getDefaultAttributeType(attrName);
@@ -221,8 +233,8 @@ public final class AdministrationDataSync
                   DirectoryStringSyntax.DECODER);
               if (currentport.equals(ldapPort))
               {
-                entry = currentEntry ;
-                break ;
+                entry = currentEntry;
+                break;
               }
               if (ldapsPortEnable)
               {
@@ -242,7 +254,7 @@ public final class AdministrationDataSync
               }
             }
           }
-          catch(Exception e)
+          catch (Exception e)
           {
             // best effort.
             continue;
@@ -255,7 +267,8 @@ public final class AdministrationDataSync
         }
       }
 
-    } catch (DirectoryException e)
+    }
+    catch (DirectoryException e)
     {
       // never happens because the filter is always valid.
       return null;
@@ -263,17 +276,21 @@ public final class AdministrationDataSync
     return returnDN;
   }
 
+
+
   /**
-   * get an attribute from and entry.
-   * @param DN the DN of the entry.
-   * @param attrName the attribute name.
-   * @return The Administration connector port.
+   * Gets an attribute value from an entry.
+   *
+   * @param DN
+   *          The DN of the entry.
+   * @param attrName
+   *          The attribute name.
+   * @return The attribute value or {@code null} if the value could
+   *         not be retrieved.
    */
   private String getAttr(String baseDN, String attrName)
   {
-    String value = null  ;
-    //
-    // prepare the ldap search
+    // Prepare the ldap search
     LDAPFilter filter;
     try
     {
@@ -287,14 +304,11 @@ public final class AdministrationDataSync
       return null;
     }
 
-    ASN1OctetString asn1BaseDn = new ASN1OctetString(baseDN);
     LinkedHashSet<String> attributes = new LinkedHashSet<String>(1);
     attributes.add(attrName);
     InternalSearchOperation search = internalConnection.processSearch(
-        asn1BaseDn,
-        SearchScope.BASE_OBJECT,
-        DereferencePolicy.DEREF_ALWAYS, 0, 0, false,
-        filter,attributes);
+        ByteString.valueOf(baseDN), SearchScope.BASE_OBJECT,
+        DereferencePolicy.DEREF_ALWAYS, 0, 0, false, filter, attributes);
 
     if ((search.getResultCode() != ResultCode.SUCCESS))
     {
@@ -305,6 +319,7 @@ public final class AdministrationDataSync
     }
 
     SearchResultEntry adminConnectorEntry = null;
+
     /*
      * Read the port from the PORT attribute
      */
@@ -331,8 +346,7 @@ public final class AdministrationDataSync
     }
 
     // Get the attribute value
-    value = attrs.get(0).iterator().next().getStringValue();
-    return value;
+    return attrs.get(0).iterator().next().toString();
   }
 
 }

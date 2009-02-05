@@ -53,7 +53,9 @@ public class RelativeInheritedDefaultBehaviorProviderTest extends DirectoryServe
     try
     {
       TestCaseUtils.startServer();
-    } catch (Exception e) {}
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     d = TestParentCfgDefn.getInstance();
   }
 

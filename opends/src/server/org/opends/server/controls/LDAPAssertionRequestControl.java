@@ -28,23 +28,16 @@ package org.opends.server.controls;
 import org.opends.messages.Message;
 
 
-
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.asn1.*;
+import static org.opends.server.protocols.asn1.ASN1Constants.
+    UNIVERSAL_OCTET_STRING_TYPE;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.Control;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.SearchFilter;
+import org.opends.server.types.*;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
+import java.io.IOException;
 
 
 /**
@@ -55,13 +48,54 @@ import static org.opends.server.util.ServerConstants.*;
  * control.
  */
 public class LDAPAssertionRequestControl
-       extends Control
+    extends Control
 {
   /**
-   * The tracer object for the debug logger.
+   * ControlDecoder implentation to decode this control from a ByteString.
    */
-  private static final DebugTracer TRACER = getTracer();
+  private final static class Decoder
+      implements ControlDecoder<LDAPAssertionRequestControl>
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public LDAPAssertionRequestControl decode(boolean isCritical,
+                                              ByteString value)
+        throws DirectoryException
+    {
+      if (value == null)
+      {
+        Message message = ERR_LDAPASSERT_NO_CONTROL_VALUE.get();
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+      }
 
+      ASN1Reader reader = ASN1.getReader(value);
+      LDAPFilter filter;
+      try
+      {
+        filter = LDAPFilter.decode(reader);
+      }
+      catch (LDAPException e)
+      {
+        throw new DirectoryException(ResultCode.valueOf(e.getResultCode()), e
+            .getMessageObject(), e.getCause());
+      }
+
+      return new LDAPAssertionRequestControl(isCritical, filter);
+    }
+
+    public String getOID()
+    {
+      return OID_LDAP_ASSERTION;
+    }
+
+  }
+
+  /**
+   * The Control Decoder that can be used to decode this control.
+   */
+  public static final ControlDecoder<LDAPAssertionRequestControl> DECODER =
+    new Decoder();
 
 
 
@@ -84,8 +118,7 @@ public class LDAPAssertionRequestControl
    */
   public LDAPAssertionRequestControl(boolean isCritical, LDAPFilter rawFilter)
   {
-    super(OID_LDAP_ASSERTION, isCritical,
-          new ASN1OctetString(rawFilter.encode().encode()));
+    super(OID_LDAP_ASSERTION, isCritical);
 
 
     this.rawFilter = rawFilter;
@@ -96,98 +129,17 @@ public class LDAPAssertionRequestControl
 
 
   /**
-   * Creates a new instance of this LDAP assertion request control with the
-   * provided information.
+   * Writes this control's value to an ASN.1 writer. The value (if any) must be
+   * written as an ASN1OctetString.
    *
-   * @param  oid         The OID to use for this control.
-   * @param  isCritical  Indicates whether support for this control should be
-   *                     considered a critical part of the server processing.
-   * @param  rawFilter   The unparsed LDAP search filter contained in the
-   *                     request from the client.
+   * @param writer The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public LDAPAssertionRequestControl(String oid, boolean isCritical,
-                                     LDAPFilter rawFilter)
-  {
-    super(oid, isCritical, new ASN1OctetString(rawFilter.encode().encode()));
-
-
-    this.rawFilter = rawFilter;
-
-    filter = null;
-  }
-
-
-
-  /**
-   * Creates a new instance of this LDAP assertion request control with the
-   * provided information.
-   *
-   * @param  oid           The OID to use for this control.
-   * @param  isCritical    Indicates whether support for this control should be
-   *                       considered a critical part of the server processing.
-   * @param  rawFilter     The unparsed LDAP search filter contained in the
-   *                       request from the client.
-   * @param  encodedValue  The pre-encoded value for this control.
-   */
-  private LDAPAssertionRequestControl(String oid, boolean isCritical,
-                                      LDAPFilter rawFilter,
-                                      ASN1OctetString encodedValue)
-  {
-    super(oid, isCritical, encodedValue);
-
-
-    this.rawFilter = rawFilter;
-
-    filter = null;
-  }
-
-
-
-  /**
-   * Creates a new LDAP assertion request control from the contents of the
-   * provided control.
-   *
-   * @param  control  The generic control containing the information to use to
-   *                  create this LDAP assertion request control.
-   *
-   * @return  The LDAP assertion control decoded from the provided control.
-   *
-   * @throws  LDAPException  If this control cannot be decoded as a valid LDAP
-   *                         assertion control.
-   */
-  public static LDAPAssertionRequestControl decodeControl(Control control)
-         throws LDAPException
-  {
-    if (! control.hasValue())
-    {
-      Message message = ERR_LDAPASSERT_NO_CONTROL_VALUE.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-    }
-
-
-    ASN1Element valueElement;
-    try
-    {
-      valueElement = ASN1Element.decode(control.getValue().value());
-    }
-    catch (ASN1Exception ae)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-      }
-
-      Message message =
-          ERR_LDAPASSERT_INVALID_CONTROL_VALUE.get(ae.getMessage());
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message,
-                              ae);
-    }
-
-
-    return new LDAPAssertionRequestControl(control.getOID(),
-                                           control.isCritical(),
-                                           LDAPFilter.decode(valueElement),
-                                           control.getValue());
+  @Override
+  public void writeValue(ASN1Writer writer) throws IOException {
+    writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
+    rawFilter.write(writer);
+    writer.writeEndSequence();
   }
 
 
@@ -201,23 +153,6 @@ public class LDAPAssertionRequestControl
   {
     return rawFilter;
   }
-
-
-
-  /**
-   * Sets the raw, unparsed filter from the request control.  This method should
-   * only be called by pre-parse plugins.
-   *
-   * @param  rawFilter  The raw, unparsed filter from the request control.
-   */
-  public void setRawFilter(LDAPFilter rawFilter)
-  {
-    this.rawFilter = rawFilter;
-    this.filter    = null;
-
-    setValue(new ASN1OctetString(rawFilter.encode().encode()));
-  }
-
 
 
   /**
@@ -242,25 +177,12 @@ public class LDAPAssertionRequestControl
 
 
   /**
-   * Retrieves a string representation of this LDAP assertion request control.
-   *
-   * @return  A string representation of this LDAP assertion request control.
-   */
-  public String toString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
-  }
-
-
-
-  /**
    * Appends a string representation of this LDAP assertion request control to
    * the provided buffer.
    *
    * @param  buffer  The buffer to which the information should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("LDAPAssertionRequestControl(criticality=");

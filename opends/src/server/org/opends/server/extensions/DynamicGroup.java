@@ -158,7 +158,7 @@ public class DynamicGroup
         {
           try
           {
-            memberURLs.add(LDAPURL.decode(v.getStringValue(), true));
+            memberURLs.add(LDAPURL.decode(v.getValue().toString(), true));
           }
           catch (DirectoryException de)
           {
@@ -168,7 +168,7 @@ public class DynamicGroup
             }
 
             Message message = ERR_DYNAMICGROUP_CANNOT_DECODE_MEMBERURL.
-                get(v.getStringValue(), String.valueOf(groupEntry.getDN()),
+                get(v.getValue().toString(), String.valueOf(groupEntry.getDN()),
                     de.getMessageObject());
             ErrorLogger.logError(message);
           }

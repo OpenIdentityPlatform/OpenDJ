@@ -45,20 +45,11 @@ import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.tools.LDAPPasswordModify;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
 
@@ -198,7 +189,7 @@ public class PasswordModifyExtendedOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(DN.decode("cn=Directory Manager"),
-                                new ASN1OctetString("newPassword"));
+                                ByteString.valueOf("newPassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -255,7 +246,7 @@ public class PasswordModifyExtendedOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(DN.decode("cn=Directory Manager"),
-                                new ASN1OctetString("newPassword"));
+                                ByteString.valueOf("newPassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -311,7 +302,7 @@ public class PasswordModifyExtendedOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(DN.decode("cn=Directory Manager"),
-                                new ASN1OctetString("newPassword"));
+                                ByteString.valueOf("newPassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -390,7 +381,7 @@ public class PasswordModifyExtendedOperationTestCase
     conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(userEntry.getDN(),
-                                new ASN1OctetString("newPassword"));
+                                ByteString.valueOf("newPassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -454,7 +445,7 @@ public class PasswordModifyExtendedOperationTestCase
     conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(userEntry.getDN(),
-                                new ASN1OctetString("newPassword"));
+                                ByteString.valueOf("newPassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -575,7 +566,7 @@ public class PasswordModifyExtendedOperationTestCase
     conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(userEntry.getDN(),
-                                new ASN1OctetString("newPassword"));
+                                ByteString.valueOf("newPassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -640,7 +631,7 @@ public class PasswordModifyExtendedOperationTestCase
     conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(userEntry.getDN(),
-                                new ASN1OctetString("newPassword"));
+                                ByteString.valueOf("newPassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -705,7 +696,7 @@ public class PasswordModifyExtendedOperationTestCase
     conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(userEntry.getDN(),
-                                new ASN1OctetString("newPassword"));
+                                ByteString.valueOf("newPassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -770,7 +761,7 @@ public class PasswordModifyExtendedOperationTestCase
     conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(userEntry.getDN(),
-                                new ASN1OctetString("newPassword"));
+                                ByteString.valueOf("newPassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -834,7 +825,7 @@ public class PasswordModifyExtendedOperationTestCase
     conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(userEntry.getDN(),
-                                new ASN1OctetString("newPassword"));
+                                ByteString.valueOf("newPassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -898,7 +889,7 @@ public class PasswordModifyExtendedOperationTestCase
     conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(userEntry.getDN(),
-                                new ASN1OctetString("newPassword"));
+                                ByteString.valueOf("newPassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -963,7 +954,7 @@ public class PasswordModifyExtendedOperationTestCase
     conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(userEntry.getDN(),
-                                new ASN1OctetString("newPassword"));
+                                ByteString.valueOf("newPassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -1394,7 +1385,7 @@ public class PasswordModifyExtendedOperationTestCase
   @Test()
   public void testFailureInvalidRequestValueFormat()
   {
-    ASN1OctetString requestValue = new ASN1OctetString("malformed");
+    ByteString requestValue = ByteString.valueOf("malformed");
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -1411,14 +1402,14 @@ public class PasswordModifyExtendedOperationTestCase
    * with a request that contain an invalid sequence element type.
    */
   @Test()
-  public void testFailureInvalidSequenceElementType()
+  public void testFailureInvalidSequenceElementType() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>();
-    elements.add(new ASN1Element((byte) 0x50));
-
-    ASN1Sequence requestSequence = new ASN1Sequence(elements);
-    ASN1OctetString requestValue =
-         new ASN1OctetString(requestSequence.encode());
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence();
+    writer.writeNull((byte)0x50);
+    writer.writeEndSequence();
+    ByteString requestValue = builder.toByteString();
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -1435,15 +1426,15 @@ public class PasswordModifyExtendedOperationTestCase
    * internal connection and without providing an authorization ID.
    */
   @Test()
-  public void testFailureCompletelyAnonymous()
+  public void testFailureCompletelyAnonymous() throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>();
-    elements.add(new ASN1OctetString(TYPE_PASSWORD_MODIFY_NEW_PASSWORD,
-                                     "newPassword"));
-
-    ASN1Sequence requestSequence = new ASN1Sequence(elements);
-    ASN1OctetString requestValue =
-         new ASN1OctetString(requestSequence.encode());
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence();
+    writer.writeOctetString(TYPE_PASSWORD_MODIFY_NEW_PASSWORD,
+                                     "newPassword");
+    writer.writeEndSequence();
+    ByteString requestValue = builder.toByteString();
 
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());

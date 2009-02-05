@@ -40,6 +40,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
@@ -350,8 +351,16 @@ public class ServerSideSortControlTestCase
     assertNotNull(responseControls);
     assertEquals(responseControls.size(), 1);
 
-    ServerSideSortResponseControl responseControl =
-         ServerSideSortResponseControl.decodeControl(responseControls.get(0));
+    ServerSideSortResponseControl responseControl;
+    Control c = responseControls.get(0);
+    if(c instanceof ServerSideSortResponseControl)
+    {
+      responseControl = (ServerSideSortResponseControl)c;
+    }
+    else
+    {
+      responseControl = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+    }
     assertEquals(responseControl.getResultCode(), 0);
     assertNull(responseControl.getAttributeType());
     responseControl.toString();
@@ -413,8 +422,16 @@ public class ServerSideSortControlTestCase
     assertNotNull(responseControls);
     assertEquals(responseControls.size(), 1);
 
-    ServerSideSortResponseControl responseControl =
-         ServerSideSortResponseControl.decodeControl(responseControls.get(0));
+    ServerSideSortResponseControl responseControl;
+    Control c = responseControls.get(0);
+    if(c instanceof ServerSideSortResponseControl)
+    {
+      responseControl = (ServerSideSortResponseControl)c;
+    }
+    else
+    {
+      responseControl = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+    }
     assertEquals(responseControl.getResultCode(), 0);
     assertNull(responseControl.getAttributeType());
     responseControl.toString();
@@ -474,8 +491,16 @@ public class ServerSideSortControlTestCase
     assertNotNull(responseControls);
     assertEquals(responseControls.size(), 1);
 
-    ServerSideSortResponseControl responseControl =
-         ServerSideSortResponseControl.decodeControl(responseControls.get(0));
+    ServerSideSortResponseControl responseControl;
+    Control c = responseControls.get(0);
+    if(c instanceof ServerSideSortResponseControl)
+    {
+      responseControl = (ServerSideSortResponseControl)c;
+    }
+    else
+    {
+      responseControl = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+    }
     assertEquals(responseControl.getResultCode(), 0);
     assertNull(responseControl.getAttributeType());
     responseControl.toString();
@@ -537,8 +562,16 @@ public class ServerSideSortControlTestCase
     assertNotNull(responseControls);
     assertEquals(responseControls.size(), 1);
 
-    ServerSideSortResponseControl responseControl =
-         ServerSideSortResponseControl.decodeControl(responseControls.get(0));
+    ServerSideSortResponseControl responseControl;
+    Control c = responseControls.get(0);
+    if(c instanceof ServerSideSortResponseControl)
+    {
+      responseControl = (ServerSideSortResponseControl)c;
+    }
+    else
+    {
+      responseControl = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+    }
     assertEquals(responseControl.getResultCode(), 0);
     assertNull(responseControl.getAttributeType());
     responseControl.toString();
@@ -598,8 +631,16 @@ public class ServerSideSortControlTestCase
     assertNotNull(responseControls);
     assertEquals(responseControls.size(), 1);
 
-    ServerSideSortResponseControl responseControl =
-         ServerSideSortResponseControl.decodeControl(responseControls.get(0));
+    ServerSideSortResponseControl responseControl;
+    Control c = responseControls.get(0);
+    if(c instanceof ServerSideSortResponseControl)
+    {
+      responseControl = (ServerSideSortResponseControl)c;
+    }
+    else
+    {
+      responseControl = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+    }
     assertEquals(responseControl.getResultCode(), 0);
     assertNull(responseControl.getAttributeType());
     responseControl.toString();
@@ -659,8 +700,16 @@ public class ServerSideSortControlTestCase
     assertNotNull(responseControls);
     assertEquals(responseControls.size(), 1);
 
-    ServerSideSortResponseControl responseControl =
-         ServerSideSortResponseControl.decodeControl(responseControls.get(0));
+    ServerSideSortResponseControl responseControl;
+    Control c = responseControls.get(0);
+    if(c instanceof ServerSideSortResponseControl)
+    {
+      responseControl = (ServerSideSortResponseControl)c;
+    }
+    else
+    {
+      responseControl = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
+    }
     assertEquals(responseControl.getResultCode(), 0);
     assertNull(responseControl.getAttributeType());
     responseControl.toString();
@@ -684,7 +733,7 @@ public class ServerSideSortControlTestCase
          InternalClientConnection.getRootConnection();
 
     ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl("undefined"));
+    requestControls.add(new ServerSideSortRequestControl(true, "undefined"));
 
     InternalSearchOperation internalSearch =
          new InternalSearchOperation(conn, conn.nextOperationID(),
@@ -716,7 +765,7 @@ public class ServerSideSortControlTestCase
          InternalClientConnection.getRootConnection();
 
     ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl(
+    requestControls.add(new ServerSideSortRequestControl(true,
                                  "givenName:undefinedOrderingMatch"));
 
     InternalSearchOperation internalSearch =

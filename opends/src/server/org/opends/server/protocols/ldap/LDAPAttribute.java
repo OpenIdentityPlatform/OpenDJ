@@ -36,14 +36,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.opends.messages.Message;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.RawAttribute;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -55,7 +48,7 @@ public class LDAPAttribute
        extends RawAttribute
 {
   // The set of values for this attribute.
-  private ArrayList<ASN1OctetString> values;
+  private ArrayList<ByteString> values;
 
   // The attribute type for this attribute.
   private String attributeType;
@@ -71,7 +64,7 @@ public class LDAPAttribute
   {
     this.attributeType = attributeType;
 
-    values = new ArrayList<ASN1OctetString>(0);
+    values = new ArrayList<ByteString>(0);
   }
 
 
@@ -86,8 +79,8 @@ public class LDAPAttribute
   {
     this.attributeType = attributeType;
 
-    values = new ArrayList<ASN1OctetString>(1);
-    values.add(new ASN1OctetString(value));
+    values = new ArrayList<ByteString>(1);
+    values.add(ByteString.valueOf(value));
   }
 
 
@@ -98,11 +91,11 @@ public class LDAPAttribute
    * @param  attributeType  The attribute type for this attribute.
    * @param  value          The value to use for this attribute.
    */
-  public LDAPAttribute(String attributeType, ASN1OctetString value)
+  public LDAPAttribute(String attributeType, ByteString value)
   {
     this.attributeType = attributeType;
 
-    values = new ArrayList<ASN1OctetString>(1);
+    values = new ArrayList<ByteString>(1);
     values.add(value);
   }
 
@@ -120,14 +113,14 @@ public class LDAPAttribute
 
     if (values == null)
     {
-      this.values = new ArrayList<ASN1OctetString>(0);
+      this.values = new ArrayList<ByteString>(0);
     }
     else
     {
-      this.values = new ArrayList<ASN1OctetString>(values.size());
+      this.values = new ArrayList<ByteString>(values.size());
       for (String value : values)
       {
-        this.values.add(new ASN1OctetString(value));
+        this.values.add(ByteString.valueOf(value));
       }
     }
   }
@@ -140,13 +133,13 @@ public class LDAPAttribute
    * @param  attributeType  The attribute type for this attribute.
    * @param  values         The set of values for this attribute.
    */
-  public LDAPAttribute(String attributeType, ArrayList<ASN1OctetString> values)
+  public LDAPAttribute(String attributeType, ArrayList<ByteString> values)
   {
     this.attributeType = attributeType;
 
     if (values == null)
     {
-      this.values = new ArrayList<ASN1OctetString>(0);
+      this.values = new ArrayList<ByteString>(0);
     }
     else
     {
@@ -181,14 +174,14 @@ public class LDAPAttribute
 
     if (attribute.isEmpty())
     {
-      values = new ArrayList<ASN1OctetString>(0);
+      values = new ArrayList<ByteString>(0);
       return;
     }
 
-    values = new ArrayList<ASN1OctetString>(attribute.size());
+    values = new ArrayList<ByteString>(attribute.size());
     for (AttributeValue v : attribute)
     {
-      values.add(v.getValue().toASN1OctetString());
+      values.add(v.getValue());
     }
   }
 
@@ -224,7 +217,7 @@ public class LDAPAttribute
    *
    * @return  The set of values for this attribute.
    */
-  public ArrayList<ASN1OctetString> getValues()
+  public ArrayList<ByteString> getValues()
   {
     return values;
   }
@@ -274,9 +267,10 @@ public class LDAPAttribute
     }
 
     AttributeType attrType = builder.getAttributeType();
-    for (ASN1OctetString value : values)
+    for (ByteString value : values)
     {
-      if (!builder.add(new AttributeValue(attrType, value)))
+      if (!builder.add(
+          AttributeValues.create(attrType, value)))
       {
         Message message =
             ERR_LDAP_ATTRIBUTE_DUPLICATE_VALUES.get(attributeType);
@@ -317,12 +311,12 @@ public class LDAPAttribute
 
     if (! values.isEmpty())
     {
-      Iterator<ASN1OctetString> iterator = values.iterator();
-      iterator.next().toString(buffer);
+      Iterator<ByteString> iterator = values.iterator();
+      buffer.append(iterator.next());
       while (iterator.hasNext())
       {
         buffer.append(", ");
-        iterator.next().toString(buffer);
+        buffer.append(iterator.next());
       }
     }
 
@@ -359,9 +353,9 @@ public class LDAPAttribute
     buffer.append("  Attribute Values:");
     buffer.append(EOL);
 
-    for (ASN1OctetString value : values)
+    for (ByteString value : values)
     {
-      value.toString(buffer, indent+4);
+      value.toHexPlusAscii(buffer, indent+4);
     }
   }
 }

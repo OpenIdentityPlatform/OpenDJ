@@ -40,10 +40,7 @@ import javax.management.MBeanParameterInfo;
 
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -451,8 +448,8 @@ public final class StringConfigAttribute
       }
 
       AttributeValue attrValue =
-           new AttributeValue(new ASN1OctetString(value),
-                              new ASN1OctetString(value));
+          AttributeValues.create(ByteString.valueOf(value),
+              ByteString.valueOf(value));
 
       if (valueSet.contains(attrValue))
       {
@@ -493,8 +490,8 @@ public final class StringConfigAttribute
     LinkedHashSet<AttributeValue> valueSet =
          new LinkedHashSet<AttributeValue>(1);
 
-    valueSet.add(new AttributeValue(new ASN1OctetString(value),
-                                    new ASN1OctetString(value)));
+    valueSet.add(AttributeValues.create(ByteString.valueOf(value),
+        ByteString.valueOf(value)));
 
     return valueSet;
   }
@@ -520,8 +517,8 @@ public final class StringConfigAttribute
 
     for (String value : values)
     {
-      valueSet.add(new AttributeValue(new ASN1OctetString(value),
-                                      new ASN1OctetString(value)));
+      valueSet.add(AttributeValues.create(ByteString.valueOf(value),
+          ByteString.valueOf(value)));
     }
 
     return valueSet;
@@ -563,7 +560,7 @@ public final class StringConfigAttribute
                                    StringBuilder rejectReason)
   {
     // The only requirement is that the value is not null or empty.
-    if ((value == null) || (value.getStringValue().length() == 0))
+    if ((value == null) || (value.getValue().toString().length() == 0))
     {
       rejectReason.append(ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName()));
       return false;
@@ -641,8 +638,8 @@ public final class StringConfigAttribute
         }
       }
 
-      valueSet.add(new AttributeValue(new ASN1OctetString(valueString),
-                                      new ASN1OctetString(valueString)));
+      valueSet.add(AttributeValues.create(ByteString.valueOf(valueString),
+          ByteString.valueOf(valueString)));
     }
 
 
@@ -774,7 +771,7 @@ public final class StringConfigAttribute
             pendingValues = new ArrayList<String>(numValues);
             for (AttributeValue v : a)
             {
-              pendingValues.add(v.getStringValue());
+              pendingValues.add(v.getValue().toString());
             }
           }
         }
@@ -827,7 +824,7 @@ public final class StringConfigAttribute
           activeValues = new ArrayList<String>(numValues);
           for (AttributeValue v : a)
           {
-            activeValues.add(v.getStringValue());
+            activeValues.add(v.getValue().toString());
           }
         }
       }

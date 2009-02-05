@@ -32,20 +32,21 @@ import org.opends.messages.Message;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLException;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
+
+import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.NullOutputStream;
+import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
@@ -569,28 +570,35 @@ public class ManageAccount
 
     try
     {
-      // Use the subcommand provided to figure out how to encode the request.
-      ArrayList<ASN1Element> opElements = new ArrayList<ASN1Element>(1);
-      result = processSubcommand(opElements);
-      if (result != LDAPResultCode.SUCCESS)
+      ByteStringBuilder builder = new ByteStringBuilder();
+      ASN1Writer writer = ASN1.getWriter(builder);
+
+      try
       {
-        return result;
+        writer.writeStartSequence();
+        writer.writeOctetString(targetDNString);
+
+        // Use the subcommand provided to figure out how to encode the request.
+        writer.writeStartSequence();
+        result = processSubcommand(writer);
+        if (result != LDAPResultCode.SUCCESS)
+        {
+          return result;
+        }
+        writer.writeEndSequence();
+
+        writer.writeEndSequence();
+      }
+      catch(Exception e)
+      {
+        // TODO: Better message
+        err.println(e);
       }
 
-
-      // Generate the extended request and send it to the server.
-      ArrayList<ASN1Element> valueElements = new ArrayList<ASN1Element>(2);
-      valueElements.add(new ASN1OctetString(targetDNString));
-      if (! opElements.isEmpty())
-      {
-        valueElements.add(new ASN1Sequence(opElements));
-      }
-      ASN1OctetString requestValue =
-           new ASN1OctetString(new ASN1Sequence(valueElements).encode());
 
       ExtendedRequestProtocolOp extendedRequest =
            new ExtendedRequestProtocolOp(OID_PASSWORD_POLICY_STATE_EXTOP,
-                                         requestValue);
+                                         builder.toByteString());
 
       LDAPMessage requestMessage =
            new LDAPMessage(nextMessageID.getAndIncrement(), extendedRequest);
@@ -609,7 +617,6 @@ public class ManageAccount
 
 
       // Read the response from the server.
-      ArrayList<ASN1Element> responseOpElements;
       try
       {
         LDAPMessage responseMessage = ldapReader.readMessage();
@@ -635,168 +642,173 @@ public class ManageAccount
           return resultCode;
         }
 
-        ASN1Sequence valueSequence =
-             ASN1Sequence.decodeAsSequence(extendedResponse.getValue().value());
-        responseOpElements =
-             valueSequence.elements().get(1).decodeAsSequence().elements();
+        ASN1Reader reader = ASN1.getReader(extendedResponse.getValue());
+        reader.readStartSequence();
+
+        // Skip the target user DN element
+        reader.skipElement();
+        reader.readStartSequence();
+
+        while(reader.hasNextElement())
+        {
+          // Get the response value and parse its individual elements.
+          int opType;
+          ArrayList<String> opValues;
+
+          try
+          {
+            reader.readStartSequence();
+            opType = (int)reader.readInteger();
+            opValues = new ArrayList<String>();
+            if (reader.hasNextElement())
+            {
+              reader.readStartSequence();
+              while(reader.hasNextElement())
+              {
+                opValues.add(reader.readOctetStringAsString());
+              }
+              reader.readEndSequence();
+            }
+            reader.readEndSequence();
+          }
+          catch (Exception e)
+          {
+            Message message = ERR_PWPSTATE_CANNOT_DECODE_RESPONSE_OP.get(
+                getExceptionMessage(e));
+            err.println(wrapText(message, MAX_LINE_WIDTH));
+            continue;
+          }
+
+          switch (opType)
+          {
+            case OP_GET_PASSWORD_POLICY_DN:
+              Message message = INFO_PWPSTATE_LABEL_PASSWORD_POLICY_DN.get();
+              printLabelAndValues(message, opValues);
+              break;
+
+            case OP_GET_ACCOUNT_DISABLED_STATE:
+              message = INFO_PWPSTATE_LABEL_ACCOUNT_DISABLED_STATE.get();
+              printLabelAndValues(message, opValues);
+              break;
+
+            case OP_GET_ACCOUNT_EXPIRATION_TIME:
+              message = INFO_PWPSTATE_LABEL_ACCOUNT_EXPIRATION_TIME.get();
+              printLabelAndValues(message, opValues);
+              break;
+
+            case OP_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION:
+              message =
+                  INFO_PWPSTATE_LABEL_SECONDS_UNTIL_ACCOUNT_EXPIRATION.get();
+              printLabelAndValues(message, opValues);
+              break;
+
+            case OP_GET_PASSWORD_CHANGED_TIME:
+              message = INFO_PWPSTATE_LABEL_PASSWORD_CHANGED_TIME.get();
+              printLabelAndValues(message, opValues);
+              break;
+
+            case OP_GET_PASSWORD_EXPIRATION_WARNED_TIME:
+              message =
+                  INFO_PWPSTATE_LABEL_PASSWORD_EXPIRATION_WARNED_TIME.get();
+              printLabelAndValues(message, opValues);
+              break;
+
+            case OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION:
+              message =
+                  INFO_PWPSTATE_LABEL_SECONDS_UNTIL_PASSWORD_EXPIRATION.get();
+              printLabelAndValues(message, opValues);
+              break;
+
+            case OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING:
+              message =
+                  INFO_PWPSTATE_LABEL_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING
+                      .get();
+              printLabelAndValues(message, opValues);
+              break;
+
+            case OP_GET_AUTHENTICATION_FAILURE_TIMES:
+              message = INFO_PWPSTATE_LABEL_AUTH_FAILURE_TIMES.get();
+              printLabelAndValues(message, opValues);
+              break;
+
+            case OP_GET_SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK:
+              message =
+                  INFO_PWPSTATE_LABEL_SECONDS_UNTIL_AUTH_FAILURE_UNLOCK.get();
+              printLabelAndValues(message, opValues);
+              break;
+
+            case OP_GET_REMAINING_AUTHENTICATION_FAILURE_COUNT:
+              message = INFO_PWPSTATE_LABEL_REMAINING_AUTH_FAILURE_COUNT.get();
+              printLabelAndValues(message, opValues);
+              break;
+
+            case OP_GET_LAST_LOGIN_TIME:
+              message = INFO_PWPSTATE_LABEL_LAST_LOGIN_TIME.get();
+              printLabelAndValues(message, opValues);
+              break;
+
+            case OP_GET_SECONDS_UNTIL_IDLE_LOCKOUT:
+              message = INFO_PWPSTATE_LABEL_SECONDS_UNTIL_IDLE_LOCKOUT.get();
+              printLabelAndValues(message, opValues);
+              break;
+
+            case OP_GET_PASSWORD_RESET_STATE:
+              message = INFO_PWPSTATE_LABEL_PASSWORD_RESET_STATE.get();
+              printLabelAndValues(message, opValues);
+              break;
+
+            case OP_GET_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT:
+              message =
+                  INFO_PWPSTATE_LABEL_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT
+                      .get();
+              printLabelAndValues(message, opValues);
+              break;
+
+            case OP_GET_GRACE_LOGIN_USE_TIMES:
+              message = INFO_PWPSTATE_LABEL_GRACE_LOGIN_USE_TIMES.get();
+              printLabelAndValues(message, opValues);
+              break;
+
+            case OP_GET_REMAINING_GRACE_LOGIN_COUNT:
+              message = INFO_PWPSTATE_LABEL_REMAINING_GRACE_LOGIN_COUNT.get();
+              printLabelAndValues(message, opValues);
+              break;
+
+            case OP_GET_PASSWORD_CHANGED_BY_REQUIRED_TIME:
+              message =
+                  INFO_PWPSTATE_LABEL_PASSWORD_CHANGED_BY_REQUIRED_TIME.get();
+              printLabelAndValues(message, opValues);
+              break;
+
+            case OP_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME:
+              message =
+                  INFO_PWPSTATE_LABEL_SECONDS_UNTIL_REQUIRED_CHANGE_TIME
+                      .get();
+              printLabelAndValues(message, opValues);
+              break;
+
+            case OP_GET_PASSWORD_HISTORY:
+              message = INFO_PWPSTATE_LABEL_PASSWORD_HISTORY.get();
+              printLabelAndValues(message, opValues);
+              break;
+
+            default:
+              message = ERR_PWPSTATE_INVALID_RESPONSE_OP_TYPE.get(
+                  String.valueOf(opType));
+              err.println(wrapText(message, MAX_LINE_WIDTH));
+              break;
+          }
+        }
+        reader.readEndSequence();
+        reader.readEndSequence();
       }
       catch (Exception e)
       {
         Message message = ERR_PWPSTATE_CANNOT_DECODE_RESPONSE_MESSAGE.get(
-                getExceptionMessage(e));
+            getExceptionMessage(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
       }
-
-
-      // Get the response value and parse its individual elements.
-      for (ASN1Element opElement : responseOpElements)
-      {
-        int opType;
-        ArrayList<String> opValues;
-
-        try
-        {
-          ASN1Sequence opSequence = opElement.decodeAsSequence();
-          ArrayList<ASN1Element> elements = opSequence.elements();
-          opType = elements.get(0).decodeAsEnumerated().intValue();
-          opValues = new ArrayList<String>();
-          if (elements.size() == 2)
-          {
-            for (ASN1Element e : elements.get(1).decodeAsSequence().elements())
-            {
-              opValues.add(e.decodeAsOctetString().stringValue());
-            }
-          }
-        }
-        catch (Exception e)
-        {
-          Message message = ERR_PWPSTATE_CANNOT_DECODE_RESPONSE_OP.get(
-                  getExceptionMessage(e));
-          err.println(wrapText(message, MAX_LINE_WIDTH));
-          continue;
-        }
-
-        switch (opType)
-        {
-          case OP_GET_PASSWORD_POLICY_DN:
-            Message message = INFO_PWPSTATE_LABEL_PASSWORD_POLICY_DN.get();
-            printLabelAndValues(message, opValues);
-            break;
-
-          case OP_GET_ACCOUNT_DISABLED_STATE:
-            message = INFO_PWPSTATE_LABEL_ACCOUNT_DISABLED_STATE.get();
-            printLabelAndValues(message, opValues);
-            break;
-
-          case OP_GET_ACCOUNT_EXPIRATION_TIME:
-            message = INFO_PWPSTATE_LABEL_ACCOUNT_EXPIRATION_TIME.get();
-            printLabelAndValues(message, opValues);
-            break;
-
-          case OP_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION:
-            message =
-                    INFO_PWPSTATE_LABEL_SECONDS_UNTIL_ACCOUNT_EXPIRATION.get();
-            printLabelAndValues(message, opValues);
-            break;
-
-          case OP_GET_PASSWORD_CHANGED_TIME:
-            message = INFO_PWPSTATE_LABEL_PASSWORD_CHANGED_TIME.get();
-            printLabelAndValues(message, opValues);
-            break;
-
-          case OP_GET_PASSWORD_EXPIRATION_WARNED_TIME:
-            message = INFO_PWPSTATE_LABEL_PASSWORD_EXPIRATION_WARNED_TIME.get();
-            printLabelAndValues(message, opValues);
-            break;
-
-          case OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION:
-            message =
-                    INFO_PWPSTATE_LABEL_SECONDS_UNTIL_PASSWORD_EXPIRATION.get();
-            printLabelAndValues(message, opValues);
-            break;
-
-          case OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING:
-            message =
-                  INFO_PWPSTATE_LABEL_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING
-                          .get();
-            printLabelAndValues(message, opValues);
-            break;
-
-          case OP_GET_AUTHENTICATION_FAILURE_TIMES:
-            message = INFO_PWPSTATE_LABEL_AUTH_FAILURE_TIMES.get();
-            printLabelAndValues(message, opValues);
-            break;
-
-          case OP_GET_SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK:
-            message =
-                    INFO_PWPSTATE_LABEL_SECONDS_UNTIL_AUTH_FAILURE_UNLOCK.get();
-            printLabelAndValues(message, opValues);
-            break;
-
-          case OP_GET_REMAINING_AUTHENTICATION_FAILURE_COUNT:
-            message = INFO_PWPSTATE_LABEL_REMAINING_AUTH_FAILURE_COUNT.get();
-            printLabelAndValues(message, opValues);
-            break;
-
-          case OP_GET_LAST_LOGIN_TIME:
-            message = INFO_PWPSTATE_LABEL_LAST_LOGIN_TIME.get();
-            printLabelAndValues(message, opValues);
-            break;
-
-          case OP_GET_SECONDS_UNTIL_IDLE_LOCKOUT:
-            message = INFO_PWPSTATE_LABEL_SECONDS_UNTIL_IDLE_LOCKOUT.get();
-            printLabelAndValues(message, opValues);
-            break;
-
-          case OP_GET_PASSWORD_RESET_STATE:
-            message = INFO_PWPSTATE_LABEL_PASSWORD_RESET_STATE.get();
-            printLabelAndValues(message, opValues);
-            break;
-
-          case OP_GET_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT:
-            message =
-                    INFO_PWPSTATE_LABEL_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT
-                            .get();
-            printLabelAndValues(message, opValues);
-            break;
-
-          case OP_GET_GRACE_LOGIN_USE_TIMES:
-            message = INFO_PWPSTATE_LABEL_GRACE_LOGIN_USE_TIMES.get();
-            printLabelAndValues(message, opValues);
-            break;
-
-          case OP_GET_REMAINING_GRACE_LOGIN_COUNT:
-            message = INFO_PWPSTATE_LABEL_REMAINING_GRACE_LOGIN_COUNT.get();
-            printLabelAndValues(message, opValues);
-            break;
-
-          case OP_GET_PASSWORD_CHANGED_BY_REQUIRED_TIME:
-            message =
-                    INFO_PWPSTATE_LABEL_PASSWORD_CHANGED_BY_REQUIRED_TIME.get();
-            printLabelAndValues(message, opValues);
-            break;
-
-          case OP_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME:
-            message =
-                    INFO_PWPSTATE_LABEL_SECONDS_UNTIL_REQUIRED_CHANGE_TIME
-                            .get();
-            printLabelAndValues(message, opValues);
-            break;
-
-          case OP_GET_PASSWORD_HISTORY:
-            message = INFO_PWPSTATE_LABEL_PASSWORD_HISTORY.get();
-            printLabelAndValues(message, opValues);
-            break;
-
-          default:
-            message = ERR_PWPSTATE_INVALID_RESPONSE_OP_TYPE.get(
-                    String.valueOf(opType));
-            err.println(wrapText(message, MAX_LINE_WIDTH));
-            break;
-        }
-      }
-
 
       // If we've gotten here, then everything completed successfully.
       return 0;
@@ -1382,15 +1394,14 @@ public class ManageAccount
 
 
   /**
-   * Processes the subcommand from the provided argument parser and appends the
-   * appropriate operation elements to the given list.
+   * Processes the subcommand from the provided argument parser and writes the
+   * appropriate operation elements to the given writer.
    *
-   * @param  opElements  A list into which the operation elements shouold be
-   *                     placed.
+   * @param  writer The ASN.1 writer used to write the operation elements.
    *
    * @return  A result code indicating the results of the processing.
    */
-  private static int processSubcommand(ArrayList<ASN1Element> opElements)
+  private static int processSubcommand(ASN1Writer writer) throws IOException
   {
     SubCommand subCommand = argParser.getSubCommand();
     if (subCommand == null)
@@ -1408,11 +1419,11 @@ public class ManageAccount
     }
     else if (subCommandName.equals(SC_GET_PASSWORD_POLICY_DN))
     {
-      opElements.add(encode(OP_GET_PASSWORD_POLICY_DN, NO_VALUE));
+      encode(writer, OP_GET_PASSWORD_POLICY_DN, NO_VALUE);
     }
     else if (subCommandName.equals(SC_GET_ACCOUNT_DISABLED_STATE))
     {
-      opElements.add(encode(OP_GET_ACCOUNT_DISABLED_STATE, NO_VALUE));
+      encode(writer, OP_GET_ACCOUNT_DISABLED_STATE, NO_VALUE);
     }
     else if (subCommandName.equals(SC_SET_ACCOUNT_DISABLED_STATE))
     {
@@ -1422,11 +1433,11 @@ public class ManageAccount
         String valueStr = a.getValue();
         if (isTrueValue(valueStr))
         {
-          opElements.add(encode(OP_SET_ACCOUNT_DISABLED_STATE, "true"));
+          encode(writer, OP_SET_ACCOUNT_DISABLED_STATE, "true");
         }
         else if (isFalseValue(valueStr))
         {
-          opElements.add(encode(OP_SET_ACCOUNT_DISABLED_STATE, "false"));
+          encode(writer, OP_SET_ACCOUNT_DISABLED_STATE, "false");
         }
         else
         {
@@ -1444,101 +1455,101 @@ public class ManageAccount
     }
     else if (subCommandName.equals(SC_CLEAR_ACCOUNT_DISABLED_STATE))
     {
-      opElements.add(encode(OP_CLEAR_ACCOUNT_DISABLED_STATE, NO_VALUE));
+      encode(writer, OP_CLEAR_ACCOUNT_DISABLED_STATE, NO_VALUE);
     }
     else if (subCommandName.equals(SC_GET_ACCOUNT_EXPIRATION_TIME))
     {
-      opElements.add(encode(OP_GET_ACCOUNT_EXPIRATION_TIME, NO_VALUE));
+      encode(writer, OP_GET_ACCOUNT_EXPIRATION_TIME, NO_VALUE);
     }
     else if (subCommandName.equals(SC_SET_ACCOUNT_EXPIRATION_TIME))
     {
       Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
       if ((a != null) && a.isPresent())
       {
-        opElements.add(encode(OP_SET_ACCOUNT_EXPIRATION_TIME, a.getValue()));
+        encode(writer, OP_SET_ACCOUNT_EXPIRATION_TIME, a.getValue());
       }
       else
       {
-        opElements.add(encode(OP_SET_ACCOUNT_EXPIRATION_TIME, NO_VALUE));
+        encode(writer, OP_SET_ACCOUNT_EXPIRATION_TIME, NO_VALUE);
       }
     }
     else if (subCommandName.equals(SC_CLEAR_ACCOUNT_EXPIRATION_TIME))
     {
-      opElements.add(encode(OP_CLEAR_ACCOUNT_EXPIRATION_TIME, NO_VALUE));
+      encode(writer, OP_CLEAR_ACCOUNT_EXPIRATION_TIME, NO_VALUE);
     }
     else if (subCommandName.equals(SC_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION))
     {
-      opElements.add(encode(OP_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION, NO_VALUE));
+      encode(writer, OP_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION, NO_VALUE);
     }
     else if (subCommandName.equals(SC_GET_PASSWORD_CHANGED_TIME))
     {
-      opElements.add(encode(OP_GET_PASSWORD_CHANGED_TIME, NO_VALUE));
+      encode(writer, OP_GET_PASSWORD_CHANGED_TIME, NO_VALUE);
     }
     else if (subCommandName.equals(SC_SET_PASSWORD_CHANGED_TIME))
     {
       Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
       if ((a != null) && a.isPresent())
       {
-        opElements.add(encode(OP_SET_PASSWORD_CHANGED_TIME, a.getValue()));
+        encode(writer, OP_SET_PASSWORD_CHANGED_TIME, a.getValue());
       }
       else
       {
-        opElements.add(encode(OP_SET_PASSWORD_CHANGED_TIME, NO_VALUE));
+        encode(writer, OP_SET_PASSWORD_CHANGED_TIME, NO_VALUE);
       }
     }
     else if (subCommandName.equals(SC_CLEAR_PASSWORD_CHANGED_TIME))
     {
-      opElements.add(encode(OP_CLEAR_PASSWORD_CHANGED_TIME, NO_VALUE));
+      encode(writer, OP_CLEAR_PASSWORD_CHANGED_TIME, NO_VALUE);
     }
     else if(subCommandName.equals(SC_GET_PASSWORD_EXP_WARNED_TIME))
     {
-      opElements.add(encode(OP_GET_PASSWORD_EXPIRATION_WARNED_TIME, NO_VALUE));
+      encode(writer, OP_GET_PASSWORD_EXPIRATION_WARNED_TIME, NO_VALUE);
     }
     else if(subCommandName.equals(SC_SET_PASSWORD_EXP_WARNED_TIME))
     {
       Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
       if ((a != null) && a.isPresent())
       {
-        opElements.add(encode(OP_SET_PASSWORD_EXPIRATION_WARNED_TIME,
-                              a.getValue()));
+        encode(writer, OP_SET_PASSWORD_EXPIRATION_WARNED_TIME,
+                              a.getValue());
       }
       else
       {
-        opElements.add(encode(OP_SET_PASSWORD_EXPIRATION_WARNED_TIME,
-                              NO_VALUE));
+        encode(writer, OP_SET_PASSWORD_EXPIRATION_WARNED_TIME,
+                              NO_VALUE);
       }
     }
     else if(subCommandName.equals(SC_CLEAR_PASSWORD_EXP_WARNED_TIME))
     {
-      opElements.add(encode(OP_CLEAR_PASSWORD_EXPIRATION_WARNED_TIME,
-                            NO_VALUE));
+      encode(writer, OP_CLEAR_PASSWORD_EXPIRATION_WARNED_TIME,
+                            NO_VALUE);
     }
     else if(subCommandName.equals(SC_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION))
     {
-      opElements.add(encode(OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION,
-                            NO_VALUE));
+      encode(writer, OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION,
+                            NO_VALUE);
     }
     else if(subCommandName.equals(
                  SC_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING))
     {
-      opElements.add(encode(OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING,
-                            NO_VALUE));
+      encode(writer, OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING,
+                            NO_VALUE);
     }
     else if(subCommandName.equals(SC_GET_AUTHENTICATION_FAILURE_TIMES))
     {
-      opElements.add(encode(OP_GET_AUTHENTICATION_FAILURE_TIMES, NO_VALUE));
+      encode(writer, OP_GET_AUTHENTICATION_FAILURE_TIMES, NO_VALUE);
     }
     else if(subCommandName.equals(SC_ADD_AUTHENTICATION_FAILURE_TIME))
     {
       Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
       if ((a != null) && a.isPresent())
       {
-        opElements.add(encode(OP_ADD_AUTHENTICATION_FAILURE_TIME,
-                              a.getValue()));
+        encode(writer, OP_ADD_AUTHENTICATION_FAILURE_TIME,
+                              a.getValue());
       }
       else
       {
-        opElements.add(encode(OP_ADD_AUTHENTICATION_FAILURE_TIME, NO_VALUE));
+        encode(writer, OP_ADD_AUTHENTICATION_FAILURE_TIME, NO_VALUE);
       }
     }
     else if(subCommandName.equals(SC_SET_AUTHENTICATION_FAILURE_TIMES))
@@ -1550,56 +1561,56 @@ public class ManageAccount
         String[] values = new String[valueList.size()];
         valueList.toArray(values);
 
-        opElements.add(encode(OP_SET_AUTHENTICATION_FAILURE_TIMES, values));
+        encode(writer, OP_SET_AUTHENTICATION_FAILURE_TIMES, values);
       }
       else
       {
-        opElements.add(encode(OP_SET_AUTHENTICATION_FAILURE_TIMES, NO_VALUE));
+        encode(writer, OP_SET_AUTHENTICATION_FAILURE_TIMES, NO_VALUE);
       }
     }
     else if(subCommandName.equals(SC_CLEAR_AUTHENTICATION_FAILURE_TIMES))
     {
-      opElements.add(encode(OP_CLEAR_AUTHENTICATION_FAILURE_TIMES, NO_VALUE));
+      encode(writer, OP_CLEAR_AUTHENTICATION_FAILURE_TIMES, NO_VALUE);
     }
     else if(subCommandName.equals(
                  SC_GET_SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK))
     {
-      opElements.add(encode(OP_GET_SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK,
-                            NO_VALUE));
+      encode(writer, OP_GET_SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK,
+                            NO_VALUE);
     }
     else if(subCommandName.equals(
                  SC_GET_REMAINING_AUTHENTICATION_FAILURE_COUNT))
     {
-      opElements.add(encode(OP_GET_REMAINING_AUTHENTICATION_FAILURE_COUNT,
-                            NO_VALUE));
+      encode(writer, OP_GET_REMAINING_AUTHENTICATION_FAILURE_COUNT,
+                            NO_VALUE);
     }
     else if(subCommandName.equals(SC_GET_LAST_LOGIN_TIME))
     {
-      opElements.add(encode(OP_GET_LAST_LOGIN_TIME, NO_VALUE));
+      encode(writer, OP_GET_LAST_LOGIN_TIME, NO_VALUE);
     }
     else if(subCommandName.equals(SC_SET_LAST_LOGIN_TIME))
     {
       Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
       if ((a != null) && a.isPresent())
       {
-        opElements.add(encode(OP_SET_LAST_LOGIN_TIME, a.getValue()));
+        encode(writer, OP_SET_LAST_LOGIN_TIME, a.getValue());
       }
       else
       {
-        opElements.add(encode(OP_SET_LAST_LOGIN_TIME, NO_VALUE));
+        encode(writer, OP_SET_LAST_LOGIN_TIME, NO_VALUE);
       }
     }
     else if(subCommandName.equals(SC_CLEAR_LAST_LOGIN_TIME))
     {
-      opElements.add(encode(OP_CLEAR_LAST_LOGIN_TIME, NO_VALUE));
+      encode(writer, OP_CLEAR_LAST_LOGIN_TIME, NO_VALUE);
     }
     else if(subCommandName.equals(SC_GET_SECONDS_UNTIL_IDLE_LOCKOUT))
     {
-      opElements.add(encode(OP_GET_SECONDS_UNTIL_IDLE_LOCKOUT, NO_VALUE));
+      encode(writer, OP_GET_SECONDS_UNTIL_IDLE_LOCKOUT, NO_VALUE);
     }
     else if(subCommandName.equals(SC_GET_PASSWORD_RESET_STATE))
     {
-      opElements.add(encode(OP_GET_PASSWORD_RESET_STATE, NO_VALUE));
+      encode(writer, OP_GET_PASSWORD_RESET_STATE, NO_VALUE);
     }
     else if(subCommandName.equals(SC_SET_PASSWORD_RESET_STATE))
     {
@@ -1609,11 +1620,11 @@ public class ManageAccount
         String valueStr = a.getValue();
         if (isTrueValue(valueStr))
         {
-          opElements.add(encode(OP_SET_PASSWORD_RESET_STATE, "true"));
+          encode(writer, OP_SET_PASSWORD_RESET_STATE, "true");
         }
         else if (isFalseValue(valueStr))
         {
-          opElements.add(encode(OP_SET_PASSWORD_RESET_STATE, "false"));
+          encode(writer, OP_SET_PASSWORD_RESET_STATE, "false");
         }
         else
         {
@@ -1631,27 +1642,27 @@ public class ManageAccount
     }
     else if(subCommandName.equals(SC_CLEAR_PASSWORD_RESET_STATE))
     {
-      opElements.add(encode(OP_GET_PASSWORD_RESET_STATE, NO_VALUE));
+      encode(writer, OP_GET_PASSWORD_RESET_STATE, NO_VALUE);
     }
     else if(subCommandName.equals(SC_GET_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT))
     {
-      opElements.add(encode(OP_GET_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT,
-                            NO_VALUE));
+      encode(writer, OP_GET_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT,
+                            NO_VALUE);
     }
     else if(subCommandName.equals(SC_GET_GRACE_LOGIN_USE_TIMES))
     {
-      opElements.add(encode(OP_GET_GRACE_LOGIN_USE_TIMES, NO_VALUE));
+      encode(writer, OP_GET_GRACE_LOGIN_USE_TIMES, NO_VALUE);
     }
     else if(subCommandName.equals(SC_ADD_GRACE_LOGIN_USE_TIME))
     {
       Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
       if ((a != null) && a.isPresent())
       {
-        opElements.add(encode(OP_ADD_GRACE_LOGIN_USE_TIME, a.getValue()));
+        encode(writer, OP_ADD_GRACE_LOGIN_USE_TIME, a.getValue());
       }
       else
       {
-        opElements.add(encode(OP_ADD_GRACE_LOGIN_USE_TIME, NO_VALUE));
+        encode(writer, OP_ADD_GRACE_LOGIN_USE_TIME, NO_VALUE);
       }
     }
     else if(subCommandName.equals(SC_SET_GRACE_LOGIN_USE_TIMES))
@@ -1663,57 +1674,57 @@ public class ManageAccount
         String[] values = new String[valueList.size()];
         valueList.toArray(values);
 
-        opElements.add(encode(OP_SET_GRACE_LOGIN_USE_TIMES, values));
+        encode(writer, OP_SET_GRACE_LOGIN_USE_TIMES, values);
       }
       else
       {
-        opElements.add(encode(OP_SET_GRACE_LOGIN_USE_TIMES, NO_VALUE));
+        encode(writer, OP_SET_GRACE_LOGIN_USE_TIMES, NO_VALUE);
       }
     }
     else if(subCommandName.equals(SC_CLEAR_GRACE_LOGIN_USE_TIMES))
     {
-      opElements.add(encode(OP_CLEAR_GRACE_LOGIN_USE_TIMES, NO_VALUE));
+      encode(writer, OP_CLEAR_GRACE_LOGIN_USE_TIMES, NO_VALUE);
     }
     else if(subCommandName.equals(SC_GET_REMAINING_GRACE_LOGIN_COUNT))
     {
-      opElements.add(encode(OP_GET_REMAINING_GRACE_LOGIN_COUNT, NO_VALUE));
+      encode(writer, OP_GET_REMAINING_GRACE_LOGIN_COUNT, NO_VALUE);
     }
     else if(subCommandName.equals(SC_GET_PASSWORD_CHANGED_BY_REQUIRED_TIME))
     {
-      opElements.add(encode(OP_GET_PASSWORD_CHANGED_BY_REQUIRED_TIME,
-                            NO_VALUE));
+      encode(writer, OP_GET_PASSWORD_CHANGED_BY_REQUIRED_TIME,
+                            NO_VALUE);
     }
     else if(subCommandName.equals(SC_SET_PASSWORD_CHANGED_BY_REQUIRED_TIME))
     {
       Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
       if ((a != null) && a.isPresent())
       {
-        opElements.add(encode(OP_SET_PASSWORD_CHANGED_BY_REQUIRED_TIME,
-                              a.getValue()));
+        encode(writer, OP_SET_PASSWORD_CHANGED_BY_REQUIRED_TIME,
+                              a.getValue());
       }
       else
       {
-        opElements.add(encode(OP_SET_PASSWORD_CHANGED_BY_REQUIRED_TIME,
-                              NO_VALUE));
+        encode(writer, OP_SET_PASSWORD_CHANGED_BY_REQUIRED_TIME,
+                              NO_VALUE);
       }
     }
     else if(subCommandName.equals(SC_CLEAR_PASSWORD_CHANGED_BY_REQUIRED_TIME))
     {
-      opElements.add(encode(OP_CLEAR_PASSWORD_CHANGED_BY_REQUIRED_TIME,
-                            NO_VALUE));
+      encode(writer, OP_CLEAR_PASSWORD_CHANGED_BY_REQUIRED_TIME,
+                            NO_VALUE);
     }
     else if(subCommandName.equals(SC_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME))
     {
-      opElements.add(encode(OP_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME,
-                            NO_VALUE));
+      encode(writer, OP_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME,
+                            NO_VALUE);
     }
     else if (subCommandName.equals(SC_GET_PASSWORD_HISTORY))
     {
-      opElements.add(encode(OP_GET_PASSWORD_HISTORY, NO_VALUE));
+      encode(writer, OP_GET_PASSWORD_HISTORY, NO_VALUE);
     }
     else if (subCommandName.equals(SC_CLEAR_PASSWORD_HISTORY))
     {
-      opElements.add(encode(OP_CLEAR_PASSWORD_HISTORY, NO_VALUE));
+      encode(writer, OP_CLEAR_PASSWORD_HISTORY, NO_VALUE);
     }
     else
     {

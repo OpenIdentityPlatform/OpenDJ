@@ -25,9 +25,16 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
-import org.opends.messages.Message;
 
 
+
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.tools.ToolConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -36,6 +43,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.LDIFBackendCfg;
@@ -52,7 +60,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordStorageSchemeConfigManager;
 import org.opends.server.crypto.CryptoManagerSync;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
@@ -68,16 +76,6 @@ import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.StringArgument;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.ConfigMessages.*;
-
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.tools.ToolConstants.*;
 
 
 
@@ -330,16 +328,16 @@ public class EncodePassword
     // If we are not going to just list the storage schemes, then the clear-text
     // password must have been provided.  If we're going to encode a password,
     // then the scheme must have also been provided.
-    ASN1OctetString clearPW = null;
+    ByteString clearPW = null;
     if (! listSchemes.isPresent())
     {
       if (clearPassword.hasValue())
       {
-        clearPW = new ASN1OctetString(clearPassword.getValue());
+        clearPW = ByteString.valueOf(clearPassword.getValue());
       }
       else if (clearPasswordFile.hasValue())
       {
-        clearPW = new ASN1OctetString(clearPasswordFile.getValue());
+        clearPW = ByteString.valueOf(clearPasswordFile.getValue());
       }
       else
       {
@@ -370,12 +368,12 @@ public class EncodePassword
     if (encodedPassword.hasValue())
     {
       compareMode = true;
-      encodedPW = new ASN1OctetString(encodedPassword.getValue());
+      encodedPW = ByteString.valueOf(encodedPassword.getValue());
     }
     else if (encodedPasswordFile.hasValue())
     {
       compareMode = true;
-      encodedPW = new ASN1OctetString(encodedPasswordFile.getValue());
+      encodedPW = ByteString.valueOf(encodedPasswordFile.getValue());
     }
     else
     {
@@ -391,8 +389,8 @@ public class EncodePassword
     {
       try
       {
-        directoryServer.bootstrapClient();
-        directoryServer.initializeJMX();
+        DirectoryServer.bootstrapClient();
+        DirectoryServer.initializeJMX();
       }
       catch (Exception e)
       {
@@ -595,7 +593,7 @@ public class EncodePassword
         try
         {
           StringBuilder[] authPWElements =
-               AuthPasswordSyntax.decodeAuthPassword(encodedPW.stringValue());
+               AuthPasswordSyntax.decodeAuthPassword(encodedPW.toString());
           scheme    = authPWElements[0].toString();
           authInfo  = authPWElements[1].toString();
           authValue = authPWElements[2].toString();
@@ -664,7 +662,7 @@ public class EncodePassword
           try
           {
             String[] userPWElements =
-                 UserPasswordSyntax.decodeUserPassword(encodedPW.stringValue());
+                 UserPasswordSyntax.decodeUserPassword(encodedPW.toString());
             encodedPWString = userPWElements[1];
 
             storageScheme =
@@ -704,7 +702,7 @@ public class EncodePassword
           encodedPWString = encodedPW.toString();
 
           String scheme = toLowerCase(schemeName.getValue());
-          storageScheme = directoryServer.getPasswordStorageScheme(scheme);
+          storageScheme = DirectoryServer.getPasswordStorageScheme(scheme);
           if (storageScheme == null)
           {
             Message message = ERR_ENCPW_NO_SUCH_SCHEME.get(scheme);
@@ -714,7 +712,7 @@ public class EncodePassword
         }
 
         if (storageScheme.passwordMatches(clearPW,
-                                          new ASN1OctetString(encodedPWString)))
+            ByteString.valueOf(encodedPWString)))
         {
           Message message = INFO_ENCPW_PASSWORDS_MATCH.get();
           out.println(message);
@@ -778,7 +776,7 @@ public class EncodePassword
           encodedPW = storageScheme.encodeAuthPassword(clearPW);
 
           Message message = ERR_ENCPW_ENCODED_PASSWORD.get(
-                  encodedPW.stringValue());
+                  encodedPW.toString());
           out.println(message);
         }
         catch (DirectoryException de)
@@ -801,7 +799,7 @@ public class EncodePassword
           encodedPW = storageScheme.encodePasswordWithScheme(clearPW);
 
           Message message =
-                  ERR_ENCPW_ENCODED_PASSWORD.get(encodedPW.stringValue());
+                  ERR_ENCPW_ENCODED_PASSWORD.get(encodedPW.toString());
           out.println(message);
         }
         catch (DirectoryException de)

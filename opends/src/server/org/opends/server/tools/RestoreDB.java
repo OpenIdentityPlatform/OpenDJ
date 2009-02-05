@@ -52,14 +52,7 @@ import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.BackupInfo;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.NullOutputStream;
-import org.opends.server.types.RestoreConfig;
-import org.opends.server.types.RawAttribute;
+import org.opends.server.types.*;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
@@ -72,7 +65,6 @@ import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
 import org.opends.server.tools.tasks.TaskTool;
 import org.opends.server.admin.std.server.BackendCfg;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.tasks.RestoreTask;
 
@@ -278,13 +270,13 @@ public class RestoreDB extends TaskTool {
    */
   public void addTaskAttributes(List<RawAttribute> attributes)
   {
-    ArrayList<ASN1OctetString> values;
+    ArrayList<ByteString> values;
 
     if (backupDirectory.getValue() != null &&
             !backupDirectory.getValue().equals(
                     backupDirectory.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(backupDirectory.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(backupDirectory.getValue()));
       attributes.add(
               new LDAPAttribute(ATTR_BACKUP_DIRECTORY_PATH, values));
     }
@@ -292,8 +284,8 @@ public class RestoreDB extends TaskTool {
     if (backupIDString.getValue() != null &&
             !backupIDString.getValue().equals(
                     backupIDString.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(backupIDString.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(backupIDString.getValue()));
       attributes.add(
               new LDAPAttribute(ATTR_BACKUP_ID, values));
     }
@@ -301,8 +293,8 @@ public class RestoreDB extends TaskTool {
     if (verifyOnly.getValue() != null &&
             !verifyOnly.getValue().equals(
                     verifyOnly.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(verifyOnly.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(verifyOnly.getValue()));
       attributes.add(
               new LDAPAttribute(ATTR_TASK_RESTORE_VERIFY_ONLY, values));
     }

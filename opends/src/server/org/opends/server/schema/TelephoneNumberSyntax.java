@@ -40,11 +40,11 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
 
 
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.ByteSequence;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
@@ -251,13 +251,13 @@ public class TelephoneNumberSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteString value,
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // No matter what, the value can't be empty or null.
     String valueStr;
     if ((value == null) ||
-        ((valueStr = value.stringValue().trim()).length() == 0))
+        ((valueStr = value.toString().trim()).length() == 0))
     {
       invalidReason.append(ERR_ATTR_SYNTAX_TELEPHONE_EMPTY.get());
       return false;

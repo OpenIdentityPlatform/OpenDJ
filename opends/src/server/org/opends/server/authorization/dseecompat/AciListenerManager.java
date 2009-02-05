@@ -39,6 +39,7 @@ import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPControl;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -240,10 +241,11 @@ public class AciListenerManager
       //Add manageDsaIT control so any ACIs in referral entries will be
       //picked up.
       ArrayList<Control> controls = new ArrayList<Control>(1);
-      controls.add(new Control(OID_MANAGE_DSAIT_CONTROL, true));
+      controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       //Add group membership control to let a backend look for it and
       //decide if it would abort searches.
-      controls.add(new Control(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE ,false));
+      controls.add(new LDAPControl(
+          OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE ,false));
       for (DN baseDN : backend.getBaseDNs()) {
         try {
           if (! backend.entryExists(baseDN))  {

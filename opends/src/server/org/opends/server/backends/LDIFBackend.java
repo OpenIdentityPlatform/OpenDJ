@@ -44,6 +44,7 @@ import org.opends.server.admin.std.server.LDIFBackendCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigException;
+import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -106,7 +107,7 @@ public class LDIFBackend
   private DN[] baseDNs;
 
   // The mapping between parent DNs and their immediate children.
-  private HashMap<DN,HashSet<DN>> childDNs;
+  private final HashMap<DN,HashSet<DN>> childDNs;
 
   // The base DNs for this backend, in a hash set.
   private HashSet<DN> baseDNSet;
@@ -121,10 +122,10 @@ public class LDIFBackend
   private LDIFBackendCfg currentConfig;
 
   // The mapping between entry DNs and the corresponding entries.
-  private LinkedHashMap<DN,Entry> entryMap;
+  private final LinkedHashMap<DN,Entry> entryMap;
 
   // A read-write lock used to protect access to this backend.
-  private ReentrantReadWriteLock backendLock;
+  private final ReentrantReadWriteLock backendLock;
 
   // The path to the LDIF file containing the data for this backend.
   private String ldifFilePath;
@@ -733,13 +734,12 @@ public class LDIFBackend
       else
       {
         boolean subtreeDelete = false;
-        for (Control c : deleteOperation.getRequestControls())
+
+        if (deleteOperation != null
+            && deleteOperation
+                .getRequestControl(SubtreeDeleteControl.DECODER) != null)
         {
-          if (c.getOID().equals(OID_SUBTREE_DELETE_CONTROL))
-          {
-            subtreeDelete = true;
-            break;
-          }
+          subtreeDelete = true;
         }
 
         if (! subtreeDelete)
@@ -1579,6 +1579,7 @@ public class LDIFBackend
   /**
    * {@inheritDoc}
    */
+  @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
   }

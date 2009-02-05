@@ -73,11 +73,12 @@ import org.opends.server.util.SetupUtils;
 
 /**
  * This class is a wrapper on top of LDAPConnectionHandler to manage
- * the administration connector, which is an LDAPConnectionHandler with specific
- * (limited) configuration properties.
+ * the administration connector, which is an LDAPConnectionHandler
+ * with specific (limited) configuration properties.
  */
-public final class AdministrationConnector
-  implements ConfigurationChangeListener<AdministrationConnectorCfg> {
+public final class AdministrationConnector implements
+    ConfigurationChangeListener<AdministrationConnectorCfg>
+{
 
   /**
    * Default Administration Connector port.
@@ -89,44 +90,68 @@ public final class AdministrationConnector
    */
   public static final int ADMIN_CERT_VALIDITY = 2 * 365;
 
- // Friendly name of the administration connector
+  // Friendly name of the administration connector
   private static final String FRIENDLY_NAME = "Administration Connector";
 
   // The tracer object for the debug logger.
   private static final DebugTracer TRACER = getTracer();
+
   private LDAPConnectionHandler adminConnectionHandler;
-  private AdministrationConnectorCfg config;  //
+
+  private AdministrationConnectorCfg config; //
+
   // Predefined values for Administration Connector configuration
   //
   private static final String ADMIN_CLASS_NAME =
     "org.opends.server.protocols.ldap.LDAPConnectionHandler";
+
   private static final boolean ADMIN_ALLOW_LDAP_V2 = true;
+
   private static final boolean ADMIN_ALLOW_START_TLS = false;
+
   private static final SortedSet<AddressMask> ADMIN_ALLOWED_CLIENT =
     new TreeSet<AddressMask>();
+
   private static final SortedSet<AddressMask> ADMIN_DENIED_CLIENT =
     new TreeSet<AddressMask>();
+
   private static final boolean ADMIN_ENABLED = true;
+
   private static final boolean ADMIN_KEEP_STATS = true;
+
   private static final boolean ADMIN_USE_SSL = true;
+
   private static final int ADMIN_ACCEPT_BACKLOG = 128;
+
   private static final boolean ADMIN_ALLOW_TCP_REUSE_ADDRESS = true;
+
   private static final long ADMIN_MAX_BLOCKED_WRITE_TIME_LIMIT = 120000; // 2mn
+
   private static final int ADMIN_MAX_REQUEST_SIZE = 5000000; // 5 Mb
+
   private static final int ADMIN_NUM_REQUEST_HANDLERS = 1;
+
   private static final boolean ADMIN_SEND_REJECTION_NOTICE = true;
+
   private static final boolean ADMIN_USE_TCP_KEEP_ALIVE = true;
+
   private static final boolean ADMIN_USE_TCP_NO_DELAY = true;
+
   private static final SSLClientAuthPolicy ADMIN_SSL_CLIENT_AUTH_POLICY =
     SSLClientAuthPolicy.DISABLED;
+
   private static final SortedSet<String> ADMIN_SSL_CIPHER_SUITE =
     new TreeSet<String>();
+
   private static final SortedSet<String> ADMIN_SSL_PROTOCOL =
     new TreeSet<String>();
 
+
+
   /**
    * Initializes this administration connector provider based on the
-   * information in the provided administration connector configuration.
+   * information in the provided administration connector
+   * configuration.
    *
    * @param configuration
    *          The connection handler configuration that contains the
@@ -141,8 +166,9 @@ public final class AdministrationConnector
    *           related to the server configuration.
    */
   public void initializeAdministrationConnector(
-    AdministrationConnectorCfg configuration)
-    throws ConfigException, InitializationException {
+      AdministrationConnectorCfg configuration) throws ConfigException,
+      InitializationException
+  {
 
     this.config = configuration;
 
@@ -152,364 +178,495 @@ public final class AdministrationConnector
 
     createSelfSignedCertifIfNeeded();
 
-    // Administration Connector uses the LDAP connection handler implementation
-    adminConnectionHandler =
-      new LDAPConnectionHandler(new SynchronousStrategy(), FRIENDLY_NAME);
-    adminConnectionHandler.
-      initializeConnectionHandler(ldapConnectionHandlerCfg);
+
+    // Administration Connector uses the LDAP connection handler
+    // implementation
+    adminConnectionHandler = new LDAPConnectionHandler(
+        new SynchronousStrategy(), FRIENDLY_NAME);
+    adminConnectionHandler
+        .initializeConnectionHandler(ldapConnectionHandlerCfg);
     adminConnectionHandler.setAdminConnectionHandler();
 
     // Register this as a change listener.
     config.addChangeListener(this);
   }
 
+
+
   /**
    * Create an instance of the administration connector.
    */
-  public AdministrationConnector() {
+  public AdministrationConnector()
+  {
     // Do nothing.
   }
 
+
+
   /**
-   * Retrieves the connection handler linked to this administration connector.
+   * Retrieves the connection handler linked to this administration
+   * connector.
    *
-   * @return The connection handler linked to this administration connector.
+   * @return The connection handler linked to this administration
+   *         connector.
    */
-  public LDAPConnectionHandler getConnectionHandler() {
+  public LDAPConnectionHandler getConnectionHandler()
+  {
     return adminConnectionHandler;
   }
+
+
 
   /**
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-    AdministrationConnectorCfg configuration,
-    List<Message> unacceptableReasons) {
-    LDAPConnectionHandlerCfg cfg =
-      new FakeLDAPConnectionHandlerCfg(configuration);
-    return adminConnectionHandler.isConfigurationAcceptable(
-      cfg, unacceptableReasons);
+      AdministrationConnectorCfg configuration,
+      List<Message> unacceptableReasons)
+  {
+    LDAPConnectionHandlerCfg cfg = new FakeLDAPConnectionHandlerCfg(
+        configuration);
+    return adminConnectionHandler.isConfigurationAcceptable(cfg,
+        unacceptableReasons);
   }
+
+
 
   /**
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationChange(
-    AdministrationConnectorCfg configuration) {
-    return new ConfigChangeResult(
-      ResultCode.SUCCESS, true, new ArrayList<Message>());
+      AdministrationConnectorCfg configuration)
+  {
+    return new ConfigChangeResult(ResultCode.SUCCESS, true,
+        new ArrayList<Message>());
   }
 
+
+
   /**
-   * This private class implements a fake LDAP connection Handler configuration.
-   * This allows to re-use the LDAPConnectionHandler as it is.
-   *
+   * This private class implements a fake LDAP connection Handler
+   * configuration. This allows to re-use the LDAPConnectionHandler as
+   * it is.
    */
-  private static class FakeLDAPConnectionHandlerCfg
-    implements LDAPConnectionHandlerCfg {
+  private static class FakeLDAPConnectionHandlerCfg implements
+      LDAPConnectionHandlerCfg
+  {
 
     private final AdministrationConnectorCfg config;
 
-    public FakeLDAPConnectionHandlerCfg(AdministrationConnectorCfg config) {
+
+
+    public FakeLDAPConnectionHandlerCfg(AdministrationConnectorCfg config)
+    {
       this.config = config;
     }
+
+
 
     /**
      * {@inheritDoc}
      */
-    public Class<? extends LDAPConnectionHandlerCfg> configurationClass() {
+    public Class<? extends LDAPConnectionHandlerCfg> configurationClass()
+    {
       return LDAPConnectionHandlerCfg.class;
     }
+
+
 
     /**
      * {@inheritDoc}
      */
     public void addLDAPChangeListener(
-      ConfigurationChangeListener<LDAPConnectionHandlerCfg> listener) {
+        ConfigurationChangeListener<LDAPConnectionHandlerCfg> listener)
+    {
       // do nothing. change listener already added.
     }
+
+
 
     /**
      * {@inheritDoc}
      */
     public void removeLDAPChangeListener(
-      ConfigurationChangeListener<LDAPConnectionHandlerCfg> listener) {
+        ConfigurationChangeListener<LDAPConnectionHandlerCfg> listener)
+    {
       // do nothing. change listener already added.
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public int getAcceptBacklog() {
+    public int getAcceptBacklog()
+    {
       return ADMIN_ACCEPT_BACKLOG;
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public boolean isAllowLDAPV2() {
+    public boolean isAllowLDAPV2()
+    {
       return ADMIN_ALLOW_LDAP_V2;
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public boolean isAllowStartTLS() {
+    public boolean isAllowStartTLS()
+    {
       return ADMIN_ALLOW_START_TLS;
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public boolean isAllowTCPReuseAddress() {
+    public boolean isAllowTCPReuseAddress()
+    {
       return ADMIN_ALLOW_TCP_REUSE_ADDRESS;
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public String getJavaClass() {
+    public String getJavaClass()
+    {
       return ADMIN_CLASS_NAME;
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public boolean isKeepStats() {
+    public boolean isKeepStats()
+    {
       return ADMIN_KEEP_STATS;
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public String getKeyManagerProvider() {
+    public String getKeyManagerProvider()
+    {
       return config.getKeyManagerProvider();
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public DN getKeyManagerProviderDN() {
+    public DN getKeyManagerProviderDN()
+    {
       return config.getKeyManagerProviderDN();
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public SortedSet<InetAddress> getListenAddress() {
+    public SortedSet<InetAddress> getListenAddress()
+    {
       return config.getListenAddress();
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public int getListenPort() {
+    public int getListenPort()
+    {
       return config.getListenPort();
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public long getMaxBlockedWriteTimeLimit() {
+    public long getMaxBlockedWriteTimeLimit()
+    {
       return ADMIN_MAX_BLOCKED_WRITE_TIME_LIMIT;
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public long getMaxRequestSize() {
+    public long getMaxRequestSize()
+    {
       return ADMIN_MAX_REQUEST_SIZE;
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public int getNumRequestHandlers() {
+    public int getNumRequestHandlers()
+    {
       return ADMIN_NUM_REQUEST_HANDLERS;
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public boolean isSendRejectionNotice() {
+    public boolean isSendRejectionNotice()
+    {
       return ADMIN_SEND_REJECTION_NOTICE;
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public String getSSLCertNickname() {
+    public String getSSLCertNickname()
+    {
       return config.getSSLCertNickname();
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public SortedSet<String> getSSLCipherSuite() {
+    public SortedSet<String> getSSLCipherSuite()
+    {
       return ADMIN_SSL_CIPHER_SUITE;
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public SSLClientAuthPolicy getSSLClientAuthPolicy() {
+    public SSLClientAuthPolicy getSSLClientAuthPolicy()
+    {
       return ADMIN_SSL_CLIENT_AUTH_POLICY;
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public SortedSet<String> getSSLProtocol() {
+    public SortedSet<String> getSSLProtocol()
+    {
       return ADMIN_SSL_PROTOCOL;
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public String getTrustManagerProvider() {
+    public String getTrustManagerProvider()
+    {
       return config.getTrustManagerProvider();
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public DN getTrustManagerProviderDN() {
+    public DN getTrustManagerProviderDN()
+    {
       return config.getTrustManagerProviderDN();
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public boolean isUseSSL() {
+    public boolean isUseSSL()
+    {
       return ADMIN_USE_SSL;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isUseTCPKeepAlive() {
-      return ADMIN_USE_TCP_KEEP_ALIVE;
-    }
+
 
     /**
      * {@inheritDoc}
      */
-    public boolean isUseTCPNoDelay() {
+    public boolean isUseTCPKeepAlive()
+    {
+      return ADMIN_USE_TCP_KEEP_ALIVE;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isUseTCPNoDelay()
+    {
       return ADMIN_USE_TCP_NO_DELAY;
     }
+
+
 
     /**
      * {@inheritDoc}
      */
     public void addChangeListener(
-      ConfigurationChangeListener<ConnectionHandlerCfg> listener) {
+        ConfigurationChangeListener<ConnectionHandlerCfg> listener)
+    {
       // do nothing. change listener already added.
     }
+
+
 
     /**
      * {@inheritDoc}
      */
     public void removeChangeListener(
-      ConfigurationChangeListener<ConnectionHandlerCfg> listener) {
+        ConfigurationChangeListener<ConnectionHandlerCfg> listener)
+    {
       // do nothing. change listener already added.
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public SortedSet<AddressMask> getAllowedClient() {
+    public SortedSet<AddressMask> getAllowedClient()
+    {
       return ADMIN_ALLOWED_CLIENT;
     }
 
+
+
     /**
      * {@inheritDoc}
      */
-    public SortedSet<AddressMask> getDeniedClient() {
+    public SortedSet<AddressMask> getDeniedClient()
+    {
       return ADMIN_DENIED_CLIENT;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isEnabled() {
-      return ADMIN_ENABLED;
-    }
+
 
     /**
      * {@inheritDoc}
      */
-    public DN dn() {
+    public boolean isEnabled()
+    {
+      return ADMIN_ENABLED;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public DN dn()
+    {
       return config.dn();
     }
   }
 
+
+
   /**
    * Creates a self-signed JKS certificate if needed.
    */
-  private void createSelfSignedCertifIfNeeded()
-    throws InitializationException {
+  private void createSelfSignedCertifIfNeeded() throws InitializationException
+  {
 
-    try {
+    try
+    {
 
       // Check if certificate generation is needed
       String certAlias = config.getSSLCertNickname();
       KeyManagerProviderCfg keyMgrConfig =
         getAdminConnectorKeyManagerConfig(config.getKeyManagerProvider());
+
       TrustManagerProviderCfg trustMgrConfig =
         getAdminConnectorTrustManagerConfig(config.getTrustManagerProvider());
 
-      if (!(keyMgrConfig instanceof FileBasedKeyManagerProviderCfg) ||
-        !(trustMgrConfig instanceof FileBasedTrustManagerProviderCfg)) {
+      if (!(keyMgrConfig instanceof FileBasedKeyManagerProviderCfg)
+          || !(trustMgrConfig instanceof FileBasedTrustManagerProviderCfg))
+      {
         // The default config has been changed, nothing to do
         return;
       }
 
       FileBasedKeyManagerProviderCfg fbKeyManagerConfig =
         (FileBasedKeyManagerProviderCfg) keyMgrConfig;
-      String keystorePath =
-        getFullPath(fbKeyManagerConfig.getKeyStoreFile());
+      String keystorePath = getFullPath(fbKeyManagerConfig.getKeyStoreFile());
       FileBasedTrustManagerProviderCfg fbTrustManagerConfig =
         (FileBasedTrustManagerProviderCfg) trustMgrConfig;
-      String truststorePath =
-        getFullPath(fbTrustManagerConfig.getTrustStoreFile());
+      String truststorePath = getFullPath(fbTrustManagerConfig
+          .getTrustStoreFile());
       String pinFilePath = getFullPath(fbKeyManagerConfig.getKeyStorePinFile());
 
       // Check that either we do not have any file,
-      // or we have the 3 required files (keystore, truststore, pin file)
+      // or we have the 3 required files (keystore, truststore, pin
+      // file)
       boolean keystore = false;
       boolean truststore = false;
       boolean pinFile = false;
       int nbFiles = 0;
-      if (new File(keystorePath).exists()) {
+      if (new File(keystorePath).exists())
+      {
         keystore = true;
         nbFiles++;
       }
-      if (new File(truststorePath).exists()) {
+      if (new File(truststorePath).exists())
+      {
         truststore = true;
         nbFiles++;
       }
-      if (new File(pinFilePath).exists()) {
+      if (new File(pinFilePath).exists())
+      {
         pinFile = true;
         nbFiles++;
       }
-      if (nbFiles == 3) {
+      if (nbFiles == 3)
+      {
         // nothing to do
         return;
       }
-      if (nbFiles != 0) {
+      if (nbFiles != 0)
+      {
         // 1 or 2 files are missing : error
         String err = "";
-        if (!keystore) {
+        if (!keystore)
+        {
           err += keystorePath + " ";
         }
-        if (!truststore) {
+        if (!truststore)
+        {
           err += truststorePath + " ";
         }
-        if (!pinFile) {
+        if (!pinFile)
+        {
           err += pinFilePath + " ";
         }
-        Message message =
-          ERR_ADMIN_CERTIFICATE_GENERATION_MISSING_FILES.get(err);
+        Message message = ERR_ADMIN_CERTIFICATE_GENERATION_MISSING_FILES
+            .get(err);
         logError(message);
         throw new InitializationException(message);
       }
@@ -519,30 +676,28 @@ public final class AdministrationConnector
 
       // Generate a self-signed certificate
       CertificateManager certManager = new CertificateManager(
-        getFullPath(fbKeyManagerConfig.getKeyStoreFile()),
-        fbKeyManagerConfig.getKeyStoreType(),
-        pwd);
-      String subjectDN = "cn=" +
-        Rdn.escapeValue(InetAddress.getLocalHost().getHostName()) +
-        ",O=" + FRIENDLY_NAME + " Self-Signed Certificate";
-      certManager.generateSelfSignedCertificate(
-        certAlias, subjectDN, ADMIN_CERT_VALIDITY);
+          getFullPath(fbKeyManagerConfig.getKeyStoreFile()), fbKeyManagerConfig
+              .getKeyStoreType(), pwd);
+      String subjectDN = "cn="
+          + Rdn.escapeValue(InetAddress.getLocalHost().getHostName()) + ",O="
+          + FRIENDLY_NAME + " Self-Signed Certificate";
+      certManager.generateSelfSignedCertificate(certAlias, subjectDN,
+          ADMIN_CERT_VALIDITY);
 
       // Export the certificate
-      String tempCertPath = getFullPath("config" + File.separator +
-        "admin-cert.txt");
-      SetupUtils.exportCertificate(certManager, certAlias,
-        tempCertPath);
+      String tempCertPath = getFullPath("config" + File.separator
+          + "admin-cert.txt");
+      SetupUtils.exportCertificate(certManager, certAlias, tempCertPath);
 
-      // Create a new trust store and import the server certificate into it
-      CertificateManager trustManager = new CertificateManager(
-        truststorePath,
-        CertificateManager.KEY_STORE_TYPE_JKS,
-        pwd);
+      // Create a new trust store and import the server certificate
+      // into it
+      CertificateManager trustManager = new CertificateManager(truststorePath,
+          CertificateManager.KEY_STORE_TYPE_JKS, pwd);
       trustManager.addCertificate(certAlias, new File(tempCertPath));
 
       // Generate a password file
-      if (!new File(pinFilePath).exists()) {
+      if (!new File(pinFilePath).exists())
+      {
         FileWriter file = new FileWriter(pinFilePath);
         PrintWriter out = new PrintWriter(file);
         out.println(pwd);
@@ -552,16 +707,21 @@ public final class AdministrationConnector
       }
 
       // Change the password file permission if possible
-      if (FilePermission.canSetPermissions()) {
-        try {
+      if (FilePermission.canSetPermissions())
+      {
+        try
+        {
           if (!FilePermission.setPermissions(new File(pinFilePath),
-            new FilePermission(0600))) {
+              new FilePermission(0600)))
+          {
             // Log a warning that the permissions were not set.
-            Message message =
-              WARN_ADMIN_SET_PERMISSIONS_FAILED.get(pinFilePath);
+            Message message = WARN_ADMIN_SET_PERMISSIONS_FAILED
+                .get(pinFilePath);
             ErrorLogger.logError(message);
           }
-        } catch (DirectoryException e) {
+        }
+        catch (DirectoryException e)
+        {
           // Log a warning that the permissions were not set.
           Message message = WARN_ADMIN_SET_PERMISSIONS_FAILED.get(pinFilePath);
           ErrorLogger.logError(message);
@@ -571,21 +731,32 @@ public final class AdministrationConnector
       // Delete the exported certificate
       File f = new File(tempCertPath);
       f.delete();
-
-    } catch (ConfigException e) {
+    }
+    catch (ConfigException e)
+    {
       handleCertifExceptions(e);
-    } catch (KeyStoreException e) {
+    }
+    catch (KeyStoreException e)
+    {
       handleCertifExceptions(e);
-    } catch (IOException e) {
+    }
+    catch (IOException e)
+    {
       handleCertifExceptions(e);
-    } catch (CertificateEncodingException e) {
+    }
+    catch (CertificateEncodingException e)
+    {
       handleCertifExceptions(e);
     }
   }
 
-  private void handleCertifExceptions(Exception e) throws
-    InitializationException {
-    if (debugEnabled()) {
+
+
+  private void handleCertifExceptions(Exception e)
+      throws InitializationException
+  {
+    if (debugEnabled())
+    {
       TRACER.debugCaught(DebugLogLevel.ERROR, e);
     }
     Message message = ERR_ADMIN_CERTIFICATE_GENERATION.get(e.getMessage());
@@ -593,23 +764,31 @@ public final class AdministrationConnector
     throw new InitializationException(message);
   }
 
+
+
   private KeyManagerProviderCfg getAdminConnectorKeyManagerConfig(String name)
-    throws ConfigException {
+      throws ConfigException
+  {
     RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
     return root.getKeyManagerProvider(name);
   }
 
+
+
   private TrustManagerProviderCfg getAdminConnectorTrustManagerConfig(
-    String name)
-    throws ConfigException {
-    RootCfg root =
-      ServerManagementContext.getInstance().getRootConfiguration();
+      String name) throws ConfigException
+  {
+    RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
     return root.getTrustManagerProvider(name);
   }
 
-  private static String getFullPath(String path) {
+
+
+  private static String getFullPath(String path)
+  {
     File file = new File(path);
-    if (!file.isAbsolute()) {
+    if (!file.isAbsolute())
+    {
       path = DirectoryServer.getInstanceRoot() + File.separator + path;
     }
 

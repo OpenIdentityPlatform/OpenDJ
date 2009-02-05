@@ -38,11 +38,9 @@ import org.opends.server.TestCaseUtils;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -283,7 +281,7 @@ public class SimilarityBasedPasswordValidatorTestCase
     for (int i=0; i < 20; i++)
     {
       buffer.append('x');
-      ASN1OctetString password = new ASN1OctetString(buffer.toString());
+      ByteString password = ByteString.valueOf(buffer.toString());
 
       ArrayList<Modification> mods = new ArrayList<Modification>();
       mods.add(new Modification(ModificationType.REPLACE,
@@ -355,11 +353,11 @@ public class SimilarityBasedPasswordValidatorTestCase
 
     StringBuilder buffer = new StringBuilder();
     HashSet<ByteString> currentPassword = new HashSet<ByteString>(3);
-    currentPassword.add(ByteStringFactory.create("xxx"));
+    currentPassword.add(ByteString.valueOf("xxx"));
     for (int i=0; i < 7; i++)
     {
       buffer.append('x');
-      ASN1OctetString password = new ASN1OctetString(buffer.toString());
+      ByteString password = ByteString.valueOf(buffer.toString());
 
       ArrayList<Modification> mods = new ArrayList<Modification>();
       mods.add(new Modification(ModificationType.REPLACE,

@@ -36,7 +36,8 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1Sequence;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
@@ -144,10 +145,10 @@ public class CancelExtendedOperation
     {
       try
       {
-        ASN1Sequence valueSequence =
-             ASN1Sequence.decodeAsSequence(requestValue.value());
-        idToCancel =
-             valueSequence.elements().get(0).decodeAsInteger().intValue();
+        ASN1Reader reader = ASN1.getReader(requestValue);
+        reader.readStartSequence();
+        idToCancel = (int)reader.readInteger();
+        reader.readEndSequence();
       }
       catch (Exception e)
       {

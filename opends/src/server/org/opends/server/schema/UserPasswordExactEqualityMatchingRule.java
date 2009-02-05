@@ -28,16 +28,16 @@ package org.opends.server.schema;
 
 
 
-import java.util.Arrays;
+import static org.opends.server.schema.SchemaConstants.*;
 
-import java.util.Collections;
 import java.util.Collection;
+import java.util.Collections;
+
 import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-
-import static org.opends.server.schema.SchemaConstants.*;
+import org.opends.server.util.StaticUtils;
 
 
 
@@ -62,6 +62,7 @@ class UserPasswordExactEqualityMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getAllNames()
   {
     return Collections.singleton(getName());
@@ -75,6 +76,7 @@ class UserPasswordExactEqualityMatchingRule
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
    * it does not have a name.
    */
+  @Override
   public String getName()
   {
     return EMR_USER_PASSWORD_EXACT_NAME;
@@ -87,6 +89,7 @@ class UserPasswordExactEqualityMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return EMR_USER_PASSWORD_EXACT_OID;
@@ -100,6 +103,7 @@ class UserPasswordExactEqualityMatchingRule
    * @return  The description for this matching rule, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     // There is no standard description for this matching rule.
@@ -114,6 +118,7 @@ class UserPasswordExactEqualityMatchingRule
    *
    * @return  The OID of the syntax with which this matching rule is associated.
    */
+  @Override
   public String getSyntaxOID()
   {
     return SYNTAX_USER_PASSWORD_OID;
@@ -132,127 +137,24 @@ class UserPasswordExactEqualityMatchingRule
    * @throws  DirectoryException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
-  public ByteString normalizeValue(ByteString value)
+  @Override
+  public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
     // The normalized form of this matching rule is exactly equal to the
     // non-normalized form, except that the scheme needs to be converted to
     // lowercase (if there is one).
-    byte[] valueBytes = value.value();
-    byte[] newValueBytes = new byte[valueBytes.length];
-    System.arraycopy(valueBytes, 0, newValueBytes, 0, valueBytes.length);
 
     if (UserPasswordSyntax.isEncoded(value))
     {
-schemeLoop:
-      for (int i=1; i < newValueBytes.length; i++)
-      {
-        switch (newValueBytes[i])
-        {
-          case 'A':
-            newValueBytes[i] = 'a';
-            break;
-          case 'B':
-            newValueBytes[i] = 'b';
-            break;
-          case 'C':
-            newValueBytes[i] = 'c';
-            break;
-          case 'D':
-            newValueBytes[i] = 'd';
-            break;
-          case 'E':
-            newValueBytes[i] = 'e';
-            break;
-          case 'F':
-            newValueBytes[i] = 'f';
-            break;
-          case 'G':
-            newValueBytes[i] = 'g';
-            break;
-          case 'H':
-            newValueBytes[i] = 'h';
-            break;
-          case 'I':
-            newValueBytes[i] = 'i';
-            break;
-          case 'J':
-            newValueBytes[i] = 'j';
-            break;
-          case 'K':
-            newValueBytes[i] = 'k';
-            break;
-          case 'L':
-            newValueBytes[i] = 'l';
-            break;
-          case 'M':
-            newValueBytes[i] = 'm';
-            break;
-          case 'N':
-            newValueBytes[i] = 'n';
-            break;
-          case 'O':
-            newValueBytes[i] = 'o';
-            break;
-          case 'P':
-            newValueBytes[i] = 'p';
-            break;
-          case 'Q':
-            newValueBytes[i] = 'q';
-            break;
-          case 'R':
-            newValueBytes[i] = 'r';
-            break;
-          case 'S':
-            newValueBytes[i] = 's';
-            break;
-          case 'T':
-            newValueBytes[i] = 't';
-            break;
-          case 'U':
-            newValueBytes[i] = 'u';
-            break;
-          case 'V':
-            newValueBytes[i] = 'v';
-            break;
-          case 'W':
-            newValueBytes[i] = 'w';
-            break;
-          case 'X':
-            newValueBytes[i] = 'x';
-            break;
-          case 'Y':
-            newValueBytes[i] = 'y';
-            break;
-          case 'Z':
-            newValueBytes[i] = 'z';
-            break;
-          case '}':
-            break schemeLoop;
-        }
-      }
+      StringBuilder builder = new StringBuilder(value.length());
+      StaticUtils.toLowerCase(value, builder, false);
+      return ByteString.valueOf(builder.toString());
     }
-
-    return new ASN1OctetString(newValueBytes);
-  }
-
-
-
-  /**
-   * Indicates whether the two provided normalized values are equal to each
-   * other.
-   *
-   * @param  value1  The normalized form of the first value to compare.
-   * @param  value2  The normalized form of the second value to compare.
-   *
-   * @return  <CODE>true</CODE> if the provided values are equal, or
-   *          <CODE>false</CODE> if not.
-   */
-  public boolean areEqual(ByteString value1, ByteString value2)
-  {
-    // Since the values are already normalized, we just need to compare the
-    // associated byte arrays.
-    return Arrays.equals(value1.value(), value2.value());
+    else
+    {
+      return value.toByteString();
+    }
   }
 }
 

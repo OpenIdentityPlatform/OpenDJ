@@ -28,19 +28,14 @@ package org.opends.server.controls;
 
 
 
-import java.util.ArrayList;
-
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.types.Control;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.LDAPException;
+import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
 
@@ -84,36 +79,33 @@ public class ProxiedAuthV1ControlTestCase
     ProxiedAuthV1Control proxyControl;
     try
     {
-      proxyControl = new ProxiedAuthV1Control((ASN1OctetString) null);
+      proxyControl = new ProxiedAuthV1Control((ByteString) null);
       throw new AssertionError("Expected a failure when creating a proxied " +
                                "auth V1 control with a null octet string.");
     } catch (Throwable t) {}
 
 
     // Try an empty DN, which is acceptable.
-    proxyControl = new ProxiedAuthV1Control(new ASN1OctetString(""));
+    proxyControl = new ProxiedAuthV1Control(ByteString.valueOf(""));
     assertTrue(proxyControl.getOID().equals(OID_PROXIED_AUTH_V1));
     assertTrue(proxyControl.isCritical());
-    assertTrue(proxyControl.hasValue());
     assertTrue(proxyControl.getAuthorizationDN().isNullDN());
 
 
     // Try a valid DN, which is acceptable.
     proxyControl =
-         new ProxiedAuthV1Control(new ASN1OctetString("uid=test,o=test"));
+         new ProxiedAuthV1Control(ByteString.valueOf("uid=test,o=test"));
     assertTrue(proxyControl.getOID().equals(OID_PROXIED_AUTH_V1));
     assertTrue(proxyControl.isCritical());
-    assertTrue(proxyControl.hasValue());
     assertEquals(proxyControl.getAuthorizationDN(),
                  DN.decode("uid=test,o=test"));
 
 
     // Try an invalid DN, which will be initally accepted but will fail when
     // attempting to get the authorization DN.
-    proxyControl = new ProxiedAuthV1Control(new ASN1OctetString("invalid"));
+    proxyControl = new ProxiedAuthV1Control(ByteString.valueOf("invalid"));
     assertTrue(proxyControl.getOID().equals(OID_PROXIED_AUTH_V1));
     assertTrue(proxyControl.isCritical());
-    assertTrue(proxyControl.hasValue());
     try
     {
       proxyControl.getAuthorizationDN();
@@ -149,7 +141,6 @@ public class ProxiedAuthV1ControlTestCase
     proxyControl = new ProxiedAuthV1Control(DN.nullDN());
     assertTrue(proxyControl.getOID().equals(OID_PROXIED_AUTH_V1));
     assertTrue(proxyControl.isCritical());
-    assertTrue(proxyControl.hasValue());
     assertTrue(proxyControl.getAuthorizationDN().isNullDN());
 
 
@@ -158,24 +149,8 @@ public class ProxiedAuthV1ControlTestCase
          new ProxiedAuthV1Control(DN.decode("uid=test,o=test"));
     assertTrue(proxyControl.getOID().equals(OID_PROXIED_AUTH_V1));
     assertTrue(proxyControl.isCritical());
-    assertTrue(proxyControl.hasValue());
     assertEquals(proxyControl.getAuthorizationDN(),
                  DN.decode("uid=test,o=test"));
-  }
-
-
-
-  /**
-   * Tests the {@code decodeControl} method when the provided control is
-   * {@code null}.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test(expectedExceptions = { AssertionError.class })
-  public void testDecodeControlNull()
-         throws Exception
-  {
-    ProxiedAuthV1Control.decodeControl(null);
   }
 
 
@@ -186,17 +161,19 @@ public class ProxiedAuthV1ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = { DirectoryException.class })
   public void testDecodeControlNotCritical()
          throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(1);
-    elements.add(new ASN1OctetString("uid=test,o=test"));
-    ASN1Sequence valueSequence = new ASN1Sequence(elements);
-    ASN1OctetString value = new ASN1OctetString(valueSequence.encode());
-    Control c = new Control(OID_PROXIED_AUTH_V1, false, value);
+    ByteStringBuilder bsb = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(bsb);
+    writer.writeStartSequence();
+    writer.writeOctetString("uid=test,o=test");
+    writer.writeEndSequence();
+    LDAPControl c =
+        new LDAPControl(OID_PROXIED_AUTH_V1, false, bsb.toByteString());
 
-    ProxiedAuthV1Control.decodeControl(c);
+    ProxiedAuthV1Control.DECODER.decode(c.isCritical(), c.getValue());
   }
 
 
@@ -207,13 +184,13 @@ public class ProxiedAuthV1ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = { DirectoryException.class })
   public void testDecodeControlNoValue()
          throws Exception
   {
-    Control c = new Control(OID_PROXIED_AUTH_V1, true, null);
+    LDAPControl c = new LDAPControl(OID_PROXIED_AUTH_V1, true);
 
-    ProxiedAuthV1Control.decodeControl(c);
+    ProxiedAuthV1Control.DECODER.decode(c.isCritical(), c.getValue());
   }
 
 
@@ -224,14 +201,15 @@ public class ProxiedAuthV1ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = { DirectoryException.class })
   public void testDecodeControlValueNotSequence()
          throws Exception
   {
-    ASN1OctetString value = new ASN1OctetString("uid=test,o=test");
-    Control c = new Control(OID_PROXIED_AUTH_V1, true, value);
+    LDAPControl c =
+        new LDAPControl(OID_PROXIED_AUTH_V1, true,
+            ByteString.valueOf("uid=test,o=test"));
 
-    ProxiedAuthV1Control.decodeControl(c);
+    ProxiedAuthV1Control.DECODER.decode(c.isCritical(), c.getValue());
   }
 
 
@@ -242,16 +220,18 @@ public class ProxiedAuthV1ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = { DirectoryException.class })
   public void testDecodeControlValueEmptySequence()
          throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(0);
-    ASN1Sequence valueSequence = new ASN1Sequence(elements);
-    ASN1OctetString value = new ASN1OctetString(valueSequence.encode());
-    Control c = new Control(OID_PROXIED_AUTH_V1, true, value);
+    ByteStringBuilder bsb = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(bsb);
+    writer.writeStartSequence();
+    writer.writeEndSequence();
+    LDAPControl c =
+        new LDAPControl(OID_PROXIED_AUTH_V1, true, bsb.toByteString());
 
-    ProxiedAuthV1Control.decodeControl(c);
+    ProxiedAuthV1Control.DECODER.decode(c.isCritical(), c.getValue());
   }
 
 
@@ -262,18 +242,20 @@ public class ProxiedAuthV1ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = { DirectoryException.class })
   public void testDecodeControlValueMultiElementSequence()
          throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1OctetString("uid=element1,o=test"));
-    elements.add(new ASN1OctetString("uid=element2,o=test"));
-    ASN1Sequence valueSequence = new ASN1Sequence(elements);
-    ASN1OctetString value = new ASN1OctetString(valueSequence.encode());
-    Control c = new Control(OID_PROXIED_AUTH_V1, true, value);
+    ByteStringBuilder bsb = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(bsb);
+    writer.writeStartSequence();
+    writer.writeOctetString("uid=element1,o=test");
+    writer.writeOctetString("uid=element2,o=test");
+    writer.writeEndSequence();
+    LDAPControl c =
+        new LDAPControl(OID_PROXIED_AUTH_V1, true, bsb.toByteString());
 
-    ProxiedAuthV1Control.decodeControl(c);
+    ProxiedAuthV1Control.DECODER.decode(c.isCritical(), c.getValue());
   }
 
 
@@ -288,14 +270,15 @@ public class ProxiedAuthV1ControlTestCase
   public void testDecodeControlValueInvalidDN()
          throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(1);
-    elements.add(new ASN1OctetString("invaliddn"));
-    ASN1Sequence valueSequence = new ASN1Sequence(elements);
-    ASN1OctetString value = new ASN1OctetString(valueSequence.encode());
-    Control c = new Control(OID_PROXIED_AUTH_V1, true, value);
+    ByteStringBuilder bsb = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(bsb);
+    writer.writeStartSequence();
+    writer.writeOctetString("invaliddn");
+    writer.writeEndSequence();
+    LDAPControl c =
+        new LDAPControl(OID_PROXIED_AUTH_V1, true, bsb.toByteString());
 
-    ProxiedAuthV1Control proxyControl = ProxiedAuthV1Control.decodeControl(c);
-    proxyControl.getAuthorizationDN();
+    ProxiedAuthV1Control.DECODER.decode(c.isCritical(), c.getValue());
   }
 
 
@@ -310,13 +293,15 @@ public class ProxiedAuthV1ControlTestCase
   public void testDecodeControlValueEmptyDN()
          throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(1);
-    elements.add(new ASN1OctetString(""));
-    ASN1Sequence valueSequence = new ASN1Sequence(elements);
-    ASN1OctetString value = new ASN1OctetString(valueSequence.encode());
-    Control c = new Control(OID_PROXIED_AUTH_V1, true, value);
+    ByteStringBuilder bsb = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(bsb);
+    writer.writeStartSequence();
+    writer.writeOctetString("");
+    writer.writeEndSequence();
+    LDAPControl c =
+        new LDAPControl(OID_PROXIED_AUTH_V1, true, bsb.toByteString());
 
-    ProxiedAuthV1Control proxyControl = ProxiedAuthV1Control.decodeControl(c);
+    ProxiedAuthV1Control proxyControl = ProxiedAuthV1Control.DECODER.decode(c.isCritical(), c.getValue());
     assertTrue(proxyControl.getAuthorizationDN().isNullDN());
   }
 
@@ -332,13 +317,15 @@ public class ProxiedAuthV1ControlTestCase
   public void testDecodeControlValueNonEmptyDN()
          throws Exception
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(1);
-    elements.add(new ASN1OctetString("uid=test,o=test"));
-    ASN1Sequence valueSequence = new ASN1Sequence(elements);
-    ASN1OctetString value = new ASN1OctetString(valueSequence.encode());
-    Control c = new Control(OID_PROXIED_AUTH_V1, true, value);
+    ByteStringBuilder bsb = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(bsb);
+    writer.writeStartSequence();
+    writer.writeOctetString("uid=test,o=test");
+    writer.writeEndSequence();
+    LDAPControl c =
+        new LDAPControl(OID_PROXIED_AUTH_V1, true, bsb.toByteString());
 
-    ProxiedAuthV1Control proxyControl = ProxiedAuthV1Control.decodeControl(c);
+    ProxiedAuthV1Control proxyControl = ProxiedAuthV1Control.DECODER.decode(c.isCritical(), c.getValue());
     assertEquals(proxyControl.getAuthorizationDN(),
                  DN.decode("uid=test,o=test"));
   }
@@ -356,12 +343,13 @@ public class ProxiedAuthV1ControlTestCase
          throws Exception
   {
     ProxiedAuthV1Control proxyControl =
-         new ProxiedAuthV1Control(new ASN1OctetString(""));
-    assertEquals(proxyControl.getRawAuthorizationDN(), new ASN1OctetString(""));
+         new ProxiedAuthV1Control(ByteString.valueOf(""));
+    assertEquals(proxyControl.getRawAuthorizationDN(), ByteString.valueOf(""));
 
-    proxyControl.setRawAuthorizationDN(new ASN1OctetString("uid=test,o=test"));
+    proxyControl =
+         new ProxiedAuthV1Control(ByteString.valueOf("uid=test,o=test"));
     assertEquals(proxyControl.getRawAuthorizationDN(),
-                 new ASN1OctetString("uid=test,o=test"));
+        ByteString.valueOf("uid=test,o=test"));
   }
 
 
@@ -378,31 +366,15 @@ public class ProxiedAuthV1ControlTestCase
   {
     ProxiedAuthV1Control proxyControl =
          new ProxiedAuthV1Control(DN.nullDN());
-    assertEquals(proxyControl.getRawAuthorizationDN(), new ASN1OctetString(""));
+    assertEquals(proxyControl.getRawAuthorizationDN(), ByteString.valueOf(""));
     assertEquals(proxyControl.getAuthorizationDN(), DN.nullDN());
 
-    proxyControl.setAuthorizationDN(DN.decode("uid=test,o=test"));
+    proxyControl =
+         new ProxiedAuthV1Control(DN.decode("uid=test,o=test"));
     assertEquals(proxyControl.getRawAuthorizationDN(),
-                 new ASN1OctetString("uid=test,o=test"));
+                 ByteString.valueOf("uid=test,o=test"));
     assertEquals(proxyControl.getAuthorizationDN(),
                  DN.decode("uid=test,o=test"));
-  }
-
-
-
-  /**
-   * Tests the {@code setRawAuthorizationDN} method when providing an
-   * authorization DN that is {@code null}.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test(expectedExceptions = { AssertionError.class })
-  public void testSetNullAuthorizationDN()
-         throws Exception
-  {
-    ProxiedAuthV1Control proxyControl =
-         new ProxiedAuthV1Control(DN.nullDN());
-    proxyControl.setAuthorizationDN(null);
   }
 
 
@@ -518,7 +490,7 @@ public class ProxiedAuthV1ControlTestCase
     // The default toString() calls the version that takes a string builder
     // argument, so we only need to use the default version to cover both cases.
     ProxiedAuthV1Control proxyControl =
-         new ProxiedAuthV1Control(new ASN1OctetString("uid=test,o=test"));
+         new ProxiedAuthV1Control(ByteString.valueOf("uid=test,o=test"));
     proxyControl.toString();
 
     proxyControl = new ProxiedAuthV1Control(DN.decode("uid=test,o=test"));

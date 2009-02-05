@@ -52,31 +52,12 @@ import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
-import org.opends.server.types.AccountStatusNotification;
-import org.opends.server.types.AccountStatusNotificationProperty;
-import org.opends.server.types.AccountStatusNotificationType;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.Operation;
-import org.opends.server.types.RawModification;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -317,12 +298,12 @@ public class PasswordPolicyState
           {
             TRACER.debugError("Could not parse password policy subentry " +
                 "DN %s for user %s: %s",
-                       v.getStringValue(), userDNString,
+                       v.getValue().toString(), userDNString,
                        stackTraceToSingleLineString(e));
           }
 
           Message message = ERR_PWPSTATE_CANNOT_DECODE_SUBENTRY_VALUE_AS_DN.get(
-              v.getStringValue(), userDNString, e.getMessage());
+              v.getValue().toString(), userDNString, e.getMessage());
           if (useDefaultOnError)
           {
             ErrorLogger.logError(message);
@@ -400,7 +381,7 @@ public class PasswordPolicyState
       {
         if (a.isEmpty()) continue;
 
-        stringValue = a.iterator().next().getStringValue();
+        stringValue = a.iterator().next().getValue().toString();
         break ;
       }
     }
@@ -466,12 +447,12 @@ public class PasswordPolicyState
 
             TRACER.debugWarning("Unable to decode value %s for attribute %s " +
                 "in user entry %s: %s",
-                v.getStringValue(), attributeType.getNameOrOID(),
+                v.getValue().toString(), attributeType.getNameOrOID(),
                 userDNString, stackTraceToSingleLineString(e));
           }
 
           Message message = ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME.
-              get(v.getStringValue(), attributeType.getNameOrOID(),
+              get(v.getValue().toString(), attributeType.getNameOrOID(),
                   userDNString, String.valueOf(e));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message, e);
@@ -534,12 +515,12 @@ public class PasswordPolicyState
 
               TRACER.debugWarning("Unable to decode value %s for attribute %s" +
                   "in user entry %s: %s",
-                  v.getStringValue(), attributeType.getNameOrOID(),
+                  v.getValue().toString(), attributeType.getNameOrOID(),
                   userDNString, stackTraceToSingleLineString(e));
             }
 
             Message message = ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME.
-                get(v.getStringValue(), attributeType.getNameOrOID(),
+                get(v.getValue().toString(), attributeType.getNameOrOID(),
                     userDNString, String.valueOf(e));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message, e);
@@ -586,7 +567,7 @@ public class PasswordPolicyState
         if (a.isEmpty()) continue;
 
         String valueString
-             = toLowerCase(a.iterator().next().getStringValue());
+             = toLowerCase(a.iterator().next().getValue().toString());
 
         if (valueString.equals("true") || valueString.equals("yes") ||
             valueString.equals("on") || valueString.equals("1"))
@@ -1212,7 +1193,7 @@ public class PasswordPolicyState
             valuesToRemove = new LinkedHashSet<AttributeValue>();
           }
 
-          valuesToRemove.add(new AttributeValue(type,
+          valuesToRemove.add(AttributeValues.create(type,
                                               GeneralizedTimeSyntax.format(l)));
         }
       }
@@ -1231,7 +1212,7 @@ public class PasswordPolicyState
             for (Long l : authFailureTimes)
             {
               builder.add(
-                   new AttributeValue(type, GeneralizedTimeSyntax.format(l)));
+                 AttributeValues.create(type, GeneralizedTimeSyntax.format(l)));
             }
             ArrayList<Attribute> keepList = new ArrayList<Attribute>(1);
             keepList.add(builder.toAttribute());
@@ -1308,13 +1289,14 @@ public class PasswordPolicyState
     AttributeBuilder builder = new AttributeBuilder(type);
     for (Long l : failureTimes)
     {
-      builder.add(new AttributeValue(type, GeneralizedTimeSyntax.format(l)));
+      builder.add(AttributeValues.create(type,
+          GeneralizedTimeSyntax.format(l)));
     }
 
     ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
     attrList.add(builder.toAttribute());
 
-    Attribute addAttr = Attributes.create(type, new AttributeValue(type,
+    Attribute addAttr = Attributes.create(type, AttributeValues.create(type,
         GeneralizedTimeSyntax.format(highestFailureTime)));
 
     if (updateEntry)
@@ -1374,7 +1356,7 @@ public class PasswordPolicyState
     for (Long l : authFailureTimes)
     {
       builder
-          .add(new AttributeValue(type, GeneralizedTimeSyntax.format(l)));
+          .add(AttributeValues.create(type, GeneralizedTimeSyntax.format(l)));
     }
     Attribute a = builder.toAttribute();
 
@@ -1516,7 +1498,7 @@ public class PasswordPolicyState
                                   OP_ATTR_PWPOLICY_LOCKED_TIME);
     }
 
-    Attribute a = Attributes.create(type, new AttributeValue(type,
+    Attribute a = Attributes.create(type, AttributeValues.create(type,
         GeneralizedTimeSyntax.format(failureLockedTime)));
 
     if (updateEntry)
@@ -1769,7 +1751,7 @@ public class PasswordPolicyState
       {
         if (a.isEmpty()) continue;
 
-        String valueString = a.iterator().next().getStringValue();
+        String valueString = a.iterator().next().getValue().toString();
 
         try
         {
@@ -3011,7 +2993,7 @@ public class PasswordPolicyState
       AttributeBuilder builder = new AttributeBuilder(type);
       for (Long l : graceTimes)
       {
-        builder.add(new AttributeValue(type, GeneralizedTimeSyntax
+        builder.add(AttributeValues.create(type, GeneralizedTimeSyntax
             .format(l)));
       }
 
@@ -3022,7 +3004,7 @@ public class PasswordPolicyState
     }
     else
     {
-      Attribute addAttr = Attributes.create(type, new AttributeValue(
+      Attribute addAttr = Attributes.create(type, AttributeValues.create(
           type, GeneralizedTimeSyntax.format(highestGraceTime)));
 
       modifications.add(new Modification(ModificationType.ADD, addAttr, true));
@@ -3058,7 +3040,7 @@ public class PasswordPolicyState
     for (Long l : graceLoginTimes)
     {
       builder
-          .add(new AttributeValue(type, GeneralizedTimeSyntax.format(l)));
+          .add(AttributeValues.create(type, GeneralizedTimeSyntax.format(l)));
     }
     Attribute a = builder.toAttribute();
 
@@ -3146,12 +3128,12 @@ public class PasswordPolicyState
           if (usesAuthPasswordSyntax)
           {
             pwComponents =
-                 AuthPasswordSyntax.decodeAuthPassword(v.getStringValue());
+                 AuthPasswordSyntax.decodeAuthPassword(v.getValue().toString());
           }
           else
           {
             String[] userPwComponents =
-                 UserPasswordSyntax.decodeUserPassword(v.getStringValue());
+                 UserPasswordSyntax.decodeUserPassword(v.getValue().toString());
             pwComponents = new StringBuilder[userPwComponents.length];
             for (int i = 0; i < userPwComponents.length; ++i)
             {
@@ -3182,7 +3164,7 @@ public class PasswordPolicyState
                                pwComponents[1].toString(),
                                pwComponents[2].toString())
                          : scheme.getPlaintextValue(
-                               new ASN1OctetString(pwComponents[1].toString()));
+                ByteString.valueOf(pwComponents[1].toString()));
             clearPasswords.add(clearValue);
           }
         }
@@ -3244,12 +3226,12 @@ public class PasswordPolicyState
           if (usesAuthPasswordSyntax)
           {
             pwComponents =
-                 AuthPasswordSyntax.decodeAuthPassword(v.getStringValue());
+                 AuthPasswordSyntax.decodeAuthPassword(v.getValue().toString());
           }
           else
           {
             String[] userPwComponents =
-                 UserPasswordSyntax.decodeUserPassword(v.getStringValue());
+                 UserPasswordSyntax.decodeUserPassword(v.getValue().toString());
             pwComponents = new StringBuilder[userPwComponents.length];
             for (int i = 0; i < userPwComponents.length; ++i)
             {
@@ -3278,7 +3260,7 @@ public class PasswordPolicyState
                                                   pwComponents[1].toString(),
                                                   pwComponents[2].toString())
                      : scheme.passwordMatches(password,
-                               new ASN1OctetString(pwComponents[1].toString()));
+              ByteString.valueOf(pwComponents[1].toString()));
           if (passwordMatches)
           {
             if (debugEnabled())
@@ -3493,12 +3475,12 @@ public class PasswordPolicyState
           if (usesAuthPasswordSyntax)
           {
             pwComponents =
-                 AuthPasswordSyntax.decodeAuthPassword(v.getStringValue());
+                 AuthPasswordSyntax.decodeAuthPassword(v.getValue().toString());
           }
           else
           {
             String[] userPwComponents =
-                 UserPasswordSyntax.decodeUserPassword(v.getStringValue());
+                 UserPasswordSyntax.decodeUserPassword(v.getValue().toString());
             pwComponents = new StringBuilder[userPwComponents.length];
             for (int i = 0; i < userPwComponents.length; ++i)
             {
@@ -3527,7 +3509,7 @@ public class PasswordPolicyState
                                                   pwComponents[1].toString(),
                                                   pwComponents[2].toString())
                      : scheme.passwordMatches(password,
-                               new ASN1OctetString(pwComponents[1].toString()));
+              ByteString.valueOf(pwComponents[1].toString()));
           if (passwordMatches)
           {
             if (passwordPolicy.isDefaultStorageScheme(schemeName))
@@ -3591,7 +3573,8 @@ public class PasswordPolicyState
           ByteString encodedPassword = (usesAuthPasswordSyntax)
                                        ? s.encodeAuthPassword(password)
                                        : s.encodePasswordWithScheme(password);
-          AttributeValue v = new AttributeValue(type, encodedPassword);
+          AttributeValue v =
+              AttributeValues.create(type, encodedPassword);
           addedValues.add(v);
           updatedValues.add(v);
         }
@@ -3800,7 +3783,7 @@ public class PasswordPolicyState
       {
         for (AttributeValue v : a)
         {
-          String histStr = v.getStringValue();
+          String histStr = v.getValue().toString();
           int    hashPos = histStr.indexOf('#');
           if (hashPos <= 0)
           {
@@ -3822,7 +3805,7 @@ public class PasswordPolicyState
             {
               long timestamp =
                    GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                        new ASN1OctetString(histStr.substring(0, hashPos)));
+                       ByteString.valueOf(histStr.substring(0, hashPos)));
               historyMap.put(timestamp, v);
             }
             catch (Exception e)
@@ -3871,7 +3854,7 @@ public class PasswordPolicyState
     // we only care about the syntax OID and encoded password.
     try
     {
-      String histStr  = historyValue.getStringValue();
+      String histStr  = historyValue.getValue().toString();
       int    hashPos1 = histStr.indexOf('#');
       if (hashPos1 <= 0)
       {
@@ -3935,7 +3918,7 @@ public class PasswordPolicyState
         PasswordStorageScheme<?> scheme =
              DirectoryServer.getPasswordStorageScheme(userPWComponents[0]);
         if (scheme.passwordMatches(password,
-                                   new ASN1OctetString(userPWComponents[1])))
+            ByteString.valueOf(userPWComponents[1])))
         {
           if (debugEnabled())
           {
@@ -4001,7 +3984,7 @@ public class PasswordPolicyState
       {
         for (AttributeValue v : a)
         {
-          addPasswordToHistory(v.getStringValue());
+          addPasswordToHistory(v.getValue().toString());
         }
       }
     }
@@ -4060,8 +4043,8 @@ public class PasswordPolicyState
 
         if (debugEnabled())
         {
-          TRACER.debugInfo("Removing history value " + v.getStringValue() +
-              " to preserve the history count.");
+          TRACER.debugInfo("Removing history value " +
+              v.getValue().toString() + " to preserve the history count.");
         }
       }
 
@@ -4094,7 +4077,8 @@ public class PasswordPolicyState
 
           if (debugEnabled())
           {
-            TRACER.debugInfo("Removing history value " + v.getStringValue() +
+            TRACER.debugInfo("Removing history value " +
+                v.getValue().toString() +
                 " to preserve the history duration.");
           }
         }
@@ -4177,7 +4161,7 @@ public class PasswordPolicyState
       {
         for (AttributeValue v : a)
         {
-          historyValues.add(v.getStringValue());
+          historyValues.add(v.getValue().toString());
         }
       }
     }
@@ -4334,7 +4318,7 @@ public class PasswordPolicyState
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     ModifyOperation internalModify =
-         conn.processModify(new ASN1OctetString(userDNString), modList);
+         conn.processModify(ByteString.valueOf(userDNString), modList);
 
     ResultCode resultCode = internalModify.getResultCode();
     if (resultCode != ResultCode.SUCCESS)

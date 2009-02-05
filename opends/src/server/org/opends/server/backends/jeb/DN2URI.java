@@ -33,20 +33,7 @@ import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDAPURL;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchResultReference;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 
 import java.io.UnsupportedEncodingException;
@@ -315,7 +302,7 @@ public class DN2URI extends DatabaseContainer
             {
               for (AttributeValue v : a)
               {
-                insert(txn, entryDN, v.getStringValue());
+                insert(txn, entryDN, v.getValue().toString());
               }
             }
             break;
@@ -329,7 +316,7 @@ public class DN2URI extends DatabaseContainer
             {
               for (AttributeValue v : a)
               {
-                delete(txn, entryDN, v.getStringValue());
+                delete(txn, entryDN, v.getValue().toString());
               }
             }
             break;
@@ -344,7 +331,7 @@ public class DN2URI extends DatabaseContainer
             {
               for (AttributeValue v : a)
               {
-                insert(txn, entryDN, v.getStringValue());
+                insert(txn, entryDN, v.getValue().toString());
               }
             }
             break;
@@ -679,7 +666,7 @@ public class DN2URI extends DatabaseContainer
           }
 
           // We have found a subordinate referral.
-          DN dn = DN.decode(new ASN1OctetString(key.getData()));
+          DN dn = DN.decode(ByteString.wrap(key.getData()));
 
           // Make sure the referral is within scope.
           if (searchOp.getScope() == SearchScope.SINGLE_LEVEL)

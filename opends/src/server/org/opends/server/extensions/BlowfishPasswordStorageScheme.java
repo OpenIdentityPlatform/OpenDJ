@@ -28,8 +28,6 @@ package org.opends.server.extensions;
 
 
 
-import java.util.Arrays;
-
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.BlowfishPasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
@@ -108,15 +106,17 @@ public class BlowfishPasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString encodePassword(ByteString plaintext)
+  public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
   {
     try
     {
+      // TODO: Can we avoid this copy?
+      byte[] plaintextBytes = plaintext.toByteArray();
       byte[] encodedBytes =
            cryptoManager.encrypt(CIPHER_TRANSFORMATION_BLOWFISH,
-                                 KEY_SIZE_BLOWFISH, plaintext.value());
-      return ByteStringFactory.create(Base64.encode(encodedBytes));
+                                 KEY_SIZE_BLOWFISH, plaintextBytes);
+      return ByteString.valueOf(Base64.encode(encodedBytes));
     }
     catch (Exception e)
     {
@@ -138,7 +138,7 @@ public class BlowfishPasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString encodePasswordWithScheme(ByteString plaintext)
+  public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
   {
     StringBuilder buffer = new StringBuilder();
@@ -148,9 +148,11 @@ public class BlowfishPasswordStorageScheme
 
     try
     {
+      // TODO: Can we avoid this copy?
+      byte[] plaintextBytes = plaintext.toByteArray();
       byte[] encodedBytes =
            cryptoManager.encrypt(CIPHER_TRANSFORMATION_BLOWFISH,
-                                 KEY_SIZE_BLOWFISH, plaintext.value());
+                                 KEY_SIZE_BLOWFISH, plaintextBytes);
       buffer.append(Base64.encode(encodedBytes));
     }
     catch (Exception e)
@@ -166,7 +168,7 @@ public class BlowfishPasswordStorageScheme
                                    m, e);
     }
 
-    return ByteStringFactory.create(buffer.toString());
+    return ByteString.valueOf(buffer.toString());
   }
 
 
@@ -175,14 +177,15 @@ public class BlowfishPasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public boolean passwordMatches(ByteString plaintextPassword,
-                                 ByteString storedPassword)
+  public boolean passwordMatches(ByteSequence plaintextPassword,
+                                 ByteSequence storedPassword)
   {
     try
     {
-      byte[] decryptedPassword =
-           cryptoManager.decrypt(Base64.decode(storedPassword.stringValue()));
-      return Arrays.equals(plaintextPassword.value(), decryptedPassword);
+      ByteString decryptedPassword =
+          ByteString.wrap(cryptoManager.decrypt(
+               Base64.decode(storedPassword.toString())));
+      return plaintextPassword.equals(decryptedPassword);
     }
     catch (Exception e)
     {
@@ -212,14 +215,14 @@ public class BlowfishPasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString getPlaintextValue(ByteString storedPassword)
+  public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
   {
     try
     {
       byte[] decryptedPassword =
-           cryptoManager.decrypt(Base64.decode(storedPassword.stringValue()));
-      return ByteStringFactory.create(decryptedPassword);
+           cryptoManager.decrypt(Base64.decode(storedPassword.toString()));
+      return ByteString.wrap(decryptedPassword);
     }
     catch (Exception e)
     {
@@ -253,7 +256,7 @@ public class BlowfishPasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString encodeAuthPassword(ByteString plaintext)
+  public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
   {
     Message message =
@@ -267,7 +270,7 @@ public class BlowfishPasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public boolean authPasswordMatches(ByteString plaintextPassword,
+  public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
   {
     // This storage scheme does not support the authentication password syntax.

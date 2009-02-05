@@ -39,14 +39,7 @@ import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.VirtualAttributeRule;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -130,19 +123,21 @@ public class UserDefinedVirtualAttributeProvider
   {
     AttributeType attributeType = rule.getAttributeType();
     Set<String> userDefinedValues = currentConfig.getValue();
+
     switch (userDefinedValues.size()) {
     case 0:
       return Collections.emptySet();
     case 1:
       String valueString = userDefinedValues.iterator().next();
-      AttributeValue value = new AttributeValue(attributeType, valueString);
+      AttributeValue value =
+          AttributeValues.create(attributeType, valueString);
       return Collections.singleton(value);
     default:
       HashSet<AttributeValue> values =
           new HashSet<AttributeValue>(userDefinedValues.size());
       for (String valueString2 : userDefinedValues)
       {
-        values.add(new AttributeValue(attributeType, valueString2));
+        values.add(AttributeValues.create(attributeType, valueString2));
       }
       return Collections.unmodifiableSet(values);
     }

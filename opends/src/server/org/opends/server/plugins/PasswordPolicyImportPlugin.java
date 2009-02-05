@@ -60,19 +60,7 @@ import org.opends.server.core.PasswordPolicy;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.ResultCode;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -400,7 +388,7 @@ policyLoop:
                     for (PasswordStorageScheme<?> s : schemes)
                     {
                       ByteString nv = s.encodeAuthPassword(value);
-                      builder.add(new AttributeValue(policy
+                      builder.add(AttributeValues.create(policy
                           .getPasswordAttribute(), nv));
                     }
                   }
@@ -435,7 +423,7 @@ policyLoop:
                     for (PasswordStorageScheme<?> s : schemes)
                     {
                       ByteString nv = s.encodePasswordWithScheme(value);
-                      builder.add(new AttributeValue(policy
+                      builder.add(AttributeValues.create(policy
                           .getPasswordAttribute(), nv));
                     }
                   }
@@ -501,7 +489,7 @@ policyLoop:
               for (PasswordStorageScheme<?> s : defaultAuthPasswordSchemes)
               {
                 ByteString nv = s.encodeAuthPassword(value);
-                builder.add(new AttributeValue(t, nv));
+                builder.add(AttributeValues.create(t, nv));
               }
             }
             catch (Exception e)
@@ -559,7 +547,7 @@ policyLoop:
               for (PasswordStorageScheme<?> s : defaultUserPasswordSchemes)
               {
                 ByteString nv = s.encodePasswordWithScheme(value);
-                builder.add(new AttributeValue(t, nv));
+                builder.add(AttributeValues.create(t, nv));
               }
             }
             catch (Exception e)

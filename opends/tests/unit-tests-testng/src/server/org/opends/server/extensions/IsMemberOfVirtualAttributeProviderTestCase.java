@@ -28,13 +28,11 @@ package org.opends.server.extensions;
 
 
 
+import static org.testng.Assert.*;
+
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
@@ -45,19 +43,20 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.AttributeValues;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.ConditionResult;
-import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DN;
+import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
-
-import static org.testng.Assert.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 
 
@@ -138,11 +137,11 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertEquals(a.size(), 1);
 
       assertTrue(!a.isEmpty());
-      assertTrue(a.contains(new AttributeValue(isMemberOfType,
+      assertTrue(a.contains(AttributeValues.create(isMemberOfType,
                                      "cn=test static group,ou=groups,o=test")));
-      assertFalse(a.contains(new AttributeValue(isMemberOfType,
+      assertFalse(a.contains(AttributeValues.create(isMemberOfType,
                                       "cn=not a group,ou=groups,o=test")));
-      assertFalse(a.contains(new AttributeValue(isMemberOfType, "invalid")));
+      assertFalse(a.contains(AttributeValues.create(isMemberOfType, "invalid")));
     }
 
     InternalClientConnection conn =
@@ -204,11 +203,11 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertEquals(a.size(), 1);
 
       assertTrue(!a.isEmpty());
-      assertTrue(a.contains(new AttributeValue(isMemberOfType,
+      assertTrue(a.contains(AttributeValues.create(isMemberOfType,
                                      "cn=test static group,ou=groups,o=test")));
-      assertFalse(a.contains(new AttributeValue(isMemberOfType,
+      assertFalse(a.contains(AttributeValues.create(isMemberOfType,
                                       "cn=not a group,ou=groups,o=test")));
-      assertFalse(a.contains(new AttributeValue(isMemberOfType, "invalid")));
+      assertFalse(a.contains(AttributeValues.create(isMemberOfType, "invalid")));
     }
 
     InternalClientConnection conn =
@@ -269,11 +268,11 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertEquals(a.size(), 1);
 
       assertTrue(!a.isEmpty());
-      assertTrue(a.contains(new AttributeValue(isMemberOfType,
+      assertTrue(a.contains(AttributeValues.create(isMemberOfType,
                       "cn=test dynamic group,ou=groups,o=test")));
-      assertFalse(a.contains(new AttributeValue(isMemberOfType,
+      assertFalse(a.contains(AttributeValues.create(isMemberOfType,
                                       "cn=not a group,ou=groups,o=test")));
-      assertFalse(a.contains(new AttributeValue(isMemberOfType, "invalid")));
+      assertFalse(a.contains(AttributeValues.create(isMemberOfType, "invalid")));
     }
 
     InternalClientConnection conn =
@@ -359,15 +358,15 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertEquals(a.size(), 2);
 
       assertTrue(!a.isEmpty());
-      assertTrue(a.contains(new AttributeValue(isMemberOfType,
+      assertTrue(a.contains(AttributeValues.create(isMemberOfType,
                                      "cn=test group 1,ou=groups,o=test")));
-      assertFalse(a.contains(new AttributeValue(isMemberOfType,
+      assertFalse(a.contains(AttributeValues.create(isMemberOfType,
                                       "cn=test group 2,ou=groups,o=test")));
-      assertTrue(a.contains(new AttributeValue(isMemberOfType,
+      assertTrue(a.contains(AttributeValues.create(isMemberOfType,
                                      "cn=test group 3,ou=groups,o=test")));
-      assertFalse(a.contains(new AttributeValue(isMemberOfType,
+      assertFalse(a.contains(AttributeValues.create(isMemberOfType,
                                       "cn=not a group,ou=groups,o=test")));
-      assertFalse(a.contains(new AttributeValue(isMemberOfType, "invalid")));
+      assertFalse(a.contains(AttributeValues.create(isMemberOfType, "invalid")));
     }
 
     InternalClientConnection conn =
@@ -478,21 +477,21 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertEquals(a.size(), 4);
 
       assertTrue(!a.isEmpty());
-      assertTrue(a.contains(new AttributeValue(isMemberOfType,
+      assertTrue(a.contains(AttributeValues.create(isMemberOfType,
                                      "cn=test group 1,ou=groups,o=test")));
-      assertFalse(a.contains(new AttributeValue(isMemberOfType,
+      assertFalse(a.contains(AttributeValues.create(isMemberOfType,
                                       "cn=test group 2,ou=groups,o=test")));
-      assertTrue(a.contains(new AttributeValue(isMemberOfType,
+      assertTrue(a.contains(AttributeValues.create(isMemberOfType,
                                      "cn=test group 3,ou=groups,o=test")));
-      assertTrue(a.contains(new AttributeValue(isMemberOfType,
+      assertTrue(a.contains(AttributeValues.create(isMemberOfType,
                                      "cn=test group 4,ou=groups,o=test")));
-      assertFalse(a.contains(new AttributeValue(isMemberOfType,
+      assertFalse(a.contains(AttributeValues.create(isMemberOfType,
                                       "cn=test group 5,ou=groups,o=test")));
-      assertTrue(a.contains(new AttributeValue(isMemberOfType,
+      assertTrue(a.contains(AttributeValues.create(isMemberOfType,
                                      "cn=test group 6,ou=groups,o=test")));
-      assertFalse(a.contains(new AttributeValue(isMemberOfType,
+      assertFalse(a.contains(AttributeValues.create(isMemberOfType,
                                       "cn=not a group,ou=groups,o=test")));
-      assertFalse(a.contains(new AttributeValue(isMemberOfType, "invalid")));
+      assertFalse(a.contains(AttributeValues.create(isMemberOfType, "invalid")));
     }
 
     InternalClientConnection conn =
@@ -653,7 +652,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(isMemberOfType,
+    values.add(AttributeValues.create(isMemberOfType,
                                   "cn=test static group,ou=groups,o=test"));
 
     assertTrue(provider.hasAnyValue(e, rule, values));
@@ -720,7 +719,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(isMemberOfType,
+    values.add(AttributeValues.create(isMemberOfType,
                                   "cn=test dynamic group,ou=groups,o=test"));
 
     assertFalse(provider.hasAnyValue(e, rule, values));
@@ -787,9 +786,9 @@ public class IsMemberOfVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(isMemberOfType,
+    values.add(AttributeValues.create(isMemberOfType,
                                   "cn=test static group,ou=groups,o=test"));
-    values.add(new AttributeValue(isMemberOfType,
+    values.add(AttributeValues.create(isMemberOfType,
                                   "cn=test dynamic group,ou=groups,o=test"));
 
     assertTrue(provider.hasAnyValue(e, rule, values));
@@ -856,9 +855,9 @@ public class IsMemberOfVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(isMemberOfType,
+    values.add(AttributeValues.create(isMemberOfType,
                                   "cn=test nonstatic group,ou=groups,o=test"));
-    values.add(new AttributeValue(isMemberOfType,
+    values.add(AttributeValues.create(isMemberOfType,
                                   "cn=test dynamic group,ou=groups,o=test"));
 
     assertFalse(provider.hasAnyValue(e, rule, values));
@@ -900,7 +899,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     LinkedList<ByteString> subAny = new LinkedList<ByteString>();
-    subAny.add(ByteStringFactory.create("="));
+    subAny.add(ByteString.valueOf("="));
 
     assertEquals(provider.matchesSubstring(entry, rule, null, subAny, null),
                  ConditionResult.UNDEFINED);
@@ -935,7 +934,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    AttributeValue value = new AttributeValue(isMemberOfType, "o=test2");
+    AttributeValue value = AttributeValues.create(isMemberOfType, "o=test2");
     assertEquals(provider.greaterThanOrEqualTo(entry, rule, value),
                  ConditionResult.UNDEFINED);
   }
@@ -969,7 +968,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    AttributeValue value = new AttributeValue(isMemberOfType, "o=test2");
+    AttributeValue value = AttributeValues.create(isMemberOfType, "o=test2");
     assertEquals(provider.lessThanOrEqualTo(entry, rule, value),
                  ConditionResult.UNDEFINED);
   }
@@ -1003,7 +1002,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    AttributeValue value = new AttributeValue(isMemberOfType, "o=test2");
+    AttributeValue value = AttributeValues.create(isMemberOfType, "o=test2");
     assertEquals(provider.approximatelyEqualTo(entry, rule, value),
                  ConditionResult.UNDEFINED);
   }

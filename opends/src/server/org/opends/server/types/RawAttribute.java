@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -30,12 +30,9 @@ import org.opends.messages.Message;
 
 
 import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
 
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.asn1.ASN1Set;
+import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -118,8 +115,7 @@ public abstract class RawAttribute
   {
     ensureNotNull(attributeType);
 
-    return new LDAPAttribute(attributeType,
-                             value.toASN1OctetString());
+    return new LDAPAttribute(attributeType, value);
   }
 
 
@@ -134,11 +130,11 @@ public abstract class RawAttribute
    * @return  The created raw attribute.
    */
   public static RawAttribute create(String attributeType,
-                                    List<ByteString> values)
+                                    ArrayList<ByteString> values)
   {
     ensureNotNull(attributeType);
 
-    return new LDAPAttribute(attributeType, convertValues(values));
+    return new LDAPAttribute(attributeType, values);
   }
 
 
@@ -156,34 +152,6 @@ public abstract class RawAttribute
     ensureNotNull(attribute);
 
     return new LDAPAttribute(attribute);
-  }
-
-
-
-  /**
-   * Converts the provided <CODE>List&lt;ByteString&gt;</CODE> to an
-   * <CODE>ArrayList&lt;ASN1OctetString&gt;</CODE>.
-   *
-   * @param  values  The list to be converted.
-   *
-   * @return  The converted {@code ArrayList} object.
-   */
-  private static ArrayList<ASN1OctetString>
-                      convertValues(List<ByteString> values)
-  {
-    if (values == null)
-    {
-      return null;
-    }
-
-    ArrayList<ASN1OctetString> convertedList =
-         new ArrayList<ASN1OctetString>(values.size());
-    for (ByteString s : values)
-    {
-      convertedList.add(s.toASN1OctetString());
-    }
-
-    return convertedList;
   }
 
 
@@ -212,7 +180,7 @@ public abstract class RawAttribute
    *
    * @return  The set of values for this attribute.
    */
-  public abstract ArrayList<ASN1OctetString> getValues();
+  public abstract ArrayList<ByteString> getValues();
 
 
 
@@ -229,37 +197,37 @@ public abstract class RawAttribute
   public abstract Attribute toAttribute()
          throws LDAPException;
 
-
-
   /**
-   * Encodes this attribute to an ASN.1 element.
+   * Writes this attribute to an ASN.1 output stream.
    *
-   * @return  The ASN.1 element containing the encoded attribute.
+   * @param stream The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the
+   *                     stream.
    */
-  public final ASN1Element encode()
+  public void write(ASN1Writer stream) throws IOException
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1OctetString(getAttributeType()));
+    stream.writeStartSequence();
+    stream.writeOctetString(getAttributeType());
 
-    ArrayList<ASN1OctetString> values = getValues();
-    if ((values == null) || values.isEmpty())
+    stream.writeStartSet();
+    ArrayList<ByteString> values = getValues();
+    if ((values != null))
     {
-      elements.add(new ASN1Set());
+      for(ByteString value : values)
+      {
+        stream.writeOctetString(value);
+      }
     }
-    else
-    {
-      elements.add(new ASN1Set(new ArrayList<ASN1Element>(values)));
-    }
+    stream.writeEndSequence();
 
-    return new ASN1Sequence(elements);
+    stream.writeEndSequence();
   }
 
-
-
   /**
-   * Decodes the provided ASN.1 element as an LDAP attribute.
+   * Decodes the elements from the provided ASN.1 reader as an
+   * LDAP attribute.
    *
-   * @param  element  The ASN.1 element to decode.
+   * @param  reader The ASN.1 reader.
    *
    * @return  The decoded LDAP attribute.
    *
@@ -267,13 +235,12 @@ public abstract class RawAttribute
    *                         decode the provided ASN.1 element as a
    *                         raw attribute.
    */
-  public static LDAPAttribute decode(ASN1Element element)
+  public static LDAPAttribute decode(ASN1Reader reader)
          throws LDAPException
   {
-    ArrayList<ASN1Element> elements;
     try
     {
-      elements = element.decodeAsSequence().elements();
+      reader.readStartSequence();
     }
     catch (Exception e)
     {
@@ -288,21 +255,10 @@ public abstract class RawAttribute
     }
 
 
-    int numElements = elements.size();
-    if (numElements != 2)
-    {
-      Message message =
-          ERR_LDAP_ATTRIBUTE_DECODE_INVALID_ELEMENT_COUNT.
-            get(numElements);
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-
     String attributeType;
     try
     {
-      attributeType =
-           elements.get(0).decodeAsOctetString().stringValue();
+      attributeType = reader.readOctetStringAsString();
     }
     catch (Exception e)
     {
@@ -317,16 +273,16 @@ public abstract class RawAttribute
     }
 
 
-    ArrayList<ASN1OctetString> values;
+    ArrayList<ByteString> values;
     try
     {
-      ArrayList<ASN1Element> valueElements =
-           elements.get(1).decodeAsSet().elements();
-      values = new ArrayList<ASN1OctetString>(valueElements.size());
-      for (ASN1Element e : valueElements)
+      reader.readStartSequence();
+      values = new ArrayList<ByteString>();
+      while(reader.hasNextElement())
       {
-        values.add(e.decodeAsOctetString());
+        values.add(reader.readOctetString());
       }
+      reader.readEndSequence();
     }
     catch (Exception e)
     {
@@ -337,6 +293,22 @@ public abstract class RawAttribute
 
       Message message =
           ERR_LDAP_ATTRIBUTE_DECODE_VALUES.get(String.valueOf(e));
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
+    }
+
+    try
+    {
+      reader.readEndSequence();
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      Message message =
+          ERR_LDAP_ATTRIBUTE_DECODE_SEQUENCE.get(String.valueOf(e));
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 

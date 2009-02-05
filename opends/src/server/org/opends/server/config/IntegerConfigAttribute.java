@@ -40,10 +40,7 @@ import javax.management.MBeanParameterInfo;
 
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -683,8 +680,8 @@ public final class IntegerConfigAttribute
 
       String valueString = String.valueOf(value);
       AttributeValue attrValue =
-           new AttributeValue(new ASN1OctetString(valueString),
-                              new ASN1OctetString(valueString));
+          AttributeValues.create(ByteString.valueOf(valueString),
+              ByteString.valueOf(valueString));
 
       if (valueSet.contains(attrValue))
       {
@@ -726,8 +723,8 @@ public final class IntegerConfigAttribute
          new LinkedHashSet<AttributeValue>(1);
 
     String valueString = String.valueOf(value);
-    valueSet.add(new AttributeValue(new ASN1OctetString(valueString),
-                                    new ASN1OctetString(valueString)));
+    valueSet.add(AttributeValues.create(ByteString.valueOf(valueString),
+        ByteString.valueOf(valueString)));
 
     return valueSet;
   }
@@ -754,8 +751,8 @@ public final class IntegerConfigAttribute
     for (long value : values)
     {
       String valueString = String.valueOf(value);
-      valueSet.add(new AttributeValue(new ASN1OctetString(valueString),
-                                      new ASN1OctetString(valueString)));
+      valueSet.add(AttributeValues.create(ByteString.valueOf(valueString),
+          ByteString.valueOf(valueString)));
     }
 
     return valueSet;
@@ -797,7 +794,7 @@ public final class IntegerConfigAttribute
                                    StringBuilder rejectReason)
   {
     // First, make sure we can represent it as a long.
-    String stringValue = value.getStringValue();
+    String stringValue = value.getValue().toString();
     long longValue;
     try
     {
@@ -951,8 +948,8 @@ public final class IntegerConfigAttribute
       }
 
 
-      valueSet.add(new AttributeValue(new ASN1OctetString(valueString),
-                                      new ASN1OctetString(valueString)));
+      valueSet.add(AttributeValues.create(ByteString.valueOf(valueString),
+          ByteString.valueOf(valueString)));
     }
 
 
@@ -1101,12 +1098,12 @@ public final class IntegerConfigAttribute
               long longValue;
               try
               {
-                longValue = Long.parseLong(v.getStringValue());
+                longValue = Long.parseLong(v.getValue().toString());
               }
               catch (Exception e)
               {
                 Message message = ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(
-                    v.getStringValue(), a.getName(), String.valueOf(e));
+                    v.getValue().toString(), a.getName(), String.valueOf(e));
                 throw new ConfigException(message, e);
               }
 
@@ -1183,12 +1180,12 @@ public final class IntegerConfigAttribute
             long longValue;
             try
             {
-              longValue = Long.parseLong(v.getStringValue());
+              longValue = Long.parseLong(v.getValue().toString());
             }
             catch (Exception e)
             {
               Message message = ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(
-                  v.getStringValue(), a.getName(), String.valueOf(e));
+                  v.getValue().toString(), a.getName(), String.valueOf(e));
               throw new ConfigException(message, e);
             }
 

@@ -25,23 +25,16 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
 
 
+import java.io.IOException;
 
-import java.util.ArrayList;
-
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
+import org.opends.server.protocols.asn1.*;
+import org.opends.server.types.ByteString;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -59,10 +52,10 @@ public class CompareRequestProtocolOp
   private static final DebugTracer TRACER = getTracer();
 
   // The assertion value for this compare request.
-  private ASN1OctetString assertionValue;
+  private ByteString assertionValue;
 
   // The DN for this compare request.
-  private ASN1OctetString dn;
+  private ByteString dn;
 
   // The attribute type for this compare request.
   private String attributeType;
@@ -76,8 +69,8 @@ public class CompareRequestProtocolOp
    * @param  attributeType   The attribute type for this compare request.
    * @param  assertionValue  The assertion value for this compare request.
    */
-  public CompareRequestProtocolOp(ASN1OctetString dn, String attributeType,
-                                  ASN1OctetString assertionValue)
+  public CompareRequestProtocolOp(ByteString dn, String attributeType,
+                                  ByteString assertionValue)
   {
     this.dn             = dn;
     this.attributeType  = attributeType;
@@ -91,21 +84,9 @@ public class CompareRequestProtocolOp
    *
    * @return  The DN for this compare request.
    */
-  public ASN1OctetString getDN()
+  public ByteString getDN()
   {
     return dn;
-  }
-
-
-
-  /**
-   * Specifies the DN for this compare request.
-   *
-   * @param  dn  The DN for this compare request.
-   */
-  public void setDN(ASN1OctetString dn)
-  {
-    this.dn = dn;
   }
 
 
@@ -123,37 +104,13 @@ public class CompareRequestProtocolOp
 
 
   /**
-   * Specifies the attribute type for this compare request.
-   *
-   * @param  attributeType  The attribute type for this compare request.
-   */
-  public void setAttributeType(String attributeType)
-  {
-    this.attributeType = attributeType;
-  }
-
-
-
-  /**
    * Retrieves the assertion value for this compare request.
    *
    * @return  The assertion value for this compare request.
    */
-  public ASN1OctetString getAssertionValue()
+  public ByteString getAssertionValue()
   {
     return assertionValue;
-  }
-
-
-
-  /**
-   * Specifies the assertion value for this compare request.
-   *
-   * @param  assertionValue  The assertion value for this compare request.
-   */
-  public void setAssertionValue(ASN1OctetString assertionValue)
-  {
-    this.assertionValue = assertionValue;
   }
 
 
@@ -180,152 +137,23 @@ public class CompareRequestProtocolOp
     return "Compare Request";
   }
 
-
-
   /**
-   * Encodes this protocol op to an ASN.1 element suitable for including in an
-   * LDAP message.
+   * Writes this protocol op to an ASN.1 output stream.
    *
-   * @return  The ASN.1 element containing the encoded protocol op.
+   * @param stream The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public ASN1Element encode()
+  public void write(ASN1Writer stream) throws IOException
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(dn);
+    stream.writeStartSequence(OP_TYPE_COMPARE_REQUEST);
+    stream.writeOctetString(dn);
 
-    ArrayList<ASN1Element> avaElements = new ArrayList<ASN1Element>(2);
-    avaElements.add(new ASN1OctetString(attributeType));
-    avaElements.add(assertionValue);
-    elements.add(new ASN1Sequence(avaElements));
+    stream.writeStartSequence();
+    stream.writeOctetString(attributeType);
+    stream.writeOctetString(assertionValue);
+    stream.writeEndSequence();
 
-    return new ASN1Sequence(OP_TYPE_COMPARE_REQUEST, elements);
-  }
-
-
-
-  /**
-   * Decodes the provided ASN.1 element as an LDAP compare request protocol op.
-   *
-   * @param  element  The ASN.1 element to decode.
-   *
-   * @return  The decoded LDAP compare request protocol op.
-   *
-   * @throws  LDAPException  If a problem occurs while attempting to decode the
-   *                         ASN.1 element as a compare request protocol op.
-   */
-  public static CompareRequestProtocolOp decodeCompareRequest(ASN1Element
-                                                                   element)
-         throws LDAPException
-  {
-    ArrayList<ASN1Element> elements;
-    try
-    {
-      elements = element.decodeAsSequence().elements();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_COMPARE_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    int numElements = elements.size();
-    if (numElements != 2)
-    {
-      Message message = ERR_LDAP_COMPARE_REQUEST_DECODE_INVALID_ELEMENT_COUNT.
-          get(numElements);
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-
-    ASN1OctetString dn;
-    try
-    {
-      dn = elements.get(0).decodeAsOctetString();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_COMPARE_REQUEST_DECODE_DN.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    ArrayList<ASN1Element> avaElements;
-    try
-    {
-      avaElements = elements.get(1).decodeAsSequence().elements();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_COMPARE_REQUEST_DECODE_AVA.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    numElements = avaElements.size();
-    if (numElements != 2)
-    {
-      Message message =
-          ERR_LDAP_COMPARE_REQUEST_DECODE_AVA_COUNT.get(numElements);
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-
-    String attributeType;
-    try
-    {
-      attributeType = avaElements.get(0).decodeAsOctetString().stringValue();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_COMPARE_REQUEST_DECODE_TYPE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    ASN1OctetString assertionValue;
-    try
-    {
-      assertionValue = avaElements.get(1).decodeAsOctetString();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_COMPARE_REQUEST_DECODE_VALUE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    return new CompareRequestProtocolOp(dn, attributeType, assertionValue);
+    stream.writeEndSequence();
   }
 
 
@@ -339,11 +167,11 @@ public class CompareRequestProtocolOp
   public void toString(StringBuilder buffer)
   {
     buffer.append("CompareRequest(dn=");
-    dn.toString(buffer);
+    buffer.append(dn.toString());
     buffer.append(", attribute=");
     buffer.append(attributeType);
     buffer.append(", value=");
-    assertionValue.toString(buffer);
+    buffer.append(assertionValue.toString());
     buffer.append(")");
   }
 
@@ -371,7 +199,7 @@ public class CompareRequestProtocolOp
 
     buffer.append(indentBuf);
     buffer.append("  Target DN:  ");
-    dn.toString(buffer);
+    buffer.append(dn.toString());
     buffer.append(EOL);
 
     buffer.append(indentBuf);
@@ -382,7 +210,7 @@ public class CompareRequestProtocolOp
     buffer.append(indentBuf);
     buffer.append("  Assertion Value:");
     buffer.append(EOL);
-    assertionValue.toString(buffer, indent+4);
+    assertionValue.toHexPlusAscii(buffer, indent+4);
   }
 }
 

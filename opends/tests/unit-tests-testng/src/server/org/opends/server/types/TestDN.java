@@ -33,8 +33,8 @@ import java.util.ArrayList;
 import static org.testng.Assert.*;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
@@ -316,7 +316,7 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "testDNs")
   public void testDecodeOctetString(String rawDN, String normDN,
       String stringDN) throws Exception {
-    ASN1OctetString octetString = new ASN1OctetString(rawDN);
+    ByteString octetString = ByteString.valueOf(rawDN);
 
     DN dn = DN.decode(octetString);
     assertEquals(dn.toNormalizedString(), normDN);
@@ -394,7 +394,7 @@ public class TestDN extends TypesTestCase {
    */
   @Test(dataProvider = "illegalDNs", expectedExceptions = DirectoryException.class)
   public void testIllegalOctetStringDNs(String dn) throws Exception {
-    ASN1OctetString octetString = new ASN1OctetString(dn);
+    ByteString octetString = ByteString.valueOf(dn);
 
     try {
       DN.decode(octetString);

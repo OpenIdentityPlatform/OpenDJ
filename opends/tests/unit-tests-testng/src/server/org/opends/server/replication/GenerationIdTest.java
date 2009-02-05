@@ -191,6 +191,7 @@ public class GenerationIdTest extends ReplicationTestCase
    * @throws Exception
    *           If the environment could not be set up.
    */
+  @Override
   @BeforeClass
   public void setUp() throws Exception
   {
@@ -529,7 +530,8 @@ public class GenerationIdTest extends ReplicationTestCase
           Attribute attr = attrs.get(0);
           if (attr.size() == 1)
           {
-            genId = Long.decode(attr.iterator().next().getStringValue());
+            genId =
+                Long.decode(attr.iterator().next().getValue().toString());
           }
         }
 
@@ -1397,7 +1399,7 @@ public class GenerationIdTest extends ReplicationTestCase
             server2ID, 100, getChangelogPort(changelog1ID),
             1000, !emptyOldChanges, generationId);
         debugInfo(testCase + " Expect genId to be set in memory on the replication " +
-        " server side even if not wrote on disk/db since no change occurred.");
+          " server side even if not wrote on disk/db since no change occurred.");
         rgenId = replServer1.getGenerationId(baseDn.toNormalizedString());
         assertEquals(rgenId, generationId);
         broker.stop();

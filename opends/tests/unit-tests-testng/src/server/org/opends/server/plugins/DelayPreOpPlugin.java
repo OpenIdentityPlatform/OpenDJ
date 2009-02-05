@@ -28,22 +28,23 @@ package org.opends.server.plugins;
 
 
 
+import java.util.Set;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.io.IOException;
 
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigException;
-import org.opends.server.protocols.asn1.ASN1Long;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.types.Control;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.CanceledOperationException;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1;
+import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.*;
+import org.opends.server.controls.ControlDecoder;
 import org.opends.messages.Message;
 
 
@@ -63,6 +64,93 @@ public class DelayPreOpPlugin
    * that should be delayed.
    */
   public static final String OID_DELAY_REQUEST = "1.3.6.1.4.1.26027.1.999.1";
+
+  /**
+   * The control used by this plugin.
+   */
+  public static class DelayRequestControl extends Control
+  {
+
+    /**
+     * ControlDecoder implentation to decode this control from a ByteString.
+     */
+    private final static class Decoder
+        implements ControlDecoder<DelayRequestControl>
+    {
+      /**
+       * {@inheritDoc}
+       */
+      public DelayRequestControl decode(boolean isCritical, ByteString value)
+          throws DirectoryException
+      {
+        ASN1Reader reader = ASN1.getReader(value);
+
+        try
+        {
+          long delay = reader.readInteger();
+
+          return new DelayRequestControl(isCritical, delay);
+        }
+        catch (Exception e)
+        {
+          // TODO: Need a better message
+          throw new DirectoryException(ResultCode.PROTOCOL_ERROR, null, e);
+        }
+      }
+
+      public String getOID()
+      {
+        return OID_DELAY_REQUEST;
+      }
+
+    }
+
+    /**
+     * The Control Decoder that can be used to decode this control.
+     */
+    public static final ControlDecoder<DelayRequestControl> DECODER =
+      new Decoder();
+
+
+    private long delayDuration;
+
+    /**
+     * Constructs a new change number control.
+     *
+     * @param  isCritical   Indicates whether support for this control should be
+     *                      considered a critical part of the server processing.
+     * @param delayDuration The requested delay duration.
+     */
+    public DelayRequestControl(boolean isCritical, long delayDuration)
+    {
+      super(OID_DELAY_REQUEST, isCritical);
+      this.delayDuration = delayDuration;
+    }
+
+    /**
+     * Writes this control's value to an ASN.1 writer. The value (if any)
+     * must be written as an ASN1OctetString.
+     *
+     * @param writer The ASN.1 writer to use.
+     * @throws IOException If a problem occurs while writing to the stream.
+     */
+    @Override
+    protected void writeValue(ASN1Writer writer) throws IOException {
+      writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
+      writer.writeInteger(delayDuration);
+      writer.writeEndSequence();
+    }
+
+    /**
+     * Retrieves the delay duration.
+     *
+     * @return The delay duration.
+     */
+    public long getDelayDuration()
+    {
+      return delayDuration;
+    }
+  }
 
 
 
@@ -228,49 +316,44 @@ public class DelayPreOpPlugin
    */
   private PluginResult.PreOperation
        doPreOperationInternal(PreOperationOperation operation)
-      throws CanceledOperationException {
-    long delayDuration = 0L;
-    List<Control> requestControls = operation.getRequestControls();
-    if (requestControls != null)
+      throws CanceledOperationException
+  {
+    DelayRequestControl control;
+    try
     {
-      for (Control c : requestControls)
+      control = operation.getRequestControl(DelayRequestControl.DECODER);
+    }
+    catch (Exception e)
+    {
+      return PluginResult.PreOperation.stopProcessing(
+          ResultCode.PROTOCOL_ERROR,
+          Message.raw("Unable to decode the delay request control:  " +
+              e));
+    }
+
+    if(control != null)
+    {
+      long delayDuration = control.getDelayDuration();
+      if (delayDuration <= 0)
       {
-        if (c.getOID().equals(OID_DELAY_REQUEST))
-        {
-          try
-          {
-            delayDuration =
-                 ASN1Long.decodeAsLong(c.getValue().value()).longValue();
-          }
-          catch (Exception e)
-          {
-            return PluginResult.PreOperation.stopProcessing(
-                ResultCode.PROTOCOL_ERROR,
-                Message.raw("Unable to decode the delay request control:  " +
-                    e));
-          }
-        }
+        return PluginResult.PreOperation.continueOperationProcessing();
       }
-    }
 
-    if (delayDuration <= 0)
-    {
-      return PluginResult.PreOperation.continueOperationProcessing();
-    }
-
-    long stopSleepTime = System.currentTimeMillis() + delayDuration;
-    while (System.currentTimeMillis() < stopSleepTime)
-    {
-      operation.checkIfCanceled(false);
-
-      try
+      long stopSleepTime = System.currentTimeMillis() + delayDuration;
+      while (System.currentTimeMillis() < stopSleepTime)
       {
-        Thread.sleep(10);
-      } catch (Exception e) {}
+        operation.checkIfCanceled(false);
+
+        try
+        {
+          Thread.sleep(10);
+        } catch (Exception e) {}
+      }
     }
 
     return PluginResult.PreOperation.continueOperationProcessing();
   }
+
 
 
 
@@ -283,44 +366,7 @@ public class DelayPreOpPlugin
    */
   public static Control createDelayControl(long delay)
   {
-    return new Control(OID_DELAY_REQUEST, false,
-                       new ASN1OctetString(new ASN1Long(delay).encode()));
-  }
-
-
-
-  /**
-   * Retrieves a list containing a delay request control with the specified
-   * delay.
-   *
-   * @param  delay  The length of time in milliseconds to sleep.
-   *
-   * @return  A list containing the appropriate delay request control.
-   */
-  public static List<Control> createDelayControlList(long delay)
-  {
-    ArrayList<Control> controlList = new ArrayList<Control>(1);
-
-    ASN1OctetString controlValue =
-         new ASN1OctetString(new ASN1Long(delay).encode());
-    controlList.add(new Control(OID_DELAY_REQUEST, false, controlValue));
-
-    return controlList;
-  }
-
-
-
-  /**
-   * Creates a delay request LDAP control with the specified delay.
-   *
-   * @param  delay  The length of time in milliseconds to sleep.
-   *
-   * @return  The appropriate delay request LDAP control.
-   */
-  public static LDAPControl createDelayLDAPControl(long delay)
-  {
-    return new LDAPControl(OID_DELAY_REQUEST, false,
-                           new ASN1OctetString(new ASN1Long(delay).encode()));
+    return new DelayRequestControl(false, delay);
   }
 
 
@@ -333,13 +379,11 @@ public class DelayPreOpPlugin
    *
    * @return  A list containing the appropriate delay request LDAP control.
    */
-  public static ArrayList<LDAPControl> createDelayLDAPControlList(long delay)
+  public static List<Control> createDelayControlList(long delay)
   {
-    ArrayList<LDAPControl> controlList = new ArrayList<LDAPControl>(1);
+    ArrayList<Control> controlList = new ArrayList<Control>(1);
 
-    ASN1OctetString controlValue =
-         new ASN1OctetString(new ASN1Long(delay).encode());
-    controlList.add(new LDAPControl(OID_DELAY_REQUEST, false, controlValue));
+    controlList.add(new DelayRequestControl(false, delay));
 
     return controlList;
   }

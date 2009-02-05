@@ -28,22 +28,23 @@ package org.opends.server.schema;
 
 
 
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.Collection;
 import java.util.Collections;
+
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
-
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.util.ServerConstants;
 
 
 
@@ -71,6 +72,7 @@ class ObjectIdentifierFirstComponentEqualityMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getAllNames()
   {
     return Collections.singleton(getName());
@@ -84,6 +86,7 @@ class ObjectIdentifierFirstComponentEqualityMatchingRule
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
    * it does not have a name.
    */
+  @Override
   public String getName()
   {
     return EMR_OID_FIRST_COMPONENT_NAME;
@@ -96,6 +99,7 @@ class ObjectIdentifierFirstComponentEqualityMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return EMR_OID_FIRST_COMPONENT_OID;
@@ -109,6 +113,7 @@ class ObjectIdentifierFirstComponentEqualityMatchingRule
    * @return  The description for this matching rule, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     // There is no standard description for this matching rule.
@@ -123,6 +128,7 @@ class ObjectIdentifierFirstComponentEqualityMatchingRule
    *
    * @return  The OID of the syntax with which this matching rule is associated.
    */
+  @Override
   public String getSyntaxOID()
   {
     return SYNTAX_OID_OID;
@@ -141,25 +147,26 @@ class ObjectIdentifierFirstComponentEqualityMatchingRule
    * @throws  DirectoryException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
-  public ByteString normalizeValue(ByteString value)
+  @Override
+  public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
     StringBuilder buffer = new StringBuilder();
-    toLowerCase(value.value(), buffer, true);
+    toLowerCase(value, buffer, true);
 
     int bufferLength = buffer.length();
     if (bufferLength == 0)
     {
-      if (value.value().length > 0)
+      if (value.length() > 0)
       {
         // This should only happen if the value is composed entirely of spaces.
         // In that case, the normalized value is a single space.
-        return new ASN1OctetString(" ");
+        return ServerConstants.SINGLE_SPACE_VALUE;
       }
       else
       {
         // The value is empty, so it is already normalized.
-        return new ASN1OctetString();
+        return ByteString.empty();
       }
     }
 
@@ -176,7 +183,7 @@ class ObjectIdentifierFirstComponentEqualityMatchingRule
       }
     }
 
-    return new ASN1OctetString(buffer.toString());
+    return ByteString.valueOf(buffer.toString());
   }
 
 
@@ -191,12 +198,13 @@ class ObjectIdentifierFirstComponentEqualityMatchingRule
    * @return  <CODE>true</CODE> if the provided values are equal, or
    *          <CODE>false</CODE> if not.
    */
-  public boolean areEqual(ByteString value1, ByteString value2)
+  @Override
+  public boolean areEqual(ByteSequence value1, ByteSequence value2)
   {
     // For this purpose, the first value will be considered the attribute value,
     // and the second the assertion value.  The attribute value must start with
     // an open parenthesis, followed by one or more spaces.
-    String value1String = value1.stringValue();
+    String value1String = value1.toString();
     int    value1Length = value1String.length();
 
     if ((value1Length == 0) || (value1String.charAt(0) != '('))
@@ -206,9 +214,8 @@ class ObjectIdentifierFirstComponentEqualityMatchingRule
       return false;
     }
 
-    char c;
     int  pos = 1;
-    while ((pos < value1Length) && ((c = value1String.charAt(pos)) == ' '))
+    while ((pos < value1Length) && ((value1String.charAt(pos)) == ' '))
     {
       pos++;
     }
@@ -223,7 +230,7 @@ class ObjectIdentifierFirstComponentEqualityMatchingRule
     // The current position must be the start position for the value.  Keep
     // reading until we find the next space.
     int startPos = pos++;
-    while ((pos < value1Length) && ((c = value1String.charAt(pos)) != ' '))
+    while ((pos < value1Length) && ((value1String.charAt(pos)) != ' '))
     {
       pos++;
     }
@@ -239,7 +246,7 @@ class ObjectIdentifierFirstComponentEqualityMatchingRule
     // equal to the string representation of the second value, then we have a
     // match.
     String oid          = value1String.substring(startPos, pos);
-    String value2String = value2.stringValue();
+    String value2String = value2.toString();
     if (oid.equals(value2String))
     {
       return true;
@@ -347,7 +354,8 @@ class ObjectIdentifierFirstComponentEqualityMatchingRule
    *                         code.
    *
    * @return  The hash code generated for the provided attribute value.*/
-  public int generateHashCode(AttributeValue attributeValue)
+  @Override
+  public int generateHashCode(ByteSequence attributeValue)
   {
     // In this case, we'll always return the same value because the matching
     // isn't based on the entire value.

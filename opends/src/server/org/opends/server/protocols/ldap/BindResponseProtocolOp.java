@@ -28,24 +28,17 @@ package org.opends.server.protocols.ldap;
 import org.opends.messages.Message;
 
 
-
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.io.IOException;
 
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Enumerated;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
+import org.opends.server.protocols.asn1.*;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
+import org.opends.server.types.ByteString;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -64,7 +57,7 @@ public class BindResponseProtocolOp
   private static final DebugTracer TRACER = getTracer();
 
   // The server SASL credentials for this response.
-  private ASN1OctetString serverSASLCredentials;
+  private ByteString serverSASLCredentials;
 
   // The matched DN for this response.
   private DN matchedDN;
@@ -148,7 +141,7 @@ public class BindResponseProtocolOp
    */
   public BindResponseProtocolOp(int resultCode, Message errorMessage,
                                 DN matchedDN, List<String> referralURLs,
-                                ASN1OctetString serverSASLCredentials)
+                                ByteString serverSASLCredentials)
   {
     this.resultCode            = resultCode;
     this.errorMessage          = errorMessage;
@@ -172,18 +165,6 @@ public class BindResponseProtocolOp
 
 
   /**
-   * Specifies the result code for this response.
-   *
-   * @param  resultCode  The result code for this response.
-   */
-  public void setResultCode(int resultCode)
-  {
-    this.resultCode = resultCode;
-  }
-
-
-
-  /**
    * Retrieves the error message for this response.
    *
    * @return  The error message for this response, or <CODE>null</CODE> if none
@@ -192,18 +173,6 @@ public class BindResponseProtocolOp
   public Message getErrorMessage()
   {
     return errorMessage;
-  }
-
-
-
-  /**
-   * Specifies the error message for this response.
-   *
-   * @param  errorMessage  The error message for this response.
-   */
-  public void setErrorMessage(Message errorMessage)
-  {
-    this.errorMessage = errorMessage;
   }
 
 
@@ -222,18 +191,6 @@ public class BindResponseProtocolOp
 
 
   /**
-   * Specifies the matched DN for this response.
-   *
-   * @param  matchedDN  The matched DN for this response.
-   */
-  public void setMatchedDN(DN matchedDN)
-  {
-    this.matchedDN = matchedDN;
-  }
-
-
-
-  /**
    * Retrieves the set of referral URLs for this response.
    *
    * @return  The set of referral URLs for this response, or <CODE>null</CODE>
@@ -247,39 +204,14 @@ public class BindResponseProtocolOp
 
 
   /**
-   * Specifies the set of referral URLs for this response.
-   *
-   * @param  referralURLs  The set of referral URLs for this response.
-   */
-  public void setReferralURLs(List<String> referralURLs)
-  {
-    this.referralURLs = referralURLs;
-  }
-
-
-
-  /**
    * Retrieves the server SASL credentials for this response.
    *
    * @return  The server SASL credentials for this response, or
    *          <CODE>null</CODE> if there are none.
    */
-  public ASN1OctetString getServerSASLCredentials()
+  public ByteString getServerSASLCredentials()
   {
     return serverSASLCredentials;
-  }
-
-
-
-  /**
-   * Specifies the server SASL credentials for this response.
-   *
-   * @param  serverSASLCredentials  The server SASL credentials for this
-   *                                response.
-   */
-  public void setServerSASLCredentials(ASN1OctetString serverSASLCredentials)
-  {
-    this.serverSASLCredentials = serverSASLCredentials;
   }
 
 
@@ -306,272 +238,52 @@ public class BindResponseProtocolOp
     return "Bind Response";
   }
 
-
-
   /**
-   * Encodes this protocol op to an ASN.1 element suitable for including in an
-   * LDAP message.
+   * Writes this protocol op to an ASN.1 output stream.
    *
-   * @return  The ASN.1 element containing the encoded protocol op.
+   * @param stream The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public ASN1Element encode()
+  public void write(ASN1Writer stream) throws IOException
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(5);
-    elements.add(new ASN1Enumerated(resultCode));
+    stream.writeStartSequence(OP_TYPE_BIND_RESPONSE);
+    stream.writeEnumerated(resultCode);
 
-    if (matchedDN == null)
+    if(matchedDN == null)
     {
-      elements.add(new ASN1OctetString());
+      stream.writeOctetString((String)null);
     }
     else
     {
-      elements.add(new ASN1OctetString(matchedDN.toString()));
+      stream.writeOctetString(matchedDN.toString());
     }
 
-    elements.add(new ASN1OctetString(errorMessage));
+    if(errorMessage == null)
+    {
+      stream.writeOctetString((String)null);
+    }
+    else
+    {
+      stream.writeOctetString(errorMessage.toString());
+    }
 
     if ((referralURLs != null) && (! referralURLs.isEmpty()))
     {
-      ArrayList<ASN1Element> referralElements =
-           new ArrayList<ASN1Element>(referralURLs.size());
-
+      stream.writeStartSequence(TYPE_REFERRAL_SEQUENCE);
       for (String s : referralURLs)
       {
-        referralElements.add(new ASN1OctetString(s));
+        stream.writeOctetString(s);
       }
-
-      elements.add(new ASN1Sequence(TYPE_REFERRAL_SEQUENCE, referralElements));
+      stream.writeEndSequence();
     }
 
     if (serverSASLCredentials != null)
     {
-      serverSASLCredentials.setType(TYPE_SERVER_SASL_CREDENTIALS);
-      elements.add(serverSASLCredentials);
+      stream.writeOctetString(TYPE_SERVER_SASL_CREDENTIALS,
+          serverSASLCredentials);
     }
 
-    return new ASN1Sequence(OP_TYPE_BIND_RESPONSE, elements);
-  }
-
-
-
-  /**
-   * Decodes the provided ASN.1 element as a bind response protocol op.
-   *
-   * @param  element  The ASN.1 element to decode.
-   *
-   * @return  The decoded bind response protocol op.
-   *
-   * @throws  LDAPException  If a problem occurs while attempting to decode the
-   *                         ASN.1 element to a protocol op.
-   */
-  public static BindResponseProtocolOp decodeBindResponse(ASN1Element element)
-         throws LDAPException
-  {
-    ArrayList<ASN1Element> elements;
-    try
-    {
-      elements = element.decodeAsSequence().elements();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_LDAP_RESULT_DECODE_SEQUENCE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    int numElements = elements.size();
-    if ((numElements < 3) || (numElements > 5))
-    {
-      Message message =
-          ERR_LDAP_BIND_RESULT_DECODE_INVALID_ELEMENT_COUNT.get(numElements);
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-
-    int resultCode;
-    try
-    {
-      resultCode = elements.get(0).decodeAsInteger().intValue();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_RESULT_DECODE_RESULT_CODE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    DN matchedDN;
-    try
-    {
-      String dnString = elements.get(1).decodeAsOctetString().stringValue();
-      if (dnString.length() == 0)
-      {
-        matchedDN = null;
-      }
-      else
-      {
-        matchedDN = DN.decode(dnString);
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_RESULT_DECODE_MATCHED_DN.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    Message errorMessage;
-    try
-    {
-      errorMessage =
-              Message.raw(elements.get(2).decodeAsOctetString().stringValue());
-      if (errorMessage.length() == 0)
-      {
-        errorMessage = null;
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_RESULT_DECODE_ERROR_MESSAGE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    ArrayList<String> referralURLs;
-    ASN1OctetString   serverSASLCredentials;
-    switch (numElements)
-    {
-      case 4:
-        element = elements.get(3);
-        switch (element.getType())
-        {
-          case TYPE_REFERRAL_SEQUENCE:
-            serverSASLCredentials = null;
-
-            try
-            {
-              ArrayList<ASN1Element> referralElements =
-                   element.decodeAsSequence().elements();
-              referralURLs = new ArrayList<String>(referralElements.size());
-
-              for (ASN1Element e : referralElements)
-              {
-                referralURLs.add(e.decodeAsOctetString().stringValue());
-              }
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              Message message =
-                  ERR_LDAP_RESULT_DECODE_REFERRALS.get(String.valueOf(e));
-              throw new LDAPException(PROTOCOL_ERROR, message, e);
-            }
-
-            break;
-          case TYPE_SERVER_SASL_CREDENTIALS:
-            referralURLs = null;
-
-            try
-            {
-              serverSASLCredentials = element.decodeAsOctetString();
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              Message message =
-                  ERR_LDAP_BIND_RESULT_DECODE_SERVER_SASL_CREDENTIALS.
-                    get(String.valueOf(e));
-              throw new LDAPException(PROTOCOL_ERROR, message, e);
-            }
-
-            break;
-          default:
-            Message message =
-                ERR_LDAP_BIND_RESULT_DECODE_INVALID_TYPE.get(element.getType());
-            throw new LDAPException(PROTOCOL_ERROR, message);
-        }
-        break;
-      case 5:
-        try
-        {
-          ArrayList<ASN1Element> referralElements =
-               elements.get(3).decodeAsSequence().elements();
-          referralURLs = new ArrayList<String>(referralElements.size());
-
-          for (ASN1Element e : referralElements)
-          {
-            referralURLs.add(e.decodeAsOctetString().stringValue());
-          }
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-
-          Message message =
-              ERR_LDAP_RESULT_DECODE_REFERRALS.get(String.valueOf(e));
-          throw new LDAPException(PROTOCOL_ERROR, message, e);
-        }
-
-        try
-        {
-          serverSASLCredentials = elements.get(4).decodeAsOctetString();
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-
-          Message message = ERR_LDAP_BIND_RESULT_DECODE_SERVER_SASL_CREDENTIALS.
-              get(String.valueOf(e));
-          throw new LDAPException(PROTOCOL_ERROR, message, e);
-        }
-
-        break;
-      default:
-        referralURLs          = null;
-        serverSASLCredentials = null;
-        break;
-    }
-
-
-    return new BindResponseProtocolOp(resultCode, errorMessage, matchedDN,
-                                      referralURLs, serverSASLCredentials);
+    stream.writeEndSequence();
   }
 
 
@@ -618,7 +330,7 @@ public class BindResponseProtocolOp
     if (serverSASLCredentials != null)
     {
       buffer.append(", serverSASLCredentials=");
-      serverSASLCredentials.toString(buffer);
+      buffer.append(serverSASLCredentials.toString());
     }
 
     buffer.append(")");
@@ -688,7 +400,7 @@ public class BindResponseProtocolOp
       buffer.append("  Server SASL Credentials:");
       buffer.append(EOL);
 
-      serverSASLCredentials.toString(buffer, indent+4);
+      serverSASLCredentials.toHexPlusAscii(buffer, indent+4);
     }
   }
 }

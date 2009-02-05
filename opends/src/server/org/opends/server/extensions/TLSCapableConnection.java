@@ -55,7 +55,7 @@ public interface TLSCapableConnection
    * @return  <CODE>true</CODE> if TLS is available on the underlying client
    *          connection, or <CODE>false</CODE> if it is not.
    */
-  public boolean tlsProtectionAvailable(MessageBuilder unavailableReason);
+  public boolean isTLSAvailable(MessageBuilder unavailableReason);
 
 
 
@@ -69,25 +69,8 @@ public interface TLSCapableConnection
    *                              not be enabled and the underlying connection
    *                              has been closed.
    */
-  public void enableTLSConnectionSecurityProvider()
+  public void enableTLS()
          throws DirectoryException;
-
-
-
-  /**
-   * Disables the TLS connection security provider on this client connection.
-   * This must also eliminate any authentication that had been performed on the
-   * client connection so that it is in an anonymous state.  If a problem occurs
-   * while attempting to revert the connection to a non-TLS-protected state,
-   * then an exception must be thrown and the client connection must be
-   * terminated.
-   *
-   * @throws  DirectoryException  If TLS protection cannot be reverted and the
-   *                              underlying client connection has been closed.
-   */
-  public void disableTLSConnectionSecurityProvider()
-         throws DirectoryException;
-
 
 
   /**

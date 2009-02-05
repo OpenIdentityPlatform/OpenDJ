@@ -33,11 +33,7 @@ import java.util.List;
 
 import org.opends.server.admin.std.server.PasswordGeneratorCfg;
 import org.opends.server.config.ConfigException;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-
+import org.opends.server.types.*;
 
 
 /**

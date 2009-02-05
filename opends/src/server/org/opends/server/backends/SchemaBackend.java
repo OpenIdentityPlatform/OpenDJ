@@ -74,7 +74,6 @@ import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
@@ -301,9 +300,11 @@ public class SchemaBackend
     cfg.getBaseDN().toArray(baseDNs);
     this.baseDNs = baseDNs;
 
-    creatorsName  = new AttributeValue(creatorsNameType, baseDNs[0].toString());
+    creatorsName  = AttributeValues.create(
+        creatorsNameType, baseDNs[0].toString());
     modifiersName =
-         new AttributeValue(modifiersNameType, baseDNs[0].toString());
+        AttributeValues.create(
+            modifiersNameType, baseDNs[0].toString());
 
     long createTime = DirectoryServer.getSchema().getOldestModificationTime();
     createTimestamp =
@@ -715,8 +716,9 @@ public class SchemaBackend
               value.getValue(), schema, false);
           attrType = DirectoryServer.getAttributeType(attrType.getOID());
 
-          newValueSet.add(new AttributeValue(attributeTypesType, attrType
-              .getDefinitionWithFileName()));
+          newValueSet.add(
+              AttributeValues.create(attributeTypesType,
+                  attrType.getDefinitionWithFileName()));
         }
         catch (DirectoryException e)
         {
@@ -741,8 +743,8 @@ public class SchemaBackend
           // add it to the valueset.
           String strippedStr = v.toString().replaceFirst(
               stripMinUpperBoundRegEx, "");
-          ASN1OctetString s = new ASN1OctetString(strippedStr);
-          AttributeValue strippedVal = new AttributeValue(s, s);
+          ByteString s = ByteString.valueOf(strippedStr);
+          AttributeValue strippedVal = AttributeValues.create(s, s);
           builder.add(strippedVal);
         }
         else
@@ -787,8 +789,8 @@ public class SchemaBackend
           ObjectClass oc = ObjectClassSyntax.decodeObjectClass(
               value.getValue(), schema, false);
           oc = DirectoryServer.getObjectClass(oc.getOID());
-          newValueSet.add(new AttributeValue(objectClassesType, oc
-              .getDefinitionWithFileName()));
+          newValueSet.add(AttributeValues.create(
+              objectClassesType, oc.getDefinitionWithFileName()));
         }
         catch (DirectoryException e)
         {
@@ -1123,7 +1125,7 @@ public class SchemaBackend
                 }
 
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
-                    v.getStringValue(), de.getMessageObject());
+                    v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                                de);
@@ -1150,7 +1152,7 @@ public class SchemaBackend
                 }
 
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.
-                    get(v.getStringValue(), de.getMessageObject());
+                    get(v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                                de);
@@ -1177,7 +1179,7 @@ public class SchemaBackend
                 }
 
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
-                    v.getStringValue(), de.getMessageObject());
+                    v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                                de);
@@ -1204,7 +1206,7 @@ public class SchemaBackend
                 }
 
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DCR.get(
-                    v.getStringValue(), de.getMessageObject());
+                    v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                                de);
@@ -1231,7 +1233,7 @@ public class SchemaBackend
                 }
 
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
-                    v.getStringValue(), de.getMessageObject());
+                    v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                                de);
@@ -1258,7 +1260,7 @@ public class SchemaBackend
                 }
 
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE.get(
-                    v.getStringValue(), de.getMessageObject());
+                    v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                                de);
@@ -1305,7 +1307,7 @@ public class SchemaBackend
                 }
 
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
-                    v.getStringValue(), de.getMessageObject());
+                    v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                                de);
@@ -1333,7 +1335,7 @@ public class SchemaBackend
                 }
 
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.
-                    get(v.getStringValue(), de.getMessageObject());
+                    get(v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                                de);
@@ -1360,7 +1362,7 @@ public class SchemaBackend
                 }
 
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
-                    v.getStringValue(), de.getMessageObject());
+                    v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                                de);
@@ -1387,7 +1389,7 @@ public class SchemaBackend
                 }
 
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DCR.get(
-                    v.getStringValue(), de.getMessageObject());
+                    v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                                de);
@@ -1415,7 +1417,7 @@ public class SchemaBackend
                 }
 
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
-                    v.getStringValue(), de.getMessageObject());
+                    v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                                de);
@@ -1443,7 +1445,7 @@ public class SchemaBackend
                 }
 
                 Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE.get(
-                    v.getStringValue(), de.getMessageObject());
+                    v.getValue().toString(), de.getMessageObject());
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                                de);
@@ -1496,7 +1498,8 @@ public class SchemaBackend
       authzDN = DN.nullDN();
     }
 
-    modifiersName = new AttributeValue(modifiersNameType, authzDN.toString());
+    modifiersName = AttributeValues.create(
+        modifiersNameType, authzDN.toString());
     modifyTimestamp = GeneralizedTimeSyntax.createGeneralizedTimeValue(
                            System.currentTimeMillis());
   }
@@ -1797,7 +1800,7 @@ public class SchemaBackend
           }
 
           Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
-              v.getStringValue(), de.getMessageObject());
+              v.getValue().toString(), de.getMessageObject());
           throw new DirectoryException(
                          ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                          de);
@@ -2123,7 +2126,7 @@ public class SchemaBackend
           }
 
           Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.get(
-              v.getStringValue(), de.getMessageObject());
+              v.getValue().toString(), de.getMessageObject());
           throw new DirectoryException(
                          ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                          de);
@@ -2428,7 +2431,7 @@ public class SchemaBackend
           }
 
           Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
-              v.getStringValue(), de.getMessageObject());
+              v.getValue().toString(), de.getMessageObject());
           throw new DirectoryException(
                          ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                          de);
@@ -2959,7 +2962,7 @@ public class SchemaBackend
           }
 
           Message message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
-              v.getStringValue(), de.getMessageObject());
+              v.getValue().toString(), de.getMessageObject());
           throw new DirectoryException(
                          ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                          de);
@@ -3331,7 +3334,8 @@ public class SchemaBackend
     {
       if (schemaFile.equals(nf.getSchemaFile()))
       {
-        values.add(new AttributeValue(nameFormsType, nf.getDefinition()));
+        values.add(AttributeValues.create(
+            nameFormsType, nf.getDefinition()));
       }
     }
 
@@ -3353,7 +3357,7 @@ public class SchemaBackend
     {
       if (schemaFile.equals(dcr.getSchemaFile()))
       {
-        values.add(new AttributeValue(ditContentRulesType,
+        values.add(AttributeValues.create(ditContentRulesType,
                                       dcr.getDefinition()));
       }
     }
@@ -3400,7 +3404,7 @@ public class SchemaBackend
     {
       if (schemaFile.equals(mru.getSchemaFile()))
       {
-        values.add(new AttributeValue(matchingRuleUsesType,
+        values.add(AttributeValues.create(matchingRuleUsesType,
                                       mru.getDefinition()));
       }
     }
@@ -3483,7 +3487,7 @@ public class SchemaBackend
                               addedTypes, depth+1);
     }
 
-    values.add(new AttributeValue(attributeTypesType,
+    values.add(AttributeValues.create(attributeTypesType,
                                   attributeType.getDefinition()));
     addedTypes.add(attributeType);
   }
@@ -3534,7 +3538,7 @@ public class SchemaBackend
                                  addedClasses, depth+1);
     }
 
-    values.add(new AttributeValue(objectClassesType,
+    values.add(AttributeValues.create(objectClassesType,
                                   objectClass.getDefinition()));
     addedClasses.add(objectClass);
   }
@@ -3585,7 +3589,7 @@ public class SchemaBackend
       }
     }
 
-    values.add(new AttributeValue(ditStructureRulesType,
+    values.add(AttributeValues.create(ditStructureRulesType,
                                   ditStructureRule.getDefinition()));
     addedDSRs.add(ditStructureRule);
   }

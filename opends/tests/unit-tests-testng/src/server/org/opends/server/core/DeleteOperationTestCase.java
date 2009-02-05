@@ -41,8 +41,6 @@ import org.opends.messages.Message;
 import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -51,6 +49,7 @@ import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.tools.LDAPDelete;
+import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
 
@@ -87,14 +86,14 @@ public class DeleteOperationTestCase
     return new Operation[]
     {
       new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                          new ArrayList<Control>(), new ASN1OctetString()),
+                          new ArrayList<Control>(), ByteString.empty()),
       new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                          null, new ASN1OctetString()),
+                          null, ByteString.empty()),
       new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                           new ArrayList<Control>(),
-                          new ASN1OctetString("o=test")),
+                          ByteString.valueOf("o=test")),
       new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                          null, new ASN1OctetString("o=test")),
+                          null, ByteString.valueOf("o=test")),
       new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                           new ArrayList<Control>(), DN.nullDN()),
       new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
@@ -120,9 +119,9 @@ public class DeleteOperationTestCase
     ByteString originalRawDN = deleteOperation.getRawEntryDN();
     assertNotNull(originalRawDN);
 
-    deleteOperation.setRawEntryDN(new ASN1OctetString("dc=example,dc=com"));
+    deleteOperation.setRawEntryDN(ByteString.valueOf("dc=example,dc=com"));
     assertEquals(deleteOperation.getRawEntryDN(),
-                 new ASN1OctetString("dc=example,dc=com"));
+                 ByteString.valueOf("dc=example,dc=com"));
 
     deleteOperation.setRawEntryDN(originalRawDN);
     assertEquals(deleteOperation.getRawEntryDN(), originalRawDN);
@@ -142,7 +141,7 @@ public class DeleteOperationTestCase
 
     DeleteOperation deleteOperation =
          new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                             null, new ASN1OctetString("o=test"));
+                             null, ByteString.valueOf("o=test"));
     assertNotNull(deleteOperation.getEntryDN());
   }
 
@@ -189,7 +188,7 @@ public class DeleteOperationTestCase
                              null, DN.decode("o=test"));
     assertNotNull(deleteOperation.getEntryDN());
 
-    deleteOperation.setRawEntryDN(new ASN1OctetString("dc=example,dc=com"));
+    deleteOperation.setRawEntryDN(ByteString.valueOf("dc=example,dc=com"));
     assertNotNull(deleteOperation.getEntryDN());
   }
 
@@ -232,7 +231,7 @@ public class DeleteOperationTestCase
          InternalClientConnection.getRootConnection();
 
     DeleteOperation deleteOperation =
-         conn.processDelete(new ASN1OctetString("o=test"));
+         conn.processDelete(ByteString.valueOf("o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(deleteOperation);
     List localOps =
@@ -262,7 +261,7 @@ public class DeleteOperationTestCase
          InternalClientConnection.getRootConnection();
 
     DeleteOperation deleteOperation =
-         conn.processDelete(new ASN1OctetString("ou=People,o=test"));
+         conn.processDelete(ByteString.valueOf("ou=People,o=test"));
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
     List localOps =
       (List) (deleteOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS));
@@ -314,7 +313,7 @@ public class DeleteOperationTestCase
          InternalClientConnection.getRootConnection();
 
     DeleteOperation deleteOperation =
-         conn.processDelete(new ASN1OctetString("o=test"));
+         conn.processDelete(ByteString.valueOf("o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(deleteOperation);
   }
@@ -368,7 +367,7 @@ public class DeleteOperationTestCase
 
 
     DeleteOperation deleteOperation =
-         conn.processDelete(new ASN1OctetString("cn=test,o=test"));
+         conn.processDelete(ByteString.valueOf("cn=test,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(deleteOperation);
   }
@@ -422,7 +421,7 @@ public class DeleteOperationTestCase
          InternalClientConnection.getRootConnection();
 
     DeleteOperation deleteOperation =
-         conn.processDelete(new ASN1OctetString("malformed"));
+         conn.processDelete(ByteString.valueOf("malformed"));
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -444,7 +443,7 @@ public class DeleteOperationTestCase
          InternalClientConnection.getRootConnection();
 
     DeleteOperation deleteOperation =
-         conn.processDelete(new ASN1OctetString("o=does not exist"));
+         conn.processDelete(ByteString.valueOf("o=does not exist"));
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -487,7 +486,7 @@ public class DeleteOperationTestCase
          InternalClientConnection.getRootConnection();
 
     DeleteOperation deleteOperation =
-         conn.processDelete(new ASN1OctetString("cn=entry,o=does not exist"));
+         conn.processDelete(ByteString.valueOf("cn=entry,o=does not exist"));
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -531,7 +530,7 @@ public class DeleteOperationTestCase
          InternalClientConnection.getRootConnection();
 
     DeleteOperation deleteOperation =
-         conn.processDelete(new ASN1OctetString("cn=entry,o=test"));
+         conn.processDelete(ByteString.valueOf("cn=entry,o=test"));
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -584,7 +583,7 @@ public class DeleteOperationTestCase
 
 
     DeleteOperation deleteOperation =
-         conn.processDelete(new ASN1OctetString("o=test"));
+         conn.processDelete(ByteString.valueOf("o=test"));
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -615,7 +614,7 @@ public class DeleteOperationTestCase
 
 
     DeleteOperation deleteOperation =
-         conn.processDelete(new ASN1OctetString("o=test"));
+         conn.processDelete(ByteString.valueOf("o=test"));
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -639,7 +638,7 @@ public class DeleteOperationTestCase
     DirectoryServer.setWritabilityMode(WritabilityMode.DISABLED);
 
     DeleteOperation deleteOperation =
-         conn.processDelete(new ASN1OctetString("o=test"));
+         conn.processDelete(ByteString.valueOf("o=test"));
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
 
     DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
@@ -665,7 +664,7 @@ public class DeleteOperationTestCase
     DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     DeleteOperation deleteOperation =
-         conn.processDelete(new ASN1OctetString("o=test"));
+         conn.processDelete(ByteString.valueOf("o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
     DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
@@ -721,7 +720,7 @@ public class DeleteOperationTestCase
     backend.setWritabilityMode(WritabilityMode.DISABLED);
 
     DeleteOperation deleteOperation =
-         conn.processDelete(new ASN1OctetString("o=test"));
+         conn.processDelete(ByteString.valueOf("o=test"));
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
 
     backend.setWritabilityMode(WritabilityMode.ENABLED);
@@ -748,7 +747,7 @@ public class DeleteOperationTestCase
     backend.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     DeleteOperation deleteOperation =
-         conn.processDelete(new ASN1OctetString("o=test"));
+         conn.processDelete(ByteString.valueOf("o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
     backend.setWritabilityMode(WritabilityMode.ENABLED);
@@ -802,7 +801,7 @@ public class DeleteOperationTestCase
 
     DeleteOperationBasis deleteOperation =
          new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                             null, new ASN1OctetString("o=test"));
+                             null, ByteString.valueOf("o=test"));
 
     CancelRequest cancelRequest = new CancelRequest(false,
                                                     Message.raw("testCancelBeforeStartup"));
@@ -827,7 +826,7 @@ public class DeleteOperationTestCase
 
     DeleteOperationBasis deleteOperation =
          new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                             null, new ASN1OctetString("o=test"));
+                             null, ByteString.valueOf("o=test"));
 
     deleteOperation.run();
 
@@ -861,7 +860,7 @@ public class DeleteOperationTestCase
            InternalClientConnection.getRootConnection();
 
       DeleteOperation deleteOperation =
-           conn.processDelete(new ASN1OctetString("o=test"));
+           conn.processDelete(ByteString.valueOf("o=test"));
       assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
     }
     finally
@@ -884,34 +883,33 @@ public class DeleteOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(5000);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(5000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse =
          message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
 
     DeleteRequestProtocolOp deleteRequest =
-         new DeleteRequestProtocolOp(new ASN1OctetString("o=test"));
+         new DeleteRequestProtocolOp(ByteString.valueOf("o=test"));
     message = new LDAPMessage(2, deleteRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList("PreParse"));
-    w.writeElement(message.encode());
+         DisconnectClientPlugin.createDisconnectControlList("PreParse"));
+    w.writeMessage(message);
 
-    ASN1Element element = r.readElement();
-    if (element != null)
+    message = r.readMessage();
+    if (message != null)
     {
       // If we got an element back, then it must be a notice of disconnect
       // unsolicited notification.
-      message = LDAPMessage.decode(element.decodeAsSequence());
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
@@ -936,35 +934,34 @@ public class DeleteOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(5000);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(5000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse =
          message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
 
     DeleteRequestProtocolOp deleteRequest =
-         new DeleteRequestProtocolOp(new ASN1OctetString("o=test"));
+         new DeleteRequestProtocolOp(ByteString.valueOf("o=test"));
     message = new LDAPMessage(2, deleteRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList(
+         DisconnectClientPlugin.createDisconnectControlList(
               "PreOperation"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    ASN1Element element = r.readElement();
-    if (element != null)
+    message = r.readMessage();
+    if (message != null)
     {
       // If we got an element back, then it must be a notice of disconnect
       // unsolicited notification.
-      message = LDAPMessage.decode(element.decodeAsSequence());
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
@@ -989,35 +986,34 @@ public class DeleteOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(5000);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(5000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse =
          message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
 
     DeleteRequestProtocolOp deleteRequest =
-         new DeleteRequestProtocolOp(new ASN1OctetString("o=test"));
+         new DeleteRequestProtocolOp(ByteString.valueOf("o=test"));
     message = new LDAPMessage(2, deleteRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList(
+         DisconnectClientPlugin.createDisconnectControlList(
               "PostOperation"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    ASN1Element element = r.readElement();
-    if (element != null)
+    message = r.readMessage();
+    if (message != null)
     {
       // If we got an element back, then it must be a notice of disconnect
       // unsolicited notification.
-      message = LDAPMessage.decode(element.decodeAsSequence());
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
@@ -1042,40 +1038,39 @@ public class DeleteOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(5000);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(5000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse =
          message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
 
     DeleteRequestProtocolOp deleteRequest =
-         new DeleteRequestProtocolOp(new ASN1OctetString("o=test"));
+         new DeleteRequestProtocolOp(ByteString.valueOf("o=test"));
     message = new LDAPMessage(2, deleteRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList(
+         DisconnectClientPlugin.createDisconnectControlList(
               "PostResponse"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
 responseLoop:
     while (true)
     {
-      ASN1Element element = r.readElement();
-      if (element == null)
+      message = r.readMessage();
+      if (message == null)
       {
         // The connection has been closed.
         break responseLoop;
       }
 
-      message = LDAPMessage.decode(element.decodeAsSequence());
       switch (message.getProtocolOpType())
       {
         case OP_TYPE_DELETE_RESPONSE:
@@ -1127,7 +1122,7 @@ responseLoop:
          InternalClientConnection.getRootConnection();
 
     DeleteOperation deleteOperation =
-         conn.processDelete(new ASN1OctetString("o=test"));
+         conn.processDelete(ByteString.valueOf("o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(deleteOperation);
 
@@ -1158,7 +1153,7 @@ responseLoop:
          InternalClientConnection.getRootConnection();
 
     DeleteOperation deleteOperation =
-         conn.processDelete(new ASN1OctetString("cn=nonexistent,o=test"));
+         conn.processDelete(ByteString.valueOf("cn=nonexistent,o=test"));
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
 
     assertEquals(changeListener.getDeleteCount(), 0);
@@ -1187,7 +1182,7 @@ responseLoop:
 
     DeleteOperationBasis deleteOperation =
          new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                             controls, new ASN1OctetString("o=test"));
+                             controls, ByteString.valueOf("o=test"));
     deleteOperation.run();
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(DirectoryServer.entryExists(DN.decode("o=test")));

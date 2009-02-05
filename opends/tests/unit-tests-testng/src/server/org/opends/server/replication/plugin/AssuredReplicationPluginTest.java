@@ -71,8 +71,8 @@ import org.opends.server.replication.protocol.AckMsg;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteStringFactory;
 import org.testng.annotations.BeforeClass;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LockManager;
@@ -105,16 +105,16 @@ public class AssuredReplicationPluginTest
    * The port of the replicationServer.
    */
   private int replServerPort;
-  private byte RS_SERVER_ID = (byte) 90;
+  private final byte RS_SERVER_ID = (byte) 90;
   // Sleep time of the RS, before sending an ack
   private static final long NO_TIMEOUT_RS_SLEEP_TIME = 2000;
-  private String testName = this.getClass().getSimpleName();
+  private final String testName = this.getClass().getSimpleName();
 
   // Create to distincts base dn, one for safe data replication, the other one
   // for safe read replication
-  private String SAFE_DATA_DN = "ou=safe-data," + TEST_ROOT_DN_STRING;
-  private String SAFE_READ_DN = "ou=safe-read," + TEST_ROOT_DN_STRING;
-  private String NOT_ASSURED_DN = "ou=not-assured," + TEST_ROOT_DN_STRING;
+  private final String SAFE_DATA_DN = "ou=safe-data," + TEST_ROOT_DN_STRING;
+  private final String SAFE_READ_DN = "ou=safe-read," + TEST_ROOT_DN_STRING;
+  private final String NOT_ASSURED_DN = "ou=not-assured," + TEST_ROOT_DN_STRING;
   private Entry safeDataDomainCfgEntry = null;
   private Entry safeReadDomainCfgEntry = null;
   private Entry notAssuredDomainCfgEntry = null;
@@ -310,14 +310,14 @@ public class AssuredReplicationPluginTest
     private ProtocolSession session = null;
 
     // Parameters given at constructor time
-    private int port;
+    private final int port;
     private short serverId = -1;
     boolean isAssured = false; // Default value for config
     AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE; // Default value for config
     byte safeDataLevel = (byte) 1; // Default value for config
 
     // Predefined config parameters
-    private int degradedStatusThreshold = 5000;
+    private final int degradedStatusThreshold = 5000;
 
     // Parameters set with received server start message
     private String baseDn = null;
@@ -630,7 +630,7 @@ public class AssuredReplicationPluginTest
     {
       try
       {
-        // Create add message        
+        // Create add message
         AddMsg addMsg =
           new AddMsg(gen.newChangeNumber(), entry.getDN().toString(), UUID.randomUUID().toString(),
                      parentUid,
@@ -787,7 +787,7 @@ public class AssuredReplicationPluginTest
         checkUpdateAssuredParameters(updateMsg);
 
         // let timeout occur
-        
+
         scenarioExecuted = true;
 
       } catch (Exception e)
@@ -1003,7 +1003,7 @@ public class AssuredReplicationPluginTest
         TIMEOUT);
       // Wait for connection of domain to RS
       waitForConnectionToRs(testcase, replicationServer);
-      
+
       // Make an LDAP update (add an entry)
       long startTime = System.currentTimeMillis(); // Time the update has been initiated
       String entry = "dn: ou=assured-sr-timeout-entry," + SAFE_READ_DN + "\n" +
@@ -1228,7 +1228,7 @@ public class AssuredReplicationPluginTest
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 0);
       errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_DATA_MODE);
       assertTrue(errorsByServer.isEmpty());
-      
+
     } finally
     {
       endTest();
@@ -1342,7 +1342,7 @@ public class AssuredReplicationPluginTest
 
           for (AttributeValue val : tmpAttr)
           {
-            found = val.getStringValue();
+            found = val.toString();
             break;
           }
         }
@@ -1730,7 +1730,7 @@ public class AssuredReplicationPluginTest
       assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 0);
       errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_DATA_MODE);
       assertTrue(errorsByServer.isEmpty());
-    
+
       // Make a second LDAP update (delete the entry)
       startTime = System.currentTimeMillis(); // Time the update has been initiated
       deleteEntry(entryDn);
@@ -1864,7 +1864,7 @@ public class AssuredReplicationPluginTest
       if (count++>0)
         Thread.sleep(100);
       op = connection.processSearch(
-                                    ByteStringFactory.create("cn=monitor"),
+                                    ByteString.valueOf("cn=monitor"),
                                     SearchScope.SINGLE_LEVEL,
                                     LDAPFilter.decode(monitorFilter));
     }
@@ -1904,7 +1904,7 @@ public class AssuredReplicationPluginTest
     // Parse and store values
     while (attValIt.hasNext())
     {
-      String srvStr = attValIt.next().getStringValue();
+      String srvStr = attValIt.next().toString();
       StringTokenizer strtok = new StringTokenizer(srvStr, ":");
       String token = strtok.nextToken();
       if (token != null)

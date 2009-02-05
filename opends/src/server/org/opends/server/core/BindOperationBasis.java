@@ -52,12 +52,9 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PreParseBindOperation;
 import org.opends.server.workflowelement.localbackend.*;
-
-
 
 
 /**
@@ -80,10 +77,10 @@ public class BindOperationBasis
   private static final DebugTracer TRACER = DebugLogger.getTracer();
 
   // The credentials used for SASL authentication.
-  private ASN1OctetString saslCredentials;
+  private ByteString saslCredentials;
 
   // The server SASL credentials provided to the client in the response.
-  private ASN1OctetString serverSASLCredentials;
+  private ByteString serverSASLCredentials;
 
   // The authentication info for this bind operation.
   private AuthenticationInfo authInfo = null;
@@ -151,7 +148,7 @@ public class BindOperationBasis
 
     if (rawBindDN == null)
     {
-      this.rawBindDN = new ASN1OctetString();
+      this.rawBindDN = ByteString.empty();
     }
     else
     {
@@ -160,7 +157,7 @@ public class BindOperationBasis
 
     if (simplePassword == null)
     {
-      this.simplePassword = new ASN1OctetString();
+      this.simplePassword = ByteString.empty();
     }
     else
     {
@@ -199,7 +196,7 @@ public class BindOperationBasis
   public BindOperationBasis(ClientConnection clientConnection, long operationID,
                        int messageID, List<Control> requestControls,
                        String protocolVersion, ByteString rawBindDN,
-                       String saslMechanism, ASN1OctetString saslCredentials)
+                       String saslMechanism, ByteString saslCredentials)
   {
     super(clientConnection, operationID, messageID, requestControls);
 
@@ -212,7 +209,7 @@ public class BindOperationBasis
 
     if (rawBindDN == null)
     {
-      this.rawBindDN = new ASN1OctetString();
+      this.rawBindDN = ByteString.empty();
     }
     else
     {
@@ -262,16 +259,16 @@ public class BindOperationBasis
 
     if (bindDN == null)
     {
-      rawBindDN = new ASN1OctetString();
+      rawBindDN = ByteString.empty();
     }
     else
     {
-      rawBindDN = new ASN1OctetString(bindDN.toString());
+      rawBindDN = ByteString.valueOf(bindDN.toString());
     }
 
     if (simplePassword == null)
     {
-      this.simplePassword = new ASN1OctetString();
+      this.simplePassword = ByteString.empty();
     }
     else
     {
@@ -308,7 +305,7 @@ public class BindOperationBasis
   public BindOperationBasis(ClientConnection clientConnection, long operationID,
                        int messageID, List<Control> requestControls,
                        String protocolVersion, DN bindDN,
-                       String saslMechanism, ASN1OctetString saslCredentials)
+                       String saslMechanism, ByteString saslCredentials)
   {
     super(clientConnection, operationID, messageID, requestControls);
 
@@ -322,11 +319,11 @@ public class BindOperationBasis
 
     if (bindDN == null)
     {
-      rawBindDN = new ASN1OctetString();
+      rawBindDN = ByteString.empty();
     }
     else
     {
-      rawBindDN = new ASN1OctetString(bindDN.toString());
+      rawBindDN = ByteString.valueOf(bindDN.toString());
     }
 
     responseControls       = new ArrayList<Control>(0);
@@ -363,7 +360,7 @@ public class BindOperationBasis
   {
     if (rawBindDN == null)
     {
-      this.rawBindDN = new ASN1OctetString();
+      this.rawBindDN = ByteString.empty();
     }
     else
     {
@@ -414,7 +411,7 @@ public class BindOperationBasis
   {
     if (simplePassword == null)
     {
-      this.simplePassword = new ASN1OctetString();
+      this.simplePassword = ByteString.empty();
     }
     else
     {
@@ -437,7 +434,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
-  public final ASN1OctetString getSASLCredentials()
+  public final ByteString getSASLCredentials()
   {
     return saslCredentials;
   }
@@ -446,7 +443,7 @@ public class BindOperationBasis
    * {@inheritDoc}
    */
   public final void setSASLCredentials(String saslMechanism,
-                                       ASN1OctetString saslCredentials)
+                                       ByteString saslCredentials)
   {
     this.saslMechanism   = saslMechanism;
     this.saslCredentials = saslCredentials;
@@ -458,7 +455,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
-  public final ASN1OctetString getServerSASLCredentials()
+  public final ByteString getServerSASLCredentials()
   {
     return serverSASLCredentials;
   }
@@ -466,7 +463,7 @@ public class BindOperationBasis
   /**
    * {@inheritDoc}
    */
-  public final void setServerSASLCredentials(ASN1OctetString
+  public final void setServerSASLCredentials(ByteString
                                                   serverSASLCredentials)
   {
     this.serverSASLCredentials = serverSASLCredentials;

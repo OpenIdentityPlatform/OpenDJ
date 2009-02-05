@@ -28,17 +28,17 @@ package org.opends.server.schema;
 
 
 
-import java.util.Arrays;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.Collection;
 import java.util.Collections;
+
 import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
-
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.util.ServerConstants;
 
 
 
@@ -64,6 +64,7 @@ class ProtocolInformationEqualityMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getAllNames()
   {
     return Collections.singleton(getName());
@@ -77,6 +78,7 @@ class ProtocolInformationEqualityMatchingRule
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
    * it does not have a name.
    */
+  @Override
   public String getName()
   {
     return EMR_PROTOCOL_INFORMATION_NAME;
@@ -89,6 +91,7 @@ class ProtocolInformationEqualityMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return EMR_PROTOCOL_INFORMATION_OID;
@@ -102,6 +105,7 @@ class ProtocolInformationEqualityMatchingRule
    * @return  The description for this matching rule, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     // There is no standard description for this matching rule.
@@ -116,6 +120,7 @@ class ProtocolInformationEqualityMatchingRule
    *
    * @return  The OID of the syntax with which this matching rule is associated.
    */
+  @Override
   public String getSyntaxOID()
   {
     return SYNTAX_PROTOCOL_INFORMATION_OID;
@@ -134,25 +139,26 @@ class ProtocolInformationEqualityMatchingRule
    * @throws  DirectoryException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
-  public ByteString normalizeValue(ByteString value)
+  @Override
+  public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
     StringBuilder buffer = new StringBuilder();
-    toLowerCase(value.value(), buffer, true);
+    toLowerCase(value, buffer, true);
 
     int bufferLength = buffer.length();
     if (bufferLength == 0)
     {
-      if (value.value().length > 0)
+      if (value.length() > 0)
       {
         // This should only happen if the value is composed entirely of spaces.
         // In that case, the normalized value is a single space.
-        return new ASN1OctetString(" ");
+        return ServerConstants.SINGLE_SPACE_VALUE;
       }
       else
       {
         // The value is empty, so it is already normalized.
-        return new ASN1OctetString();
+        return ByteString.empty();
       }
     }
 
@@ -169,26 +175,7 @@ class ProtocolInformationEqualityMatchingRule
       }
     }
 
-    return new ASN1OctetString(buffer.toString());
-  }
-
-
-
-  /**
-   * Indicates whether the two provided normalized values are equal to each
-   * other.
-   *
-   * @param  value1  The normalized form of the first value to compare.
-   * @param  value2  The normalized form of the second value to compare.
-   *
-   * @return  <CODE>true</CODE> if the provided values are equal, or
-   *          <CODE>false</CODE> if not.
-   */
-  public boolean areEqual(ByteString value1, ByteString value2)
-  {
-    // Since the values are already normalized, we just need to compare the
-    // associated byte arrays.
-    return Arrays.equals(value1.value(), value2.value());
+    return ByteString.valueOf(buffer.toString());
   }
 }
 

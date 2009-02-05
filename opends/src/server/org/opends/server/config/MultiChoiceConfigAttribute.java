@@ -40,10 +40,7 @@ import javax.management.MBeanParameterInfo;
 
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -512,8 +509,8 @@ public final class MultiChoiceConfigAttribute
       }
 
       AttributeValue attrValue =
-           new AttributeValue(new ASN1OctetString(value),
-                              new ASN1OctetString(value));
+          AttributeValues.create(ByteString.valueOf(value),
+              ByteString.valueOf(value));
 
       if (valueSet.contains(attrValue))
       {
@@ -554,8 +551,8 @@ public final class MultiChoiceConfigAttribute
     LinkedHashSet<AttributeValue> valueSet =
          new LinkedHashSet<AttributeValue>(1);
 
-    valueSet.add(new AttributeValue(new ASN1OctetString(value),
-                                    new ASN1OctetString(value)));
+    valueSet.add(AttributeValues.create(ByteString.valueOf(value),
+        ByteString.valueOf(value)));
 
     return valueSet;
   }
@@ -581,8 +578,8 @@ public final class MultiChoiceConfigAttribute
 
     for (String value : values)
     {
-      valueSet.add(new AttributeValue(new ASN1OctetString(value),
-                                      new ASN1OctetString(value)));
+      valueSet.add(AttributeValues.create(ByteString.valueOf(value),
+          ByteString.valueOf(value)));
     }
 
     return valueSet;
@@ -626,7 +623,7 @@ public final class MultiChoiceConfigAttribute
     // Make sure that the value is non-empty.
     String stringValue;
     if ((value == null) ||
-        ((stringValue = value.getStringValue()).length() == 0))
+        ((stringValue = value.getValue().toString()).length() == 0))
     {
       rejectReason.append(ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName()));
       return false;
@@ -727,8 +724,8 @@ public final class MultiChoiceConfigAttribute
         }
       }
 
-      valueSet.add(new AttributeValue(new ASN1OctetString(valueString),
-                                      new ASN1OctetString(valueString)));
+      valueSet.add(AttributeValues.create(ByteString.valueOf(valueString),
+          ByteString.valueOf(valueString)));
     }
 
 
@@ -860,16 +857,16 @@ public final class MultiChoiceConfigAttribute
             pendingValues = new ArrayList<String>(numValues);
             for (AttributeValue v : a)
             {
-              String lowerValue = v.getStringValue().toLowerCase();
+              String lowerValue = v.getValue().toString().toLowerCase();
               if (! allowedValues.contains(lowerValue))
               {
                 // This is illegal -- the value is not allowed.
                 Message message = ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(
-                    v.getStringValue(), a.getName());
+                    v.getValue().toString(), a.getName());
                 throw new ConfigException(message);
               }
 
-              pendingValues.add(v.getStringValue());
+              pendingValues.add(v.getValue().toString());
             }
           }
         }
@@ -922,16 +919,16 @@ public final class MultiChoiceConfigAttribute
           activeValues = new ArrayList<String>(numValues);
           for (AttributeValue v : a)
           {
-            String lowerValue = v.getStringValue().toLowerCase();
+            String lowerValue = v.getValue().toString().toLowerCase();
             if (! allowedValues.contains(lowerValue))
             {
               // This is illegal -- the value is not allowed.
               Message message = ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(
-                  v.getStringValue(), a.getName());
+                  v.getValue().toString(), a.getName());
               throw new ConfigException(message);
             }
 
-            activeValues.add(v.getStringValue());
+            activeValues.add(v.getValue().toString());
           }
         }
       }

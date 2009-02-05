@@ -31,10 +31,11 @@ import static org.opends.server.util.ServerConstants.*;
 import java.util.HashMap;
 import java.util.Set;
 
-import org.opends.server.protocols.asn1.ASN1Boolean;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.Control;
-import org.opends.server.types.LDAPException;
+import org.opends.server.types.*;
+import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.protocols.ldap.LDAPReader;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Writer;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -199,17 +200,15 @@ public class PasswordControlTest
   }
 
   /**
-   * Create values for PasswordControl
+   * Create values for PasswordExpiredControl
    */
-  @DataProvider(name = "passwordControlData")
+  @DataProvider(name = "passwordExpiredControlData")
   public Object[][] createPasswordExpiredControlData()
   {
 
     return new Object[][] {
-     { OID_NS_PASSWORD_EXPIRED, true , -1},
-     { OID_NS_PASSWORD_EXPIRED, false , 0},
-     { OID_NS_PASSWORD_EXPIRING, true,  1},
-     { OID_NS_PASSWORD_EXPIRING, false, 2},
+     { true },
+     { false },
     };
   }
 
@@ -227,9 +226,9 @@ public class PasswordControlTest
   /**
    * Test "Netscape password expired control" implementation
    */
-  @Test(dataProvider = "passwordControlData")
+  @Test(dataProvider = "passwordExpiredControlData")
   public void passwordExpiredControlTest(
-      String oid, boolean isCritical, int sec) throws Exception
+      boolean isCritical) throws Exception
   {
     // Check default constructor
     PasswordExpiredControl pec = new PasswordExpiredControl();
@@ -238,26 +237,27 @@ public class PasswordControlTest
     assertEquals(pec.getOID(),OID_NS_PASSWORD_EXPIRED);
 
     // Check constructor with oid and boolean
-    pec = new PasswordExpiredControl(oid, isCritical);
+    pec = new PasswordExpiredControl(isCritical);
     assertNotNull(pec);
     assertEquals(pec.isCritical(),isCritical);
-    assertEquals(pec.getOID(),oid);
+    assertEquals(pec.getOID(),OID_NS_PASSWORD_EXPIRED);
 
     // Check the decode
-    Control control = new Control(oid,isCritical);
-    pec = PasswordExpiredControl.decodeControl(control);
+    LDAPControl control = new LDAPControl(OID_NS_PASSWORD_EXPIRED,isCritical);
+    pec = PasswordExpiredControl.DECODER.decode(control.isCritical(), control.getValue());
     assertNotNull(pec);
     assertEquals(pec.isCritical(),isCritical);
-    assertEquals(pec.getOID(),oid);
+    assertEquals(pec.getOID(),OID_NS_PASSWORD_EXPIRED);
 
-    control.setValue(new ASN1Boolean(true).decodeAsOctetString());
+    control = new LDAPControl(OID_NS_PASSWORD_EXPIRED, isCritical,
+        ByteString.valueOf("value"));
     try
     {
-      pec = PasswordExpiredControl.decodeControl(control);
+      pec = PasswordExpiredControl.DECODER.decode(control.isCritical(), control.getValue());
       assertTrue(false,
           "should be allow to create a passwordExpiredControl with value");
     }
-    catch (LDAPException e)
+    catch (DirectoryException e)
     {
       // Normal case
       assertTrue(true,
@@ -266,14 +266,39 @@ public class PasswordControlTest
 
     // Check toString
     assertEquals("PasswordExpiredControl()", pec.toString());
+
+    // Check encode
+    ByteStringBuilder bsb = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(bsb);
+    pec = new PasswordExpiredControl(isCritical);
+    pec.write(writer);
+    control = LDAPReader.readControl(ASN1.getReader(bsb));
+    PasswordExpiredControl newPec =
+        PasswordExpiredControl.DECODER.decode(control.isCritical(), control.getValue());
+    assertNotNull(newPec);
+    assertEquals(newPec.isCritical(), isCritical);
+    assertEquals(pec.getOID(),OID_NS_PASSWORD_EXPIRED);
+  }
+
+  /**
+   * Create values for PasswordControl
+   */
+  @DataProvider(name = "passwordExpiringControlData")
+  public Object[][] createPasswordExpiringControlData()
+  {
+
+    return new Object[][] {
+     { true,  1},
+     { false, 2},
+    };
   }
 
   /**
    * Test "Netscape password expired control" implementation
    */
-  @Test(dataProvider = "passwordControlData")
+  @Test(dataProvider = "passwordExpiringControlData")
   public void passwordExpiringControlTest(
-      String oid, boolean isCritical, int sec) throws Exception
+      boolean isCritical, int sec) throws Exception
   {
     // Check constructor with int
     PasswordExpiringControl pec = new PasswordExpiringControl(sec);
@@ -284,56 +309,74 @@ public class PasswordControlTest
     assertEquals(pec.getSecondsUntilExpiration(), sec);
 
     // Check constructor with oid, boolean and int
-    pec = new PasswordExpiringControl(oid, isCritical, sec);
+    pec = new PasswordExpiringControl(isCritical, sec);
     assertNotNull(pec);
     assertEquals(pec.isCritical(),isCritical);
-    assertEquals(pec.getOID(),oid);
+    assertEquals(pec.getOID(),OID_NS_PASSWORD_EXPIRING);
     assertEquals(pec.getSecondsUntilExpiration(), sec);
 
     // Check the decode
-    Control control = new Control(oid,isCritical);
+    LDAPControl control = new LDAPControl(OID_NS_PASSWORD_EXPIRING,isCritical);
     try
     {
-      pec = PasswordExpiringControl.decodeControl(control);
+      pec = PasswordExpiringControl.DECODER.decode(control.isCritical(), control.getValue());
       assertTrue(false,
           "shouldn't be allow to create PasswordExpiringControl without value");
     }
-    catch (LDAPException e)
+    catch (DirectoryException e)
     {
       // Normal case
       assertTrue(true,
           "shouldn't be allow to create PasswordExpiringControl without value");
     }
 
-    control.setValue(new ASN1OctetString("invalid value"));
+    control = new LDAPControl(OID_NS_PASSWORD_EXPIRING, isCritical,
+        ByteString.valueOf("Wrong value"));
     try
     {
-      pec = PasswordExpiringControl.decodeControl(control);
+      pec = PasswordExpiringControl.DECODER.decode(control.isCritical(), control.getValue());
       assertTrue(false,
       "shouldn't be allow to create PasswordExpiringControl with a wrong value");
     }
-    catch (LDAPException e)
+    catch (DirectoryException e)
     {
       // Normal case
       assertTrue(true,
       "shouldn't be allow to create PasswordExpiringControl with a wrong value");
     }
 
-    pec = new PasswordExpiringControl(oid, isCritical, sec);
-    control= new Control(oid,isCritical,pec.getValue());
-    PasswordExpiringControl newPec = PasswordExpiringControl.decodeControl(control);
-    assertNotNull(newPec);
-    assertEquals(newPec.isCritical(), isCritical);
-    assertEquals(newPec.getOID(), oid);
-    assertEquals(newPec.getSecondsUntilExpiration(), sec);
+    // Check encode/decode
+    ByteStringBuilder bsb = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(bsb);
+    pec = new PasswordExpiringControl(isCritical, sec);
+    pec.write(writer);
+    control = LDAPReader.readControl(ASN1.getReader(bsb));
+    pec = PasswordExpiringControl.DECODER.decode(control.isCritical(), control.getValue());
+    assertNotNull(pec);
+    assertEquals(pec.isCritical(), isCritical);
+    assertEquals(pec.getOID(),OID_NS_PASSWORD_EXPIRING);
+    assertEquals(pec.getSecondsUntilExpiration(), sec);
+  }
+
+  /**
+   * Create values for PasswordControl
+   */
+  @DataProvider(name = "passwordPolicyRequestControlData")
+  public Object[][] createPasswordPolicyRequestControlData()
+  {
+
+    return new Object[][] {
+     { true},
+     { false},
+    };
   }
 
   /**
    * Test PasswordPolicyRequestControl
    */
-  @Test(dataProvider = "passwordControlData")
+  @Test(dataProvider = "passwordPolicyRequestControlData")
   public void passwordPolicyRequestControlTest(
-      String oid, boolean isCritical, int sec) throws Exception
+      boolean isCritical) throws Exception
   {
     // Check default constructor
     PasswordPolicyRequestControl pec = new PasswordPolicyRequestControl();
@@ -342,26 +385,32 @@ public class PasswordControlTest
     assertEquals(pec.getOID(),OID_PASSWORD_POLICY_CONTROL);
 
     // Check constructor with oid and boolean
-    pec = new PasswordPolicyRequestControl(oid, isCritical);
+    pec = new PasswordPolicyRequestControl(isCritical);
     assertNotNull(pec);
     assertEquals(pec.isCritical(),isCritical);
-    assertEquals(pec.getOID(),oid);
+    assertEquals(pec.getOID(),OID_PASSWORD_POLICY_CONTROL);
 
-    // Check the decode
-    Control control = new Control(oid,isCritical);
-    pec = PasswordPolicyRequestControl.decodeControl(control);
+    // Check the encode/decode
+    ByteStringBuilder bsb = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(bsb);
+    pec = new PasswordPolicyRequestControl(isCritical);
+    pec.write(writer);
+    LDAPControl control = LDAPReader
+        .readControl(ASN1.getReader(bsb));
+    pec = PasswordPolicyRequestControl.DECODER.decode(control.isCritical(), control.getValue());
     assertNotNull(pec);
     assertEquals(pec.isCritical(),isCritical);
-    assertEquals(pec.getOID(),oid);
+    assertEquals(pec.getOID(),OID_PASSWORD_POLICY_CONTROL);
 
-    control.setValue(new ASN1Boolean(true).decodeAsOctetString());
+    control = new LDAPControl(OID_PASSWORD_POLICY_CONTROL,
+        isCritical, ByteString.valueOf("value"));
     try
     {
-      pec = PasswordPolicyRequestControl.decodeControl(control);
+      pec = PasswordPolicyRequestControl.DECODER.decode(control.isCritical(), control.getValue());
       assertTrue(false,
           "should be allow to create a PasswordPolicyRequestControl with value");
     }
-    catch (LDAPException e)
+    catch (DirectoryException e)
     {
       // Normal case
       assertTrue(true,
@@ -381,12 +430,10 @@ public class PasswordControlTest
   {
 
     return new Object[][] {
-     { OID_PASSWORD_POLICY_CONTROL, true , -1},
-     { OID_PASSWORD_POLICY_CONTROL, false , -1},
-     { OID_PASSWORD_POLICY_CONTROL, true , 0},
-     { OID_PASSWORD_POLICY_CONTROL, false , 0},
-     { OID_NS_PASSWORD_EXPIRING, true,      1},
-     { OID_NS_PASSWORD_EXPIRING, false,     2}
+     { true , -1},
+     { false , -1},
+     { true , 0},
+     { false , 0}
     };
   }
 
@@ -395,7 +442,7 @@ public class PasswordControlTest
    */
    @Test(dataProvider = "passwordPolicyResponseControl")
   public void passwordPolicyResponseControlTest(
-      String oid, boolean isCritical, int warningValue)
+      boolean isCritical, int warningValue)
       throws Exception
   {
     // Check default constructor
@@ -420,6 +467,7 @@ public class PasswordControlTest
         assertEquals(warningType, pprc.getWarningType());
         assertEquals(errorType, pprc.getErrorType());
         assertEquals(pprc.getWarningValue(),warningValue);
+        assertEquals(pprc.getOID(), OID_PASSWORD_POLICY_CONTROL);
       }
     }
 
@@ -433,30 +481,37 @@ public class PasswordControlTest
       for (PasswordPolicyWarningType warningType : PasswordPolicyWarningType
           .values())
       {
-        pprc = new PasswordPolicyResponseControl(oid, isCritical,
+        pprc = new PasswordPolicyResponseControl(isCritical,
             warningType, warningValue, errorType);
         assertNotNull(pprc);
         assertEquals(warningType, pprc.getWarningType());
         assertEquals(errorType, pprc.getErrorType());
         assertEquals(pprc.getWarningValue(), warningValue);
+        assertEquals(pprc.getOID(), OID_PASSWORD_POLICY_CONTROL);
       }
     }
 
 
-    // check decode
-    Control control ;
+    // check encode/decode
+    PasswordPolicyResponseControl control ;
+    ByteStringBuilder bsb = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(bsb);
     for (PasswordPolicyErrorType errorType : PasswordPolicyErrorType.values())
     {
       for (PasswordPolicyWarningType warningType : PasswordPolicyWarningType
           .values())
       {
-        control = new PasswordPolicyResponseControl(oid, isCritical,
+        bsb.clear();
+        control = new PasswordPolicyResponseControl(isCritical,
             warningType, warningValue, errorType);
-        pprc = PasswordPolicyResponseControl.decodeControl(control);
+        control.write(writer);
+        LDAPControl c = LDAPReader.readControl(ASN1.getReader(bsb));
+        pprc = PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), c.getValue());
         assertNotNull(pprc);
         assertEquals(warningType, pprc.getWarningType());
         assertEquals(errorType, pprc.getErrorType());
         assertEquals(pprc.getWarningValue(), warningValue);
+        assertEquals(pprc.getOID(), OID_PASSWORD_POLICY_CONTROL);
 
         // check to String
         String toString =
@@ -473,11 +528,11 @@ public class PasswordControlTest
         // check null value for the control
         try
         {
-          control.setValue(null);
-          pprc = PasswordPolicyResponseControl.decodeControl(control);
+          c = new LDAPControl(OID_PASSWORD_POLICY_CONTROL, isCritical);
+          pprc = PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), c.getValue());
           assertTrue(false,"the control should have a value");
         }
-        catch (LDAPException e)
+        catch (DirectoryException e)
         {
           // normal case
           assertTrue(true,"the control should have a value");
@@ -485,27 +540,33 @@ public class PasswordControlTest
 
 
         // check null warning type
-        control = new PasswordPolicyResponseControl(oid, isCritical,
+        bsb.clear();
+        control = new PasswordPolicyResponseControl(isCritical,
             null, warningValue, errorType);
+        control.write(writer);
+        c = LDAPReader.readControl(ASN1.getReader(bsb));
         try
         {
-          pprc = PasswordPolicyResponseControl.decodeControl(control);
+          pprc = PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), c.getValue());
           assertNull(pprc.getWarningType());
         }
-        catch (LDAPException e)
+        catch (DirectoryException e)
         {
           assertTrue(false,"We should be able to decode the control");
         }
 
         // check null error type
-        control = new PasswordPolicyResponseControl(oid, isCritical,
+        bsb.clear();
+        control = new PasswordPolicyResponseControl(isCritical,
             warningType, warningValue, null);
+        control.write(writer);
+        c = LDAPReader.readControl(ASN1.getReader(bsb));
         try
         {
-          pprc = PasswordPolicyResponseControl.decodeControl(control);
+          pprc = PasswordPolicyResponseControl.DECODER.decode(c.isCritical(), c.getValue());
           assertNull(pprc.getErrorType());
         }
-        catch (LDAPException e)
+        catch (DirectoryException e)
         {
           assertTrue(false,"We should be able to decode the control");
         }

@@ -28,17 +28,15 @@ package org.opends.server.controls;
 import org.opends.messages.Message;
 
 
+import java.io.IOException;
 
-import java.util.ArrayList;
-
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Integer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.ByteString;
+import org.opends.server.protocols.asn1.*;
+import static org.opends.server.protocols.asn1.ASN1Constants.
+    UNIVERSAL_OCTET_STRING_TYPE;
 import org.opends.server.types.Control;
-import org.opends.server.types.LDAPException;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ResultCode;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -66,6 +64,95 @@ import static org.opends.server.util.StaticUtils.*;
 public class VLVRequestControl
        extends Control
 {
+  /**
+   * ControlDecoder implentation to decode this control from a ByteString.
+   */
+  private final static class Decoder
+      implements ControlDecoder<VLVRequestControl>
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public VLVRequestControl decode(boolean isCritical, ByteString value)
+        throws DirectoryException
+    {
+      if (value == null)
+      {
+        Message message = INFO_VLVREQ_CONTROL_NO_VALUE.get();
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+      }
+
+      ASN1Reader reader = ASN1.getReader(value);
+      try
+      {
+        reader.readStartSequence();
+
+        int beforeCount = (int)reader.readInteger();
+        int afterCount  = (int)reader.readInteger();
+
+        int offset = 0;
+        int contentCount = 0;
+        ByteString greaterThanOrEqual = null;
+        byte targetType = reader.peekType();
+        switch (targetType)
+        {
+          case TYPE_TARGET_BYOFFSET:
+            reader.readStartSequence();
+            offset = (int)reader.readInteger();
+            contentCount = (int)reader.readInteger();
+            reader.readEndSequence();
+            break;
+
+          case TYPE_TARGET_GREATERTHANOREQUAL:
+            greaterThanOrEqual = reader.readOctetString();
+            break;
+
+          default:
+            Message message = INFO_VLVREQ_CONTROL_INVALID_TARGET_TYPE.get(
+                byteToHex(targetType));
+            throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+        }
+
+        ByteString contextID = null;
+        if (reader.hasNextElement())
+        {
+          contextID = reader.readOctetString();
+        }
+
+        if(targetType == TYPE_TARGET_BYOFFSET)
+        {
+          return new VLVRequestControl(isCritical, beforeCount,
+              afterCount, offset, contentCount, contextID);
+        }
+
+        return new VLVRequestControl(isCritical, beforeCount,
+            afterCount, greaterThanOrEqual, contextID);
+      }
+      catch (DirectoryException de)
+      {
+        throw de;
+      }
+      catch (Exception e)
+      {
+        Message message =
+            INFO_VLVREQ_CONTROL_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
+      }
+    }
+
+    public String getOID()
+    {
+      return OID_VLV_REQUEST_CONTROL;
+    }
+
+  }
+
+  /**
+   * The Control Decoder that can be used to decode this control.
+   */
+  public static final ControlDecoder<VLVRequestControl> DECODER =
+    new Decoder();
+
   /**
    * The BER type to use when encoding the byOffset target element.
    */
@@ -119,7 +206,7 @@ public class VLVRequestControl
   public VLVRequestControl(int beforeCount, int afterCount, int offset,
                            int contentCount)
   {
-    this(beforeCount, afterCount, offset, contentCount, null);
+    this(false, beforeCount, afterCount, offset, contentCount, null);
   }
 
 
@@ -127,6 +214,7 @@ public class VLVRequestControl
   /**
    * Creates a new VLV request control with the provided information.
    *
+   * @param  isCritical    Indicates whether or not the control is critical.
    * @param  beforeCount   The number of entries before the target offset to
    *                       retrieve in the results page.
    * @param  afterCount    The number of entries after the target offset to
@@ -142,12 +230,10 @@ public class VLVRequestControl
    *                       the server did not include a context ID in the
    *                       last response.
    */
-  public VLVRequestControl(int beforeCount, int afterCount, int offset,
-                           int contentCount, ByteString contextID)
+  public VLVRequestControl(boolean isCritical, int beforeCount, int afterCount,
+                           int offset, int contentCount, ByteString contextID)
   {
-    super(OID_VLV_REQUEST_CONTROL, false,
-          encodeControlValue(beforeCount, afterCount, offset, contentCount,
-                             contextID));
+    super(OID_VLV_REQUEST_CONTROL, isCritical);
 
     this.beforeCount  = beforeCount;
     this.afterCount   = afterCount;
@@ -174,7 +260,7 @@ public class VLVRequestControl
   public VLVRequestControl(int beforeCount, int afterCount,
                            ByteString greaterThanOrEqual)
   {
-    this(beforeCount, afterCount, greaterThanOrEqual, null);
+    this(false, beforeCount, afterCount, greaterThanOrEqual, null);
   }
 
 
@@ -182,6 +268,8 @@ public class VLVRequestControl
   /**
    * Creates a new VLV request control with the provided information.
    *
+   * @param  isCritical          Indicates whether the control should be
+   *                             considered critical.
    * @param  beforeCount         The number of entries before the target
    *                             assertion value.
    * @param  afterCount          The number of entries after the target
@@ -195,13 +283,11 @@ public class VLVRequestControl
    *                             response or the server did not include a
    *                             context ID in the last response.
    */
-  public VLVRequestControl(int beforeCount, int afterCount,
+  public VLVRequestControl(boolean isCritical, int beforeCount, int afterCount,
                            ByteString greaterThanOrEqual,
                            ByteString contextID)
   {
-    super(OID_VLV_REQUEST_CONTROL, false,
-          encodeControlValue(beforeCount, afterCount, greaterThanOrEqual,
-                             contextID));
+    super(OID_VLV_REQUEST_CONTROL, isCritical);
 
     this.beforeCount        = beforeCount;
     this.afterCount         = afterCount;
@@ -209,46 +295,6 @@ public class VLVRequestControl
     this.contextID          = contextID;
 
     targetType = TYPE_TARGET_GREATERTHANOREQUAL;
-  }
-
-
-
-  /**
-   * Creates a new VLV request control with the provided information.
-   *
-   * @param  oid                 The OID for the control.
-   * @param  isCritical          Indicates whether the control should be
-   *                             considered critical.
-   * @param  controlValue        The pre-encoded value for the control.
-   * @param  beforeCount         The number of entries before the target
-   *                             assertion value.
-   * @param  afterCount          The number of entries after the target
-   *                             assertion value.
-   * @param  greaterThanOrEqual  The greaterThanOrEqual target assertion value
-   *                             that indicates where to start the page of
-   *                             results.
-   * @param  contextID           The context ID provided by the server in the
-   *                             last VLV response for the same set of criteria,
-   *                             or {@code null} if there was no previous VLV
-   *                             response or the server did not include a
-   *                             context ID in the last response.
-   */
-  private VLVRequestControl(String oid, boolean isCritical,
-                            ASN1OctetString controlValue, int beforeCount,
-                            int afterCount, byte targetType,
-                            int offset, int contentCount,
-                            ByteString greaterThanOrEqual,
-                            ByteString contextID)
-  {
-    super(oid, isCritical, controlValue);
-
-    this.beforeCount        = beforeCount;
-    this.afterCount         = afterCount;
-    this.targetType         = targetType;
-    this.offset             = offset;
-    this.contentCount       = contentCount;
-    this.greaterThanOrEqual = greaterThanOrEqual;
-    this.contextID          = contextID;
   }
 
 
@@ -358,188 +404,38 @@ public class VLVRequestControl
 
 
   /**
-   * Encodes the provided information in a manner suitable for use as the value
-   * of this control.
+   * Writes this control's value to an ASN.1 writer. The value (if any) must be
+   * written as an ASN1OctetString.
    *
-   * @param  beforeCount   The number of entries before the target offset to
-   *                       retrieve in the results page.
-   * @param  afterCount    The number of entries after the target offset to
-   *                       retrieve in the results page.
-   * @param  offset        The offset in the result set to target for the
-   *                       beginning of the page of results.
-   * @param  contentCount  The content count returned by the server in the last
-   *                       phase of the VLV request, or zero for a new VLV
-   *                       request session.
-   * @param  contextID     The context ID provided by the server in the last
-   *                       VLV response for the same set of criteria, or
-   *                       {@code null} if there was no previous VLV response or
-   *                       the server did not include a context ID in the
-   *                       last response.
-   *
-   * @return  The ASN.1 octet string containing the encoded sort order.
+   * @param writer The ASN.1 writer to use.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  private static ASN1OctetString encodeControlValue(int beforeCount,
-                                      int afterCount, int offset,
-                                      int contentCount, ByteString contextID)
-  {
-    ArrayList<ASN1Element> vlvElements = new ArrayList<ASN1Element>(4);
-    vlvElements.add(new ASN1Integer(beforeCount));
-    vlvElements.add(new ASN1Integer(afterCount));
+  @Override
+  protected void writeValue(ASN1Writer writer) throws IOException {
+    writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
 
-    ArrayList<ASN1Element> targetElements = new ArrayList<ASN1Element>(2);
-    targetElements.add(new ASN1Integer(offset));
-    targetElements.add(new ASN1Integer(contentCount));
-    vlvElements.add(new ASN1Sequence(TYPE_TARGET_BYOFFSET, targetElements));
-
+    writer.writeStartSequence();
+    writer.writeInteger(beforeCount);
+    writer.writeInteger(afterCount);
+    if(targetType == TYPE_TARGET_BYOFFSET)
+    {
+      writer.writeStartSequence(TYPE_TARGET_BYOFFSET);
+      writer.writeInteger(offset);
+      writer.writeInteger(contentCount);
+      writer.writeEndSequence();
+    }
+    else
+    {
+      writer.writeOctetString(TYPE_TARGET_GREATERTHANOREQUAL,
+          greaterThanOrEqual);
+    }
     if (contextID != null)
     {
-      vlvElements.add(contextID.toASN1OctetString());
+      writer.writeOctetString(contextID);
     }
+    writer.writeEndSequence();
 
-    return new ASN1OctetString(new ASN1Sequence(vlvElements).encode());
-  }
-
-
-
-  /**
-   * Encodes the provided information in a manner suitable for use as the value
-   * of this control.
-   *
-   * @param  beforeCount         The number of entries before the target
-   *                             assertion value.
-   * @param  afterCount          The number of entries after the target
-   *                             assertion value.
-   * @param  greaterThanOrEqual  The greaterThanOrEqual target assertion value
-   *                             that indicates where to start the page of
-   *                             results.
-   * @param  contextID           The context ID provided by the server in the
-   *                             last VLV response for the same set of criteria,
-   *                             or {@code null} if there was no previous VLV
-   *                             response or the server did not include a
-   *                             context ID in the last response.
-   *
-   * @return  The ASN.1 octet string containing the encoded sort order.
-   */
-  private static ASN1OctetString encodeControlValue(int beforeCount,
-                                      int afterCount,
-                                      ByteString greaterThanOrEqual,
-                                      ByteString contextID)
-  {
-    ArrayList<ASN1Element> vlvElements = new ArrayList<ASN1Element>(4);
-    vlvElements.add(new ASN1Integer(beforeCount));
-    vlvElements.add(new ASN1Integer(afterCount));
-
-    vlvElements.add(new ASN1OctetString(TYPE_TARGET_GREATERTHANOREQUAL,
-                                        greaterThanOrEqual.value()));
-
-    if (contextID != null)
-    {
-      vlvElements.add(contextID.toASN1OctetString());
-    }
-
-    return new ASN1OctetString(new ASN1Sequence(vlvElements).encode());
-  }
-
-
-
-  /**
-   * Creates a new VLV request control from the contents of the provided
-   * control.
-   *
-   * @param  control  The generic control containing the information to use to
-   *                  create this VLV request control.  It must not be
-   *                  {@code null}.
-   *
-   * @return  The VLV request control decoded from the provided control.
-   *
-   * @throws  LDAPException  If this control cannot be decoded as a valid VLV
-   *                         request control.
-   */
-  public static VLVRequestControl decodeControl(Control control)
-         throws LDAPException
-  {
-    ASN1OctetString controlValue = control.getValue();
-    if (controlValue == null)
-    {
-      Message message = INFO_VLVREQ_CONTROL_NO_VALUE.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-    }
-
-    try
-    {
-      ASN1Sequence vlvSequence =
-           ASN1Sequence.decodeAsSequence(controlValue.value());
-      ArrayList<ASN1Element> elements = vlvSequence.elements();
-
-      if ((elements.size() < 3) || (elements.size() > 4))
-      {
-        Message message =
-            INFO_VLVREQ_CONTROL_INVALID_ELEMENT_COUNT.get(elements.size());
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-      }
-
-      int beforeCount = elements.get(0).decodeAsInteger().intValue();
-      int afterCount  = elements.get(1).decodeAsInteger().intValue();
-
-      ASN1Element targetElement = elements.get(2);
-      int offset = 0;
-      int contentCount = 0;
-      ASN1OctetString greaterThanOrEqual = null;
-      byte targetType = targetElement.getType();
-      switch (targetType)
-      {
-        case TYPE_TARGET_BYOFFSET:
-          ArrayList<ASN1Element> targetElements =
-               targetElement.decodeAsSequence().elements();
-          offset = targetElements.get(0).decodeAsInteger().intValue();
-          contentCount = targetElements.get(1).decodeAsInteger().intValue();
-          break;
-
-        case TYPE_TARGET_GREATERTHANOREQUAL:
-          greaterThanOrEqual = targetElement.decodeAsOctetString();
-          break;
-
-        default:
-          Message message = INFO_VLVREQ_CONTROL_INVALID_TARGET_TYPE.get(
-              byteToHex(targetType));
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-      }
-
-      ASN1OctetString contextID = null;
-      if (elements.size() == 4)
-      {
-        contextID = elements.get(3).decodeAsOctetString();
-      }
-
-      return new VLVRequestControl(control.getOID(), control.isCritical(),
-                                   controlValue, beforeCount, afterCount,
-                                   targetType, offset, contentCount,
-                                   greaterThanOrEqual, contextID);
-    }
-    catch (LDAPException le)
-    {
-      throw le;
-    }
-    catch (Exception e)
-    {
-      Message message =
-          INFO_VLVREQ_CONTROL_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message, e);
-    }
-  }
-
-
-
-  /**
-   * Retrieves a string representation of this VLV request control.
-   *
-   * @return  A string representation of this VLV request control.
-   */
-  public String toString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
+    writer.writeEndSequence();
   }
 
 
@@ -550,6 +446,7 @@ public class VLVRequestControl
    *
    * @param  buffer  The buffer to which the information should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("VLVRequestControl(beforeCount=");

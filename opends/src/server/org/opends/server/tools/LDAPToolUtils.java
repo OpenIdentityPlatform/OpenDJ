@@ -32,10 +32,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.DN;
+import org.opends.server.types.ByteString;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -68,7 +68,7 @@ public class LDAPToolUtils
     LDAPControl control = null;
     String controlOID = null;
     boolean controlCriticality = false;
-    ASN1OctetString controlValue = null;
+    ByteString controlValue = null;
 
     int idx = argString.indexOf(":");
 
@@ -170,7 +170,7 @@ public class LDAPToolUtils
     if(valString.charAt(0) == ':')
     {
       controlValue =
-           new ASN1OctetString(valString.substring(1, valString.length()));
+          ByteString.valueOf(valString.substring(1, valString.length()));
     } else if(valString.charAt(0) == '<')
     {
       // Read data from the file.
@@ -178,7 +178,7 @@ public class LDAPToolUtils
       try
       {
         byte[] val = readBytesFromFile(filePath, err);
-        controlValue = new ASN1OctetString(val);
+        controlValue = ByteString.wrap(val);
       }
       catch (Exception e)
       {
@@ -186,7 +186,7 @@ public class LDAPToolUtils
       }
     } else
     {
-      controlValue = new ASN1OctetString(valString);
+      controlValue = ByteString.valueOf(valString);
     }
 
     control = new LDAPControl(controlOID, controlCriticality, controlValue);

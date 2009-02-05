@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -30,10 +30,7 @@ package org.opends.server.api;
 
 import java.util.List;
 
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.DirectoryException;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -60,8 +57,8 @@ public abstract class SubstringMatchingRule extends MatchingRule
    *                              not acceptable according to the
    *                              associated syntax.
    */
-  public abstract ByteString normalizeSubstring(ByteString substring)
-         throws DirectoryException;
+  public abstract ByteString normalizeSubstring(
+      ByteSequence substring) throws DirectoryException;
 
 
 
@@ -86,11 +83,97 @@ public abstract class SubstringMatchingRule extends MatchingRule
    * @return  {@code true} if the provided value does match the given
    *          substring components, or {@code false} if not.
    */
-  public abstract boolean valueMatchesSubstring(
-                               ByteString value,
-                               ByteString subInitial,
-                               List<ByteString> subAnyElements,
-                               ByteString subFinal);
+  public boolean valueMatchesSubstring(ByteSequence value,
+                                    ByteSequence subInitial,
+                                    List<ByteSequence> subAnyElements,
+                                    ByteSequence subFinal)
+  {
+    int valueLength = value.length();
+
+    int pos = 0;
+    if (subInitial != null)
+    {
+      int initialLength = subInitial.length();
+      if (initialLength > valueLength)
+      {
+        return false;
+      }
+
+      for (; pos < initialLength; pos++)
+      {
+        if (subInitial.byteAt(pos) != value.byteAt(pos))
+        {
+          return false;
+        }
+      }
+    }
+
+
+    if ((subAnyElements != null) && (! subAnyElements.isEmpty()))
+    {
+      for (ByteSequence element : subAnyElements)
+      {
+        int anyLength = element.length();
+        if(anyLength == 0)
+            continue;
+        int end = valueLength - anyLength;
+        boolean match = false;
+        for (; pos <= end; pos++)
+        {
+          if (element.byteAt(0) == value.byteAt(pos))
+          {
+            boolean subMatch = true;
+            for (int i=1; i < anyLength; i++)
+            {
+              if (element.byteAt(i) != value.byteAt(pos+i))
+              {
+                subMatch = false;
+                break;
+              }
+            }
+
+            if (subMatch)
+            {
+              match = subMatch;
+              break;
+            }
+          }
+        }
+
+        if (match)
+        {
+          pos += anyLength;
+        }
+        else
+        {
+          return false;
+        }
+      }
+    }
+
+
+    if (subFinal != null)
+    {
+      int finalLength = subFinal.length();
+
+      if ((valueLength - finalLength) < pos)
+      {
+        return false;
+      }
+
+      pos = valueLength - finalLength;
+      for (int i=0; i < finalLength; i++,pos++)
+      {
+        if (subFinal.byteAt(i) != value.byteAt(pos))
+        {
+          return false;
+        }
+      }
+    }
+
+
+    return true;
+  }
 
 
 
@@ -116,8 +199,9 @@ public abstract class SubstringMatchingRule extends MatchingRule
    *          a match for the provided assertion value, or
    *          {@code false} if not.
    */
-  public ConditionResult valuesMatch(ByteString attributeValue,
-                                     ByteString assertionValue)
+  @Override
+  public ConditionResult valuesMatch(ByteSequence attributeValue,
+                                     ByteSequence assertionValue)
   {
     return ConditionResult.UNDEFINED;
   }

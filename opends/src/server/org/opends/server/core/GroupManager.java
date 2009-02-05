@@ -49,6 +49,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
@@ -581,7 +582,7 @@ public class GroupManager
          InternalClientConnection.getRootConnection();
 
     LinkedList<Control> requestControls = new LinkedList<Control>();
-    requestControls.add(new Control(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
+    requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
                                     false));
     for (DN configEntryDN : groupImplementations.keySet())
     {

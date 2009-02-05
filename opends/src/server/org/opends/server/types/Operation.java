@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.opends.server.api.ClientConnection;
+import org.opends.server.controls.ControlDecoder;
 import org.opends.messages.MessageBuilder;
 
 
@@ -167,6 +168,22 @@ public interface Operation
    *          client.
    */
   public abstract List<Control> getRequestControls();
+
+  /**
+   * Retrieves a control included in the request from the client.
+   *
+   * @param <T>
+   *          The type of control requested.
+   * @param d
+   *          The requested control's decoder.
+   * @return The decoded form of the requested control included in the
+   *         request from the client or <code>null</code> if the
+   *         control was not found.
+   * @throws DirectoryException
+   *           if an error occurs while decoding the control.
+   */
+  public abstract <T extends Control> T getRequestControl(
+      ControlDecoder<T> d) throws DirectoryException;
 
   /**
    * Adds the provided control to the set of request controls for this

@@ -42,17 +42,7 @@ import org.opends.server.admin.std.server.EntryUUIDPluginCfg;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.*;
 import org.opends.server.config.ConfigException;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeUsage;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.ByteStringFactory;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DirectoryConfig;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PreOperationAddOperation;
 
 import static org.opends.messages.PluginMessages.*;
@@ -188,8 +178,8 @@ public final class EntryUUIDPlugin
     UUID uuid = UUID.nameUUIDFromBytes(dnBytes);
 
     Attribute uuidAttr = Attributes.create(entryUUIDType,
-        new AttributeValue(entryUUIDType, ByteStringFactory.create(uuid
-            .toString())));
+        AttributeValues.create(entryUUIDType,
+            ByteString.valueOf(uuid.toString())));
     uuidList = new ArrayList<Attribute>(1);
     uuidList.add(uuidAttr);
     entry.putAttribute(entryUUIDType, uuidList);
@@ -223,8 +213,7 @@ public final class EntryUUIDPlugin
     // Construct a new random UUID.
     UUID uuid = UUID.randomUUID();
     Attribute uuidAttr = Attributes.create(entryUUIDType,
-        new AttributeValue(entryUUIDType, ByteStringFactory.create(uuid
-            .toString())));
+        AttributeValues.create(entryUUIDType,uuid.toString()));
     uuidList = new ArrayList<Attribute>(1);
     uuidList.add(uuidAttr);
 

@@ -147,7 +147,8 @@ public class EntryUUIDPluginTestCase
     {
       for (AttributeValue v : a)
       {
-        pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
+        pluginTypes.add(PluginType.forName(
+            v.getValue().toString().toLowerCase()));
       }
     }
 
@@ -186,7 +187,8 @@ public class EntryUUIDPluginTestCase
     {
       for (AttributeValue v : a)
       {
-        pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
+        pluginTypes.add(PluginType.forName(
+            v.getValue().toString().toLowerCase()));
       }
     }
 
@@ -265,7 +267,8 @@ public class EntryUUIDPluginTestCase
     {
       for (AttributeValue v : a)
       {
-        pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
+        pluginTypes.add(PluginType.forName(
+            v.getValue().toString().toLowerCase()));
       }
     }
 

@@ -52,7 +52,6 @@ import org.opends.server.core.AccessControlConfigManager;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPClientConnection;
 import org.opends.server.types.*;
@@ -292,9 +291,16 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
      *
      * @throws SaslException If the SASL server cannot evaluate the byte array.
      */
-    private byte[] evaluateResponse(byte[] bytes) throws SaslException {
-          return saslServer.evaluateResponse(bytes);
+    private ByteString evaluateResponse(ByteString response)
+      throws SaslException
+    {
+      if (response == null)
+      {
+        response = ByteString.empty();
       }
+      return ByteString.wrap(saslServer.evaluateResponse(
+          response.toByteArray()));
+    }
 
 
     /**
@@ -752,17 +758,11 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
                return false;
            }
        }
-       byte[] clientCredBytes = new byte[0];
-       ASN1OctetString clientCredentials = bindOp.getSASLCredentials();
-       if(clientCredentials != null) {
-           clientCredBytes = clientCredentials.value();
-       }
+
+       ByteString clientCredentials = bindOp.getSASLCredentials();
        clientConn.setSASLAuthStateInfo(null);
        try {
-           byte[] responseBytes =
-               evaluateResponse(clientCredBytes);
-           ASN1OctetString responseAuthStr =
-               new ASN1OctetString(responseBytes);
+           ByteString responseAuthStr = evaluateResponse(clientCredentials);
            //If the bind has not been completed,then
            //more handshake is needed and SASL_BIND_IN_PROGRESS is returned back
            //to the client.
@@ -779,11 +779,12 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
                //connection. If confidentiality/integrity has not been
                //negotiated, dispose of the SASL server.
                if(isConfidentialIntegrity()) {
-                   SASLSecurityProvider secProvider =
-                       new SASLSecurityProvider(clientConn, mechanism, this);
+                   SASLByteChannel saslByteChannel =
+                        SASLByteChannel.getSASLByteChannel(clientConn,
+                                                           mechanism, this);
                    LDAPClientConnection ldapConn =
                        (LDAPClientConnection) clientConn;
-                       ldapConn.setSASLConnectionSecurityProvider(secProvider);
+                       ldapConn.setSASLPendingProvider(saslByteChannel);
                } else {
                    dispose();
                    clientConn.setSASLAuthStateInfo(null);
@@ -842,8 +843,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
        this.bindOp = bindOp;
        ClientConnection clientConn = bindOp.getClientConnection();
        try {
-           byte[] challengeBuffer = evaluateResponse(new byte[0]);
-           ASN1OctetString challenge = new ASN1OctetString(challengeBuffer);
+           ByteString challenge = evaluateResponse(ByteString.empty());
            bindOp.setResultCode(ResultCode.SASL_BIND_IN_PROGRESS);
            bindOp.setServerSASLCredentials(challenge);
            clientConn.setSASLAuthStateInfo(this);
@@ -866,9 +866,9 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
    void
    evaluateFinalStage(BindOperation bindOp) {
       this.bindOp = bindOp;
-       ASN1OctetString clientCredentials = bindOp.getSASLCredentials();
+       ByteString clientCredentials = bindOp.getSASLCredentials();
        if ((clientCredentials == null) ||
-               (clientCredentials.value().length == 0)) {
+               (clientCredentials.length() == 0)) {
            Message msg =
                ERR_SASL_NO_CREDENTIALS.get(mechanism, mechanism);
            handleError(msg);
@@ -877,10 +877,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
        ClientConnection clientConn = bindOp.getClientConnection();
        clientConn.setSASLAuthStateInfo(null);
        try {
-           byte[] responseBytes =
-                        evaluateResponse(clientCredentials.value());
-           ASN1OctetString responseAuthStr =
-               new ASN1OctetString(responseBytes);
+           ByteString responseAuthStr = evaluateResponse(clientCredentials);
            bindOp.setResultCode(ResultCode.SUCCESS);
            bindOp.setServerSASLCredentials(responseAuthStr);
            bindOp.setSASLAuthUserEntry(authEntry);
@@ -893,11 +890,11 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
            //SASL security provider and save it in the client connection for
            //use in later processing.
            if(isConfidentialIntegrity()) {
-               SASLSecurityProvider secProvider =
-                   new SASLSecurityProvider(clientConn, mechanism, this);
+               SASLByteChannel saslByteChannel =
+                SASLByteChannel.getSASLByteChannel(clientConn, mechanism, this);
                LDAPClientConnection ldapConn =
                    (LDAPClientConnection) clientConn;
-               ldapConn.setSASLConnectionSecurityProvider(secProvider);
+               ldapConn.setSASLPendingProvider(saslByteChannel);
            } else {
                dispose();
                clientConn.setSASLAuthStateInfo(null);

@@ -149,7 +149,7 @@ public class TaskEntry {
               valueList = new ArrayList<String>();
               taskSpecificAttrValues.put(attrTypeName, valueList);
             }
-            valueList.add(av.getStringValue());
+            valueList.add(av.getValue().toString());
           }
         }
       }
@@ -386,7 +386,7 @@ public class TaskEntry {
     if (attrList != null && attrList.size() == 1) {
       Attribute attr = attrList.get(0);
       if (!attr.isEmpty()) {
-        return attr.iterator().next().getStringValue();
+        return attr.iterator().next().getValue().toString();
       }
     }
     return "";
@@ -398,7 +398,7 @@ public class TaskEntry {
     if (attrList != null) {
       for (Attribute attr : attrList) {
         for (AttributeValue value : attr) {
-          valuesList.add(value.getStringValue());
+          valuesList.add(value.getValue().toString());
         }
       }
     }

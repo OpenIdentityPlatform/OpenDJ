@@ -36,18 +36,17 @@ import org.opends.server.types.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.ServerConstants;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Exception;
+import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.messages.Message;
 import static org.opends.messages.ExtensionMessages.*;
 
 import java.util.Set;
 import java.util.HashSet;
-import java.util.ArrayList;
 
 /**
  * This class implements the get symmetric key extended operation, an OpenDS
@@ -167,29 +166,28 @@ public class GetSymmetricKeyExtendedOperation
 
     try
     {
-      ASN1Sequence valueSequence =
-           ASN1Sequence.decodeAsSequence(requestValue.value());
-      for (ASN1Element e : valueSequence.elements())
+      ASN1Reader reader = ASN1.getReader(requestValue);
+      reader.readStartSequence();
+      while(reader.hasNextElement())
       {
-        switch (e.getType())
+        switch (reader.peekType())
         {
           case TYPE_SYMMETRIC_KEY_ELEMENT:
-            requestSymmetricKey =
-                 ASN1OctetString.decodeAsOctetString(e).stringValue();
+            requestSymmetricKey = reader.readOctetStringAsString();
             break;
 
           case TYPE_INSTANCE_KEY_ID_ELEMENT:
-            instanceKeyID =
-                 ASN1OctetString.decodeAsOctetString(e).stringValue();
+            instanceKeyID = reader.readOctetStringAsString();
             break;
 
           default:
             Message message = ERR_GET_SYMMETRIC_KEY_INVALID_TYPE.get(
-                 StaticUtils.byteToHex(e.getType()));
+                 StaticUtils.byteToHex(reader.peekType()));
             operation.appendErrorMessage(message);
             return;
         }
       }
+      reader.readEndSequence();
     }
     catch (ASN1Exception ae)
     {
@@ -226,7 +224,7 @@ public class GetSymmetricKeyExtendedOperation
 
       operation.setResponseOID(
            ServerConstants.OID_GET_SYMMETRIC_KEY_EXTENDED_OP);
-      operation.setResponseValue(new ASN1OctetString(responseSymmetricKey));
+      operation.setResponseValue(ByteString.valueOf(responseSymmetricKey));
       operation.setResultCode(ResultCode.SUCCESS);
     }
     catch (CryptoManagerException e)
@@ -251,23 +249,26 @@ public class GetSymmetricKeyExtendedOperation
    *
    * @return  An ASN.1 octet string containing the encoded request value.
    */
-  public static ASN1OctetString encodeRequestValue(
+  public static ByteString encodeRequestValue(
        String symmetricKey,
        String instanceKeyID)
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
 
-    ASN1OctetString symmetricKeyElement =
-         new ASN1OctetString(TYPE_SYMMETRIC_KEY_ELEMENT, symmetricKey);
-    elements.add(symmetricKeyElement);
+    try
+    {
+      writer.writeStartSequence();
+      writer.writeOctetString(TYPE_SYMMETRIC_KEY_ELEMENT, symmetricKey);
+      writer.writeOctetString(TYPE_INSTANCE_KEY_ID_ELEMENT, instanceKeyID);
+      writer.writeEndSequence();
+    }
+    catch(Exception e)
+    {
+      // TODO: DO something
+    }
 
-    ASN1OctetString instanceKeyIDElement =
-         new ASN1OctetString(TYPE_INSTANCE_KEY_ID_ELEMENT,
-                             instanceKeyID);
-    elements.add(instanceKeyIDElement);
-
-    ASN1Sequence valueSequence = new ASN1Sequence(elements);
-    return new ASN1OctetString(valueSequence.encode());
+    return builder.toByteString();
   }
 
 

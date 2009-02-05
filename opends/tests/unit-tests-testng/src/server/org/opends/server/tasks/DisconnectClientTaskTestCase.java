@@ -43,6 +43,7 @@ import org.opends.server.extensions.GetConnectionIDExtendedOperation;
 import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.types.DN;
+import org.opends.server.types.ByteString;
 
 import static org.testng.Assert.*;
 
@@ -82,16 +83,18 @@ public class DisconnectClientTaskTestCase
   {
     // Establish a connection to the server, bind, and get the connection ID.
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    org.opends.server.tools.LDAPReader r =
+        new org.opends.server.tools.LDAPReader(s);
+    org.opends.server.tools.LDAPWriter w =
+        new org.opends.server.tools.LDAPWriter(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
@@ -99,9 +102,9 @@ public class DisconnectClientTaskTestCase
     ExtendedRequestProtocolOp extendedRequest =
          new ExtendedRequestProtocolOp(OID_GET_CONNECTION_ID_EXTOP);
     message = new LDAPMessage(2, extendedRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     ExtendedResponseProtocolOp extendedResponse =
          message.getExtendedResponseProtocolOp();
     assertEquals(extendedResponse.getResultCode(), LDAPResultCode.SUCCESS);
@@ -133,7 +136,7 @@ public class DisconnectClientTaskTestCase
 
     // Make sure that we get a notice of disconnection on the initial
     // connection.
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     extendedResponse = message.getExtendedResponseProtocolOp();
     assertEquals(extendedResponse.getOID(),
                  LDAPConstants.OID_NOTICE_OF_DISCONNECTION);
@@ -159,16 +162,18 @@ public class DisconnectClientTaskTestCase
   {
     // Establish a connection to the server, bind, and get the connection ID.
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    org.opends.server.tools.LDAPReader r =
+        new org.opends.server.tools.LDAPReader(s);
+    org.opends.server.tools.LDAPWriter w =
+        new org.opends.server.tools.LDAPWriter(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
@@ -176,9 +181,9 @@ public class DisconnectClientTaskTestCase
     ExtendedRequestProtocolOp extendedRequest =
          new ExtendedRequestProtocolOp(OID_GET_CONNECTION_ID_EXTOP);
     message = new LDAPMessage(2, extendedRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     ExtendedResponseProtocolOp extendedResponse =
          message.getExtendedResponseProtocolOp();
     assertEquals(extendedResponse.getResultCode(), LDAPResultCode.SUCCESS);
@@ -208,7 +213,7 @@ public class DisconnectClientTaskTestCase
 
     // Make sure that the client connection has been closed with no notice of
     // disconnection.
-    assertNull(r.readElement());
+    assertNull(r.readMessage());
 
     try
     {

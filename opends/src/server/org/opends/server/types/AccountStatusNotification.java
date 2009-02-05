@@ -287,7 +287,7 @@ public final class AccountStatusNotification
       propList = new ArrayList<String>(oldPasswords.size());
       for (AttributeValue v : oldPasswords)
       {
-        propList.add(v.getStringValue());
+        propList.add(v.getValue().toString());
       }
 
       props.put(OLD_PASSWORD, propList);
@@ -298,7 +298,7 @@ public final class AccountStatusNotification
       propList = new ArrayList<String>(newPasswords.size());
       for (AttributeValue v : newPasswords)
       {
-        propList.add(v.getStringValue());
+        propList.add(v.getValue().toString());
       }
 
       props.put(NEW_PASSWORD, propList);

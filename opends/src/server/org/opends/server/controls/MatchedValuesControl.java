@@ -30,16 +30,12 @@ import org.opends.messages.Message;
 
 
 import java.util.ArrayList;
+import java.io.IOException;
 
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Control;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
+import org.opends.server.protocols.asn1.*;
+import static org.opends.server.protocols.asn1.ASN1Constants.
+    UNIVERSAL_OCTET_STRING_TYPE;
+import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -59,6 +55,75 @@ public class MatchedValuesControl
        extends Control
 {
   /**
+   * ControlDecoder implentation to decode this control from a ByteString.
+   */
+  private final static class Decoder
+      implements ControlDecoder<MatchedValuesControl>
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public MatchedValuesControl decode(boolean isCritical, ByteString value)
+        throws DirectoryException
+    {
+      ArrayList<MatchedValuesFilter> filters;
+      if (value == null)
+      {
+        Message message = ERR_MATCHEDVALUES_NO_CONTROL_VALUE.get();
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+      }
+
+      ASN1Reader reader = ASN1.getReader(value);
+      try
+      {
+        reader.readStartSequence();
+        if (!reader.hasNextElement())
+        {
+          Message message = ERR_MATCHEDVALUES_NO_FILTERS.get();
+          throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+        }
+
+        filters = new ArrayList<MatchedValuesFilter>();
+        while(reader.hasNextElement())
+        {
+          filters.add(MatchedValuesFilter.decode(reader));
+        }
+        reader.readEndSequence();
+      }
+      catch (DirectoryException e)
+      {
+        throw e;
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message = ERR_MATCHEDVALUES_CANNOT_DECODE_VALUE_AS_SEQUENCE.get(
+            getExceptionMessage(e));
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+      }
+
+      return new MatchedValuesControl(isCritical,filters);
+    }
+
+
+    public String getOID()
+    {
+      return OID_MATCHED_VALUES;
+    }
+
+  }
+
+  /**
+   * The Control Decoder that can be used to decode this control.
+   */
+  public static final ControlDecoder<MatchedValuesControl> DECODER =
+    new Decoder();
+
+  /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
@@ -67,7 +132,7 @@ public class MatchedValuesControl
 
 
   // The set of matched values filters for this control.
-  ArrayList<MatchedValuesFilter> filters;
+  private final ArrayList<MatchedValuesFilter> filters;
 
 
 
@@ -83,7 +148,7 @@ public class MatchedValuesControl
   public MatchedValuesControl(boolean isCritical,
                               ArrayList<MatchedValuesFilter> filters)
   {
-    super(OID_MATCHED_VALUES, isCritical, encodeValue(filters));
+    super(OID_MATCHED_VALUES, isCritical);
 
 
     this.filters = filters;
@@ -92,134 +157,25 @@ public class MatchedValuesControl
 
 
   /**
-   * Creates a new matched values control using the default OID and the provided
-   * criticality and set of filters.
+   * Writes this control's value to an ASN.1 writer. The value (if any) must be
+   * written as an ASN1OctetString.
    *
-   * @param  oid         The OID for this matched values control.
-   * @param  isCritical  Indicates whether this control should be considered
-   *                     critical to the operation processing.
-   * @param  filters     The set of filters to use to determine which values to
-   *                     return.
+   * @param writer The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public MatchedValuesControl(String oid, boolean isCritical,
-                              ArrayList<MatchedValuesFilter> filters)
-  {
-    super(oid, isCritical, encodeValue(filters));
+  @Override
+  public void writeValue(ASN1Writer writer) throws IOException {
+    writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
 
-
-    this.filters = filters;
-  }
-
-
-
-  /**
-   * Creates a new matched values control using the default OID and the provided
-   * criticality and set of filters.
-   *
-   * @param  oid           The OID for this matched values control.
-   * @param  isCritical    Indicates whether this control should be considered
-   *                       critical to the operation processing.
-   * @param  filters       The set of filters to use to determine which values
-   *                       to return.
-   * @param  encodedValue  The pre-encoded value for this matched values
-   *                       control.
-   */
-  private MatchedValuesControl(String oid, boolean isCritical,
-                               ArrayList<MatchedValuesFilter> filters,
-                               ASN1OctetString encodedValue)
-  {
-    super(oid, isCritical, encodedValue);
-
-
-    this.filters = filters;
-  }
-
-
-
-  /**
-   * Encodes the provided information into an ASN.1 octet string suitable for
-   * use as the control value.
-   *
-   * @param  filters  The set of filters to include in the control value.
-   *
-   * @return  An ASN.1 octet string containing the encoded information.
-   */
-  private static ASN1OctetString
-                      encodeValue(ArrayList<MatchedValuesFilter> filters)
-  {
-    ArrayList<ASN1Element> elements =
-         new ArrayList<ASN1Element>(filters.size());
+    writer.writeStartSequence();
     for (MatchedValuesFilter f : filters)
     {
-      elements.add(f.encode());
+      f.encode(writer);
     }
+    writer.writeEndSequence();
 
-
-    return new ASN1OctetString(new ASN1Sequence(elements).encode());
+    writer.writeEndSequence();
   }
-
-
-
-  /**
-   * Creates a new matched values control from the contents of the provided
-   * control.
-   *
-   * @param  control  The generic control containing the information to use to
-   *                  create this matched values control.
-   *
-   * @return  The matched values control decoded from the provided control.
-   *
-   * @throws  LDAPException  If this control cannot be decoded as a valid
-   *                         matched values control.
-   */
-  public static MatchedValuesControl decodeControl(Control control)
-         throws LDAPException
-  {
-    if (! control.hasValue())
-    {
-      Message message = ERR_MATCHEDVALUES_NO_CONTROL_VALUE.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-    }
-
-
-    ArrayList<ASN1Element> elements;
-    try
-    {
-      elements =
-           ASN1Sequence.decodeAsSequence(control.getValue().value()).elements();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_MATCHEDVALUES_CANNOT_DECODE_VALUE_AS_SEQUENCE.get(
-          getExceptionMessage(e));
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-    }
-
-
-    if (elements.isEmpty())
-    {
-      Message message = ERR_MATCHEDVALUES_NO_FILTERS.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-    }
-
-
-    ArrayList<MatchedValuesFilter> filters =
-         new ArrayList<MatchedValuesFilter>(elements.size());
-    for (ASN1Element e : elements)
-    {
-      filters.add(MatchedValuesFilter.decode(e));
-    }
-
-
-    return new MatchedValuesControl(control.getOID(), control.isCritical(),
-                                    filters, control.getValue());
-  }
-
 
 
   /**
@@ -271,27 +227,12 @@ public class MatchedValuesControl
 
 
   /**
-   * Retrieves a string representation of this authorization identity response
-   * control.
-   *
-   * @return  A string representation of this authorization identity response
-   *          control.
-   */
-  public String toString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
-  }
-
-
-
-  /**
    * Appends a string representation of this authorization identity response
    * control to the provided buffer.
    *
    * @param  buffer  The buffer to which the information should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     if (filters.size() == 1)

@@ -34,9 +34,6 @@ import java.util.LinkedHashMap;
 import org.opends.server.backends.task.Task;
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 
 
 /**

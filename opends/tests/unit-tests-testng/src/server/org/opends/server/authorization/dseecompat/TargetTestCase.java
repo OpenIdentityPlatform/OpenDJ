@@ -29,9 +29,9 @@ package org.opends.server.authorization.dseecompat;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ByteString;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 import org.testng.annotations.DataProvider;
@@ -412,7 +412,7 @@ public class TargetTestCase extends DirectoryServerTestCase
   public void applicableTargets(String aciDN, String aciString, String entryDN)
        throws Exception
   {
-    Aci aci = Aci.decode(new ASN1OctetString(aciString), DN.decode(aciDN));
+    Aci aci = Aci.decode(ByteString.valueOf(aciString), DN.decode(aciDN));
     boolean match = AciTargets.isTargetApplicable(aci,
                                                   aci.getTargets(),
                                                   DN.decode(entryDN));
@@ -426,7 +426,7 @@ public class TargetTestCase extends DirectoryServerTestCase
                                    String entryDN)
        throws Exception
   {
-    Aci aci = Aci.decode(new ASN1OctetString(aciString), DN.decode(aciDN));
+    Aci aci = Aci.decode(ByteString.valueOf(aciString), DN.decode(aciDN));
     boolean match = AciTargets.isTargetApplicable(aci,
                                                   aci.getTargets(),
                                                   DN.decode(entryDN));

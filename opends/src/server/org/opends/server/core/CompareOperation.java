@@ -26,10 +26,7 @@
  */
 package org.opends.server.core;
 
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DN;
-import org.opends.server.types.Operation;
+import org.opends.server.types.*;
 
 
 /**

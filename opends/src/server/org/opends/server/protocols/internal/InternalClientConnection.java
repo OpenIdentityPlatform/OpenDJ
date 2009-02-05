@@ -43,44 +43,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.opends.messages.Message;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
-import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.core.*;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.opends.server.extensions.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.AbstractOperation;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.Entry;
-import org.opends.server.types.IntermediateResponse;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.Operation;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.RDN;
-import org.opends.server.types.RawAttribute;
-import org.opends.server.types.RawFilter;
-import org.opends.server.types.RawModification;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchResultReference;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.opends.server.util.AddChangeRecordEntry;
 import org.opends.server.util.DeleteChangeRecordEntry;
 import org.opends.server.util.ModifyChangeRecordEntry;
@@ -130,9 +96,6 @@ public final class InternalClientConnection
   // The operation ID counter to use for operations on this
   // connection.
   private static AtomicLong nextOperationID;
-
-  // The connection security provider for this client connection.
-  private ConnectionSecurityProvider securityProvider;
 
   // The static connection for root-based connections.
   private static InternalClientConnection rootConnection;
@@ -225,7 +188,7 @@ public final class InternalClientConnection
       AttributeBuilder builder = new AttributeBuilder(privType);
       for (Privilege p : Privilege.getDefaultRootPrivileges())
       {
-        builder.add(new AttributeValue(privType, p.getName()));
+        builder.add(AttributeValues.create(privType, p.getName()));
       }
       attrList = new LinkedList<Attribute>();
       attrList.add(builder.toAttribute());
@@ -259,19 +222,6 @@ public final class InternalClientConnection
 
     connectionID  = nextConnectionID.getAndDecrement();
     operationList = new LinkedList<Operation>();
-
-    try
-    {
-      securityProvider = new InternalConnectionSecurityProvider();
-      securityProvider.initializeConnectionSecurityProvider(null);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
   }
 
 
@@ -299,19 +249,6 @@ public final class InternalClientConnection
 
     connectionID  = nextConnectionID.getAndDecrement();
     operationList = new LinkedList<Operation>();
-
-    try
-    {
-      securityProvider = new InternalConnectionSecurityProvider();
-      securityProvider.initializeConnectionSecurityProvider(null);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
   }
 
 
@@ -691,67 +628,8 @@ public final class InternalClientConnection
   @Override()
   public boolean isSecure()
   {
-    // Internal connections will generally be considered secure, but
-    // they may be declared insecure if they are accessed through some
-    // external mechanism (e.g., a DSML handler that runs the server
-    // in a Servlet engine and using internal operations for
-    // processing requests).
-    return securityProvider.isSecure();
+      return true;
   }
-
-
-
-  /**
-   * Retrieves the connection security provider for this client
-   * connection.
-   *
-   * @return  The connection security provider for this client
-   *          connection.
-   */
-  @Override()
-  public ConnectionSecurityProvider getConnectionSecurityProvider()
-  {
-    return securityProvider;
-  }
-
-
-
-  /**
-   * Specifies the connection security provider for this client
-   * connection.
-   *
-   * @param  securityProvider  The connection security provider to use
-   *                           for communication on this client
-   *                           connection.
-   */
-  @org.opends.server.types.PublicAPI(
-       stability=org.opends.server.types.StabilityLevel.PRIVATE,
-       mayInstantiate=false,
-       mayExtend=false,
-       mayInvoke=false)
-  @Override()
-  public void setConnectionSecurityProvider(ConnectionSecurityProvider
-                                                 securityProvider)
-  {
-    this.securityProvider = securityProvider;
-  }
-
-
-
-  /**
-   * Retrieves the human-readable name of the security mechanism that
-   * is used to protect communication with this client.
-   *
-   * @return  The human-readable name of the security mechanism that
-   *          is used to protect communication with this client, or
-   *          <CODE>null</CODE> if no security is in place.
-   */
-  @Override()
-  public String getSecurityMechanism()
-  {
-    return securityProvider.getSecurityMechanismName();
-  }
-
 
 
   /**
@@ -880,7 +758,7 @@ public final class InternalClientConnection
   public AddOperation processAdd(String rawEntryDN,
                                  List<RawAttribute> rawAttributes)
   {
-    return processAdd(new ASN1OctetString(rawEntryDN), rawAttributes,
+    return processAdd(ByteString.valueOf(rawEntryDN), rawAttributes,
                       null);
   }
 
@@ -1081,7 +959,7 @@ public final class InternalClientConnection
       {
         for (AttributeValue v : a)
         {
-          String ocName = v.getStringValue();
+          String ocName = v.getValue().toString();
           String lowerName = toLowerCase(ocName);
           ObjectClass oc = DirectoryServer.getObjectClass(lowerName,
                                                           true);
@@ -1115,8 +993,8 @@ public final class InternalClientConnection
   public BindOperation processSimpleBind(String rawBindDN,
                                          String password)
   {
-    return processSimpleBind(new ASN1OctetString(rawBindDN),
-                             new ASN1OctetString(password),
+    return processSimpleBind(ByteString.valueOf(rawBindDN),
+        ByteString.valueOf(password),
                              null);
   }
 
@@ -1140,8 +1018,8 @@ public final class InternalClientConnection
                                          String password,
                                          List<Control> controls)
   {
-    return processSimpleBind(new ASN1OctetString(rawBindDN),
-                             new ASN1OctetString(password), controls);
+    return processSimpleBind(ByteString.valueOf(rawBindDN),
+        ByteString.valueOf(password), controls);
   }
 
 
@@ -1269,7 +1147,7 @@ public final class InternalClientConnection
    */
   public BindOperation processSASLBind(ByteString rawBindDN,
                             String saslMechanism,
-                            ASN1OctetString saslCredentials)
+                            ByteString saslCredentials)
   {
     return processSASLBind(rawBindDN, saslMechanism, saslCredentials,
                            null);
@@ -1294,7 +1172,7 @@ public final class InternalClientConnection
    */
   public BindOperation processSASLBind(ByteString rawBindDN,
                             String saslMechanism,
-                            ASN1OctetString saslCredentials,
+                            ByteString saslCredentials,
                             List<Control> controls)
   {
     if (controls == null)
@@ -1330,7 +1208,7 @@ public final class InternalClientConnection
    */
   public BindOperation processSASLBind(DN bindDN,
                             String saslMechanism,
-                            ASN1OctetString saslCredentials)
+                            ByteString saslCredentials)
   {
     return processSASLBind(bindDN, saslMechanism, saslCredentials,
                            null);
@@ -1355,7 +1233,7 @@ public final class InternalClientConnection
    */
   public BindOperation processSASLBind(DN bindDN,
                             String saslMechanism,
-                            ASN1OctetString saslCredentials,
+                            ByteString saslCredentials,
                             List<Control> controls)
   {
     if (controls == null)
@@ -1394,9 +1272,9 @@ public final class InternalClientConnection
                                          String attributeType,
                                          String assertionValue)
   {
-    return processCompare(new ASN1OctetString(rawEntryDN),
+    return processCompare(ByteString.valueOf(rawEntryDN),
                           attributeType,
-                          new ASN1OctetString(assertionValue), null);
+        ByteString.valueOf(assertionValue), null);
   }
 
 
@@ -1422,9 +1300,9 @@ public final class InternalClientConnection
                                          String assertionValue,
                                          List<Control> controls)
   {
-    return processCompare(new ASN1OctetString(rawEntryDN),
+    return processCompare(ByteString.valueOf(rawEntryDN),
                           attributeType,
-                          new ASN1OctetString(assertionValue),
+        ByteString.valueOf(assertionValue),
                           controls);
   }
 
@@ -1566,7 +1444,7 @@ public final class InternalClientConnection
    */
   public DeleteOperation processDelete(String rawEntryDN)
   {
-    return processDelete(new ASN1OctetString(rawEntryDN), null);
+    return processDelete(ByteString.valueOf(rawEntryDN), null);
   }
 
 
@@ -1586,7 +1464,7 @@ public final class InternalClientConnection
   public DeleteOperation processDelete(String rawEntryDN,
                                        List<Control> controls)
   {
-    return processDelete(new ASN1OctetString(rawEntryDN), controls);
+    return processDelete(ByteString.valueOf(rawEntryDN), controls);
   }
 
 
@@ -1720,7 +1598,7 @@ public final class InternalClientConnection
    */
   public ExtendedOperation processExtendedOperation(
                                 String requestOID,
-                                ASN1OctetString requestValue)
+                                ByteString requestValue)
   {
     return processExtendedOperation(requestOID, requestValue, null);
   }
@@ -1744,7 +1622,7 @@ public final class InternalClientConnection
    */
   public ExtendedOperation processExtendedOperation(
                                 String requestOID,
-                                ASN1OctetString requestValue,
+                                ByteString requestValue,
                                 List<Control> controls)
   {
     if (controls == null)
@@ -1779,7 +1657,7 @@ public final class InternalClientConnection
   public ModifyOperation processModify(String rawEntryDN,
                               List<RawModification> rawModifications)
   {
-    return processModify(new ASN1OctetString(rawEntryDN),
+    return processModify(ByteString.valueOf(rawEntryDN),
                          rawModifications, null);
   }
 
@@ -1804,7 +1682,7 @@ public final class InternalClientConnection
                               List<RawModification> rawModifications,
                               List<Control> controls)
   {
-    return processModify(new ASN1OctetString(rawEntryDN),
+    return processModify(ByteString.valueOf(rawEntryDN),
                          rawModifications, controls);
   }
 
@@ -1959,8 +1837,8 @@ public final class InternalClientConnection
                                            String rawNewRDN,
                                            boolean deleteOldRDN)
   {
-    return processModifyDN(new ASN1OctetString(rawEntryDN),
-                           new ASN1OctetString(rawNewRDN),
+    return processModifyDN(ByteString.valueOf(rawEntryDN),
+        ByteString.valueOf(rawNewRDN),
                            deleteOldRDN, null, null);
   }
 
@@ -1986,8 +1864,8 @@ public final class InternalClientConnection
                                            boolean deleteOldRDN,
                                            List<Control> controls)
   {
-    return processModifyDN(new ASN1OctetString(rawEntryDN),
-                           new ASN1OctetString(rawNewRDN),
+    return processModifyDN(ByteString.valueOf(rawEntryDN),
+        ByteString.valueOf(rawNewRDN),
                            deleteOldRDN, null, controls);
   }
 
@@ -2037,10 +1915,10 @@ public final class InternalClientConnection
                                            boolean deleteOldRDN,
                                            String rawNewSuperior)
   {
-    return processModifyDN(new ASN1OctetString(rawEntryDN),
-                           new ASN1OctetString(rawNewRDN),
+    return processModifyDN(ByteString.valueOf(rawEntryDN),
+        ByteString.valueOf(rawNewRDN),
                            deleteOldRDN,
-                           new ASN1OctetString(rawNewSuperior), null);
+        ByteString.valueOf(rawNewSuperior), null);
   }
 
 
@@ -2069,10 +1947,10 @@ public final class InternalClientConnection
                                            String rawNewSuperior,
                                            List<Control> controls)
   {
-    return processModifyDN(new ASN1OctetString(rawEntryDN),
-                           new ASN1OctetString(rawNewRDN),
+    return processModifyDN(ByteString.valueOf(rawEntryDN),
+        ByteString.valueOf(rawNewRDN),
                            deleteOldRDN,
-                           new ASN1OctetString(rawNewSuperior),
+        ByteString.valueOf(rawNewSuperior),
                            controls);
   }
 
@@ -2296,7 +2174,7 @@ public final class InternalClientConnection
                      le.getErrorMessage(), le);
     }
 
-    return processSearch(new ASN1OctetString(rawBaseDN), scope,
+    return processSearch(ByteString.valueOf(rawBaseDN), scope,
                          rawFilter);
   }
 
@@ -2435,7 +2313,7 @@ public final class InternalClientConnection
                      le.getErrorMessage(), le);
     }
 
-    return processSearch(new ASN1OctetString(rawBaseDN), scope,
+    return processSearch(ByteString.valueOf(rawBaseDN), scope,
                          derefPolicy, sizeLimit, timeLimit, typesOnly,
                          rawFilter, attributes, controls,
                          searchListener);
@@ -3116,6 +2994,14 @@ public final class InternalClientConnection
   public long getNumberOfOperations() {
     // Internal operations will not be limited.
     return 0;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public int getSSF() {
+      //Always return strongest value.
+      return 256;
   }
 }
 

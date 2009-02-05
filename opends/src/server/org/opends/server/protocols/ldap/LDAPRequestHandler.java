@@ -43,7 +43,6 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.opends.messages.Message;
-import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
@@ -222,9 +221,7 @@ public class LDAPRequestHandler
 
                 try
                 {
-                  ConnectionSecurityProvider securityProvider =
-                       clientConnection.getConnectionSecurityProvider();
-                  if (! securityProvider.readData())
+                  if (! clientConnection.processDataRead())
                   {
                     key.cancel();
                   }

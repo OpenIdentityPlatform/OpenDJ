@@ -27,27 +27,10 @@
 
 package org.opends.server.core;
 
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.ldap.*;
-import org.opends.server.types.*;
-import org.opends.server.TestCaseUtils;
-import org.opends.server.util.ServerConstants;
-import org.opends.server.util.StaticUtils;
-import org.opends.server.controls.MatchedValuesFilter;
-import org.opends.server.controls.MatchedValuesControl;
-import org.opends.server.plugins.InvocationCounterPlugin;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
 import static org.testng.Assert.*;
 
+import java.io.IOException;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -55,8 +38,43 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.net.Socket;
-import java.io.IOException;
+
+import org.opends.server.TestCaseUtils;
+import org.opends.server.controls.MatchedValuesControl;
+import org.opends.server.controls.MatchedValuesFilter;
+import org.opends.server.plugins.InvocationCounterPlugin;
+import org.opends.server.protocols.asn1.ASN1Exception;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.BindRequestProtocolOp;
+import org.opends.server.protocols.ldap.BindResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.protocols.ldap.LDAPConstants;
+import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
+import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
+import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
+import org.opends.server.tools.LDAPWriter;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.Operation;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchResultReference;
+import org.opends.server.types.SearchScope;
+import org.opends.server.util.ServerConstants;
+import org.opends.server.util.StaticUtils;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 public class SearchOperationTestCase extends OperationTestCase
 {
@@ -192,7 +210,7 @@ public class SearchOperationTestCase extends OperationTestCase
                              InternalClientConnection.nextOperationID(),
                              InternalClientConnection.nextMessageID(),
                              new ArrayList<Control>(),
-                             new ASN1OctetString(BASE),
+                             ByteString.valueOf(BASE),
                              SearchScope.WHOLE_SUBTREE,
                              DereferencePolicy.NEVER_DEREF_ALIASES,
                              -1,
@@ -240,16 +258,16 @@ public class SearchOperationTestCase extends OperationTestCase
 
   private SearchResultEntryProtocolOp searchExternalForSingleEntry(
        SearchRequestProtocolOp searchRequest,
-       ArrayList<LDAPControl> controls)
+       ArrayList<Control> controls)
        throws IOException, LDAPException, ASN1Exception, InterruptedException
   {
     // Establish a connection to the server.
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     try
     {
-      ASN1Reader r = new ASN1Reader(s);
-      ASN1Writer w = new ASN1Writer(s);
-      r.setIOTimeout(1500000);
+      org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+      LDAPWriter w = new LDAPWriter(s);
+      s.setSoTimeout(1500000);
 
       bindAsManager(w, r);
 
@@ -269,14 +287,12 @@ public class SearchOperationTestCase extends OperationTestCase
 
       LDAPMessage message;
       message = new LDAPMessage(2, searchRequest, controls);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
       SearchResultEntryProtocolOp searchResultEntry = null;
       SearchResultDoneProtocolOp searchResultDone = null;
-      ASN1Element element;
-      while (searchResultDone == null && (element = r.readElement()) != null)
+      while (searchResultDone == null && (message = r.readMessage()) != null)
       {
-        message = LDAPMessage.decode(element.decodeAsSequence());
         switch (message.getProtocolOpType())
         {
           case LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY:
@@ -313,7 +329,7 @@ public class SearchOperationTestCase extends OperationTestCase
     }
   }
 
-  private void bindAsManager(ASN1Writer w, ASN1Reader r)
+  private void bindAsManager(LDAPWriter w, org.opends.server.tools.LDAPReader r)
        throws IOException, LDAPException, ASN1Exception, InterruptedException
   {
     // Since we are going to be watching the post-response count, we need to
@@ -326,12 +342,12 @@ public class SearchOperationTestCase extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(
-              new ASN1OctetString("cn=Directory Manager"),
-              3, new ASN1OctetString("password"));
+              ByteString.valueOf("cn=Directory Manager"),
+              3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
 //    assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
@@ -351,7 +367,7 @@ public class SearchOperationTestCase extends OperationTestCase
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString(BASE),
+              ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -381,7 +397,7 @@ public class SearchOperationTestCase extends OperationTestCase
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString(BASE),
+              ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -414,7 +430,7 @@ public class SearchOperationTestCase extends OperationTestCase
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString(BASE),
+              ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -446,7 +462,7 @@ public class SearchOperationTestCase extends OperationTestCase
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString(BASE),
+              ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -478,7 +494,7 @@ public class SearchOperationTestCase extends OperationTestCase
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString(BASE),
+              ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -513,7 +529,7 @@ public class SearchOperationTestCase extends OperationTestCase
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString(BASE),
+              ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -549,7 +565,7 @@ public class SearchOperationTestCase extends OperationTestCase
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString(BASE),
+              ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -570,7 +586,7 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString(BASE),
+              ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -590,7 +606,7 @@ public class SearchOperationTestCase extends OperationTestCase
     attributes.add("*");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString(BASE),
+              ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -609,7 +625,7 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString(BASE),
+              ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -634,7 +650,7 @@ public class SearchOperationTestCase extends OperationTestCase
     attributes.add("*");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString(BASE),
+              ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -659,7 +675,7 @@ public class SearchOperationTestCase extends OperationTestCase
     attributes.add("objectclass");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString(BASE),
+              ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -684,7 +700,7 @@ public class SearchOperationTestCase extends OperationTestCase
     attributes.add("objectclass");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString(BASE),
+              ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -709,7 +725,7 @@ public class SearchOperationTestCase extends OperationTestCase
     attributes.add("createtimestamp");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString(BASE),
+              ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -731,7 +747,7 @@ public class SearchOperationTestCase extends OperationTestCase
     attributes.add("title");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString(BASE),
+              ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -754,7 +770,7 @@ public class SearchOperationTestCase extends OperationTestCase
     attributes.add("title");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString(BASE),
+              ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -780,7 +796,7 @@ public class SearchOperationTestCase extends OperationTestCase
     attributes.add("title;lang-ja;phonetic");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString(BASE),
+              ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -806,12 +822,12 @@ public class SearchOperationTestCase extends OperationTestCase
          new ArrayList<MatchedValuesFilter>();
     filters.add(matchedValuesFilter);
     MatchedValuesControl mvc = new MatchedValuesControl(true, filters);
-    ArrayList<LDAPControl> controls = new ArrayList<LDAPControl>();
-    controls.add(new LDAPControl(mvc));
+    ArrayList<Control> controls = new ArrayList<Control>();
+    controls.add(mvc);
 
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              new ASN1OctetString(BASE),
+              ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -848,7 +864,7 @@ public class SearchOperationTestCase extends OperationTestCase
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString(BASE),
+              ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -887,7 +903,7 @@ public class SearchOperationTestCase extends OperationTestCase
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               new ArrayList<Control>(),
-              new ASN1OctetString("ou=nonexistent,o=test"),
+              ByteString.valueOf("ou=nonexistent,o=test"),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -1025,13 +1041,13 @@ public class SearchOperationTestCase extends OperationTestCase
 
     if (stripRealAttributes)
     {
-      controls.add(new Control(ServerConstants.OID_VIRTUAL_ATTRS_ONLY,
+      controls.add(new LDAPControl(ServerConstants.OID_VIRTUAL_ATTRS_ONLY,
           false));
     }
 
     if (stripVirtualAttributes)
     {
-      controls.add(new Control(ServerConstants.OID_REAL_ATTRS_ONLY,
+      controls.add(new LDAPControl(ServerConstants.OID_REAL_ATTRS_ONLY,
           false));
     }
 
@@ -1311,7 +1327,7 @@ public class SearchOperationTestCase extends OperationTestCase
 
     SearchRequestProtocolOp searchRequest =
       new SearchRequestProtocolOp(
-          new ASN1OctetString(userDNString),
+          ByteString.valueOf(userDNString),
           SearchScope.BASE_OBJECT,
           DereferencePolicy.NEVER_DEREF_ALIASES,
           Integer.MAX_VALUE,

@@ -27,9 +27,7 @@
 package org.opends.server.tools;
 
 import java.util.ArrayList;
-import org.opends.server.protocols.ldap.LDAPControl;
-
-
+import org.opends.server.types.Control;
 
 
 /**
@@ -43,7 +41,7 @@ public class LDAPToolOptions
   private boolean verbose = false;
   private boolean continueOnError = false;
   private String encoding = System.getProperty("file.encoding");
-  private ArrayList<LDAPControl> controls = new ArrayList<LDAPControl>();
+  private ArrayList<Control> controls = new ArrayList<Control>();
 
   /**
    * Creates a the tool options instance.
@@ -128,7 +126,7 @@ public class LDAPToolOptions
    *
    * @return  The controls to apply to the operation.
    */
-  public ArrayList<LDAPControl> getControls()
+  public ArrayList<Control> getControls()
   {
     return controls;
   }
@@ -138,7 +136,7 @@ public class LDAPToolOptions
    *
    * @param  controls  The set of controls to apply to the operation.
    */
-  public void setControls(ArrayList<LDAPControl> controls)
+  public void setControls(ArrayList<Control> controls)
   {
     this.controls = controls;
   }

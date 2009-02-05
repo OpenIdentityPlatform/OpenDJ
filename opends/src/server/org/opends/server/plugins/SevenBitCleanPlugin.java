@@ -39,20 +39,7 @@ import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.RawAttribute;
-import org.opends.server.types.RawModification;
-import org.opends.server.types.RDN;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PreParseAddOperation;
 import org.opends.server.types.operation.PreParseModifyOperation;
 import org.opends.server.types.operation.PreParseModifyDNOperation;
@@ -381,7 +368,7 @@ public final class SevenBitCleanPlugin
       RDN newRDN;
       try
       {
-        newRDN = RDN.decode(rawNewRDN.stringValue());
+        newRDN = RDN.decode(rawNewRDN.toString());
       }
       catch (DirectoryException de)
       {
@@ -454,10 +441,12 @@ public final class SevenBitCleanPlugin
    * @return {@code true} if the provided value is 7-bit clean, or {@code false}
    *         if it is not.
    */
-  private final boolean is7BitClean(ByteString value)
+  private final boolean is7BitClean(ByteSequence value)
   {
-    for (byte b : value.value())
+    byte b;
+    for (int i = 0; i < value.length(); i++)
     {
+      b = value.byteAt(i);
       if ((b & MASK) != b)
       {
         return false;

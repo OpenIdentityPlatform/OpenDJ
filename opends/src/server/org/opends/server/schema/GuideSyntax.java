@@ -36,8 +36,7 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ByteString;
-
+import org.opends.server.types.ByteSequence;
 
 
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -221,11 +220,11 @@ public class GuideSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteString value,
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // Get a lowercase string version of the provided value.
-    String valueStr = toLowerCase(value.stringValue());
+    String valueStr = toLowerCase(value.toString());
 
 
     // Find the position of the octothorpe.  If there isn't one, then the entire

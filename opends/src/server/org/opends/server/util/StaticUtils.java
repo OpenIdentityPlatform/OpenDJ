@@ -22,52 +22,56 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.Argument;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.RandomAccess;
 import java.util.StringTokenizer;
-import java.util.Date;
 import java.util.TimeZone;
-import java.util.Collection;
-import java.util.Iterator;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.MessageDescriptor;
 import org.opends.messages.ToolMessages;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.ByteSequence;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
@@ -76,7 +80,8 @@ import org.opends.server.types.IdentifiedException;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
-import static org.opends.messages.CoreMessages.*;
+import org.opends.server.util.args.Argument;
+import org.opends.server.util.args.ArgumentException;
 
 
 /**
@@ -1398,6 +1403,48 @@ public final class StaticUtils
 
 
   /**
+   * Compare two byte arrays for order. Returns a negative integer,
+   * zero, or a positive integer as the first argument is less than,
+   * equal to, or greater than the second.
+   *
+   * @param a
+   *          The first byte array to be compared.
+   * @param a2
+   *          The second byte array to be compared.
+   * @return Returns a negative integer, zero, or a positive integer
+   *         if the first byte array is less than, equal to, or greater
+   *         than the second.
+   */
+  public static int compare(ByteSequence a, ByteSequence a2) {
+    if (a == a2) {
+      return 0;
+    }
+
+    if (a == null) {
+      return -1;
+    }
+
+    if (a2 == null) {
+      return 1;
+    }
+
+    int minLength = Math.min(a.length(), a2.length());
+    for (int i = 0; i < minLength; i++) {
+      if (a.byteAt(i) != a2.byteAt(i)) {
+        if (a.byteAt(i) < a2.byteAt(i)) {
+          return -1;
+        } else if (a.byteAt(i) > a2.byteAt(i)) {
+          return 1;
+        }
+      }
+    }
+
+    return (a.length() - a2.length());
+  }
+
+
+
+  /**
    * Indicates whether the two array lists are equal. They will be
    * considered equal if they have the same number of elements, and
    * the corresponding elements between them are equal (in the same
@@ -2203,10 +2250,10 @@ public final class StaticUtils
    * @return  <CODE>true</CODE> if the value needs to be base64-encoded if it is
    *          represented in LDIF form, or <CODE>false</CODE> if not.
    */
-  public static boolean needsBase64Encoding(byte[] valueBytes)
+  public static boolean needsBase64Encoding(ByteSequence valueBytes)
   {
     int length;
-    if ((valueBytes == null) || ((length = valueBytes.length) == 0))
+    if ((valueBytes == null) || ((length = valueBytes.length()) == 0))
     {
       return false;
     }
@@ -2214,7 +2261,7 @@ public final class StaticUtils
 
     // If the value starts with a space, colon, or less than, then it needs to
     // be base64-encoded.
-    switch (valueBytes[0])
+    switch (valueBytes.byteAt(0))
     {
       case 0x20: // Space
       case 0x3A: // Colon
@@ -2224,7 +2271,7 @@ public final class StaticUtils
 
 
     // If the value ends with a space, then it needs to be base64-encoded.
-    if ((length > 1) && (valueBytes[length-1] == 0x20))
+    if ((length > 1) && (valueBytes.byteAt(length-1) == 0x20))
     {
       return true;
     }
@@ -2232,8 +2279,10 @@ public final class StaticUtils
 
     // If the value contains a null, newline, or return character, then it needs
     // to be base64-encoded.
-    for (byte b : valueBytes)
+    byte b;
+    for (int i = 0; i < valueBytes.length(); i++)
     {
+      b = valueBytes.byteAt(i);
       if ((b > 127) || (b < 0))
       {
         return true;
@@ -2825,35 +2874,27 @@ public final class StaticUtils
    * @param  trim    Indicates whether leading and trailing spaces should be
    *                 omitted from the string representation.
    */
-  public static void toLowerCase(byte[] b, StringBuilder buffer, boolean trim)
+  public static void toLowerCase(ByteSequence b, StringBuilder buffer,
+                                 boolean trim)
   {
     if (b == null)
     {
       return;
     }
 
-    int length = b.length;
+    int origBufferLen = buffer.length();
+    int length = b.length();
     for (int i=0; i < length; i++)
     {
-      if ((b[i] & 0x7F) != b[i])
+      if ((b.byteAt(i) & 0x7F) != b.byteAt(i))
       {
-        try
-        {
-          buffer.append(new String(b, i, (length-i), "UTF-8").toLowerCase());
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-          buffer.append(new String(b, i, (length - i)).toLowerCase());
-        }
+        buffer.replace(origBufferLen, buffer.length(),
+            b.toString().toLowerCase());
         break;
       }
 
       int bufferLength = buffer.length();
-      switch (b[i])
+      switch (b.byteAt(i))
       {
         case ' ':
           // If we don't care about trimming, then we can always append the
@@ -2945,7 +2986,7 @@ public final class StaticUtils
           buffer.append('z');
           break;
         default:
-          buffer.append((char) b[i]);
+          buffer.append((char) b.byteAt(i));
       }
     }
 
@@ -4121,161 +4162,292 @@ public final class StaticUtils
 
 
 
-   /**
-    * Evaluates  and converts 2 consequetive characters  of the provided
-    * string starting at startPos and converts them into a single escaped char.
-    *
-    * @param  hexString  The hexadecimal string containing
-    *                 the escape sequence.
-    * @param startPos The starting position of the hexadecimal escape
-    *                  sequence.
-    *
-    * @return The escaped character
-    *
-    * @throws  DirectoryException  If the provided string contains invalid
-    *                          hexadecimal digits .
+  /**
+   * Writes the contents of the provided buffer to the client,
+   * terminating the connection if the write is unsuccessful for too
+   * long (e.g., if the client is unresponsive or there is a network
+   * problem). If possible, it will attempt to use the selector returned
+   * by the {@code ClientConnection.getWriteSelector} method, but it is
+   * capable of working even if that method returns {@code null}. <BR>
+   * <BR>
+   * Note that this method has been written in a generic manner so that
+   * other connection security providers can use it to send data to the
+   * client, provided that the given buffer contains the appropriate
+   * pre-encoded information. <BR>
+   * <BR>
+   * Also note that the original position and limit values will not be
+   * preserved, so if that is important to the caller, then it should
+   * record them before calling this method and restore them after it
+   * returns.
+   *
+   * @param clientConnection
+   *          The client connection to which the data is to be written.
+   * @param socketChannel
+   *          The socket channel over which to write the data.
+   * @param buffer
+   *          The data to be written to the client.
+   * @return <CODE>true</CODE> if all the data in the provided buffer was
+   *         written to the client and the connection may remain
+   *         established, or <CODE>false</CODE> if a problem occurred
+   *         and the client connection is no longer valid. Note that if
+   *         this method does return <CODE>false</CODE>, then it must
+   *         have already disconnected the client.
+   * @throws IOException
+   *           If a problem occurs while attempting to write data to the
+   *           client. The caller will be responsible for catching this
+   *           and terminating the client connection.
    */
-  public static char hexToEscapedChar(String hexString,int startPos)
-          throws DirectoryException
+  public static boolean writeWithTimeout(
+      ClientConnection clientConnection, SocketChannel socketChannel,
+      ByteBuffer buffer) throws IOException
   {
+    long startTime = System.currentTimeMillis();
+    long waitTime = clientConnection.getMaxBlockedWriteTimeLimit();
+    if (waitTime <= 0)
+    {
+      // We won't support an infinite time limit, so fall back to using
+      // five minutes, which is a very long timeout given that we're
+      // blocking a worker thread.
+      waitTime = 300000L;
+    }
 
-    // The two positions  must be the hex characters that
+    long stopTime = startTime + waitTime;
+
+    Selector selector = clientConnection.getWriteSelector();
+    if (selector == null)
+    {
+      // The client connection does not provide a selector, so we'll
+      // fall back
+      // to a more inefficient way that will work without a selector.
+      while (buffer.hasRemaining()
+          && (System.currentTimeMillis() < stopTime))
+      {
+        if (socketChannel.write(buffer) < 0)
+        {
+          // The client connection has been closed.
+          return false;
+        }
+      }
+
+      if (buffer.hasRemaining())
+      {
+        // If we've gotten here, then the write timed out.
+        return false;
+      }
+
+      return true;
+    }
+
+    // Register with the selector for handling write operations.
+    SelectionKey key =
+        socketChannel.register(selector, SelectionKey.OP_WRITE);
+
+    try
+    {
+      selector.select(waitTime);
+      while (buffer.hasRemaining())
+      {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime >= stopTime)
+        {
+          // We've been blocked for too long.
+          return false;
+        }
+        else
+        {
+          waitTime = stopTime - currentTime;
+        }
+
+        Iterator<SelectionKey> iterator =
+            selector.selectedKeys().iterator();
+        while (iterator.hasNext())
+        {
+          SelectionKey k = iterator.next();
+          if (k.isWritable())
+          {
+            int bytesWritten = socketChannel.write(buffer);
+            if (bytesWritten < 0)
+            {
+              // The client connection has been closed.
+              return false;
+            }
+
+            iterator.remove();
+          }
+        }
+
+        if (buffer.hasRemaining())
+        {
+          selector.select(waitTime);
+        }
+      }
+
+      return true;
+    }
+    finally
+    {
+      if (key.isValid())
+      {
+        key.cancel();
+        selector.selectNow();
+      }
+    }
+  }
+
+
+
+  /**
+   * Evaluates and converts 2 consequetive characters of the provided
+   * string starting at startPos and converts them into a single escaped
+   * char.
+   *
+   * @param hexString
+   *          The hexadecimal string containing the escape sequence.
+   * @param startPos
+   *          The starting position of the hexadecimal escape sequence.
+   * @return The escaped character
+   * @throws DirectoryException
+   *           If the provided string contains invalid hexadecimal
+   *           digits .
+   */
+  public static char hexToEscapedChar(String hexString, int startPos)
+      throws DirectoryException
+  {
+    // The two positions must be the hex characters that
     // comprise the escaped value.
-    if ((startPos+ 1) >= hexString.length())
+    if ((startPos + 1) >= hexString.length())
     {
       Message message =
-          ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
-            get(hexString, startPos+1);
+          ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.get(hexString,
+              startPos + 1);
 
-      throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                   message);
+      throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
     }
     byte byteValue = 0;
-    switch(hexString.charAt(startPos))
+    switch (hexString.charAt(startPos))
     {
-      case 0x30: // '0'
-        break;
-      case 0x31: // '1'
-        byteValue = (byte) 0x10;
-        break;
-      case 0x32: // '2'
-        byteValue = (byte) 0x20;
-        break;
-      case 0x33: // '3'
-        byteValue = (byte) 0x30;
-        break;
-      case 0x34: // '4'
-        byteValue = (byte) 0x40;
-        break;
-      case 0x35: // '5'
-        byteValue = (byte) 0x50;
-        break;
-      case 0x36: // '6'
-        byteValue = (byte) 0x60;
-        break;
-      case 0x37: // '7'
-        byteValue = (byte) 0x70;
-        break;
-      case 0x38: // '8'
-        byteValue = (byte) 0x80;
-        break;
-      case 0x39: // '9'
-        byteValue = (byte) 0x90;
-        break;
-      case 0x41: // 'A'
-      case 0x61: // 'a'
-        byteValue = (byte) 0xA0;
-        break;
-      case 0x42: // 'B'
-      case 0x62: // 'b'
-        byteValue = (byte) 0xB0;
-        break;
-      case 0x43: // 'C'
-      case 0x63: // 'c'
-        byteValue = (byte) 0xC0;
-        break;
-      case 0x44: // 'D'
-      case 0x64: // 'd'
-        byteValue = (byte) 0xD0;
-        break;
-      case 0x45: // 'E'
-      case 0x65: // 'e'
-        byteValue = (byte) 0xE0;
-        break;
-      case 0x46: // 'F'
-      case 0x66: // 'f'
-        byteValue = (byte) 0xF0;
-        break;
-      default:
-        Message message =
-                      ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
-                        get(hexString, startPos);
-        throw new DirectoryException(
-                                 ResultCode.PROTOCOL_ERROR, message);
+    case 0x30: // '0'
+      break;
+    case 0x31: // '1'
+      byteValue = (byte) 0x10;
+      break;
+    case 0x32: // '2'
+      byteValue = (byte) 0x20;
+      break;
+    case 0x33: // '3'
+      byteValue = (byte) 0x30;
+      break;
+    case 0x34: // '4'
+      byteValue = (byte) 0x40;
+      break;
+    case 0x35: // '5'
+      byteValue = (byte) 0x50;
+      break;
+    case 0x36: // '6'
+      byteValue = (byte) 0x60;
+      break;
+    case 0x37: // '7'
+      byteValue = (byte) 0x70;
+      break;
+    case 0x38: // '8'
+      byteValue = (byte) 0x80;
+      break;
+    case 0x39: // '9'
+      byteValue = (byte) 0x90;
+      break;
+    case 0x41: // 'A'
+    case 0x61: // 'a'
+      byteValue = (byte) 0xA0;
+      break;
+    case 0x42: // 'B'
+    case 0x62: // 'b'
+      byteValue = (byte) 0xB0;
+      break;
+    case 0x43: // 'C'
+    case 0x63: // 'c'
+      byteValue = (byte) 0xC0;
+      break;
+    case 0x44: // 'D'
+    case 0x64: // 'd'
+      byteValue = (byte) 0xD0;
+      break;
+    case 0x45: // 'E'
+    case 0x65: // 'e'
+      byteValue = (byte) 0xE0;
+      break;
+    case 0x46: // 'F'
+    case 0x66: // 'f'
+      byteValue = (byte) 0xF0;
+      break;
+    default:
+      Message message =
+          ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.get(hexString,
+              startPos);
+      throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
     }
 
     switch (hexString.charAt(++startPos))
     {
-      case 0x30: // '0'
-        break;
-      case 0x31: // '1'
-        byteValue |= (byte) 0x01;
-        break;
-      case 0x32: // '2'
-        byteValue |= (byte) 0x02;
-        break;
-      case 0x33: // '3'
-        byteValue |= (byte) 0x03;
-        break;
-      case 0x34: // '4'
-        byteValue |= (byte) 0x04;
-        break;
-      case 0x35: // '5'
-        byteValue |= (byte) 0x05;
-        break;
-      case 0x36: // '6'
-        byteValue |= (byte) 0x06;
-        break;
-      case 0x37: // '7'
-        byteValue |= (byte) 0x07;
-        break;
-      case 0x38: // '8'
-        byteValue |= (byte) 0x08;
-        break;
-      case 0x39: // '9'
-        byteValue |= (byte) 0x09;
-        break;
-      case 0x41: // 'A'
-      case 0x61: // 'a'
-        byteValue |= (byte) 0x0A;
-        break;
-      case 0x42: // 'B'
-      case 0x62: // 'b'
-        byteValue |= (byte) 0x0B;
-        break;
-      case 0x43: // 'C'
-      case 0x63: // 'c'
-        byteValue |= (byte) 0x0C;
-        break;
-      case 0x44: // 'D'
-      case 0x64: // 'd'
-        byteValue |= (byte) 0x0D;
-        break;
-      case 0x45: // 'E'
-      case 0x65: // 'e'
-        byteValue |= (byte) 0x0E;
-        break;
-      case 0x46: // 'F'
-      case 0x66: // 'f'
-        byteValue |= (byte) 0x0F;
-        break;
-      default:
-        Message message =ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
-                        get(hexString, startPos);
-        throw new DirectoryException(
-                                 ResultCode.PROTOCOL_ERROR, message);
+    case 0x30: // '0'
+      break;
+    case 0x31: // '1'
+      byteValue |= (byte) 0x01;
+      break;
+    case 0x32: // '2'
+      byteValue |= (byte) 0x02;
+      break;
+    case 0x33: // '3'
+      byteValue |= (byte) 0x03;
+      break;
+    case 0x34: // '4'
+      byteValue |= (byte) 0x04;
+      break;
+    case 0x35: // '5'
+      byteValue |= (byte) 0x05;
+      break;
+    case 0x36: // '6'
+      byteValue |= (byte) 0x06;
+      break;
+    case 0x37: // '7'
+      byteValue |= (byte) 0x07;
+      break;
+    case 0x38: // '8'
+      byteValue |= (byte) 0x08;
+      break;
+    case 0x39: // '9'
+      byteValue |= (byte) 0x09;
+      break;
+    case 0x41: // 'A'
+    case 0x61: // 'a'
+      byteValue |= (byte) 0x0A;
+      break;
+    case 0x42: // 'B'
+    case 0x62: // 'b'
+      byteValue |= (byte) 0x0B;
+      break;
+    case 0x43: // 'C'
+    case 0x63: // 'c'
+      byteValue |= (byte) 0x0C;
+      break;
+    case 0x44: // 'D'
+    case 0x64: // 'd'
+      byteValue |= (byte) 0x0D;
+      break;
+    case 0x45: // 'E'
+    case 0x65: // 'e'
+      byteValue |= (byte) 0x0E;
+      break;
+    case 0x46: // 'F'
+    case 0x66: // 'f'
+      byteValue |= (byte) 0x0F;
+      break;
+    default:
+      Message message =
+          ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.get(hexString,
+              startPos);
+      throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
     }
-    return (char)byteValue;
+    return (char) byteValue;
   }
 }
 

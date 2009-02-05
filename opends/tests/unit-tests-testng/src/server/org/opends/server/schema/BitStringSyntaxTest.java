@@ -29,11 +29,7 @@ package org.opends.server.schema;
 import static org.testng.Assert.*;
 
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.config.ConfigEntry;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.DN;
 import org.opends.messages.MessageBuilder;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -80,7 +76,7 @@ public class BitStringSyntaxTest extends AttributeSyntaxTest
     BitStringSyntax syntax = new BitStringSyntax();
     syntax.initializeSyntax(null);
 
-    ByteString byteStringValue = new ASN1OctetString(value);
+    ByteString byteStringValue = ByteString.valueOf(value);
 
     MessageBuilder reason = new MessageBuilder();
     Boolean liveResult =

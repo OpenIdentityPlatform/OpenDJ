@@ -36,8 +36,7 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ByteString;
-
+import org.opends.server.types.ByteSequence;
 
 
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -209,14 +208,14 @@ public class UUIDSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteString value,
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // We will only accept values that look like valid UUIDs.  This means that
     // all values must be in the form HHHHHHHH-HHHH-HHHH-HHHH-HHHHHHHHHHHH,
     // where "H" represents a hexadecimal digit.  First, make sure that the
     // value is exactly 36 bytes long.
-    String valueString = value.stringValue();
+    String valueString = value.toString();
     if (valueString.length() != 36)
     {
 

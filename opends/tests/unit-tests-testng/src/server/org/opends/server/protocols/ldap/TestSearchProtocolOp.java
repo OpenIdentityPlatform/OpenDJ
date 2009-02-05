@@ -29,10 +29,9 @@
 package org.opends.server.protocols.ldap;
 
 import org.testng.annotations.Test;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.opends.server.protocols.asn1.*;
+import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.testng.Assert.*;
 
@@ -45,6 +44,25 @@ import java.util.ArrayList;
  */
 public class TestSearchProtocolOp extends LdapTestCase
 {
+    ByteString baseDN = ByteString.valueOf("dc=example,dc=COM");
+    SearchScope scope = SearchScope.WHOLE_SUBTREE;
+    DereferencePolicy dereferencePolicy = DereferencePolicy.DEREF_IN_SEARCHING;
+    int sizeLimit = Integer.MAX_VALUE;
+    int timeLimit = Integer.MAX_VALUE;
+    boolean typesOnly = true;
+    LDAPFilter filter;
+    String[] attrArray = new String[]
+         {
+              "description", "cn", "cn;optionA"
+         };
+    LinkedHashSet<String> attributes =
+         new LinkedHashSet<String>(Arrays.asList(attrArray));
+
+  public TestSearchProtocolOp() throws Exception
+  {
+    filter = LDAPFilter.decode("(objectClass=*)");
+  }
+
   /**
    * Create a test search request protocol op.
    * @return A test search request protocol op.
@@ -53,20 +71,6 @@ public class TestSearchProtocolOp extends LdapTestCase
   private SearchRequestProtocolOp buildSearchRequestProtocolOp()
        throws LDAPException
   {
-    ASN1OctetString baseDN = new ASN1OctetString("dc=example,dc=COM");
-    SearchScope scope = SearchScope.WHOLE_SUBTREE;
-    DereferencePolicy dereferencePolicy = DereferencePolicy.DEREF_IN_SEARCHING;
-    int sizeLimit = Integer.MAX_VALUE;
-    int timeLimit = Integer.MAX_VALUE;
-    boolean typesOnly = true;
-    LDAPFilter filter = LDAPFilter.decode("(objectClass=*)");
-    String[] attrArray = new String[]
-         {
-              "description", "cn", "cn;optionA"
-         };
-    LinkedHashSet<String> attributes =
-         new LinkedHashSet<String>(Arrays.asList(attrArray));
-
     return new SearchRequestProtocolOp(baseDN,
                                        scope,
                                        dereferencePolicy,
@@ -89,14 +93,18 @@ public class TestSearchProtocolOp extends LdapTestCase
   @Test ()
   public void testSearchRequestEncodeDecode() throws Exception
   {
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+
     // Construct a protocol op.
     SearchRequestProtocolOp protocolOp = buildSearchRequestProtocolOp();
 
     // Encode to ASN1.
-    ASN1Element element = protocolOp.encode();
+    protocolOp.write(writer);
 
     // Decode to a new protocol op.
-    ProtocolOp decodedProtocolOp = ProtocolOp.decode(element);
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    ProtocolOp decodedProtocolOp = LDAPReader.readProtocolOp(reader);
 
     // Make sure the protocol op is the correct type.
     assertTrue(decodedProtocolOp instanceof SearchRequestProtocolOp);
@@ -121,106 +129,304 @@ public class TestSearchProtocolOp extends LdapTestCase
   @Test (expectedExceptions = LDAPException.class)
   public void testInvalidSearchRequestSequence() throws Exception
   {
-    ProtocolOp.decode(new ASN1Integer(OP_TYPE_SEARCH_REQUEST, 0));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeInteger(OP_TYPE_SEARCH_REQUEST, 0);
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   @Test (expectedExceptions = LDAPException.class)
   public void testInvalidSearchRequestTooManyElements() throws Exception
   {
-    ASN1Element element = buildSearchRequestProtocolOp().encode();
-    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-    elements.add(new ASN1Boolean(true));
-    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_REQUEST, elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
+    writer.writeOctetString(baseDN);
+    writer.writeInteger(scope.intValue());
+    writer.writeInteger(dereferencePolicy.intValue());
+    writer.writeInteger(sizeLimit);
+    writer.writeInteger(timeLimit);
+    writer.writeBoolean(typesOnly);
+    filter.write(writer);
+
+    writer.writeStartSequence();
+    for(String attribute : attributes)
+    {
+      writer.writeOctetString(attribute);
+    }
+    writer.writeEndSequence();
+
+    writer.writeBoolean(true);
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   @Test (expectedExceptions = LDAPException.class)
   public void testInvalidSearchRequestTooFewElements() throws Exception
   {
-    ASN1Element element = buildSearchRequestProtocolOp().encode();
-    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-    elements.remove(0);
-    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_REQUEST, elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
+    writer.writeInteger(scope.intValue());
+    writer.writeInteger(dereferencePolicy.intValue());
+    writer.writeInteger(sizeLimit);
+    writer.writeInteger(timeLimit);
+    writer.writeBoolean(typesOnly);
+    filter.write(writer);
+
+    writer.writeStartSequence();
+    for(String attribute : attributes)
+    {
+      writer.writeOctetString(attribute);
+    }
+    writer.writeEndSequence();
+
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   @Test (expectedExceptions = LDAPException.class)
   public void testInvalidSearchRequestScope() throws Exception
   {
-    ASN1Element element = buildSearchRequestProtocolOp().encode();
-    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-    elements.set(1, new ASN1Integer(9));
-    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_REQUEST, elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
+    writer.writeOctetString(baseDN);
+    writer.writeInteger(9);
+    writer.writeInteger(dereferencePolicy.intValue());
+    writer.writeInteger(sizeLimit);
+    writer.writeInteger(timeLimit);
+    writer.writeBoolean(typesOnly);
+    filter.write(writer);
+
+    writer.writeStartSequence();
+    for(String attribute : attributes)
+    {
+      writer.writeOctetString(attribute);
+    }
+    writer.writeEndSequence();
+
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   @Test (expectedExceptions = LDAPException.class)
   public void testInvalidSearchRequestDerefPolicy() throws Exception
   {
-    ASN1Element element = buildSearchRequestProtocolOp().encode();
-    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-    elements.set(2, new ASN1Integer(9));
-    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_REQUEST, elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
+    writer.writeOctetString(baseDN);
+    writer.writeInteger(scope.intValue());
+    writer.writeInteger(9);
+    writer.writeInteger(sizeLimit);
+    writer.writeInteger(timeLimit);
+    writer.writeBoolean(typesOnly);
+    filter.write(writer);
+
+    writer.writeStartSequence();
+    for(String attribute : attributes)
+    {
+      writer.writeOctetString(attribute);
+    }
+    writer.writeEndSequence();
+
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   @Test (expectedExceptions = LDAPException.class)
   public void testInvalidSearchRequestElement1() throws Exception
   {
-    ASN1Element element = buildSearchRequestProtocolOp().encode();
-    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-    elements.set(1, new ASN1OctetString());
-    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_REQUEST, elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
+    writer.writeOctetString(baseDN);
+    writer.writeNull(UNIVERSAL_OCTET_STRING_TYPE);
+    writer.writeInteger(dereferencePolicy.intValue());
+    writer.writeInteger(sizeLimit);
+    writer.writeInteger(timeLimit);
+    writer.writeBoolean(typesOnly);
+    filter.write(writer);
+
+    writer.writeStartSequence();
+    for(String attribute : attributes)
+    {
+      writer.writeOctetString(attribute);
+    }
+    writer.writeEndSequence();
+
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   @Test (expectedExceptions = LDAPException.class)
   public void testInvalidSearchRequestElement2() throws Exception
   {
-    ASN1Element element = buildSearchRequestProtocolOp().encode();
-    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-    elements.set(2, new ASN1OctetString());
-    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_REQUEST, elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
+    writer.writeOctetString(baseDN);
+    writer.writeInteger(scope.intValue());
+    writer.writeNull(UNIVERSAL_OCTET_STRING_TYPE);
+    writer.writeInteger(sizeLimit);
+    writer.writeInteger(timeLimit);
+    writer.writeBoolean(typesOnly);
+    filter.write(writer);
+
+    writer.writeStartSequence();
+    for(String attribute : attributes)
+    {
+      writer.writeOctetString(attribute);
+    }
+    writer.writeEndSequence();
+
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   @Test (expectedExceptions = LDAPException.class)
   public void testInvalidSearchRequestElement3() throws Exception
   {
-    ASN1Element element = buildSearchRequestProtocolOp().encode();
-    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-    elements.set(3, new ASN1OctetString());
-    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_REQUEST, elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
+    writer.writeOctetString(baseDN);
+    writer.writeInteger(scope.intValue());
+    writer.writeInteger(dereferencePolicy.intValue());
+    writer.writeNull(UNIVERSAL_OCTET_STRING_TYPE);
+    writer.writeInteger(timeLimit);
+    writer.writeBoolean(typesOnly);
+    filter.write(writer);
+
+    writer.writeStartSequence();
+    for(String attribute : attributes)
+    {
+      writer.writeOctetString(attribute);
+    }
+    writer.writeEndSequence();
+
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   @Test (expectedExceptions = LDAPException.class)
   public void testInvalidSearchRequestElement4() throws Exception
   {
-    ASN1Element element = buildSearchRequestProtocolOp().encode();
-    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-    elements.set(4, new ASN1OctetString());
-    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_REQUEST, elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
+    writer.writeOctetString(baseDN);
+    writer.writeInteger(scope.intValue());
+    writer.writeInteger(dereferencePolicy.intValue());
+    writer.writeInteger(sizeLimit);
+    writer.writeNull(UNIVERSAL_OCTET_STRING_TYPE);
+    writer.writeBoolean(typesOnly);
+    filter.write(writer);
+
+    writer.writeStartSequence();
+    for(String attribute : attributes)
+    {
+      writer.writeOctetString(attribute);
+    }
+    writer.writeEndSequence();
+
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   @Test (expectedExceptions = LDAPException.class)
   public void testInvalidSearchRequestElement5() throws Exception
   {
-    ASN1Element element = buildSearchRequestProtocolOp().encode();
-    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-    elements.set(5, new ASN1OctetString());
-    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_REQUEST, elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
+    writer.writeOctetString(baseDN);
+    writer.writeInteger(scope.intValue());
+    writer.writeInteger(dereferencePolicy.intValue());
+    writer.writeInteger(sizeLimit);
+    writer.writeInteger(timeLimit);
+    writer.writeNull(UNIVERSAL_OCTET_STRING_TYPE);
+    filter.write(writer);
+
+    writer.writeStartSequence();
+    for(String attribute : attributes)
+    {
+      writer.writeOctetString(attribute);
+    }
+    writer.writeEndSequence();
+
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   @Test (expectedExceptions = LDAPException.class)
   public void testInvalidSearchRequestElement6() throws Exception
   {
-    ASN1Element element = buildSearchRequestProtocolOp().encode();
-    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-    elements.set(6, new ASN1OctetString());
-    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_REQUEST, elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
+    writer.writeOctetString(baseDN);
+    writer.writeInteger(scope.intValue());
+    writer.writeInteger(dereferencePolicy.intValue());
+    writer.writeInteger(sizeLimit);
+    writer.writeInteger(timeLimit);
+    writer.writeBoolean(typesOnly);
+    writer.writeNull(UNIVERSAL_OCTET_STRING_TYPE);
+
+    writer.writeStartSequence();
+    for(String attribute : attributes)
+    {
+      writer.writeOctetString(attribute);
+    }
+    writer.writeEndSequence();
+
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
   @Test (expectedExceptions = LDAPException.class)
   public void testInvalidSearchRequestElement7() throws Exception
   {
-    ASN1Element element = buildSearchRequestProtocolOp().encode();
-    ArrayList<ASN1Element> elements = ((ASN1Sequence)element).elements();
-    elements.set(7, new ASN1OctetString("cn"));
-    ProtocolOp.decode(new ASN1Sequence(OP_TYPE_SEARCH_REQUEST, elements));
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
+    writer.writeOctetString(baseDN);
+    writer.writeInteger(scope.intValue());
+    writer.writeInteger(dereferencePolicy.intValue());
+    writer.writeInteger(sizeLimit);
+    writer.writeInteger(timeLimit);
+    writer.writeBoolean(typesOnly);
+    filter.write(writer);
+
+    writer.writeInteger(0);
+
+    writer.writeEndSequence();
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    LDAPReader.readProtocolOp(reader);
   }
 
 }

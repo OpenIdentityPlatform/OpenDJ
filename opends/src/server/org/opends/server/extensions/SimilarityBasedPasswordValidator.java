@@ -32,13 +32,7 @@ import java.util.Set;
 
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.config.ConfigException;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringFactory;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.util.LevenshteinDistance;
 import org.opends.server.admin.std.server.SimilarityBasedPasswordValidatorCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -107,7 +101,7 @@ public class SimilarityBasedPasswordValidator extends
 
     int minDifference = currentConfig.getMinPasswordDifference();
     ByteString passwd = newPassword == null
-                        ? ByteStringFactory.create("")
+                        ? ByteString.empty()
                         : newPassword;
 
     if (currentPasswords == null || currentPasswords.size() == 0) {
@@ -124,8 +118,8 @@ public class SimilarityBasedPasswordValidator extends
         if (bs == null) {
             continue;
         }
-        int ldistance = LevenshteinDistance.calculate(passwd.stringValue(),
-                                                      bs.stringValue());
+        int ldistance = LevenshteinDistance.calculate(passwd.toString(),
+                                                      bs.toString());
         if (ldistance < minDifference) {
           invalidReason.append(ERR_PWDIFFERENCEVALIDATOR_TOO_SMALL.get(
                   minDifference));

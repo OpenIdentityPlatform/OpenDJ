@@ -46,7 +46,6 @@ import org.opends.server.admin.std.server.
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.ByteString;
@@ -309,7 +308,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
          new RepeatedCharactersPasswordValidator();
     validator.initializePasswordValidator(configuration);
 
-    ASN1OctetString password = new ASN1OctetString("password");
+    ByteString password = ByteString.valueOf("password");
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "password")));
@@ -378,7 +377,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
          new RepeatedCharactersPasswordValidator();
     validator.initializePasswordValidator(configuration);
 
-    ASN1OctetString password = new ASN1OctetString("passsword");
+    ByteString password = ByteString.valueOf("passsword");
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "passsword")));
@@ -446,7 +445,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
          new RepeatedCharactersPasswordValidator();
     validator.initializePasswordValidator(configuration);
 
-    ASN1OctetString password = new ASN1OctetString("passSword");
+    ByteString password = ByteString.valueOf("passSword");
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "passSword")));
@@ -515,7 +514,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
          new RepeatedCharactersPasswordValidator();
     validator.initializePasswordValidator(configuration);
 
-    ASN1OctetString password = new ASN1OctetString("passSword");
+    ByteString password = ByteString.valueOf("passSword");
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "passSword")));
@@ -582,7 +581,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
          new RepeatedCharactersPasswordValidator();
     validator.initializePasswordValidator(configuration);
 
-    ASN1OctetString password = new ASN1OctetString("aaaaaaaa");
+    ByteString password = ByteString.valueOf("aaaaaaaa");
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "aaaaaaaa")));
@@ -650,7 +649,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
          new RepeatedCharactersPasswordValidator();
     validator.initializePasswordValidator(configuration);
 
-    ASN1OctetString password = new ASN1OctetString("aaaaaaaa");
+    ByteString password = ByteString.valueOf("aaaaaaaa");
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "aaaaaaaa")));

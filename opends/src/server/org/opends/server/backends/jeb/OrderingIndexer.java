@@ -170,7 +170,7 @@ public class OrderingIndexer extends Indexer
         try
         {
           byte[] keyBytes = orderingRule.normalizeValue(value.getValue())
-              .value();
+              .toByteArray();
 
           keys.add(keyBytes);
         }
@@ -207,7 +207,7 @@ public class OrderingIndexer extends Indexer
         try
         {
           byte[] keyBytes =
-               orderingRule.normalizeValue(value.getValue()).value();
+               orderingRule.normalizeValue(value.getValue()).toByteArray();
 
           Boolean cInsert = modifiedKeys.get(keyBytes);
           if(cInsert == null)

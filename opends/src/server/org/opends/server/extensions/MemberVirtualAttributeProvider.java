@@ -43,6 +43,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.AttributeValues;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.types.ConfigChangeResult;
@@ -146,7 +147,7 @@ public class MemberVirtualAttributeProvider
           DN memberDN = memberList.nextMemberDN();
           if (memberDN != null)
           {
-            values.add(new AttributeValue(rule.getAttributeType(),
+            values.add(AttributeValues.create(rule.getAttributeType(),
                                           memberDN.toString()));
           }
         }

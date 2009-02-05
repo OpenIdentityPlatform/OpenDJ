@@ -91,6 +91,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getTitle()
   {
     return INFO_CTRL_PANEL_NEW_VLV_INDEX_TITLE.get();
@@ -99,6 +100,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return name;
@@ -129,6 +131,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void okClicked()
   {
     List<Message> errors = checkErrors(true);
@@ -211,6 +214,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public Type getType()
     {
       return Type.NEW_INDEX;
@@ -219,6 +223,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public Set<String> getBackends()
     {
       return backendSet;
@@ -227,6 +232,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public Message getTaskDescription()
     {
       return INFO_CTRL_PANEL_NEW_VLV_INDEX_TASK_DESCRIPTION.get(
@@ -236,6 +242,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<Message> incompatibilityReasons)
     {
@@ -420,6 +427,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     protected String getCommandLinePath()
     {
       return null;
@@ -428,6 +436,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     protected ArrayList<String> getCommandLineArguments()
     {
       return new ArrayList<String>();
@@ -448,6 +457,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public void runTask()
     {
       state = State.RUNNING;
@@ -481,6 +491,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public void postOperation()
     {
       if ((lastException == null) && (state == State.FINISHED_SUCCESSFULLY) &&

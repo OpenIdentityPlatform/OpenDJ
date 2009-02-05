@@ -73,13 +73,6 @@ public final class JEExtensibleIndexer extends Indexer
 
 
   /**
-   * The extensible matching rule which needs to be indexed.
-   */
-  private final ExtensibleMatchingRule matchingRule;
-
-
-
-  /**
    * Creates a new extensible indexer for JE backend.
    *
    * @param attributeType The attribute type for which an indexer is
@@ -92,7 +85,6 @@ public final class JEExtensibleIndexer extends Indexer
           ExtensibleIndexer extensibleIndexer)
   {
     this.attributeType = attributeType;
-    this.matchingRule = matchingRule;
     this.extensibleIndexer = extensibleIndexer;
   }
 
@@ -118,6 +110,7 @@ public final class JEExtensibleIndexer extends Indexer
    *
    * @return A byte array comparator.
    */
+  @Override
   public Comparator<byte[]> getComparator()
   {
     return comparator;

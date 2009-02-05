@@ -28,17 +28,11 @@ package org.opends.server.extensions;
 
 
 
-import java.util.Arrays;
-
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.ClearPasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigException;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringFactory;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
@@ -94,10 +88,10 @@ public class ClearPasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString encodePassword(ByteString plaintext)
+  public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
   {
-    return plaintext.duplicate();
+    return plaintext.toByteString();
   }
 
 
@@ -106,16 +100,16 @@ public class ClearPasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString encodePasswordWithScheme(ByteString plaintext)
+  public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
   {
     StringBuilder buffer = new StringBuilder();
     buffer.append('{');
     buffer.append(STORAGE_SCHEME_NAME_CLEAR);
     buffer.append('}');
-    buffer.append(plaintext.stringValue());
+    buffer.append(plaintext.toString());
 
-    return ByteStringFactory.create(buffer.toString());
+    return ByteString.valueOf(buffer.toString());
   }
 
 
@@ -124,10 +118,10 @@ public class ClearPasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public boolean passwordMatches(ByteString plaintextPassword,
-                                 ByteString storedPassword)
+  public boolean passwordMatches(ByteSequence plaintextPassword,
+                                 ByteSequence storedPassword)
   {
-    return Arrays.equals(plaintextPassword.value(), storedPassword.value());
+    return plaintextPassword.equals(storedPassword);
   }
 
 
@@ -147,10 +141,10 @@ public class ClearPasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString getPlaintextValue(ByteString storedPassword)
+  public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
   {
-    return storedPassword.duplicate();
+    return storedPassword.toByteString();
   }
 
 
@@ -171,7 +165,7 @@ public class ClearPasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public ByteString encodeAuthPassword(ByteString plaintext)
+  public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
   {
     Message message =
@@ -185,7 +179,7 @@ public class ClearPasswordStorageScheme
    * {@inheritDoc}
    */
   @Override()
-  public boolean authPasswordMatches(ByteString plaintextPassword,
+  public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
   {
     // This storage scheme does not support the authentication password syntax.

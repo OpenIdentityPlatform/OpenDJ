@@ -169,7 +169,7 @@ public class VirtualStaticGroup
             }
 
             Message message = ERR_VIRTUAL_STATIC_GROUP_CANNOT_DECODE_TARGET.
-                get(v.getStringValue(), String.valueOf(groupEntry.getDN()),
+                get(v.getValue().toString(), String.valueOf(groupEntry.getDN()),
                     de.getMessageObject());
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message, de);

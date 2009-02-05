@@ -825,7 +825,7 @@ public class SchemaConfigManager
             }
 
             Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE.get(
-                    schemaFile, v.getStringValue() + ":  " +
+                    schemaFile, v.getValue().toString() + ":  " +
                     getExceptionMessage(e));
             if (failOnError)
             {
@@ -920,7 +920,7 @@ public class SchemaConfigManager
 
             Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_OC.get(
                     schemaFile,
-                    v.getStringValue() + ":  " + getExceptionMessage(e));
+                    v.getValue().toString() + ":  " + getExceptionMessage(e));
 
             if (failOnError)
             {
@@ -1011,7 +1011,7 @@ public class SchemaConfigManager
             }
 
             Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM.get(
-                    schemaFile,  v.getStringValue() + ":  " +
+                    schemaFile,  v.getValue().toString() + ":  " +
                     getExceptionMessage(e));
 
             if (failOnError)
@@ -1105,7 +1105,7 @@ public class SchemaConfigManager
             }
 
             Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DCR.get(
-                    schemaFile,v.getStringValue() + ":  " +
+                    schemaFile,v.getValue().toString() + ":  " +
                     getExceptionMessage(e));
 
             if (failOnError)
@@ -1199,7 +1199,7 @@ public class SchemaConfigManager
             }
 
             Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DSR.get(
-                    schemaFile, v.getStringValue() + ":  " +
+                    schemaFile, v.getValue().toString() + ":  " +
                                         getExceptionMessage(e));
 
             if (failOnError)
@@ -1294,7 +1294,7 @@ public class SchemaConfigManager
 
             Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_MRU.get(
                     schemaFile,
-                    v.getStringValue() + ":  " +
+                    v.getValue().toString() + ":  " +
                     getExceptionMessage(e));
 
             if (failOnError)

@@ -41,7 +41,6 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseCompareOperation;
 import org.opends.server.types.operation.PreParseCompareOperation;
@@ -151,7 +150,7 @@ public class CompareOperationBasis
     this.assertionValue = assertionValue;
 
     responseControls       = new ArrayList<Control>();
-    rawEntryDN             = new ASN1OctetString(entryDN.toString());
+    rawEntryDN             = ByteString.valueOf(entryDN.toString());
     rawAttributeType       = attributeType.getNameOrOID();
     cancelRequest          = null;
     proxiedAuthorizationDN = null;

@@ -37,7 +37,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
@@ -160,31 +159,12 @@ public class StartTLSExtendedOperation
     }
 
     MessageBuilder unavailableReason = new MessageBuilder();
-    if (! tlsCapableConnection.tlsProtectionAvailable(unavailableReason))
+    if (! tlsCapableConnection.isTLSAvailable(unavailableReason))
     {
       operation.setResultCode(ResultCode.UNAVAILABLE);
       operation.setErrorMessage(unavailableReason);
       return;
     }
-
-
-    // Actually enable TLS protection on the client connection.  This may fail,
-    // but if it does then the connection will be closed so we'll just need to
-    // log it.
-    try
-    {
-      tlsCapableConnection.enableTLSConnectionSecurityProvider();
-    }
-    catch (DirectoryException de)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
-
-      logError(ERR_STARTTLS_ERROR_ON_ENABLE.get(getExceptionMessage(de)));
-    }
-
 
     // TLS was successfully enabled on the client connection, but we need to
     // send the response in the clear.
@@ -194,6 +174,7 @@ public class StartTLSExtendedOperation
     {
       tlsCapableConnection.sendClearResponse(operation);
       operation.setResponseSent();
+      tlsCapableConnection.enableTLS();
     }
     catch (Exception e)
     {

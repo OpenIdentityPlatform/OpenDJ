@@ -25,24 +25,19 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
-
 
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.io.IOException;
 
 import org.opends.server.api.ProtocolElement;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Integer;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
+import org.opends.server.protocols.asn1.*;
+import org.opends.server.types.Control;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.
+    TYPE_CONTROL_SEQUENCE;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -54,16 +49,11 @@ import static org.opends.server.util.ServerConstants.*;
 public class LDAPMessage
        implements ProtocolElement
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
   // The set of controls for this LDAP message.
-  private ArrayList<LDAPControl> controls;
+  private List<Control> controls;
 
   // The message ID for this LDAP message.
-  private int messageID;
+  private final int messageID;
 
   // The protocol op for this LDAP message.
   private ProtocolOp protocolOp;
@@ -82,7 +72,7 @@ public class LDAPMessage
     this.messageID  = messageID;
     this.protocolOp = protocolOp;
 
-    controls = new ArrayList<LDAPControl>(0);
+    controls = new ArrayList<Control>(0);
   }
 
 
@@ -96,14 +86,14 @@ public class LDAPMessage
    * @param  controls    The set of controls for this LDAP message.
    */
   public LDAPMessage(int messageID, ProtocolOp protocolOp,
-                     ArrayList<LDAPControl> controls)
+                     List<Control> controls)
   {
     this.messageID  = messageID;
     this.protocolOp = protocolOp;
 
     if (controls == null)
     {
-      this.controls = new ArrayList<LDAPControl>(0);
+      this.controls = new ArrayList<Control>(0);
     }
     else
     {
@@ -121,18 +111,6 @@ public class LDAPMessage
   public int getMessageID()
   {
     return messageID;
-  }
-
-
-
-  /**
-   * Specifies the message ID for this LDAP message.
-   *
-   * @param  messageID  The message ID for this LDAP message.
-   */
-  public void setMessageID(int messageID)
-  {
-    this.messageID = messageID;
   }
 
 
@@ -551,125 +529,31 @@ public class LDAPMessage
    *
    * @return  The set of controls for this LDAP message.
    */
-  public ArrayList<LDAPControl> getControls()
+  public List<Control> getControls()
   {
     return controls;
   }
 
-
-
   /**
-   * Encodes this LDAP message to an ASN.1 element.
+   * Writes this protocol op to an ASN.1 output stream.
    *
-   * @return  The ASN.1 element containing the encoded LDAP message.
+   * @param stream The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public ASN1Element encode()
+  public void write(ASN1Writer stream) throws IOException
   {
-    ArrayList<ASN1Element> messageElements = new ArrayList<ASN1Element>(3);
-    messageElements.add(new ASN1Integer(messageID));
-    messageElements.add(protocolOp.encode());
+    stream.writeStartSequence();
+    stream.writeInteger(messageID);
+    protocolOp.write(stream);
 
-    if (! controls.isEmpty())
+    stream.writeStartSequence(TYPE_CONTROL_SEQUENCE);
+    for(Control control : controls)
     {
-      messageElements.add(LDAPControl.encodeControls(controls));
+      control.write(stream);
     }
+    stream.writeEndSequence();
 
-    return new ASN1Sequence(messageElements);
-  }
-
-
-
-  /**
-   * Decodes the provided ASN.1 sequence as an LDAP message.
-   *
-   * @param  messageSequence  The ASN.1 sequence to decode as an LDAP message.
-   *
-   * @return  The decoded LDAP message.
-   *
-   * @throws  LDAPException  If a problem occurs while attempting to decode the
-   *                         LDAP message.
-   */
-  public static LDAPMessage decode(ASN1Sequence messageSequence)
-         throws LDAPException
-  {
-    if (messageSequence == null)
-    {
-      Message message = ERR_LDAP_MESSAGE_DECODE_NULL.get();
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-    ArrayList<ASN1Element> elements = messageSequence.elements();
-    int numElements = elements.size();
-    if ((numElements < 2) || (numElements > 3))
-    {
-      Message message =
-          ERR_LDAP_MESSAGE_DECODE_INVALID_ELEMENT_COUNT.get(numElements);
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-
-    int messageID;
-    try
-    {
-      messageID = elements.get(0).decodeAsInteger().intValue();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_MESSAGE_DECODE_MESSAGE_ID.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    ProtocolOp protocolOp;
-    try
-    {
-      protocolOp = ProtocolOp.decode(elements.get(1));
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_MESSAGE_DECODE_PROTOCOL_OP.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    ArrayList<LDAPControl> controls;
-    if (numElements == 3)
-    {
-      try
-      {
-        controls = LDAPControl.decodeControls(elements.get(2));
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message =
-            ERR_LDAP_MESSAGE_DECODE_CONTROLS.get(String.valueOf(e));
-        throw new LDAPException(PROTOCOL_ERROR, message, e);
-      }
-    }
-    else
-    {
-      controls = new ArrayList<LDAPControl>(0);
-    }
-
-
-    return new LDAPMessage(messageID, protocolOp, controls);
+    stream.writeEndSequence();
   }
 
 
@@ -691,6 +575,7 @@ public class LDAPMessage
    *
    * @return  A string representation of this LDAP message.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();
@@ -722,7 +607,7 @@ public class LDAPMessage
     {
       buffer.append(", controls={ ");
 
-      Iterator<LDAPControl> iterator = controls.iterator();
+      Iterator<Control> iterator = controls.iterator();
       iterator.next().toString(buffer);
 
       while (iterator.hasNext())
@@ -775,9 +660,10 @@ public class LDAPMessage
       buffer.append(indentBuf);
       buffer.append("  Controls:");
 
-      for (LDAPControl c : controls)
+      for (Control c : controls)
       {
-        c.toString(buffer, indent+4);
+        // TODO: Indent
+        c.toString(buffer);//, indent+4);
       }
     }
   }

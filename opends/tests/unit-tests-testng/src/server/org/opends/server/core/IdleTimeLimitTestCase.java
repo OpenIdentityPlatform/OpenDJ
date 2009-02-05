@@ -34,9 +34,11 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.types.ByteString;
 import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.dsconfig.DSConfig;
+import org.opends.server.tools.LDAPWriter;
 
 import static org.testng.Assert.*;
 
@@ -81,17 +83,17 @@ public class IdleTimeLimitTestCase
     try
     {
       s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-      ASN1Writer w = new ASN1Writer(s);
-      ASN1Reader r = new ASN1Reader(s);
-      r.setIOTimeout(60000);
+      LDAPWriter w = new LDAPWriter(s);
+      org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+      s.setSoTimeout(60000);
 
-      LDAPMessage m = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      LDAPMessage m = r.readMessage();
       ExtendedResponseProtocolOp extendedResponse =
            m.getExtendedResponseProtocolOp();
       assertEquals(extendedResponse.getOID(),
                    LDAPConstants.OID_NOTICE_OF_DISCONNECTION);
 
-      assertNull(r.readElement());
+      assertNull(r.readMessage());
     }
     finally
     {
@@ -141,30 +143,30 @@ public class IdleTimeLimitTestCase
     try
     {
       s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-      ASN1Writer w = new ASN1Writer(s);
-      ASN1Reader r = new ASN1Reader(s);
-      r.setIOTimeout(60000);
+      LDAPWriter w = new LDAPWriter(s);
+      org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+      s.setSoTimeout(60000);
 
 
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           new ASN1OctetString("uid=test.user,o=test"), 3,
-           new ASN1OctetString("password"));
+           ByteString.valueOf("uid=test.user,o=test"), 3,
+           ByteString.valueOf("password"));
       LDAPMessage m = new LDAPMessage(1, bindRequest);
-      w.writeElement(m.encode());
+      w.writeMessage(m);
 
 
-      m = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      m = r.readMessage();
       BindResponseProtocolOp bindResponse = m.getBindResponseProtocolOp();
       assertEquals(bindResponse.getResultCode(), 0);
 
 
-      m = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      m = r.readMessage();
       ExtendedResponseProtocolOp extendedResponse =
            m.getExtendedResponseProtocolOp();
       assertEquals(extendedResponse.getOID(),
                    LDAPConstants.OID_NOTICE_OF_DISCONNECTION);
 
-      assertNull(r.readElement());
+      assertNull(r.readMessage());
     }
     finally
     {
@@ -210,30 +212,30 @@ public class IdleTimeLimitTestCase
     try
     {
       s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-      ASN1Writer w = new ASN1Writer(s);
-      ASN1Reader r = new ASN1Reader(s);
-      r.setIOTimeout(60000);
+      LDAPWriter w = new LDAPWriter(s);
+      org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+      s.setSoTimeout(60000);
 
 
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           new ASN1OctetString("uid=test.user,o=test"), 3,
-           new ASN1OctetString("password"));
+           ByteString.valueOf("uid=test.user,o=test"), 3,
+           ByteString.valueOf("password"));
       LDAPMessage m = new LDAPMessage(1, bindRequest);
-      w.writeElement(m.encode());
+      w.writeMessage(m);
 
 
-      m = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      m = r.readMessage();
       BindResponseProtocolOp bindResponse = m.getBindResponseProtocolOp();
       assertEquals(bindResponse.getResultCode(), 0);
 
 
-      m = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      m = r.readMessage();
       ExtendedResponseProtocolOp extendedResponse =
            m.getExtendedResponseProtocolOp();
       assertEquals(extendedResponse.getOID(),
                    LDAPConstants.OID_NOTICE_OF_DISCONNECTION);
 
-      assertNull(r.readElement());
+      assertNull(r.readMessage());
     }
     finally
     {

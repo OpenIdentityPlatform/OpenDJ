@@ -268,7 +268,7 @@ public final class DITContentRule
   public DITContentRule recreateFromDefinition()
          throws DirectoryException
   {
-    ByteString value  = ByteStringFactory.create(definition);
+    ByteString value  = ByteString.valueOf(definition);
     Schema     schema = DirectoryConfig.getSchema();
 
     DITContentRule dcr =

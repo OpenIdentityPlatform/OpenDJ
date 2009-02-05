@@ -108,7 +108,7 @@ public class AnonymousSASLMechanismHandler
     ByteString saslCredentials = bindOperation.getSASLCredentials();
     if (saslCredentials != null)
     {
-      String credString = saslCredentials.stringValue();
+      String credString = saslCredentials.toString();
       if (credString.length() > 0)
       {
         MessageBuilder mb = new MessageBuilder();

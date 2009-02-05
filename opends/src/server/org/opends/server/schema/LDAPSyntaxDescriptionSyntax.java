@@ -37,16 +37,12 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
 
-
-import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.*;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 import static org.opends.messages.SchemaMessages.*;
 import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -96,6 +92,7 @@ public class LDAPSyntaxDescriptionSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException
   {
@@ -131,6 +128,7 @@ public class LDAPSyntaxDescriptionSyntax
    *
    * @return  The common name for this attribute syntax.
    */
+  @Override
   public String getSyntaxName()
   {
     return SYNTAX_LDAP_SYNTAX_NAME;
@@ -143,6 +141,7 @@ public class LDAPSyntaxDescriptionSyntax
    *
    * @return  The OID for this attribute syntax.
    */
+  @Override
   public String getOID()
   {
     return SYNTAX_LDAP_SYNTAX_OID;
@@ -155,6 +154,7 @@ public class LDAPSyntaxDescriptionSyntax
    *
    * @return  A description for this attribute syntax.
    */
+  @Override
   public String getDescription()
   {
     return SYNTAX_LDAP_SYNTAX_DESCRIPTION;
@@ -170,6 +170,7 @@ public class LDAPSyntaxDescriptionSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if equality
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public EqualityMatchingRule getEqualityMatchingRule()
   {
     return defaultEqualityMatchingRule;
@@ -185,6 +186,7 @@ public class LDAPSyntaxDescriptionSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if ordering
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public OrderingMatchingRule getOrderingMatchingRule()
   {
     return defaultOrderingMatchingRule;
@@ -200,6 +202,7 @@ public class LDAPSyntaxDescriptionSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if substring
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public SubstringMatchingRule getSubstringMatchingRule()
   {
     return defaultSubstringMatchingRule;
@@ -215,6 +218,7 @@ public class LDAPSyntaxDescriptionSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if approximate
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
     // There is no approximate matching rule by default.
@@ -235,12 +239,13 @@ public class LDAPSyntaxDescriptionSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteString value,
+  @Override
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // Get string representations of the provided value using the provided form
     // and with all lowercase characters.
-    String valueStr = value.stringValue();
+    String valueStr = value.toString();
     String lowerStr = toLowerCase(valueStr);
 
 
@@ -292,11 +297,6 @@ public class LDAPSyntaxDescriptionSyntax
     }
 
 
-    // The next set of characters must be the OID.  Strictly speaking, this
-    // should only be a numeric OID, but we'll also allow for the
-    // "attrname-oid" case as well.  Look at the first character to figure out
-    // which we will be using.
-    int oidStartPos = pos;
     if (isDigit(c))
     {
       // This must be a numeric OID.  In that case, we will accept only digits
@@ -358,16 +358,11 @@ public class LDAPSyntaxDescriptionSyntax
 
     // If we're at the end of the value, then it isn't a valid attribute type
     // description.  Otherwise, parse out the OID.
-    String oid;
     if (pos >= length)
     {
       invalidReason.append(ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(
               valueStr));
       return false;
-    }
-    else
-    {
-      oid = lowerStr.substring(oidStartPos, pos);
     }
 
 
@@ -724,6 +719,7 @@ private static int parseExtension(String valueStr, int startPos)
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isBinary()
   {
     return false;

@@ -29,21 +29,15 @@ import org.opends.messages.Message;
 
 
 
-import java.util.ArrayList;
+import java.io.IOException;
 
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Enumerated;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Integer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.Control;
-import org.opends.server.types.LDAPException;
-
+import org.opends.server.protocols.asn1.*;
+import static org.opends.server.protocols.asn1.ASN1Constants.
+    UNIVERSAL_OCTET_STRING_TYPE;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
+
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -58,6 +52,112 @@ import static org.opends.server.util.StaticUtils.*;
 public class PasswordPolicyResponseControl
        extends Control
 {
+  /**
+   * ControlDecoder implentation to decode this control from a ByteString.
+   */
+  private final static class Decoder
+      implements ControlDecoder<PasswordPolicyResponseControl>
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public PasswordPolicyResponseControl decode(boolean isCritical,
+                                                ByteString value)
+        throws DirectoryException
+    {
+      if (value == null)
+      {
+        // The response control must always have a value.
+        Message message = ERR_PWPOLICYRES_NO_CONTROL_VALUE.get();
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+      }
+
+      ASN1Reader reader = ASN1.getReader(value);
+      try
+      {
+        PasswordPolicyWarningType warningType  = null;
+        PasswordPolicyErrorType   errorType    = null;
+        int                       warningValue = -1;
+
+        reader.readStartSequence();
+
+        while(reader.hasNextElement())
+        {
+          switch (reader.peekType())
+          {
+            case TYPE_WARNING_ELEMENT:
+              // Its a CHOICE element. Read as sequence to retrieve
+              // nested element.
+              reader.readStartSequence();
+              warningType =
+                  PasswordPolicyWarningType.valueOf(reader.peekType());
+              warningValue = (int)reader.readInteger();
+              if (warningType == null)
+              {
+                Message message = ERR_PWPOLICYRES_INVALID_WARNING_TYPE.get(
+                    byteToHex(reader.peekType()));
+                throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                    message);
+              }
+              reader.readEndSequence();
+              break;
+
+            case TYPE_ERROR_ELEMENT:
+              int errorValue = (int)reader.readInteger();
+              errorType = PasswordPolicyErrorType.valueOf(errorValue);
+              if (errorType == null)
+              {
+                Message message =
+                    ERR_PWPOLICYRES_INVALID_ERROR_TYPE.get(errorValue);
+                throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                    message);
+              }
+              break;
+
+            default:
+              Message message = ERR_PWPOLICYRES_INVALID_ELEMENT_TYPE.get(
+                  byteToHex(reader.peekType()));
+              throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+          }
+        }
+
+        reader.readEndSequence();
+
+        return new PasswordPolicyResponseControl(isCritical,
+            warningType, warningValue,
+            errorType);
+      }
+      catch (DirectoryException de)
+      {
+        throw de;
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message =
+            ERR_PWPOLICYRES_DECODE_ERROR.get(getExceptionMessage(e));
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+      }
+    }
+
+
+    public String getOID()
+    {
+      return OID_ACCOUNT_USABLE_CONTROL;
+    }
+
+  }
+
+  /**
+   * The Control Decoder that can be used to decode this control.
+   */
+  public static final ControlDecoder<PasswordPolicyResponseControl> DECODER =
+    new Decoder();
+
   /**
    * The tracer object for the debug logger.
    */
@@ -97,7 +197,7 @@ public class PasswordPolicyResponseControl
    */
   public PasswordPolicyResponseControl()
   {
-    super(OID_PASSWORD_POLICY_CONTROL, false, encodeValue(null, -1, null));
+    super(OID_PASSWORD_POLICY_CONTROL, false);
 
 
     warningType  = null;
@@ -125,13 +225,7 @@ public class PasswordPolicyResponseControl
                                        int warningValue,
                                        PasswordPolicyErrorType errorType)
   {
-    super(OID_PASSWORD_POLICY_CONTROL, false,
-          encodeValue(warningType, warningValue, errorType));
-
-
-    this.warningType  = warningType;
-    this.warningValue = warningValue;
-    this.errorType    = errorType;
+    this(false, warningType, warningValue, errorType);
   }
 
 
@@ -140,7 +234,6 @@ public class PasswordPolicyResponseControl
    * Creates a new instance of the password policy request control with the
    * provided information.
    *
-   * @param  oid           The OID to use for this control.
    * @param  isCritical    Indicates whether support for this control should be
    *                       considered a critical part of the client processing.
    * @param  warningType   The warning type to use for this password policy
@@ -152,46 +245,12 @@ public class PasswordPolicyResponseControl
    *                       response control, or <CODE>null</CODE> if there
    *                       should not be an error flag.
    */
-  public PasswordPolicyResponseControl(String oid, boolean isCritical,
+  public PasswordPolicyResponseControl(boolean isCritical,
                                        PasswordPolicyWarningType warningType,
                                        int warningValue,
                                        PasswordPolicyErrorType errorType)
   {
-    super(oid, isCritical, encodeValue(warningType, warningValue, errorType));
-
-
-    this.warningType  = warningType;
-    this.warningValue = warningValue;
-    this.errorType    = errorType;
-  }
-
-
-
-  /**
-   * Creates a new instance of the password policy request control with the
-   * provided information.
-   *
-   * @param  oid           The OID to use for this control.
-   * @param  isCritical    Indicates whether support for this control should be
-   *                       considered a critical part of the client processing.
-   * @param  warningType   The warning type to use for this password policy
-   *                       response control, or <CODE>null</CODE> if there
-   *                       should not be a warning flag.
-   * @param  warningValue  The warning value to use for this password policy
-   *                       response control, if applicable.
-   * @param  errorType     The error type to use for this password policy
-   *                       response control, or <CODE>null</CODE> if there
-   *                       should not be an error flag.
-   * @param  encodedValue  The pre-encoded value to use for this control.
-   */
-  private PasswordPolicyResponseControl(String oid, boolean isCritical,
-                                        PasswordPolicyWarningType warningType,
-                                        int warningValue,
-                                        PasswordPolicyErrorType errorType,
-                                        ASN1OctetString encodedValue)
-  {
-    super(oid, isCritical, encodedValue);
-
+    super(OID_PASSWORD_POLICY_CONTROL, isCritical);
 
     this.warningType  = warningType;
     this.warningValue = warningValue;
@@ -201,147 +260,33 @@ public class PasswordPolicyResponseControl
 
 
   /**
-   * Encodes the provided information into an ASN.1 octet string suitable for
-   * use as the value for this control.
+   * Writes this control's value to an ASN.1 writer. The value (if any) must be
+   * written as an ASN1OctetString.
    *
-   * @param  warningType   The warning type to use for this password policy
-   *                       response control, or <CODE>null</CODE> if there
-   *                       should not be a warning flag.
-   * @param  warningValue  The warning value to use for this password policy
-   *                       response control, if applicable.
-   * @param  errorType     The error type to use for this password policy
-   *                       response control, or <CODE>null</CODE> if there
-   *                       should not be an error flag.
-   *
-   * @return  An ASN.1 octet string containing the encoded control value.
+   * @param writer The ASN.1 writer to use.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  private static ASN1OctetString encodeValue(
-                                      PasswordPolicyWarningType warningType,
-                                      int warningValue,
-                                      PasswordPolicyErrorType errorType)
-  {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
+  @Override
+  protected void writeValue(ASN1Writer writer) throws IOException {
+    writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
 
+    writer.writeStartSequence();
     if (warningType != null)
     {
-      ASN1Integer warningInteger = new ASN1Integer(warningType.getType(),
-                                                   warningValue);
-      elements.add(new ASN1Element(TYPE_WARNING_ELEMENT,
-                                   warningInteger.encode()));
+      // Just write the CHOICE element as a single element SEQUENCE.
+      writer.writeStartSequence(TYPE_WARNING_ELEMENT);
+      writer.writeInteger(warningType.getType(), warningValue);
+      writer.writeEndSequence();
     }
 
     if (errorType != null)
     {
-      elements.add(new ASN1Enumerated(TYPE_ERROR_ELEMENT,
-                                      errorType.intValue()));
+      writer.writeInteger(TYPE_ERROR_ELEMENT, errorType.intValue());
     }
+    writer.writeEndSequence();
 
-    ASN1Sequence valueSequence = new ASN1Sequence(elements);
-    return new ASN1OctetString(valueSequence.encode());
+    writer.writeEndSequence();
   }
-
-
-
-  /**
-   * Creates a new password policy response control from the contents of the
-   * provided control.
-   *
-   * @param  control  The generic control containing the information to use to
-   *                  create this password policy response control.
-   *
-   * @return  The password policy response control decoded from the provided
-   *          control.
-   *
-   * @throws  LDAPException  If this control cannot be decoded as a valid
-   *                         password policy response control.
-   */
-  public static PasswordPolicyResponseControl decodeControl(Control control)
-         throws LDAPException
-  {
-    ASN1OctetString controlValue = control.getValue();
-    if (controlValue == null)
-    {
-      // The response control must always have a value.
-      Message message = ERR_PWPOLICYRES_NO_CONTROL_VALUE.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-    }
-
-
-    try
-    {
-      PasswordPolicyWarningType warningType  = null;
-      PasswordPolicyErrorType   errorType    = null;
-      int                       warningValue = -1;
-
-      ASN1Sequence valueSequence =
-           ASN1Sequence.decodeAsSequence(controlValue.value());
-      for (ASN1Element e : valueSequence.elements())
-      {
-        switch (e.getType())
-        {
-          case TYPE_WARNING_ELEMENT:
-            ASN1Integer integerElement = ASN1Integer.decodeAsInteger(e.value());
-            warningValue = integerElement.intValue();
-            warningType =
-                 PasswordPolicyWarningType.valueOf(integerElement.getType());
-            if (warningType == null)
-            {
-              Message message = ERR_PWPOLICYRES_INVALID_WARNING_TYPE.get(
-                  byteToHex(integerElement.getType()));
-              throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-            }
-            break;
-
-          case TYPE_ERROR_ELEMENT:
-            int errorValue = e.decodeAsEnumerated().intValue();
-            errorType = PasswordPolicyErrorType.valueOf(errorValue);
-            if (errorType == null)
-            {
-              Message message =
-                  ERR_PWPOLICYRES_INVALID_ERROR_TYPE.get(errorValue);
-              throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-            }
-            break;
-
-          default:
-            Message message = ERR_PWPOLICYRES_INVALID_ELEMENT_TYPE.get(
-                byteToHex(e.getType()));
-            throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-        }
-      }
-
-      return new PasswordPolicyResponseControl(control.getOID(),
-                                               control.isCritical(),
-                                               warningType, warningValue,
-                                               errorType, controlValue);
-    }
-    catch (LDAPException le)
-    {
-      throw le;
-    }
-    catch (ASN1Exception ae)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-      }
-
-      Message message = ERR_PWPOLICYRES_DECODE_ERROR.get(ae.getMessage());
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_PWPOLICYRES_DECODE_ERROR.get(getExceptionMessage(e));
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-    }
-  }
-
 
 
   /**
@@ -384,25 +329,12 @@ public class PasswordPolicyResponseControl
 
 
   /**
-   * Retrieves a string representation of this password policy response control.
-   *
-   * @return  A string representation of this password policy response control.
-   */
-  public String toString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
-  }
-
-
-
-  /**
    * Appends a string representation of this password policy response control to
    * the provided buffer.
    *
    * @param  buffer  The buffer to which the information should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("PasswordPolicyResponseControl(");

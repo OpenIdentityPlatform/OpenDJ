@@ -37,8 +37,7 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ByteString;
-
+import org.opends.server.types.ByteSequence;
 
 
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -232,18 +231,20 @@ public class IA5StringSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteString value,
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // We will allow any value that does not contain any non-ASCII characters.
     // Empty values are acceptable as well.
-    for (byte b : value.value())
+    byte b;
+    for (int i = 0; i < value.length(); i++)
     {
+      b = value.byteAt(i);
       if ((b & 0x7F) != b)
       {
 
         Message message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
-                value.stringValue(), String.valueOf(b));
+                value.toString(), String.valueOf(b));
         invalidReason.append(message);
         return false;
       }

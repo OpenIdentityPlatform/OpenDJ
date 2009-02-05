@@ -51,8 +51,6 @@ import org.opends.server.util.StaticUtils;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.config.ConfigException;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.controls.VLVResponseControl;
@@ -1296,13 +1294,13 @@ public class VLVIndex extends DatabaseContainer
 
         try
         {
-          byte[] vBytes = vlvRequest.getGreaterThanOrEqualAssertion().value();
-          byte[] vLength = ASN1Element.encodeLength(vBytes.length);
-          byte[] keyBytes = new byte[vBytes.length + vLength.length];
-          System.arraycopy(vLength, 0, keyBytes, 0, vLength.length);
-          System.arraycopy(vBytes, 0, keyBytes, vLength.length, vBytes.length);
+          ByteSequence vBytes = vlvRequest.getGreaterThanOrEqualAssertion();
+          ByteStringBuilder keyBytes =
+              new ByteStringBuilder(vBytes.length() + 4);
+          keyBytes.appendBERLength(vBytes.length());
+          vBytes.copyTo(keyBytes);
 
-          key.setData(keyBytes);
+          key.setData(keyBytes.getBackingArray(), 0, keyBytes.length());
           status = cursor.getSearchKeyRange(key, data, lockMode);
           if(status == OperationStatus.SUCCESS)
           {
@@ -1324,9 +1322,9 @@ public class VLVIndex extends DatabaseContainer
                 new SortValuesSet(key.getData(), data.getData(), this);
             AttributeValue[] assertionValue = new AttributeValue[1];
             assertionValue[0] =
-                new AttributeValue(
+                AttributeValues.create(
                     sortOrder.getSortKeys()[0].getAttributeType(),
-                    vlvRequest.getGreaterThanOrEqualAssertion());
+                        vlvRequest.getGreaterThanOrEqualAssertion());
 
             int adjustedTargetOffset =
                 sortValuesSet.binarySearch(-1, assertionValue);
@@ -1582,39 +1580,25 @@ public class VLVIndex extends DatabaseContainer
   byte[] encodeKey(long entryID, AttributeValue[] values)
       throws DirectoryException
   {
-    int totalValueBytes = 0;
-    LinkedList<byte[]> valueBytes = new LinkedList<byte[]>();
+    ByteStringBuilder builder = new ByteStringBuilder();
+
     for (AttributeValue v : values)
     {
       byte[] vBytes;
       if(v == null)
       {
-        vBytes = new byte[0];
+        builder.appendBERLength(0);
       }
       else
       {
-        vBytes = v.getNormalizedValueBytes();
+        builder.appendBERLength(v.getNormalizedValue().length());
+        builder.append(v.getNormalizedValue());
       }
-      byte[] vLength = ASN1Element.encodeLength(vBytes.length);
-      valueBytes.add(vLength);
-      valueBytes.add(vBytes);
-      totalValueBytes += vLength.length + vBytes.length;
     }
+    builder.append(entryID);
+    builder.trimToSize();
 
-    byte[] entryIDBytes =
-        JebFormat.entryIDToDatabase(entryID);
-    byte[] attrBytes = new byte[entryIDBytes.length + totalValueBytes];
-
-    int pos = 0;
-    for (byte[] b : valueBytes)
-    {
-      System.arraycopy(b, 0, attrBytes, pos, b.length);
-      pos += b.length;
-    }
-
-    System.arraycopy(entryIDBytes, 0, attrBytes, pos, entryIDBytes.length);
-
-    return attrBytes;
+    return builder.getBackingArray();
   }
 
   /**
@@ -1658,8 +1642,9 @@ public class VLVIndex extends DatabaseContainer
         byte[] valueBytes = new byte[valueLength];
         System.arraycopy(keyBytes, vBytesPos, valueBytes, 0, valueLength);
         attributeValues[i] =
-            new AttributeValue(sortOrder.getSortKeys()[i].getAttributeType(),
-                new ASN1OctetString(valueBytes));
+            AttributeValues.create(
+                sortOrder.getSortKeys()[i].getAttributeType(),
+                ByteString.wrap(valueBytes));
       }
 
       vBytesPos += valueLength;

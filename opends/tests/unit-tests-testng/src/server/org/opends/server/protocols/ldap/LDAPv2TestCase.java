@@ -35,14 +35,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.RawAttribute;
-import org.opends.server.types.RawModification;
-import org.opends.server.types.SearchScope;
+import org.opends.server.tools.LDAPWriter;
+import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
 
@@ -89,19 +83,19 @@ public class LDAPv2TestCase
       "ds-cfg-allow-ldap-v2: false");
 
     Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     try
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                    new ASN1OctetString("cn=Directory Manager"), 2,
-                    new ASN1OctetString("password"));
+                    ByteString.valueOf("cn=Directory Manager"), 2,
+                    ByteString.valueOf("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      message = r.readMessage();
       BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
       assertEquals(bindResponse.getResultCode(),
                    LDAPResultCode.INAPPROPRIATE_AUTHENTICATION);
@@ -142,28 +136,28 @@ public class LDAPv2TestCase
          throws Exception
   {
     Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     try
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                    new ASN1OctetString("cn=Directory Manager"), 2,
-                    new ASN1OctetString("password"));
+                    ByteString.valueOf("cn=Directory Manager"), 2,
+                    ByteString.valueOf("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      message = r.readMessage();
       BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
       assertEquals(bindResponse.getResultCode(), 0);
 
       ExtendedRequestProtocolOp extendedRequest =
            new ExtendedRequestProtocolOp(OID_START_TLS_REQUEST);
       message = new LDAPMessage(2, extendedRequest);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
-      assertNull(r.readElement());
+      assertNull(r.readMessage());
     }
     finally
     {
@@ -195,19 +189,19 @@ public class LDAPv2TestCase
          throws Exception
   {
     Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     try
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                    new ASN1OctetString("cn=Directory Manager"), 2,
-                    new ASN1OctetString("password"));
+                    ByteString.valueOf("cn=Directory Manager"), 2,
+                    ByteString.valueOf("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      message = r.readMessage();
       BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
       assertEquals(bindResponse.getResultCode(), 0);
 
@@ -216,14 +210,14 @@ public class LDAPv2TestCase
       addAttrs.add(RawAttribute.create("ou", "People"));
 
       AddRequestProtocolOp addRequest =
-           new AddRequestProtocolOp(new ASN1OctetString("ou=People,o=test"),
+           new AddRequestProtocolOp(ByteString.valueOf("ou=People,o=test"),
                                     addAttrs);
-      ArrayList<LDAPControl> controls = new ArrayList<LDAPControl>(1);
+      ArrayList<Control> controls = new ArrayList<Control>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       message = new LDAPMessage(2, addRequest, controls);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      message = r.readMessage();
       AddResponseProtocolOp addResponse = message.getAddResponseProtocolOp();
       assertEquals(addResponse.getResultCode(), LDAPResultCode.PROTOCOL_ERROR);
     }
@@ -257,21 +251,21 @@ public class LDAPv2TestCase
          throws Exception
   {
     Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     try
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                    new ASN1OctetString("cn=Directory Manager"), 2,
-                    new ASN1OctetString("password"));
-      ArrayList<LDAPControl> controls = new ArrayList<LDAPControl>(1);
+                    ByteString.valueOf("cn=Directory Manager"), 2,
+                    ByteString.valueOf("password"));
+      ArrayList<Control> controls = new ArrayList<Control>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       LDAPMessage message = new LDAPMessage(1, bindRequest, controls);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      message = r.readMessage();
       BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
       assertEquals(bindResponse.getResultCode(), LDAPResultCode.PROTOCOL_ERROR);
     }
@@ -305,31 +299,31 @@ public class LDAPv2TestCase
          throws Exception
   {
     Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     try
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                    new ASN1OctetString("cn=Directory Manager"), 2,
-                    new ASN1OctetString("password"));
+                    ByteString.valueOf("cn=Directory Manager"), 2,
+                    ByteString.valueOf("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      message = r.readMessage();
       BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
       assertEquals(bindResponse.getResultCode(), 0);
 
       CompareRequestProtocolOp compareRequest =
-           new CompareRequestProtocolOp(new ASN1OctetString("o=test"),
-                                        "o", new ASN1OctetString("test"));
-      ArrayList<LDAPControl> controls = new ArrayList<LDAPControl>(1);
+           new CompareRequestProtocolOp(ByteString.valueOf("o=test"),
+                                        "o", ByteString.valueOf("test"));
+      ArrayList<Control> controls = new ArrayList<Control>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       message = new LDAPMessage(2, compareRequest, controls);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      message = r.readMessage();
       CompareResponseProtocolOp compareResponse =
            message.getCompareResponseProtocolOp();
       assertEquals(compareResponse.getResultCode(),
@@ -365,30 +359,30 @@ public class LDAPv2TestCase
          throws Exception
   {
     Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     try
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                    new ASN1OctetString("cn=Directory Manager"), 2,
-                    new ASN1OctetString("password"));
+                    ByteString.valueOf("cn=Directory Manager"), 2,
+                    ByteString.valueOf("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      message = r.readMessage();
       BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
       assertEquals(bindResponse.getResultCode(), 0);
 
       DeleteRequestProtocolOp deleteRequest =
-           new DeleteRequestProtocolOp(new ASN1OctetString("o=test"));
-      ArrayList<LDAPControl> controls = new ArrayList<LDAPControl>(1);
+           new DeleteRequestProtocolOp(ByteString.valueOf("o=test"));
+      ArrayList<Control> controls = new ArrayList<Control>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       message = new LDAPMessage(2, deleteRequest, controls);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      message = r.readMessage();
       DeleteResponseProtocolOp deleteResponse =
            message.getDeleteResponseProtocolOp();
       assertEquals(deleteResponse.getResultCode(),
@@ -424,19 +418,19 @@ public class LDAPv2TestCase
          throws Exception
   {
     Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     try
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                    new ASN1OctetString("cn=Directory Manager"), 2,
-                    new ASN1OctetString("password"));
+                    ByteString.valueOf("cn=Directory Manager"), 2,
+                    ByteString.valueOf("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      message = r.readMessage();
       BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
       assertEquals(bindResponse.getResultCode(), 0);
 
@@ -445,13 +439,13 @@ public class LDAPv2TestCase
                                       "description", "foo"));
 
       ModifyRequestProtocolOp modifyRequest =
-           new ModifyRequestProtocolOp(new ASN1OctetString("o=test"), mods);
-      ArrayList<LDAPControl> controls = new ArrayList<LDAPControl>(1);
+           new ModifyRequestProtocolOp(ByteString.valueOf("o=test"), mods);
+      ArrayList<Control> controls = new ArrayList<Control>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       message = new LDAPMessage(2, modifyRequest, controls);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      message = r.readMessage();
       ModifyResponseProtocolOp modifyResponse =
            message.getModifyResponseProtocolOp();
       assertEquals(modifyResponse.getResultCode(),
@@ -487,31 +481,31 @@ public class LDAPv2TestCase
          throws Exception
   {
     Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     try
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                    new ASN1OctetString("cn=Directory Manager"), 2,
-                    new ASN1OctetString("password"));
+                    ByteString.valueOf("cn=Directory Manager"), 2,
+                    ByteString.valueOf("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      message = r.readMessage();
       BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
       assertEquals(bindResponse.getResultCode(), 0);
 
       ModifyDNRequestProtocolOp modifyDNRequest =
-           new ModifyDNRequestProtocolOp(new ASN1OctetString("o=test"),
-                                         new ASN1OctetString("cn=test"), false);
-      ArrayList<LDAPControl> controls = new ArrayList<LDAPControl>(1);
+           new ModifyDNRequestProtocolOp(ByteString.valueOf("o=test"),
+                                         ByteString.valueOf("cn=test"), false);
+      ArrayList<Control> controls = new ArrayList<Control>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       message = new LDAPMessage(2, modifyDNRequest, controls);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      message = r.readMessage();
       ModifyDNResponseProtocolOp modifyDNResponse =
            message.getModifyDNResponseProtocolOp();
       assertEquals(modifyDNResponse.getResultCode(),
@@ -547,33 +541,33 @@ public class LDAPv2TestCase
          throws Exception
   {
     Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     try
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                    new ASN1OctetString("cn=Directory Manager"), 2,
-                    new ASN1OctetString("password"));
+                    ByteString.valueOf("cn=Directory Manager"), 2,
+                    ByteString.valueOf("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      message = r.readMessage();
       BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
       assertEquals(bindResponse.getResultCode(), 0);
 
       SearchRequestProtocolOp searchRequest =
-           new SearchRequestProtocolOp(new ASN1OctetString(),
+           new SearchRequestProtocolOp(ByteString.empty(),
                     SearchScope.BASE_OBJECT,
                     DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                     LDAPFilter.decode("(objectClass=*)"), null);
-      ArrayList<LDAPControl> controls = new ArrayList<LDAPControl>(1);
+      ArrayList<Control> controls = new ArrayList<Control>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       message = new LDAPMessage(2, searchRequest, controls);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      message = r.readMessage();
       SearchResultDoneProtocolOp searchDone =
            message.getSearchResultDoneProtocolOp();
       assertEquals(searchDone.getResultCode(), LDAPResultCode.PROTOCOL_ERROR);

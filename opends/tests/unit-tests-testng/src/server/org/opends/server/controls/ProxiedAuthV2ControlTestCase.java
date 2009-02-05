@@ -32,11 +32,10 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.Control;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.LDAPException;
+import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
 
@@ -71,7 +70,7 @@ public class ProxiedAuthV2ControlTestCase
   @Test(expectedExceptions = { AssertionError.class })
   public void testConstructorNullAuthzID()
   {
-    ProxiedAuthV2Control proxyControl = new ProxiedAuthV2Control(null);
+    new ProxiedAuthV2Control(null);
   }
 
 
@@ -83,8 +82,8 @@ public class ProxiedAuthV2ControlTestCase
   public void testConstructorEmptyAuthzID()
   {
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(new ASN1OctetString(""));
-    assertEquals(proxyControl.getAuthorizationID(), new ASN1OctetString(""));
+         new ProxiedAuthV2Control(ByteString.valueOf(""));
+    assertEquals(proxyControl.getAuthorizationID(), ByteString.valueOf(""));
   }
 
 
@@ -97,9 +96,9 @@ public class ProxiedAuthV2ControlTestCase
   public void testConstructorNonEmptyAuthzIDDN()
   {
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(new ASN1OctetString("dn:uid=test,o=test"));
+         new ProxiedAuthV2Control(ByteString.valueOf("dn:uid=test,o=test"));
     assertEquals(proxyControl.getAuthorizationID(),
-                 new ASN1OctetString("dn:uid=test,o=test"));
+                 ByteString.valueOf("dn:uid=test,o=test"));
   }
 
 
@@ -112,23 +111,9 @@ public class ProxiedAuthV2ControlTestCase
   public void testConstructorNonEmptyAuthzIDUsername()
   {
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(new ASN1OctetString("u:test"));
+         new ProxiedAuthV2Control(ByteString.valueOf("u:test"));
     assertEquals(proxyControl.getAuthorizationID(),
-                 new ASN1OctetString("u:test"));
-  }
-
-
-
-  /**
-   * Tests the {@code decodeControl} method with a {@code null} argument.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test(expectedExceptions = { AssertionError.class })
-  public void testDecodeControlNull()
-         throws Exception
-  {
-    ProxiedAuthV2Control.decodeControl(null);
+                 ByteString.valueOf("u:test"));
   }
 
 
@@ -139,13 +124,13 @@ public class ProxiedAuthV2ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = { DirectoryException.class })
   public void testDecodeControlNotCritical()
          throws Exception
   {
-    Control c = new Control(OID_PROXIED_AUTH_V2, false,
-                            new ASN1OctetString("u:test"));
-    ProxiedAuthV2Control.decodeControl(c);
+    LDAPControl c = new LDAPControl(OID_PROXIED_AUTH_V2, false,
+                            ByteString.valueOf("u:test"));
+    ProxiedAuthV2Control.DECODER.decode(c.isCritical(), c.getValue());
   }
 
 
@@ -156,12 +141,12 @@ public class ProxiedAuthV2ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = { DirectoryException.class })
   public void testDecodeControlNoValue()
          throws Exception
   {
-    Control c = new Control(OID_PROXIED_AUTH_V2, true);
-    ProxiedAuthV2Control.decodeControl(c);
+    LDAPControl c = new LDAPControl(OID_PROXIED_AUTH_V2, true);
+    ProxiedAuthV2Control.DECODER.decode(c.isCritical(), c.getValue());
   }
 
 
@@ -176,10 +161,10 @@ public class ProxiedAuthV2ControlTestCase
   public void testDecodeControlDNValue()
          throws Exception
   {
-    ASN1OctetString authzID = new ASN1OctetString("dn:uid=test,o=test");
+    ByteString authzID = ByteString.valueOf("dn:uid=test,o=test");
 
-    Control c = new Control(OID_PROXIED_AUTH_V2, true, authzID);
-    ProxiedAuthV2Control proxyControl = ProxiedAuthV2Control.decodeControl(c);
+    LDAPControl c = new LDAPControl(OID_PROXIED_AUTH_V2, true, authzID);
+    ProxiedAuthV2Control proxyControl = ProxiedAuthV2Control.DECODER.decode(c.isCritical(), c.getValue());
     assertEquals(proxyControl.getAuthorizationID(), authzID);
   }
 
@@ -195,10 +180,10 @@ public class ProxiedAuthV2ControlTestCase
   public void testDecodeControlUsernameValue()
          throws Exception
   {
-    ASN1OctetString authzID = new ASN1OctetString("u:test");
+    ByteString authzID = ByteString.valueOf("u:test");
 
-    Control c = new Control(OID_PROXIED_AUTH_V2, true, authzID);
-    ProxiedAuthV2Control proxyControl = ProxiedAuthV2Control.decodeControl(c);
+    LDAPControl c = new LDAPControl(OID_PROXIED_AUTH_V2, true, authzID);
+    ProxiedAuthV2Control proxyControl = ProxiedAuthV2Control.DECODER.decode(c.isCritical(), c.getValue());
     assertEquals(proxyControl.getAuthorizationID(), authzID);
   }
 
@@ -210,14 +195,14 @@ public class ProxiedAuthV2ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = { DirectoryException.class })
   public void testDecodeControlInvalidValue()
          throws Exception
   {
-    ASN1OctetString authzID = new ASN1OctetString("invalid");
+    ByteString authzID = ByteString.valueOf("invalid");
 
-    Control c = new Control(OID_PROXIED_AUTH_V2, true, authzID);
-    ProxiedAuthV2Control proxyControl = ProxiedAuthV2Control.decodeControl(c);
+    LDAPControl c = new LDAPControl(OID_PROXIED_AUTH_V2, true, authzID);
+    ProxiedAuthV2Control proxyControl = ProxiedAuthV2Control.DECODER.decode(c.isCritical(), c.getValue());
     assertEquals(proxyControl.getAuthorizationID(), authzID);
   }
 
@@ -234,11 +219,14 @@ public class ProxiedAuthV2ControlTestCase
   public void testDecodeControlLegacyDNValue()
          throws Exception
   {
-    ASN1OctetString innerValue = new ASN1OctetString("dn:uid=test,o=test");
-    ASN1OctetString outerValue = new ASN1OctetString(innerValue.encode());
+    ByteString innerValue = ByteString.valueOf("dn:uid=test,o=test");
+    ByteStringBuilder bsb = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(bsb);
+    writer.writeOctetString(innerValue);
+    ByteString outerValue = bsb.toByteString();
 
-    Control c = new Control(OID_PROXIED_AUTH_V2, true, outerValue);
-    ProxiedAuthV2Control proxyControl = ProxiedAuthV2Control.decodeControl(c);
+    LDAPControl c = new LDAPControl(OID_PROXIED_AUTH_V2, true, outerValue);
+    ProxiedAuthV2Control proxyControl = ProxiedAuthV2Control.DECODER.decode(c.isCritical(), c.getValue());
     assertEquals(proxyControl.getAuthorizationID(), innerValue);
   }
 
@@ -255,44 +243,15 @@ public class ProxiedAuthV2ControlTestCase
   public void testDecodeControlLegacyUsernameValue()
          throws Exception
   {
-    ASN1OctetString innerValue = new ASN1OctetString("u:test");
-    ASN1OctetString outerValue = new ASN1OctetString(innerValue.encode());
+    ByteString innerValue = ByteString.valueOf("u:test");
+    ByteStringBuilder bsb = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(bsb);
+    writer.writeOctetString(innerValue);
+    ByteString outerValue = bsb.toByteString();
 
-    Control c = new Control(OID_PROXIED_AUTH_V2, true, outerValue);
-    ProxiedAuthV2Control proxyControl = ProxiedAuthV2Control.decodeControl(c);
+    LDAPControl c = new LDAPControl(OID_PROXIED_AUTH_V2, true, outerValue);
+    ProxiedAuthV2Control proxyControl = ProxiedAuthV2Control.DECODER.decode(c.isCritical(), c.getValue());
     assertEquals(proxyControl.getAuthorizationID(), innerValue);
-  }
-
-
-
-  /**
-   * Tests the {@code getAuthorizationID} and {@code setAuthorizationID}
-   * methods.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testGetAndSetAuthorizationID()
-         throws Exception
-  {
-    ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(new ASN1OctetString("dn:uid=test,o=test"));
-    assertEquals(proxyControl.getAuthorizationID(),
-                 new ASN1OctetString("dn:uid=test,o=test"));
-
-    proxyControl.setAuthorizationID(null);
-    assertEquals(proxyControl.getAuthorizationID(), new ASN1OctetString(""));
-
-    proxyControl.setAuthorizationID(new ASN1OctetString(""));
-    assertEquals(proxyControl.getAuthorizationID(), new ASN1OctetString(""));
-
-    proxyControl.setAuthorizationID(new ASN1OctetString("u:test"));
-    assertEquals(proxyControl.getAuthorizationID(),
-                 new ASN1OctetString("u:test"));
-
-    proxyControl.setAuthorizationID(new ASN1OctetString("dn:uid=test,o=test"));
-    assertEquals(proxyControl.getAuthorizationID(),
-                 new ASN1OctetString("dn:uid=test,o=test"));
   }
 
 
@@ -308,7 +267,7 @@ public class ProxiedAuthV2ControlTestCase
          throws Exception
   {
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(new ASN1OctetString(""));
+         new ProxiedAuthV2Control(ByteString.valueOf(""));
     assertNull(proxyControl.getAuthorizationEntry());
   }
 
@@ -325,7 +284,7 @@ public class ProxiedAuthV2ControlTestCase
          throws Exception
   {
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(new ASN1OctetString("dn:"));
+         new ProxiedAuthV2Control(ByteString.valueOf("dn:"));
     assertNull(proxyControl.getAuthorizationEntry());
   }
 
@@ -354,7 +313,7 @@ public class ProxiedAuthV2ControlTestCase
       "cn: Test User");
 
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(new ASN1OctetString("dn:uid=test,o=test"));
+         new ProxiedAuthV2Control(ByteString.valueOf("dn:uid=test,o=test"));
     assertEquals(proxyControl.getAuthorizationEntry().getDN(),
                  DN.decode("uid=test,o=test"));
   }
@@ -374,7 +333,7 @@ public class ProxiedAuthV2ControlTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(new ASN1OctetString("dn:uid=test,o=test"));
+         new ProxiedAuthV2Control(ByteString.valueOf("dn:uid=test,o=test"));
     proxyControl.getAuthorizationEntry();
   }
 
@@ -405,7 +364,7 @@ public class ProxiedAuthV2ControlTestCase
       "ds-pwp-account-disabled: true");
 
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(new ASN1OctetString("dn:uid=test,o=test"));
+         new ProxiedAuthV2Control(ByteString.valueOf("dn:uid=test,o=test"));
     proxyControl.getAuthorizationEntry();
   }
 
@@ -422,7 +381,7 @@ public class ProxiedAuthV2ControlTestCase
          throws Exception
   {
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(new ASN1OctetString("u:"));
+         new ProxiedAuthV2Control(ByteString.valueOf("u:"));
     assertNull(proxyControl.getAuthorizationEntry());
   }
 
@@ -451,7 +410,7 @@ public class ProxiedAuthV2ControlTestCase
       "cn: Test User");
 
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(new ASN1OctetString("u:test"));
+         new ProxiedAuthV2Control(ByteString.valueOf("u:test"));
     assertEquals(proxyControl.getAuthorizationEntry().getDN(),
                  DN.decode("uid=test,o=test"));
   }
@@ -471,7 +430,7 @@ public class ProxiedAuthV2ControlTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(new ASN1OctetString("u:test"));
+         new ProxiedAuthV2Control(ByteString.valueOf("u:test"));
     proxyControl.getAuthorizationEntry();
   }
 
@@ -502,7 +461,7 @@ public class ProxiedAuthV2ControlTestCase
       "ds-pwp-account-disabled: true");
 
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(new ASN1OctetString("u:test"));
+         new ProxiedAuthV2Control(ByteString.valueOf("u:test"));
     proxyControl.getAuthorizationEntry();
   }
 
@@ -519,7 +478,7 @@ public class ProxiedAuthV2ControlTestCase
          throws Exception
   {
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(new ASN1OctetString("invalid"));
+         new ProxiedAuthV2Control(ByteString.valueOf("invalid"));
     proxyControl.getAuthorizationEntry();
   }
 
@@ -537,10 +496,10 @@ public class ProxiedAuthV2ControlTestCase
     // The default toString() calls the version that takes a string builder
     // argument, so we only need to use the default version to cover both cases.
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(new ASN1OctetString("dn:uid=test,o=test"));
+         new ProxiedAuthV2Control(ByteString.valueOf("dn:uid=test,o=test"));
     proxyControl.toString();
 
-    proxyControl = new ProxiedAuthV2Control(new ASN1OctetString("u:test"));
+    proxyControl = new ProxiedAuthV2Control(ByteString.valueOf("u:test"));
     proxyControl.toString();
   }
 }

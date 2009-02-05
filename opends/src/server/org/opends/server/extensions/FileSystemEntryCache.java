@@ -68,18 +68,8 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.backends.jeb.ConfigurableEnvironment;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.EntryEncodeConfig;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.FilePermission;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.OpenDsException;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.Attribute;
+import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -215,6 +205,7 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   @SuppressWarnings("unchecked")
   public void initializeEntryCache(FileSystemEntryCacheCfg configuration)
           throws ConfigException, InitializationException {
@@ -441,6 +432,7 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   @SuppressWarnings("unchecked")
   public void finalizeEntryCache() {
 
@@ -530,6 +522,7 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean containsEntry(DN entryDN)
   {
     if (entryDN == null) {
@@ -551,6 +544,7 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public Entry getEntry(DN entryDN) {
     // Get the entry from the DN map if it is present.  If not, then return
     // null.
@@ -575,6 +569,7 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getEntryID(DN entryDN) {
     long entryID = -1;
     cacheReadLock.lock();
@@ -592,6 +587,7 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getEntryDN(Backend backend, long entryID) {
 
     DN entryDN = null;
@@ -616,12 +612,15 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void putEntry(Entry entry, Backend backend, long entryID)
   {
     try {
-      byte[] entryBytes = entry.encode(encodeConfig);
+      // TODO: Cache the buffer?
+      ByteStringBuilder buffer = new ByteStringBuilder();
+      entry.encode(buffer, encodeConfig);
       putEntryToDB(entry.getDN().toNormalizedString(),
-        backend, entryID, entryBytes);
+        backend, entryID, buffer);
     } catch (Exception e) {
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
@@ -632,6 +631,7 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean putEntryIfAbsent(Entry entry, Backend backend, long entryID)
   {
     cacheReadLock.lock();
@@ -646,9 +646,11 @@ public class FileSystemEntryCache
       cacheReadLock.unlock();
     }
     try {
-      byte[] entryBytes = entry.encode(encodeConfig);
+      // TODO: Cache the buffer?
+      ByteStringBuilder buffer = new ByteStringBuilder();
+      entry.encode(buffer, encodeConfig);
       return putEntryToDB(entry.getDN().toNormalizedString(),
-        backend, entryID, entryBytes);
+        backend, entryID, buffer);
     } catch (Exception e) {
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
@@ -661,6 +663,7 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void removeEntry(DN entryDN) {
 
     cacheWriteLock.lock();
@@ -701,6 +704,7 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   @SuppressWarnings("unchecked")
   public void clear() {
 
@@ -743,6 +747,7 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void clearBackend(Backend backend) {
 
     cacheWriteLock.lock();
@@ -795,6 +800,7 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void clearSubtree(DN baseDN) {
     // Determine which backend should be used for the provided base DN.  If
     // there is none, then we don't need to do anything.
@@ -914,6 +920,7 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void handleLowMemory() {
     // This is about all we can do.
     if (entryCacheEnv != null) {
@@ -1265,6 +1272,7 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public ArrayList<Attribute> getMonitorData()
   {
     ArrayList<Attribute> attrs = new ArrayList<Attribute>();
@@ -1295,6 +1303,7 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public Long getCacheCount()
   {
     return new Long(entryCacheIndex.dnMap.size());
@@ -1320,7 +1329,8 @@ public class FileSystemEntryCache
               primaryData,
               LockMode.DEFAULT) == OperationStatus.SUCCESS) {
 
-        Entry entry = Entry.decode(primaryData.getData());
+        Entry entry = Entry.decode(
+            ByteString.wrap(primaryData.getData()).asReader());
         entry.setDN(entryDN);
         return entry;
       } else {
@@ -1340,7 +1350,6 @@ public class FileSystemEntryCache
   /**
    * Encodes and stores the entry in the JE backend db.
    *
-   * @param  entry    The entry to store in the cache.
    * @param  backend  The backend with which the entry is associated.
    * @param  entryID  The entry ID within the provided backend that uniquely
    *                  identifies the specified entry.
@@ -1353,7 +1362,7 @@ public class FileSystemEntryCache
   private boolean putEntryToDB(String dnString,
                                Backend backend,
                                long entryID,
-                               byte[] entryBytes) {
+                               ByteStringBuilder entryBytes) {
     try {
       // Obtain a lock on the cache.  If this fails, then don't do anything.
       if (!cacheWriteLock.tryLock(getLockTimeout(), TimeUnit.MILLISECONDS)) {
@@ -1398,7 +1407,8 @@ public class FileSystemEntryCache
 
       // Create data and put this cache entry into the database.
       if (entryCacheDB.put(null, cacheEntryKey,
-          new DatabaseEntry(entryBytes)) == OperationStatus.SUCCESS) {
+          new DatabaseEntry(entryBytes.getBackingArray(), 0,
+              entryBytes.length())) == OperationStatus.SUCCESS) {
         // Add the entry to the cache index maps.
         Map<Long,String> map =
           entryCacheIndex.backendMap.get(backend.getBackendID());

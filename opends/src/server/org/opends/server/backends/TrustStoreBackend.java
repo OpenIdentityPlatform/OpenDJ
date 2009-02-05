@@ -75,33 +75,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.BackupConfig;
-import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.FilePermission;
-import org.opends.server.types.IndexType;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.LDIFImportResult;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.RDN;
-import org.opends.server.types.RestoreConfig;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.Validator;
 
@@ -581,7 +555,7 @@ public class TrustStoreBackend
                                    baseDN, null);
     }
 
-    String certAlias = v.getStringValue();
+    String certAlias = v.getValue().toString();
     ByteString certValue;
     try
     {
@@ -592,7 +566,7 @@ public class TrustStoreBackend
             String.valueOf(entryDN), certAlias);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
-      certValue = new ASN1OctetString(cert.getEncoded());
+      certValue = ByteString.wrap(cert.getEncoded());
     }
     catch (Exception e)
     {
@@ -630,7 +604,7 @@ public class TrustStoreBackend
         true);
     AttributeBuilder builder = new AttributeBuilder(t);
     builder.setOption("binary");
-    builder.add(new AttributeValue(t, certValue));
+    builder.add(AttributeValues.create(t, certValue));
     attrList = new ArrayList<Attribute>(1);
     attrList.add(builder.toAttribute());
     userAttrs.put(t, attrList);
@@ -1370,7 +1344,7 @@ public class TrustStoreBackend
                                String rdnStringValue)
   {
     AttributeValue attrValue =
-         new AttributeValue(rdnAttrType, rdnStringValue);
+        AttributeValues.create(rdnAttrType, rdnStringValue);
     return parentDN.concat(RDN.create(rdnAttrType, attrValue));
   }
 
@@ -1575,7 +1549,7 @@ public class TrustStoreBackend
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
                                    baseDN, null);
     }
-    String certAlias = v.getStringValue();
+    String certAlias = v.getValue().toString();
 
     try
     {
@@ -1642,7 +1616,7 @@ public class TrustStoreBackend
                DirectoryServer.getServerErrorResultCode(), message);
         }
 
-        byte[] certBytes = i.next().getValueBytes();
+        ByteString certBytes = i.next().getValue();
 
         if (i.hasNext())
         {
@@ -1665,7 +1639,7 @@ public class TrustStoreBackend
                  new FileOutputStream(tempFile.getPath(), false);
             try
             {
-              outputStream.write(certBytes);
+              certBytes.copyTo(outputStream);
             }
             finally
             {
@@ -1713,7 +1687,7 @@ public class TrustStoreBackend
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
                                    baseDN, null);
     }
-    String certAlias = v.getStringValue();
+    String certAlias = v.getValue().toString();
 
     try
     {

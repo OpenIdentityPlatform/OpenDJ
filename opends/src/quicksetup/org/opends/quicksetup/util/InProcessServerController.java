@@ -42,7 +42,6 @@ import org.opends.server.loggers.TextAccessLogPublisher;
 import org.opends.server.loggers.AccessLogger;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ResultCode;
-import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Attribute;
@@ -60,7 +59,6 @@ import org.opends.server.util.AddChangeRecordEntry;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.AddOperation;
@@ -411,7 +409,7 @@ public class InProcessServerController {
     InternalClientConnection cc =
             InternalClientConnection.getRootConnection();
     ByteString dnByteString =
-            ByteStringFactory.create(
+        ByteString.valueOf(
                     cre.getDN().toString());
     ResultCode rc;
     switch (cre.getChangeOperationType()) {
@@ -467,8 +465,8 @@ public class InProcessServerController {
           // can ignore this add.
           boolean ignore = true;
           for (RawAttribute attr : rawAttrs) {
-            ArrayList<ASN1OctetString> values = attr.getValues();
-            for (ASN1OctetString value : values) {
+            ArrayList<ByteString> values = attr.getValues();
+            for (ByteString value : values) {
               CompareOperation compOp =
                 cc.processCompare(dnByteString, attr.getAttributeType(), value);
               if (ResultCode.ASSERTION_FAILED.equals(compOp.getResultCode())) {

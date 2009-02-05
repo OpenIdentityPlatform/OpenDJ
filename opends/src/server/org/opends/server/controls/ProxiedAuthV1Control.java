@@ -28,31 +28,21 @@ package org.opends.server.controls;
 import org.opends.messages.Message;
 
 
-
-import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
+import java.io.IOException;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.Control;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.ResultCode;
-
+import org.opends.server.protocols.asn1.*;
+import static org.opends.server.protocols.asn1.ASN1Constants.
+    UNIVERSAL_OCTET_STRING_TYPE;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
+
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.Validator.*;
 
 
 
@@ -69,6 +59,66 @@ public class ProxiedAuthV1Control
        extends Control
 {
   /**
+   * ControlDecoder implentation to decode this control from a ByteString.
+   */
+  private final static class Decoder
+      implements ControlDecoder<ProxiedAuthV1Control>
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public ProxiedAuthV1Control decode(boolean isCritical, ByteString value)
+        throws DirectoryException
+    {
+      if (!isCritical)
+      {
+        Message message = ERR_PROXYAUTH1_CONTROL_NOT_CRITICAL.get();
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+      }
+
+      if (value == null)
+      {
+        Message message = ERR_PROXYAUTH1_NO_CONTROL_VALUE.get();
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+      }
+
+      ASN1Reader reader = ASN1.getReader(value);
+      DN authorizationDN;
+      try
+      {
+        reader.readStartSequence();
+        authorizationDN = DN.decode(reader.readOctetString());
+        reader.readEndSequence();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message =
+            ERR_PROXYAUTH1_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
+      }
+
+      return new ProxiedAuthV1Control(isCritical, authorizationDN);
+    }
+
+    public String getOID()
+    {
+      return OID_PROXIED_AUTH_V1;
+    }
+
+  }
+
+  /**
+   * The Control Decoder that can be used to decode this control.
+   */
+  public static final ControlDecoder<ProxiedAuthV1Control> DECODER =
+    new Decoder();
+
+  /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
@@ -77,7 +127,7 @@ public class ProxiedAuthV1Control
 
 
   // The raw, unprocessed authorization DN from the control value.
-  private ASN1OctetString rawAuthorizationDN;
+  private ByteString rawAuthorizationDN;
 
   // The processed authorization DN from the control value.
   private DN authorizationDN;
@@ -91,14 +141,9 @@ public class ProxiedAuthV1Control
    * @param  rawAuthorizationDN  The raw, unprocessed authorization DN from the
    *                             control value.  It must not be {@code null}.
    */
-  public ProxiedAuthV1Control(ASN1OctetString rawAuthorizationDN)
+  public ProxiedAuthV1Control(ByteString rawAuthorizationDN)
   {
-    super(OID_PROXIED_AUTH_V1, true, encodeValue(rawAuthorizationDN));
-
-
-    this.rawAuthorizationDN = rawAuthorizationDN;
-
-    authorizationDN = null;
+    this(true, rawAuthorizationDN);
   }
 
 
@@ -112,13 +157,7 @@ public class ProxiedAuthV1Control
    */
   public ProxiedAuthV1Control(DN authorizationDN)
   {
-    super(OID_PROXIED_AUTH_V1, true,
-          encodeValue(new ASN1OctetString(authorizationDN.toString())));
-
-
-    this.authorizationDN = authorizationDN;
-
-    rawAuthorizationDN = new ASN1OctetString(authorizationDN.toString());
+    this(true, authorizationDN);
   }
 
 
@@ -127,19 +166,15 @@ public class ProxiedAuthV1Control
    * Creates a new instance of the proxied authorization v1 control with the
    * provided information.
    *
-   * @param  oid                 The OID to use for this control.
    * @param  isCritical          Indicates whether support for this control
    *                             should be considered a critical part of the
    *                             server processing.
-   * @param  controlValue        The encoded value for this control.
    * @param  rawAuthorizationDN  The raw, unprocessed authorization DN from the
    *                             control value.
    */
-  private ProxiedAuthV1Control(String oid, boolean isCritical,
-                             ASN1OctetString controlValue,
-                             ASN1OctetString rawAuthorizationDN)
+  public ProxiedAuthV1Control(boolean isCritical, ByteString rawAuthorizationDN)
   {
-    super(oid, isCritical, controlValue);
+    super(OID_PROXIED_AUTH_V1, isCritical);
 
 
     this.rawAuthorizationDN = rawAuthorizationDN;
@@ -150,91 +185,43 @@ public class ProxiedAuthV1Control
 
 
   /**
-   * Generates an encoded value for this control containing the provided raw
-   * authorization DN.
+   * Creates a new instance of the proxied authorization v1 control with the
+   * provided information.
    *
-   * @param  rawAuthorizationDN  The raw, unprocessed authorization DN to use in
-   *                             the control value.  It must not be
-   *                             {@code null}.
-   *
-   * @return  The encoded control value.
+   * @param  isCritical          Indicates whether support for this control
+   *                             should be considered a critical part of the
+   *                             server processing.
+   * @param  authorizationDN     The authorization DN from the control value.
+   *                             It must not be {@code null}.
    */
-  private static ASN1OctetString encodeValue(ASN1OctetString rawAuthorizationDN)
+  public ProxiedAuthV1Control(boolean isCritical, DN authorizationDN)
   {
-    ensureNotNull(rawAuthorizationDN);
+    super(OID_PROXIED_AUTH_V1, isCritical);
 
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(1);
-    elements.add(rawAuthorizationDN);
 
-    return new ASN1OctetString(new ASN1Sequence(elements).encode());
+    this.authorizationDN = authorizationDN;
+
+    rawAuthorizationDN = ByteString.valueOf(authorizationDN.toString());
   }
 
 
 
   /**
-   * Creates a new proxied authorization v1 control from the contents of the
-   * provided control.
+   * Writes this control's value to an ASN.1 writer. The value (if any) must be
+   * written as an ASN1OctetString.
    *
-   * @param  control  The generic control containing the information to use to
-   *                  create this proxied authorization v1 control.  It must not
-   *                  be {@code null}.
-   *
-   * @return  The proxied authorization v1 control decoded from the provided
-   *          control.
-   *
-   * @throws  LDAPException  If this control cannot be decoded as a valid
-   *                         proxied authorization v1 control.
+   * @param writer The ASN.1 writer to use.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public static ProxiedAuthV1Control decodeControl(Control control)
-         throws LDAPException
-  {
-    ensureNotNull(control);
+  @Override
+  protected void writeValue(ASN1Writer writer) throws IOException {
+    writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
 
-    if (! control.isCritical())
-    {
-      Message message = ERR_PROXYAUTH1_CONTROL_NOT_CRITICAL.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-    }
+    writer.writeStartSequence();
+    writer.writeOctetString(rawAuthorizationDN);
+    writer.writeEndSequence();
 
-    if (! control.hasValue())
-    {
-      Message message = ERR_PROXYAUTH1_NO_CONTROL_VALUE.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-    }
-
-
-    ASN1OctetString rawAuthorizationDN;
-    try
-    {
-      ArrayList<ASN1Element> elements =
-           ASN1Sequence.decodeAsSequence(control.getValue().value()).elements();
-      if (elements.size() != 1)
-      {
-        Message message =
-            ERR_PROXYAUTH1_INVALID_ELEMENT_COUNT.get(elements.size());
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-      }
-
-      rawAuthorizationDN = elements.get(0).decodeAsOctetString();
-    }
-    catch (LDAPException le)
-    {
-      throw le;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_PROXYAUTH1_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message, e);
-    }
-
-    return new ProxiedAuthV1Control(control.getOID(), control.isCritical(),
-                                    control.getValue(), rawAuthorizationDN);
+    writer.writeEndSequence();
   }
 
 
@@ -244,26 +231,9 @@ public class ProxiedAuthV1Control
    *
    * @return  The raw, unprocessed authorization DN from the control value.
    */
-  public ASN1OctetString getRawAuthorizationDN()
+  public ByteString getRawAuthorizationDN()
   {
     return rawAuthorizationDN;
-  }
-
-
-
-  /**
-   * Specifies the raw, unprocessed authorization DN for this proxied auth
-   * control.
-   *
-   * @param  rawAuthorizationDN  The raw, unprocessed authorization DN for this
-   *                             proxied auth control.
-   */
-  public void setRawAuthorizationDN(ASN1OctetString rawAuthorizationDN)
-  {
-    this.rawAuthorizationDN = rawAuthorizationDN;
-
-    setValue(encodeValue(rawAuthorizationDN));
-    authorizationDN = null;
   }
 
 
@@ -285,24 +255,6 @@ public class ProxiedAuthV1Control
     }
 
     return authorizationDN;
-  }
-
-
-
-  /**
-   * Specifies the authorization DN for this proxied auth control.
-   *
-   * @param  authorizationDN  The authorizationDN for this proxied auth control.
-   *                          It must not be {@code null}.
-   */
-  public void setAuthorizationDN(DN authorizationDN)
-  {
-    ensureNotNull(authorizationDN);
-
-    this.authorizationDN = authorizationDN;
-
-    rawAuthorizationDN = new ASN1OctetString(authorizationDN.toString());
-    setValue(encodeValue(rawAuthorizationDN));
   }
 
 
@@ -396,29 +348,16 @@ public class ProxiedAuthV1Control
 
 
   /**
-   * Retrieves a string representation of this proxied auth v1 control.
-   *
-   * @return  A string representation of this proxied auth v1 control.
-   */
-  public String toString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
-  }
-
-
-
-  /**
    * Appends a string representation of this proxied auth v1 control to the
    * provided buffer.
    *
    * @param  buffer  The buffer to which the information should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("ProxiedAuthorizationV1Control(authorizationDN=\"");
-    rawAuthorizationDN.toString(buffer);
+    buffer.append(rawAuthorizationDN);
     buffer.append("\")");
   }
 }

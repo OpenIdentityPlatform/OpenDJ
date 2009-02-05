@@ -31,12 +31,7 @@ import java.util.Set;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
+import org.opends.server.types.*;
 
 
 /**
@@ -136,7 +131,7 @@ public class HistVal
       if (token.length == 4)
       {
         stringValue = token[3];
-        attributeValue = new AttributeValue(attrType, stringValue);
+        attributeValue = AttributeValues.create(attrType, stringValue);
       }
       else
         attributeValue = null;

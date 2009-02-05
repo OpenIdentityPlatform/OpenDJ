@@ -43,21 +43,7 @@ import org.opends.server.backends.task.TaskState;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.Modification;
-import org.opends.server.types.Operation;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.Schema;
+import org.opends.server.types.*;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -136,7 +122,7 @@ public class AddSchemaFileTask
     {
       for (AttributeValue v  : a)
       {
-        String filename = v.getStringValue();
+        String filename = v.getValue().toString();
         filesToAdd.add(filename);
 
         try
@@ -253,7 +239,7 @@ public class AddSchemaFileTask
                 .getAttributeType(), a.getName());
             for (AttributeValue v : a)
             {
-              String s = v.getStringValue();
+              String s = v.getValue().toString();
               if (s.indexOf(SCHEMA_PROPERTY_FILENAME) < 0)
               {
                 if (s.endsWith(" )"))
@@ -268,7 +254,7 @@ public class AddSchemaFileTask
                 }
               }
 
-              builder.add(new AttributeValue(a.getAttributeType(), s));
+              builder.add(AttributeValues.create(a.getAttributeType(), s));
             }
 
             mods.add(new Modification(m.getModificationType(), builder

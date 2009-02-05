@@ -25,25 +25,17 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
 
 
+import java.io.IOException;
 
-import java.util.ArrayList;
-
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Integer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
+import org.opends.server.protocols.asn1.*;
 import org.opends.server.types.AuthenticationType;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
+import org.opends.server.types.ByteString;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -61,13 +53,13 @@ public class BindRequestProtocolOp
   private static final DebugTracer TRACER = getTracer();
 
   // The bind DN for this request.
-  private ASN1OctetString dn;
+  private ByteString dn;
 
   // The SASL credentials for this request.
-  private ASN1OctetString saslCredentials;
+  private ByteString saslCredentials;
 
   // The simple authentication password for this request.
-  private ASN1OctetString simplePassword;
+  private ByteString simplePassword;
 
   // The authentication type for this request.
   private AuthenticationType authenticationType;
@@ -88,8 +80,8 @@ public class BindRequestProtocolOp
    * @param  protocolVersion  The LDAP protocol version for this bind request.
    * @param  simplePassword   The password for this bind request.
    */
-  public BindRequestProtocolOp(ASN1OctetString dn, int protocolVersion,
-                               ASN1OctetString simplePassword)
+  public BindRequestProtocolOp(ByteString dn, int protocolVersion,
+                               ByteString simplePassword)
   {
     this.dn              = dn;
     this.protocolVersion = protocolVersion;
@@ -110,8 +102,8 @@ public class BindRequestProtocolOp
    * @param  saslMechanism    The SASL mechanism for this bind request.
    * @param  saslCredentials  The SASL credentials for this bind request.
    */
-  public BindRequestProtocolOp(ASN1OctetString dn, String saslMechanism,
-                               ASN1OctetString saslCredentials)
+  public BindRequestProtocolOp(ByteString dn, String saslMechanism,
+                               ByteString saslCredentials)
   {
     this.dn              = dn;
     this.saslMechanism   = saslMechanism;
@@ -125,52 +117,13 @@ public class BindRequestProtocolOp
 
 
   /**
-   * Creates a new bind request protocol op to perform SASL authentication with
-   * the provided information.
-   *
-   * @param  dn                  The DN for this bind request.
-   * @param  protocolVersion     The protocol version for this bind request.
-   * @param  authenticationType  The authentication type for this bind request.
-   * @param  simplePassword      The password for this bind request.
-   * @param  saslMechanism       The SASL mechanism for this bind request.
-   * @param  saslCredentials     The SASL credentials for this bind request.
-   */
-  private BindRequestProtocolOp(ASN1OctetString dn, int protocolVersion,
-                                AuthenticationType authenticationType,
-                                ASN1OctetString simplePassword,
-                                String saslMechanism,
-                                ASN1OctetString saslCredentials)
-  {
-    this.dn                 = dn;
-    this.protocolVersion    = protocolVersion;
-    this.authenticationType = authenticationType;
-    this.simplePassword     = simplePassword;
-    this.saslMechanism      = saslMechanism;
-    this.saslCredentials    = saslCredentials;
-  }
-
-
-
-  /**
    * Retrieves the DN for this bind request.
    *
    * @return  The DN for this bind request.
    */
-  public ASN1OctetString getDN()
+  public ByteString getDN()
   {
     return dn;
-  }
-
-
-
-  /**
-   * Specifies the DN for this bind request.
-   *
-   * @param  dn  The DN for this bind request.
-   */
-  public void setDN(ASN1OctetString dn)
-  {
-    this.dn = dn;
   }
 
 
@@ -183,18 +136,6 @@ public class BindRequestProtocolOp
   public int getProtocolVersion()
   {
     return protocolVersion;
-  }
-
-
-
-  /**
-   * Specifies the protocol version for this bind request.
-   *
-   * @param  protocolVersion  The protocol version for this bind request.
-   */
-  public void setProtocolVersion(int protocolVersion)
-  {
-    this.protocolVersion = protocolVersion;
   }
 
 
@@ -217,26 +158,9 @@ public class BindRequestProtocolOp
    * @return  The simple authentication password for this bind request, or
    *          <CODE>null</CODE> if this is a SASL bind request.
    */
-  public ASN1OctetString getSimplePassword()
+  public ByteString getSimplePassword()
   {
     return simplePassword;
-  }
-
-
-
-  /**
-   * Indicates that this bind request should use simple authentication with the
-   * provided password.
-   *
-   * @param  simplePassword  The simple authentication password for this bind
-   *                         request.
-   */
-  public void setSimplePassword(ASN1OctetString simplePassword)
-  {
-    this.simplePassword = simplePassword;
-    authenticationType  = AuthenticationType.SIMPLE;
-    saslMechanism       = null;
-    saslCredentials     = null;
   }
 
 
@@ -260,27 +184,9 @@ public class BindRequestProtocolOp
    * @return  The SASL credentials for this bind request, or <CODE>null</CODE>
    *          if there are none or if this is a simple bind request.
    */
-  public ASN1OctetString getSASLCredentials()
+  public ByteString getSASLCredentials()
   {
     return saslCredentials;
-  }
-
-
-
-  /**
-   * Indicates that this bind request should use SASL authentication with the
-   * provided information.
-   *
-   * @param  saslMechanism    The SASL mechanism for this bind request.
-   * @param  saslCredentials  The SASL credentials for this bind request.
-   */
-  public void setSASLAuthenticationInfo(String saslMechanism,
-                                        ASN1OctetString saslCredentials)
-  {
-    this.saslMechanism   = saslMechanism;
-    this.saslCredentials = saslCredentials;
-    authenticationType   = AuthenticationType.SASL;
-    simplePassword       = null;
   }
 
 
@@ -308,189 +214,34 @@ public class BindRequestProtocolOp
     return "Bind Request";
   }
 
-
-
   /**
-   * Encodes this protocol op to an ASN.1 element suitable for including in an
-   * LDAP message.
+   * Writes this protocol op to an ASN.1 output stream.
    *
-   * @return  The ASN.1 element containing the encoded protocol op.
+   * @param stream The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public ASN1Element encode()
+  public void write(ASN1Writer stream) throws IOException
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(3);
+    stream.writeStartSequence(OP_TYPE_BIND_REQUEST);
+    stream.writeInteger(protocolVersion);
+    stream.writeOctetString(dn);
 
-    elements.add(new ASN1Integer(protocolVersion));
-    elements.add(dn);
-
-    if (authenticationType == AuthenticationType.SIMPLE)
+    if(authenticationType == AuthenticationType.SIMPLE)
     {
-      simplePassword.setType(TYPE_AUTHENTICATION_SIMPLE);
-      elements.add(simplePassword);
+      stream.writeOctetString(TYPE_AUTHENTICATION_SIMPLE, simplePassword);
     }
     else
     {
-      ArrayList<ASN1Element> saslElements = new ArrayList<ASN1Element>(2);
-      saslElements.add(new ASN1OctetString(saslMechanism));
-      if (saslCredentials != null)
+      stream.writeStartSequence(TYPE_AUTHENTICATION_SASL);
+      stream.writeOctetString(saslMechanism);
+      if(saslCredentials != null)
       {
-        saslElements.add(saslCredentials);
+        stream.writeOctetString(saslCredentials);
       }
-
-      elements.add(new ASN1Sequence(TYPE_AUTHENTICATION_SASL, saslElements));
+      stream.writeEndSequence();
     }
 
-    return new ASN1Sequence(OP_TYPE_BIND_REQUEST, elements);
-  }
-
-
-
-  /**
-   * Decodes the provided ASN.1 element as an LDAP bind request protocol op.
-   *
-   * @param  element  The ASN.1 element to decode.
-   *
-   * @return  The decoded LDAP bind request protocol op.
-   *
-   * @throws  LDAPException  If a problem occurs while trying to decode the
-   *                         provided ASN.1 element as an LDAP bind request.
-   */
-  public static BindRequestProtocolOp decodeBindRequest(ASN1Element element)
-         throws LDAPException
-  {
-    ArrayList<ASN1Element> elements;
-    try
-    {
-      elements = element.decodeAsSequence().elements();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_BIND_REQUEST_DECODE_SEQUENCE.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    int numElements = elements.size();
-    if (numElements != 3)
-    {
-      Message message = ERR_LDAP_BIND_REQUEST_DECODE_INVALID_ELEMENT_COUNT.get(
-          numElements);
-      throw new LDAPException(PROTOCOL_ERROR, message);
-    }
-
-
-    int protocolVersion;
-    try
-    {
-      protocolVersion = elements.get(0).decodeAsInteger().intValue();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_BIND_REQUEST_DECODE_VERSION.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    ASN1OctetString dn;
-    try
-    {
-      dn = elements.get(1).decodeAsOctetString();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_LDAP_BIND_REQUEST_DECODE_DN.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    AuthenticationType authenticationType;
-    ASN1OctetString    simplePassword  = null;
-    String             saslMechanism   = null;
-    ASN1OctetString    saslCredentials = null;
-    try
-    {
-      element = elements.get(2);
-      switch (element.getType())
-      {
-        case TYPE_AUTHENTICATION_SIMPLE:
-          authenticationType = AuthenticationType.SIMPLE;
-
-          try
-          {
-            simplePassword = element.decodeAsOctetString();
-          }
-          catch (Exception e)
-          {
-            Message message =
-                ERR_LDAP_BIND_REQUEST_DECODE_PASSWORD.get(String.valueOf(e));
-            throw new LDAPException(PROTOCOL_ERROR, message, e);
-          }
-
-          break;
-        case TYPE_AUTHENTICATION_SASL:
-          authenticationType = AuthenticationType.SASL;
-
-          try
-          {
-            elements = element.decodeAsSequence().elements();
-
-            saslMechanism = elements.get(0).decodeAsOctetString().stringValue();
-            if (elements.size() == 2)
-            {
-              saslCredentials = elements.get(1).decodeAsOctetString();
-            }
-          }
-          catch (Exception e)
-          {
-            Message message =
-                ERR_LDAP_BIND_REQUEST_DECODE_SASL_INFO.get(String.valueOf(e));
-            throw new LDAPException(PROTOCOL_ERROR, message, e);
-          }
-
-          break;
-        default:
-          Message message = ERR_LDAP_BIND_REQUEST_DECODE_INVALID_CRED_TYPE.get(
-              element.getType());
-          throw new LDAPException(AUTH_METHOD_NOT_SUPPORTED, message);
-      }
-    }
-    catch (LDAPException le)
-    {
-      throw le;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_LDAP_BIND_REQUEST_DECODE_CREDENTIALS.get(String.valueOf(e));
-      throw new LDAPException(PROTOCOL_ERROR, message, e);
-    }
-
-
-    return new BindRequestProtocolOp(dn, protocolVersion, authenticationType,
-                                     simplePassword, saslMechanism,
-                                     saslCredentials);
+    stream.writeEndSequence();
   }
 
 
@@ -508,13 +259,13 @@ public class BindRequestProtocolOp
 
     if (dn != null)
     {
-      dn.toString(buffer);
+      buffer.append(dn.toString());
     }
 
     if (authenticationType == AuthenticationType.SIMPLE)
     {
       buffer.append(", password=");
-      simplePassword.toString(buffer);
+      buffer.append(simplePassword.toString());
     }
     else
     {
@@ -524,7 +275,7 @@ public class BindRequestProtocolOp
       if (saslCredentials != null)
       {
         buffer.append(", saslCredentials=");
-        saslCredentials.toString(buffer);
+        buffer.append(saslCredentials.toString());
       }
     }
 
@@ -562,7 +313,7 @@ public class BindRequestProtocolOp
     buffer.append("  DN:  ");
     if (dn != null)
     {
-      dn.toString(buffer);
+      buffer.append(dn.toString());
     }
     buffer.append(EOL);
 
@@ -585,7 +336,7 @@ public class BindRequestProtocolOp
         buffer.append(indentBuf);
         buffer.append("  SASL Credentials:");
         buffer.append(EOL);
-        saslCredentials.toString(buffer, indent+4);
+        saslCredentials.toHexPlusAscii(buffer, indent+4);
       }
     }
   }

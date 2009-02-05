@@ -32,22 +32,20 @@ import org.opends.messages.Message;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.controls.PasswordPolicyWarningType;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
+import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
-import org.opends.server.types.DN;
-import org.opends.server.types.NullOutputStream;
+import org.opends.server.types.*;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
@@ -565,7 +563,7 @@ public class LDAPPasswordModify
 
 
     // If a control string was provided, then decode the requested controls.
-    ArrayList<LDAPControl> controls = new ArrayList<LDAPControl>();
+    ArrayList<Control> controls = new ArrayList<Control>();
     if(controlStr.isPresent())
     {
       for (String ctrlString : controlStr.getValues())
@@ -680,51 +678,58 @@ public class LDAPPasswordModify
 
 
     // Construct the password modify request.
-    ArrayList<ASN1Element> requestElements = new ArrayList<ASN1Element>(3);
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer asn1Writer = ASN1.getWriter(builder);
+
+    try
+    {
+    asn1Writer.writeStartSequence();
     if (authzID.isPresent())
     {
-      requestElements.add(new ASN1OctetString(TYPE_PASSWORD_MODIFY_USER_ID,
-                                              authzID.getValue()));
+      asn1Writer.writeOctetString(TYPE_PASSWORD_MODIFY_USER_ID,
+          authzID.getValue());
     }
     else if (provideDNForAuthzID.isPresent())
     {
-      requestElements.add(new ASN1OctetString(TYPE_PASSWORD_MODIFY_USER_ID,
-                                              "dn:" + dn));
+      asn1Writer.writeOctetString(TYPE_PASSWORD_MODIFY_USER_ID, "dn:" + dn);
     }
 
     if (currentPW.isPresent())
     {
-      requestElements.add(new ASN1OctetString(TYPE_PASSWORD_MODIFY_OLD_PASSWORD,
-                                              currentPW.getValue()));
+      asn1Writer.writeOctetString(TYPE_PASSWORD_MODIFY_OLD_PASSWORD,
+                                              currentPW.getValue());
     }
     else if (currentPWFile.isPresent())
     {
-      requestElements.add(new ASN1OctetString(TYPE_PASSWORD_MODIFY_OLD_PASSWORD,
-                                              currentPWFile.getValue()));
+      asn1Writer.writeOctetString(TYPE_PASSWORD_MODIFY_OLD_PASSWORD,
+                                              currentPWFile.getValue());
     }
     else if (provideDNForAuthzID.isPresent())
     {
-      requestElements.add(new ASN1OctetString(TYPE_PASSWORD_MODIFY_OLD_PASSWORD,
-                                              pw));
+      asn1Writer.writeOctetString(TYPE_PASSWORD_MODIFY_OLD_PASSWORD,
+                                              pw);
     }
 
     if (newPW.isPresent())
     {
-      requestElements.add(new ASN1OctetString(TYPE_PASSWORD_MODIFY_NEW_PASSWORD,
-                                              newPW.getValue()));
+      asn1Writer.writeOctetString(TYPE_PASSWORD_MODIFY_NEW_PASSWORD,
+                                              newPW.getValue());
     }
     else if (newPWFile.isPresent())
     {
-      requestElements.add(new ASN1OctetString(TYPE_PASSWORD_MODIFY_NEW_PASSWORD,
-                                              newPWFile.getValue()));
+      asn1Writer.writeOctetString(TYPE_PASSWORD_MODIFY_NEW_PASSWORD,
+                                              newPWFile.getValue());
     }
-
-    ASN1OctetString requestValue =
-         new ASN1OctetString(new ASN1Sequence(requestElements).encode());
+    asn1Writer.writeEndSequence();
+    }
+    catch(Exception e)
+    {
+      err.println(e);
+    }
 
     ExtendedRequestProtocolOp extendedRequest =
          new ExtendedRequestProtocolOp(OID_PASSWORD_MODIFY_REQUEST,
-                                       requestValue);
+                                       builder.toByteString());
     LDAPMessage requestMessage =
          new LDAPMessage(nextMessageID.getAndIncrement(), extendedRequest,
                          controls);
@@ -847,17 +852,18 @@ public class LDAPPasswordModify
 
     // See if the response included any controls that we recognize, and if so
     // then handle them.
-    ArrayList<LDAPControl> responseControls = responseMessage.getControls();
+    List<Control> responseControls = responseMessage.getControls();
     if (responseControls != null)
     {
-      for (LDAPControl c : responseControls)
+      for (Control c : responseControls)
       {
         if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
         {
           try
           {
             PasswordPolicyResponseControl pwPolicyControl =
-                 PasswordPolicyResponseControl.decodeControl(c.getControl());
+              PasswordPolicyResponseControl.DECODER
+                .decode(c.isCritical(), ((LDAPControl) c).getValue());
 
             PasswordPolicyWarningType pwPolicyWarningType =
                  pwPolicyControl.getWarningType();
@@ -890,28 +896,29 @@ public class LDAPPasswordModify
 
 
     // See if the response included a generated password.
-    ASN1OctetString responseValue = extendedResponse.getValue();
+    ByteString responseValue = extendedResponse.getValue();
     if (responseValue != null)
     {
       try
       {
-        ASN1Sequence responseSequence =
-             ASN1Sequence.decodeAsSequence(responseValue.value());
-        for (ASN1Element e : responseSequence.elements())
+        ASN1Reader asn1Reader = ASN1.getReader(responseValue);
+        asn1Reader.readStartSequence();
+        while(asn1Reader.hasNextElement())
         {
-          if (e.getType() == TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD)
+          if (asn1Reader.peekType() == TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD)
           {
             Message message = INFO_LDAPPWMOD_GENERATED_PASSWORD.get(
-                    e.decodeAsOctetString().stringValue());
+                    asn1Reader.readOctetStringAsString());
             out.println(wrapText(message, MAX_LINE_WIDTH));
           }
           else
           {
             Message message = ERR_LDAPPWMOD_UNRECOGNIZED_VALUE_TYPE.get(
-                    byteToHex(e.getType()));
+                    asn1Reader.readOctetStringAsString());
             err.println(wrapText(message, MAX_LINE_WIDTH));
           }
         }
+        asn1Reader.readEndSequence();
       }
       catch (Exception e)
       {

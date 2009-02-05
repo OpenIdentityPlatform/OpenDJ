@@ -28,22 +28,16 @@ package org.opends.server.controls;
 import org.opends.messages.Message;
 
 
-
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Set;
+import java.io.IOException;
 
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.Control;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.LDAPException;
+import org.opends.server.protocols.asn1.*;
+import static org.opends.server.protocols.asn1.ASN1Constants.
+    UNIVERSAL_OCTET_STRING_TYPE;
+import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -63,6 +57,67 @@ public class LDAPPreReadRequestControl
        extends Control
 {
   /**
+   * ControlDecoder implentation to decode this control from a ByteString.
+   */
+  private final static class Decoder
+      implements ControlDecoder<LDAPPreReadRequestControl>
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public LDAPPreReadRequestControl decode(boolean isCritical,
+                                            ByteString value)
+        throws DirectoryException
+    {
+     if (value == null)
+      {
+        Message message = ERR_PREREADREQ_NO_CONTROL_VALUE.get();
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+      }
+
+      ASN1Reader reader = ASN1.getReader(value);
+      LinkedHashSet<String> rawAttributes = new LinkedHashSet<String>();
+      try
+      {
+        reader.readStartSequence();
+        while(reader.hasNextElement())
+        {
+          rawAttributes.add(reader.readOctetStringAsString());
+        }
+        reader.readEndSequence();
+      }
+      catch (Exception ae)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, ae);
+        }
+
+        Message message =
+            ERR_PREREADREQ_CANNOT_DECODE_VALUE.get(ae.getMessage());
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message,
+            ae);
+      }
+
+
+      return new LDAPPreReadRequestControl(isCritical,
+          rawAttributes);
+    }
+
+    public String getOID()
+    {
+      return OID_LDAP_READENTRY_PREREAD;
+    }
+
+  }
+
+  /**
+   * The Control Decoder that can be used to decode this control.
+   */
+  public static final ControlDecoder<LDAPPreReadRequestControl> DECODER =
+    new Decoder();
+
+  /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
@@ -79,10 +134,10 @@ public class LDAPPreReadRequestControl
   private boolean returnAllUserAttrs;
 
   // The set of raw attributes to return in the entry.
-  private LinkedHashSet<String> rawAttributes;
+  private Set<String> rawAttributes;
 
   // The set of processed attributes to return in the entry.
-  private LinkedHashSet<AttributeType> requestedAttributes;
+  private Set<AttributeType> requestedAttributes;
 
 
 
@@ -97,10 +152,9 @@ public class LDAPPreReadRequestControl
    *                        attributes should be returned.
    */
   public LDAPPreReadRequestControl(boolean isCritical,
-                                   LinkedHashSet<String> rawAttributes)
+                                   Set<String> rawAttributes)
   {
-    super(OID_LDAP_READENTRY_PREREAD, isCritical,
-          encodeAttributes(rawAttributes));
+    super(OID_LDAP_READENTRY_PREREAD, isCritical);
 
 
     if (rawAttributes == null)
@@ -120,150 +174,27 @@ public class LDAPPreReadRequestControl
 
 
   /**
-   * Creates a new instance of this LDAP pre-read request control with the
-   * provided information.
+   * Writes this control's value to an ASN.1 writer. The value (if any) must be
+   * written as an ASN1OctetString.
    *
-   * @param  oid            The OID to use for this control.
-   * @param  isCritical     Indicates whether support for this control should be
-   *                        considered a critical part of the server processing.
-   * @param  rawAttributes  The set of raw attributes to return in the entry.
-   *                        A null or empty set will indicates that all user
-   *                        attributes should be returned.
+   * @param writer The ASN.1 output stream to write to.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  public LDAPPreReadRequestControl(String oid, boolean isCritical,
-                                   LinkedHashSet<String> rawAttributes)
-  {
-    super(oid, isCritical, encodeAttributes(rawAttributes));
+  @Override
+  public void writeValue(ASN1Writer writer) throws IOException {
+    writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
 
-
-    if (rawAttributes == null)
+    writer.writeStartSequence();
+    if (rawAttributes != null)
     {
-      this.rawAttributes = new LinkedHashSet<String>(0);
-    }
-    else
-    {
-      this.rawAttributes = rawAttributes;
-    }
-
-    requestedAttributes       = null;
-    returnAllOperationalAttrs = false;
-    returnAllUserAttrs        = false;
-  }
-
-
-
-  /**
-   * Creates a new instance of this LDAP pre-read request control with the
-   * provided information.
-   *
-   * @param  oid            The OID to use for this control.
-   * @param  isCritical     Indicates whether support for this control should be
-   *                        considered a critical part of the server processing.
-   * @param  rawAttributes  The set of raw attributes to return in the entry.
-   *                        A null or empty set will indicates that all user
-   *                        attributes should be returned.
-   * @param  encodedValue   The pre-encoded value for this control.
-   */
-  private LDAPPreReadRequestControl(String oid, boolean isCritical,
-                                    LinkedHashSet<String> rawAttributes,
-                                    ASN1OctetString encodedValue)
-  {
-    super(oid, isCritical, encodedValue);
-
-
-    if (rawAttributes == null)
-    {
-      this.rawAttributes = new LinkedHashSet<String>(0);
-    }
-    else
-    {
-      this.rawAttributes = rawAttributes;
-    }
-
-    requestedAttributes       = null;
-    returnAllOperationalAttrs = false;
-    returnAllUserAttrs        = false;
-  }
-
-
-
-  /**
-   * Creates a new LDAP pre-read request control from the contents of the
-   * provided control.
-   *
-   * @param  control  The generic control containing the information to use to
-   *                  create this LDAP pre-read request control.
-   *
-   * @return  The LDAP pre-read request control decoded from the provided
-   *          control.
-   *
-   * @throws  LDAPException  If this control cannot be decoded as a valid LDAP
-   *                         pre-read request control.
-   */
-  public static LDAPPreReadRequestControl decodeControl(Control control)
-         throws LDAPException
-  {
-    if (! control.hasValue())
-    {
-      Message message = ERR_PREREADREQ_NO_CONTROL_VALUE.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-    }
-
-
-    LinkedHashSet<String> rawAttributes = new LinkedHashSet<String>();
-    try
-    {
-      ASN1Sequence attrSequence =
-           ASN1Sequence.decodeAsSequence(control.getValue().value());
-      for (ASN1Element e : attrSequence.elements())
+      for (String attr : rawAttributes)
       {
-        rawAttributes.add(e.decodeAsOctetString().stringValue());
+        writer.writeOctetString(attr);
       }
     }
-    catch (ASN1Exception ae)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ae);
-      }
+    writer.writeEndSequence();
 
-      Message message = ERR_PREREADREQ_CANNOT_DECODE_VALUE.get(ae.getMessage());
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message,
-                              ae);
-    }
-
-
-    return new LDAPPreReadRequestControl(control.getOID(), control.isCritical(),
-                                         rawAttributes, control.getValue());
-  }
-
-
-
-  /**
-   * Encodes the provided set of raw, unprocessed attribute names to an
-   * ASN.1 octet string suitable for use as the value of this control.
-   *
-   * @param  rawAttributes  The set of attributes to encoded in the encoded
-   *                        control value.
-   *
-   * @return  The ASN.1 octet string containing the encoded attribute set.
-   */
-  private static ASN1OctetString encodeAttributes(LinkedHashSet<String>
-                                                       rawAttributes)
-  {
-    if (rawAttributes == null)
-    {
-      return new ASN1OctetString(new ASN1Sequence().encode());
-    }
-
-    ArrayList<ASN1Element> elements =
-         new ArrayList<ASN1Element>(rawAttributes.size());
-    for (String attr : rawAttributes)
-    {
-      elements.add(new ASN1OctetString(attr));
-    }
-
-    return new ASN1OctetString(new ASN1Sequence(elements).encode());
+    writer.writeEndSequence();
   }
 
 
@@ -275,32 +206,9 @@ public class LDAPPreReadRequestControl
    *
    * @return  The raw, unprocessed set of attributes.
    */
-  public LinkedHashSet<String> getRawAttributes()
+  public Set<String> getRawAttributes()
   {
     return rawAttributes;
-  }
-
-
-
-  /**
-   * Specifies the raw, unprocessed set of requested attributes.  A null or
-   * empty set indicates that all user attributes should be returned.
-   *
-   * @param  rawAttributes  The raw, unprocessed set of requested attributes.
-   */
-  public void setRawAttributes(LinkedHashSet<String> rawAttributes)
-  {
-    if (rawAttributes == null)
-    {
-      this.rawAttributes = new LinkedHashSet<String>();
-    }
-    else
-    {
-      this.rawAttributes = rawAttributes;
-    }
-
-    setValue(encodeAttributes(rawAttributes));
-    requestedAttributes = null;
   }
 
 
@@ -312,7 +220,7 @@ public class LDAPPreReadRequestControl
    * @return  The set of processed attributes that have been requested for
    *          inclusion in the entry that is returned.
    */
-  public LinkedHashSet<AttributeType> getRequestedAttributes()
+  public Set<AttributeType> getRequestedAttributes()
   {
     if (requestedAttributes == null)
     {
@@ -439,25 +347,12 @@ public class LDAPPreReadRequestControl
 
 
   /**
-   * Retrieves a string representation of this LDAP pre-read request control.
-   *
-   * @return  A string representation of this LDAP pre-read request control.
-   */
-  public String toString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
-  }
-
-
-
-  /**
    * Appends a string representation of this LDAP pre-read request control to
    * the provided buffer.
    *
    * @param  buffer  The buffer to which the information should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("LDAPPreReadRequestControl(criticality=");

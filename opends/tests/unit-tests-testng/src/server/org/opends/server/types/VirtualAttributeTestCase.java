@@ -120,21 +120,21 @@ public class VirtualAttributeTestCase
          throws Exception
   {
     assertEquals(virtualAttribute.size(), 1);
-    assertTrue(virtualAttribute.contains(new AttributeValue(entryDNType, "o=test")));
+    assertTrue(virtualAttribute.contains(AttributeValues.create(entryDNType, "o=test")));
 
     assertTrue(!virtualAttribute.isEmpty());
 
-    assertTrue(virtualAttribute.contains(new AttributeValue(entryDNType,
+    assertTrue(virtualAttribute.contains(AttributeValues.create(entryDNType,
                                                             "o=test")));
-    assertFalse(virtualAttribute.contains(new AttributeValue(entryDNType,
+    assertFalse(virtualAttribute.contains(AttributeValues.create(entryDNType,
                                                              "o=not test")));
 
     LinkedHashSet<AttributeValue> testValues =
          new LinkedHashSet<AttributeValue>();
-    testValues.add(new AttributeValue(entryDNType, "o=test"));
+    testValues.add(AttributeValues.create(entryDNType, "o=test"));
     assertTrue(virtualAttribute.containsAll(testValues));
 
-    testValues.add(new AttributeValue(entryDNType, "o=not test"));
+    testValues.add(AttributeValues.create(entryDNType, "o=not test"));
     assertFalse(virtualAttribute.containsAll(testValues));
   }
 
@@ -150,11 +150,11 @@ public class VirtualAttributeTestCase
          throws Exception
   {
     assertEquals(virtualAttribute.matchesSubstring(
-                      ByteStringFactory.create("o="), null,
-                      ByteStringFactory.create("test")),
+        ByteString.valueOf("o="), null,
+        ByteString.valueOf("test")),
                  ConditionResult.UNDEFINED);
 
-    AttributeValue assertionValue = new AttributeValue(entryDNType, "o=test");
+    AttributeValue assertionValue = AttributeValues.create(entryDNType, "o=test");
     assertEquals(virtualAttribute.greaterThanOrEqualTo(assertionValue),
                  ConditionResult.UNDEFINED);
     assertEquals(virtualAttribute.lessThanOrEqualTo(assertionValue),

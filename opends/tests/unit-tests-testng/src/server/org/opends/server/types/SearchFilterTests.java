@@ -28,7 +28,6 @@ package org.opends.server.types;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.core.DirectoryServer;
@@ -639,7 +638,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
     description.filterType = filterType;
     description.attributeType = DirectoryServer.getAttributeType(attributeType);
-    description.assertionValue = new AttributeValue(description.attributeType, attributeValue);
+    description.assertionValue = AttributeValues.create(description.attributeType, attributeValue);
 
     if (filterType == FilterType.EQUALITY) {
       description.searchFilter = SearchFilter.createEqualityFilter(description.attributeType,
@@ -717,13 +716,13 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     description.filterType = FilterType.SUBSTRING;
     description.attributeType = DirectoryServer.getAttributeType(attributeType);
 
-    description.subInitialElement = new ASN1OctetString(subInitial);
+    description.subInitialElement = ByteString.valueOf(subInitial);
     description.subAnyElements = new ArrayList<ByteString>();
     for (int i = 0; (subAny != null) && (i < subAny.size()); i++) {
       String s = subAny.get(i);
-      description.subAnyElements.add(new ASN1OctetString(s));
+      description.subAnyElements.add(ByteString.valueOf(s));
     }
-    description.subFinalElement = new ASN1OctetString(subFinal);
+    description.subFinalElement = ByteString.valueOf(subFinal);
 
     description.searchFilter = SearchFilter.createSubstringFilter(description.attributeType,
             description.subInitialElement,

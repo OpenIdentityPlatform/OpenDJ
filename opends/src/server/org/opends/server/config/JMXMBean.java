@@ -56,14 +56,6 @@ import org.opends.server.api.InvokableComponent;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.jmx.Credential;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.InvokableMethod;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchScope;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -72,12 +64,10 @@ import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.protocols.jmx.JmxClientConnection;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.internal.InternalSearchOperation ;
-import org.opends.server.types.LDAPException;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -448,12 +438,12 @@ public final class JMXMBean
           if (iterator.hasNext())
           {
             ArrayList<String> stringValues = new ArrayList<String>();
-            stringValues.add(value.getStringValue());
+            stringValues.add(value.getValue().toString());
 
             while (iterator.hasNext())
             {
               value = iterator.next();
-              stringValues.add(value.getStringValue());
+              stringValues.add(value.getValue().toString());
             }
 
             String[] valueArray = new String[stringValues.size()];
@@ -462,7 +452,7 @@ public final class JMXMBean
           }
           else
           {
-            return new Attribute(name, value.getStringValue());
+            return new Attribute(name, value.getValue().toString());
           }
         }
       }
@@ -522,12 +512,12 @@ public final class JMXMBean
     InternalSearchOperation op=null;
     if (clientConnection instanceof JmxClientConnection) {
         op = ((JmxClientConnection)clientConnection).processSearch(
-             new ASN1OctetString(configEntryDN.toString()),
+            ByteString.valueOf(configEntryDN.toString()),
              SearchScope.BASE_OBJECT, filter);
     }
     else if (clientConnection instanceof InternalClientConnection) {
         op = ((InternalClientConnection)clientConnection).processSearch(
-             new ASN1OctetString(configEntryDN.toString()),
+            ByteString.valueOf(configEntryDN.toString()),
              SearchScope.BASE_OBJECT, filter);
     }
     // BUG : op may be null
@@ -616,12 +606,12 @@ public final class JMXMBean
     InternalSearchOperation op=null;
     if (clientConnection instanceof JmxClientConnection) {
       op = ((JmxClientConnection)clientConnection).processSearch(
-        new ASN1OctetString(configEntryDN.toString()),
+          ByteString.valueOf(configEntryDN.toString()),
         SearchScope.BASE_OBJECT, filter);
     }
     else if (clientConnection instanceof InternalClientConnection) {
       op = ((InternalClientConnection)clientConnection).processSearch(
-        new ASN1OctetString(configEntryDN.toString()),
+          ByteString.valueOf(configEntryDN.toString()),
         SearchScope.BASE_OBJECT, filter);
     }
     // BUG: op may be null
@@ -681,12 +671,12 @@ monitorLoop:
             if (iterator.hasNext())
             {
               ArrayList<String> stringValues = new ArrayList<String>();
-              stringValues.add(value.getStringValue());
+              stringValues.add(value.getValue().toString());
 
               while (iterator.hasNext())
               {
                 value = iterator.next();
-                stringValues.add(value.getStringValue());
+                stringValues.add(value.getValue().toString());
               }
 
               String[] valueArray = new String[stringValues.size()];
@@ -696,7 +686,7 @@ monitorLoop:
             }
             else
             {
-              attrList.add(new Attribute(name, value.getStringValue()));
+              attrList.add(new Attribute(name, value.getValue().toString()));
               break monitorLoop;
             }
           }

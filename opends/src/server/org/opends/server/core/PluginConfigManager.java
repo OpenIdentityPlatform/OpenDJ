@@ -982,7 +982,7 @@ public class PluginConfigManager
       {
         DN dn = p.getPluginEntryDN();
         String lowerName =
-             toLowerCase(dn.getRDN().getAttributeValue(0).getStringValue());
+            toLowerCase(dn.getRDN().getAttributeValue(0).getValue().toString());
         if (initialPluginNames.contains(lowerName))
         {
           initialPlugins.put(lowerName, p);
@@ -1002,7 +1002,7 @@ public class PluginConfigManager
       // the correct category.
       DN dn = plugin.getPluginEntryDN();
       String lowerName =
-           toLowerCase(dn.getRDN().getAttributeValue(0).getStringValue());
+           toLowerCase(dn.getRDN().getAttributeValue(0).getValue().toString());
       if (initialPluginNames.contains(lowerName))
       {
         initialPlugins.put(lowerName, plugin);

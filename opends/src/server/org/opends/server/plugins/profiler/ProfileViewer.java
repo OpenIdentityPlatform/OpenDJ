@@ -34,7 +34,6 @@ import java.awt.Container;
 import java.awt.Font;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import javax.swing.JEditorPane;
@@ -50,9 +49,7 @@ import javax.swing.tree.TreeSelectionModel;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.*;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
@@ -231,36 +228,28 @@ public class ProfileViewer
          throws IOException, ASN1Exception
   {
     // Try to open the file for reading.
-    ASN1Reader reader = new ASN1Reader(new FileInputStream(filename));
+    ASN1Reader reader = ASN1.getReader(new FileInputStream(filename));
 
 
     try
     {
       // The first element in the file must be a sequence with the header
       // information.
-      ASN1Element element = reader.readElement();
-      ArrayList<ASN1Element> elements = element.decodeAsSequence().elements();
-      totalIntervals += elements.get(0).decodeAsLong().longValue();
+      reader.readStartSequence();
+      totalIntervals += reader.readInteger();
 
-      long startTime = elements.get(1).decodeAsLong().longValue();
-      long stopTime  = elements.get(2).decodeAsLong().longValue();
+      long startTime = reader.readInteger();
+      long stopTime  = reader.readInteger();
       totalDuration += (stopTime - startTime);
+      reader.readEndSequence();
 
 
       // The remaining elements will contain the stack frames.
-      while (true)
+      while (reader.hasNextElement())
       {
-        element = reader.readElement();
-        if (element == null)
-        {
-          break;
-        }
+        ProfileStack stack = ProfileStack.decode(reader);
 
-
-        ProfileStack stack = ProfileStack.decode(element);
-
-        element    = reader.readElement();
-        long count = element.decodeAsLong().longValue();
+        long count = reader.readInteger();
 
         int pos = stack.getNumFrames() - 1;
         if (pos < 0)

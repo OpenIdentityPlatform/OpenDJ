@@ -55,13 +55,7 @@ import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.loggers.debug.DebugLogger;
 import static org.opends.server.loggers.ErrorLogger.*;
-import org.opends.server.types.BackupConfig;
-import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.NullOutputStream;
-import org.opends.server.types.RawAttribute;
+import org.opends.server.types.*;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
@@ -74,7 +68,6 @@ import static org.opends.server.tools.ToolConstants.*;
 import org.opends.server.tools.tasks.TaskTool;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.tasks.BackupTask;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 
 
@@ -425,12 +418,12 @@ public class BackUpDB extends TaskTool
    */
   public void addTaskAttributes(List<RawAttribute> attributes)
   {
-    ArrayList<ASN1OctetString> values;
+    ArrayList<ByteString> values;
     if (backUpAll.getValue() != null &&
             !backUpAll.getValue().equals(
                     backUpAll.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(backUpAll.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(backUpAll.getValue()));
       attributes.add(
               new LDAPAttribute(ATTR_TASK_BACKUP_ALL, values));
     }
@@ -438,8 +431,8 @@ public class BackUpDB extends TaskTool
     if (compress.getValue() != null &&
             !compress.getValue().equals(
                     compress.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(compress.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(compress.getValue()));
       attributes.add(
               new LDAPAttribute(ATTR_TASK_BACKUP_COMPRESS, values));
     }
@@ -447,8 +440,8 @@ public class BackUpDB extends TaskTool
     if (encrypt.getValue() != null &&
             !encrypt.getValue().equals(
                     encrypt.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(encrypt.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(encrypt.getValue()));
       attributes.add(
               new LDAPAttribute(ATTR_TASK_BACKUP_ENCRYPT, values));
     }
@@ -456,8 +449,8 @@ public class BackUpDB extends TaskTool
     if (hash.getValue() != null &&
             !hash.getValue().equals(
                     hash.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(hash.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(hash.getValue()));
       attributes.add(
               new LDAPAttribute(ATTR_TASK_BACKUP_HASH, values));
     }
@@ -465,8 +458,8 @@ public class BackUpDB extends TaskTool
     if (incremental.getValue() != null &&
             !incremental.getValue().equals(
                     incremental.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(incremental.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(incremental.getValue()));
       attributes.add(
               new LDAPAttribute(ATTR_TASK_BACKUP_INCREMENTAL, values));
     }
@@ -474,17 +467,17 @@ public class BackUpDB extends TaskTool
     if (signHash.getValue() != null &&
             !signHash.getValue().equals(
                     signHash.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(signHash.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(signHash.getValue()));
       attributes.add(
               new LDAPAttribute(ATTR_TASK_BACKUP_SIGN_HASH, values));
     }
 
     List<String> backendIDs = backendID.getValues();
     if (backendIDs != null && backendIDs.size() > 0) {
-      values = new ArrayList<ASN1OctetString>(backendIDs.size());
+      values = new ArrayList<ByteString>(backendIDs.size());
       for (String s : backendIDs) {
-        values.add(new ASN1OctetString(s));
+        values.add(ByteString.valueOf(s));
       }
       attributes.add(
               new LDAPAttribute(ATTR_TASK_BACKUP_BACKEND_ID, values));
@@ -493,8 +486,8 @@ public class BackUpDB extends TaskTool
     if (backupIDString.getValue() != null &&
             !backupIDString.getValue().equals(
                     backupIDString.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(backupIDString.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(backupIDString.getValue()));
       attributes.add(
               new LDAPAttribute(ATTR_BACKUP_ID, values));
     }
@@ -502,8 +495,8 @@ public class BackUpDB extends TaskTool
     if (backupDirectory.getValue() != null &&
             !backupDirectory.getValue().equals(
                     backupDirectory.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(backupDirectory.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(backupDirectory.getValue()));
       attributes.add(
               new LDAPAttribute(ATTR_BACKUP_DIRECTORY_PATH, values));
     }
@@ -511,8 +504,8 @@ public class BackUpDB extends TaskTool
     if (incrementalBaseID.getValue() != null &&
             !incrementalBaseID.getValue().equals(
                     incrementalBaseID.getDefaultValue())) {
-      values = new ArrayList<ASN1OctetString>(1);
-      values.add(new ASN1OctetString(incrementalBaseID.getValue()));
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(incrementalBaseID.getValue()));
       attributes.add(
               new LDAPAttribute(ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID, values));
     }

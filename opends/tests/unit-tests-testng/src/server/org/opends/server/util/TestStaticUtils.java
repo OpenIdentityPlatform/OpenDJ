@@ -45,6 +45,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteSequence;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -618,7 +620,7 @@ public final class TestStaticUtils extends UtilTestCase {
   }
 
   /**
-   * Tests the {@link StaticUtils#needsBase64Encoding(byte[])} method.
+   * Tests the {@link StaticUtils#needsBase64Encoding(ByteSequence)} method.
    *
    * @param s
    *          The test string.
@@ -630,7 +632,7 @@ public final class TestStaticUtils extends UtilTestCase {
   @Test(dataProvider = "needsBase64EncodingTestData")
   public void testNeedsBase64EncodingBytes(String s, boolean result)
       throws Exception {
-    byte[] bytes = s != null ? s.getBytes("UTF-8") : null;
+    ByteString bytes = s != null ? ByteString.valueOf(s) : null;
     Assert.assertEquals(StaticUtils.needsBase64Encoding(bytes), result);
   }
 
@@ -1021,7 +1023,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the
-   * {@link StaticUtils#toLowerCase(byte[], StringBuilder, boolean)}
+   * {@link StaticUtils#toLowerCase(ByteSequence, StringBuilder, boolean)}
    * method.
    *
    * @param input
@@ -1036,7 +1038,7 @@ public final class TestStaticUtils extends UtilTestCase {
   @Test(dataProvider = "stringCaseConversionTestData")
   public void testToLowerCaseBytes(String input, String lower, String upper)
       throws Exception {
-    byte[] bytes = input != null ? input.getBytes("UTF-8") : null;
+    ByteString bytes = input != null ? ByteString.valueOf(input) : null;
     StringBuilder buffer = new StringBuilder();
     StaticUtils.toLowerCase(bytes, buffer, false);
     Assert.assertEquals(buffer.toString(), input != null ? lower : "");

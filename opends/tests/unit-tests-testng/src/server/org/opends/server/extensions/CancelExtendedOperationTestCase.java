@@ -40,12 +40,9 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.AbandonOperationBasis;
 import org.opends.server.plugins.DelayPreOpPlugin;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Integer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
@@ -114,16 +111,18 @@ public class CancelExtendedOperationTestCase
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
     Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader reader = new ASN1Reader(socket);
-    ASN1Writer writer = new ASN1Writer(socket);
+    org.opends.server.tools.LDAPReader r =
+        new org.opends.server.tools.LDAPReader(socket);
+    org.opends.server.tools.LDAPWriter w =
+        new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
@@ -133,32 +132,34 @@ public class CancelExtendedOperationTestCase
     // cancel request.
     ArrayList<RawAttribute> attributes = new ArrayList<RawAttribute>();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>(2);
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("organizationalUnit"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>(2);
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("organizationalUnit"));
     attributes.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ASN1OctetString>(1);
-    values.add(new ASN1OctetString("People"));
+    values = new ArrayList<ByteString>(1);
+    values.add(ByteString.valueOf("People"));
     attributes.add(new LDAPAttribute("ou", values));
 
     AddRequestProtocolOp addRequest =
-         new AddRequestProtocolOp(new ASN1OctetString("ou=People,o=test"),
+         new AddRequestProtocolOp(ByteString.valueOf("ou=People,o=test"),
                                   attributes);
     message = new LDAPMessage(2, addRequest,
-                       DelayPreOpPlugin.createDelayLDAPControlList(5000));
-    writer.writeElement(message.encode());
+        DelayPreOpPlugin.createDelayControlList(5000));
+    w.writeMessage(message);
 
 
     // Create a cancel request and send it to the server.
-    ArrayList<ASN1Element> sequenceElements = new ArrayList<ASN1Element>(1);
-    sequenceElements.add(new ASN1Integer(2));
-    ASN1Sequence valueSequence = new ASN1Sequence(sequenceElements);
-    ASN1OctetString extendedValue = new ASN1OctetString(valueSequence.encode());
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence();
+    writer.writeInteger(2);
+    writer.writeEndSequence();
     ExtendedRequestProtocolOp extendedRequest =
-         new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST, extendedValue);
+         new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST,
+             builder.toByteString());
     message = new LDAPMessage(3, extendedRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
 
     // Read two response messages from the server.  One should be an add
@@ -166,7 +167,7 @@ public class CancelExtendedOperationTestCase
     // have a result code of "cancelled".
     for (int i=0; i < 2; i++)
     {
-      message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+      message = r.readMessage();
       switch (message.getProtocolOpType())
       {
         case OP_TYPE_ADD_RESPONSE:
@@ -204,16 +205,18 @@ public class CancelExtendedOperationTestCase
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
     Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader reader = new ASN1Reader(socket);
-    ASN1Writer writer = new ASN1Writer(socket);
+    org.opends.server.tools.LDAPReader r =
+        new org.opends.server.tools.LDAPReader(socket);
+    org.opends.server.tools.LDAPWriter w =
+        new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
@@ -222,22 +225,24 @@ public class CancelExtendedOperationTestCase
     // the delay request control so it won't complete before we can send the
     // cancel request.
     CompareRequestProtocolOp compareRequest =
-         new CompareRequestProtocolOp(new ASN1OctetString("o=test"), "o",
-                                      new ASN1OctetString("test"));
+         new CompareRequestProtocolOp(ByteString.valueOf("o=test"), "o",
+                                      ByteString.valueOf("test"));
     message = new LDAPMessage(2, compareRequest,
-                       DelayPreOpPlugin.createDelayLDAPControlList(5000));
-    writer.writeElement(message.encode());
+        DelayPreOpPlugin.createDelayControlList(5000));
+    w.writeMessage(message);
 
 
     // Create a cancel request and send it to the server.
-    ArrayList<ASN1Element> sequenceElements = new ArrayList<ASN1Element>(1);
-    sequenceElements.add(new ASN1Integer(2));
-    ASN1Sequence valueSequence = new ASN1Sequence(sequenceElements);
-    ASN1OctetString extendedValue = new ASN1OctetString(valueSequence.encode());
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence();
+    writer.writeInteger(2);
+    writer.writeEndSequence();
     ExtendedRequestProtocolOp extendedRequest =
-         new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST, extendedValue);
+         new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST,
+             builder.toByteString());
     message = new LDAPMessage(3, extendedRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
 
     // Read two response messages from the server.  One should be a compare
@@ -245,7 +250,7 @@ public class CancelExtendedOperationTestCase
     // have a result code of "cancelled".
     for (int i=0; i < 2; i++)
     {
-      message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+      message = r.readMessage();
       switch (message.getProtocolOpType())
       {
         case OP_TYPE_COMPARE_RESPONSE:
@@ -298,16 +303,18 @@ public class CancelExtendedOperationTestCase
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
     Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader reader = new ASN1Reader(socket);
-    ASN1Writer writer = new ASN1Writer(socket);
+    org.opends.server.tools.LDAPReader r =
+        new org.opends.server.tools.LDAPReader(socket);
+    org.opends.server.tools.LDAPWriter w =
+        new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
@@ -316,21 +323,23 @@ public class CancelExtendedOperationTestCase
     // the delay request control so it won't complete before we can send the
     // cancel request.
     DeleteRequestProtocolOp deleteRequest =
-         new DeleteRequestProtocolOp(new ASN1OctetString("cn=test,o=test"));
+         new DeleteRequestProtocolOp(ByteString.valueOf("cn=test,o=test"));
     message = new LDAPMessage(2, deleteRequest,
-                       DelayPreOpPlugin.createDelayLDAPControlList(5000));
-    writer.writeElement(message.encode());
+        DelayPreOpPlugin.createDelayControlList(5000));
+    w.writeMessage(message);
 
 
     // Create a cancel request and send it to the server.
-    ArrayList<ASN1Element> sequenceElements = new ArrayList<ASN1Element>(1);
-    sequenceElements.add(new ASN1Integer(2));
-    ASN1Sequence valueSequence = new ASN1Sequence(sequenceElements);
-    ASN1OctetString extendedValue = new ASN1OctetString(valueSequence.encode());
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence();
+    writer.writeInteger(2);
+    writer.writeEndSequence();
     ExtendedRequestProtocolOp extendedRequest =
-         new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST, extendedValue);
+         new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST,
+             builder.toByteString());
     message = new LDAPMessage(3, extendedRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
 
     // Read two response messages from the server.  One should be a delete
@@ -338,7 +347,7 @@ public class CancelExtendedOperationTestCase
     // have a result code of "cancelled".
     for (int i=0; i < 2; i++)
     {
-      message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+      message = r.readMessage();
       switch (message.getProtocolOpType())
       {
         case OP_TYPE_DELETE_RESPONSE:
@@ -377,16 +386,18 @@ public class CancelExtendedOperationTestCase
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
     Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader reader = new ASN1Reader(socket);
-    ASN1Writer writer = new ASN1Writer(socket);
+    org.opends.server.tools.LDAPReader r =
+        new org.opends.server.tools.LDAPReader(socket);
+    org.opends.server.tools.LDAPWriter w =
+        new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
@@ -397,26 +408,28 @@ public class CancelExtendedOperationTestCase
     ExtendedRequestProtocolOp whoAmIRequest =
          new ExtendedRequestProtocolOp(OID_WHO_AM_I_REQUEST, null);
     message = new LDAPMessage(2, whoAmIRequest,
-                       DelayPreOpPlugin.createDelayLDAPControlList(5000));
-    writer.writeElement(message.encode());
+        DelayPreOpPlugin.createDelayControlList(5000));
+    w.writeMessage(message);
 
 
     // Create a cancel request and send it to the server.
-    ArrayList<ASN1Element> sequenceElements = new ArrayList<ASN1Element>(1);
-    sequenceElements.add(new ASN1Integer(2));
-    ASN1Sequence valueSequence = new ASN1Sequence(sequenceElements);
-    ASN1OctetString extendedValue = new ASN1OctetString(valueSequence.encode());
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence();
+    writer.writeInteger(2);
+    writer.writeEndSequence();
     ExtendedRequestProtocolOp extendedRequest =
-         new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST, extendedValue);
+         new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST,
+             builder.toByteString());
     message = new LDAPMessage(3, extendedRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
-
+                                                          
     // Read two response messages from the server.  They should both be extended
     // responses and they should both have result codes of "cancelled".
     for (int i=0; i < 2; i++)
     {
-      message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+      message = r.readMessage();
       ExtendedResponseProtocolOp extendedResponse =
            message.getExtendedResponseProtocolOp();
       assertEquals(extendedResponse.getResultCode(), LDAPResultCode.CANCELED);
@@ -442,16 +455,18 @@ public class CancelExtendedOperationTestCase
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
     Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader reader = new ASN1Reader(socket);
-    ASN1Writer writer = new ASN1Writer(socket);
+    org.opends.server.tools.LDAPReader r =
+        new org.opends.server.tools.LDAPReader(socket);
+    org.opends.server.tools.LDAPWriter w =
+        new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
@@ -459,29 +474,31 @@ public class CancelExtendedOperationTestCase
     // Create a modify request and send it to the server.  Make sure to include
     // the delay request control so it won't complete before we can send the
     // cancel request.
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>(1);
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>(1);
+    values.add(ByteString.valueOf("foo"));
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>(1);
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("description", values)));
 
     ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(new ASN1OctetString("o=test"), mods);
+         new ModifyRequestProtocolOp(ByteString.valueOf("o=test"), mods);
     message = new LDAPMessage(2, modifyRequest,
-                       DelayPreOpPlugin.createDelayLDAPControlList(5000));
-    writer.writeElement(message.encode());
+        DelayPreOpPlugin.createDelayControlList(5000));
+    w.writeMessage(message);
 
 
     // Create a cancel request and send it to the server.
-    ArrayList<ASN1Element> sequenceElements = new ArrayList<ASN1Element>(1);
-    sequenceElements.add(new ASN1Integer(2));
-    ASN1Sequence valueSequence = new ASN1Sequence(sequenceElements);
-    ASN1OctetString extendedValue = new ASN1OctetString(valueSequence.encode());
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence();
+    writer.writeInteger(2);
+    writer.writeEndSequence();
     ExtendedRequestProtocolOp extendedRequest =
-         new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST, extendedValue);
+         new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST,
+             builder.toByteString());
     message = new LDAPMessage(3, extendedRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
 
     // Read two response messages from the server.  One should be a modify
@@ -489,7 +506,7 @@ public class CancelExtendedOperationTestCase
     // have a result code of "cancelled".
     for (int i=0; i < 2; i++)
     {
-      message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+      message = r.readMessage();
       switch (message.getProtocolOpType())
       {
         case OP_TYPE_MODIFY_RESPONSE:
@@ -542,16 +559,18 @@ public class CancelExtendedOperationTestCase
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
     Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader reader = new ASN1Reader(socket);
-    ASN1Writer writer = new ASN1Writer(socket);
+    org.opends.server.tools.LDAPReader r =
+        new org.opends.server.tools.LDAPReader(socket);
+    org.opends.server.tools.LDAPWriter w =
+        new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
@@ -560,22 +579,24 @@ public class CancelExtendedOperationTestCase
     // include the delay request control so it won't complete before we can send
     // the cancel request.
     ModifyDNRequestProtocolOp modifyDNRequest =
-         new ModifyDNRequestProtocolOp(new ASN1OctetString("cn=test,o=test"),
-                                       new ASN1OctetString("cn=test2"), true);
+         new ModifyDNRequestProtocolOp(ByteString.valueOf("cn=test,o=test"),
+                                       ByteString.valueOf("cn=test2"), true);
     message = new LDAPMessage(2, modifyDNRequest,
-                       DelayPreOpPlugin.createDelayLDAPControlList(5000));
-    writer.writeElement(message.encode());
+        DelayPreOpPlugin.createDelayControlList(5000));
+    w.writeMessage(message);
 
 
     // Create a cancel request and send it to the server.
-    ArrayList<ASN1Element> sequenceElements = new ArrayList<ASN1Element>(1);
-    sequenceElements.add(new ASN1Integer(2));
-    ASN1Sequence valueSequence = new ASN1Sequence(sequenceElements);
-    ASN1OctetString extendedValue = new ASN1OctetString(valueSequence.encode());
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence();
+    writer.writeInteger(2);
+    writer.writeEndSequence();
     ExtendedRequestProtocolOp extendedRequest =
-         new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST, extendedValue);
+         new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST,
+             builder.toByteString());
     message = new LDAPMessage(3, extendedRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
 
     // Read two response messages from the server.  One should be a modify DN
@@ -583,7 +604,7 @@ public class CancelExtendedOperationTestCase
     // have a result code of "cancelled".
     for (int i=0; i < 2; i++)
     {
-      message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+      message = r.readMessage();
       switch (message.getProtocolOpType())
       {
         case OP_TYPE_MODIFY_DN_RESPONSE:
@@ -622,16 +643,18 @@ public class CancelExtendedOperationTestCase
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
     Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader reader = new ASN1Reader(socket);
-    ASN1Writer writer = new ASN1Writer(socket);
+    org.opends.server.tools.LDAPReader r =
+        new org.opends.server.tools.LDAPReader(socket);
+    org.opends.server.tools.LDAPWriter w =
+        new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
@@ -640,26 +663,28 @@ public class CancelExtendedOperationTestCase
     // the delay request control so it won't complete before we can send the
     // cancel request.
     SearchRequestProtocolOp searchRequest =
-         new SearchRequestProtocolOp(new ASN1OctetString("o=test"),
+         new SearchRequestProtocolOp(ByteString.valueOf("o=test"),
                                      SearchScope.BASE_OBJECT,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
                                      0, false,
                                      LDAPFilter.decode("(match=false)"),
                                      new LinkedHashSet<String>());
     message = new LDAPMessage(2, searchRequest,
-                       DelayPreOpPlugin.createDelayLDAPControlList(5000));
-    writer.writeElement(message.encode());
+        DelayPreOpPlugin.createDelayControlList(5000));
+    w.writeMessage(message);
 
 
     // Create a cancel request and send it to the server.
-    ArrayList<ASN1Element> sequenceElements = new ArrayList<ASN1Element>(1);
-    sequenceElements.add(new ASN1Integer(2));
-    ASN1Sequence valueSequence = new ASN1Sequence(sequenceElements);
-    ASN1OctetString extendedValue = new ASN1OctetString(valueSequence.encode());
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence();
+    writer.writeInteger(2);
+    writer.writeEndSequence();
     ExtendedRequestProtocolOp extendedRequest =
-         new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST, extendedValue);
+         new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST,
+             builder.toByteString());
     message = new LDAPMessage(3, extendedRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
 
     // Read two response messages from the server.  One should be a search
@@ -667,7 +692,7 @@ public class CancelExtendedOperationTestCase
     // both have a result code of "cancelled".
     for (int i=0; i < 2; i++)
     {
-      message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+      message = r.readMessage();
       switch (message.getProtocolOpType())
       {
         case OP_TYPE_SEARCH_RESULT_DONE:
@@ -706,34 +731,38 @@ public class CancelExtendedOperationTestCase
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
     Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader reader = new ASN1Reader(socket);
-    ASN1Writer writer = new ASN1Writer(socket);
+    org.opends.server.tools.LDAPReader r =
+        new org.opends.server.tools.LDAPReader(socket);
+    org.opends.server.tools.LDAPWriter w =
+        new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
 
     // Create a cancel request and send it to the server.
-    ArrayList<ASN1Element> sequenceElements = new ArrayList<ASN1Element>(1);
-    sequenceElements.add(new ASN1Integer(2));
-    ASN1Sequence valueSequence = new ASN1Sequence(sequenceElements);
-    ASN1OctetString extendedValue = new ASN1OctetString(valueSequence.encode());
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence();
+    writer.writeInteger(2);
+    writer.writeEndSequence();
     ExtendedRequestProtocolOp extendedRequest =
-         new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST, extendedValue);
+         new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST,
+             builder.toByteString());
     message = new LDAPMessage(3, extendedRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
 
     // Read the response message from the server.  It should be an extended
     // response with a result code of "no such operation".
-    message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+    message = r.readMessage();
     ExtendedResponseProtocolOp extendedResponse =
          message.getExtendedResponseProtocolOp();
     assertEquals(extendedResponse.getResultCode(),
@@ -759,16 +788,18 @@ public class CancelExtendedOperationTestCase
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
     Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader reader = new ASN1Reader(socket);
-    ASN1Writer writer = new ASN1Writer(socket);
+    org.opends.server.tools.LDAPReader r =
+        new org.opends.server.tools.LDAPReader(socket);
+    org.opends.server.tools.LDAPWriter w =
+        new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
@@ -777,12 +808,12 @@ public class CancelExtendedOperationTestCase
     ExtendedRequestProtocolOp extendedRequest =
          new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST, null);
     message = new LDAPMessage(3, extendedRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
 
     // Read the response message from the server.  It should be an extended
     // response with a result code of "no such operation".
-    message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+    message = r.readMessage();
     ExtendedResponseProtocolOp extendedResponse =
          message.getExtendedResponseProtocolOp();
     assertEquals(extendedResponse.getResultCode(),
@@ -808,16 +839,18 @@ public class CancelExtendedOperationTestCase
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
     Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader reader = new ASN1Reader(socket);
-    ASN1Writer writer = new ASN1Writer(socket);
+    org.opends.server.tools.LDAPReader r =
+        new org.opends.server.tools.LDAPReader(socket);
+    org.opends.server.tools.LDAPWriter w =
+        new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
@@ -825,14 +858,14 @@ public class CancelExtendedOperationTestCase
     // Create a cancel request and send it to the server.
     ExtendedRequestProtocolOp extendedRequest =
          new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST,
-                                       new ASN1OctetString("malformed"));
+                                       ByteString.valueOf("malformed"));
     message = new LDAPMessage(3, extendedRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
 
     // Read the response message from the server.  It should be an extended
     // response with a result code of "no such operation".
-    message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+    message = r.readMessage();
     ExtendedResponseProtocolOp extendedResponse =
          message.getExtendedResponseProtocolOp();
     assertEquals(extendedResponse.getResultCode(),
@@ -856,16 +889,18 @@ public class CancelExtendedOperationTestCase
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
     Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader reader = new ASN1Reader(socket);
-    ASN1Writer writer = new ASN1Writer(socket);
+    org.opends.server.tools.LDAPReader r =
+        new org.opends.server.tools.LDAPReader(socket);
+    org.opends.server.tools.LDAPWriter w =
+        new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
@@ -873,16 +908,18 @@ public class CancelExtendedOperationTestCase
     // Create a self cancelling request and send it to the server. Make sure
     // to include the delay request control so it won't complete before we
     // can send the cancel request.
-    ArrayList<ASN1Element> sequenceElements = new ArrayList<ASN1Element>(1);
-    sequenceElements.add(new ASN1Integer(2));
-    ASN1Sequence valueSequence = new ASN1Sequence(sequenceElements);
-    ASN1OctetString extendedValue = new ASN1OctetString(valueSequence.encode());
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence();
+    writer.writeInteger(2);
+    writer.writeEndSequence();
     ExtendedRequestProtocolOp extendedRequest =
-        new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST, extendedValue);
+        new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST,
+             builder.toByteString());
     message = new LDAPMessage(2, extendedRequest);
-    writer.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+    message = r.readMessage();
     ExtendedResponseProtocolOp extendedResponse =
         message.getExtendedResponseProtocolOp();
     assertEquals(extendedResponse.getResultCode(),

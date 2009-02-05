@@ -40,16 +40,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringFactory;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.VirtualAttributeRule;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
@@ -121,8 +112,8 @@ public class HasSubordinatesVirtualAttributeProvider
       if(ret != null && ret != ConditionResult.UNDEFINED)
       {
         AttributeValue value =
-            new AttributeValue(ByteStringFactory.create(ret.toString()),
-                               ByteStringFactory.create(ret.toString()));
+            AttributeValues.create(ByteString.valueOf(ret.toString()),
+                ByteString.valueOf(ret.toString()));
         return Collections.singleton(value);
       }
     }
@@ -179,8 +170,8 @@ public class HasSubordinatesVirtualAttributeProvider
       ConditionResult ret = backend.hasSubordinates(entry.getDN());
       if(ret != null && ret != ConditionResult.UNDEFINED)
       {
-        return ConditionResult.valueOf(value.getNormalizedStringValue()).
-            equals(ret);
+        return ConditionResult.valueOf(
+            value.getNormalizedValue().toString()).equals(ret);
       }
       return false;
     }

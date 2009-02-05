@@ -441,10 +441,10 @@ public class TestVerifyJob extends JebTestCase
       byte[] shortBytes = new byte[3];
       DatabaseEntry key= new DatabaseEntry(shortBytes);
       Entry testEntry=bldStatEntry(junkDN);
-      byte []entryBytes =
-           JebFormat.entryToDatabase(testEntry,
+      ByteString entryBytes =
+           ID2Entry.entryToDatabase(testEntry,
                                      new DataConfig(false, false, null));
-      DatabaseEntry data= new DatabaseEntry(entryBytes);
+      DatabaseEntry data= new DatabaseEntry(entryBytes.toByteArray());
       assertTrue(id2entry.putRaw(txn, key, data));
 
       //add entry with ramdom bytes
@@ -773,8 +773,8 @@ public class TestVerifyJob extends JebTestCase
     DatabaseEntry key= new EntryID(id).getDatabaseEntry();
     Entry testEntry=bldStatEntry(dn);
     byte []entryBytes =
-         JebFormat.entryToDatabase(testEntry,
-                                   new DataConfig(false, false, null));
+         ID2Entry.entryToDatabase(testEntry,
+                                   new DataConfig(false, false, null)).toByteArray();
     if(trashFormat)
       entryBytes[0] = 0x67;
     DatabaseEntry data= new DatabaseEntry(entryBytes);
@@ -876,7 +876,7 @@ public class TestVerifyJob extends JebTestCase
       attrType = DirectoryServer.getDefaultAttributeType(type);
     List<Attribute> attrList = e.getAttribute(attrType, null);
     AttributeValue v = attrList.get(0).iterator().next();
-    long retVal = Long.parseLong(v.getStringValue());
+    long retVal = Long.parseLong(v.getValue().toString());
     return (retVal);
   }
 

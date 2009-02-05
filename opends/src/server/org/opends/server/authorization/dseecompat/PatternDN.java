@@ -31,7 +31,6 @@ import org.opends.messages.Message;
 import org.opends.server.types.*;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.AccessControlMessages.*;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import static org.opends.server.util.StaticUtils.isDigit;
 import static org.opends.server.util.StaticUtils.isHexDigit;
 import static org.opends.server.util.StaticUtils.hexStringToByteArray;
@@ -448,7 +447,7 @@ public class PatternDN
       if (pos >= length)
       {
         ArrayList<ByteString> arrayList = new ArrayList<ByteString>(1);
-        arrayList.add(new ASN1OctetString());
+        arrayList.add(ByteString.empty());
         rdnComponents.add(new PatternRDN(name, arrayList, dnString));
         break;
       }
@@ -583,7 +582,7 @@ public class PatternDN
         if (pos >= length)
         {
           ArrayList<ByteString> arrayList = new ArrayList<ByteString>(1);
-          arrayList.add(new ASN1OctetString());
+          arrayList.add(ByteString.empty());
           rdn.addValue(name, arrayList, dnString);
           rdnComponents.add(rdn);
           break;
@@ -1198,7 +1197,7 @@ public class PatternDN
       try
       {
         byte[] bytes = hexStringToByteArray(hexString.toString());
-        attributeValues.add(new ASN1OctetString(bytes));
+        attributeValues.add(ByteString.wrap(bytes));
         return pos;
       }
       catch (Exception e)
@@ -1262,7 +1261,7 @@ public class PatternDN
         }
       }
 
-      attributeValues.add(new ASN1OctetString(valueString.toString()));
+      attributeValues.add(ByteString.valueOf(valueString.toString()));
       return pos;
     }
 
@@ -1281,7 +1280,7 @@ public class PatternDN
       else if (c == '*')
       {
         escaped = false;
-        attributeValues.add(new ASN1OctetString(valueString.toString()));
+        attributeValues.add(ByteString.valueOf(valueString.toString()));
       }
       else
       {
@@ -1379,7 +1378,7 @@ public class PatternDN
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                                          message);
           }
-          attributeValues.add(new ASN1OctetString(valueString.toString()));
+          attributeValues.add(ByteString.valueOf(valueString.toString()));
           valueString = new StringBuilder();
           hexChars = new StringBuilder();
         }
@@ -1412,7 +1411,7 @@ public class PatternDN
       }
 
 
-      attributeValues.add(new ASN1OctetString(valueString.toString()));
+      attributeValues.add(ByteString.valueOf(valueString.toString()));
       return pos;
     }
   }

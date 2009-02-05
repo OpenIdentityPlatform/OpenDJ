@@ -29,7 +29,6 @@ package org.opends.server.extensions;
 
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.opends.messages.Message;
@@ -42,16 +41,7 @@ import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.Control;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ExtensionMessages.*;
@@ -99,6 +89,7 @@ public class WhoAmIExtendedOperation
    *                                   that is not related to the server
    *                                   configuration.
    */
+  @Override
   public void initializeExtendedOperationHandler(
                    WhoAmIExtendedOperationHandlerCfg config)
          throws ConfigException, InitializationException
@@ -151,131 +142,47 @@ public class WhoAmIExtendedOperation
     // Process any supported controls for this operation, including the
     // proxied authorization control.
     ClientConnection clientConnection = operation.getClientConnection();
-    List<Control> requestControls = operation.getRequestControls();
-    if (requestControls != null)
+    Entry authorizationEntry;
+    try
     {
-      for (Control c : requestControls)
+      ProxiedAuthV1Control proxyControlV1 =
+          operation.getRequestControl(ProxiedAuthV1Control.DECODER);
+      ProxiedAuthV2Control proxyControlV2 =
+          operation.getRequestControl(ProxiedAuthV2Control.DECODER);
+      if(proxyControlV1 != null || proxyControlV2 != null)
       {
-        String oid = c.getOID();
-        if (oid.equals(OID_PROXIED_AUTH_V1))
+        // The requester must have the PROXIED_AUTH privilige in order to
+        // be able to use this control.
+        if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH,
+            operation))
         {
-          // The requester must have the PROXIED_AUTH privilige in order to
-          // be able to use this control.
-          if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH,
-                                              operation))
-          {
-
-            operation.appendErrorMessage(
-                    ERR_EXTOP_WHOAMI_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
-            operation.setResultCode(ResultCode.AUTHORIZATION_DENIED);
-            return;
-          }
-
-
-          ProxiedAuthV1Control proxyControl;
-          if (c instanceof ProxiedAuthV1Control)
-          {
-            proxyControl = (ProxiedAuthV1Control) c;
-          }
-          else
-          {
-            try
-            {
-              proxyControl = ProxiedAuthV1Control.decodeControl(c);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              operation.setResultCode(ResultCode.valueOf(le.getResultCode()));
-              operation.appendErrorMessage(le.getMessageObject());
-              return;
-            }
-          }
-
-
-          Entry authorizationEntry;
-          try
-          {
-            authorizationEntry = proxyControl.getAuthorizationEntry();
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            operation.setResultCode(de.getResultCode());
-            operation.appendErrorMessage(de.getMessageObject());
-            return;
-          }
-
-          operation.setAuthorizationEntry(authorizationEntry);
+          operation.appendErrorMessage(
+              ERR_EXTOP_WHOAMI_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
+          operation.setResultCode(ResultCode.AUTHORIZATION_DENIED);
+          return;
         }
-        else if (oid.equals(OID_PROXIED_AUTH_V2))
+
+        if(proxyControlV2 != null)
         {
-          // The requester must have the PROXIED_AUTH privilige in order to
-          // be able to use this control.
-          if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH,
-                                              operation))
-          {
-
-            operation.appendErrorMessage(
-                    ERR_EXTOP_WHOAMI_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
-            operation.setResultCode(ResultCode.AUTHORIZATION_DENIED);
-            return;
-          }
-
-
-          ProxiedAuthV2Control proxyControl;
-          if (c instanceof ProxiedAuthV2Control)
-          {
-            proxyControl = (ProxiedAuthV2Control) c;
-          }
-          else
-          {
-            try
-            {
-              proxyControl = ProxiedAuthV2Control.decodeControl(c);
-            }
-            catch (LDAPException le)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, le);
-              }
-
-              operation.setResultCode(ResultCode.valueOf(le.getResultCode()));
-              operation.appendErrorMessage(le.getMessageObject());
-              return;
-            }
-          }
-
-
-          Entry authorizationEntry;
-          try
-          {
-            authorizationEntry = proxyControl.getAuthorizationEntry();
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            operation.setResultCode(de.getResultCode());
-            operation.appendErrorMessage(de.getMessageObject());
-            return;
-          }
-
-          operation.setAuthorizationEntry(authorizationEntry);
+          authorizationEntry = proxyControlV2.getAuthorizationEntry();
         }
+        else
+        {
+          authorizationEntry = proxyControlV1.getAuthorizationEntry();
+        }
+        operation.setAuthorizationEntry(authorizationEntry);
       }
+    }
+    catch (DirectoryException de)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      }
+
+      operation.setResultCode(de.getResultCode());
+      operation.appendErrorMessage(de.getMessageObject());
+      return;
     }
 
 
@@ -292,7 +199,7 @@ public class WhoAmIExtendedOperation
       authzID = "dn:" + authzDN.toString();
     }
 
-    operation.setResponseValue(new ASN1OctetString(authzID));
+    operation.setResponseValue(ByteString.valueOf(authzID));
     operation.appendAdditionalLogMessage(
             Message.raw("authzID=\"" + authzID + "\""));
     operation.setResultCode(ResultCode.SUCCESS);

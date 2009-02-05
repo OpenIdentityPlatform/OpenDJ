@@ -34,16 +34,13 @@ import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.StaticUtils;
 
 import java.io.IOException;
 import java.util.*;
 
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -238,7 +235,7 @@ public class ExportJob
         Entry entry = null;
         try
         {
-          entry = JebFormat.entryFromDatabase(data.getData(),
+          entry = ID2Entry.entryFromDatabase(ByteString.wrap(data.getData()),
                        entryContainer.getRootContainer().getCompressedSchema());
         }
         catch (Exception e)

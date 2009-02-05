@@ -30,12 +30,12 @@ import java.io.IOException;
 
 import org.opends.messages.Message;
 import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
 import org.opends.server.protocols.ldap.DeleteResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.tools.LDAPConnection;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.LDAPException;
 
@@ -88,7 +88,7 @@ public class DSMLDeleteOperation
     delResponse.setRequestID(deleteRequest.getRequestID());
 
     // Create and send the LDAP delete request to the server.
-    ASN1OctetString dnStr = new ASN1OctetString(deleteRequest.getDn());
+    ByteString dnStr = ByteString.valueOf(deleteRequest.getDn());
     ProtocolOp op = new DeleteRequestProtocolOp(dnStr);
     LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op);
     connection.getLDAPWriter().writeMessage(msg);

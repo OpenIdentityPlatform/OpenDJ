@@ -29,14 +29,11 @@ package org.opends.server.protocols.ldap;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeTest;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.FilterType;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.RawFilter;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.types.*;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
@@ -81,61 +78,61 @@ public class TestLDAPFilter extends LdapTestCase
   public Object[][] getFilterStrings() throws Exception
   {
     LDAPFilter equal = LDAPFilter.createEqualityFilter("objectClass",
-                                        new ASN1OctetString("\\test*(Value)"));
+                                        ByteString.valueOf("\\test*(Value)"));
     LDAPFilter equal2 = LDAPFilter.createEqualityFilter("objectClass",
-                                                      new ASN1OctetString(""));
+                                                      ByteString.valueOf(""));
     LDAPFilter approx = LDAPFilter.createApproximateFilter("sn",
-                                        new ASN1OctetString("\\test*(Value)"));
+                                        ByteString.valueOf("\\test*(Value)"));
     LDAPFilter greater = LDAPFilter.createGreaterOrEqualFilter("employeeNumber",
-                                        new ASN1OctetString("\\test*(Value)"));
+                                        ByteString.valueOf("\\test*(Value)"));
     LDAPFilter less = LDAPFilter.createLessOrEqualFilter("dob",
-                                        new ASN1OctetString("\\test*(Value)"));
+                                        ByteString.valueOf("\\test*(Value)"));
     LDAPFilter presense = LDAPFilter.createPresenceFilter("login");
 
     ArrayList<ByteString> any = new ArrayList<ByteString>(0);
     ArrayList<ByteString> multiAny = new ArrayList<ByteString>(1);
-    multiAny.add(new ASN1OctetString("\\wid*(get)"));
-    multiAny.add(new ASN1OctetString("*"));
+    multiAny.add(ByteString.valueOf("\\wid*(get)"));
+    multiAny.add(ByteString.valueOf("*"));
 
     LDAPFilter substring1 = LDAPFilter.createSubstringFilter("givenName",
-                                                 new ASN1OctetString("\\Jo*()"),
+                                                 ByteString.valueOf("\\Jo*()"),
                                                       any,
-                                                 new ASN1OctetString("\\n*()"));
+                                                 ByteString.valueOf("\\n*()"));
     LDAPFilter substring2 = LDAPFilter.createSubstringFilter("givenName",
-                                                 new ASN1OctetString("\\Jo*()"),
+                                                 ByteString.valueOf("\\Jo*()"),
                                                       multiAny,
-                                                 new ASN1OctetString("\\n*()"));
+                                                 ByteString.valueOf("\\n*()"));
     LDAPFilter substring3 = LDAPFilter.createSubstringFilter("givenName",
-                                                      new ASN1OctetString(""),
+                                                      ByteString.valueOf(""),
                                                       any,
-                                                 new ASN1OctetString("\\n*()"));
+                                                 ByteString.valueOf("\\n*()"));
     LDAPFilter substring4 = LDAPFilter.createSubstringFilter("givenName",
-                                                 new ASN1OctetString("\\Jo*()"),
+                                                 ByteString.valueOf("\\Jo*()"),
                                                       any,
-                                                      new ASN1OctetString(""));
+                                                      ByteString.valueOf(""));
     LDAPFilter substring5 = LDAPFilter.createSubstringFilter("givenName",
-                                                      new ASN1OctetString(""),
+                                                      ByteString.valueOf(""),
                                                       multiAny,
-                                                      new ASN1OctetString(""));
+                                                      ByteString.valueOf(""));
     LDAPFilter extensible1 = LDAPFilter.createExtensibleFilter("2.4.6.8.19",
                                                 "cn",
-                                           new ASN1OctetString("\\John* (Doe)"),
+                                           ByteString.valueOf("\\John* (Doe)"),
                                                 false);
     LDAPFilter extensible2 = LDAPFilter.createExtensibleFilter("2.4.6.8.19",
                                                 "cn",
-                                           new ASN1OctetString("\\John* (Doe)"),
+                                           ByteString.valueOf("\\John* (Doe)"),
                                                 true);
     LDAPFilter extensible3 = LDAPFilter.createExtensibleFilter("2.4.6.8.19",
                                                 null,
-                                           new ASN1OctetString("\\John* (Doe)"),
+                                           ByteString.valueOf("\\John* (Doe)"),
                                                 true);
     LDAPFilter extensible4 = LDAPFilter.createExtensibleFilter(null,
                                                 "cn",
-                                           new ASN1OctetString("\\John* (Doe)"),
+                                           ByteString.valueOf("\\John* (Doe)"),
                                                 true);
     LDAPFilter extensible5 = LDAPFilter.createExtensibleFilter("2.4.6.8.19",
                                                 null,
-                                           new ASN1OctetString("\\John* (Doe)"),
+                                           ByteString.valueOf("\\John* (Doe)"),
                                                 false);
 
     ArrayList<RawFilter> list1 = new ArrayList<RawFilter>();
@@ -224,13 +221,13 @@ public class TestLDAPFilter extends LdapTestCase
     {
       assertEquals(decoded.getSubAnyElements(), filter.getSubAnyElements());
     }
-    if(decoded.getSubFinalElement() != null && decoded.getSubFinalElement().stringValue() != "" ||
-      filter.getSubFinalElement() != null && filter.getSubFinalElement().stringValue() != "")
+    if(decoded.getSubFinalElement() != null && !decoded.getSubFinalElement().toString().equals("") ||
+      filter.getSubFinalElement() != null && !filter.getSubFinalElement().toString().equals(""))
     {
       assertEquals(decoded.getSubFinalElement(), filter.getSubFinalElement());
     }
-    if(decoded.getSubInitialElement() != null && decoded.getSubInitialElement().stringValue() != "" ||
-        filter.getSubInitialElement() != null && filter.getSubInitialElement().stringValue() != "")
+    if(decoded.getSubInitialElement() != null && !decoded.getSubInitialElement().toString().equals("") ||
+        filter.getSubInitialElement() != null && !filter.getSubInitialElement().toString().equals(""))
     {
       assertEquals(decoded.getSubInitialElement(), filter.getSubInitialElement());
     }
@@ -271,7 +268,12 @@ public class TestLDAPFilter extends LdapTestCase
   @Test(dataProvider = "filterstrings")
   public void testEncodeDecode(String filterStr, LDAPFilter filter) throws Exception
   {
-    assertEquals(LDAPFilter.decode(filter.encode()).toString(), filter.toString());
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    filter.write(writer);
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    assertEquals(LDAPFilter.decode(reader).toString(), filter.toString());
   }
 
   @Test
@@ -295,6 +297,11 @@ public class TestLDAPFilter extends LdapTestCase
           "(cn:2.4.6.8.10:=)" +
         ")");
 
-    assertEquals(LDAPFilter.decode(filter.encode()).toString(), filter.toString());
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    filter.write(writer);
+
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    assertEquals(LDAPFilter.decode(reader).toString(), filter.toString());
   }
 }

@@ -51,6 +51,7 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.loggers.debug.DebugTracer;
 
 import org.opends.server.types.Entry;
+import org.opends.server.types.ByteString;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
@@ -291,7 +292,7 @@ class EntryCachePreloader
           long entryID =
             JebFormat.entryIDFromDatabase(preloadEntry.entryIDBytes);
           Entry entry =
-            JebFormat.entryFromDatabase(preloadEntry.entryBytes,
+            ID2Entry.entryFromDatabase(ByteString.wrap(preloadEntry.entryBytes),
             jeb.getRootContainer().getCompressedSchema());
           try {
             // Even if the entry does not end up in the cache its still

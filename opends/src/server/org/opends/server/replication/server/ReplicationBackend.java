@@ -841,7 +841,7 @@ public class ReplicationBackend
       try
       {
         ChangeNumber startingChangeNumber =
-          new ChangeNumber(filter.getAssertionValue().getStringValue());
+          new ChangeNumber(filter.getAssertionValue().getValue().toString());
          return new ChangeNumber(
               startingChangeNumber.getTime(),
               startingChangeNumber.getSeqnum()-1,

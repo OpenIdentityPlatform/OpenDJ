@@ -38,9 +38,10 @@ import javax.management.MBeanParameterInfo;
 
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.AttributeValues;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.messages.ConfigMessages.*;
@@ -280,8 +281,8 @@ public final class ReadOnlyConfigAttribute
     LinkedHashSet<AttributeValue> valueSet =
          new LinkedHashSet<AttributeValue>(1);
 
-    valueSet.add(new AttributeValue(new ASN1OctetString(value),
-                                    new ASN1OctetString(value)));
+    valueSet.add(AttributeValues.create(ByteString.valueOf(value),
+        ByteString.valueOf(value)));
 
     return valueSet;
   }
@@ -307,8 +308,8 @@ public final class ReadOnlyConfigAttribute
 
     for (String value : values)
     {
-      valueSet.add(new AttributeValue(new ASN1OctetString(value),
-                                      new ASN1OctetString(value)));
+      valueSet.add(AttributeValues.create(ByteString.valueOf(value),
+          ByteString.valueOf(value)));
     }
 
     return valueSet;
@@ -383,8 +384,8 @@ public final class ReadOnlyConfigAttribute
          new LinkedHashSet<AttributeValue>(numValues);
     for (String valueString : valueStrings)
     {
-      valueSet.add(new AttributeValue(new ASN1OctetString(valueString),
-                                      new ASN1OctetString(valueString)));
+      valueSet.add(AttributeValues.create(ByteString.valueOf(valueString),
+          ByteString.valueOf(valueString)));
     }
 
 

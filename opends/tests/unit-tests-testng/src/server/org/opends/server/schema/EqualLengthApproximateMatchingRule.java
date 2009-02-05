@@ -28,14 +28,15 @@ package org.opends.server.schema;
 
 
 
+import static org.opends.server.schema.SchemaConstants.*;
+
 import java.util.Collection;
 import java.util.Collections;
-import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringFactory;
-import org.opends.server.types.DirectoryException;
 
-import static org.opends.server.schema.SchemaConstants.*;
+import org.opends.server.api.ApproximateMatchingRule;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.DirectoryException;
 
 
 
@@ -60,6 +61,7 @@ class EqualLengthApproximateMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getAllNames()
   {
     return Collections.singleton(getName());
@@ -73,6 +75,7 @@ class EqualLengthApproximateMatchingRule
    * @return  The common name for this matching rule, or <CODE>null</CODE> if
    * it does not have a name.
    */
+  @Override
   public String getName()
   {
     return "equalLengthApproximateMatch";
@@ -85,6 +88,7 @@ class EqualLengthApproximateMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return "1.3.6.1.4.1.26027.1.999.26";
@@ -98,6 +102,7 @@ class EqualLengthApproximateMatchingRule
    * @return  The description for this matching rule, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     return null;
@@ -111,6 +116,7 @@ class EqualLengthApproximateMatchingRule
    *
    * @return  The OID of the syntax with which this matching rule is associated.
    */
+  @Override
   public String getSyntaxOID()
   {
     return SYNTAX_DIRECTORY_STRING_OID;
@@ -129,12 +135,13 @@ class EqualLengthApproximateMatchingRule
    * @throws  DirectoryException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
-  public ByteString normalizeValue(ByteString value)
+  @Override
+  public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
     // Any value is acceptable, so we can just return a copy of the
     // value.
-    return ByteStringFactory.create(value.value());
+    return value.toByteString();
   }
 
 
@@ -149,9 +156,10 @@ class EqualLengthApproximateMatchingRule
    * @return  <CODE>true</CODE> if the provided values are approximately equal,
    *          or <CODE>false</CODE> if not.
    */
-  public boolean approximatelyMatch(ByteString value1, ByteString value2)
+  @Override
+  public boolean approximatelyMatch(ByteSequence value1, ByteSequence value2)
   {
-    return (value1.value().length == value2.value().length);
+    return value1.length() == value2.length();
   }
 }
 

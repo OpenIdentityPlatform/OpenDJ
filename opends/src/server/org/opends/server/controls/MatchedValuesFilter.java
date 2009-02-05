@@ -31,6 +31,7 @@ import org.opends.messages.Message;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.io.IOException;
 
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.EqualityMatchingRule;
@@ -38,21 +39,13 @@ import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
+import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.RawFilter;
 import org.opends.server.util.Validator;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -130,19 +123,19 @@ public class MatchedValuesFilter
   private ApproximateMatchingRule approximateMatchingRule;
 
   // The normalized subFinal value for this matched values filter.
-  private ASN1OctetString normalizedSubFinal;
+  private ByteString normalizedSubFinal;
 
   // The normalized subInitial value for this matched values filter.
-  private ASN1OctetString normalizedSubInitial;
+  private ByteString normalizedSubInitial;
 
   // The raw, unprocessed assertion value for this matched values filter.
-  private ByteString rawAssertionValue;
+  private final ByteString rawAssertionValue;
 
   // The subFinal value for this matched values filter.
-  private ByteString subFinal;
+  private final ByteString subFinal;
 
   // The subInitial value for this matched values filter.
-  private ByteString subInitial;
+  private final ByteString subInitial;
 
   // The processed attribute type for this matched values filter.
   private AttributeType attributeType;
@@ -155,16 +148,16 @@ public class MatchedValuesFilter
   private boolean decoded;
 
   // The match type for this matched values filter.
-  private byte matchType;
+  private final byte matchType;
 
   // The equality matching rule for this matched values filter.
   private EqualityMatchingRule equalityMatchingRule;
 
   // The set of normalized subAny values for this matched values filter.
-  private List<ASN1OctetString> normalizedSubAny;
+  private List<ByteString> normalizedSubAny;
 
   // The set of subAny values for this matched values filter.
-  private List<ByteString> subAny;
+  private final List<ByteString> subAny;
 
   // The matching rule for this matched values filter.
   private MatchingRule matchingRule;
@@ -173,10 +166,10 @@ public class MatchedValuesFilter
   private OrderingMatchingRule orderingMatchingRule;
 
   // The matching rule ID for this matched values filter.
-  private String matchingRuleID;
+  private final String matchingRuleID;
 
   // The raw, unprocessed attribute type for this matched values filter.
-  private String rawAttributeType;
+  private final String rawAttributeType;
 
   // The substring matching rule for this matched values filter.
   private SubstringMatchingRule substringMatchingRule;
@@ -256,8 +249,7 @@ public class MatchedValuesFilter
   {
     Validator.ensureNotNull(attributeType, assertionValue);
     String rawAttributeType = attributeType.getNameOrOID();
-    ASN1OctetString rawAssertionValue = assertionValue.getValue()
-        .toASN1OctetString();
+    ByteString rawAssertionValue = assertionValue.getValue();
 
     MatchedValuesFilter filter =
          new MatchedValuesFilter(EQUALITY_MATCH_TYPE, rawAttributeType,
@@ -357,8 +349,7 @@ public class MatchedValuesFilter
     Validator.ensureNotNull(attributeType, assertionValue);
 
     String          rawAttributeType  = attributeType.getNameOrOID();
-    ASN1OctetString rawAssertionValue =
-         assertionValue.getValue().toASN1OctetString();
+    ByteString rawAssertionValue = assertionValue.getValue();
 
     MatchedValuesFilter filter =
          new MatchedValuesFilter(GREATER_OR_EQUAL_TYPE, rawAttributeType,
@@ -405,8 +396,7 @@ public class MatchedValuesFilter
     Validator.ensureNotNull(attributeType, assertionValue);
 
     String          rawAttributeType = attributeType.getNameOrOID();
-    ASN1OctetString rawAssertionValue =
-         assertionValue.getValue().toASN1OctetString();
+    ByteString rawAssertionValue = assertionValue.getValue();
 
     MatchedValuesFilter filter =
          new MatchedValuesFilter(LESS_OR_EQUAL_TYPE, rawAttributeType,
@@ -492,8 +482,7 @@ public class MatchedValuesFilter
   {
     Validator.ensureNotNull(attributeType,assertionValue);
     String          rawAttributeType  = attributeType.getNameOrOID();
-    ASN1OctetString rawAssertionValue =
-         assertionValue.getValue().toASN1OctetString();
+    ByteString rawAssertionValue = assertionValue.getValue();
 
     MatchedValuesFilter filter =
          new MatchedValuesFilter(APPROXIMATE_MATCH_TYPE, rawAttributeType,
@@ -546,8 +535,7 @@ public class MatchedValuesFilter
     Validator.ensureNotNull(attributeType, matchingRule, assertionValue);
     String rawAttributeType = attributeType.getNameOrOID();
     String matchingRuleID = matchingRule.getOID();
-    ASN1OctetString rawAssertionValue =
-         assertionValue.getValue().toASN1OctetString();
+    ByteString rawAssertionValue = assertionValue.getValue();
 
     MatchedValuesFilter filter =
          new MatchedValuesFilter(EXTENSIBLE_MATCH_TYPE, rawAttributeType,
@@ -651,14 +639,13 @@ public class MatchedValuesFilter
     }
   }
 
-
-
   /**
    * Encodes this matched values filter as an ASN.1 element.
    *
-   * @return  The ASN.1 element containing the encoded matched values filter.
+   * @param writer The ASN1Writer to use to encode this matched values filter.
+   * @throws IOException if an error occurs while encoding.
    */
-  public ASN1Element encode()
+  public void encode(ASN1Writer writer) throws IOException
   {
     switch (matchType)
     {
@@ -667,89 +654,90 @@ public class MatchedValuesFilter
       case LESS_OR_EQUAL_TYPE:
       case APPROXIMATE_MATCH_TYPE:
         // These will all be encoded in the same way.
-        ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-        elements.add(new ASN1OctetString(rawAttributeType));
-        elements.add(rawAssertionValue.toASN1OctetString());
-        return new ASN1Sequence(matchType, elements);
-
+        writer.writeStartSequence(matchType);
+        writer.writeOctetString(rawAttributeType);
+        writer.writeOctetString(rawAssertionValue);
+        writer.writeEndSequence();
+        return;
 
       case SUBSTRINGS_TYPE:
-        ArrayList<ASN1Element> subElements = new ArrayList<ASN1Element>();
+        writer.writeStartSequence(matchType);
+        writer.writeOctetString(rawAttributeType);
+
+        writer.writeStartSequence();
         if (subInitial != null)
         {
-          ASN1OctetString subInitialOS = subInitial.toASN1OctetString();
-          subInitialOS.setType(TYPE_SUBINITIAL);
-          subElements.add(subInitialOS);
+          writer.writeOctetString(TYPE_SUBINITIAL, subInitial);
         }
 
         if (subAny != null)
         {
           for (ByteString s : subAny)
           {
-            ASN1OctetString os = s.toASN1OctetString();
-            os.setType(TYPE_SUBANY);
-            subElements.add(os);
+            writer.writeOctetString(TYPE_SUBANY, s);
           }
         }
 
         if (subFinal != null)
         {
-          ASN1OctetString subFinalOS = subFinal.toASN1OctetString();
-          subFinalOS.setType(TYPE_SUBFINAL);
-          subElements.add(subFinalOS);
+          writer.writeOctetString(TYPE_SUBFINAL, subFinal);
         }
+        writer.writeEndSequence();
 
-        elements = new ArrayList<ASN1Element>(2);
-        elements.add(new ASN1OctetString(rawAttributeType));
-        elements.add(new ASN1Sequence(subElements));
-        return new ASN1Sequence(matchType, elements);
-
+        writer.writeEndSequence();
+        return;
 
       case PRESENT_TYPE:
-        return new ASN1OctetString(matchType, rawAttributeType);
-
+        writer.writeOctetString(matchType, rawAttributeType);
+        return;
 
       case EXTENSIBLE_MATCH_TYPE:
-        elements = new ArrayList<ASN1Element>(3);
+        writer.writeStartSequence(matchType);
         if (matchingRuleID != null)
         {
-          elements.add(new ASN1OctetString(TYPE_MATCHING_RULE_ID,
-                                           matchingRuleID));
+          writer.writeOctetString(TYPE_MATCHING_RULE_ID, matchingRuleID);
         }
 
         if (rawAttributeType != null)
         {
-          elements.add(new ASN1OctetString(TYPE_MATCHING_RULE_TYPE,
-                                           rawAttributeType));
+          writer.writeOctetString(TYPE_MATCHING_RULE_TYPE, rawAttributeType);
         }
-
-        ASN1OctetString valueOS = rawAssertionValue.toASN1OctetString();
-        valueOS.setType(TYPE_MATCHING_RULE_VALUE);
-        elements.add(valueOS);
-        return new ASN1Sequence(matchType, elements);
+        writer.writeOctetString(TYPE_MATCHING_RULE_VALUE, rawAssertionValue);
+        writer.writeEndSequence();
+        return;
 
 
       default:
-        return null;
     }
   }
 
-
-
-  /**
+    /**
    * Decodes the provided ASN.1 element as a matched values filter item.
    *
-   * @param  element  The ASN.1 element to be decoded.
+   * @param  reader The ASN.1 reader.
    *
    * @return  The decoded matched values filter.
    *
    * @throws  LDAPException  If a problem occurs while attempting to decode the
    *                         filter item.
    */
-  public static MatchedValuesFilter decode(ASN1Element element)
+  public static MatchedValuesFilter decode(ASN1Reader reader)
          throws LDAPException
   {
-    switch (element.getType())
+    byte type;
+    try
+    {
+      type = reader.peekType();
+    }
+    catch(Exception e)
+    {
+      // TODO: Need a better message.
+      Message message =
+          ERR_MVFILTER_INVALID_ELEMENT_TYPE.get(e.toString());
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
+    }
+
+    switch (type)
     {
       case EQUALITY_MATCH_TYPE:
       case GREATER_OR_EQUAL_TYPE:
@@ -759,25 +747,12 @@ public class MatchedValuesFilter
         // sequence consisting of the attribute type and assertion value.
         try
         {
-          ArrayList<ASN1Element> elements =
-               element.decodeAsSequence().elements();
-          if (elements.size() != 2)
-          {
-            Message message =
-                ERR_MVFILTER_INVALID_AVA_SEQUENCE_SIZE.get(elements.size());
-            throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-          }
-
-          String rawAttributeType =
-                      elements.get(0).decodeAsOctetString().stringValue();
-
-          return new MatchedValuesFilter(element.getType(), rawAttributeType,
-                                         elements.get(1).decodeAsOctetString(),
-                                         null, null, null, null);
-        }
-        catch (LDAPException le)
-        {
-          throw le;
+          reader.readStartSequence();
+          String rawAttributeType = reader.readOctetStringAsString();
+          ByteString rawAssertionValue = reader.readOctetString();
+          reader.readEndSequence();
+          return new MatchedValuesFilter(type, rawAttributeType,
+              rawAssertionValue, null, null, null, null);
         }
         catch (Exception e)
         {
@@ -798,37 +773,27 @@ public class MatchedValuesFilter
         // sequence of substring types.
         try
         {
-          ArrayList<ASN1Element> elements =
-               element.decodeAsSequence().elements();
-          if (elements.size() != 2)
-          {
-            Message message = ERR_MVFILTER_INVALID_SUBSTRING_SEQUENCE_SIZE.get(
-                elements.size());
-            throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-          }
+          reader.readStartSequence();
+          String rawAttributeType = reader.readOctetStringAsString();
 
-          ArrayList<ASN1Element> subElements =
-               elements.get(1).decodeAsSequence().elements();
-          if (subElements.isEmpty())
+          reader.readStartSequence();
+          if(!reader.hasNextElement())
           {
             Message message = ERR_MVFILTER_NO_SUBSTRING_ELEMENTS.get();
             throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
           }
 
-          String rawAttributeType =
-                      elements.get(0).decodeAsOctetString().stringValue();
-
           ByteString subInitial        = null;
           ArrayList<ByteString> subAny = null;
           ByteString subFinal          = null;
-          for (ASN1Element e : subElements)
+          while(reader.hasNextElement())
           {
-            switch (e.getType())
+            switch(reader.peekType())
             {
-              case TYPE_SUBINITIAL:
+             case TYPE_SUBINITIAL:
                 if (subInitial == null)
                 {
-                  subInitial = e.decodeAsOctetString();
+                  subInitial = reader.readOctetString();
                 }
                 else
                 {
@@ -844,13 +809,13 @@ public class MatchedValuesFilter
                   subAny = new ArrayList<ByteString>();
                 }
 
-                subAny.add(e.decodeAsOctetString());
+                subAny.add(reader.readOctetString());
                 break;
 
               case TYPE_SUBFINAL:
                 if (subFinal == null)
                 {
-                  subFinal = e.decodeAsOctetString();
+                  subFinal = reader.readOctetString();
                 }
                 else
                 {
@@ -862,12 +827,15 @@ public class MatchedValuesFilter
 
               default:
                 Message message = ERR_MVFILTER_INVALID_SUBSTRING_ELEMENT_TYPE.
-                    get(byteToHex(e.getType()));
+                    get(byteToHex(reader.peekType()));
                 throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
           }
+          reader.readEndSequence();
 
-          return new MatchedValuesFilter(element.getType(), rawAttributeType,
+          reader.readEndSequence();
+
+          return new MatchedValuesFilter(type, rawAttributeType,
                                          null, subInitial, subAny, subFinal,
                                          null);
         }
@@ -893,9 +861,9 @@ public class MatchedValuesFilter
         // The element must be an ASN.1 octet string holding the attribute type.
         try
         {
-          String rawAttributeType = element.decodeAsOctetString().stringValue();
+          String rawAttributeType = reader.readOctetStringAsString();
 
-          return new MatchedValuesFilter(element.getType(), rawAttributeType,
+          return new MatchedValuesFilter(type, rawAttributeType,
                                          null, null, null, null, null);
         }
         catch (Exception e)
@@ -918,27 +886,19 @@ public class MatchedValuesFilter
         // the first element(s).
         try
         {
-          ArrayList<ASN1Element> elements =
-               element.decodeAsSequence().elements();
-          if ((elements.size() < 2) || (elements.size() > 3))
-          {
-            Message message = ERR_MVFILTER_INVALID_EXTENSIBLE_SEQUENCE_SIZE.get(
-                elements.size());
-            throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-          }
-
+          reader.readStartSequence();
 
           String          rawAttributeType  = null;
           String          matchingRuleID    = null;
-          ASN1OctetString rawAssertionValue = null;
-          for (ASN1Element e : elements)
+          ByteString rawAssertionValue = null;
+          while(reader.hasNextElement())
           {
-            switch (e.getType())
+            switch (reader.peekType())
             {
               case TYPE_MATCHING_RULE_ID:
                 if (matchingRuleID == null)
                 {
-                  matchingRuleID = e.decodeAsOctetString().stringValue();
+                  matchingRuleID = reader.readOctetStringAsString();
                 }
                 else
                 {
@@ -952,7 +912,7 @@ public class MatchedValuesFilter
               case TYPE_MATCHING_RULE_TYPE:
                 if (rawAttributeType == null)
                 {
-                  rawAttributeType = e.decodeAsOctetString().stringValue();
+                  rawAttributeType = reader.readOctetStringAsString();
                 }
                 else
                 {
@@ -965,7 +925,7 @@ public class MatchedValuesFilter
               case TYPE_MATCHING_RULE_VALUE:
                 if (rawAssertionValue == null)
                 {
-                  rawAssertionValue = e.decodeAsOctetString();
+                  rawAssertionValue = reader.readOctetString();
                 }
                 else
                 {
@@ -978,13 +938,13 @@ public class MatchedValuesFilter
 
               default:
                 Message message = ERR_MVFILTER_INVALID_EXTENSIBLE_ELEMENT_TYPE.
-                    get(byteToHex(e.getType()));
+                    get(byteToHex(reader.peekType()));
                 throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
           }
+          reader.readEndSequence();
 
-
-          return new MatchedValuesFilter(element.getType(), rawAttributeType,
+          return new MatchedValuesFilter(type, rawAttributeType,
                                          rawAssertionValue, null, null, null,
                                          matchingRuleID);
         }
@@ -1008,7 +968,7 @@ public class MatchedValuesFilter
 
       default:
         Message message =
-            ERR_MVFILTER_INVALID_ELEMENT_TYPE.get(byteToHex(element.getType()));
+            ERR_MVFILTER_INVALID_ELEMENT_TYPE.get(byteToHex(type));
         throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
   }
@@ -1040,28 +1000,6 @@ public class MatchedValuesFilter
   }
 
 
-
-  /**
-   * Specifies the raw, unprocessed attribute type for this matched values
-   * filter.
-   *
-   * @param  rawAttributeType  The raw, unprocessed attribute type for this
-   *                           matched values filter.
-   */
-  public void setRawAttributeType(String rawAttributeType)
-  {
-    this.rawAttributeType = rawAttributeType;
-
-    decoded                 = false;
-    attributeType           = null;
-    approximateMatchingRule = null;
-    equalityMatchingRule    = null;
-    orderingMatchingRule    = null;
-    substringMatchingRule   = null;
-  }
-
-
-
   /**
    * Retrieves the attribute type for this matched values filter.
    *
@@ -1088,34 +1026,6 @@ public class MatchedValuesFilter
   }
 
 
-
-  /**
-   * Specifies the attribute type for this matched values filter.
-   *
-   * @param  attributeType  The attribute type for this matched values filter.
-   */
-  public void setAttributeType(AttributeType attributeType)
-  {
-    this.attributeType = attributeType;
-
-    if (attributeType == null)
-    {
-      rawAttributeType = null;
-    }
-    else
-    {
-      rawAttributeType = attributeType.getNameOrOID();
-    }
-
-    decoded                 = false;
-    approximateMatchingRule = null;
-    equalityMatchingRule    = null;
-    orderingMatchingRule    = null;
-    substringMatchingRule   = null;
-  }
-
-
-
   /**
    * Retrieves the raw, unprocessed assertion value for this matched values
    * filter.
@@ -1126,23 +1036,6 @@ public class MatchedValuesFilter
   public ByteString getRawAssertionValue()
   {
     return rawAssertionValue;
-  }
-
-
-
-  /**
-   * Specifies the raw, unprocessed assertion value for this matched values
-   * filter.
-   *
-   * @param  rawAssertionValue  The raw, unprocessed assertion value for this
-   *                            matched values filter.
-   */
-  public void setRawAssertionValue(ByteString rawAssertionValue)
-  {
-    this.rawAssertionValue = rawAssertionValue;
-
-    decoded        = false;
-    assertionValue = null;
   }
 
 
@@ -1159,35 +1052,12 @@ public class MatchedValuesFilter
     {
       if (rawAssertionValue != null)
       {
-        assertionValue = new AttributeValue(getAttributeType(),
-                                            rawAssertionValue);
+        assertionValue = AttributeValues.create(
+            getAttributeType(), rawAssertionValue);
       }
     }
 
     return assertionValue;
-  }
-
-
-
-  /**
-   * Specifies the assertion value for this matched values filter.
-   *
-   * @param  assertionValue  The assertion value for this matched values filter.
-   */
-  public void setAssertionValue(AttributeValue assertionValue)
-  {
-    this.assertionValue = assertionValue;
-
-    if (assertionValue == null)
-    {
-      rawAssertionValue = null;
-    }
-    else
-    {
-      rawAssertionValue = assertionValue.getValue().toASN1OctetString();
-    }
-
-    decoded = false;
   }
 
 
@@ -1205,18 +1075,7 @@ public class MatchedValuesFilter
 
 
 
-  /**
-   * Specifies the subInitial element for this matched values filter.
-   *
-   * @param  subInitial  The subInitial element for this matched values filter.
-   */
-  public void setSubInitialElement(ByteString subInitial)
-  {
-    this.subInitial = subInitial;
 
-    decoded              = false;
-    normalizedSubInitial = null;
-  }
 
 
 
@@ -1226,7 +1085,7 @@ public class MatchedValuesFilter
    * @return  The normalized form of the subInitial element, or
    *          <CODE>null</CODE> if there is none.
    */
-  public ASN1OctetString getNormalizedSubInitialElement()
+  public ByteString getNormalizedSubInitialElement()
   {
     if (normalizedSubInitial == null)
     {
@@ -1235,8 +1094,7 @@ public class MatchedValuesFilter
         try
         {
           normalizedSubInitial =
-               getSubstringMatchingRule().normalizeSubstring(subInitial).
-                    toASN1OctetString();
+               getSubstringMatchingRule().normalizeSubstring(subInitial);
         }
         catch (Exception e)
         {
@@ -1268,21 +1126,6 @@ public class MatchedValuesFilter
 
 
   /**
-   * Specifies the set of subAny elements for this matched values filter.
-   *
-   * @param  subAny  The set of subAny elements for this matched values filter.
-   */
-  public void setSubAnyElements(List<ByteString> subAny)
-  {
-    this.subAny = subAny;
-
-    decoded          = false;
-    normalizedSubAny = null;
-  }
-
-
-
-  /**
    * Retrieves the set of normalized subAny elements for this matched values
    * filter.
    *
@@ -1291,13 +1134,13 @@ public class MatchedValuesFilter
    *          problem occurs while attempting to perform the normalization, then
    *          <CODE>null</CODE> will be returned.
    */
-  public List<ASN1OctetString> getNormalizedSubAnyElements()
+  public List<ByteString> getNormalizedSubAnyElements()
   {
     if (normalizedSubAny == null)
     {
       if ((subAny == null) || (subAny.isEmpty()))
       {
-        normalizedSubAny = new ArrayList<ASN1OctetString>(0);
+        normalizedSubAny = new ArrayList<ByteString>(0);
       }
       else
       {
@@ -1306,14 +1149,13 @@ public class MatchedValuesFilter
           return null;
         }
 
-        normalizedSubAny = new ArrayList<ASN1OctetString>();
+        normalizedSubAny = new ArrayList<ByteString>();
         try
         {
           for (ByteString s : subAny)
           {
             normalizedSubAny.add(
-                 substringMatchingRule.normalizeSubstring(s).
-                      toASN1OctetString());
+                 substringMatchingRule.normalizeSubstring(s));
           }
         }
         catch (Exception e)
@@ -1347,27 +1189,12 @@ public class MatchedValuesFilter
 
 
   /**
-   * Specifies the subFinal element for this matched values filter.
-   *
-   * @param  subFinal  The subFinal element for this matched values filter.
-   */
-  public void setSubFinalElement(ByteString subFinal)
-  {
-    this.subFinal = subFinal;
-
-    decoded            = false;
-    normalizedSubFinal = null;
-  }
-
-
-
-  /**
    * Retrieves the normalized form of the subFinal element.
    *
    * @return  The normalized form of the subFinal element, or <CODE>null</CODE>
    *          if there is none.
    */
-  public ASN1OctetString getNormalizedSubFinalElement()
+  public ByteString getNormalizedSubFinalElement()
   {
     if (normalizedSubFinal == null)
     {
@@ -1376,8 +1203,7 @@ public class MatchedValuesFilter
         try
         {
           normalizedSubFinal =
-               getSubstringMatchingRule().normalizeSubstring(subFinal).
-                    toASN1OctetString();
+               getSubstringMatchingRule().normalizeSubstring(subFinal);
         }
         catch (Exception e)
         {
@@ -1408,22 +1234,6 @@ public class MatchedValuesFilter
 
 
   /**
-   * Specifies the matching rule ID for this matched values filter.
-   *
-   * @param  matchingRuleID  The matching rule ID for this matched values
-   *                         filter.
-   */
-  public void setMatchingRuleID(String matchingRuleID)
-  {
-    this.matchingRuleID = matchingRuleID;
-
-    decoded      = false;
-    matchingRule = null;
-  }
-
-
-
-  /**
    * Retrieves the matching rule for this matched values filter.
    *
    * @return  The matching rule for this matched values filter, or
@@ -1441,29 +1251,6 @@ public class MatchedValuesFilter
     }
 
     return matchingRule;
-  }
-
-
-
-  /**
-   * Specifies the matching rule for this matched values filter.
-   *
-   * @param  matchingRule  The matching rule for this matched values filter.
-   */
-  public void setMatchingRule(MatchingRule matchingRule)
-  {
-    this.matchingRule = matchingRule;
-
-    if (matchingRule == null)
-    {
-      matchingRuleID = null;
-    }
-    else
-    {
-      matchingRuleID = matchingRule.getNameOrOID();
-    }
-
-    decoded = false;
   }
 
 
@@ -1635,8 +1422,8 @@ public class MatchedValuesFilter
         {
           try
           {
-            ArrayList<ByteString> normalizedSubAnyBS =
-                 new ArrayList<ByteString>(normalizedSubAny);
+            ArrayList<ByteSequence> normalizedSubAnyBS =
+                 new ArrayList<ByteSequence>(normalizedSubAny);
 
             return substringMatchingRule.valueMatchesSubstring(
                  value.getNormalizedValue(), normalizedSubInitial,
@@ -1762,12 +1549,10 @@ public class MatchedValuesFilter
 
           try
           {
-            ASN1OctetString nv1 =
-                 matchingRule.normalizeValue(value.getValue()).
-                      toASN1OctetString();
-            ASN1OctetString nv2 =
-                 matchingRule.normalizeValue(assertionValue.getValue()).
-                      toASN1OctetString();
+            ByteString nv1 =
+                 matchingRule.normalizeValue(value.getValue());
+            ByteString nv2 =
+                 matchingRule.normalizeValue(assertionValue.getValue());
 
             return (matchingRule.valuesMatch(nv1, nv2) == ConditionResult.TRUE);
           }
@@ -1819,6 +1604,7 @@ public class MatchedValuesFilter
    *
    * @return  A string representation of this matched values filter.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();

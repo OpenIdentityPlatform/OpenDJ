@@ -49,17 +49,7 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.FilePermission;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.Modification;
-import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.util.Base64;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
@@ -570,18 +560,17 @@ public class TextAuditLogPublisher extends
    * @param buffer
    *          The buffer to which to append the value.
    */
-  private void encodeValue(ByteString str, StringBuilder buffer)
+  private void encodeValue(ByteSequence str, StringBuilder buffer)
   {
-    byte[] byteVal = str.value();
-    if (StaticUtils.needsBase64Encoding(byteVal))
+    if(StaticUtils.needsBase64Encoding(str))
     {
       buffer.append(": ");
-      buffer.append(Base64.encode(byteVal));
+      buffer.append(Base64.encode(str));
     }
     else
     {
       buffer.append(" ");
-      str.toString(buffer);
+      buffer.append(str.toString());
     }
   }
 

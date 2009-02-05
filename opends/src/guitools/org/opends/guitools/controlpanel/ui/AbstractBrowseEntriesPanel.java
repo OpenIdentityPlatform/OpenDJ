@@ -99,12 +99,7 @@ import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.SearchFilter;
+import org.opends.server.types.*;
 
 /**
  * The abstract class used to refactor some code.  The classes that extend this
@@ -821,7 +816,7 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
                 attr.toString().toLowerCase());
           LDAPFilter ldapFilter =
             new LDAPFilter(SearchFilter.createEqualityFilter(
-              attrType, new AttributeValue(attrType, s)));
+              attrType, AttributeValues.create(attrType, s)));
           returnValue = ldapFilter.toString();
         }
       }

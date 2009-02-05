@@ -26,8 +26,10 @@
  */
 package org.opends.server.protocols.ldap;
 
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.types.ByteStringBuilder;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
@@ -36,9 +38,12 @@ public class TestUnbindRequestProtocolOp  extends LdapTestCase {
 
   @Test()
   public void testUnbindEncodeDecodeRequest() throws Exception {
+      ByteStringBuilder builder = new ByteStringBuilder();
+      ASN1Writer writer = ASN1.getWriter(builder);
       UnbindRequestProtocolOp req = new UnbindRequestProtocolOp();
-      ASN1Element reqElem=req.encode();
-      ProtocolOp reqOp= ProtocolOp.decode(reqElem);
+      req.write(writer);
+      ASN1Reader reader = ASN1.getReader(builder.toByteString());
+      ProtocolOp reqOp = LDAPReader.readProtocolOp(reader);
       assertTrue(reqOp.getProtocolOpName() == req.getProtocolOpName());
       assertTrue(reqOp.getType() == req.getType());
   }

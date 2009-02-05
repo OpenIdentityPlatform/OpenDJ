@@ -22,13 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
-import java.util.ArrayList;
 import java.util.List;
-import org.opends.server.protocols.asn1.ASN1Element;
+
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.replication.common.ChangeNumber;
@@ -36,6 +37,7 @@ import org.opends.server.replication.plugin.Historical;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeUsage;
+import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.Modification;
 
 /**
@@ -106,9 +108,9 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
     if ((mods == null) || (mods.size() == 0))
       return new byte[0];
 
-    ArrayList<ASN1Element> modsASN1;
+    ByteStringBuilder byteBuilder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(byteBuilder);
 
-    modsASN1 = new ArrayList<ASN1Element>(mods.size());
     for (Modification mod : mods)
     {
       Attribute attr = mod.getAttribute();
@@ -127,11 +129,18 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
       {
         LDAPModification ldapmod = new LDAPModification(
           mod.getModificationType(), new LDAPAttribute(mod.getAttribute()));
-        modsASN1.add(ldapmod.encode());
+        try
+        {
+          ldapmod.write(writer);
+        }
+        catch(Exception e)
+        {
+          // DO SOMETHING
+        }
       }
     }
 
-    return ASN1Element.encodeValue(modsASN1);
+    return byteBuilder.toByteArray();
   }
 
 }

@@ -37,12 +37,7 @@ import org.opends.server.admin.std.server.LengthBasedPasswordValidatorCfg;
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.config.ConfigException;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
 import org.opends.messages.MessageBuilder;
@@ -122,7 +117,7 @@ public class LengthBasedPasswordValidator extends
   {
     LengthBasedPasswordValidatorCfg config = currentConfig;
 
-    int numChars = newPassword.stringValue().length();
+    int numChars = newPassword.toString().length();
 
     int minLength = config.getMinPasswordLength();
     if ((minLength > 0) && (numChars < minLength))

@@ -43,19 +43,8 @@ import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringFactory;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
-import org.opends.server.types.VirtualAttributeRule;
+import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
 
 import static org.testng.Assert.*;
@@ -147,7 +136,7 @@ public class EntryDNVirtualAttributeProviderTestCase
     {
       assertTrue(!a.isEmpty());
       assertEquals(a.size(), 1);
-      assertTrue(a.contains(new AttributeValue(entryDNType,
+      assertTrue(a.contains(AttributeValues.create(entryDNType,
                                                entryDN.toNormalizedString())));
     }
   }
@@ -459,7 +448,7 @@ public class EntryDNVirtualAttributeProviderTestCase
     attrList.add("entrydn");
 
     LinkedList<Control> requestControls = new LinkedList<Control>();
-    requestControls.add(new Control(OID_REAL_ATTRS_ONLY, true));
+    requestControls.add(new LDAPControl(OID_REAL_ATTRS_ONLY, true));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -502,7 +491,7 @@ public class EntryDNVirtualAttributeProviderTestCase
     attrList.add("entrydn");
 
     LinkedList<Control> requestControls = new LinkedList<Control>();
-    requestControls.add(new Control(OID_VIRTUAL_ATTRS_ONLY, true));
+    requestControls.add(new LDAPControl(OID_VIRTUAL_ATTRS_ONLY, true));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -564,7 +553,7 @@ public class EntryDNVirtualAttributeProviderTestCase
     Set<AttributeValue> values = provider.getValues(entry, rule);
     assertNotNull(values);
     assertEquals(values.size(), 1);
-    assertTrue(values.contains(new AttributeValue(entryDNType, "o=test")));
+    assertTrue(values.contains(AttributeValues.create(entryDNType, "o=test")));
   }
 
 
@@ -629,7 +618,7 @@ public class EntryDNVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     assertTrue(provider.hasValue(entry, rule,
-                                 new AttributeValue(entryDNType, "o=test")));
+        AttributeValues.create(entryDNType, "o=test")));
   }
 
 
@@ -662,7 +651,7 @@ public class EntryDNVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     assertFalse(provider.hasValue(entry, rule,
-                     new AttributeValue(entryDNType, "o=not test")));
+        AttributeValues.create(entryDNType, "o=not test")));
   }
 
 
@@ -727,7 +716,7 @@ public class EntryDNVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-    values.add(new AttributeValue(entryDNType, "o=test"));
+    values.add(AttributeValues.create(entryDNType, "o=test"));
 
     assertTrue(provider.hasAnyValue(entry, rule, values));
   }
@@ -762,7 +751,7 @@ public class EntryDNVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-    values.add(new AttributeValue(entryDNType, "o=not test"));
+    values.add(AttributeValues.create(entryDNType, "o=not test"));
 
     assertFalse(provider.hasAnyValue(entry, rule, values));
   }
@@ -797,9 +786,9 @@ public class EntryDNVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(3);
-    values.add(new AttributeValue(entryDNType, "o=test"));
-    values.add(new AttributeValue(entryDNType, "o=not test"));
-    values.add(new AttributeValue(entryDNType, "o=not test either"));
+    values.add(AttributeValues.create(entryDNType, "o=test"));
+    values.add(AttributeValues.create(entryDNType, "o=not test"));
+    values.add(AttributeValues.create(entryDNType, "o=not test either"));
 
     assertTrue(provider.hasAnyValue(entry, rule, values));
   }
@@ -834,9 +823,9 @@ public class EntryDNVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(3);
-    values.add(new AttributeValue(entryDNType, "o=not test"));
-    values.add(new AttributeValue(entryDNType, "o=not test either"));
-    values.add(new AttributeValue(entryDNType, "o=still not test"));
+    values.add(AttributeValues.create(entryDNType, "o=not test"));
+    values.add(AttributeValues.create(entryDNType, "o=not test either"));
+    values.add(AttributeValues.create(entryDNType, "o=still not test"));
 
     assertFalse(provider.hasAnyValue(entry, rule, values));
   }
@@ -871,7 +860,7 @@ public class EntryDNVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     LinkedList<ByteString> subAny = new LinkedList<ByteString>();
-    subAny.add(ByteStringFactory.create("="));
+    subAny.add(ByteString.valueOf("="));
 
     assertEquals(provider.matchesSubstring(entry, rule, null, subAny, null),
                  ConditionResult.UNDEFINED);
@@ -906,7 +895,7 @@ public class EntryDNVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    AttributeValue value = new AttributeValue(entryDNType, "o=test2");
+    AttributeValue value = AttributeValues.create(entryDNType, "o=test2");
     assertEquals(provider.greaterThanOrEqualTo(entry, rule, value),
                  ConditionResult.UNDEFINED);
   }
@@ -940,7 +929,7 @@ public class EntryDNVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    AttributeValue value = new AttributeValue(entryDNType, "o=test2");
+    AttributeValue value = AttributeValues.create(entryDNType, "o=test2");
     assertEquals(provider.lessThanOrEqualTo(entry, rule, value),
                  ConditionResult.UNDEFINED);
   }
@@ -974,7 +963,7 @@ public class EntryDNVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    AttributeValue value = new AttributeValue(entryDNType, "o=test2");
+    AttributeValue value = AttributeValues.create(entryDNType, "o=test2");
     assertEquals(provider.approximatelyEqualTo(entry, rule, value),
                  ConditionResult.UNDEFINED);
   }

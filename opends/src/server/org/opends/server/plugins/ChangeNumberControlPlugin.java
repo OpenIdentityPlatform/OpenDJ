@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Set;
 
 import java.util.TreeSet;
+import java.io.IOException;
+
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
@@ -39,7 +41,7 @@ import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigException;
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.OperationContext;
 import org.opends.server.types.ConfigChangeResult;
@@ -63,6 +65,48 @@ public final class ChangeNumberControlPlugin
 
   // The current configuration for this plugin.
   private ChangeNumberControlPluginCfg currentConfig;
+
+  /**
+   * The control used by this plugin.
+   */
+  public static class ChangeNumberControl extends Control
+  {
+    private ChangeNumber cn;
+
+    /**
+     * Constructs a new change number control.
+     *
+     * @param  isCritical   Indicates whether support for this control should be
+     *                      considered a critical part of the server processing.
+     * @param cn          The change number.
+     */
+    public ChangeNumberControl(boolean isCritical, ChangeNumber cn)
+    {
+      super(OID_CSN_CONTROL, isCritical);
+      this.cn = cn;
+    }
+
+    /**
+     * Writes this control's value to an ASN.1 writer. The value (if any) must
+     * be written as an ASN1OctetString.
+     *
+     * @param writer The ASN.1 writer to use.
+     * @throws IOException If a problem occurs while writing to the stream.
+     */
+    protected void writeValue(ASN1Writer writer) throws IOException {
+      writer.writeOctetString(cn.toString());
+    }
+
+    /**
+     * Retrieves the change number.
+     *
+     * @return The change number.
+     */
+    public ChangeNumber getChangeNumber()
+    {
+      return cn;
+    }
+  }
 
   /**
    * Creates a new instance of this Directory Server plugin.  Every plugin must
@@ -273,13 +317,9 @@ public final class ChangeNumberControlPlugin
           if (ctx != null) {
             ChangeNumber cn = ctx.getChangeNumber();
             if (cn != null) {
-              String csn = cn.toString();
-              if (csn != null) {
-                Control responseControl =
-                  new Control(OID_CSN_CONTROL, c.isCritical(),
-                       new ASN1OctetString(csn));
-                operation.getResponseControls().add(responseControl);
-              }
+              Control responseControl =
+                  new ChangeNumberControl(c.isCritical(), cn);
+              operation.getResponseControls().add(responseControl);
             }
           }
           break;

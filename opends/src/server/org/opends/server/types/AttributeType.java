@@ -25,8 +25,6 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
-import org.opends.messages.Message;
-
 
 
 import java.util.Collection;
@@ -43,7 +41,6 @@ import org.opends.server.schema.AttributeTypeSyntax;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.Validator.*;
 
@@ -449,7 +446,7 @@ public final class AttributeType
   public AttributeType recreateFromDefinition()
          throws DirectoryException
   {
-    ByteString value  = ByteStringFactory.create(definition);
+    ByteString value  = ByteString.valueOf(definition);
     Schema     schema = DirectoryServer.getSchema();
 
     AttributeType at =
@@ -684,94 +681,6 @@ public final class AttributeType
   public boolean isObjectClassType()
   {
     return isObjectClassType;
-  }
-
-
-
-  /**
-   * Attempts to normalize the provided value using the equality
-   * matching rule associated with this attribute type.
-   *
-   * @param  value  The value to be normalized.
-   *
-   * @return  The normalized form of the provided value.
-   *
-   * @throws  DirectoryException  If this attribute type does not have
-   *                              an equality matching rule, or if the
-   *                              provided value could not be
-   *                              normalized.
-   */
-  public ByteString normalize(ByteString value)
-         throws DirectoryException
-  {
-    if (equalityMatchingRule == null)
-    {
-      Message message = ERR_ATTR_TYPE_NORMALIZE_NO_MR.get(
-          String.valueOf(value), getNameOrOID());
-      throw new DirectoryException(ResultCode.INAPPROPRIATE_MATCHING,
-                                   message);
-    }
-
-    return equalityMatchingRule.normalizeValue(value);
-  }
-
-
-
-  /**
-   * Generates a hash code for the specified attribute value.  If an
-   * equality matching rule is defined for this type, then it will be
-   * used to generate the hash code.  If the value does not have an
-   * equality matching rule but does have a normalized form, then that
-   * will be used to obtain the hash code.  Otherwise, it will simply
-   * be the hash code of the provided value.
-   *
-   * @param  value  The attribute value for which to generate the hash
-   *                code.
-   *
-   * @return  The generated hash code for the provided value.
-   */
-  public int generateHashCode(AttributeValue value)
-  {
-    try
-    {
-      if (equalityMatchingRule == null)
-      {
-        ByteString normalizedValue = value.getNormalizedValue();
-        if (normalizedValue == null)
-        {
-          return value.getValue().hashCode();
-        }
-        else
-        {
-          return normalizedValue.hashCode();
-        }
-      }
-      else
-      {
-        return equalityMatchingRule.generateHashCode(value);
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      try
-      {
-        return value.getValue().hashCode();
-      }
-      catch (Exception e2)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-        }
-
-        return 0;
-      }
-    }
   }
 
 

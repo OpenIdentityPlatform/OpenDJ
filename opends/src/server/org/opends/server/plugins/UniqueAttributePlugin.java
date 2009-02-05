@@ -220,7 +220,7 @@ public class UniqueAttributePlugin
               if (conflictDN != null)
               {
                 Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
-                    t.getNameOrOID(), v.getStringValue(),
+                    t.getNameOrOID(), v.getValue().toString(),
                     conflictDN.toString());
                 return PluginResult.PreOperation.stopProcessing(
                     ResultCode.CONSTRAINT_VIOLATION, msg);
@@ -290,7 +290,7 @@ public class UniqueAttributePlugin
               if (conflictDN != null)
               {
                 Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
-                    t.getNameOrOID(), v.getStringValue(),
+                    t.getNameOrOID(), v.getValue().toString(),
                     conflictDN.toString());
                 return PluginResult.PreOperation.stopProcessing(
                     ResultCode.CONSTRAINT_VIOLATION, msg);
@@ -337,7 +337,7 @@ public class UniqueAttributePlugin
                   if (conflictDN != null)
                   {
                     Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
-                        t.getNameOrOID(), v.getStringValue(),
+                        t.getNameOrOID(), v.getValue().toString(),
                         conflictDN.toString());
                     return PluginResult.PreOperation.stopProcessing(
                         ResultCode.CONSTRAINT_VIOLATION, msg);
@@ -409,7 +409,7 @@ public class UniqueAttributePlugin
         if (conflictDN != null)
         {
           Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
-              t.getNameOrOID(), v.getStringValue(),
+              t.getNameOrOID(), v.getValue().toString(),
               conflictDN.toString());
           return PluginResult.PreOperation.stopProcessing(
               ResultCode.CONSTRAINT_VIOLATION, msg);
@@ -472,7 +472,7 @@ public class UniqueAttributePlugin
                                  t.getNameOrOID(),
                                  addOperation.getConnectionID(),
                                  addOperation.getOperationID(),
-                                 v.getStringValue(),
+                                 v.getValue().toString(),
                                  entry.getDN().toString(),
                                  conflictDN.toString());
                 DirectoryServer.sendAlertNotification(this,
@@ -546,7 +546,7 @@ public class UniqueAttributePlugin
                                        t.getNameOrOID(),
                                        modifyOperation.getConnectionID(),
                                        modifyOperation.getOperationID(),
-                                       v.getStringValue(),
+                                       v.getValue().toString(),
                                        entryDN.toString(),
                                        conflictDN.toString());
                 DirectoryServer.sendAlertNotification(this,
@@ -600,7 +600,7 @@ public class UniqueAttributePlugin
                                            t.getNameOrOID(),
                                            modifyOperation.getConnectionID(),
                                            modifyOperation.getOperationID(),
-                                           v.getStringValue(),
+                                           v.getValue().toString(),
                                            entryDN.toString(),
                                            conflictDN.toString());
                     DirectoryServer.sendAlertNotification(this,
@@ -680,7 +680,7 @@ public class UniqueAttributePlugin
                     t.getNameOrOID(),
                     modifyDNOperation.getConnectionID(),
                     modifyDNOperation.getOperationID(),
-                    v.getStringValue(),
+                    v.getValue().toString(),
                     modifyDNOperation.getUpdatedEntry().getDN().toString(),
                     conflictDN.toString());
           DirectoryServer.sendAlertNotification(this,

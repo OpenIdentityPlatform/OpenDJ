@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 import org.opends.messages.Message;
@@ -595,7 +595,8 @@ public abstract class DebugLogPublisher
    * @param  settings        The current trace settings in effect.
    * @param  signature       The method signature.
    * @param  sourceLocation  The location of the method in the source.
-   * @param  element         The protocol element to dump.
+   * @param  decodedForm     The string reprentation of the protocol
+   *                         element.
    * @param  stackTrace      The stack trace at the time the protocol
    *                         element is logged or null if its not
    *                         available.
@@ -604,7 +605,7 @@ public abstract class DebugLogPublisher
                                             TraceSettings settings,
                                             String signature,
                                             String sourceLocation,
-                                            ProtocolElement element,
+                                            String decodedForm,
                                       StackTraceElement[] stackTrace);
 
   /**

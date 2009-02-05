@@ -36,8 +36,7 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ByteString;
-
+import org.opends.server.types.ByteSequence;
 
 
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -200,16 +199,16 @@ public class BitStringSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteString value,
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
-    String valueString = value.stringValue().toUpperCase();
+    String valueString = value.toString().toUpperCase();
 
     int length = valueString.length();
     if (length < 3)
     {
       invalidReason.append(
-              WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT.get(value.stringValue()));
+              WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT.get(value.toString()));
       return false;
     }
 
@@ -219,7 +218,7 @@ public class BitStringSyntax
         (valueString.charAt(length-1) != 'B'))
     {
       invalidReason.append(
-              WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED.get(value.stringValue()));
+              WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED.get(value.toString()));
       return false;
     }
 
@@ -234,7 +233,7 @@ public class BitStringSyntax
           break;
         default:
           invalidReason.append(WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT.get(
-                  value.stringValue(), String.valueOf(valueString.charAt(i))));
+                  value.toString(), String.valueOf(valueString.charAt(i))));
           return false;
       }
     }

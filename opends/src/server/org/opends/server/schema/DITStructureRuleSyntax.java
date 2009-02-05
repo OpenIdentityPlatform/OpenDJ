@@ -42,17 +42,10 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DITStructureRule;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.NameForm;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.Schema;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 import static org.opends.messages.SchemaMessages.*;
 import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -210,7 +203,7 @@ public class DITStructureRuleSyntax
   /**
    * {@inheritDoc}
    */
-  public boolean valueIsAcceptable(ByteString value,
+  public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
     // We'll use the decodeDITStructureRule method to determine if the value is
@@ -257,14 +250,14 @@ public class DITStructureRuleSyntax
    * @throws  DirectoryException  If the provided value cannot be decoded as an
    *                              DIT structure rule definition.
    */
-  public static DITStructureRule decodeDITStructureRule(ByteString value,
+  public static DITStructureRule decodeDITStructureRule(ByteSequence value,
                                       Schema schema,
                                       boolean allowUnknownElements)
          throws DirectoryException
   {
     // Get string representations of the provided value using the provided form
     // and with all lowercase characters.
-    String valueStr = value.stringValue();
+    String valueStr = value.toString();
     String lowerStr = toLowerCase(valueStr);
 
 
@@ -689,7 +682,7 @@ public class DITStructureRuleSyntax
     }
 
 
-    return new DITStructureRule(value.stringValue(), names, ruleID, description,
+    return new DITStructureRule(value.toString(), names, ruleID, description,
                                 isObsolete, nameForm, superiorRules,
                                 extraProperties);
   }

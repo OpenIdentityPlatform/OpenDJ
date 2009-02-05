@@ -39,35 +39,11 @@ import javax.management.remote.JMXConnectionNotification;
 import org.opends.server.api.*;
 import org.opends.server.core.*;
 import org.opends.server.extensions.*;
-import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.protocols.internal.InternalSearchOperation ;
 import org.opends.server.protocols.internal.InternalSearchListener;
 
-import org.opends.server.types.AbstractOperation;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.IntermediateResponse;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.Operation;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.RDN;
-import org.opends.server.types.RawAttribute;
-import org.opends.server.types.RawModification;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchResultReference;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -95,9 +71,6 @@ public class JmxClientConnection
 
   // The operation ID counter to use for operations on this connection.
   private AtomicLong nextOperationID;
-
-  // The connection security provider for this client connection.
-  private ConnectionSecurityProvider securityProvider;
 
   // The empty operation list for this connection.
   private LinkedList<Operation> operationList;
@@ -156,19 +129,6 @@ public class JmxClientConnection
           ERR_LDAP_CONNHANDLER_REJECTED_BY_SERVER.get());
     }
     operationList = new LinkedList<Operation>();
-
-    try
-    {
-      securityProvider = new NullConnectionSecurityProvider();
-      securityProvider.initializeConnectionSecurityProvider(null);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
 
     //
     // Register the Jmx Notification listener (this)
@@ -412,35 +372,8 @@ public class JmxClientConnection
    */
   public boolean isSecure()
   {
-    return securityProvider.isSecure();
+      return false;
   }
-
-
-
-  /**
-   * Retrieves the connection security provider for this client connection.
-   *
-   * @return  The connection security provider for this client connection.
-   */
-  public ConnectionSecurityProvider getConnectionSecurityProvider()
-  {
-    return securityProvider;
-  }
-
-
-
-  /**
-   * Specifies the connection security provider for this client connection.
-   *
-   * @param  securityProvider  The connection security provider to use for
-   *                           communication on this client connection.
-   */
-  public void setConnectionSecurityProvider(ConnectionSecurityProvider
-                                                 securityProvider)
-  {
-    this.securityProvider = securityProvider;
-  }
-
 
 
   /**
@@ -453,7 +386,7 @@ public class JmxClientConnection
    */
   public String getSecurityMechanism()
   {
-    return securityProvider.getSecurityMechanismName();
+    return "NULL";
   }
 
 
@@ -508,7 +441,7 @@ public class JmxClientConnection
    * @return  A reference to the add operation that was processed and contains
    *          information about the result of the processing.
    */
-  public AddOperation processAdd(ASN1OctetString rawEntryDN,
+  public AddOperation processAdd(ByteString rawEntryDN,
                                  ArrayList<RawAttribute> rawAttributes)
   {
     AddOperationBasis addOperation =
@@ -613,9 +546,9 @@ public class JmxClientConnection
    * @return  A reference to the compare operation that was processed and
    *          contains information about the result of the processing.
    */
-  public CompareOperation processCompare(ASN1OctetString rawEntryDN,
-                                        String attributeType,
-                                        ASN1OctetString assertionValue)
+  public CompareOperation processCompare(ByteString rawEntryDN,
+                                         String attributeType,
+                                         ByteString assertionValue)
   {
     CompareOperationBasis compareOperation =
          new CompareOperationBasis(this, nextOperationID(), nextMessageID(),
@@ -646,7 +579,7 @@ public class JmxClientConnection
    * @return  A reference to the delete operation that was processed and
    *          contains information about the result of the processing.
    */
-  public DeleteOperation processDelete(ASN1OctetString rawEntryDN)
+  public DeleteOperation processDelete(ByteString rawEntryDN)
   {
     DeleteOperationBasis deleteOperation =
          new DeleteOperationBasis(this, nextOperationID(), nextMessageID(),
@@ -679,7 +612,7 @@ public class JmxClientConnection
    *          contains information about the result of the processing.
    */
   public ExtendedOperation processExtendedOperation(String requestOID,
-                                ASN1OctetString requestValue)
+                                ByteString requestValue)
   {
     ExtendedOperationBasis extendedOperation =
          new ExtendedOperationBasis(this, nextOperationID(), nextMessageID(),
@@ -702,7 +635,7 @@ public class JmxClientConnection
    * @return  A reference to the modify operation that was processed and
    *          contains information about the result of the processing
    */
-  public ModifyOperation processModify(ASN1OctetString rawEntryDN,
+  public ModifyOperation processModify(ByteString rawEntryDN,
                               ArrayList<RawModification> rawModifications)
   {
     ModifyOperationBasis modifyOperation =
@@ -768,8 +701,8 @@ public class JmxClientConnection
    * @return  A reference to the modify DN operation that was processed and
    *          contains information about the result of the processing.
    */
-  public ModifyDNOperation processModifyDN(ASN1OctetString rawEntryDN,
-                                           ASN1OctetString rawNewRDN,
+  public ModifyDNOperation processModifyDN(ByteString rawEntryDN,
+                                           ByteString rawNewRDN,
                                            boolean deleteOldRDN)
   {
     return processModifyDN(rawEntryDN, rawNewRDN, deleteOldRDN, null);
@@ -791,10 +724,10 @@ public class JmxClientConnection
    * @return  A reference to the modify DN operation that was processed and
    *          contains information about the result of the processing.
    */
-  public ModifyDNOperation processModifyDN(ASN1OctetString rawEntryDN,
-                                           ASN1OctetString rawNewRDN,
+  public ModifyDNOperation processModifyDN(ByteString rawEntryDN,
+                                           ByteString rawNewRDN,
                                            boolean deleteOldRDN,
-                                           ASN1OctetString rawNewSuperior)
+                                           ByteString rawNewSuperior)
   {
     ModifyDNOperationBasis modifyDNOperation =
          new ModifyDNOperationBasis(this, nextOperationID(), nextMessageID(),
@@ -866,7 +799,7 @@ public class JmxClientConnection
    *          and contains information about the result of the processing as
    *          well as lists of the matching entries and search references.
    */
-  public InternalSearchOperation processSearch(ASN1OctetString rawBaseDN,
+  public InternalSearchOperation processSearch(ByteString rawBaseDN,
                                       SearchScope scope, LDAPFilter filter)
   {
     return processSearch(rawBaseDN, scope,
@@ -892,7 +825,7 @@ public class JmxClientConnection
    *          and contains information about the result of the processing as
    *          well as lists of the matching entries and search references.
    */
-  public InternalSearchOperation processSearch(ASN1OctetString rawBaseDN,
+  public InternalSearchOperation processSearch(ByteString rawBaseDN,
                                       SearchScope scope,
                                       DereferencePolicy derefPolicy,
                                       int sizeLimit, int timeLimit,
@@ -937,7 +870,7 @@ public class JmxClientConnection
    * @return  A reference to the internal search operation that was processed
    *          and contains information about the result of the processing.
    */
-  public InternalSearchOperation processSearch(ASN1OctetString rawBaseDN,
+  public InternalSearchOperation processSearch(ByteString rawBaseDN,
                                       SearchScope scope,
                                       DereferencePolicy derefPolicy,
                                       int sizeLimit, int timeLimit,
@@ -1064,7 +997,7 @@ public class JmxClientConnection
 
       unbindOp.run();
     }
-    catch (Exception e)
+   catch (Exception e)
     {
       // TODO print a message ?
       if (debugEnabled())
@@ -1245,17 +1178,6 @@ public class JmxClientConnection
     {
       authDN.toString(buffer);
     }
-
-    buffer.append("\" security=\"");
-    if (securityProvider.isSecure())
-    {
-      buffer.append(securityProvider.getSecurityMechanismName());
-    }
-    else
-    {
-      buffer.append("none");
-    }
-
     buffer.append("\"");
 
     return buffer.toString();
@@ -1298,6 +1220,13 @@ public class JmxClientConnection
   public long getNumberOfOperations() {
     // JMX connections will not be limited.
     return 0;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public int getSSF() {
+      return 0;
   }
 }
 

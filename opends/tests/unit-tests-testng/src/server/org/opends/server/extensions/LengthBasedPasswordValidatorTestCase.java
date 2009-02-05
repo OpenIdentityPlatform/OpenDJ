@@ -41,7 +41,6 @@ import org.opends.server.admin.std.meta.LengthBasedPasswordValidatorCfgDefn;
 import org.opends.server.admin.std.server.LengthBasedPasswordValidatorCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.ByteString;
@@ -361,7 +360,7 @@ public class LengthBasedPasswordValidatorTestCase
     for (int i=0; i < 20; i++)
     {
       buffer.append('x');
-      ASN1OctetString password = new ASN1OctetString(buffer.toString());
+      ByteString password = ByteString.valueOf(buffer.toString());
 
       ArrayList<Modification> mods = new ArrayList<Modification>();
       mods.add(new Modification(ModificationType.REPLACE,
@@ -434,7 +433,7 @@ public class LengthBasedPasswordValidatorTestCase
     for (int i=0; i < 20; i++)
     {
       buffer.append('x');
-      ASN1OctetString password = new ASN1OctetString(buffer.toString());
+      ByteString password = ByteString.valueOf(buffer.toString());
 
       ArrayList<Modification> mods = new ArrayList<Modification>();
       mods.add(new Modification(ModificationType.REPLACE,
@@ -509,7 +508,7 @@ public class LengthBasedPasswordValidatorTestCase
     for (int i=0; i < 20; i++)
     {
       buffer.append('x');
-      ASN1OctetString password = new ASN1OctetString(buffer.toString());
+      ByteString password = ByteString.valueOf(buffer.toString());
 
       ArrayList<Modification> mods = new ArrayList<Modification>();
       mods.add(new Modification(ModificationType.REPLACE,
@@ -584,7 +583,7 @@ public class LengthBasedPasswordValidatorTestCase
     for (int i=0; i < 20; i++)
     {
       buffer.append('x');
-      ASN1OctetString password = new ASN1OctetString(buffer.toString());
+      ByteString password = ByteString.valueOf(buffer.toString());
 
       ArrayList<Modification> mods = new ArrayList<Modification>();
       mods.add(new Modification(ModificationType.REPLACE,

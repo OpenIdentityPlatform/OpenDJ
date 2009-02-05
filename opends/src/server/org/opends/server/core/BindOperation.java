@@ -27,13 +27,7 @@
 package org.opends.server.core;
 import org.opends.messages.Message;
 
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.AuthenticationType;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Operation;
+import org.opends.server.types.*;
 
 
 /**
@@ -132,7 +126,7 @@ public interface BindOperation extends Operation
    * @return  The SASL credentials for this bind operation, or <CODE>null</CODE>
    *          if there are none or if the bind does not use SASL authentication.
    */
-  public abstract ASN1OctetString getSASLCredentials();
+  public abstract ByteString getSASLCredentials();
 
   /**
    * Specifies the SASL credentials for this bind operation.
@@ -142,7 +136,7 @@ public interface BindOperation extends Operation
    *                          <CODE>null</CODE> if there are none.
    */
   public abstract void setSASLCredentials(String saslMechanism,
-      ASN1OctetString saslCredentials);
+      ByteString saslCredentials);
 
   /**
    * Retrieves the set of server SASL credentials to include in the bind
@@ -151,7 +145,7 @@ public interface BindOperation extends Operation
    * @return  The set of server SASL credentials to include in the bind
    *          response, or <CODE>null</CODE> if there are none.
    */
-  public abstract ASN1OctetString getServerSASLCredentials();
+  public abstract ByteString getServerSASLCredentials();
 
   /**
    * Specifies the set of server SASL credentials to include in the bind
@@ -161,7 +155,7 @@ public interface BindOperation extends Operation
    *                                include in the bind response.
    */
   public abstract void setServerSASLCredentials(
-      ASN1OctetString serverSASLCredentials);
+      ByteString serverSASLCredentials);
 
   /**
    * Retrieves the user entry associated with the SASL authentication attempt.

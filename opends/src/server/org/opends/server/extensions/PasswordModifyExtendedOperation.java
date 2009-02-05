@@ -30,7 +30,6 @@ import org.opends.messages.Message;
 
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.HashSet;
@@ -54,31 +53,11 @@ import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
+import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -268,21 +247,20 @@ public class PasswordModifyExtendedOperation
     {
       try
       {
-        ASN1Sequence requestSequence =
-             ASN1Sequence.decodeAsSequence(requestValue.value());
-
-        for (ASN1Element e : requestSequence.elements())
+        ASN1Reader reader = ASN1.getReader(requestValue);
+        reader.readStartSequence();
+        while(reader.hasNextElement())
         {
-          switch (e.getType())
+          switch (reader.peekType())
           {
             case TYPE_PASSWORD_MODIFY_USER_ID:
-              userIdentity = e.decodeAsOctetString();
+              userIdentity = reader.readOctetString();
               break;
             case TYPE_PASSWORD_MODIFY_OLD_PASSWORD:
-              oldPassword = e.decodeAsOctetString();
+              oldPassword = reader.readOctetString();
               break;
             case TYPE_PASSWORD_MODIFY_NEW_PASSWORD:
-              newPassword = e.decodeAsOctetString();
+              newPassword = reader.readOctetString();
               break;
             default:
               operation.setResultCode(ResultCode.PROTOCOL_ERROR);
@@ -290,12 +268,13 @@ public class PasswordModifyExtendedOperation
 
               operation.appendErrorMessage(
                       ERR_EXTOP_PASSMOD_ILLEGAL_REQUEST_ELEMENT_TYPE.get(
-                              byteToHex(e.getType())));
+                              byteToHex(reader.peekType())));
               return;
           }
         }
+        reader.readEndSequence();
       }
-      catch (ASN1Exception ae)
+      catch (Exception ae)
       {
         if (debugEnabled())
         {
@@ -374,7 +353,7 @@ public class PasswordModifyExtendedOperation
       else
       {
         // There was a userIdentity field in the request.
-        String authzIDStr      = userIdentity.stringValue();
+        String authzIDStr      = userIdentity.toString();
         String lowerAuthzIDStr = toLowerCase(authzIDStr);
         if (lowerAuthzIDStr.startsWith("dn:"))
         {
@@ -924,7 +903,7 @@ public class PasswordModifyExtendedOperation
               clearPasswords.add(oldPassword);
               for (ByteString pw : pwPolicyState.getClearPasswords())
               {
-                if (! Arrays.equals(pw.value(), oldPassword.value()))
+                if (! pw.equals(oldPassword))
                 {
                   clearPasswords.add(pw);
                 }
@@ -1058,7 +1037,7 @@ public class PasswordModifyExtendedOperation
             try
             {
               StringBuilder[] components =
-                   AuthPasswordSyntax.decodeAuthPassword(v.getStringValue());
+                 AuthPasswordSyntax.decodeAuthPassword(v.getValue().toString());
               PasswordStorageScheme<?> scheme =
                    DirectoryServer.getAuthPasswordStorageScheme(
                         components[0].toString());
@@ -1098,7 +1077,7 @@ public class PasswordModifyExtendedOperation
             try
             {
               String[] components =
-                   UserPasswordSyntax.decodeUserPassword(v.getStringValue());
+                 UserPasswordSyntax.decodeUserPassword(v.getValue().toString());
               PasswordStorageScheme<?> scheme =
                    DirectoryServer.getPasswordStorageScheme(
                         toLowerCase(components[0]));
@@ -1111,7 +1090,7 @@ public class PasswordModifyExtendedOperation
               else
               {
                 if (scheme.passwordMatches(oldPassword,
-                                           new ASN1OctetString(components[1])))
+                    ByteString.valueOf(components[1])))
                 {
                   deleteValues.add(v);
                 }
@@ -1142,7 +1121,7 @@ public class PasswordModifyExtendedOperation
              new LinkedHashSet<AttributeValue>(encodedPasswords.size());
         for (ByteString s : encodedPasswords)
         {
-          addValues.add(new AttributeValue(attrType, s));
+          addValues.add(AttributeValues.create(attrType, s));
         }
 
         builder = new AttributeBuilder(attrType);
@@ -1156,7 +1135,8 @@ public class PasswordModifyExtendedOperation
              new LinkedHashSet<AttributeValue>(encodedPasswords.size());
         for (ByteString s : encodedPasswords)
         {
-          replaceValues.add(new AttributeValue(attrType, s));
+          replaceValues.add(
+              AttributeValues.create(attrType, s));
         }
 
         AttributeBuilder builder = new AttributeBuilder(attrType);
@@ -1257,16 +1237,22 @@ public class PasswordModifyExtendedOperation
 
         if (generatedPassword)
         {
-          ArrayList<ASN1Element> valueElements = new ArrayList<ASN1Element>(1);
+          ByteStringBuilder builder = new ByteStringBuilder();
+          ASN1Writer writer = ASN1.getWriter(builder);
 
-          ASN1OctetString newPWString =
-               new ASN1OctetString(TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD,
-                                   newPassword.value());
-          valueElements.add(newPWString);
+          try
+          {
+          writer.writeStartSequence();
+          writer.writeOctetString(TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD,
+                                   newPassword);
+          writer.writeEndSequence();
+          }
+          catch(Exception e)
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
 
-          ASN1Sequence valueSequence = new ASN1Sequence(valueElements);
-          operation.setResponseValue(new ASN1OctetString(
-                                              valueSequence.encode()));
+          operation.setResponseValue(builder.toByteString());
         }
 
 

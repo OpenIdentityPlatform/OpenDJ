@@ -37,19 +37,7 @@ import java.util.List;
 import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.RawModification;
-import org.opends.server.types.RDN;
+import org.opends.server.types.*;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -337,9 +325,9 @@ public final class TestLDIFReader extends UtilTestCase {
           .decode("cn=john, dc=foo, dc=com"));
       Assert.assertTrue(entry.hasObjectClass(OC_TOP));
       Assert.assertTrue(entry.hasObjectClass(OC_PERSON));
-      Assert.assertTrue(entry.hasValue(AT_CN, null, new AttributeValue(
+      Assert.assertTrue(entry.hasValue(AT_CN, null, AttributeValues.create(
           AT_CN, "john")));
-      Assert.assertTrue(entry.hasValue(AT_SN, null, new AttributeValue(
+      Assert.assertTrue(entry.hasValue(AT_SN, null, AttributeValues.create(
           AT_SN, "smith")));
 
       Assert.assertNull(reader.readEntry());
@@ -372,7 +360,7 @@ public final class TestLDIFReader extends UtilTestCase {
       Entry entry = reader.readEntry();
       Assert.assertNotNull(entry);
 
-      Assert.assertTrue(entry.hasValue(AT_DESCR, null, new AttributeValue(
+      Assert.assertTrue(entry.hasValue(AT_DESCR, null, AttributeValues.create(
           AT_DESCR, "once upon a time in the west")));
     } finally {
       reader.close();
@@ -398,7 +386,7 @@ public final class TestLDIFReader extends UtilTestCase {
       Entry entry = reader.readEntry();
       Assert.assertNotNull(entry);
 
-      Assert.assertTrue(entry.hasValue(AT_DESCR, null, new AttributeValue(
+      Assert.assertTrue(entry.hasValue(AT_DESCR, null, AttributeValues.create(
           AT_DESCR, "once upon a time in the west")));
     } finally {
       reader.close();
@@ -431,9 +419,9 @@ public final class TestLDIFReader extends UtilTestCase {
           .decode("cn=anne, dc=foo, dc=com"));
       Assert.assertTrue(entry.hasObjectClass(OC_TOP));
       Assert.assertTrue(entry.hasObjectClass(OC_PERSON));
-      Assert.assertTrue(entry.hasValue(AT_CN, null, new AttributeValue(
+      Assert.assertTrue(entry.hasValue(AT_CN, null, AttributeValues.create(
           AT_CN, "anne")));
-      Assert.assertTrue(entry.hasValue(AT_SN, null, new AttributeValue(
+      Assert.assertTrue(entry.hasValue(AT_SN, null, AttributeValues.create(
           AT_SN, "other")));
 
       Assert.assertNull(reader.readEntry());
@@ -479,9 +467,9 @@ public final class TestLDIFReader extends UtilTestCase {
 
       List<Attribute> attrs = new ArrayList<Attribute>();
       AttributeBuilder builder = new AttributeBuilder(AT_OC, "objectclass");
-      builder.add(new AttributeValue(AT_OC, "top"));
-      builder.add(new AttributeValue(AT_OC, "person"));
-      builder.add(new AttributeValue(AT_OC, "organizationalPerson"));
+      builder.add(AttributeValues.create(AT_OC, "top"));
+      builder.add(AttributeValues.create(AT_OC, "person"));
+      builder.add(AttributeValues.create(AT_OC, "organizationalPerson"));
 
       attrs.add(builder.toAttribute());
       attrs.add(Attributes.create("cn", "Fiona Jensen"));
@@ -557,8 +545,8 @@ public final class TestLDIFReader extends UtilTestCase {
       Assert.assertEquals(mod.getModificationType(),
           ModificationType.REPLACE);
       builder = new AttributeBuilder(AT_TELN, "telephonenumber");
-      builder.add(new AttributeValue(AT_TELN, "+1 408 555 1234"));
-      builder.add(new AttributeValue(AT_TELN, "+1 408 555 5678"));
+      builder.add(AttributeValues.create(AT_TELN, "+1 408 555 1234"));
+      builder.add(AttributeValues.create(AT_TELN, "+1 408 555 5678"));
       Assert.assertEquals(mod.getAttribute(), builder.toAttribute());
 
       Assert.assertTrue(i.hasNext());

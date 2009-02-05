@@ -51,17 +51,7 @@ import org.opends.server.replication.plugin.FakeOperationComparator;
 import org.opends.server.replication.plugin.Historical;
 import org.opends.server.replication.protocol.ModifyContext;
 import org.opends.server.replication.protocol.ReplicationMsg;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.ObjectClass;
+import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
 import static org.opends.server.TestCaseUtils.*;
@@ -692,7 +682,7 @@ public class ModifyConflictTest
     assertEquals(mod.getModificationType(), ModificationType.DELETE);
     assertEquals(mod.getAttribute().size(), 1);
     assertTrue(mod.getAttribute().contains(
-        new AttributeValue(descriptionAttrType, "value3")));
+        AttributeValues.create(descriptionAttrType, "value3")));
   }
 
   /**
@@ -741,16 +731,16 @@ public class ModifyConflictTest
     assertEquals(mod.getModificationType(), ModificationType.DELETE);
     assertEquals(mod.getAttribute().size(), 2);
     assertTrue(mod.getAttribute().contains(
-        new AttributeValue(descriptionAttrType, "value3")));
+        AttributeValues.create(descriptionAttrType, "value3")));
     assertTrue(mod.getAttribute().contains(
-        new AttributeValue(descriptionAttrType, "value4")));
+        AttributeValues.create(descriptionAttrType, "value4")));
     Attribute resultEntryAttr = entry.getAttribute(descriptionAttrType).get(0);
     // check that the entry now contains value1 and value2 and no other values.
     assertEquals(resultEntryAttr.size(), 2);
     assertTrue(resultEntryAttr.contains(
-        new AttributeValue(descriptionAttrType, "value1")));
+        AttributeValues.create(descriptionAttrType, "value1")));
     assertTrue(resultEntryAttr.contains(
-        new AttributeValue(descriptionAttrType, "value2")));
+        AttributeValues.create(descriptionAttrType, "value2")));
 
     // simulate a REPLACE of the attribute with values : value1, value2, value3
     // at time t1.
@@ -769,15 +759,15 @@ public class ModifyConflictTest
     assertEquals(mod.getModificationType(), ModificationType.REPLACE);
     assertEquals(mod.getAttribute().size(), 2);
     assertTrue(mod.getAttribute().contains(
-        new AttributeValue(descriptionAttrType, "value1")));
+        AttributeValues.create(descriptionAttrType, "value1")));
     assertTrue(mod.getAttribute().contains(
-        new AttributeValue(descriptionAttrType, "value2")));
+        AttributeValues.create(descriptionAttrType, "value2")));
     // check that the entry now contains value1 and value2 and no other values.
     assertEquals(resultEntryAttr.size(), 2);
     assertTrue(resultEntryAttr.contains(
-        new AttributeValue(descriptionAttrType, "value1")));
+        AttributeValues.create(descriptionAttrType, "value1")));
     assertTrue(resultEntryAttr.contains(
-        new AttributeValue(descriptionAttrType, "value2")));
+        AttributeValues.create(descriptionAttrType, "value2")));
   }
 
   /**
@@ -888,8 +878,8 @@ public class ModifyConflictTest
     List<Attribute> attrs = entry.getAttribute(DESCRIPTION);
     Attribute attr = attrs.get(0);
     assertEquals(2, attr.size());
-    attr.contains(new AttributeValue(attr.getAttributeType(), "value1"));
-    attr.contains(new AttributeValue(attr.getAttributeType(), "value2"));
+    attr.contains(AttributeValues.create(attr.getAttributeType(), "value1"));
+    attr.contains(AttributeValues.create(attr.getAttributeType(), "value2"));
 
 
     // do the same as before but in reverse order
@@ -917,8 +907,8 @@ public class ModifyConflictTest
     attrs = entry.getAttribute(DESCRIPTION);
     attr = attrs.get(0);
     assertEquals(2, attr.size());
-    attr.contains(new AttributeValue(attr.getAttributeType(), "value1"));
-    attr.contains(new AttributeValue(attr.getAttributeType(), "value2"));
+    attr.contains(AttributeValues.create(attr.getAttributeType(), "value1"));
+    attr.contains(AttributeValues.create(attr.getAttributeType(), "value2"));
   }
 
   /**
@@ -1052,7 +1042,7 @@ public class ModifyConflictTest
     Modification newMod = mods.get(0);
     assertTrue(newMod.getModificationType().equals(modType));
     AttributeValue val = newMod.getAttribute().iterator().next();
-    assertEquals(val.getStringValue(), value);
+    assertEquals(val.getValue().toString(), value);
   }
 
   /**

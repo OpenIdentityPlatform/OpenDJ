@@ -221,7 +221,7 @@ public class UserAttr implements KeywordBindRule {
                         filter, null);
         LinkedList<SearchResultEntry> result = op.getSearchEntries();
         if (!result.isEmpty()) {
-            AttributeValue val=new AttributeValue(attrType, attrVal);
+            AttributeValue val= AttributeValues.create(attrType, attrVal);
             SearchResultEntry resultEntry = result.getFirst();
             if(resultEntry.hasValue(attrType, null, val)) {
                 Entry e=evalCtx.getResourceEntry();
@@ -284,7 +284,7 @@ public class UserAttr implements KeywordBindRule {
         if(!attrs.isEmpty()) {
             for(Attribute a : attrs) {
                 for(AttributeValue v : a) {
-                    String urlStr=v.getStringValue();
+                    String urlStr=v.getValue().toString();
                     LDAPURL url;
                     try {
                        url=LDAPURL.decode(urlStr, true);

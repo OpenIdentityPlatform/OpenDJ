@@ -42,14 +42,7 @@ import org.opends.server.admin.std.server.DictionaryPasswordValidatorCfg;
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.config.ConfigException;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryConfig;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -136,7 +129,7 @@ public class DictionaryPasswordValidator
 
     // Check to see if the provided password is in the dictionary in the order
     // that it was provided.
-    String password = newPassword.stringValue();
+    String password = newPassword.toString();
     if (! config.isCaseSensitiveValidation())
     {
       password = toLowerCase(password);

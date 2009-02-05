@@ -1293,7 +1293,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
 
           while (it.hasNext())
           {
-            oc.add(it.next().getStringValue());
+            oc.add(it.next().getValue().toString());
           }
           attrs.put(oc);
 
@@ -1306,7 +1306,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
             it = odsAttr.iterator();
             while (it.hasNext())
             {
-              attr.add(it.next().getStringValue());
+              attr.add(it.next().getValue().toString());
             }
             attrs.put(attr);
 
@@ -1315,7 +1315,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
               args.add("--index-name");
               AttributeValue value =
                 odsAttr.iterator().next();
-              args.add(value.getStringValue());
+              args.add(value.getValue().toString());
             }
             else if (attrName.equalsIgnoreCase("ds-cfg-index-type"))
             {
@@ -1323,7 +1323,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
               while (it.hasNext())
               {
                 args.add("--set");
-                args.add("index-type:"+it.next().getStringValue());
+                args.add("index-type:"+it.next().getValue().toString());
               }
             }
           }

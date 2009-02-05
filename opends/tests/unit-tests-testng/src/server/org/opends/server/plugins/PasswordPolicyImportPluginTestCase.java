@@ -174,7 +174,8 @@ public class PasswordPolicyImportPluginTestCase
     {
       for (AttributeValue v : a)
       {
-        pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
+        pluginTypes.add(PluginType.forName(
+            v.getValue().toString().toLowerCase()));
       }
     }
 
@@ -250,7 +251,8 @@ public class PasswordPolicyImportPluginTestCase
       {
         for (AttributeValue v : a)
         {
-          pluginTypes.add(PluginType.forName(v.getStringValue().toLowerCase()));
+          pluginTypes.add(PluginType.forName(
+              v.getValue().toString().toLowerCase()));
         }
       }
     }

@@ -41,10 +41,7 @@ import javax.management.MBeanParameterInfo;
 
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -612,8 +609,8 @@ public final class IntegerWithUnitConfigAttribute
          new LinkedHashSet<AttributeValue>(1);
 
     String valueString = intValue + " " + unit;
-    valueSet.add(new AttributeValue(new ASN1OctetString(valueString),
-                                    new ASN1OctetString(valueString)));
+    valueSet.add(AttributeValues.create(ByteString.valueOf(valueString),
+        ByteString.valueOf(valueString)));
 
     return valueSet;
   }
@@ -656,7 +653,7 @@ public final class IntegerWithUnitConfigAttribute
                                    StringBuilder rejectReason)
   {
     // Get a string representation of the value and convert it to lowercase.
-    String lowerValue = value.getStringValue().toLowerCase();
+    String lowerValue = value.getValue().toString().toLowerCase();
 
     return valueIsAcceptable(lowerValue, rejectReason);
   }
@@ -833,8 +830,8 @@ public final class IntegerWithUnitConfigAttribute
       }
 
 
-      valueSet.add(new AttributeValue(new ASN1OctetString(valueString),
-                                      new ASN1OctetString(valueString)));
+      valueSet.add(AttributeValues.create(ByteString.valueOf(valueString),
+          ByteString.valueOf(valueString)));
     }
 
 
@@ -956,7 +953,7 @@ public final class IntegerWithUnitConfigAttribute
           {
             Iterator<AttributeValue> iterator = a.iterator();
 
-            String valueString = iterator.next().getStringValue();
+            String valueString = iterator.next().getValue().toString();
 
             if (iterator.hasNext())
             {
@@ -1041,7 +1038,7 @@ public final class IntegerWithUnitConfigAttribute
         {
           Iterator<AttributeValue> iterator = a.iterator();
 
-          String valueString = iterator.next().getStringValue();
+          String valueString = iterator.next().getValue().toString();
 
           if (iterator.hasNext())
           {

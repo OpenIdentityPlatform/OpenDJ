@@ -58,10 +58,10 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.common.ChangeNumber;
@@ -1430,7 +1430,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
        // General search
        InternalSearchOperation op2 = connection.processSearch(
-           new ASN1OctetString("cn=monitor"),
+           ByteString.valueOf("cn=monitor"),
            SearchScope.WHOLE_SUBTREE,
            LDAPFilter.decode("(objectclass=*)"));
        assertEquals(op2.getResultCode(), ResultCode.SUCCESS,
@@ -1475,7 +1475,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        InternalClientConnection conn =
        InternalClientConnection.getRootConnection();
        LinkedList<Control> requestControls = new LinkedList<Control>();
-       requestControls.add(new Control(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
+       requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
                                       false));
        DN baseDN=DN.decode("dc=replicationChanges");
        //Test the group membership control causes search to be skipped.
@@ -1493,7 +1493,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
        // General search
        InternalSearchOperation op = connection.processSearch(
-           new ASN1OctetString("dc=oops"),
+           ByteString.valueOf("dc=oops"),
            SearchScope.WHOLE_SUBTREE,
            LDAPFilter.decode("(changetype=*)"));
        assertEquals(op.getResultCode(), ResultCode.NO_SUCH_OBJECT);
@@ -1508,7 +1508,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
        // General search
        op = connection.processSearch(
-           new ASN1OctetString("dc=replicationChanges"),
+           ByteString.valueOf("dc=replicationChanges"),
            SearchScope.WHOLE_SUBTREE,
            LDAPFilter.decode("(changetype=*)"));
 
@@ -1529,28 +1529,28 @@ public class ReplicationServerTest extends ReplicationTestCase
 
        debugInfo("Query / filter based on changetype");
        op = connection.processSearch(
-           new ASN1OctetString("dc=replicationChanges"),
+           ByteString.valueOf("dc=replicationChanges"),
            SearchScope.WHOLE_SUBTREE,
            LDAPFilter.decode("(changetype=add)"));
        assertEquals(op.getResultCode(), ResultCode.SUCCESS);
        assertTrue(op.getSearchEntries().size() == 2);
 
        op = connection.processSearch(
-           new ASN1OctetString("dc=replicationChanges"),
+           ByteString.valueOf("dc=replicationChanges"),
            SearchScope.WHOLE_SUBTREE,
            LDAPFilter.decode("(changetype=modify)"));
        assertEquals(op.getResultCode(), ResultCode.SUCCESS);
        assertTrue(op.getSearchEntries().size() == 1);
 
        op = connection.processSearch(
-           new ASN1OctetString("dc=replicationChanges"),
+           ByteString.valueOf("dc=replicationChanges"),
            SearchScope.WHOLE_SUBTREE,
            LDAPFilter.decode("(changetype=moddn)"));
        assertEquals(op.getResultCode(), ResultCode.SUCCESS);
        assertTrue(op.getSearchEntries().size() == 1);
 
        op = connection.processSearch(
-           new ASN1OctetString("dc=replicationChanges"),
+           ByteString.valueOf("dc=replicationChanges"),
            SearchScope.WHOLE_SUBTREE,
            LDAPFilter.decode("(changetype=delete)"));
        assertEquals(op.getResultCode(), ResultCode.SUCCESS);
@@ -1558,7 +1558,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
        debugInfo("Query / filter based on objectclass");
        op = connection.processSearch(
-           new ASN1OctetString("dc=replicationChanges"),
+           ByteString.valueOf("dc=replicationChanges"),
            SearchScope.WHOLE_SUBTREE,
            LDAPFilter.decode("(objectclass=person)"));
        assertEquals(op.getResultCode(), ResultCode.SUCCESS);
@@ -1573,7 +1573,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         *
         * debugInfo("Query / searchBase");
         * op = connection.processSearch(
-        *    new ASN1OctetString("uid=new person,ou=People,dc=example,dc=com,dc=replicationChanges"),
+        *    ByteString.valueOf("uid=new person,ou=People,dc=example,dc=com,dc=replicationChanges"),
         *    SearchScope.WHOLE_SUBTREE,
         *    LDAPFilter.decode("(changetype=*)"));
         * assertEquals(op.getResultCode(), ResultCode.SUCCESS);

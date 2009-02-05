@@ -28,21 +28,22 @@
 
 package org.opends.server.schema;
 
+import static org.testng.Assert.*;
+
 import java.util.List;
 
-
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.tools.LDAPModify;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
-import org.testng.annotations.*;
-import static org.testng.Assert.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 
 /**
@@ -83,7 +84,7 @@ public final class CollationMatchingRuleTest
             "departmentNumber:: w4NiYzExMQ==",
             "carLicense:: w6liZTI=",
             "uid: user",
-            "cn:: U8ODbmNoZXo=", 
+            "cn:: U8ODbmNoZXo=",
             "sn:: UXXDqWJlYw==");
     String[] args = new String []
     {
@@ -117,7 +118,7 @@ public final class CollationMatchingRuleTest
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               null,
-              new ASN1OctetString("uid=user,o=test"),
+              ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -154,7 +155,7 @@ public final class CollationMatchingRuleTest
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               null,
-              new ASN1OctetString("uid=user,o=test"),
+              ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -190,7 +191,7 @@ public final class CollationMatchingRuleTest
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               null,
-              new ASN1OctetString("uid=user,o=test"),
+              ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -228,7 +229,7 @@ public final class CollationMatchingRuleTest
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               null,
-              new ASN1OctetString("uid=user,o=test"),
+              ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -266,7 +267,7 @@ public final class CollationMatchingRuleTest
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               null,
-              new ASN1OctetString("uid=user,o=test"),
+              ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -304,7 +305,7 @@ public final class CollationMatchingRuleTest
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               null,
-              new ASN1OctetString("uid=user,o=test"),
+              ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,
@@ -345,7 +346,7 @@ public final class CollationMatchingRuleTest
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               null,
-              new ASN1OctetString("uid=user,o=test"),
+              ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               Integer.MAX_VALUE,

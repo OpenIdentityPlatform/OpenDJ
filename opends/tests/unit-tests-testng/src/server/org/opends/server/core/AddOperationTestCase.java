@@ -43,8 +43,6 @@ import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.plugins.UpdatePreOpPlugin;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -55,23 +53,9 @@ import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.Operation;
-import org.opends.server.types.RawAttribute;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.WritabilityMode;
+import org.opends.server.tools.LDAPReader;
+import org.opends.server.tools.LDAPWriter;
+import org.opends.server.types.*;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -110,13 +94,13 @@ public class AddOperationTestCase
 
     ArrayList<RawAttribute> ldapAttrList = new ArrayList<RawAttribute>();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("organizationalUnit"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("organizationalUnit"));
     ldapAttrList.add(new LDAPAttribute("objectclass", values));
 
     values.clear();
-    values.add(new ASN1OctetString("People"));
+    values.add(ByteString.valueOf("People"));
     ldapAttrList.add(new LDAPAttribute("ou", values));
 
     Entry entry = TestCaseUtils.makeEntry(
@@ -128,10 +112,10 @@ public class AddOperationTestCase
     Operation[] opArray = new Operation[]
     {
       new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                       null, new ASN1OctetString("ou=People,o=test"),
+                       null, ByteString.valueOf("ou=People,o=test"),
                        ldapAttrList),
       new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                       noControls, new ASN1OctetString("ou=People,o=test"),
+                       noControls, ByteString.valueOf("ou=People,o=test"),
                        ldapAttrList),
       new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                        null, entry.getDN(), entry.getObjectClasses(),
@@ -186,10 +170,10 @@ public class AddOperationTestCase
     ByteString originalDN = addOperation.getRawEntryDN();
     assertNotNull(originalDN);
 
-    addOperation.setRawEntryDN(new ASN1OctetString("uid=test,o=test"));
+    addOperation.setRawEntryDN(ByteString.valueOf("uid=test,o=test"));
     assertNotNull(addOperation.getRawEntryDN());
     assertEquals(addOperation.getRawEntryDN(),
-                 new ASN1OctetString("uid=test,o=test"));
+                 ByteString.valueOf("uid=test,o=test"));
 
     addOperation.setRawEntryDN(originalDN);
     assertNotNull(addOperation.getRawEntryDN());
@@ -210,18 +194,18 @@ public class AddOperationTestCase
 
     ArrayList<RawAttribute> ldapAttrList = new ArrayList<RawAttribute>();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("organizationalUnit"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("organizationalUnit"));
     ldapAttrList.add(new LDAPAttribute("objectclass", values));
 
     values.clear();
-    values.add(new ASN1OctetString("People"));
+    values.add(ByteString.valueOf("People"));
     ldapAttrList.add(new LDAPAttribute("ou", values));
 
     AddOperationBasis addOperation =
          new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                          null, new ASN1OctetString("ou=People,o=test"),
+                          null, ByteString.valueOf("ou=People,o=test"),
                           ldapAttrList);
     assertNotNull(addOperation.getEntryDN());
   }
@@ -284,7 +268,7 @@ public class AddOperationTestCase
                           entry.getOperationalAttributes());
     assertNotNull(addOperation.getEntryDN());
 
-    addOperation.setRawEntryDN(new ASN1OctetString("ou=Users,o=test"));
+    addOperation.setRawEntryDN(ByteString.valueOf("ou=Users,o=test"));
     assertNotNull(addOperation.getEntryDN());
   }
 
@@ -307,8 +291,8 @@ public class AddOperationTestCase
       new ArrayList<RawAttribute>(rawAttrs);
     addOperation.setRawAttributes(copiedAttrs);
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     addOperation.addRawAttribute(new LDAPAttribute("description", values));
 
     boolean found = false;
@@ -462,14 +446,14 @@ public class AddOperationTestCase
     boolean foundBar = false;
     for (Attribute attr : attrList)
     {
-      if (attr.contains(new AttributeValue(a.getAttributeType(),
-                                           new ASN1OctetString("foo"))))
+      if (attr.contains(AttributeValues.create(a.getAttributeType(),
+                                           ByteString.valueOf("foo"))))
       {
         foundFoo = true;
       }
 
-      if (attr.contains(new AttributeValue(a.getAttributeType(),
-                                                new ASN1OctetString("bar"))))
+      if (attr.contains(AttributeValues.create(a.getAttributeType(),
+                                                ByteString.valueOf("bar"))))
       {
         foundBar = true;
       }
@@ -604,20 +588,20 @@ public class AddOperationTestCase
 
     ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("organizationalUnit"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("organizationalUnit"));
     attrs.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("People"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(new ASN1OctetString("ou=People,o=test"), attrs);
+         conn.processAdd(ByteString.valueOf("ou=People,o=test"), attrs);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
   }
@@ -669,20 +653,20 @@ public class AddOperationTestCase
 
     ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("organizationalUnit"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("organizationalUnit"));
     attrs.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("People"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(new ASN1OctetString("invalid"), attrs);
+         conn.processAdd(ByteString.valueOf("invalid"), attrs);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -702,20 +686,20 @@ public class AddOperationTestCase
 
     ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("organization"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("organization"));
     attrs.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("test"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("test"));
     attrs.add(new LDAPAttribute("o", values));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(new ASN1OctetString("o=test"), attrs);
+         conn.processAdd(ByteString.valueOf("o=test"), attrs);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -735,20 +719,20 @@ public class AddOperationTestCase
 
     ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("organization"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("organization"));
     attrs.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("undefined"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("undefined"));
     attrs.add(new LDAPAttribute("o", values));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(new ASN1OctetString("o=undefined"), attrs);
+         conn.processAdd(ByteString.valueOf("o=undefined"), attrs);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -768,20 +752,20 @@ public class AddOperationTestCase
 
     ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("organizationalUnit"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("organizationalUnit"));
     attrs.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("People"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(new ASN1OctetString("ou=People,o=undefined"), attrs);
+         conn.processAdd(ByteString.valueOf("ou=People,o=undefined"), attrs);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -801,20 +785,20 @@ public class AddOperationTestCase
 
     ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("organizationalUnit"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("organizationalUnit"));
     attrs.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("People"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(new ASN1OctetString("ou=People,o=missing,o=test"),
+         conn.processAdd(ByteString.valueOf("ou=People,o=missing,o=test"),
                          attrs);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
@@ -834,50 +818,50 @@ public class AddOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(3000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(3000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse =
          message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
 
     ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("organizationalUnit"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("organizationalUnit"));
     attrs.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("People"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("cn=Directory Manager"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("cn=Directory Manager"));
     attrs.add(new LDAPAttribute("creatorsName", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("20060101000000Z"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("20060101000000Z"));
     attrs.add(new LDAPAttribute("createTimestamp", values));
 
     long addRequests  = ldapStatistics.getAddRequests();
     long addResponses = ldapStatistics.getAddResponses();
 
     AddRequestProtocolOp addRequest =
-         new AddRequestProtocolOp(new ASN1OctetString("ou=People,o=test"),
+         new AddRequestProtocolOp(ByteString.valueOf("ou=People,o=test"),
                                   attrs);
     message = new LDAPMessage(2, addRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     AddResponseProtocolOp addResponse =
          message.getAddResponseProtocolOp();
     assertFalse(addResponse.getResultCode() == 0);
@@ -907,20 +891,20 @@ public class AddOperationTestCase
 
     ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("undefined"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("undefined"));
     attrs.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("People"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(new ASN1OctetString("ou=People,o=test"),
+         conn.processAdd(ByteString.valueOf("ou=People,o=test"),
                          attrs);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
@@ -980,28 +964,28 @@ public class AddOperationTestCase
 
     ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("organizationalUnit"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("organizationalUnit"));
     attrs.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     attrs.add(new LDAPAttribute("description", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("People"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("bar"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("bar"));
     attrs.add(new LDAPAttribute("description", values));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(new ASN1OctetString("ou=People,o=test"),
+         conn.processAdd(ByteString.valueOf("ou=People,o=test"),
                          attrs);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -1022,28 +1006,28 @@ public class AddOperationTestCase
 
     ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("organizationalUnit"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("organizationalUnit"));
     attrs.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     attrs.add(new LDAPAttribute("description", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("People"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     attrs.add(new LDAPAttribute("description;lang-en-us", values));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(new ASN1OctetString("ou=People,o=test"),
+         conn.processAdd(ByteString.valueOf("ou=People,o=test"),
                          attrs);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -1064,24 +1048,24 @@ public class AddOperationTestCase
 
     ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("organizationalUnit"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("organizationalUnit"));
     attrs.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("People"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("foo"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("foo"));
     attrs.add(new LDAPAttribute("description;lang-en-us", values));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(new ASN1OctetString("ou=People,o=test"),
+         conn.processAdd(ByteString.valueOf("ou=People,o=test"),
                          attrs);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -1143,21 +1127,21 @@ public class AddOperationTestCase
 
     ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
 
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("ds-root-dse"));
-    values.add(new ASN1OctetString("extensibleObject"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("ds-root-dse"));
+    values.add(ByteString.valueOf("extensibleObject"));
     attrs.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("Root DSE"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("Root DSE"));
     attrs.add(new LDAPAttribute("cn", values));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
     AddOperation addOperation =
-         conn.processAdd(new ASN1OctetString(), attrs);
+         conn.processAdd(ByteString.empty(), attrs);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -1269,7 +1253,7 @@ public class AddOperationTestCase
     {
       for (AttributeValue v : a)
       {
-        if (v.getStringValue().equalsIgnoreCase("top"))
+        if (v.getValue().toString().equalsIgnoreCase("top"))
         {
           found = true;
           break;
@@ -1678,30 +1662,30 @@ public class AddOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(3000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(3000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse =
          message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
 
     ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("organizationalUnit"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("organizationalUnit"));
     attrs.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("People"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
     DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
@@ -1710,12 +1694,12 @@ public class AddOperationTestCase
     long addResponses = ldapStatistics.getAddResponses();
 
     AddRequestProtocolOp addRequest =
-         new AddRequestProtocolOp(new ASN1OctetString("ou=People,o=test"),
+         new AddRequestProtocolOp(ByteString.valueOf("ou=People,o=test"),
                                   attrs);
     message = new LDAPMessage(2, addRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     AddResponseProtocolOp addResponse =
          message.getAddResponseProtocolOp();
     assertFalse(addResponse.getResultCode() == 0);
@@ -1829,30 +1813,30 @@ public class AddOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(3000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(3000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse =
          message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
 
     ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("organizationalUnit"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("organizationalUnit"));
     attrs.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("People"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
@@ -1862,12 +1846,12 @@ public class AddOperationTestCase
     long addResponses = ldapStatistics.getAddResponses();
 
     AddRequestProtocolOp addRequest =
-         new AddRequestProtocolOp(new ASN1OctetString("ou=People,o=test"),
+         new AddRequestProtocolOp(ByteString.valueOf("ou=People,o=test"),
                                   attrs);
     message = new LDAPMessage(2, addRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     AddResponseProtocolOp addResponse =
          message.getAddResponseProtocolOp();
     assertFalse(addResponse.getResultCode() == 0);
@@ -2084,45 +2068,44 @@ public class AddOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(5000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(5000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse =
          message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
 
     ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("organizationalUnit"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("organizationalUnit"));
     attrs.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("People"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
     AddRequestProtocolOp addRequest =
-         new AddRequestProtocolOp(new ASN1OctetString("ou=People,o=test"),
+         new AddRequestProtocolOp(ByteString.valueOf("ou=People,o=test"),
                                   attrs);
     message = new LDAPMessage(2, addRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList("PreParse"));
-    w.writeElement(message.encode());
+         DisconnectClientPlugin.createDisconnectControlList("PreParse"));
+    w.writeMessage(message);
 
-    ASN1Element element = r.readElement();
-    if (element != null)
+    message = r.readMessage();
+    if (message != null)
     {
       // If we got an element back, then it must be a notice of disconnect
       // unsolicited notification.
-      message = LDAPMessage.decode(element.decodeAsSequence());
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
@@ -2147,46 +2130,45 @@ public class AddOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(5000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(5000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse =
          message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
 
     ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("organizationalUnit"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("organizationalUnit"));
     attrs.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("People"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
     AddRequestProtocolOp addRequest =
-         new AddRequestProtocolOp(new ASN1OctetString("ou=People,o=test"),
+         new AddRequestProtocolOp(ByteString.valueOf("ou=People,o=test"),
                                   attrs);
     message = new LDAPMessage(2, addRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList(
+         DisconnectClientPlugin.createDisconnectControlList(
               "PreOperation"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    ASN1Element element = r.readElement();
-    if (element != null)
+    message = r.readMessage();
+    if (message != null)
     {
       // If we got an element back, then it must be a notice of disconnect
       // unsolicited notification.
-      message = LDAPMessage.decode(element.decodeAsSequence());
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
@@ -2211,46 +2193,45 @@ public class AddOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(5000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(5000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse =
          message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
 
     ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("organizationalUnit"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("organizationalUnit"));
     attrs.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("People"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
     AddRequestProtocolOp addRequest =
-         new AddRequestProtocolOp(new ASN1OctetString("ou=People,o=test"),
+         new AddRequestProtocolOp(ByteString.valueOf("ou=People,o=test"),
                                   attrs);
     message = new LDAPMessage(2, addRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList(
+         DisconnectClientPlugin.createDisconnectControlList(
               "PostOperation"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    ASN1Element element = r.readElement();
-    if (element != null)
+    message = r.readMessage();
+    if (message != null)
     {
       // If we got an element back, then it must be a notice of disconnect
       // unsolicited notification.
-      message = LDAPMessage.decode(element.decodeAsSequence());
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
@@ -2275,51 +2256,50 @@ public class AddOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(5000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    //s.setSoTimeout(5000);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
-                                   3, new ASN1OctetString("password"));
+         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
+                                   3, ByteString.valueOf("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     BindResponseProtocolOp bindResponse =
          message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
 
     ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
-    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("top"));
-    values.add(new ASN1OctetString("organizationalUnit"));
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("top"));
+    values.add(ByteString.valueOf("organizationalUnit"));
     attrs.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ASN1OctetString>();
-    values.add(new ASN1OctetString("People"));
+    values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
     AddRequestProtocolOp addRequest =
-         new AddRequestProtocolOp(new ASN1OctetString("ou=People,o=test"),
+         new AddRequestProtocolOp(ByteString.valueOf("ou=People,o=test"),
                                   attrs);
     message = new LDAPMessage(2, addRequest,
-         DisconnectClientPlugin.createDisconnectLDAPControlList(
+         DisconnectClientPlugin.createDisconnectControlList(
               "PostResponse"));
-    w.writeElement(message.encode());
+    w.writeMessage(message);
 
 responseLoop:
     while (true)
     {
-      ASN1Element element = r.readElement();
-      if (element == null)
+      message = r.readMessage();
+      if (message == null)
       {
         // The connection has been closed.
         break responseLoop;
       }
 
-      message = LDAPMessage.decode(element.decodeAsSequence());
       switch (message.getProtocolOpType())
       {
         case OP_TYPE_ADD_RESPONSE:
@@ -2544,8 +2524,8 @@ responseLoop:
          ShortCircuitPlugin.createShortCircuitControlList(0, "PreParse");
 
     ArrayList<ByteString> ocValues = new ArrayList<ByteString>();
-    ocValues.add(new ASN1OctetString("top"));
-    ocValues.add(new ASN1OctetString("organization"));
+    ocValues.add(ByteString.valueOf("top"));
+    ocValues.add(ByteString.valueOf("organization"));
 
     ArrayList<RawAttribute> rawAttrs = new ArrayList<RawAttribute>();
     rawAttrs.add(RawAttribute.create("objectClass", ocValues));
@@ -2553,7 +2533,7 @@ responseLoop:
 
     AddOperationBasis addOperation =
          new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                          controls, new ASN1OctetString("o=test"), rawAttrs);
+                          controls, ByteString.valueOf("o=test"), rawAttrs);
     addOperation.run();
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(DirectoryServer.entryExists(DN.decode("o=test")));

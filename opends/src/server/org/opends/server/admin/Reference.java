@@ -104,7 +104,7 @@ public final class Reference<C extends ConfigurationClient,
           + s + "\"");
     }
 
-    String name = av.getStringValue();
+    String name = av.getValue().toString();
 
     // Check that the DN was valid.
     DN expected = p.child(rd, name).toDN();

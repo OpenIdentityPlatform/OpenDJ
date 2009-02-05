@@ -250,7 +250,7 @@ public class SortValues
       }
       else
       {
-        buffer.append(values[i].getStringValue());
+        buffer.append(values[i].getValue().toString());
       }
     }
 

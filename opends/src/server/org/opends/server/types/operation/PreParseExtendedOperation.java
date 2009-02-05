@@ -28,8 +28,7 @@ package org.opends.server.types.operation;
 
 
 
-import org.opends.server.protocols.asn1.ASN1OctetString;
-
+import org.opends.server.types.ByteString;
 
 
 /**
@@ -75,7 +74,7 @@ public interface PreParseExtendedOperation
    * @return  The value for the request associated with this extended
    *          operation.
    */
-  public ASN1OctetString getRequestValue();
+  public ByteString getRequestValue();
 
 
 
@@ -86,7 +85,7 @@ public interface PreParseExtendedOperation
    * @param  requestValue  The value for the request associated with
    *                       this extended operation.
    */
-  public void setRequestValue(ASN1OctetString requestValue);
+  public void setRequestValue(ByteString requestValue);
 
 
 
@@ -106,6 +105,6 @@ public interface PreParseExtendedOperation
    * @param  responseValue  The value to include in the response to
    *                        the client.
    */
-  public void setResponseValue(ASN1OctetString responseValue);
+  public void setResponseValue(ByteString responseValue);
 }
 

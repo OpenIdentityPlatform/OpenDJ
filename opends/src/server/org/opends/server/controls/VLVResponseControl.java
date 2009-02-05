@@ -28,18 +28,12 @@ package org.opends.server.controls;
 import org.opends.messages.Message;
 
 
+import java.io.IOException;
 
-import java.util.ArrayList;
-
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Enumerated;
-import org.opends.server.protocols.asn1.ASN1Integer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.Control;
-import org.opends.server.types.LDAPException;
+import org.opends.server.protocols.asn1.*;
+import static org.opends.server.protocols.asn1.ASN1Constants.
+    UNIVERSAL_OCTET_STRING_TYPE;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -75,6 +69,65 @@ import static org.opends.server.util.StaticUtils.*;
 public class VLVResponseControl
        extends Control
 {
+  /**
+   * ControlDecoder implentation to decode this control from a ByteString.
+   */
+  private final static class Decoder
+      implements ControlDecoder<VLVResponseControl>
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public VLVResponseControl decode(boolean isCritical, ByteString value)
+        throws DirectoryException
+    {
+      if (value == null)
+      {
+        Message message = INFO_VLVRES_CONTROL_NO_VALUE.get();
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+      }
+
+      ASN1Reader reader = ASN1.getReader(value);
+      try
+      {
+        reader.readStartSequence();
+
+        int targetPosition = (int)reader.readInteger();
+        int contentCount   = (int)reader.readInteger();
+        int vlvResultCode  = (int)reader.readInteger();
+
+        ByteString contextID = null;
+        if (reader.hasNextElement())
+        {
+          contextID = reader.readOctetString();
+        }
+
+        return new VLVResponseControl(isCritical, targetPosition,
+            contentCount, vlvResultCode, contextID);
+      }
+      catch (Exception e)
+      {
+        Message message =
+            INFO_VLVRES_CONTROL_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
+      }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getOID()
+    {
+      return OID_VLV_RESPONSE_CONTROL;
+    }
+  }
+
+  /**
+   * The Control Decoder that can be used to decode this control.
+   */
+  public static final ControlDecoder<VLVResponseControl> DECODER =
+    new Decoder();
+
   // The context ID for this VLV response control.
   private ByteString contextID;
 
@@ -100,7 +153,7 @@ public class VLVResponseControl
   public VLVResponseControl(int targetPosition, int contentCount,
                             int vlvResultCode)
   {
-    this(targetPosition, contentCount, vlvResultCode, null);
+    this(false, targetPosition, contentCount, vlvResultCode, null);
   }
 
 
@@ -108,46 +161,19 @@ public class VLVResponseControl
   /**
    * Creates a new VLV response control with the provided information.
    *
-   * @param  targetPosition  The position of the target entry in the result set.
-   * @param  contentCount    The content count estimating the total number of
-   *                         entries in the result set.
-   * @param  vlvResultCode   The result code for the VLV operation.
-   * @param  contextID       The context ID for this VLV response control.
-   */
-  public VLVResponseControl(int targetPosition, int contentCount,
-                            int vlvResultCode, ByteString contextID)
-  {
-    super(OID_VLV_RESPONSE_CONTROL, false,
-          encodeControlValue(targetPosition, contentCount, vlvResultCode,
-                             contextID));
-
-    this.targetPosition = targetPosition;
-    this.contentCount   = contentCount;
-    this.vlvResultCode  = vlvResultCode;
-    this.contextID      = contextID;
-  }
-
-
-
-  /**
-   * Creates a new VLV response control with the provided information.
-   *
-   * @param  oid             The OID for the control.
    * @param  isCritical      Indicates whether the control should be considered
    *                         critical.
-   * @param  controlValue    The pre-encoded value for the control.
    * @param  targetPosition  The position of the target entry in the result set.
    * @param  contentCount    The content count estimating the total number of
    *                         entries in the result set.
    * @param  vlvResultCode   The result code for the VLV operation.
    * @param  contextID       The context ID for this VLV response control.
    */
-  private VLVResponseControl(String oid, boolean isCritical,
-                             ASN1OctetString controlValue, int targetPosition,
+  public VLVResponseControl(boolean isCritical, int targetPosition,
                              int contentCount, int vlvResultCode,
                              ByteString contextID)
   {
-    super(oid, isCritical, controlValue);
+    super(OID_VLV_RESPONSE_CONTROL, isCritical);
 
     this.targetPosition = targetPosition;
     this.contentCount   = contentCount;
@@ -209,110 +235,27 @@ public class VLVResponseControl
 
 
   /**
-   * Encodes the provided information in a manner suitable for use as the value
-   * of this control.
+   * Writes this control's value to an ASN.1 writer. The value (if any) must be
+   * written as an ASN1OctetString.
    *
-   * @param  targetPosition  The position of the target entry in the result set.
-   * @param  contentCount    The content count estimating the total number of
-   *                         entries in the result set.
-   * @param  vlvResultCode   The result code for the VLV operation.
-   * @param  contextID       The context ID for this VLV response control.
-   *
-   * @return  The ASN.1 octet string containing the encoded sort order.
+   * @param writer The ASN.1 writer to use.
+   * @throws IOException If a problem occurs while writing to the stream.
    */
-  private static ASN1OctetString encodeControlValue(int targetPosition,
-                                      int contentCount, int vlvResultCode,
-                                      ByteString contextID)
-  {
-    ArrayList<ASN1Element> vlvElements = new ArrayList<ASN1Element>(4);
-    vlvElements.add(new ASN1Integer(targetPosition));
-    vlvElements.add(new ASN1Integer(contentCount));
-    vlvElements.add(new ASN1Enumerated(vlvResultCode));
+  @Override
+  protected void writeValue(ASN1Writer writer) throws IOException {
+    writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
 
+    writer.writeStartSequence();
+    writer.writeInteger(targetPosition);
+    writer.writeInteger(contentCount);
+    writer.writeInteger(vlvResultCode);
     if (contextID != null)
     {
-      vlvElements.add(contextID.toASN1OctetString());
+      writer.writeOctetString(contextID);
     }
+    writer.writeEndSequence();
 
-    return new ASN1OctetString(new ASN1Sequence(vlvElements).encode());
-  }
-
-
-
-  /**
-   * Creates a new VLV response control from the contents of the provided
-   * control.
-   *
-   * @param  control  The generic control containing the information to use to
-   *                  create this VLV response control.  It must not be
-   *                  {@code null}.
-   *
-   * @return  The VLV response control decoded from the provided control.
-   *
-   * @throws  LDAPException  If this control cannot be decoded as a valid VLV
-   *                         response control.
-   */
-  public static VLVResponseControl decodeControl(Control control)
-         throws LDAPException
-  {
-    ASN1OctetString controlValue = control.getValue();
-    if (controlValue == null)
-    {
-      Message message = INFO_VLVRES_CONTROL_NO_VALUE.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-    }
-
-    try
-    {
-      ASN1Sequence vlvSequence =
-           ASN1Sequence.decodeAsSequence(controlValue.value());
-      ArrayList<ASN1Element> elements = vlvSequence.elements();
-
-      if ((elements.size() < 3) || (elements.size() > 4))
-      {
-        Message message =
-            INFO_VLVRES_CONTROL_INVALID_ELEMENT_COUNT.get(elements.size());
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-      }
-
-      int targetPosition = elements.get(0).decodeAsInteger().intValue();
-      int contentCount   = elements.get(1).decodeAsInteger().intValue();
-      int vlvResultCode  = elements.get(2).decodeAsEnumerated().intValue();
-
-      ASN1OctetString contextID = null;
-      if (elements.size() == 4)
-      {
-        contextID = elements.get(3).decodeAsOctetString();
-      }
-
-      return new VLVResponseControl(control.getOID(), control.isCritical(),
-                                    controlValue, targetPosition, contentCount,
-                                    vlvResultCode, contextID);
-    }
-    catch (LDAPException le)
-    {
-      throw le;
-    }
-    catch (Exception e)
-    {
-      Message message =
-          INFO_VLVRES_CONTROL_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message, e);
-    }
-  }
-
-
-
-  /**
-   * Retrieves a string representation of this VLV request control.
-   *
-   * @return  A string representation of this VLV request control.
-   */
-  public String toString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
+    writer.writeEndSequence();
   }
 
 
@@ -323,6 +266,7 @@ public class VLVResponseControl
    *
    * @param  buffer  The buffer to which the information should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("VLVResponseControl(targetPosition=");

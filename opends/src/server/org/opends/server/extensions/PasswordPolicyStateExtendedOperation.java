@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -31,6 +31,7 @@ package org.opends.server.extensions;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.io.IOException;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.
@@ -44,25 +45,13 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.PasswordPolicy;
 import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1Enumerated;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.schema.GeneralizedTimeSyntax;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.Modification;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -539,7 +528,7 @@ public class PasswordPolicyStateExtendedOperation
 
     // There must be a request value, and it must be a sequence.  Decode it
     // into its components.
-    ASN1OctetString requestValue = operation.getRequestValue();
+    ByteString requestValue = operation.getRequestValue();
     if (requestValue == null)
     {
       Message message = ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE.get();
@@ -548,23 +537,12 @@ public class PasswordPolicyStateExtendedOperation
       return;
     }
 
-    ASN1OctetString dnString;
-    ASN1Sequence    opSequence;
+    ByteString dnString;
+    ASN1Reader reader = ASN1.getReader(requestValue);
     try
     {
-      ASN1Sequence valueSequence =
-           ASN1Sequence.decodeAsSequence(requestValue.value());
-      List<ASN1Element> elements = valueSequence.elements();
-      dnString   = elements.get(0).decodeAsOctetString();
-
-      if (elements.size() == 2)
-      {
-        opSequence = elements.get(1).decodeAsSequence();
-      }
-      else
-      {
-        opSequence = null;
-      }
+      reader.readStartSequence();
+      dnString   = reader.readOctetString();
     }
     catch (Exception e)
     {
@@ -664,610 +642,65 @@ public class PasswordPolicyStateExtendedOperation
     // types that should be included in the response.
     boolean returnAll;
     LinkedHashSet<Integer> returnTypes = new LinkedHashSet<Integer>();
-    if ((opSequence == null) || opSequence.elements().isEmpty())
+    try
     {
-      returnAll = true;
-    }
-    else
-    {
-      returnAll = false;
-      for (ASN1Element element : opSequence.elements())
+      if (!reader.hasNextElement())
       {
-        int opType;
-        ArrayList<String> opValues;
-        try
+        // There is no operations sequence.
+        returnAll = true;
+      }
+      else if(reader.peekLength() <= 0)
+      {
+        // There is an operations sequence but its empty.
+        returnAll = true;
+        reader.readStartSequence();
+        reader.readEndSequence();
+      }
+      else
+      {
+        returnAll = false;
+        reader.readStartSequence();
+        while(reader.hasNextElement())
         {
-          List<ASN1Element> opElements = element.decodeAsSequence().elements();
-          opType = opElements.get(0).decodeAsEnumerated().intValue();
+          int opType;
+          ArrayList<String> opValues;
 
-          if (opElements.size() == 1)
+          reader.readStartSequence();
+          opType = (int)reader.readInteger();
+
+          if (!reader.hasNextElement())
           {
+            // There is no values sequence
             opValues = null;
+          }
+          else if(reader.peekLength() <= 0)
+          {
+            // There is a values sequence but its empty
+            opValues = null;
+            reader.readStartSequence();
+            reader.readEndSequence();
           }
           else
           {
-            List<ASN1Element> valueElements =
-                 opElements.get(1).decodeAsSequence().elements();
-            if (valueElements.isEmpty())
+            reader.readStartSequence();
+            opValues = new ArrayList<String>();
+            while (reader.hasNextElement())
             {
-              opValues = null;
+              opValues.add(reader.readOctetStringAsString());
             }
-            else
-            {
-              opValues = new ArrayList<String>(valueElements.size());
-              for (ASN1Element e : valueElements)
-              {
-                opValues.add(e.decodeAsOctetString().stringValue());
-              }
-            }
+            reader.readEndSequence();
           }
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
+          reader.readEndSequence();
+
+          if(!processOp(opType, opValues, operation,
+              returnTypes, pwpState, policy))
           {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-
-          Message message = ERR_PWPSTATE_EXTOP_INVALID_OP_ENCODING.get(
-            e.getLocalizedMessage());
-          operation.appendErrorMessage(message);
-          operation.setResultCode(ResultCode.PROTOCOL_ERROR);
-          return;
-        }
-
-        switch (opType)
-        {
-          case OP_GET_PASSWORD_POLICY_DN:
-            returnTypes.add(OP_GET_PASSWORD_POLICY_DN);
-            break;
-
-          case OP_GET_ACCOUNT_DISABLED_STATE:
-            returnTypes.add(OP_GET_ACCOUNT_DISABLED_STATE);
-            break;
-
-          case OP_SET_ACCOUNT_DISABLED_STATE:
-            if (opValues == null)
-            {
-              operation.appendErrorMessage(
-                      ERR_PWPSTATE_EXTOP_NO_DISABLED_VALUE.get());
-              operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-              return;
-            }
-            else if (opValues.size() != 1)
-            {
-              operation.appendErrorMessage(
-                      ERR_PWPSTATE_EXTOP_BAD_DISABLED_VALUE_COUNT.get());
-              operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-              return;
-            }
-            else
-            {
-              String value = opValues.get(0);
-              if (value.equalsIgnoreCase("true"))
-              {
-                pwpState.setDisabled(true);
-              }
-              else if (value.equalsIgnoreCase("false"))
-              {
-                pwpState.setDisabled(false);
-              }
-              else
-              {
-                operation.appendErrorMessage(
-                        ERR_PWPSTATE_EXTOP_BAD_DISABLED_VALUE.get());
-                operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-                return;
-              }
-            }
-
-            returnTypes.add(OP_GET_ACCOUNT_DISABLED_STATE);
-            break;
-
-          case OP_CLEAR_ACCOUNT_DISABLED_STATE:
-            pwpState.setDisabled(false);
-            returnTypes.add(OP_GET_ACCOUNT_DISABLED_STATE);
-            break;
-
-          case OP_GET_ACCOUNT_EXPIRATION_TIME:
-            returnTypes.add(OP_GET_ACCOUNT_EXPIRATION_TIME);
-            break;
-
-          case OP_SET_ACCOUNT_EXPIRATION_TIME:
-            if (opValues == null)
-            {
-              pwpState.setAccountExpirationTime(pwpState.getCurrentTime());
-            }
-            else if (opValues.size() != 1)
-            {
-              operation.appendErrorMessage(
-                      ERR_PWPSTATE_EXTOP_BAD_ACCT_EXP_VALUE_COUNT.get());
-              operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-              return;
-            }
-            else
-            {
-              try
-              {
-                ASN1OctetString valueString =
-                     new ASN1OctetString(opValues.get(0));
-                long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                                 valueString);
-                pwpState.setAccountExpirationTime(time);
-              }
-              catch (DirectoryException de)
-              {
-                operation.appendErrorMessage(
-                        ERR_PWPSTATE_EXTOP_BAD_ACCT_EXP_VALUE.get(
-                                opValues.get(0),
-                                de.getMessageObject()));
-                operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-                return;
-              }
-            }
-
-            returnTypes.add(OP_GET_ACCOUNT_EXPIRATION_TIME);
-            break;
-
-          case OP_CLEAR_ACCOUNT_EXPIRATION_TIME:
-            pwpState.clearAccountExpirationTime();
-            returnTypes.add(OP_GET_ACCOUNT_EXPIRATION_TIME);
-            break;
-
-          case OP_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION:
-            returnTypes.add(OP_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION);
-            break;
-
-          case OP_GET_PASSWORD_CHANGED_TIME:
-            returnTypes.add(OP_GET_PASSWORD_CHANGED_TIME);
-            break;
-
-          case OP_SET_PASSWORD_CHANGED_TIME:
-            if (opValues == null)
-            {
-              pwpState.setPasswordChangedTime();
-            }
-            else if (opValues.size() != 1)
-            {
-              operation.appendErrorMessage(
-                      ERR_PWPSTATE_EXTOP_BAD_PWCHANGETIME_VALUE_COUNT.get());
-              operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-              return;
-            }
-            else
-            {
-              try
-              {
-                ASN1OctetString valueString =
-                     new ASN1OctetString(opValues.get(0));
-                long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                                 valueString);
-                pwpState.setPasswordChangedTime(time);
-              }
-              catch (DirectoryException de)
-              {
-                operation.appendErrorMessage(
-                        ERR_PWPSTATE_EXTOP_BAD_PWCHANGETIME_VALUE.get(
-                                opValues.get(0),
-                                de.getMessageObject()));
-                operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-                return;
-              }
-            }
-
-            returnTypes.add(OP_GET_PASSWORD_CHANGED_TIME);
-            break;
-
-          case OP_CLEAR_PASSWORD_CHANGED_TIME:
-            pwpState.clearPasswordChangedTime();
-            returnTypes.add(OP_GET_PASSWORD_CHANGED_TIME);
-            break;
-
-          case OP_GET_PASSWORD_EXPIRATION_WARNED_TIME:
-            returnTypes.add(OP_GET_PASSWORD_EXPIRATION_WARNED_TIME);
-            break;
-
-          case OP_SET_PASSWORD_EXPIRATION_WARNED_TIME:
-            if (opValues == null)
-            {
-              pwpState.setWarnedTime();
-            }
-            else if (opValues.size() != 1)
-            {
-              operation.appendErrorMessage(
-                      ERR_PWPSTATE_EXTOP_BAD_PWWARNEDTIME_VALUE_COUNT.get());
-              operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-              return;
-            }
-            else
-            {
-              try
-              {
-                ASN1OctetString valueString =
-                     new ASN1OctetString(opValues.get(0));
-                long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                                 valueString);
-                pwpState.setWarnedTime(time);
-              }
-              catch (DirectoryException de)
-              {
-                operation.appendErrorMessage(
-                        ERR_PWPSTATE_EXTOP_BAD_PWWARNEDTIME_VALUE.get(
-                                opValues.get(0),
-                                de.getMessageObject()));
-                operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-                return;
-              }
-            }
-
-            returnTypes.add(OP_GET_PASSWORD_EXPIRATION_WARNED_TIME);
-            break;
-
-          case OP_CLEAR_PASSWORD_EXPIRATION_WARNED_TIME:
-            pwpState.clearWarnedTime();
-            returnTypes.add(OP_GET_PASSWORD_EXPIRATION_WARNED_TIME);
-            break;
-
-          case OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION:
-            returnTypes.add(OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION);
-            break;
-
-          case OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING:
-            returnTypes.add(OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING);
-            break;
-
-          case OP_GET_AUTHENTICATION_FAILURE_TIMES:
-            returnTypes.add(OP_GET_AUTHENTICATION_FAILURE_TIMES);
-            break;
-
-          case OP_ADD_AUTHENTICATION_FAILURE_TIME:
-            if (opValues == null)
-            {
-              if (policy.getLockoutFailureCount() == 0)
-              {
-                returnTypes.add(OP_GET_AUTHENTICATION_FAILURE_TIMES);
-                break;
-              }
-
-              pwpState.updateAuthFailureTimes();
-            }
-            else if (opValues.size() != 1)
-            {
-              operation.appendErrorMessage(
-                      ERR_PWPSTATE_EXTOP_BAD_ADD_FAILURE_TIME_COUNT.get());
-              operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-              return;
-            }
-            else
-            {
-              try
-              {
-                ASN1OctetString valueString =
-                     new ASN1OctetString(opValues.get(0));
-                long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                                 valueString);
-                List<Long> authFailureTimes = pwpState.getAuthFailureTimes();
-                ArrayList<Long> newFailureTimes =
-                     new ArrayList<Long>(authFailureTimes.size()+1);
-                newFailureTimes.addAll(authFailureTimes);
-                newFailureTimes.add(time);
-                pwpState.setAuthFailureTimes(newFailureTimes);
-              }
-              catch (DirectoryException de)
-              {
-                Message message = ERR_PWPSTATE_EXTOP_BAD_AUTH_FAILURE_TIME.get(
-                        opValues.get(0),
-                        de.getMessageObject());
-                operation.setResultCode(de.getResultCode());
-                operation.appendErrorMessage(message);
-                return;
-              }
-            }
-
-            returnTypes.add(OP_GET_AUTHENTICATION_FAILURE_TIMES);
-            break;
-
-          case OP_SET_AUTHENTICATION_FAILURE_TIMES:
-            if (opValues == null)
-            {
-              ArrayList<Long> valueList = new ArrayList<Long>(1);
-              valueList.add(pwpState.getCurrentTime());
-              pwpState.setAuthFailureTimes(valueList);
-            }
-            else
-            {
-              ArrayList<Long> valueList = new ArrayList<Long>(opValues.size());
-              for (String s : opValues)
-              {
-                try
-                {
-                  valueList.add(
-                       GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                            new ASN1OctetString(s)));
-                }
-                catch (DirectoryException de)
-                {
-                  Message message =
-                          ERR_PWPSTATE_EXTOP_BAD_AUTH_FAILURE_TIME.get(
-                                  s,
-                                  de.getMessageObject());
-                  operation.setResultCode(de.getResultCode());
-                  operation.appendErrorMessage(message);
-                  return;
-                }
-              }
-              pwpState.setAuthFailureTimes(valueList);
-            }
-
-            returnTypes.add(OP_GET_AUTHENTICATION_FAILURE_TIMES);
-            break;
-
-          case OP_CLEAR_AUTHENTICATION_FAILURE_TIMES:
-            pwpState.clearFailureLockout();
-            returnTypes.add(OP_GET_AUTHENTICATION_FAILURE_TIMES);
-            break;
-
-          case OP_GET_SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK:
-            returnTypes.add(OP_GET_SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK);
-            break;
-
-          case OP_GET_REMAINING_AUTHENTICATION_FAILURE_COUNT:
-            returnTypes.add(OP_GET_REMAINING_AUTHENTICATION_FAILURE_COUNT);
-            break;
-
-          case OP_GET_LAST_LOGIN_TIME:
-            returnTypes.add(OP_GET_LAST_LOGIN_TIME);
-            break;
-
-          case OP_SET_LAST_LOGIN_TIME:
-            if (opValues == null)
-            {
-              pwpState.setLastLoginTime();
-            }
-            else if (opValues.size() != 1)
-            {
-              operation.appendErrorMessage(
-                      ERR_PWPSTATE_EXTOP_BAD_LAST_LOGIN_TIME_COUNT.get());
-              operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-              return;
-            }
-            else
-            {
-              try
-              {
-                ASN1OctetString valueString =
-                     new ASN1OctetString(opValues.get(0));
-                long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                                 valueString);
-                pwpState.setLastLoginTime(time);
-              }
-              catch (DirectoryException de)
-              {
-                operation.appendErrorMessage(
-                        ERR_PWPSTATE_EXTOP_BAD_LAST_LOGIN_TIME.get(
-                                opValues.get(0),
-                                de.getMessageObject()));
-                operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-                return;
-              }
-            }
-
-            returnTypes.add(OP_GET_LAST_LOGIN_TIME);
-            break;
-
-          case OP_CLEAR_LAST_LOGIN_TIME:
-            pwpState.clearLastLoginTime();
-            returnTypes.add(OP_GET_LAST_LOGIN_TIME);
-            break;
-
-          case OP_GET_SECONDS_UNTIL_IDLE_LOCKOUT:
-            returnTypes.add(OP_GET_SECONDS_UNTIL_IDLE_LOCKOUT);
-            break;
-
-          case OP_GET_PASSWORD_RESET_STATE:
-            returnTypes.add(OP_GET_PASSWORD_RESET_STATE);
-            break;
-
-          case OP_SET_PASSWORD_RESET_STATE:
-            if (opValues == null)
-            {
-              operation.appendErrorMessage(
-                      ERR_PWPSTATE_EXTOP_NO_RESET_STATE_VALUE.get());
-              operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-              return;
-            }
-            else if (opValues.size() != 1)
-            {
-              operation.appendErrorMessage(
-                      ERR_PWPSTATE_EXTOP_BAD_RESET_STATE_VALUE_COUNT.get());
-              operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-              return;
-            }
-            else
-            {
-              String value = opValues.get(0);
-              if (value.equalsIgnoreCase("true"))
-              {
-                pwpState.setMustChangePassword(true);
-              }
-              else if (value.equalsIgnoreCase("false"))
-              {
-                pwpState.setMustChangePassword(false);
-              }
-              else
-              {
-                operation.appendErrorMessage(
-                        ERR_PWPSTATE_EXTOP_BAD_RESET_STATE_VALUE.get());
-                operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-                return;
-              }
-            }
-
-            returnTypes.add(OP_GET_PASSWORD_RESET_STATE);
-            break;
-
-          case OP_CLEAR_PASSWORD_RESET_STATE:
-            pwpState.setMustChangePassword(false);
-            returnTypes.add(OP_GET_PASSWORD_RESET_STATE);
-            break;
-
-          case OP_GET_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT:
-            returnTypes.add(OP_GET_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT);
-            break;
-
-          case OP_GET_GRACE_LOGIN_USE_TIMES:
-            returnTypes.add(OP_GET_GRACE_LOGIN_USE_TIMES);
-            break;
-
-          case OP_ADD_GRACE_LOGIN_USE_TIME:
-            if (opValues == null)
-            {
-              pwpState.updateGraceLoginTimes();
-            }
-            else if (opValues.size() != 1)
-            {
-              operation.appendErrorMessage(
-                      ERR_PWPSTATE_EXTOP_BAD_ADD_GRACE_LOGIN_TIME_COUNT.get());
-              operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-              return;
-            }
-            else
-            {
-              try
-              {
-                ASN1OctetString valueString =
-                     new ASN1OctetString(opValues.get(0));
-                long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                                 valueString);
-                List<Long> authFailureTimes = pwpState.getGraceLoginTimes();
-                ArrayList<Long> newGraceTimes =
-                     new ArrayList<Long>(authFailureTimes.size()+1);
-                newGraceTimes.addAll(authFailureTimes);
-                newGraceTimes.add(time);
-                pwpState.setGraceLoginTimes(newGraceTimes);
-              }
-              catch (DirectoryException de)
-              {
-                Message message = ERR_PWPSTATE_EXTOP_BAD_GRACE_LOGIN_TIME.get(
-                        opValues.get(0),
-                        de.getMessageObject());
-                operation.setResultCode(de.getResultCode());
-                operation.appendErrorMessage(message);
-                return;
-              }
-            }
-
-            returnTypes.add(OP_GET_GRACE_LOGIN_USE_TIMES);
-            break;
-
-          case OP_SET_GRACE_LOGIN_USE_TIMES:
-            if (opValues == null)
-            {
-              ArrayList<Long> valueList = new ArrayList<Long>(1);
-              valueList.add(pwpState.getCurrentTime());
-              pwpState.setGraceLoginTimes(valueList);
-            }
-            else
-            {
-              ArrayList<Long> valueList = new ArrayList<Long>(opValues.size());
-              for (String s : opValues)
-              {
-                try
-                {
-                  valueList.add(
-                       GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                            new ASN1OctetString(s)));
-                }
-                catch (DirectoryException de)
-                {
-                  Message message = ERR_PWPSTATE_EXTOP_BAD_GRACE_LOGIN_TIME.get(
-                          s, de.getMessageObject());
-                  operation.setResultCode(de.getResultCode());
-                  operation.appendErrorMessage(message);
-                  return;
-                }
-              }
-              pwpState.setGraceLoginTimes(valueList);
-            }
-
-            returnTypes.add(OP_GET_GRACE_LOGIN_USE_TIMES);
-            break;
-
-          case OP_CLEAR_GRACE_LOGIN_USE_TIMES:
-            pwpState.clearGraceLoginTimes();
-            returnTypes.add(OP_GET_GRACE_LOGIN_USE_TIMES);
-            break;
-
-          case OP_GET_REMAINING_GRACE_LOGIN_COUNT:
-            returnTypes.add(OP_GET_REMAINING_GRACE_LOGIN_COUNT);
-            break;
-
-          case OP_GET_PASSWORD_CHANGED_BY_REQUIRED_TIME:
-            returnTypes.add(OP_GET_PASSWORD_CHANGED_BY_REQUIRED_TIME);
-            break;
-
-          case OP_SET_PASSWORD_CHANGED_BY_REQUIRED_TIME:
-            if (opValues == null)
-            {
-              pwpState.setRequiredChangeTime();
-            }
-            else if (opValues.size() != 1)
-            {
-              operation.appendErrorMessage(
-                      ERR_PWPSTATE_EXTOP_BAD_REQUIRED_CHANGE_TIME_COUNT.get());
-              operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-              return;
-            }
-            else
-            {
-              try
-              {
-                ASN1OctetString valueString =
-                     new ASN1OctetString(opValues.get(0));
-                long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                                 valueString);
-                pwpState.setRequiredChangeTime(time);
-              }
-              catch (DirectoryException de)
-              {
-                operation.appendErrorMessage(
-                        ERR_PWPSTATE_EXTOP_BAD_REQUIRED_CHANGE_TIME.get(
-                                opValues.get(0),
-                                de.getMessageObject()));
-                operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-                return;
-              }
-            }
-
-            returnTypes.add(OP_GET_PASSWORD_CHANGED_BY_REQUIRED_TIME);
-            break;
-
-          case OP_CLEAR_PASSWORD_CHANGED_BY_REQUIRED_TIME:
-            pwpState.clearRequiredChangeTime();
-            returnTypes.add(OP_GET_PASSWORD_CHANGED_BY_REQUIRED_TIME);
-            break;
-
-          case OP_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME:
-            returnTypes.add(OP_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME);
-            break;
-
-          case OP_GET_PASSWORD_HISTORY:
-            returnTypes.add(OP_GET_PASSWORD_HISTORY);
-            break;
-
-          case OP_CLEAR_PASSWORD_HISTORY:
-            pwpState.clearPasswordHistory();
-            returnTypes.add(OP_GET_PASSWORD_HISTORY);
-            break;
-
-          default:
-
-            operation.appendErrorMessage(ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE.get(
-                    String.valueOf(opType)));
-            operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
             return;
+          }
         }
+        reader.readEndSequence();
       }
+      reader.readEndSequence();
 
 
       // If there are any modifications that need to be made to the password
@@ -1276,7 +709,7 @@ public class PasswordPolicyStateExtendedOperation
       if ((stateMods != null) && (! stateMods.isEmpty()))
       {
         ModifyOperation modifyOperation =
-             conn.processModify(targetDN, stateMods);
+            conn.processModify(targetDN, stateMods);
         if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
         {
           operation.setResultCode(modifyOperation.getResultCode());
@@ -1287,20 +720,150 @@ public class PasswordPolicyStateExtendedOperation
         }
       }
     }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      Message message = ERR_PWPSTATE_EXTOP_INVALID_OP_ENCODING.get(
+          e.getLocalizedMessage());
+      operation.appendErrorMessage(message);
+      operation.setResultCode(ResultCode.PROTOCOL_ERROR);
+      return;
+    }
 
 
-    // Construct the sequence of values to return.
-    ArrayList<ASN1Element> opElements = new ArrayList<ASN1Element>();
+    try
+    {
+      // Construct the sequence of values to return.
+      ByteString responseValue =
+          encodeResponse(dnString, returnAll, returnTypes, pwpState, policy);
+      operation.setResponseOID(OID_PASSWORD_POLICY_STATE_EXTOP);
+      operation.setResponseValue(responseValue);
+      operation.setResultCode(ResultCode.SUCCESS);
+    }
+    catch(Exception e)
+    {
+      // TODO: Need a better message
+      Message message = ERR_PWPSTATE_EXTOP_INVALID_OP_ENCODING.get(
+          e.getLocalizedMessage());
+      operation.appendErrorMessage(message);
+      operation.setResultCode(ResultCode.PROTOCOL_ERROR);
+    }
+  }
+
+
+
+  /**
+   * Encodes the provided information in a form suitable for including in the
+   * response value.
+   *
+   * @param  writer  The ASN1Writer to use to encode.
+   * @param  opType  The operation type to use for the value.
+   * @param  value   The single value to include in the response.
+   *
+   * @throws IOException if an error occurs while encoding.
+   */
+  public static void encode(ASN1Writer writer, int opType, String value)
+      throws IOException
+  {
+    writer.writeStartSequence();
+    writer.writeInteger(opType);
+
+    if ((value != null))
+    {
+      writer.writeStartSequence();
+      writer.writeOctetString(value);
+      writer.writeEndSequence();
+    }
+
+    writer.writeEndSequence();
+  }
+
+
+
+  /**
+   * Encodes the provided information in a form suitable for including in the
+   * response value.
+   *
+   * @param  writer  The ASN1Writer to use to encode.
+   * @param  opType  The operation type to use for the value.
+   * @param  values  The set of string values to include in the response.
+   *
+   * @throws IOException if an error occurs while encoding.
+   */
+  public static void encode(ASN1Writer writer, int opType, String[] values)
+      throws IOException
+  {
+    writer.writeStartSequence();
+    writer.writeInteger(opType);
+
+    if ((values != null) && (values.length > 0))
+    {
+      writer.writeStartSequence();
+      for (int i=0; i < values.length; i++)
+      {
+        writer.writeOctetString(values[i]);
+      }
+      writer.writeEndSequence();
+    }
+
+    writer.writeEndSequence();
+  }
+
+  /**
+   * Encodes the provided information in a form suitable for including in the
+   * response value.
+   *
+   * @param  writer  The ASN1Writer to use to encode.
+   * @param  opType  The operation type to use for the value.
+   * @param  values  The set of timestamp values to include in the response.
+   *
+   * @throws IOException if an error occurs while encoding.
+   */
+  public static void encode(ASN1Writer writer, int opType, List<Long> values)
+      throws IOException
+  {
+    writer.writeStartSequence();
+    writer.writeInteger(opType);
+
+    if ((values != null) && (values.size() > 0))
+    {
+      writer.writeStartSequence();
+      for (long l : values)
+      {
+        writer.writeOctetString(GeneralizedTimeSyntax.format(l));
+      }
+      writer.writeEndSequence();
+    }
+
+    writer.writeEndSequence();
+  }
+
+  private ByteString encodeResponse(ByteString dnString, boolean returnAll,
+                                    LinkedHashSet<Integer> returnTypes,
+                                    PasswordPolicyState pwpState,
+                                    PasswordPolicy policy)
+      throws IOException
+  {
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    writer.writeStartSequence();
+    writer.writeOctetString(dnString);
+
+    writer.writeStartSequence();
     if (returnAll || returnTypes.contains(OP_GET_PASSWORD_POLICY_DN))
     {
-      opElements.add(encode(OP_GET_PASSWORD_POLICY_DN,
-                            policy.getConfigEntryDN().toString()));
+      encode(writer, OP_GET_PASSWORD_POLICY_DN,
+                            policy.getConfigEntryDN().toString());
     }
 
     if (returnAll || returnTypes.contains(OP_GET_ACCOUNT_DISABLED_STATE))
     {
-      opElements.add(encode(OP_GET_ACCOUNT_DISABLED_STATE,
-                            String.valueOf(pwpState.isDisabled())));
+      encode(writer, OP_GET_ACCOUNT_DISABLED_STATE,
+                            String.valueOf(pwpState.isDisabled()));
     }
 
     if (returnAll || returnTypes.contains(OP_GET_ACCOUNT_EXPIRATION_TIME))
@@ -1316,7 +879,7 @@ public class PasswordPolicyStateExtendedOperation
         expTimeStr = GeneralizedTimeSyntax.format(expTime);
       }
 
-      opElements.add(encode(OP_GET_ACCOUNT_EXPIRATION_TIME, expTimeStr));
+      encode(writer, OP_GET_ACCOUNT_EXPIRATION_TIME, expTimeStr);
     }
 
     if (returnAll ||
@@ -1334,8 +897,8 @@ public class PasswordPolicyStateExtendedOperation
              String.valueOf((expTime - pwpState.getCurrentTime()) / 1000);
       }
 
-      opElements.add(encode(OP_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION,
-                            secondsStr));
+      encode(writer, OP_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION,
+                            secondsStr);
     }
 
     if (returnAll || returnTypes.contains(OP_GET_PASSWORD_CHANGED_TIME))
@@ -1351,7 +914,7 @@ public class PasswordPolicyStateExtendedOperation
         timeStr = GeneralizedTimeSyntax.format(changedTime);
       }
 
-      opElements.add(encode(OP_GET_PASSWORD_CHANGED_TIME, timeStr));
+      encode(writer, OP_GET_PASSWORD_CHANGED_TIME, timeStr);
     }
 
     if (returnAll ||
@@ -1368,7 +931,7 @@ public class PasswordPolicyStateExtendedOperation
         timeStr = GeneralizedTimeSyntax.format(warnedTime);
       }
 
-      opElements.add(encode(OP_GET_PASSWORD_EXPIRATION_WARNED_TIME, timeStr));
+      encode(writer, OP_GET_PASSWORD_EXPIRATION_WARNED_TIME, timeStr);
     }
 
     if (returnAll ||
@@ -1385,8 +948,8 @@ public class PasswordPolicyStateExtendedOperation
         secondsStr = String.valueOf(secondsUntilExp);
       }
 
-      opElements.add(encode(OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION,
-                            secondsStr));
+      encode(writer, OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION,
+                            secondsStr);
     }
 
     if (returnAll ||
@@ -1411,14 +974,14 @@ public class PasswordPolicyStateExtendedOperation
         }
       }
 
-      opElements.add(encode(OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING,
-                            secondsStr));
+      encode(writer, OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING,
+                            secondsStr);
     }
 
     if (returnAll || returnTypes.contains(OP_GET_AUTHENTICATION_FAILURE_TIMES))
     {
-      opElements.add(encode(OP_GET_AUTHENTICATION_FAILURE_TIMES,
-                            pwpState.getAuthFailureTimes()));
+      encode(writer, OP_GET_AUTHENTICATION_FAILURE_TIMES,
+                            pwpState.getAuthFailureTimes());
     }
 
     if (returnAll || returnTypes.contains(
@@ -1444,8 +1007,8 @@ public class PasswordPolicyStateExtendedOperation
         secondsStr = null;
       }
 
-      opElements.add(encode(OP_GET_SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK,
-                            secondsStr));
+      encode(writer, OP_GET_SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK,
+                            secondsStr);
     }
 
     if (returnAll ||
@@ -1469,8 +1032,8 @@ public class PasswordPolicyStateExtendedOperation
         remainingFailuresStr = null;
       }
 
-      opElements.add(encode(OP_GET_REMAINING_AUTHENTICATION_FAILURE_COUNT,
-                            remainingFailuresStr));
+      encode(writer, OP_GET_REMAINING_AUTHENTICATION_FAILURE_COUNT,
+                            remainingFailuresStr);
     }
 
     if (returnAll || returnTypes.contains(OP_GET_LAST_LOGIN_TIME))
@@ -1486,7 +1049,7 @@ public class PasswordPolicyStateExtendedOperation
         timeStr = GeneralizedTimeSyntax.format(lastLoginTime);
       }
 
-      opElements.add(encode(OP_GET_LAST_LOGIN_TIME, timeStr));
+      encode(writer, OP_GET_LAST_LOGIN_TIME, timeStr);
     }
 
     if (returnAll || returnTypes.contains(OP_GET_SECONDS_UNTIL_IDLE_LOCKOUT))
@@ -1520,13 +1083,13 @@ public class PasswordPolicyStateExtendedOperation
         secondsStr = null;
       }
 
-      opElements.add(encode(OP_GET_SECONDS_UNTIL_IDLE_LOCKOUT, secondsStr));
+      encode(writer, OP_GET_SECONDS_UNTIL_IDLE_LOCKOUT, secondsStr);
     }
 
     if (returnAll || returnTypes.contains(OP_GET_PASSWORD_RESET_STATE))
     {
-      opElements.add(encode(OP_GET_PASSWORD_RESET_STATE,
-                            String.valueOf(pwpState.mustChangePassword())));
+      encode(writer, OP_GET_PASSWORD_RESET_STATE,
+                            String.valueOf(pwpState.mustChangePassword()));
     }
 
     if (returnAll ||
@@ -1561,14 +1124,14 @@ public class PasswordPolicyStateExtendedOperation
         secondsStr = null;
       }
 
-      opElements.add(encode(OP_GET_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT,
-                            secondsStr));
+      encode(writer, OP_GET_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT,
+                            secondsStr);
     }
 
     if (returnAll || returnTypes.contains(OP_GET_GRACE_LOGIN_USE_TIMES))
     {
-      opElements.add(encode(OP_GET_GRACE_LOGIN_USE_TIMES,
-                            pwpState.getGraceLoginTimes()));
+      encode(writer, OP_GET_GRACE_LOGIN_USE_TIMES,
+                            pwpState.getGraceLoginTimes());
     }
 
     if (returnAll || returnTypes.contains(OP_GET_REMAINING_GRACE_LOGIN_COUNT))
@@ -1584,7 +1147,7 @@ public class PasswordPolicyStateExtendedOperation
         remainingStr = String.valueOf(remainingGraceLogins);
       }
 
-      opElements.add(encode(OP_GET_REMAINING_GRACE_LOGIN_COUNT, remainingStr));
+      encode(writer, OP_GET_REMAINING_GRACE_LOGIN_COUNT, remainingStr);
     }
 
     if (returnAll ||
@@ -1601,7 +1164,7 @@ public class PasswordPolicyStateExtendedOperation
         timeStr = GeneralizedTimeSyntax.format(requiredChangeTime);
       }
 
-      opElements.add(encode(OP_GET_PASSWORD_CHANGED_BY_REQUIRED_TIME, timeStr));
+      encode(writer, OP_GET_PASSWORD_CHANGED_BY_REQUIRED_TIME, timeStr);
     }
 
     if (returnAll ||
@@ -1636,110 +1199,581 @@ public class PasswordPolicyStateExtendedOperation
         secondsStr = null;
       }
 
-      opElements.add(encode(OP_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME,
-                            secondsStr));
+      encode(writer, OP_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME,
+                            secondsStr);
     }
 
     if (returnAll || returnTypes.contains(OP_GET_PASSWORD_HISTORY))
     {
-      opElements.add(encode(OP_GET_PASSWORD_HISTORY,
-                            pwpState.getPasswordHistoryValues()));
+      encode(writer, OP_GET_PASSWORD_HISTORY,
+                            pwpState.getPasswordHistoryValues());
     }
+    writer.writeEndSequence();
 
-    ArrayList<ASN1Element> responseValueElements =
-         new ArrayList<ASN1Element>(2);
-    responseValueElements.add(dnString);
-    responseValueElements.add(new ASN1Sequence(opElements));
+    writer.writeEndSequence();
 
-    ASN1OctetString responseValue =
-         new ASN1OctetString(new ASN1Sequence(responseValueElements).encode());
-
-    operation.setResponseOID(OID_PASSWORD_POLICY_STATE_EXTOP);
-    operation.setResponseValue(responseValue);
-    operation.setResultCode(ResultCode.SUCCESS);
+    return builder.toByteString();
   }
 
-
-
-  /**
-   * Encodes the provided information in a form suitable for including in the
-   * response value.
-   *
-   * @param  opType  The operation type to use for the value.
-   * @param  value   The single value to include in the response.
-   *
-   * @return  The encoded ASN.1 element.
-   */
-  public static ASN1Element encode(int opType, String value)
+  private boolean processOp(int opType, ArrayList<String> opValues,
+                         ExtendedOperation operation,
+                         LinkedHashSet<Integer> returnTypes,
+                         PasswordPolicyState pwpState,
+                         PasswordPolicy policy)
   {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1Enumerated(opType));
-
-    if (value != null)
+    switch (opType)
     {
-      ArrayList<ASN1Element> valueElements = new ArrayList<ASN1Element>(1);
-      valueElements.add(new ASN1OctetString(value));
-      elements.add(new ASN1Sequence(valueElements));
+      case OP_GET_PASSWORD_POLICY_DN:
+        returnTypes.add(OP_GET_PASSWORD_POLICY_DN);
+        break;
+
+      case OP_GET_ACCOUNT_DISABLED_STATE:
+        returnTypes.add(OP_GET_ACCOUNT_DISABLED_STATE);
+        break;
+
+      case OP_SET_ACCOUNT_DISABLED_STATE:
+        if (opValues == null)
+        {
+          operation.appendErrorMessage(
+              ERR_PWPSTATE_EXTOP_NO_DISABLED_VALUE.get());
+          operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+          return false;
+        }
+        else if (opValues.size() != 1)
+        {
+          operation.appendErrorMessage(
+              ERR_PWPSTATE_EXTOP_BAD_DISABLED_VALUE_COUNT.get());
+          operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+          return false;
+        }
+        else
+        {
+          String value = opValues.get(0);
+          if (value.equalsIgnoreCase("true"))
+          {
+            pwpState.setDisabled(true);
+          }
+          else if (value.equalsIgnoreCase("false"))
+          {
+            pwpState.setDisabled(false);
+          }
+          else
+          {
+            operation.appendErrorMessage(
+                ERR_PWPSTATE_EXTOP_BAD_DISABLED_VALUE.get());
+            operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+            return false;
+          }
+        }
+
+        returnTypes.add(OP_GET_ACCOUNT_DISABLED_STATE);
+        break;
+
+      case OP_CLEAR_ACCOUNT_DISABLED_STATE:
+        pwpState.setDisabled(false);
+        returnTypes.add(OP_GET_ACCOUNT_DISABLED_STATE);
+        break;
+
+      case OP_GET_ACCOUNT_EXPIRATION_TIME:
+        returnTypes.add(OP_GET_ACCOUNT_EXPIRATION_TIME);
+        break;
+
+      case OP_SET_ACCOUNT_EXPIRATION_TIME:
+        if (opValues == null)
+        {
+          pwpState.setAccountExpirationTime(pwpState.getCurrentTime());
+        }
+        else if (opValues.size() != 1)
+        {
+          operation.appendErrorMessage(
+              ERR_PWPSTATE_EXTOP_BAD_ACCT_EXP_VALUE_COUNT.get());
+          operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+          return false;
+        }
+        else
+        {
+          try
+          {
+            ByteString valueString =
+                ByteString.valueOf(opValues.get(0));
+            long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
+                valueString);
+            pwpState.setAccountExpirationTime(time);
+          }
+          catch (DirectoryException de)
+          {
+            operation.appendErrorMessage(
+                ERR_PWPSTATE_EXTOP_BAD_ACCT_EXP_VALUE.get(
+                    opValues.get(0),
+                    de.getMessageObject()));
+            operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+            return false;
+          }
+        }
+
+        returnTypes.add(OP_GET_ACCOUNT_EXPIRATION_TIME);
+        break;
+
+      case OP_CLEAR_ACCOUNT_EXPIRATION_TIME:
+        pwpState.clearAccountExpirationTime();
+        returnTypes.add(OP_GET_ACCOUNT_EXPIRATION_TIME);
+        break;
+
+      case OP_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION:
+        returnTypes.add(OP_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION);
+        break;
+
+      case OP_GET_PASSWORD_CHANGED_TIME:
+        returnTypes.add(OP_GET_PASSWORD_CHANGED_TIME);
+        break;
+
+      case OP_SET_PASSWORD_CHANGED_TIME:
+        if (opValues == null)
+        {
+          pwpState.setPasswordChangedTime();
+        }
+        else if (opValues.size() != 1)
+        {
+          operation.appendErrorMessage(
+              ERR_PWPSTATE_EXTOP_BAD_PWCHANGETIME_VALUE_COUNT.get());
+          operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+          return false;
+        }
+        else
+        {
+          try
+          {
+            ByteString valueString =
+                ByteString.valueOf(opValues.get(0));
+            long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
+                valueString);
+            pwpState.setPasswordChangedTime(time);
+          }
+          catch (DirectoryException de)
+          {
+            operation.appendErrorMessage(
+                ERR_PWPSTATE_EXTOP_BAD_PWCHANGETIME_VALUE.get(
+                    opValues.get(0),
+                    de.getMessageObject()));
+            operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+            return false;
+          }
+        }
+
+        returnTypes.add(OP_GET_PASSWORD_CHANGED_TIME);
+        break;
+
+      case OP_CLEAR_PASSWORD_CHANGED_TIME:
+        pwpState.clearPasswordChangedTime();
+        returnTypes.add(OP_GET_PASSWORD_CHANGED_TIME);
+        break;
+
+      case OP_GET_PASSWORD_EXPIRATION_WARNED_TIME:
+        returnTypes.add(OP_GET_PASSWORD_EXPIRATION_WARNED_TIME);
+        break;
+
+      case OP_SET_PASSWORD_EXPIRATION_WARNED_TIME:
+        if (opValues == null)
+        {
+          pwpState.setWarnedTime();
+        }
+        else if (opValues.size() != 1)
+        {
+          operation.appendErrorMessage(
+              ERR_PWPSTATE_EXTOP_BAD_PWWARNEDTIME_VALUE_COUNT.get());
+          operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+          return false;
+        }
+        else
+        {
+          try
+          {
+            ByteString valueString =
+                ByteString.valueOf(opValues.get(0));
+            long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
+                valueString);
+            pwpState.setWarnedTime(time);
+          }
+          catch (DirectoryException de)
+          {
+            operation.appendErrorMessage(
+                ERR_PWPSTATE_EXTOP_BAD_PWWARNEDTIME_VALUE.get(
+                    opValues.get(0),
+                    de.getMessageObject()));
+            operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+            return false;
+          }
+        }
+
+        returnTypes.add(OP_GET_PASSWORD_EXPIRATION_WARNED_TIME);
+        break;
+
+      case OP_CLEAR_PASSWORD_EXPIRATION_WARNED_TIME:
+        pwpState.clearWarnedTime();
+        returnTypes.add(OP_GET_PASSWORD_EXPIRATION_WARNED_TIME);
+        break;
+
+      case OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION:
+        returnTypes.add(OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION);
+        break;
+
+      case OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING:
+        returnTypes.add(OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING);
+        break;
+
+      case OP_GET_AUTHENTICATION_FAILURE_TIMES:
+        returnTypes.add(OP_GET_AUTHENTICATION_FAILURE_TIMES);
+        break;
+
+      case OP_ADD_AUTHENTICATION_FAILURE_TIME:
+        if (opValues == null)
+        {
+          if (policy.getLockoutFailureCount() == 0)
+          {
+            returnTypes.add(OP_GET_AUTHENTICATION_FAILURE_TIMES);
+            break;
+          }
+
+          pwpState.updateAuthFailureTimes();
+        }
+        else if (opValues.size() != 1)
+        {
+          operation.appendErrorMessage(
+              ERR_PWPSTATE_EXTOP_BAD_ADD_FAILURE_TIME_COUNT.get());
+          operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+          return false;
+        }
+        else
+        {
+          try
+          {
+            ByteString valueString =
+                ByteString.valueOf(opValues.get(0));
+            long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
+                valueString);
+            List<Long> authFailureTimes = pwpState.getAuthFailureTimes();
+            ArrayList<Long> newFailureTimes =
+                new ArrayList<Long>(authFailureTimes.size()+1);
+            newFailureTimes.addAll(authFailureTimes);
+            newFailureTimes.add(time);
+            pwpState.setAuthFailureTimes(newFailureTimes);
+          }
+          catch (DirectoryException de)
+          {
+            Message message = ERR_PWPSTATE_EXTOP_BAD_AUTH_FAILURE_TIME.get(
+                opValues.get(0),
+                de.getMessageObject());
+            operation.setResultCode(de.getResultCode());
+            operation.appendErrorMessage(message);
+            return false;
+          }
+        }
+
+        returnTypes.add(OP_GET_AUTHENTICATION_FAILURE_TIMES);
+        break;
+
+      case OP_SET_AUTHENTICATION_FAILURE_TIMES:
+        if (opValues == null)
+        {
+          ArrayList<Long> valueList = new ArrayList<Long>(1);
+          valueList.add(pwpState.getCurrentTime());
+          pwpState.setAuthFailureTimes(valueList);
+        }
+        else
+        {
+          ArrayList<Long> valueList = new ArrayList<Long>(opValues.size());
+          for (String s : opValues)
+          {
+            try
+            {
+              valueList.add(
+                  GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
+                      ByteString.valueOf(s)));
+            }
+            catch (DirectoryException de)
+            {
+              Message message =
+                  ERR_PWPSTATE_EXTOP_BAD_AUTH_FAILURE_TIME.get(
+                      s,
+                      de.getMessageObject());
+              operation.setResultCode(de.getResultCode());
+              operation.appendErrorMessage(message);
+              return false;
+            }
+          }
+          pwpState.setAuthFailureTimes(valueList);
+        }
+
+        returnTypes.add(OP_GET_AUTHENTICATION_FAILURE_TIMES);
+        break;
+
+      case OP_CLEAR_AUTHENTICATION_FAILURE_TIMES:
+        pwpState.clearFailureLockout();
+        returnTypes.add(OP_GET_AUTHENTICATION_FAILURE_TIMES);
+        break;
+
+      case OP_GET_SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK:
+        returnTypes.add(OP_GET_SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK);
+        break;
+
+      case OP_GET_REMAINING_AUTHENTICATION_FAILURE_COUNT:
+        returnTypes.add(OP_GET_REMAINING_AUTHENTICATION_FAILURE_COUNT);
+        break;
+
+      case OP_GET_LAST_LOGIN_TIME:
+        returnTypes.add(OP_GET_LAST_LOGIN_TIME);
+        break;
+
+      case OP_SET_LAST_LOGIN_TIME:
+        if (opValues == null)
+        {
+          pwpState.setLastLoginTime();
+        }
+        else if (opValues.size() != 1)
+        {
+          operation.appendErrorMessage(
+              ERR_PWPSTATE_EXTOP_BAD_LAST_LOGIN_TIME_COUNT.get());
+          operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+          return false;
+        }
+        else
+        {
+          try
+          {
+            ByteString valueString =
+                ByteString.valueOf(opValues.get(0));
+            long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
+                valueString);
+            pwpState.setLastLoginTime(time);
+          }
+          catch (DirectoryException de)
+          {
+            operation.appendErrorMessage(
+                ERR_PWPSTATE_EXTOP_BAD_LAST_LOGIN_TIME.get(
+                    opValues.get(0),
+                    de.getMessageObject()));
+            operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+            return false;
+          }
+        }
+
+        returnTypes.add(OP_GET_LAST_LOGIN_TIME);
+        break;
+
+      case OP_CLEAR_LAST_LOGIN_TIME:
+        pwpState.clearLastLoginTime();
+        returnTypes.add(OP_GET_LAST_LOGIN_TIME);
+        break;
+
+      case OP_GET_SECONDS_UNTIL_IDLE_LOCKOUT:
+        returnTypes.add(OP_GET_SECONDS_UNTIL_IDLE_LOCKOUT);
+        break;
+
+      case OP_GET_PASSWORD_RESET_STATE:
+        returnTypes.add(OP_GET_PASSWORD_RESET_STATE);
+        break;
+
+      case OP_SET_PASSWORD_RESET_STATE:
+        if (opValues == null)
+        {
+          operation.appendErrorMessage(
+              ERR_PWPSTATE_EXTOP_NO_RESET_STATE_VALUE.get());
+          operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+          return false;
+        }
+        else if (opValues.size() != 1)
+        {
+          operation.appendErrorMessage(
+              ERR_PWPSTATE_EXTOP_BAD_RESET_STATE_VALUE_COUNT.get());
+          operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+          return false;
+        }
+        else
+        {
+          String value = opValues.get(0);
+          if (value.equalsIgnoreCase("true"))
+          {
+            pwpState.setMustChangePassword(true);
+          }
+          else if (value.equalsIgnoreCase("false"))
+          {
+            pwpState.setMustChangePassword(false);
+          }
+          else
+          {
+            operation.appendErrorMessage(
+                ERR_PWPSTATE_EXTOP_BAD_RESET_STATE_VALUE.get());
+            operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+            return false;
+          }
+        }
+
+        returnTypes.add(OP_GET_PASSWORD_RESET_STATE);
+        break;
+
+      case OP_CLEAR_PASSWORD_RESET_STATE:
+        pwpState.setMustChangePassword(false);
+        returnTypes.add(OP_GET_PASSWORD_RESET_STATE);
+        break;
+
+      case OP_GET_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT:
+        returnTypes.add(OP_GET_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT);
+        break;
+
+      case OP_GET_GRACE_LOGIN_USE_TIMES:
+        returnTypes.add(OP_GET_GRACE_LOGIN_USE_TIMES);
+        break;
+
+      case OP_ADD_GRACE_LOGIN_USE_TIME:
+        if (opValues == null)
+        {
+          pwpState.updateGraceLoginTimes();
+        }
+        else if (opValues.size() != 1)
+        {
+          operation.appendErrorMessage(
+              ERR_PWPSTATE_EXTOP_BAD_ADD_GRACE_LOGIN_TIME_COUNT.get());
+          operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+          return false;
+        }
+        else
+        {
+          try
+          {
+            ByteString valueString =
+                ByteString.valueOf(opValues.get(0));
+            long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
+                valueString);
+            List<Long> authFailureTimes = pwpState.getGraceLoginTimes();
+            ArrayList<Long> newGraceTimes =
+                new ArrayList<Long>(authFailureTimes.size()+1);
+            newGraceTimes.addAll(authFailureTimes);
+            newGraceTimes.add(time);
+            pwpState.setGraceLoginTimes(newGraceTimes);
+          }
+          catch (DirectoryException de)
+          {
+            Message message = ERR_PWPSTATE_EXTOP_BAD_GRACE_LOGIN_TIME.get(
+                opValues.get(0),
+                de.getMessageObject());
+            operation.setResultCode(de.getResultCode());
+            operation.appendErrorMessage(message);
+            return false;
+          }
+        }
+
+        returnTypes.add(OP_GET_GRACE_LOGIN_USE_TIMES);
+        break;
+
+      case OP_SET_GRACE_LOGIN_USE_TIMES:
+        if (opValues == null)
+        {
+          ArrayList<Long> valueList = new ArrayList<Long>(1);
+          valueList.add(pwpState.getCurrentTime());
+          pwpState.setGraceLoginTimes(valueList);
+        }
+        else
+        {
+          ArrayList<Long> valueList = new ArrayList<Long>(opValues.size());
+          for (String s : opValues)
+          {
+            try
+            {
+              valueList.add(
+                  GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
+                      ByteString.valueOf(s)));
+            }
+            catch (DirectoryException de)
+            {
+              Message message = ERR_PWPSTATE_EXTOP_BAD_GRACE_LOGIN_TIME.get(
+                  s, de.getMessageObject());
+              operation.setResultCode(de.getResultCode());
+              operation.appendErrorMessage(message);
+              return false;
+            }
+          }
+          pwpState.setGraceLoginTimes(valueList);
+        }
+
+        returnTypes.add(OP_GET_GRACE_LOGIN_USE_TIMES);
+        break;
+
+      case OP_CLEAR_GRACE_LOGIN_USE_TIMES:
+        pwpState.clearGraceLoginTimes();
+        returnTypes.add(OP_GET_GRACE_LOGIN_USE_TIMES);
+        break;
+
+      case OP_GET_REMAINING_GRACE_LOGIN_COUNT:
+        returnTypes.add(OP_GET_REMAINING_GRACE_LOGIN_COUNT);
+        break;
+
+      case OP_GET_PASSWORD_CHANGED_BY_REQUIRED_TIME:
+        returnTypes.add(OP_GET_PASSWORD_CHANGED_BY_REQUIRED_TIME);
+        break;
+
+      case OP_SET_PASSWORD_CHANGED_BY_REQUIRED_TIME:
+        if (opValues == null)
+        {
+          pwpState.setRequiredChangeTime();
+        }
+        else if (opValues.size() != 1)
+        {
+          operation.appendErrorMessage(
+              ERR_PWPSTATE_EXTOP_BAD_REQUIRED_CHANGE_TIME_COUNT.get());
+          operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+          return false;
+        }
+        else
+        {
+          try
+          {
+            ByteString valueString =
+                ByteString.valueOf(opValues.get(0));
+            long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
+                valueString);
+            pwpState.setRequiredChangeTime(time);
+          }
+          catch (DirectoryException de)
+          {
+            operation.appendErrorMessage(
+                ERR_PWPSTATE_EXTOP_BAD_REQUIRED_CHANGE_TIME.get(
+                    opValues.get(0),
+                    de.getMessageObject()));
+            operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+            return false;
+          }
+        }
+
+        returnTypes.add(OP_GET_PASSWORD_CHANGED_BY_REQUIRED_TIME);
+        break;
+
+      case OP_CLEAR_PASSWORD_CHANGED_BY_REQUIRED_TIME:
+        pwpState.clearRequiredChangeTime();
+        returnTypes.add(OP_GET_PASSWORD_CHANGED_BY_REQUIRED_TIME);
+        break;
+
+      case OP_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME:
+        returnTypes.add(OP_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME);
+        break;
+
+      case OP_GET_PASSWORD_HISTORY:
+        returnTypes.add(OP_GET_PASSWORD_HISTORY);
+        break;
+
+      case OP_CLEAR_PASSWORD_HISTORY:
+        pwpState.clearPasswordHistory();
+        returnTypes.add(OP_GET_PASSWORD_HISTORY);
+        break;
+
+      default:
+
+        operation.appendErrorMessage(ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE.get(
+            String.valueOf(opType)));
+        operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+        return false;
     }
 
-    return new ASN1Sequence(elements);
-  }
-
-
-
-  /**
-   * Encodes the provided information in a form suitable for including in the
-   * response value.
-   *
-   * @param  opType  The operation type to use for the value.
-   * @param  values  The set of string values to include in the response.
-   *
-   * @return  The encoded ASN.1 element.
-   */
-  public static ASN1Element encode(int opType, String[] values)
-  {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1Enumerated(opType));
-
-    if ((values != null) && (values.length > 0))
-    {
-      ArrayList<ASN1Element> valueElements =
-           new ArrayList<ASN1Element>(values.length);
-      for (int i=0; i < values.length; i++)
-      {
-        valueElements.add(new ASN1OctetString(values[i]));
-      }
-      elements.add(new ASN1Sequence(valueElements));
-    }
-
-    return new ASN1Sequence(elements);
-  }
-
-
-
-  /**
-   * Encodes the provided information in a form suitable for including in the
-   * response value.
-   *
-   * @param  opType  The operation type to use for the value.
-   * @param  values  The set of timestamp values to include in the response.
-   *
-   * @return  The encoded ASN.1 element.
-   */
-  public static ASN1Element encode(int opType, List<Long> values)
-  {
-    ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
-    elements.add(new ASN1Enumerated(opType));
-
-    ArrayList<ASN1Element> valueElements =
-         new ArrayList<ASN1Element>(values.size());
-    for (long l : values)
-    {
-      valueElements.add(new ASN1OctetString(GeneralizedTimeSyntax.format(l)));
-    }
-    elements.add(new ASN1Sequence(valueElements));
-
-    return new ASN1Sequence(elements);
+    return true;
   }
 }
 

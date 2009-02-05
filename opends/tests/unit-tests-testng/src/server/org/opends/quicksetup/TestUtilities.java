@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup;
@@ -32,6 +32,7 @@ import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.FileManager;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.types.OperatingSystem;
+import org.opends.server.types.ByteStringBuilder;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -114,7 +115,15 @@ public class TestUtilities {
     
     Process p = pb.start();
     if (p.waitFor() != 0) {
-      throw new IllegalStateException("setup server failed");
+      ByteStringBuilder stdOut = new ByteStringBuilder();
+      ByteStringBuilder stdErr = new ByteStringBuilder();
+      while(stdOut.append(p.getInputStream(), 512) > 0);
+      while(stdErr.append(p.getErrorStream(), 512) > 0);
+      throw new IllegalStateException(
+          "setup server process failed:\n" +
+          "exit value: " + p.exitValue() + "\n" +
+          "stdout contents: " + stdOut.toString() + "\n" +
+          "stderr contents: " + stdErr.toString());
     }
   }
 

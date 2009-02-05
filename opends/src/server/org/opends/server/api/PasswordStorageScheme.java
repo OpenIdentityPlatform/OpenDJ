@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 import org.opends.messages.Message;
@@ -33,10 +33,7 @@ import java.util.List;
 
 import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
 import org.opends.server.config.ConfigException;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -151,7 +148,7 @@ public abstract class
    * @throws  DirectoryException  If a problem occurs while
    *                              processing.
    */
-  public abstract ByteString encodePassword(ByteString plaintext)
+  public abstract ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException;
 
 
@@ -170,7 +167,7 @@ public abstract class
    *                              processing.
    */
   public abstract ByteString encodePasswordWithScheme(
-                                  ByteString plaintext)
+                                  ByteSequence plaintext)
          throws DirectoryException;
 
 
@@ -190,8 +187,8 @@ public abstract class
    *          the provided stored password, or {@code false} if not.
    */
   public abstract boolean passwordMatches(
-                               ByteString plaintextPassword,
-                               ByteString storedPassword);
+                               ByteSequence plaintextPassword,
+                               ByteSequence storedPassword);
 
 
 
@@ -242,8 +239,8 @@ public abstract class
    *                              support the authentication password
    *                              syntax.
    */
-  public abstract ByteString encodeAuthPassword(ByteString plaintext)
-         throws DirectoryException;
+  public abstract ByteString encodeAuthPassword(
+      ByteSequence plaintext) throws DirectoryException;
 
 
 
@@ -268,7 +265,7 @@ public abstract class
    *          password syntax.
    */
   public abstract boolean authPasswordMatches(
-                               ByteString plaintextPassword,
+                               ByteSequence plaintextPassword,
                                String authInfo, String authValue);
 
 
@@ -301,7 +298,7 @@ public abstract class
    *                              stored password.
    */
   public abstract ByteString getPlaintextValue(
-                                  ByteString storedPassword)
+                                  ByteSequence storedPassword)
          throws DirectoryException;
 
 

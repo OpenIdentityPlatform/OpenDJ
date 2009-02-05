@@ -34,6 +34,7 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.util.ServerConstants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,19 +53,10 @@ import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.RawModification;
-import org.opends.server.types.ResultCode;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -262,8 +254,8 @@ public class TaskUtils
                                    e.getMessageObject(), e);
     }
 
-    ArrayList<ASN1OctetString> valueList = new ArrayList<ASN1OctetString>(1);
-    valueList.add(new ASN1OctetString("TRUE"));
+    ArrayList<ByteString> valueList = new ArrayList<ByteString>(1);
+    valueList.add(ServerConstants.TRUE_VALUE);
     LDAPAttribute a = new LDAPAttribute(ATTR_BACKEND_ENABLED, valueList);
 
     LDAPModification m = new LDAPModification(ModificationType.REPLACE, a);
@@ -274,8 +266,8 @@ public class TaskUtils
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     String backendDNString = configEntryDN.toString();
-    ASN1OctetString rawEntryDN =
-         new ASN1OctetString(backendDNString);
+    ByteString rawEntryDN =
+        ByteString.valueOf(backendDNString);
     ModifyOperation internalModify = conn.processModify(rawEntryDN, modList);
 
     ResultCode resultCode = internalModify.getResultCode();
@@ -312,8 +304,8 @@ public class TaskUtils
                                    e.getMessageObject(), e);
     }
 
-    ArrayList<ASN1OctetString> valueList = new ArrayList<ASN1OctetString>(1);
-    valueList.add(new ASN1OctetString("FALSE"));
+    ArrayList<ByteString> valueList = new ArrayList<ByteString>(1);
+    valueList.add(ServerConstants.FALSE_VALUE);
     LDAPAttribute a = new LDAPAttribute(ATTR_BACKEND_ENABLED, valueList);
 
     LDAPModification m = new LDAPModification(ModificationType.REPLACE, a);
@@ -324,8 +316,8 @@ public class TaskUtils
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     String backendDNString = configEntryDN.toString();
-    ASN1OctetString rawEntryDN =
-         new ASN1OctetString(backendDNString);
+    ByteString rawEntryDN =
+        ByteString.valueOf(backendDNString);
     ModifyOperation internalModify = conn.processModify(rawEntryDN, modList);
 
     ResultCode resultCode = internalModify.getResultCode();
@@ -362,7 +354,7 @@ public class TaskUtils
     {
       for (AttributeValue v  : a)
       {
-        String valueString = toLowerCase(v.getStringValue());
+        String valueString = toLowerCase(v.getValue().toString());
         if (valueString.equals("true") || valueString.equals("yes") ||
             valueString.equals("on") || valueString.equals("1"))
         {
@@ -400,7 +392,7 @@ public class TaskUtils
       {
         for (AttributeValue value : attr)
         {
-          valueStrings.add(value.getStringValue());
+          valueStrings.add(value.getValue().toString());
         }
       }
     }
@@ -427,7 +419,7 @@ public class TaskUtils
     Attribute attr = attrList.get(0);
     if (!attr.isEmpty())
     {
-      valueString = attr.iterator().next().getStringValue();
+      valueString = attr.iterator().next().getValue().toString();
     }
     return valueString;
   }
@@ -453,7 +445,7 @@ public class TaskUtils
       if (!attr.isEmpty())
       {
         String valueString = attr.iterator().next()
-            .getStringValue();
+            .getValue().toString();
         try
         {
           return Integer.parseInt(valueString);

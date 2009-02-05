@@ -28,11 +28,8 @@ package org.opends.server.core;
 
 
 import java.util.List;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Modification;
-import org.opends.server.types.RawModification;
+
+import org.opends.server.types.*;
 
 
 /**

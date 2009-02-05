@@ -42,7 +42,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
@@ -164,7 +163,7 @@ public class PlainSASLMechanismHandler
       return;
     }
 
-    String credString = saslCredentials.stringValue();
+    String credString = saslCredentials.toString();
     int    length     = credString.length();
     int    nullPos1   = credString.indexOf('\u0000');
     if (nullPos1 < 0)
@@ -511,7 +510,7 @@ public class PlainSASLMechanismHandler
     {
       PasswordPolicyState pwPolicyState =
            new PasswordPolicyState(userEntry, false);
-      if (! pwPolicyState.passwordMatches(new ASN1OctetString(password)))
+      if (! pwPolicyState.passwordMatches(ByteString.valueOf(password)))
       {
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 

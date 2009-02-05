@@ -46,15 +46,9 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
 
@@ -706,7 +700,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_CRAM_MD5,
-                              new ASN1OctetString("invalid"));
+                              ByteString.valueOf("invalid"));
     assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -731,7 +725,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
 
     bindOperation =
          conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_CRAM_MD5,
-                              new ASN1OctetString("malformed"));
+                              ByteString.valueOf("malformed"));
     assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -754,8 +748,8 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     assertEquals(bindOperation.getResultCode(),
                  ResultCode.SASL_BIND_IN_PROGRESS);
 
-    ASN1OctetString creds =
-         new ASN1OctetString("dn:cn=Directory Manager malformeddigest");
+    ByteString creds =
+         ByteString.valueOf("dn:cn=Directory Manager malformeddigest");
     bindOperation =
          conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_CRAM_MD5, creds);
     assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
@@ -781,8 +775,8 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     assertEquals(bindOperation.getResultCode(),
                  ResultCode.SASL_BIND_IN_PROGRESS);
 
-    ASN1OctetString creds =
-         new ASN1OctetString("dn:cn=Directory Manager " +
+    ByteString creds =
+         ByteString.valueOf("dn:cn=Directory Manager " +
                           "malformedcredswiththerightlength");
     bindOperation =
          conn.processSASLBind(DN.nullDN(), SASL_MECHANISM_CRAM_MD5, creds);

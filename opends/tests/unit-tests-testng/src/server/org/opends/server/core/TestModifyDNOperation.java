@@ -34,7 +34,6 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.*;
@@ -47,6 +46,7 @@ import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.tools.LDAPModify;
+import org.opends.server.tools.LDAPWriter;
 import org.opends.messages.Message;
 
 import java.util.ArrayList;
@@ -261,9 +261,9 @@ public class TestModifyDNOperation extends OperationTestCase
     ModifyDNOperationBasis[] modifies = new ModifyDNOperationBasis[]
     {
       new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                            noControls, new ASN1OctetString("cn=test,ou=test"),
-                            new ASN1OctetString("cn=test2"), true,
-                            new ASN1OctetString("dc=example,dc=com")),
+                            noControls, ByteString.valueOf("cn=test,ou=test"),
+                            ByteString.valueOf("cn=test2"), true,
+                            ByteString.valueOf("dc=example,dc=com")),
       new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                             noControls, DN.decode("cn=test,ou=test"),
                             RDN.decode("cn=test2"), true,
@@ -285,8 +285,8 @@ public class TestModifyDNOperation extends OperationTestCase
     ModifyDNOperationBasis modifyDNOperation =
          new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
-                               new ASN1OctetString("uid=user.0,ou=People,dc=example,dc=com"),
-                               new ASN1OctetString("uid=user.test0"), false,
+                               ByteString.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
+                               ByteString.valueOf("uid=user.test0"), false,
                                null);
 
     modifyDNOperation.run();
@@ -300,8 +300,8 @@ public class TestModifyDNOperation extends OperationTestCase
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.test0")));
     }
 
     examineCompletedOperation(modifyDNOperation);
@@ -310,8 +310,8 @@ public class TestModifyDNOperation extends OperationTestCase
     modifyDNOperation =
          new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
-                               new ASN1OctetString("uid=user.test0,ou=People,dc=example,dc=com"),
-                               new ASN1OctetString("uid=user.0"), true,
+                               ByteString.valueOf("uid=user.test0,ou=People,dc=example,dc=com"),
+                               ByteString.valueOf("uid=user.0"), true,
                                null);
 
     modifyDNOperation.run();
@@ -325,8 +325,8 @@ public class TestModifyDNOperation extends OperationTestCase
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
-      assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.0")));
+      assertFalse(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.test0")));
     }
 
     examineCompletedOperation(modifyDNOperation);
@@ -359,8 +359,8 @@ public class TestModifyDNOperation extends OperationTestCase
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.test0")));
     }
 
     examineCompletedOperation(modifyDNOperation);
@@ -384,8 +384,8 @@ public class TestModifyDNOperation extends OperationTestCase
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
-      assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.0")));
+      assertFalse(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.test0")));
     }
 
     examineCompletedOperation(modifyDNOperation);
@@ -403,8 +403,8 @@ public class TestModifyDNOperation extends OperationTestCase
     ModifyDNOperationBasis modifyDNOperation =
          new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
-                               new ASN1OctetString("uid=user.0,ou=People,dc=example,dc=com"),
-                               new ASN1OctetString("uid=user.test0"), true,
+                               ByteString.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
+                               ByteString.valueOf("uid=user.test0"), true,
                                null);
 
     modifyDNOperation.run();
@@ -418,8 +418,8 @@ public class TestModifyDNOperation extends OperationTestCase
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
+      assertFalse(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.test0")));
     }
 
     examineCompletedOperation(modifyDNOperation);
@@ -428,8 +428,8 @@ public class TestModifyDNOperation extends OperationTestCase
     modifyDNOperation =
          new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
-                               new ASN1OctetString("uid=user.test0,ou=People,dc=example,dc=com"),
-                               new ASN1OctetString("uid=user.0"), true,
+                               ByteString.valueOf("uid=user.test0,ou=People,dc=example,dc=com"),
+                               ByteString.valueOf("uid=user.0"), true,
                                null);
 
     modifyDNOperation.run();
@@ -443,8 +443,8 @@ public class TestModifyDNOperation extends OperationTestCase
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
-      assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.0")));
+      assertFalse(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.test0")));
     }
 
     examineCompletedOperation(modifyDNOperation);
@@ -483,8 +483,8 @@ public class TestModifyDNOperation extends OperationTestCase
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
+      assertFalse(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.test0")));
     }
 
     examineCompletedOperation(modifyDNOperation);
@@ -508,8 +508,8 @@ public class TestModifyDNOperation extends OperationTestCase
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
-      assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.0")));
+      assertFalse(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.test0")));
     }
 
     examineCompletedOperation(modifyDNOperation);
@@ -527,9 +527,9 @@ public class TestModifyDNOperation extends OperationTestCase
     ModifyDNOperationBasis modifyDNOperation =
          new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
-                               new ASN1OctetString("uid=user.0,ou=People,dc=example,dc=com"),
-                               new ASN1OctetString("uid=user.test0"), true,
-                               new ASN1OctetString("dc=example,dc=com"));
+                               ByteString.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
+                               ByteString.valueOf("uid=user.test0"), true,
+                               ByteString.valueOf("dc=example,dc=com"));
 
     modifyDNOperation.run();
     assertEquals(modifyDNOperation.getResultCode(),
@@ -542,8 +542,8 @@ public class TestModifyDNOperation extends OperationTestCase
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
+      assertFalse(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.test0")));
     }
 
     examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
@@ -552,9 +552,9 @@ public class TestModifyDNOperation extends OperationTestCase
     modifyDNOperation =
          new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
-                               new ASN1OctetString("uid=user.test0,dc=example,dc=com"),
-                               new ASN1OctetString("uid=user.0"), true,
-                               new ASN1OctetString("ou=People,dc=example,dc=com"));
+                               ByteString.valueOf("uid=user.test0,dc=example,dc=com"),
+                               ByteString.valueOf("uid=user.0"), true,
+                               ByteString.valueOf("ou=People,dc=example,dc=com"));
 
     modifyDNOperation.run();
     assertEquals(modifyDNOperation.getResultCode(),
@@ -567,8 +567,8 @@ public class TestModifyDNOperation extends OperationTestCase
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
-      assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.0")));
+      assertFalse(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.test0")));
     }
 
     examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
@@ -601,8 +601,8 @@ public class TestModifyDNOperation extends OperationTestCase
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
+      assertFalse(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.test0")));
     }
 
     examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
@@ -626,8 +626,8 @@ public class TestModifyDNOperation extends OperationTestCase
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
-      assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.0")));
+      assertFalse(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.test0")));
     }
 
     examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
@@ -661,8 +661,8 @@ public class TestModifyDNOperation extends OperationTestCase
 
     for(Attribute attribute : newEntry.getAttribute("cn"))
     {
-      assertTrue(attribute.contains(new AttributeValue(attribute.getAttributeType(), "Aaccf Amar Test")));
-      assertTrue(attribute.contains(new AttributeValue(attribute.getAttributeType(), "Aaccf Amar")));
+      assertTrue(attribute.contains(AttributeValues.create(attribute.getAttributeType(), "Aaccf Amar Test")));
+      assertTrue(attribute.contains(AttributeValues.create(attribute.getAttributeType(), "Aaccf Amar")));
     }
 
     examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
@@ -685,12 +685,12 @@ public class TestModifyDNOperation extends OperationTestCase
     assertNull(DirectoryServer.getEntry(DN.decode("cn=Aaccf Amar Test,dc=example,dc=com")));
     for(Attribute attribute : newOldEntry.getAttribute("cn"))
     {
-      assertTrue(attribute.contains(new AttributeValue(attribute.getAttributeType(), "Aaccf Amar Test")));
-      assertTrue(attribute.contains(new AttributeValue(attribute.getAttributeType(), "Aaccf Amar")));
+      assertTrue(attribute.contains(AttributeValues.create(attribute.getAttributeType(), "Aaccf Amar Test")));
+      assertTrue(attribute.contains(AttributeValues.create(attribute.getAttributeType(), "Aaccf Amar")));
     }
     for(Attribute attribute : newOldEntry.getAttribute("uid"))
     {
-      assertTrue(attribute.contains(new AttributeValue(attribute.getAttributeType(), "user.0")));
+      assertTrue(attribute.contains(AttributeValues.create(attribute.getAttributeType(), "user.0")));
     }
     examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
   }
@@ -776,9 +776,9 @@ public class TestModifyDNOperation extends OperationTestCase
     ModifyDNOperationBasis modifyDNOperation =
          new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
-                               new ASN1OctetString("invalid DN"),
-                               new ASN1OctetString("uid=user.test0"), true,
-                               new ASN1OctetString("dc=example,dc=com"));
+                               ByteString.valueOf("invalid DN"),
+                               ByteString.valueOf("uid=user.test0"), true,
+                               ByteString.valueOf("dc=example,dc=com"));
 
     modifyDNOperation.run();
     assertEquals(modifyDNOperation.getResultCode(),
@@ -799,9 +799,9 @@ public class TestModifyDNOperation extends OperationTestCase
     ModifyDNOperationBasis modifyDNOperation =
          new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
-                               new ASN1OctetString("uid=user.0,ou=People,dc=example,dc=com"),
-                               new ASN1OctetString("invalid RDN"), true,
-                               new ASN1OctetString("dc=example,dc=com"));
+                               ByteString.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
+                               ByteString.valueOf("invalid RDN"), true,
+                               ByteString.valueOf("dc=example,dc=com"));
 
     modifyDNOperation.run();
     assertEquals(modifyDNOperation.getResultCode(),
@@ -822,9 +822,9 @@ public class TestModifyDNOperation extends OperationTestCase
     ModifyDNOperationBasis modifyDNOperation =
          new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
-                               new ASN1OctetString("uid=user.0,ou=People,dc=example,dc=com"),
-                               new ASN1OctetString("uid=user.test0"), true,
-                               new ASN1OctetString("invalid superior"));
+                               ByteString.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
+                               ByteString.valueOf("uid=user.test0"), true,
+                               ByteString.valueOf("invalid superior"));
 
     modifyDNOperation.run();
     assertEquals(modifyDNOperation.getResultCode(),
@@ -860,7 +860,7 @@ public class TestModifyDNOperation extends OperationTestCase
   public void testRawProxyAuthV1Modify() throws Exception
   {
     ProxiedAuthV1Control authV1Control = new ProxiedAuthV1Control(
-         new ASN1OctetString("cn=Directory Manager,cn=Root DNs,cn=config"));
+         ByteString.valueOf("cn=Directory Manager,cn=Root DNs,cn=config"));
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV1Control);
     InvocationCounterPlugin.resetAllCounters();
@@ -868,8 +868,8 @@ public class TestModifyDNOperation extends OperationTestCase
     ModifyDNOperationBasis modifyDNOperation =
          new ModifyDNOperationBasis(proxyUserConn, proxyUserConn.nextOperationID(),
                                proxyUserConn.nextMessageID(), controls,
-                               new ASN1OctetString("uid=user.0,ou=People,dc=example,dc=com"),
-                               new ASN1OctetString("uid=user.test0"), false,
+                               ByteString.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
+                               ByteString.valueOf("uid=user.test0"), false,
                                null);
 
     modifyDNOperation.run();
@@ -883,8 +883,8 @@ public class TestModifyDNOperation extends OperationTestCase
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.test0")));
     }
 
     examineCompletedOperation(modifyDNOperation);
@@ -893,8 +893,8 @@ public class TestModifyDNOperation extends OperationTestCase
     modifyDNOperation =
          new ModifyDNOperationBasis(proxyUserConn, proxyUserConn.nextOperationID(),
                                proxyUserConn.nextMessageID(), controls,
-                               new ASN1OctetString("uid=user.test0,ou=People,dc=example,dc=com"),
-                               new ASN1OctetString("uid=user.0"), true,
+                               ByteString.valueOf("uid=user.test0,ou=People,dc=example,dc=com"),
+                               ByteString.valueOf("uid=user.0"), true,
                                null);
 
     modifyDNOperation.run();
@@ -908,8 +908,8 @@ public class TestModifyDNOperation extends OperationTestCase
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
-      assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.0")));
+      assertFalse(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.test0")));
     }
 
     examineCompletedOperation(modifyDNOperation);
@@ -918,7 +918,7 @@ public class TestModifyDNOperation extends OperationTestCase
   @Test
   public void testProcessedProxyAuthV1Modify() throws Exception
   {
-    ProxiedAuthV1Control authV1Control = new ProxiedAuthV1Control(new ASN1OctetString(
+    ProxiedAuthV1Control authV1Control = new ProxiedAuthV1Control(ByteString.valueOf(
       "cn=Directory Manager,cn=Root DNs,cn=config"));
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV1Control);
@@ -942,8 +942,8 @@ public class TestModifyDNOperation extends OperationTestCase
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.test0")));
     }
 
     examineCompletedOperation(modifyDNOperation);
@@ -968,8 +968,8 @@ public class TestModifyDNOperation extends OperationTestCase
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
-      assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.0")));
+      assertFalse(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.test0")));
     }
 
     examineCompletedOperation(modifyDNOperation);
@@ -979,7 +979,7 @@ public class TestModifyDNOperation extends OperationTestCase
   public void testProcessedProxyAuthV1DeniedModify() throws Exception
   {
     ProxiedAuthV1Control authV1Control =
-         new ProxiedAuthV1Control(new ASN1OctetString("cn=nonexistent,o=test"));
+         new ProxiedAuthV1Control(ByteString.valueOf("cn=nonexistent,o=test"));
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV1Control);
     InvocationCounterPlugin.resetAllCounters();
@@ -1003,7 +1003,7 @@ public class TestModifyDNOperation extends OperationTestCase
   public void testProcessedProxyAuthV2Modify() throws Exception
   {
     ProxiedAuthV2Control authV2Control =
-         new ProxiedAuthV2Control(new ASN1OctetString(
+         new ProxiedAuthV2Control(ByteString.valueOf(
               "dn:cn=Directory Manager,cn=Root DNs,cn=config"));
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV2Control);
@@ -1027,8 +1027,8 @@ public class TestModifyDNOperation extends OperationTestCase
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.test0")));
     }
 
     examineCompletedOperation(modifyDNOperation);
@@ -1052,8 +1052,8 @@ public class TestModifyDNOperation extends OperationTestCase
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertTrue(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.0")));
-      assertFalse(newEntry.hasValue(attribute, null, new AttributeValue(attribute, "user.test0")));
+      assertTrue(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.0")));
+      assertFalse(newEntry.hasValue(attribute, null, AttributeValues.create(attribute, "user.test0")));
     }
 
     examineCompletedOperation(modifyDNOperation);
@@ -1063,7 +1063,7 @@ public class TestModifyDNOperation extends OperationTestCase
   public void testProcessedProxyAuthV2DeniedModify() throws Exception
   {
     ProxiedAuthV2Control authV2Control = new ProxiedAuthV2Control(
-         new ASN1OctetString("dn:cn=nonexistent,o=test"));
+         ByteString.valueOf("dn:cn=nonexistent,o=test"));
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV2Control);
     InvocationCounterPlugin.resetAllCounters();
@@ -1087,8 +1087,8 @@ public class TestModifyDNOperation extends OperationTestCase
   public void testProcessedProxyAuthV2CriticalityModify() throws Exception
   {
     Control authV2Control =
-         new Control(ServerConstants.OID_PROXIED_AUTH_V2, false,
-                     new ASN1OctetString("dn:cn=nonexistent,o=test"));
+         new LDAPControl(ServerConstants.OID_PROXIED_AUTH_V2, false,
+                     ByteString.valueOf("dn:cn=nonexistent,o=test"));
 
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV2Control);
@@ -1113,8 +1113,8 @@ public class TestModifyDNOperation extends OperationTestCase
   public void testProcessedUnsupportedControlModify() throws Exception
   {
     LDAPFilter ldapFilter = LDAPFilter.decode("(preferredlanguage=ja)");
-    LDAPAssertionRequestControl assertControl =
-         new LDAPAssertionRequestControl("1.1.1.1.1.1", true, ldapFilter);
+    LDAPControl assertControl =
+         new LDAPControl("1.1.1.1.1.1", true);
     List<Control> controls = new ArrayList<Control>();
     controls.add(assertControl);
     InvocationCounterPlugin.resetAllCounters();
@@ -1152,17 +1152,17 @@ public class TestModifyDNOperation extends OperationTestCase
 
     InvocationCounterPlugin.resetAllCounters();
 
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
-    r.setIOTimeout(6000);
+    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    s.setSoTimeout(6000);
     BindRequestProtocolOp bindRequest =
               new BindRequestProtocolOp(
-                      new ASN1OctetString("cn=Directory Manager"),
-                      3, new ASN1OctetString("password"));
+                      ByteString.valueOf("cn=Directory Manager"),
+                      3, ByteString.valueOf("password"));
     LDAPMessage bindMessage = new LDAPMessage(1, bindRequest);
-    w.writeElement(bindMessage.encode());
+    w.writeMessage(bindMessage);
 
-    bindMessage = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    bindMessage = r.readMessage();
     BindResponseProtocolOp bindResponse = bindMessage.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
@@ -1170,13 +1170,13 @@ public class TestModifyDNOperation extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
     ModifyDNRequestProtocolOp modifyRequest =
         new ModifyDNRequestProtocolOp(
-            new ASN1OctetString(entry.getDN().toString()),
-            new ASN1OctetString("uid=user.test0"), false);
+            ByteString.valueOf(entry.getDN().toString()),
+            ByteString.valueOf("uid=user.test0"), false);
     LDAPMessage message = new LDAPMessage(2, modifyRequest,
-                                          ShortCircuitPlugin.createShortCircuitLDAPControlList(80, "PreOperation"));
-    w.writeElement(message.encode());
+                                          ShortCircuitPlugin.createShortCircuitControlList(80, "PreOperation"));
+    w.writeMessage(message);
 
-    message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+    message = r.readMessage();
     ModifyDNResponseProtocolOp modifyResponse =
         message.getModifyDNResponseProtocolOp();
 
@@ -1200,18 +1200,18 @@ public class TestModifyDNOperation extends OperationTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     try
     {
-      ASN1Reader r = new ASN1Reader(s);
-      ASN1Writer w = new ASN1Writer(s);
-      r.setIOTimeout(15000);
+      org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+      LDAPWriter w = new LDAPWriter(s);
+      s.setSoTimeout(15000);
 
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                new ASN1OctetString("cn=Directory Manager"),
-                3, new ASN1OctetString("password"));
+                ByteString.valueOf("cn=Directory Manager"),
+                3, ByteString.valueOf("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeElement(message.encode());
+      w.writeMessage(message);
 
-      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      message = r.readMessage();
       BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
       assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
@@ -1234,12 +1234,12 @@ public class TestModifyDNOperation extends OperationTestCase
 
         ModifyDNRequestProtocolOp modifyRequest =
           new ModifyDNRequestProtocolOp(
-               new ASN1OctetString(entry.getDN().toString()),
-               new ASN1OctetString("uid=user.test0"), false);
+               ByteString.valueOf(entry.getDN().toString()),
+               ByteString.valueOf("uid=user.test0"), false);
         message = new LDAPMessage(2, modifyRequest);
-        w.writeElement(message.encode());
+        w.writeMessage(message);
 
-        message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+        message = r.readMessage();
         ModifyDNResponseProtocolOp modifyResponse =
              message.getModifyDNResponseProtocolOp();
 

@@ -27,15 +27,11 @@
 package org.opends.server.backends.jeb;
 
 import org.opends.server.types.*;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Element;
-
-import java.util.LinkedList;
 
 import com.sleepycat.je.DatabaseException;
 
 /**
- * This class representsa  partial sorted set of sorted entries in a VLV
+ * This class represents a partial sorted set of sorted entries in a VLV
  * index.
  */
 public class SortValuesSet
@@ -469,35 +465,23 @@ public class SortValuesSet
   private byte[] attributeValuesToDatabase(AttributeValue[] values)
       throws DirectoryException
   {
-    int totalValueBytes = 0;
-    LinkedList<byte[]> valueBytes = new LinkedList<byte[]>();
+    ByteStringBuilder builder = new ByteStringBuilder();
+
     for (AttributeValue v : values)
     {
-      byte[] vBytes;
       if(v == null)
       {
-        vBytes = new byte[0];
+        builder.appendBERLength(0);
       }
       else
       {
-        vBytes = v.getNormalizedValueBytes();
+        builder.appendBERLength(v.getNormalizedValue().length());
+        builder.append(v.getNormalizedValue());
       }
-      byte[] vLength = ASN1Element.encodeLength(vBytes.length);
-      valueBytes.add(vLength);
-      valueBytes.add(vBytes);
-      totalValueBytes += vLength.length + vBytes.length;
     }
+    builder.trimToSize();
 
-    byte[] attrBytes = new byte[totalValueBytes];
-
-    int pos = 0;
-    for (byte[] b : valueBytes)
-    {
-      System.arraycopy(b, 0, attrBytes, pos, b.length);
-      pos += b.length;
-    }
-
-    return attrBytes;
+    return builder.getBackingArray();
   }
 
   /**
@@ -570,8 +554,9 @@ public class SortValuesSet
          i < entryIDs.length * numValues;
          i++, j++)
     {
-      values[j] = new AttributeValue(sortKeys[j].getAttributeType(),
-                                     new ASN1OctetString(getValue(i)));
+      values[j] = AttributeValues.create(
+          sortKeys[j].getAttributeType(),
+          getValue(i));
     }
 
     return new SortValues(id, values, vlvIndex.sortOrder);
@@ -603,12 +588,12 @@ public class SortValuesSet
          i < (index + 1) * numValues;
          i++, j++)
     {
-      byte[] value = getValue(i);
+      ByteString value = getValue(i);
 
       if(value != null)
       {
-        values[j] = new AttributeValue(sortKeys[j].getAttributeType(),
-                                       new ASN1OctetString(value));
+        values[j] = AttributeValues.create(
+            sortKeys[j].getAttributeType(), value);
       }
     }
 
@@ -653,7 +638,7 @@ public class SortValuesSet
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public byte[] getValue(int index)
+  public ByteString getValue(int index)
       throws DatabaseException, DirectoryException
   {
     if(valuesBytesOffsets == null)
@@ -689,7 +674,7 @@ public class SortValuesSet
         {
           byte[] valueBytes = new byte[valueLength];
           System.arraycopy(valuesBytes, vBytesPos, valueBytes, 0, valueLength);
-          return valueBytes;
+          return ByteString.wrap(valueBytes);
         }
       }
       else
@@ -697,6 +682,6 @@ public class SortValuesSet
         vBytesPos += valueLength;
       }
     }
-    return new byte[0];
+    return ByteString.wrap(new byte[0]);
   }
 }

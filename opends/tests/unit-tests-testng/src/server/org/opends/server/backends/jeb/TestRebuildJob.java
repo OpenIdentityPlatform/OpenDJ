@@ -339,7 +339,7 @@ public class TestRebuildJob extends JebTestCase
       attrType = DirectoryServer.getDefaultAttributeType(type);
     List<Attribute> attrList = e.getAttribute(attrType, null);
     AttributeValue v = attrList.get(0).iterator().next();
-    long retVal = Long.parseLong(v.getStringValue());
+    long retVal = Long.parseLong(v.getValue().toString());
     return (retVal);
   }
 }

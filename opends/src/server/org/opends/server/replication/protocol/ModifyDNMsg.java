@@ -29,18 +29,18 @@ package org.opends.server.replication.protocol;
 import static org.opends.server.replication.protocol.OperationContext.*;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.core.ModifyDNOperationBasis;
-import org.opends.server.protocols.asn1.ASN1Element;
+import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.types.AbstractOperation;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPException;
@@ -66,7 +66,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
   public ModifyDNMsg(PostOperationModifyDNOperation operation)
   {
     super((OperationContext) operation.getAttachment(SYNCHROCONTEXT),
-        operation.getRawEntryDN().stringValue());
+        operation.getRawEntryDN().toString());
 
     encodedMods = modsToByte(operation.getModifications());
 
@@ -76,10 +76,10 @@ public class ModifyDNMsg extends ModifyCommonMsg
 
     deleteOldRdn = operation.deleteOldRDN();
     if (operation.getRawNewSuperior() != null)
-      newSuperior = operation.getRawNewSuperior().stringValue();
+      newSuperior = operation.getRawNewSuperior().toString();
     else
       newSuperior = null;
-    newRDN = operation.getRawNewRDN().stringValue();
+    newRDN = operation.getRawNewRDN().toString();
   }
 
   /**
@@ -219,16 +219,19 @@ public class ModifyDNMsg extends ModifyCommonMsg
     ModifyDNOperationBasis moddn =  new ModifyDNOperationBasis(connection,
                InternalClientConnection.nextOperationID(),
                InternalClientConnection.nextMessageID(), null,
-               new ASN1OctetString(newDn), new ASN1OctetString(newRDN),
+               ByteString.valueOf(newDn), ByteString.valueOf(newRDN),
                deleteOldRdn,
-               (newSuperior == null ? null : new ASN1OctetString(newSuperior)));
+               (newSuperior == null ? null : ByteString.valueOf(newSuperior)));
 
-    ArrayList<ASN1Element> mods = ASN1Element.decodeElements(encodedMods);
-    for (ASN1Element elem : mods)
-      moddn.addModification(LDAPModification.decode(elem).toModification());
+    ASN1Reader asn1Reader = ASN1.getReader(encodedMods);
+    while (asn1Reader.hasNextElement())
+    {
+      moddn.addModification(LDAPModification.decode(asn1Reader)
+          .toModification());
+    }
 
     ModifyDnContext ctx = new ModifyDnContext(getChangeNumber(), getUniqueId(),
-                                              newSuperiorId);
+        newSuperiorId);
     moddn.setAttachment(SYNCHROCONTEXT, ctx);
     return moddn;
   }

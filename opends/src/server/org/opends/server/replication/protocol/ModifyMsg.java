@@ -29,12 +29,13 @@ package org.opends.server.replication.protocol;
 import static org.opends.server.replication.protocol.OperationContext.*;
 
 import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.asn1.ASN1Exception;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.types.*;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.DN;
 import org.opends.server.types.LDAPException;
@@ -61,7 +62,7 @@ public class ModifyMsg extends ModifyCommonMsg
   public ModifyMsg(PostOperationModifyOperation op)
   {
     super((OperationContext) op.getAttachment(OperationContext.SYNCHROCONTEXT),
-          op.getRawEntryDN().stringValue());
+          op.getRawEntryDN().toString());
     encodedMods = modsToByte(op.getModifications());
   }
 
@@ -170,20 +171,18 @@ public class ModifyMsg extends ModifyCommonMsg
     if (newDn == null)
       newDn = getDn();
 
-    ArrayList<RawModification> ldapmods;
+    ArrayList<RawModification> ldapmods = new ArrayList<RawModification>();
 
-    ArrayList<ASN1Element> mods = null;
-
-    mods = ASN1Element.decodeElements(encodedMods);
-
-    ldapmods = new ArrayList<RawModification>(mods.size());
-    for (ASN1Element elem : mods)
-      ldapmods.add(LDAPModification.decode(elem));
+    ASN1Reader asn1Reader = ASN1.getReader(encodedMods);
+    while(asn1Reader.hasNextElement())
+    {
+      ldapmods.add(LDAPModification.decode(asn1Reader));
+    }
 
     ModifyOperationBasis mod = new ModifyOperationBasis(connection,
                                InternalClientConnection.nextOperationID(),
                                InternalClientConnection.nextMessageID(), null,
-                               new ASN1OctetString(newDn), ldapmods);
+        ByteString.valueOf(newDn), ldapmods);
     ModifyContext ctx = new ModifyContext(getChangeNumber(), getUniqueId());
     mod.setAttachment(SYNCHROCONTEXT, ctx);
     return mod;

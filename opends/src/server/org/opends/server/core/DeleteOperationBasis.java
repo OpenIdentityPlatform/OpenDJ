@@ -47,7 +47,6 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PreParseDeleteOperation;
@@ -137,7 +136,7 @@ public class DeleteOperationBasis
 
     this.entryDN = entryDN;
 
-    rawEntryDN       = new ASN1OctetString(entryDN.toString());
+    rawEntryDN       = ByteString.valueOf(entryDN.toString());
     responseControls = new ArrayList<Control>();
     cancelRequest    = null;
     changeNumber     = -1;

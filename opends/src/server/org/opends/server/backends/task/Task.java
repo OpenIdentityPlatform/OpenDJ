@@ -52,19 +52,7 @@ import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.Operation;
+import org.opends.server.types.*;
 import org.opends.server.util.EMailMessage;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
@@ -440,7 +428,7 @@ public abstract class Task
       throw new InitializationException(message);
     }
 
-    return value.getStringValue();
+    return value.getValue().toString();
   }
 
 
@@ -480,7 +468,7 @@ public abstract class Task
     Iterator<AttributeValue> iterator = attrList.get(0).iterator();
     while (iterator.hasNext())
     {
-      valueStrings.add(iterator.next().getStringValue());
+      valueStrings.add(iterator.next().getValue().toString());
     }
 
     return valueStrings;
@@ -1006,7 +994,7 @@ public abstract class Task
       }
 
       List<Attribute> attrList = taskEntry.getAttribute(type);
-      AttributeValue value = new AttributeValue(type, messageString);
+      AttributeValue value = AttributeValues.create(type, messageString);
       if (attrList == null)
       {
         attrList = new ArrayList<Attribute>();
