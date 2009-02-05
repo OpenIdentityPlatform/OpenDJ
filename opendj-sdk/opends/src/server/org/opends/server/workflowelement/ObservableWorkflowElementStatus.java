@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement;
 
@@ -36,10 +36,10 @@ package org.opends.server.workflowelement;
  * The measure of the health is defined by an index - the saturation index -
  * whose value may vary within the range [0 - 100].
  * <p>
- * An index value of 100 means that the workflow element fully operational.
- * An index value of 0 means that the workflow element is no more operational.
+ * An index value of 0 means that the workflow element fully operational.
+ * An index value of 100 means that the workflow element is no more operational.
  * An value in between means that the workflow element is in a degraded mode.
- * The lower the index value, the more degraded the workflow element is.
+ * The higher the index value, the more degraded the workflow element is.
  */
 public class ObservableWorkflowElementStatus
     extends ObservableWorkflowElement
@@ -47,7 +47,7 @@ public class ObservableWorkflowElementStatus
   /**
    * The health indicator (aka saturation index) of the workflow element.
    */
-  private int saturationIndex = 100;
+  private int saturationIndex = 0;
   private Object saturationIndexLock = new Object();
 
 
