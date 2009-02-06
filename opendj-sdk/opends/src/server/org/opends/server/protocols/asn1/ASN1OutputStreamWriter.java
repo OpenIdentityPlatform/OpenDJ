@@ -435,7 +435,17 @@ final class ASN1OutputStreamWriter implements ASN1Writer
    */
   public ASN1Writer writeStartSet() throws IOException
   {
-    return writeStartSequence(UNIVERSAL_SET_TYPE);
+    return writeStartSet(UNIVERSAL_SET_TYPE);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public ASN1Writer writeStartSet(byte type) throws IOException
+  {
+    // From an implementation point of view, a set is equivalent to a
+    // sequence.
+    return writeStartSequence(type);
   }
 
   /**
