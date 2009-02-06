@@ -436,6 +436,16 @@ final class ASN1ByteSequenceReader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
+  public void readStartSet() throws ASN1Exception
+  {
+    // From an implementation point of view, a set is equivalent to a
+    // sequence.
+    readStartSequence();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public void readEndSequence() throws ASN1Exception
   {
     if(readerStack.isEmpty())
@@ -455,6 +465,16 @@ final class ASN1ByteSequenceReader implements ASN1Reader
 
     // Reset the state
     state = ELEMENT_READ_STATE_NEED_TYPE;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void readEndSet() throws ASN1Exception
+  {
+    // From an implementation point of view, a set is equivalent to a
+    // sequence.
+    readEndSequence();
   }
 
   /**

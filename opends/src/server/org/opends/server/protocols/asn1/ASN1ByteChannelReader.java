@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.asn1;
 
@@ -392,6 +392,13 @@ public final class ASN1ByteChannelReader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
+  public void readEndSet() throws ASN1Exception {
+    reader.readEndSet();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public long readInteger() throws ASN1Exception {
     return reader.readInteger();
   }
@@ -436,6 +443,13 @@ public final class ASN1ByteChannelReader implements ASN1Reader
    */
   public void readStartSequence() throws ASN1Exception {
     reader.readStartSequence();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void readStartSet() throws ASN1Exception {
+    reader.readStartSet();
   }
 
   /**

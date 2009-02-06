@@ -335,7 +335,7 @@ public interface ASN1Writer extends Closeable, Flushable
 
   /**
    * Writes a sequence element using the provided type tag. All
-   * further writes will be part of this set until
+   * further writes will be part of this sequence until
    * {@link #writeEndSequence()} is called.
    *
    * @param type
@@ -358,4 +358,19 @@ public interface ASN1Writer extends Closeable, Flushable
    *           If an error occurs while writing.
    */
   ASN1Writer writeStartSet() throws IOException;
+
+
+
+  /**
+   * Writes a set element using the provided type tag. All further
+   * writes will be part of this set until {@link #writeEndSet()} is
+   * called.
+   *
+   * @param type
+   *          The type tag to use.
+   * @return a reference to this object.
+   * @throws IOException
+   *           If an error occurs while writing.
+   */
+  ASN1Writer writeStartSet(byte type) throws IOException;
 }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.asn1;
 
@@ -128,6 +128,17 @@ public interface ASN1Reader extends Closeable
 
 
   /**
+   * Finishes reading a set. Any elements not read in the set will be
+   * discarded.
+   *
+   * @throws ASN1Exception
+   *           If an error occurs while advancing to the end of the set.
+   */
+  void readEndSet() throws ASN1Exception;
+
+
+
+  /**
    * Reads the next ASN.1 element as an integer and advances the
    * cursor.
    *
@@ -219,6 +230,17 @@ public interface ASN1Reader extends Closeable
    *           If the next element is not a sequence.
    */
   void readStartSequence() throws ASN1Exception;
+
+
+
+  /**
+   * Reads the next ASN.1 element as a set. All further reads will read
+   * the elements in the sequence until {@link #readEndSet()} is called.
+   *
+   * @throws ASN1Exception
+   *           If the next element is not a set.
+   */
+  void readStartSet() throws ASN1Exception;
 
 
 

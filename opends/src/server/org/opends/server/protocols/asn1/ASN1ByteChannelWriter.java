@@ -289,6 +289,14 @@ final class ASN1ByteChannelWriter implements ASN1Writer
   }
 
   /**
+   * {@inheritDoc}
+   */
+  public ASN1Writer writeStartSet(byte type) throws IOException {
+    writer.writeStartSet(type);
+    return this;
+  }
+
+  /**
    * Flush the entire contents of the NIO ByteBuffer out to the
    * channel.
    *
