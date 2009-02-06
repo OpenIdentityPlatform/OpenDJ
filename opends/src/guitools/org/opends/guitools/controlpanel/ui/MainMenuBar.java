@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -53,6 +53,9 @@ import org.opends.messages.Message;
 public class MainMenuBar extends GenericMenuBar
 {
   private static final long serialVersionUID = 6441273044772077947L;
+
+  private GenericDialog dlg;
+  private RefreshOptionsPanel panel;
 
   /**
    * Constructor.
@@ -99,6 +102,7 @@ public class MainMenuBar extends GenericMenuBar
 
       add(menu);
     }
+    add(createViewMenuBar());
     add(createHelpMenuBar());
   }
 
@@ -132,6 +136,30 @@ public class MainMenuBar extends GenericMenuBar
     {
       System.exit(0);
     }
+  }
+
+
+
+  /**
+   * Creates the View menu bar.
+   * @return the View menu bar.
+   */
+  protected JMenu createViewMenuBar()
+  {
+    JMenu menu = Utilities.createMenu(INFO_CTRL_PANEL_VIEW_MENU.get(),
+        INFO_CTRL_PANEL_HELP_VIEW_DESCRIPTION.get());
+    menu.setMnemonic(KeyEvent.VK_V);
+    JMenuItem menuItem = Utilities.createMenuItem(
+        INFO_CTRL_PANEL_REFRESH_MENU.get());
+    menuItem.addActionListener(new ActionListener()
+    {
+      public void actionPerformed(ActionEvent ev)
+      {
+        refreshOptionsClicked();
+      }
+    });
+    menu.add(menuItem);
+    return menu;
   }
 
   /**
@@ -175,6 +203,32 @@ public class MainMenuBar extends GenericMenuBar
       addListenerMethod.invoke(macApplication, new Object[] { proxy });
     } catch (Throwable t) {
       t.printStackTrace();
+    }
+  }
+
+  /**
+   * The method called when the user clicks on 'Refresh Options'.
+   *
+   */
+  protected void refreshOptionsClicked()
+  {
+    if (panel == null)
+    {
+      panel = new RefreshOptionsPanel();
+      panel.setInfo(getInfo());
+      dlg = new GenericDialog(
+          Utilities.getFrame(MainMenuBar.this),
+          panel);
+      dlg.setModal(true);
+      Utilities.centerGoldenMean(dlg,
+          Utilities.getFrame(MainMenuBar.this));
+    }
+    dlg.setVisible(true);
+    if (!panel.isCancelled())
+    {
+      getInfo().setPoolingPeriod(panel.getPoolingPeriod());
+      getInfo().stopPooling();
+      getInfo().startPooling();
     }
   }
 }

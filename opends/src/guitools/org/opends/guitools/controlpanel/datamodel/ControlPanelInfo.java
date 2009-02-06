@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -67,10 +67,7 @@ import org.opends.server.tools.ConfigureWindowsService;
  */
 public class ControlPanelInfo
 {
-  /**
-   * The default pooling time in miliseconds.
-   */
-  public static final long DEFAULT_POOLING = 20000;
+  private long poolingPeriod = 20000;
 
   private ServerDescriptor serverDesc;
   private Set<Task> tasks = new HashSet<Task>();
@@ -699,9 +696,8 @@ public class ControlPanelInfo
    * Starts pooling the server configuration.  The period of the pooling is
    * specified as a parameter.  This method is asynchronous and it will start
    * the pooling in another thread.
-   * @param period the pooling in miliseconds of the pooling.
    */
-  public synchronized void startPooling(final long period)
+  public synchronized void startPooling()
   {
     if (poolingThread != null)
     {
@@ -719,7 +715,7 @@ public class ControlPanelInfo
           while (!stopPooling)
           {
             regenerateDescriptor();
-            Thread.sleep(period);
+            Thread.sleep(poolingPeriod);
           }
         }
         catch (Throwable t)
@@ -1055,5 +1051,23 @@ public class ControlPanelInfo
   public IconPool getIconPool()
   {
     return iconPool;
+  }
+
+  /**
+   * Returns the pooling period in miliseconds.
+   * @return the pooling period in miliseconds.
+   */
+  public long getPoolingPeriod()
+  {
+    return poolingPeriod;
+  }
+
+  /**
+   * Sets the pooling period in miliseconds.
+   * @param poolingPeriod the pooling time in miliseconds.
+   */
+  public void setPoolingPeriod(long poolingPeriod)
+  {
+    this.poolingPeriod = poolingPeriod;
   }
 }

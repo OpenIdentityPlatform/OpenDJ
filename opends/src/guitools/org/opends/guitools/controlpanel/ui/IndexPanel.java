@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -687,7 +687,7 @@ public class IndexPanel extends AbstractIndexPanel
         {
           DirectoryServer.getInstance().initializeConfiguration(
               ConfigReader.configClassName, ConfigReader.configFile);
-          getInfo().startPooling(ControlPanelInfo.DEFAULT_POOLING);
+          getInfo().startPooling();
         }
       }
     }
