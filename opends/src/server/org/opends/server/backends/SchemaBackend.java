@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
 
@@ -2768,6 +2768,8 @@ public class SchemaBackend
     // refuse the operation).
     DITStructureRule existingDSR =
          schema.getDITStructureRule(ditStructureRule.getRuleID());
+    //Boolean to check if the new rule is in use or not.
+    boolean inUse = false;
     for (DITStructureRule dsr : schema.getDITStructureRulesByID().values())
     {
       for (String name : ditStructureRule.getNames().keySet())
@@ -2784,10 +2786,23 @@ public class SchemaBackend
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                                          message);
           }
+          inUse = true;
         }
       }
     }
 
+    if(existingDSR != null && !inUse)
+    {
+      //We have an existing DSR with the same rule id but we couldn't find
+      //any existing rules sharing this name. It means that it is a
+      //new rule with a conflicting rule id.Raise an Exception as the
+      //rule id should be unique.
+      Message message = ERR_SCHEMA_MODIFY_RULEID_CONFLICTS_FOR_ADD_DSR.
+                get(ditStructureRule.getNameOrRuleID(),
+                    existingDSR.getNameOrRuleID());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                         message);
+    }
 
     // Get the name form for the new DIT structure rule and see if there's
     // already an existing rule that is associated with that name form.  If
