@@ -28,29 +28,34 @@ package org.opends.server.extensions;
 
 
 
+import java.util.ArrayList;
 import static org.testng.Assert.*;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 
+import java.util.List;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AttributeValues;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
+import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
@@ -1272,6 +1277,74 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     deleteOperation =
          conn.processDelete(DN.decode("cn=test group 4,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+
+
+  /**
+   * Tests if a search using ismemberof works for a dynamic group with large
+   * number of entries to simulate unindexed searches.
+   */
+  @Test()
+  public void testLargeDynamicGroupMembership() throws Exception
+  {
+    String SUFFIX=",dc=example,dc=com";
+    StringBuilder builder = new StringBuilder();
+    builder.append("dn: dc=example,dc=com");
+    builder.append("\nobjectClass: domain");
+    builder.append("\ndc: example");
+
+    builder.append("\n\ndn: ou=People"+SUFFIX);
+    builder.append("\nobjectClass: organizationalunit");
+    builder.append("\nou: People");
+    //Go beyond ALL ID threshold.
+    for(int i=0;i<4001;i++)
+    {
+      builder.append("\n\ndn: cn=user." + i + ",ou=People"+SUFFIX);
+      builder.append("\nobjectclass: person");
+      builder.append("\ncn: user." + i);
+      builder.append("\nsn: " + i);
+    }
+
+    //Add the group information.
+    builder.append("\n\ndn: ou=Groups"+SUFFIX);
+    builder.append("\nobjectclass: organizationalunit");
+    builder.append("\nou: Groups");
+
+    //Dynamic group.
+    builder.append("\n\ndn: cn=MyDGrp,ou=Groups"+SUFFIX);
+    builder.append("\nobjectClass: groupOfURLs");
+    builder.append("\ncn: MyDGrp");
+    builder.append("\nmemberURL: ldap:///ou=people"+SUFFIX+"??sub?(objectclass=person)");
+    TestCaseUtils.addEntries(builder.toString());
+    //Verify the entry.
+    Entry e =
+         DirectoryServer.getEntry(DN.decode("cn=user.0,ou=People"+SUFFIX));
+    assertNotNull(e);
+    //Do an ldapsearch.
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    InternalSearchOperation searchOperation =
+         new InternalSearchOperation(
+              conn,
+              InternalClientConnection.nextOperationID(),
+              InternalClientConnection.nextMessageID(),
+              new ArrayList<Control>(),
+              ByteString.valueOf("dc=example,dc=com"),
+              SearchScope.WHOLE_SUBTREE,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              Integer.MAX_VALUE,
+              Integer.MAX_VALUE,
+              false,
+              LDAPFilter.decode("(&(objectclass=Person)" +
+              "(isMemberOf=cn=MyDGrp,ou=groups,dc=example,dc=com))"),
+              null, null);
+
+    searchOperation.run();
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    List<SearchResultEntry> entries = searchOperation.getSearchEntries();
+    assertTrue(entries.size()>4000);
   }
 }
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -116,7 +116,9 @@ public class DynamicGroupSearchThread
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     LinkedHashSet<String> attributes = new LinkedHashSet<String>(0);
-
+    //Include all the user attributes along with the ismemberof.
+    attributes.add("*");
+    attributes.add("ismemberof");
     for (searchCounter = 0; searchCounter < baseDNs.length; searchCounter++)
     {
       InternalSearchOperation searchOperation =
