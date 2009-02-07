@@ -47,7 +47,7 @@ public abstract class ASN1WriterTestCase extends DirectoryServerTestCase {
 
   // Create an array with all of the valid single-byte types.  We don't
   // support multi-byte types, so this should be a comprehensive data set.
-  byte[] testTypes = new byte[0xFF];
+  private byte[] testTypes = new byte[0xFF];
   {
     for (int i=0x00; i < 0xFF; i++)
     {
