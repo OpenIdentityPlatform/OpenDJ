@@ -26,32 +26,25 @@
  */
 package org.opends.server.protocols.asn1;
 
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-import static org.testng.Assert.*;
-import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.types.ByteString;
-import static org.opends.server.protocols.asn1.ASN1Constants.*;
-import org.opends.server.util.StaticUtils;
-
-import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
-import java.util.Arrays;
+import java.io.ByteArrayOutputStream;
 
 /**
  * Test class for ASN1OutputStreamWriter
  */
 public class ASN1OutputStreamWriterTestCase extends ASN1WriterTestCase
 {
-  ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-  ASN1Writer writer = new ASN1OutputStreamWriter(outStream);
+  private ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+  private ASN1Writer writer = new ASN1OutputStreamWriter(outStream);
 
+  @Override
   ASN1Writer getWriter()
   {
     outStream.reset();
     return writer;
   }
 
+  @Override
   ASN1Reader getReader(byte[] encodedBytes)
   {
     ByteArrayInputStream inStream =
@@ -59,6 +52,7 @@ public class ASN1OutputStreamWriterTestCase extends ASN1WriterTestCase
     return new ASN1InputStreamReader(inStream, 0);
   }
 
+  @Override
   byte[] getEncodedBytes()
   {
     return outStream.toByteArray();

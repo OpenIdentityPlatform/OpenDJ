@@ -399,6 +399,13 @@ public final class ASN1ByteChannelReader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
+  public int readEnumerated() throws ASN1Exception {
+    return reader.readEnumerated();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public long readInteger() throws ASN1Exception {
     return reader.readInteger();
   }

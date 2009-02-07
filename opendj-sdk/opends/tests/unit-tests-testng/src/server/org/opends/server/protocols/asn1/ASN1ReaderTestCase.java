@@ -67,8 +67,6 @@ public abstract class ASN1ReaderTestCase extends DirectoryServerTestCase
    *
    * @return  A list of byte arrays with encoded ASN.1 elements that can be
    *          decoded as octet strings.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
    */
   @DataProvider(name = "elementArrays")
   public Object[][] getElementArrays()
@@ -102,6 +100,17 @@ public abstract class ASN1ReaderTestCase extends DirectoryServerTestCase
         };
   }
 
+  /**
+   * Gets the reader to be use for the unit tests.
+   *
+   * @param b
+   *          The array of bytes to be read.
+   * @param maxElementSize
+   *          The max element size.
+   * @return The reader to be use for the unit tests.
+   * @throws IOException
+   *           In an unexpected IO exception occurred.
+   */
   abstract ASN1Reader getReader(byte[] b, int maxElementSize)
       throws IOException;
 
@@ -213,6 +222,20 @@ public abstract class ASN1ReaderTestCase extends DirectoryServerTestCase
     getReader(b, 0).readInteger();
   }
 
+  /**
+   * Tests the <CODE>readEnumerated</CODE> method that takes a byte array with
+   * a short array.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeShortArrayAsEnumerated()
+      throws Exception
+  {
+    byte[] b = new byte[0];
+    getReader(b, 0).readEnumerated();
+  }
+
 
 
   /**
@@ -227,6 +250,22 @@ public abstract class ASN1ReaderTestCase extends DirectoryServerTestCase
   {
     byte[] b = { 0x02, (byte) 0x85, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00 };
     getReader(b, 0).readInteger();
+  }
+
+
+
+  /**
+   * Tests the <CODE>readEnumerated</CODE> method that takes a byte array with
+   * a long length array.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeLongLengthArrayAsEnumerated()
+      throws Exception
+  {
+    byte[] b = { 0x02, (byte) 0x85, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00 };
+    getReader(b, 0).readEnumerated();
   }
 
 
@@ -248,6 +287,22 @@ public abstract class ASN1ReaderTestCase extends DirectoryServerTestCase
 
 
   /**
+   * Tests the <CODE>readEnumerated</CODE> method that takes a byte array with
+   * a truncated length array.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeTruncatedLengthArrayAsEnumerated()
+      throws Exception
+  {
+    byte[] b = { 0x02, (byte) 0x82, 0x00 };
+    getReader(b, 0).readEnumerated();
+  }
+
+
+
+  /**
    * Tests the <CODE>decodeAsInteger</CODE> method that takes a byte array with
    * a length mismatch.
    *
@@ -259,6 +314,20 @@ public abstract class ASN1ReaderTestCase extends DirectoryServerTestCase
   {
     byte[] b = { 0x02, (byte) 0x81, 0x01 };
     getReader(b, 0).readInteger();
+  }
+
+  /**
+   * Tests the <CODE>readEnumerated</CODE> method that takes a byte array with
+   * a length mismatch.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(expectedExceptions = { ASN1Exception.class })
+  public void testDecodeLengthMismatchArrayAsEnumerated()
+      throws Exception
+  {
+    byte[] b = { 0x02, (byte) 0x81, 0x01 };
+    getReader(b, 0).readEnumerated();
   }
 
   /**

@@ -422,6 +422,25 @@ final class ASN1InputStreamReader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
+  public int readEnumerated() throws ASN1Exception
+  {
+    // Read the header if haven't done so already
+    peekLength();
+
+    if ((peekLength < 1) || (peekLength > 4))
+    {
+      Message message = ERR_ASN1_INTEGER_INVALID_LENGTH.get(peekLength);
+      throw new ASN1Exception(message);
+    }
+
+    // From an implementation point of view, an enumerated value is
+    // equivalent to an integer.
+    return (int) readInteger();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public long readInteger() throws ASN1Exception
   {
     // Read the header if haven't done so already

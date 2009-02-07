@@ -26,24 +26,23 @@
  */
 package org.opends.server.protocols.asn1;
 
-import org.opends.server.types.ByteString;
-
-import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.channels.WritableByteChannel;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 
 /**
  * Test class for ASN1ByteChannelWriter
  */
 public class ASN1ByteChannelWriterTestCase extends ASN1WriterTestCase
 {
-  ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-  WritableByteChannel outChannel = Channels.newChannel(outStream);
-  ASN1Writer writer = new ASN1ByteChannelWriter(outChannel, 500);
+  private ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+  private WritableByteChannel outChannel = Channels.newChannel(outStream);
+  private ASN1Writer writer = new ASN1ByteChannelWriter(outChannel, 500);
 
+  @Override
   ASN1Writer getWriter() throws IOException
   {
     writer.flush();
@@ -51,6 +50,7 @@ public class ASN1ByteChannelWriterTestCase extends ASN1WriterTestCase
     return writer;
   }
 
+  @Override
   ASN1Reader getReader(byte[] encodedBytes) throws ASN1Exception, IOException
   {
     ByteArrayInputStream inStream =
@@ -65,6 +65,7 @@ public class ASN1ByteChannelWriterTestCase extends ASN1WriterTestCase
     return reader;
   }
 
+  @Override
   byte[] getEncodedBytes() throws IOException, ASN1Exception
   {
     writer.flush();

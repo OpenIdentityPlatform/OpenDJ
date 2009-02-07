@@ -139,6 +139,18 @@ public interface ASN1Reader extends Closeable
 
 
   /**
+   * Reads the next ASN.1 element as an enumerated value and advances
+   * the cursor.
+   *
+   * @return The decoded enumerated value.
+   * @throws ASN1Exception
+   *           If the element cannot be decoded as an enumerated value.
+   */
+  int readEnumerated() throws ASN1Exception;
+
+
+
+  /**
    * Reads the next ASN.1 element as an integer and advances the
    * cursor.
    *
