@@ -47,6 +47,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -74,6 +75,8 @@ import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
+import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
+import org.opends.guitools.controlpanel.datamodel.MonitoringAttributes;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.*;
 import org.opends.guitools.controlpanel.task.RebuildIndexTask;
@@ -2034,5 +2037,63 @@ implements ConfigChangeListener
   protected Border getRightPanelBorder()
   {
     return ColorAndFontConstants.textAreaBorder;
+  }
+
+  /**
+   * Returns the monitoring value in a String form to be displayed to the user.
+   * @param attr the attribute to analyze.
+   * @param monitoringEntry the monitoring entry.
+   * @return the monitoring value in a String form to be displayed to the user.
+   */
+  public static String getMonitoringValue(MonitoringAttributes attr,
+      CustomSearchResult monitoringEntry)
+  {
+    return Utilities.getMonitoringValue(attr, monitoringEntry);
+  }
+
+  /**
+   * Updates the monitoring information writing it to a list of labels.
+   * @param monitoringAttrs the monitoring operations whose information we want
+   * to update.
+   * @param monitoringLabels the monitoring labels to be updated.
+   * @param monitoringEntry the monitoring entry containing the information to
+   * be displayed.
+   */
+  protected void updateMonitoringInfo(
+      List<MonitoringAttributes> monitoringAttrs,
+      List<JLabel> monitoringLabels, CustomSearchResult monitoringEntry)
+  {
+    for (int i=0 ; i<monitoringAttrs.size(); i++)
+    {
+      String value =
+        getMonitoringValue(monitoringAttrs.get(i), monitoringEntry);
+      JLabel l = monitoringLabels.get(i);
+      l.setText(value);
+    }
+  }
+
+  /**
+   * Returns the first value for a given attribute in the provided entry.
+   * @param sr the entry.  It may be <CODE>null</CODE>.
+   * @param attrName the attribute name.
+   * @return the first value for a given attribute in the provided entry.
+   */
+  protected Object getFirstMonitoringValue(CustomSearchResult sr,
+      String attrName)
+  {
+    return Utilities.getFirstMonitoringValue(sr, attrName);
+  }
+
+  /**
+   * Returns the label to be used in panels (with ':') based on the definition
+   * of the monitoring attribute.
+   * @param attr the monitoring attribute.
+   * @return the label to be used in panels (with ':') based on the definition
+   * of the monitoring attribute.
+   */
+  protected static Message getLabel(MonitoringAttributes attr)
+  {
+    return INFO_CTRL_PANEL_OPERATION_NAME_AS_LABEL.get(
+        attr.getMessage().toString());
   }
 }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -205,19 +205,24 @@ public class MainActionsPane extends StatusGenericPanel
             INFO_CTRL_PANEL_ACTION_RESTORE.get()
           },
           {
-          INFO_CTRL_PANEL_CATEGORY_SCHEMA.get(),
-          INFO_CTRL_PANEL_ACTION_MANAGE_SCHEMA.get()
+            INFO_CTRL_PANEL_CATEGORY_SCHEMA.get(),
+            INFO_CTRL_PANEL_ACTION_MANAGE_SCHEMA.get()
           },
           {
-          INFO_CTRL_PANEL_CATEGORY_INDEXES.get(),
-          INFO_CTRL_PANEL_ACTION_MANAGE_INDEXES.get(),
-          INFO_CTRL_PANEL_ACTION_VERIFY_INDEXES.get(),
-          INFO_CTRL_PANEL_ACTION_REBUILD_INDEXES.get()
+            INFO_CTRL_PANEL_CATEGORY_INDEXES.get(),
+            INFO_CTRL_PANEL_ACTION_MANAGE_INDEXES.get(),
+            INFO_CTRL_PANEL_ACTION_VERIFY_INDEXES.get(),
+            INFO_CTRL_PANEL_ACTION_REBUILD_INDEXES.get()
           },
           {
-          INFO_CTRL_PANEL_CATEGORY_RUNTIME_OPTIONS.get(),
-          INFO_CTRL_PANEL_ACTION_JAVA_SETTINGS.get(),
-          INFO_CTRL_PANEL_ACTION_WINDOWS_SERVICE.get()
+            INFO_CTRL_PANEL_CATEGORY_MONITORING.get(),
+            INFO_CTRL_PANEL_BROWSE_GENERAL_MONITORING.get(),
+            INFO_CTRL_PANEL_CONNECTION_HANDLER_MONITORING.get()
+          },
+          {
+            INFO_CTRL_PANEL_CATEGORY_RUNTIME_OPTIONS.get(),
+            INFO_CTRL_PANEL_ACTION_JAVA_SETTINGS.get(),
+            INFO_CTRL_PANEL_ACTION_WINDOWS_SERVICE.get()
           }
       };
     }
@@ -234,18 +239,23 @@ public class MainActionsPane extends StatusGenericPanel
             INFO_CTRL_PANEL_ACTION_RESTORE.get()
           },
           {
-          INFO_CTRL_PANEL_CATEGORY_SCHEMA.get(),
-          INFO_CTRL_PANEL_ACTION_MANAGE_SCHEMA.get()
+            INFO_CTRL_PANEL_CATEGORY_SCHEMA.get(),
+            INFO_CTRL_PANEL_ACTION_MANAGE_SCHEMA.get()
           },
           {
-          INFO_CTRL_PANEL_CATEGORY_INDEXES.get(),
-          INFO_CTRL_PANEL_ACTION_MANAGE_INDEXES.get(),
-          INFO_CTRL_PANEL_ACTION_VERIFY_INDEXES.get(),
-          INFO_CTRL_PANEL_ACTION_REBUILD_INDEXES.get()
+            INFO_CTRL_PANEL_CATEGORY_INDEXES.get(),
+            INFO_CTRL_PANEL_ACTION_MANAGE_INDEXES.get(),
+            INFO_CTRL_PANEL_ACTION_VERIFY_INDEXES.get(),
+            INFO_CTRL_PANEL_ACTION_REBUILD_INDEXES.get()
           },
           {
-          INFO_CTRL_PANEL_CATEGORY_RUNTIME_OPTIONS.get(),
-          INFO_CTRL_PANEL_ACTION_JAVA_SETTINGS.get()
+            INFO_CTRL_PANEL_CATEGORY_MONITORING.get(),
+            INFO_CTRL_PANEL_BROWSE_GENERAL_MONITORING.get(),
+            INFO_CTRL_PANEL_CONNECTION_HANDLER_MONITORING.get()
+          },
+          {
+            INFO_CTRL_PANEL_CATEGORY_RUNTIME_OPTIONS.get(),
+            INFO_CTRL_PANEL_ACTION_JAVA_SETTINGS.get()
           }
       };
     }
@@ -261,6 +271,8 @@ public class MainActionsPane extends StatusGenericPanel
     classes.add(BrowseIndexPanel.class);
     classes.add(VerifyIndexPanel.class);
     classes.add(RebuildIndexPanel.class);
+    classes.add(BrowseGeneralMonitoringPanel.class);
+    classes.add(ConnectionHandlerMonitoringPanel.class);
     classes.add(JavaPropertiesPanel.class);
     if (Utilities.isWindows())
     {

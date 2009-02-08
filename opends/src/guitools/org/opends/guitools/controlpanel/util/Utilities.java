@@ -47,6 +47,8 @@ import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
+import java.util.Set;
 
 import javax.naming.CompositeName;
 import javax.naming.InvalidNameException;
@@ -89,6 +91,8 @@ import org.opends.guitools.controlpanel.ControlPanel;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.ConfigReadException;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
+import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
+import org.opends.guitools.controlpanel.datamodel.MonitoringAttributes;
 import org.opends.guitools.controlpanel.datamodel.SortableTableModel;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.event.TextComponentFocusListener;
@@ -129,6 +133,12 @@ public class Utilities
   private static ImageIcon warningIcon;
 
   private static ImageIcon requiredIcon;
+
+
+  private static Message NO_VALUE_SET =
+    INFO_CTRL_PANEL_NO_MONITORING_VALUE.get();
+  private static Message NOT_IMPLEMENTED =
+    INFO_CTRL_PANEL_NOT_IMPLEMENTED.get();
 
   /**
    * Returns <CODE>true</CODE> if we are running Mac OS and <CODE>false</CODE>
@@ -2181,5 +2191,150 @@ public class Utilities
         }
       }
     }
+  }
+
+
+
+  /**
+   * Returns the first value for a given attribute in the provided entry.
+   * @param sr the entry.  It may be <CODE>null</CODE>.
+   * @param attrName the attribute name.
+   * @return the first value for a given attribute in the provided entry.
+   */
+  public static Object getFirstMonitoringValue(CustomSearchResult sr,
+      String attrName)
+  {
+    Object o = null;
+    if (sr != null)
+    {
+      Set<Object> values = sr.getAttributeValues(attrName);
+      if ((values != null) && (values.size() > 0))
+      {
+        o = values.iterator().next();
+        try
+        {
+          Long l = Long.parseLong(o.toString());
+          o = l;
+        }
+        catch (Throwable t1)
+        {
+          try
+          {
+            Double d = Double.parseDouble(o.toString());
+            o = d;
+          }
+          catch (Throwable t2)
+          {
+          }
+        }
+      }
+    }
+    return o;
+  }
+
+  /**
+   * Returns the monitoring value in a String form to be displayed to the user.
+   * @param attr the attribute to analyze.
+   * @param monitoringEntry the monitoring entry.
+   * @return the monitoring value in a String form to be displayed to the user.
+   */
+  public static String getMonitoringValue(MonitoringAttributes attr,
+      CustomSearchResult monitoringEntry)
+  {
+    String returnValue;
+    Object monitoringValue =
+      Utilities.getFirstMonitoringValue(monitoringEntry,
+        attr.getAttributeName());
+    if (monitoringValue == null)
+    {
+      returnValue = NO_VALUE_SET.toString();
+    }
+    else if (isNotImplemented(attr, monitoringEntry))
+    {
+      returnValue = NOT_IMPLEMENTED.toString();
+    }
+    else if (attr.isNumericDate())
+    {
+      if("0".equals(monitoringValue.toString()))
+      {
+        returnValue = NO_VALUE_SET.toString();
+      }
+      else
+      {
+        Long l = Long.parseLong(monitoringValue.toString());
+        Date date = new Date(l);
+        returnValue = ConfigFromDirContext.formatter.format(date);
+      }
+    }
+    else if (attr.isTime())
+    {
+      if("-1".equals(monitoringValue.toString()))
+      {
+        returnValue = NO_VALUE_SET.toString();
+      }
+      else
+      {
+        returnValue = monitoringValue.toString();
+      }
+    }
+    else if (attr.isGMTDate())
+    {
+      try
+      {
+        Date date = ConfigFromDirContext.utcParser.parse(
+            monitoringValue.toString());
+        returnValue = ConfigFromDirContext.formatter.format(date);
+      }
+      catch (Throwable t)
+      {
+        returnValue = monitoringValue.toString();
+      }
+    }
+    else if (attr.isValueInBytes())
+    {
+      Long l = Long.parseLong(monitoringValue.toString());
+      long mb = l / (1024 * 1024);
+      long kbs = (l - (mb * 1024 * 1024)) / 1024;
+      returnValue = INFO_CTRL_PANEL_MEMORY_VALUE.get(mb , kbs).toString();
+    }
+    else
+    {
+      returnValue = monitoringValue.toString();
+    }
+    return returnValue;
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if the provided monitoring value represents the
+   * non implemented label and <CODE>false</CODE> otherwise.
+   * @param attr the attribute to analyze.
+   * @param monitoringEntry the monitoring entry.
+   * @return <CODE>true</CODE> if the provided monitoring value represents the
+   * non implemented label and <CODE>false</CODE> otherwise.
+   */
+  public static boolean isNotImplemented(MonitoringAttributes attr,
+      CustomSearchResult monitoringEntry)
+  {
+    boolean returnValue;
+    Object monitoringValue = Utilities.getFirstMonitoringValue(
+        monitoringEntry,
+        attr.getAttributeName());
+    if (attr.isNumeric() && (monitoringValue != null))
+    {
+      try
+      {
+        Long.parseLong(String.valueOf(monitoringValue));
+        returnValue = false;
+      }
+      catch (Throwable t)
+      {
+        returnValue = true;
+      }
+    }
+    else
+    {
+      returnValue = false;
+    }
+    return returnValue;
   }
 }
