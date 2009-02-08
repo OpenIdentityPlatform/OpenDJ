@@ -44,6 +44,7 @@ import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
+import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
@@ -284,13 +285,15 @@ public class ConfigFromFile extends ConfigReader
                 isReplicationSecure ?
                     ConnectionHandlerDescriptor.Protocol.REPLICATION_SECURE :
                     ConnectionHandlerDescriptor.Protocol.REPLICATION;
+              Set<CustomSearchResult> emptySet = Collections.emptySet();
               ConnectionHandlerDescriptor connHandler =
                 new ConnectionHandlerDescriptor(
                     new HashSet<InetAddress>(),
                     replicationPort,
                     protocol,
                     ConnectionHandlerDescriptor.State.ENABLED,
-                    "Multimaster Synchronization");
+                    "Multimaster Synchronization",
+                    emptySet);
               ls.add(connHandler);
             }
           }
@@ -447,8 +450,9 @@ public class ConfigFromFile extends ConfigReader
       protocol = ConnectionHandlerDescriptor.Protocol.OTHER;
       port = -1;
     }
+    Set<CustomSearchResult> emptySet = Collections.emptySet();
     return new ConnectionHandlerDescriptor(addresses, port, protocol, state,
-        name);
+        name, emptySet);
   }
 
   private ConnectionHandlerDescriptor getConnectionHandler(
@@ -470,8 +474,9 @@ public class ConfigFromFile extends ConfigReader
       addresses.addAll(v);
     }
     int port = adminConnector.getListenPort();
-
+    Set<CustomSearchResult> emptySet = Collections.emptySet();
     return new ConnectionHandlerDescriptor(addresses, port, protocol, state,
-        INFO_CTRL_PANEL_CONN_HANDLER_ADMINISTRATION.get().toString());
+        INFO_CTRL_PANEL_CONN_HANDLER_ADMINISTRATION.get().toString(),
+        emptySet);
   }
 }

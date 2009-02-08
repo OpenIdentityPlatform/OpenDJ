@@ -596,6 +596,15 @@ public class ControlPanelInfo
       desc.setAuthenticated(reader instanceof ConfigFromDirContext);
       desc.setJavaVersion(reader.getJavaVersion());
       desc.setOpenConnections(reader.getOpenConnections());
+      if (reader instanceof ConfigFromDirContext)
+      {
+        ConfigFromDirContext rCtx = (ConfigFromDirContext)reader;
+        desc.setRootMonitor(rCtx.getRootMonitor());
+        desc.setEntryCachesMonitor(rCtx.getEntryCaches());
+        desc.setJvmMemoryUsageMonitor(rCtx.getJvmMemoryUsage());
+        desc.setSystemInformationMonitor(rCtx.getSystemInformation());
+        desc.setWorkQueueMonitor(rCtx.getWorkQueue());
+      }
     }
     else
     {

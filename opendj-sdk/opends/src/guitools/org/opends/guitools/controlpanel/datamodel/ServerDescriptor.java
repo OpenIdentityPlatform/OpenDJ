@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -31,11 +31,13 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.opends.guitools.controlpanel.util.ConfigFromDirContext;
 import org.opends.guitools.controlpanel.util.Utilities;
 
 import org.opends.server.types.AttributeType;
@@ -66,6 +68,18 @@ public class ServerDescriptor
   private boolean isWindowsServiceEnabled;
   private boolean isSchemaEnabled;
   private Schema schema;
+
+  private CustomSearchResult rootMonitor;
+
+  private CustomSearchResult jvmMemoryUsage;
+
+  private CustomSearchResult systemInformation;
+
+  private CustomSearchResult entryCaches;
+
+  private CustomSearchResult workQueue;
+
+  private long runningTime = -1;
 
   private boolean isAuthenticated;
 
@@ -758,5 +772,126 @@ public class ServerDescriptor
   public void setAdminConnector(ConnectionHandlerDescriptor adminConnector)
   {
     this.adminConnector = adminConnector;
+  }/**
+   * Sets the monitoring entry for the entry caches.
+   * @param entryCaches the monitoring entry for the entry caches.
+   */
+  public void setEntryCachesMonitor(CustomSearchResult entryCaches)
+  {
+    this.entryCaches = entryCaches;
+  }
+
+  /**
+   * Sets the monitoring entry for the JVM memory usage.
+   * @param jvmMemoryUsage the monitoring entry for the JVM memory usage.
+   */
+  public void setJvmMemoryUsageMonitor(CustomSearchResult jvmMemoryUsage)
+  {
+    this.jvmMemoryUsage = jvmMemoryUsage;
+  }
+
+  /**
+   * Sets the root entry of the monitoring tree.
+   * @param rootMonitor the root entry of the monitoring tree.
+   */
+  public void setRootMonitor(CustomSearchResult rootMonitor)
+  {
+    this.rootMonitor = rootMonitor;
+    if (rootMonitor != null)
+    {
+      try
+      {
+        String start = (String)Utilities.getFirstMonitoringValue(
+            rootMonitor,
+            BasicMonitoringAttributes.START_DATE.getAttributeName());
+        String current = (String)
+        Utilities.getFirstMonitoringValue(rootMonitor,
+            BasicMonitoringAttributes.CURRENT_DATE.getAttributeName());
+        Date startTime = ConfigFromDirContext.utcParser.parse(start);
+        Date currentTime = ConfigFromDirContext.utcParser.parse(current);
+        runningTime = currentTime.getTime() - startTime.getTime();
+      }
+      catch (Throwable t)
+      {
+        runningTime = -1;
+      }
+    }
+    else
+    {
+      runningTime = -1;
+    }
+  }
+
+  /**
+   * Returns the running time of the server in milliseconds.  Returns -1 if
+   * no running time could be found.
+   * @return the running time of the server in milliseconds.
+   */
+  public long getRunningTime()
+  {
+    return runningTime;
+  }
+
+  /**
+   * Sets the monitoring entry for the system information.
+   * @param systemInformation entry for the system information.
+   */
+  public void setSystemInformationMonitor(CustomSearchResult systemInformation)
+  {
+    this.systemInformation = systemInformation;
+  }
+
+  /**
+   * Sets the monitoring entry of the work queue.
+   * @param workQueue entry of the work queue.
+   */
+  public void setWorkQueueMonitor(CustomSearchResult workQueue)
+  {
+    this.workQueue = workQueue;
+  }
+
+  /**
+   * Returns the monitoring entry for the entry caches.
+   * @return the monitoring entry for the entry caches.
+   */
+  public CustomSearchResult getEntryCachesMonitor()
+  {
+    return entryCaches;
+  }
+
+  /**
+   * Returns the monitoring entry for the JVM memory usage.
+   * @return the monitoring entry for the JVM memory usage.
+   */
+  public CustomSearchResult getJvmMemoryUsageMonitor()
+  {
+    return jvmMemoryUsage;
+  }
+
+  /**
+   * Returns the root entry of the monitoring tree.
+   * @return the root entry of the monitoring tree.
+   */
+  public CustomSearchResult getRootMonitor()
+  {
+    return rootMonitor;
+  }
+
+  /**
+   * Returns the monitoring entry for the system information.
+   * @return the monitoring entry for the system information.
+   */
+  public CustomSearchResult getSystemInformationMonitor()
+  {
+    return systemInformation;
+  }
+
+  /**
+   * Returns the monitoring entry for the work queue.
+   * @return the monitoring entry for the work queue.
+   */
+  public CustomSearchResult getWorkQueueMonitor()
+  {
+    return workQueue;
   }
 }

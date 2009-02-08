@@ -30,12 +30,17 @@ package org.opends.guitools.controlpanel.util;
 import static org.opends.messages.AdminToolMessages.*;
 
 import java.net.InetAddress;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,6 +69,7 @@ import org.opends.server.admin.std.client.*;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
+import org.opends.server.util.ServerConstants;
 
 /**
  * A class that reads the configuration and monitoring information using a
@@ -77,6 +83,109 @@ public class ConfigFromDirContext extends ConfigReader
   private static final Logger LOG =
     Logger.getLogger(ConfigFromDirContext.class.getName());
 
+  private CustomSearchResult rootMonitor;
+  private CustomSearchResult jvmMemoryUsage;
+  private CustomSearchResult systemInformation;
+  private CustomSearchResult entryCaches;
+  private CustomSearchResult workQueue;
+
+  private Map<String, CustomSearchResult> hmConnectionHandlersMonitor =
+    new HashMap<String, CustomSearchResult>();
+
+  /**
+   * The monitor root entry DN.
+   */
+  protected DN monitorDN = DN.nullDN();
+  /**
+   * The JVM memory usage monitoring entry DN.
+   */
+  protected DN jvmMemoryUsageDN = DN.nullDN();
+  /**
+   * The system information monitoring entry DN.
+   */
+  protected DN systemInformationDN = DN.nullDN();
+  /**
+   * The entry cache monitoring entry DN.
+   */
+  protected DN entryCachesDN = DN.nullDN();
+  /**
+   * The work queue monitoring entry DN.
+   */
+  protected DN workQueueDN = DN.nullDN();
+
+  {
+    try
+    {
+      monitorDN = DN.decode("cn=monitor");
+      jvmMemoryUsageDN = DN.decode("cn=JVM Memory Usage,cn=monitor");
+      systemInformationDN = DN.decode("cn=System Information,cn=monitor");
+      entryCachesDN = DN.decode("cn=Entry Caches,cn=monitor");
+      workQueueDN = DN.decode("cn=Work Queue,cn=monitor");
+    }
+    catch (Throwable t)
+    {
+      throw new IllegalStateException("Could not decode DNs: "+t, t);
+    }
+  }
+
+  /**
+   * The date formatter to be used to parse GMT dates.
+   */
+  public static final SimpleDateFormat utcParser = new SimpleDateFormat(
+      ServerConstants.DATE_FORMAT_GMT_TIME);
+  {
+    utcParser.setTimeZone(TimeZone.getTimeZone("UTC"));
+  }
+  /**
+   * The date formatter to be used to format dates.
+   */
+  public static final DateFormat formatter = DateFormat.getDateTimeInstance();
+
+  /**
+   * Returns the monitoring entry for the entry caches.
+   * @return the monitoring entry for the entry caches.
+   */
+  public CustomSearchResult getEntryCaches()
+  {
+    return entryCaches;
+  }
+
+  /**
+   * Returns the monitoring entry for the JVM memory usage.
+   * @return the monitoring entry for the JVM memory usage.
+   */
+  public CustomSearchResult getJvmMemoryUsage()
+  {
+    return jvmMemoryUsage;
+  }
+
+  /**
+   * Returns the root entry of the monitoring tree.
+   * @return the root entry of the monitoring tree.
+   */
+  public CustomSearchResult getRootMonitor()
+  {
+    return rootMonitor;
+  }
+
+  /**
+   * Returns the monitoring entry for the system information.
+   * @return the monitoring entry for the system information.
+   */
+  public CustomSearchResult getSystemInformation()
+  {
+    return systemInformation;
+  }
+
+  /**
+   * Returns the monitoring entry for the work queue.
+   * @return the monitoring entry for the work queue.
+   */
+  public CustomSearchResult getWorkQueue()
+  {
+    return workQueue;
+  }
+
   /**
    * Reads configuration and monitoring information using the provided
    * connection.
@@ -89,6 +198,14 @@ public class ConfigFromDirContext extends ConfigReader
       new HashSet<ConnectionHandlerDescriptor>();
     Set<BackendDescriptor> bs = new HashSet<BackendDescriptor>();
     Set<DN> as = new HashSet<DN>();
+
+    rootMonitor = null;
+    jvmMemoryUsage = null;
+    systemInformation = null;
+    entryCaches = null;
+    workQueue = null;
+
+    hmConnectionHandlersMonitor.clear();
 
     try
     {
@@ -274,13 +391,15 @@ public class ConfigFromDirContext extends ConfigReader
                 isReplicationSecure ?
                     ConnectionHandlerDescriptor.Protocol.REPLICATION_SECURE :
                     ConnectionHandlerDescriptor.Protocol.REPLICATION;
+              Set<CustomSearchResult> emptySet = Collections.emptySet();
               ConnectionHandlerDescriptor connHandler =
                 new ConnectionHandlerDescriptor(
                     new HashSet<InetAddress>(),
                     replicationPort,
                     protocol,
                     ConnectionHandlerDescriptor.State.ENABLED,
-                    "Multimaster Synchronization");
+                    "Multimaster Synchronization",
+                    emptySet);
               ls.add(connHandler);
             }
           }
@@ -364,8 +483,15 @@ public class ConfigFromDirContext extends ConfigReader
           ERR_READING_CONFIG_LDAP.get(t.toString()), t);
       ex.add(oupe);
     }
+    for (ConnectionHandlerDescriptor ch : getConnectionHandlers())
+    {
+      ch.setMonitoringEntries(getMonitoringEntries(ch));
+    }
+    if (adminConnector != null)
+    {
+      adminConnector.setMonitoringEntries(getMonitoringEntries(adminConnector));
+    }
     exceptions = Collections.unmodifiableList(ex);
-
   }
 
   /**
@@ -375,9 +501,7 @@ public class ConfigFromDirContext extends ConfigReader
   protected String[] getMonitoringAttributes()
   {
     return new String[] {
-        "approx-older-change-not-synchronized-millis", "missing-changes",
-        "base-dn", "server-id", "javaVersion", "currentConnections",
-        "ds-backend-id", "ds-backend-entry-count", "ds-base-dn-entry-count"
+        "*"
     };
   }
 
@@ -442,6 +566,7 @@ public class ConfigFromDirContext extends ConfigReader
     }
     else
     {
+      CustomSearchResult csr = new CustomSearchResult(sr, searchBaseDN);
       String backendID = ConnectionUtils.getFirstValue(sr,
           "ds-backend-id");
       String entryCount = ConnectionUtils.getFirstValue(sr,
@@ -503,11 +628,48 @@ public class ConfigFromDirContext extends ConfigReader
           {
             if (backend.getBackendID().equalsIgnoreCase(monitorBackendID))
             {
-              CustomSearchResult csr = new CustomSearchResult(sr, searchBaseDN);
               backend.setMonitoringEntry(csr);
             }
           }
         }
+      }
+      try
+      {
+        if ((rootMonitor == null) && isRootMonitor(csr))
+        {
+          rootMonitor = csr;
+        }
+        else if ((entryCaches == null) && isEntryCaches(csr))
+        {
+          entryCaches = csr;
+        }
+        else if ((workQueue == null) && isWorkQueue(csr))
+        {
+          workQueue = csr;
+        }
+        else if ((jvmMemoryUsage == null) && isJvmMemoryUsage(csr))
+        {
+          jvmMemoryUsage = csr;
+        }
+        else if ((systemInformation == null) && isSystemInformation(csr))
+        {
+          systemInformation = csr;
+        }
+        else if (isConnectionHandler(csr))
+        {
+          String statistics = " Statistics";
+          String cn = ConnectionUtils.getFirstValue(sr, "cn");
+          if (cn.endsWith(statistics))
+          {
+//          Assume it is a connection handler
+            String name = cn.substring(0, cn.length() - statistics.length());
+            hmConnectionHandlersMonitor.put(getKey(name), csr);
+          }
+        }
+      }
+      catch (OpenDsException ode)
+      {
+        exceptions.add(ode);
       }
     }
   }
@@ -614,8 +776,9 @@ public class ConfigFromDirContext extends ConfigReader
       protocol = ConnectionHandlerDescriptor.Protocol.OTHER;
       port = -1;
     }
+    Set<CustomSearchResult> emptySet = Collections.emptySet();
     return new ConnectionHandlerDescriptor(addresses, port, protocol, state,
-        name);
+        name, emptySet);
   }
 
   private ConnectionHandlerDescriptor getConnectionHandler(
@@ -638,7 +801,86 @@ public class ConfigFromDirContext extends ConfigReader
     }
     int port = adminConnector.getListenPort();
 
+    Set<CustomSearchResult> emptySet = Collections.emptySet();
     return new ConnectionHandlerDescriptor(addresses, port, protocol, state,
-        INFO_CTRL_PANEL_CONN_HANDLER_ADMINISTRATION.get().toString());
+        INFO_CTRL_PANEL_CONN_HANDLER_ADMINISTRATION.get().toString(), emptySet);
+  }
+
+  private boolean isRootMonitor(CustomSearchResult csr)
+  throws OpenDsException
+  {
+    return monitorDN.equals(DN.decode(csr.getDN()));
+  }
+
+  private boolean isSystemInformation(CustomSearchResult csr)
+  throws OpenDsException
+  {
+    return systemInformationDN.equals(DN.decode(csr.getDN()));
+  }
+
+  private boolean isJvmMemoryUsage(CustomSearchResult csr)
+  throws OpenDsException
+  {
+    return jvmMemoryUsageDN.equals(DN.decode(csr.getDN()));
+  }
+
+  private boolean isWorkQueue(CustomSearchResult csr)
+  throws OpenDsException
+  {
+    return workQueueDN.equals(DN.decode(csr.getDN()));
+  }
+
+  private boolean isEntryCaches(CustomSearchResult csr)
+  throws OpenDsException
+  {
+    return entryCachesDN.equals(DN.decode(csr.getDN()));
+  }
+
+  private boolean isConnectionHandler(CustomSearchResult csr)
+  throws OpenDsException
+  {
+    boolean isConnectionHandler = false;
+    DN dn = DN.decode(csr.getDN());
+    DN parent = dn.getParent();
+    if ((parent != null) && parent.equals(monitorDN))
+    {
+      Set vs = csr.getAttributeValues("cn");
+      if ((vs != null) && !vs.isEmpty())
+      {
+        String cn = (String)vs.iterator().next();
+        String statistics = " Statistics";
+        if (cn.endsWith(statistics))
+        {
+          isConnectionHandler = true;
+        }
+      }
+    }
+    return isConnectionHandler;
+  }
+
+  /**
+   * Commodity method to get the string representation to be used in the
+   * hash maps as key.
+   * @param value the value to be transformed into a key for a hash map.
+   * @return the string representation to be used in the hash maps as key.
+   */
+  private String getKey(String value)
+  {
+    return value.toLowerCase();
+  }
+
+  private Set<CustomSearchResult>getMonitoringEntries(
+      ConnectionHandlerDescriptor ch)
+  {
+    Set<CustomSearchResult> monitorEntries = new HashSet<CustomSearchResult>();
+    for (String key : hmConnectionHandlersMonitor.keySet())
+    {
+      if (key.indexOf(getKey(ch.getName())) != -1)
+      {
+        monitorEntries.add(hmConnectionHandlersMonitor.get(key));
+      }
+    }
+
+    return monitorEntries;
   }
 }

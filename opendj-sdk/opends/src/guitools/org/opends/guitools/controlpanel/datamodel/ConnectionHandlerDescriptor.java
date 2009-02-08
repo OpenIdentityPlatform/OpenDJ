@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -31,6 +31,8 @@ import static org.opends.messages.AdminToolMessages.*;
 
 import java.net.InetAddress;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -43,6 +45,8 @@ import org.opends.server.admin.std.meta.AdministrationConnectorCfgDefn;
  */
 public class ConnectionHandlerDescriptor
 {
+  private Set<CustomSearchResult> monitoringEntries = Collections.emptySet();
+
   /**
    * Enumeration used to represent the state of the listener.
    */
@@ -149,15 +153,19 @@ public class ConnectionHandlerDescriptor
    * @param protocol the protocol of the listener.
    * @param state the state of the connection handler (enabled, disabled, etc.).
    * @param name the name of the listener.
+   * @param monitoringEntries the LDAP entries containing the monitoring
+   * information.
    */
   public ConnectionHandlerDescriptor(Collection<InetAddress> addresses,
-      int port, Protocol protocol, State state, String name)
+      int port, Protocol protocol, State state, String name,
+      Set<CustomSearchResult> monitoringEntries)
   {
     this.addresses.addAll(addresses);
     this.port = port;
     this.protocol = protocol;
     this.state = state;
     this.name = name;
+    this.monitoringEntries = Collections.unmodifiableSet(monitoringEntries);
 
     StringBuilder builder = new StringBuilder();
     builder.append(getProtocol() + " " + getState() + " ");
@@ -198,6 +206,24 @@ public class ConnectionHandlerDescriptor
   }
 
   /**
+   * Returns the monitoring entries.
+   * @return the monitoring entries.
+   */
+  public Set<CustomSearchResult> getMonitoringEntries()
+  {
+    return monitoringEntries;
+  }
+
+  /**
+   * Sets the monitoring entries.
+   * @param monitoringEntries the monitoring entries.
+   */
+  public void setMonitoringEntries(Set<CustomSearchResult> monitoringEntries)
+  {
+    this.monitoringEntries = Collections.unmodifiableSet(monitoringEntries);
+  }
+
+  /**
    * {@inheritDoc}
    */
   public int hashCode()
@@ -226,6 +252,13 @@ public class ConnectionHandlerDescriptor
     else if (o instanceof ConnectionHandlerDescriptor)
     {
       equals = toString.equals(o.toString());
+      if (equals)
+      {
+        ConnectionHandlerDescriptor ch =
+          (ConnectionHandlerDescriptor)o;
+        // Compare monitoring entries
+        equals = (getMonitoringEntries().equals(ch.getMonitoringEntries()));
+      }
     }
     return equals;
   }
