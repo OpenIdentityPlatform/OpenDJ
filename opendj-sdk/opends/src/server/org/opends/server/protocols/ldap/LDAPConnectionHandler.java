@@ -889,133 +889,33 @@ public final class LDAPConnectionHandler extends
         // Enter a loop, waiting for new connections to arrive and
         // then accepting them as they come in.
         boolean lastIterationFailed = false;
+        int selectorState;
         while (enabled && (!shutdownRequested)) {
           try {
-            if (selector.select() > 0) {
-              Iterator<SelectionKey> iterator = selector
-                  .selectedKeys().iterator();
+            selectorState = selector.select();
 
-              while (iterator.hasNext()) {
-                SelectionKey key = iterator.next();
-                if (key.isAcceptable()) {
-                  // Accept the new client connection.
-                  ServerSocketChannel serverChannel = (ServerSocketChannel) key
-                      .channel();
-                  SocketChannel clientChannel = serverChannel
-                      .accept();
-                  LDAPClientConnection clientConnection  =
-                                          createClientConnection(clientChannel);
-                  // Check to see if the core server rejected the
-                  // connection (e.g., already too many connections
-                  // established).
-                  if (clientConnection.getConnectionID() < 0) {
-                    // The connection will have already been closed.
-                    iterator.remove();
-                    continue;
-                  }
+            // We can't rely on return value of select to deterine if any keys
+            // are ready.
+            // see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4850373
+            Iterator<SelectionKey> iterator = selector
+                .selectedKeys().iterator();
 
-                  InetAddress clientAddr = clientConnection
-                      .getRemoteAddress();
-                  // Check to see if the client is on the denied list.
-                  // If so, then reject it immediately.
-                  if ((deniedClients.length > 0)
-                      && AddressMask.maskListContains(clientAddr
-                          .getAddress(), clientAddr.getHostName(),
-                          deniedClients)) {
-                    clientConnection.disconnect(
-                        DisconnectReason.CONNECTION_REJECTED,
-                        currentConfig.isSendRejectionNotice(),
-                        ERR_LDAP_CONNHANDLER_DENIED_CLIENT.get(
-                          clientConnection.getClientHostPort(),
-                          clientConnection.getServerHostPort()));
-
-                    iterator.remove();
-                    continue;
-                  }
-                  // Check to see if there is an allowed list and if
-                  // there is whether the client is on that list. If
-                  // not, then reject the connection.
-                  if ((allowedClients.length > 0)
-                      && (!AddressMask.maskListContains(clientAddr
-                          .getAddress(), clientAddr.getHostName(),
-                          allowedClients))) {
-                    clientConnection.disconnect(
-                        DisconnectReason.CONNECTION_REJECTED,
-                        currentConfig.isSendRejectionNotice(),
-                        ERR_LDAP_CONNHANDLER_DISALLOWED_CLIENT.get(
-                          clientConnection.getClientHostPort(),
-                          clientConnection.getServerHostPort()));
-                    iterator.remove();
-                    continue;
-                  }
-                  clientChannel.socket().setKeepAlive(
-                      currentConfig.isUseTCPKeepAlive());
-                  clientChannel.socket().setTcpNoDelay(
-                      currentConfig.isUseTCPNoDelay());
-
-                  // If we've gotten here, then we'll take the
-                  // connection so invoke the post-connect plugins and
-                  // register the client connection with a request
-                  // handler.
-                  try {
-                    PluginConfigManager pluginManager = DirectoryServer
-                        .getPluginConfigManager();
-                    PluginResult.PostConnect pluginResult = pluginManager
-                        .invokePostConnectPlugins(clientConnection);
-                    if (!pluginResult.continueProcessing()) {
-                      clientConnection.disconnect(
-                          pluginResult.getDisconnectReason(),
-                          pluginResult.sendDisconnectNotification(),
-                          pluginResult.getErrorMessage());
-
-                      iterator.remove();
-                      continue;
-                    }
-
-                    LDAPRequestHandler requestHandler =
-                      requestHandlers[requestHandlerIndex++];
-                    if (requestHandlerIndex >= numRequestHandlers) {
-                      requestHandlerIndex = 0;
-                    }
-
-                    if (requestHandler
-                        .registerClient(clientConnection)) {
-                      logConnect(clientConnection);
-                    } else {
-                      iterator.remove();
-                      continue;
-                    }
-                  } catch (Exception e) {
-                    if (debugEnabled())
-                    {
-                      TRACER.debugCaught(DebugLogLevel.ERROR, e);
-                    }
-
-                    Message message =
-                      INFO_LDAP_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.
-                          get(clientConnection.getClientHostPort(),
-                              clientConnection.getServerHostPort(),
-                              getExceptionMessage(e));
-                    logError(message);
-
-                    clientConnection.disconnect(
-                        DisconnectReason.SERVER_ERROR, currentConfig
-                            .isSendRejectionNotice(), message);
-
-                    iterator.remove();
-                    continue;
-                  }
-                }
-
-                iterator.remove();
+            while (iterator.hasNext()) {
+              SelectionKey key = iterator.next();
+              iterator.remove();
+              if (key.isAcceptable()) {
+                acceptConnection(key);
               }
-            } else {
-              if (shutdownRequested) {
-                cleanUpSelector();
-                selector.close();
-                listening = false;
-                enabled = false;
-                continue;
+
+              if(selectorState == 0 && enabled && (!shutdownRequested) &&
+                  debugEnabled())
+              {
+                // Selected keys was non empty but select() returned 0.
+                // Log warning and hope it blocks on the next select() call.
+                TRACER.debugWarning("Selector.select() returned 0. " +
+                    "Selected Keys: %d, Interest Ops: %d, Ready Ops: %d ",
+                    selector.selectedKeys().size(), key.interestOps(),
+                    key.readyOps());
               }
             }
 
@@ -1057,6 +957,14 @@ public final class LDAPConnectionHandler extends
             }
           }
         }
+
+        if (shutdownRequested) {
+          cleanUpSelector();
+          selector.close();
+          listening = false;
+          enabled = false;
+        }
+
       } catch (Exception e) {
         if (debugEnabled())
         {
@@ -1086,7 +994,112 @@ public final class LDAPConnectionHandler extends
     }
   }
 
+  private void acceptConnection(SelectionKey key)
+      throws IOException, DirectoryException
+  {
+    // Accept the new client connection.
+    ServerSocketChannel serverChannel = (ServerSocketChannel) key
+        .channel();
+    SocketChannel clientChannel = serverChannel
+        .accept();
 
+    if(clientChannel == null)
+    {
+      // There wasn't a connection pending.
+      return;
+    }
+
+    LDAPClientConnection clientConnection  =
+        createClientConnection(clientChannel);
+    // Check to see if the core server rejected the
+    // connection (e.g., already too many connections
+    // established).
+    if (clientConnection.getConnectionID() < 0) {
+      // The connection will have already been closed.
+      return;
+    }
+
+    InetAddress clientAddr = clientConnection
+        .getRemoteAddress();
+    // Check to see if the client is on the denied list.
+    // If so, then reject it immediately.
+    if ((deniedClients.length > 0)
+        && AddressMask.maskListContains(clientAddr
+        .getAddress(), clientAddr.getHostName(),
+        deniedClients)) {
+      clientConnection.disconnect(
+          DisconnectReason.CONNECTION_REJECTED,
+          currentConfig.isSendRejectionNotice(),
+          ERR_LDAP_CONNHANDLER_DENIED_CLIENT.get(
+              clientConnection.getClientHostPort(),
+              clientConnection.getServerHostPort()));
+      return;
+    }
+    // Check to see if there is an allowed list and if
+    // there is whether the client is on that list. If
+    // not, then reject the connection.
+    if ((allowedClients.length > 0)
+        && (!AddressMask.maskListContains(clientAddr
+        .getAddress(), clientAddr.getHostName(),
+        allowedClients))) {
+      clientConnection.disconnect(
+          DisconnectReason.CONNECTION_REJECTED,
+          currentConfig.isSendRejectionNotice(),
+          ERR_LDAP_CONNHANDLER_DISALLOWED_CLIENT.get(
+              clientConnection.getClientHostPort(),
+              clientConnection.getServerHostPort()));
+      return;
+    }
+    clientChannel.socket().setKeepAlive(
+        currentConfig.isUseTCPKeepAlive());
+    clientChannel.socket().setTcpNoDelay(
+        currentConfig.isUseTCPNoDelay());
+
+    // If we've gotten here, then we'll take the
+    // connection so invoke the post-connect plugins and
+    // register the client connection with a request
+    // handler.
+    try {
+      PluginConfigManager pluginManager = DirectoryServer
+          .getPluginConfigManager();
+      PluginResult.PostConnect pluginResult = pluginManager
+          .invokePostConnectPlugins(clientConnection);
+      if (!pluginResult.continueProcessing()) {
+        clientConnection.disconnect(
+            pluginResult.getDisconnectReason(),
+            pluginResult.sendDisconnectNotification(),
+            pluginResult.getErrorMessage());
+        return;
+      }
+
+      LDAPRequestHandler requestHandler =
+          requestHandlers[requestHandlerIndex++];
+      if (requestHandlerIndex >= numRequestHandlers) {
+        requestHandlerIndex = 0;
+      }
+
+      if (requestHandler
+          .registerClient(clientConnection)) {
+        logConnect(clientConnection);
+      }
+    } catch (Exception e) {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      Message message =
+          INFO_LDAP_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.
+              get(clientConnection.getClientHostPort(),
+                  clientConnection.getServerHostPort(),
+                  getExceptionMessage(e));
+      logError(message);
+
+      clientConnection.disconnect(
+          DisconnectReason.SERVER_ERROR, currentConfig
+              .isSendRejectionNotice(), message);
+    }
+  }
 
   /**
    * Appends a string representation of this connection handler to the

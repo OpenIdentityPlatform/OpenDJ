@@ -280,12 +280,6 @@ public class LDAPClientConnection extends ClientConnection implements
       statTracker.updateConnect();
     }
 
-    connectionID = DirectoryServer.newConnectionAccepted(this);
-    if (connectionID < 0)
-    {
-      disconnect(DisconnectReason.ADMIN_LIMIT_EXCEEDED, true,
-          ERR_LDAP_CONNHANDLER_REJECTED_BY_SERVER.get());
-    }
     cachedBuffers = new ThreadLocal<WriterBuffer>();
     tlsChannel =
         RedirectingByteChannel.getRedirectingByteChannel(clientChannel);
@@ -294,6 +288,13 @@ public class LDAPClientConnection extends ClientConnection implements
     this.asn1Reader =
         ASN1.getReader(saslChannel, 4096, connectionHandler
             .getMaxRequestSize());
+
+    connectionID = DirectoryServer.newConnectionAccepted(this);
+    if (connectionID < 0)
+    {
+      disconnect(DisconnectReason.ADMIN_LIMIT_EXCEEDED, true,
+          ERR_LDAP_CONNHANDLER_REJECTED_BY_SERVER.get());
+    }
   }
 
 
