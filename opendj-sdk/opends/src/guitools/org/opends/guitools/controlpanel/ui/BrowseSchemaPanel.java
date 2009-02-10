@@ -184,7 +184,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
   private Message CATEGORY_ITEM_SELECTED =
     INFO_CTRL_PANEL_CATEGORY_ITEM_SELECTED.get();
   private Message MULTIPLE_ITEMS_SELECTED =
-    INFO_CTRL_PANEL_MULTIPLE_ITEMS_SELECTED.get();
+    INFO_CTRL_PANEL_MULTIPLE_SCHEMA_ITEMS_SELECTED.get();
 
   /**
    * Default constructor.
@@ -199,6 +199,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean requiresBorder()
   {
     return false;
@@ -207,6 +208,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean requiresScroll()
   {
     return false;
@@ -215,6 +217,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean callConfigurationChangedInBackground()
   {
     return true;
@@ -223,6 +226,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void toBeDisplayed(boolean visible)
   {
     ((GenericDialog)Utilities.getParentDialog(this)).getRootPane().
@@ -316,6 +320,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       /**
        * {@inheritDoc}
        */
+      @Override
       public void keyReleased(KeyEvent e)
       {
         if ((e.getKeyCode() == KeyEvent.VK_ENTER) && applyButton.isEnabled())
@@ -421,6 +426,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getTitle()
   {
     return INFO_CTRL_PANEL_MANAGE_SCHEMA_TITLE.get();
@@ -429,6 +435,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return filter;
@@ -437,6 +444,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void closeClicked()
   {
     setSecondaryValid(lFilter);
@@ -446,6 +454,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void okClicked()
   {
     // No ok button
@@ -454,6 +463,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.NO_BUTTON;
@@ -599,6 +609,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setInfo(ControlPanelInfo info)
   {
     super.setInfo(info);
@@ -1807,6 +1818,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public Component getTreeCellRendererComponent(JTree tree, Object value,
         boolean isSelected, boolean isExpanded, boolean isLeaf, int row,
         boolean hasFocus)

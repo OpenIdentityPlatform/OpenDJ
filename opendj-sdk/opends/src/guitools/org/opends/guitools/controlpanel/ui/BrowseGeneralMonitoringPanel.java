@@ -85,7 +85,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
   private Message NO_ELEMENT_SELECTED =
     INFO_CTRL_PANEL_GENERAL_MONITORING_NO_ITEM_SELECTED.get();
   private Message MULTIPLE_ITEMS_SELECTED =
-    INFO_CTRL_PANEL_MULTIPLE_ITEMS_SELECTED.get();
+    INFO_CTRL_PANEL_MULTIPLE_ITEMS_SELECTED_LABEL.get();
 
   /**
    * The enumeration used to define the different static nodes of the tree.
@@ -137,6 +137,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean requiresBorder()
   {
     return false;
@@ -145,6 +146,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean requiresScroll()
   {
     return false;
@@ -153,6 +155,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean callConfigurationChangedInBackground()
   {
     return true;
@@ -161,6 +164,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void toBeDisplayed(boolean visible)
   {
     ((GenericDialog)Utilities.getParentDialog(this)).getRootPane().
@@ -195,6 +199,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getTitle()
   {
     return INFO_CTRL_PANEL_GENERAL_MONITORING_TITLE.get();
@@ -203,6 +208,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return treePane;
@@ -211,6 +217,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void okClicked()
   {
     // No ok button
@@ -219,6 +226,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.CLOSE;
@@ -294,6 +302,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setInfo(ControlPanelInfo info)
   {
     super.setInfo(info);
@@ -622,6 +631,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public Component getTreeCellRendererComponent(JTree tree, Object value,
         boolean isSelected, boolean isExpanded, boolean isLeaf, int row,
         boolean hasFocus)

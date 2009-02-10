@@ -22,12 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.messages;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.util.StaticUtils;
+
 import static org.testng.Assert.*;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -37,6 +39,8 @@ import java.io.FilenameFilter;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -46,6 +50,10 @@ import java.util.HashSet;
  */
 public class PropertiesFilesTest extends MessagesTestCase {
 
+  /**
+   * Creates date for testForDuplicateKeys.
+   * @return The test data.
+   */
   @DataProvider(name = "messagePropertiesFiles")
   public Object[][] getMessagePropertiesFiles() {
     File propFilesDir = getPropertiesFilesDirectory();
@@ -73,24 +81,40 @@ public class PropertiesFilesTest extends MessagesTestCase {
    * @throws IOException if problems reading the file
    */
   @Test(dataProvider = "messagePropertiesFiles")
-  public void testForDuplicateKeys(File propertiesFile) throws IOException {
+  public void testForDuplicateKeys(File propertiesFile)
+      throws IOException
+  {
     Set<String> keys = new HashSet<String>();
-    BufferedReader reader = new BufferedReader(new FileReader(propertiesFile));
+    BufferedReader reader =
+        new BufferedReader(new FileReader(propertiesFile));
+    List<String> errors = new LinkedList<String>();
+
     String prevLine = null;
     String line;
-    while (null != (line = reader.readLine())) {
-      if (!(prevLine == null || prevLine.endsWith("\\")) && // not a value continuation
-          !(line.startsWith("#")) && // not a comment
-          (line.indexOf('=') > 0)) { // defines a key
+    while (null != (line = reader.readLine()))
+    {
+      if (!(prevLine == null || prevLine.endsWith("\\")) // not a value continuation
+          && !(line.startsWith("#")) // not a comment
+          && (line.indexOf('=') > 0))
+      {
+        // defines a key
         String key = line.substring(0, line.indexOf('='));
-        assertFalse(keys.contains(key),
-                "Key " + key + " is defined multiple places in " +
-                        propertiesFile.getName());
-        keys.add(key);
+        if (keys.contains(key))
+        {
+          errors.add(key);
+        }
+        else
+        {
+          keys.add(key);
+        }
       }
       prevLine = line;
     }
 
+    assertTrue(errors.isEmpty(),
+        "The following keys are defined multiple times in "
+            + propertiesFile.getName() + ":" + EOL
+            + StaticUtils.listToString(errors, EOL));
   }
 
   private File getPropertiesFilesDirectory() {
