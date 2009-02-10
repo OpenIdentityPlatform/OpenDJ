@@ -219,6 +219,35 @@ public class NetworkGroupConfigManager implements
 
 
   /**
+   * Finalizes all network groups currently defined in the Directory
+   * Server configuration. This should only be called at Directory
+   * Server shutdown.
+   */
+  public void finalizeNetworkGroups()
+  {
+    // Get the root configuration object.
+    ServerManagementContext managementContext =
+        ServerManagementContext.getInstance();
+    RootCfg rootConfiguration =
+        managementContext.getRootConfiguration();
+
+    // Remove add / delete listeners.
+    rootConfiguration.removeNetworkGroupAddListener(this);
+    rootConfiguration.removeNetworkGroupDeleteListener(this);
+
+    // Finalize the existing network groups.
+    for (NetworkGroup networkGroup : networkGroups.values())
+    {
+      networkGroup.finalizeNetworkGroup();
+    }
+
+    // Clean up remaining state so that it is possible to reinitialize.
+    networkGroups.clear();
+  }
+
+
+
+  /**
    * Initializes all network groups currently defined in the Directory
    * Server configuration. This should only be called at Directory
    * Server startup.

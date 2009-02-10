@@ -747,6 +747,77 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   }
 
 
+
+  /**
+   * Tests that routing mode changes cause the network group config
+   * manager to be initialized, shutdown, and reinitialized correctly.
+   *
+   * @see <a
+   *      href="https://opends.dev.java.net/issues/show_bug.cgi?id=3775">Issue 3775</a>
+   * @throws Exception
+   *           If an unexpected error occurred.
+   */
+  @Test
+  public void testIssue3775() throws Exception
+  {
+    // Switch to and from manual mode twice in order to ensure that the
+    // config manager is initialized twice. Then register a network
+    // group. If the initialization has worked properly the network
+    // group should be added successfully. In the case of issue 3775,
+    // the config add listeners ended up being added twice so adding a
+    // network group failed because the admin framework thought it had
+    // been added twice.
+
+    // Switch to manual mode once.
+    TestCaseUtils.dsconfig(
+        "set-global-configuration-prop",
+        "--set", "workflow-configuration-mode:manual");
+
+    try
+    {
+      // Switch back.
+      TestCaseUtils.dsconfig(
+          "set-global-configuration-prop",
+          "--set", "workflow-configuration-mode:auto");
+
+      // Switch to manual mode twice.
+      TestCaseUtils.dsconfig(
+          "set-global-configuration-prop",
+          "--set", "workflow-configuration-mode:manual");
+
+      // Now add network group.
+      final String networkGroupID = "Network group issue 3775";
+
+      TestCaseUtils.dsconfig(
+          "create-network-group",
+          "--group-name", networkGroupID,
+          "--set", "enabled:true",
+          "--set", "priority:" + 123);
+
+      try
+      {
+        // Ensure that the network group was created ok.
+        NetworkGroup networkGroup = NetworkGroup.getNetworkGroup(networkGroupID);
+        assertNotNull(networkGroup, "The network group does not seem to be registered.");
+      }
+      finally
+      {
+        // Remove the network group.
+        TestCaseUtils.dsconfig(
+            "delete-network-group",
+            "--group-name", networkGroupID);
+      }
+    }
+    finally
+    {
+      TestCaseUtils.dsconfig(
+          "set-global-configuration-prop",
+          "--set", "workflow-configuration-mode:auto");
+    }
+  }
+
+
+
   /**
    * Tests the network group resource limits
    *
