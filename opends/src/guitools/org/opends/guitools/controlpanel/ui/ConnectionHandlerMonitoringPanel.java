@@ -76,8 +76,6 @@ import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor.
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor.
  State;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
-import org.opends.guitools.controlpanel.ui.StatusGenericPanel.
- IgnoreItemListener;
 import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.guitools.controlpanel.util.ViewPositions;
@@ -259,6 +257,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getTitle()
   {
     return INFO_CTRL_PANEL_CONNECTION_HANDLER_MONITORING_TITLE.get();
@@ -267,6 +266,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public JMenuBar getMenuBar()
   {
     if (menuBar == null)
@@ -397,6 +397,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return connectionHandlers;
@@ -405,6 +406,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void okClicked()
   {
     // No ok button
@@ -413,6 +415,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.CLOSE;
@@ -422,6 +425,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean requiresBorder()
   {
     return false;
@@ -430,6 +434,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean requiresScroll()
   {
     return false;
@@ -542,7 +547,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
           {
             if (ch.getProtocol() != Protocol.LDIF)
             {
-              cchs.add((ConnectionHandlerDescriptor)ch);
+              cchs.add(ch);
             }
           }
           cchs.add(server.getAdminConnector());
@@ -554,7 +559,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
           {
             if (getConnectionHandlerLabel(ch).equals(name))
             {
-              cchs.add((ConnectionHandlerDescriptor)ch);
+              cchs.add(ch);
               break;
             }
           }
@@ -593,6 +598,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     protected void addMenus()
     {
       add(createViewMenuBar());
@@ -603,6 +609,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
      * Creates the view menu bar.
      * @return the view menu bar.
      */
+    @Override
     protected JMenu createViewMenuBar()
     {
       JMenu menu = Utilities.createMenu(
@@ -655,6 +662,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public Component getListCellRendererComponent(JList list, Object value,
         int index, boolean isSelected, boolean cellHasFocus)
     {
