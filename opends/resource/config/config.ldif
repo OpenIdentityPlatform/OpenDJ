@@ -2460,6 +2460,20 @@ ds-cfg-trust-store-file: config/admin-truststore
 dn: cn=Extensions,cn=config
 objectClass: top
 objectClass: ds-cfg-branch
-objectClass: ds-cfg-plugin-root
 cn: Extensions
+
+dn: cn=Network Groups,cn=config
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Network Groups
+
+dn: cn=Workflows,cn=config
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Workflows
+
+dn: cn=Workflow Elements,cn=config
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Workflow Elements
 

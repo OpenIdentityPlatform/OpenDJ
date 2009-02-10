@@ -2569,8 +2569,11 @@ public class DirectoryServer
     workflowConfigManager = new WorkflowConfigManager();
     workflowConfigManager.initializeWorkflows();
 
-    networkGroupConfigManager = new NetworkGroupConfigManager();
-    networkGroupConfigManager.initializeNetworkGroups();
+    if (networkGroupConfigManager == null)
+    {
+      networkGroupConfigManager = new NetworkGroupConfigManager();
+      networkGroupConfigManager.initializeNetworkGroups();
+    }
   }
 
 
@@ -2583,6 +2586,13 @@ public class DirectoryServer
    */
   private void configureWorkflowsAuto() throws ConfigException
   {
+    // Make sure that the network group config manager is finalized.
+    if (networkGroupConfigManager != null)
+    {
+      networkGroupConfigManager.finalizeNetworkGroups();
+      networkGroupConfigManager = null;
+    }
+
     // First of all re-initialize the current workflow configuration
     NetworkGroup.resetConfig();
     WorkflowImpl.resetConfig();
