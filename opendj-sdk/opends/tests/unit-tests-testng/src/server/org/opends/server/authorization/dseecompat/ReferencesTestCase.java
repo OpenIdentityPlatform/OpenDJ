@@ -96,11 +96,6 @@ public class ReferencesTestCase extends AciTestCase{
     TestCaseUtils.clearJEBackend(false,"userRoot", suffix);
   }
 
-  @BeforeMethod
-  public void clearBackend() throws Exception {
-    deleteAttrFromEntry(adminBase, "aci");
-    deleteAttrFromAdminEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
-  }
 
   /**
    * Test using ACI added to admin base containing "ref" attribute type name
@@ -110,6 +105,7 @@ public class ReferencesTestCase extends AciTestCase{
    */
   @Test()
   public void testRef() throws Exception {
+    try {
     String pwdLdifs =
             makeAddLDIF("aci", adminBase, ALLOW_OC);
 
@@ -118,7 +114,11 @@ public class ReferencesTestCase extends AciTestCase{
             LDAPSearchParams(level5User, PWD, null,null, null,
                     adminBase, filter, null);
     Assert.assertTrue(isRefMap(userResults));
+    } finally {
+      deleteAttrFromEntry(adminBase, "aci");
+    }
   }
+
 
   /**
    * Test using ACI added to actual referral entry (added using ldifmodify
@@ -128,6 +128,7 @@ public class ReferencesTestCase extends AciTestCase{
    */
   @Test()
   public void testRefAci() throws Exception {
+    try {
     String pwdLdifs =
             makeAddLDIF("aci", smartReferralAdmin, ALLOW_OC);
     //Add the ACI passing the manageDsaIT control.
@@ -136,8 +137,13 @@ public class ReferencesTestCase extends AciTestCase{
             LDAPSearchParams(level5User, PWD, null,null, null,
                     adminBase, filter, null);
     Assert.assertTrue(isRefMap(userResults));
+    } finally {
+      String delPwdLdifs =
+        makeDelLDIF("aci", smartReferralAdmin, ALLOW_OC);
+      //Delete the ACI passing the manageDsaIT control.
+      LDIFModify(delPwdLdifs, DIR_MGR_DN, PWD, ctrlString);
+    }
   }
-
 
 
   /**
@@ -149,6 +155,7 @@ public class ReferencesTestCase extends AciTestCase{
    */
   @Test()
   public void testGlobalTargetAci() throws Exception {
+    try {
     String pwdLdifs =
             makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN, ALLOW_PEOPLE);
     LDIFAdminModify(pwdLdifs, DIR_MGR_DN, PWD);
@@ -162,8 +169,10 @@ public class ReferencesTestCase extends AciTestCase{
             LDAPSearchParams(level5User, PWD, null,null, null,
                     peopleBase, filter, null);
     Assert.assertTrue(isRefMap(userResults1));
+    } finally {
+      deleteAttrFromAdminEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
+    }
   }
-
 
 
   /**
@@ -174,6 +183,7 @@ public class ReferencesTestCase extends AciTestCase{
    */
   @Test()
   public void testGlobalAci() throws Exception {
+    try {
     String pwdLdifs =
            makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN, ALLOW_OC_PLUS);
     LDIFAdminModify(pwdLdifs, DIR_MGR_DN, PWD);
@@ -181,6 +191,9 @@ public class ReferencesTestCase extends AciTestCase{
             LDAPSearchParams(level5User, PWD, null,null, null,
                     adminBase, filter, null);
     Assert.assertTrue(isRefMap(userResults));
+    } finally {
+      deleteAttrFromAdminEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
+    }
   }
 
 
