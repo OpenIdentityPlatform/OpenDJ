@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.util.cli;
@@ -677,7 +677,29 @@ public class LDAPConnectionConsoleInteraction {
               .unableToReadConnectionParameters(e);
         }
       }
-      if (useAdmin)
+      if (useAdminOrBindDn)
+      {
+        boolean addAdmin = providedAdminUID != null;
+        boolean addBindDN = providedBindDN != null;
+        if (!addAdmin && !addBindDN)
+        {
+          addAdmin = getAdministratorUID() != null;
+          addBindDN = getBindDN() != null;
+        }
+        if (addAdmin)
+        {
+          copySecureArgsList.adminUidArg.clearValues();
+          copySecureArgsList.adminUidArg.addValue(getAdministratorUID());
+          commandBuilder.addArgument(copySecureArgsList.adminUidArg);
+        }
+        else if (addBindDN)
+        {
+          copySecureArgsList.bindDnArg.clearValues();
+          copySecureArgsList.bindDnArg.addValue(getBindDN());
+          commandBuilder.addArgument(copySecureArgsList.bindDnArg);
+        }
+      }
+      else if (useAdmin)
       {
         copySecureArgsList.adminUidArg.clearValues();
         copySecureArgsList.adminUidArg.addValue(getAdministratorUID());
@@ -696,6 +718,7 @@ public class LDAPConnectionConsoleInteraction {
       adminUID = null;
     }
 
+    boolean addedPasswordFileArgument = false;
     bindPassword = secureArgsList.bindPasswordArg.getValue();
     if (keyManager == null)
     {
@@ -718,7 +741,8 @@ public class LDAPConnectionConsoleInteraction {
         copySecureArgsList.bindPasswordFileArg.clearValues();
         copySecureArgsList.bindPasswordFileArg.getNameToValueMap().putAll(
             secureArgsList.bindPasswordFileArg.getNameToValueMap());
-        commandBuilder.addArgument(secureArgsList.bindPasswordFileArg);
+        commandBuilder.addArgument(copySecureArgsList.bindPasswordFileArg);
+        addedPasswordFileArgument = true;
       }
       else if (bindPassword == null || bindPassword.equals("-"))
       {
@@ -761,8 +785,11 @@ public class LDAPConnectionConsoleInteraction {
       }
       copySecureArgsList.bindPasswordArg.clearValues();
       copySecureArgsList.bindPasswordArg.addValue(bindPassword);
-      commandBuilder.addObfuscatedArgument(
+      if (!addedPasswordFileArgument)
+      {
+        commandBuilder.addObfuscatedArgument(
           copySecureArgsList.bindPasswordArg);
+      }
     }
   }
 

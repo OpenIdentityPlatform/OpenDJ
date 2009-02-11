@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin.client.cli;
@@ -486,10 +486,11 @@ public final class SecureConnectionCliArgs
     // It is up to the classes that required admin UID to make this argument
     // visible and add it.
     adminUidArg = new StringArgument("adminUID", 'I',
-        "adminUID", false, false, true, INFO_ADMINUID_PLACEHOLDER.get(),
+        OPTION_LONG_ADMIN_UID, false, false, true,
+        INFO_ADMINUID_PLACEHOLDER.get(),
         Constants.GLOBAL_ADMIN_UID, null,
         INFO_DESCRIPTION_ADMIN_UID.get());
-    adminUidArg.setPropertyName("adminUID");
+    adminUidArg.setPropertyName(OPTION_LONG_ADMIN_UID);
     adminUidArg.setHidden(true);
 
     bindPasswordArg = new StringArgument("bindPassword",
