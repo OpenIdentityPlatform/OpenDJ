@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.util.cli;
@@ -248,7 +248,7 @@ public class CommandBuilder
    * @return <CODE>true</CODE> if the attribute's values must be obfuscated and
    * <CODE>false</CODE> otherwise.
    */
-  private boolean isObfuscated(Argument argument)
+  public boolean isObfuscated(Argument argument)
   {
     return obfuscatedArgs.contains(argument);
   }

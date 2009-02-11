@@ -31,6 +31,7 @@ import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 
+import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -66,7 +67,10 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private SubCommand preExternalInitializationSubCmd;
   private SubCommand statusReplicationSubCmd;
 
-  private BooleanArgument noPromptArg;
+  /**
+   * No-prompt argument.
+   */
+  BooleanArgument noPromptArg;
 
   private String defaultLocalHostValue;
 
@@ -88,22 +92,22 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * The 'bindPasswordFile' argument for the first server.
    */
-  private FileBasedArgument bindPasswordFile1Arg = null;
+  FileBasedArgument bindPasswordFile1Arg = null;
 
   /**
    * The 'bindPassword' argument for the first server.
    */
-  private StringArgument bindPassword1Arg = null;
+  StringArgument bindPassword1Arg = null;
 
   /**
    * The 'replicationPort' argument for the first server.
    */
-  private IntegerArgument replicationPort1Arg = null;
+  IntegerArgument replicationPort1Arg = null;
 
   /**
    * The 'secureReplication' argument for the first server.
    */
-  private BooleanArgument secureReplication1Arg = null;
+  BooleanArgument secureReplication1Arg = null;
 
   /**
    * The 'hostName' argument for the second server.
@@ -123,12 +127,12 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * The 'bindPasswordFile' argument for the second server.
    */
-  private FileBasedArgument bindPasswordFile2Arg = null;
+  FileBasedArgument bindPasswordFile2Arg = null;
 
   /**
    * The 'bindPassword' argument for the second server.
    */
-  private StringArgument bindPassword2Arg = null;
+  StringArgument bindPassword2Arg = null;
 
   /**
    * The 'replicationPort' argument for the second server.
@@ -148,7 +152,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * The 'noSchemaReplication' argument to not replicate schema.
    */
-  private BooleanArgument noSchemaReplicationArg;
+  BooleanArgument noSchemaReplicationArg;
 
   /**
    * The 'useSecondServerAsSchemaSource' argument to not replicate schema.
@@ -189,12 +193,34 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * The 'quiet' argument.
    */
-  private BooleanArgument quietArg;
+  BooleanArgument quietArg;
 
   /**
    * The 'scriptFriendly' argument.
    */
-  private BooleanArgument scriptFriendlyArg;
+  BooleanArgument scriptFriendlyArg;
+
+  /**
+   * Properties file argument.
+   */
+  StringArgument propertiesFileArgument;
+
+  /**
+   * No-properties file argument.
+   */
+  BooleanArgument noPropertiesFileArgument;
+
+  /**
+   * The argument that the user must set to display the equivalent
+   * non-interactive mode argument.
+   */
+  BooleanArgument displayEquivalentArgument;
+
+  /**
+   * The argument that allows the user to dump the equivalent non-interactive
+   * command to a file.
+   */
+  StringArgument equivalentCommandFileArgument;
 
   /**
    * The text of the enable replication subcommand.
@@ -307,6 +333,28 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       errors.add(message);
     }
 
+    // Check that we can write on the provided path where we write the
+    // equivalent non-interactive commands.
+    if (equivalentCommandFileArgument.isPresent())
+    {
+      String file = equivalentCommandFileArgument.getValue();
+      if (!Utils.canWrite(file))
+      {
+        errors.add(
+            ERR_REPLICATION_CANNOT_WRITE_EQUIVALENT_COMMAND_LINE_FILE.get(
+                file));
+      }
+      else
+      {
+        File f = new File(file);
+        if (f.isDirectory())
+        {
+          errors.add(
+              ERR_REPLICATION_EQUIVALENT_COMMAND_LINE_FILE_DIRECTORY.get(file));
+        }
+      }
+    }
+
     if (!isInteractive())
     {
       // Check that we have the required data
@@ -379,8 +427,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     {
       defaultArgs.remove(argsToRemove[i]);
     }
-    defaultArgs.remove(noPropertiesFileArg);
-    defaultArgs.remove(propertiesFileArg);
+    defaultArgs.remove(super.noPropertiesFileArg);
+    defaultArgs.remove(super.propertiesFileArg);
     // Remove it from the default location and redefine it.
     defaultArgs.remove(secureArgsList.adminUidArg);
 
@@ -394,11 +442,12 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     defaultArgs.add(index++, baseDNsArg);
 
     secureArgsList.adminUidArg = new StringArgument("adminUID", 'I',
-        "adminUID", false, false, true, INFO_ADMINUID_PLACEHOLDER.get(),
+        OPTION_LONG_ADMIN_UID, false, false, true,
+        INFO_ADMINUID_PLACEHOLDER.get(),
         Constants.GLOBAL_ADMIN_UID, null,
         INFO_DESCRIPTION_REPLICATION_ADMIN_UID.get(
             ENABLE_REPLICATION_SUBCMD_NAME));
-    secureArgsList.adminUidArg.setPropertyName("adminUID");
+    secureArgsList.adminUidArg.setPropertyName(OPTION_LONG_ADMIN_UID);
     secureArgsList.adminUidArg.setHidden(false);
     defaultArgs.add(index++, secureArgsList.adminUidArg);
 
@@ -416,6 +465,14 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     defaultArgs.add(index++, secureArgsList.bindPasswordFileArg);
 
     defaultArgs.remove(verboseArg);
+
+    quietArg = new BooleanArgument(
+        OPTION_LONG_QUIET,
+        OPTION_SHORT_QUIET,
+        OPTION_LONG_QUIET,
+        INFO_REPLICATION_DESCRIPTION_QUIET.get());
+    defaultArgs.add(index++, quietArg);
+
     noPromptArg = new BooleanArgument(
         OPTION_LONG_NO_PROMPT,
         OPTION_SHORT_NO_PROMPT,
@@ -423,32 +480,37 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_DESCRIPTION_NO_PROMPT.get());
     defaultArgs.add(index++, noPromptArg);
 
+    displayEquivalentArgument = new BooleanArgument(
+        OPTION_DSCFG_LONG_DISPLAY_EQUIVALENT,
+        null, OPTION_DSCFG_LONG_DISPLAY_EQUIVALENT,
+        INFO_REPLICATION_DESCRIPTION_DISPLAY_EQUIVALENT.get());
+    defaultArgs.add(index++, displayEquivalentArgument);
+
+    equivalentCommandFileArgument = new StringArgument(
+        OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH, null,
+        OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH, false, false, true,
+        INFO_PATH_PLACEHOLDER.get(), null, null,
+        INFO_REPLICATION_DESCRIPTION_EQUIVALENT_COMMAND_FILE_PATH.get());
+    defaultArgs.add(index++, equivalentCommandFileArgument);
+
     for (int i=0; i<index; i++)
     {
       Argument arg = defaultArgs.get(i);
       arg.setPropertyName(arg.getLongIdentifier());
     }
 
-    quietArg = new BooleanArgument(
-        OPTION_LONG_QUIET,
-        OPTION_SHORT_QUIET,
-        OPTION_LONG_QUIET,
-        INFO_REPLICATION_DESCRIPTION_QUIET.get());
-    quietArg.setPropertyName(OPTION_LONG_QUIET);
-    defaultArgs.add(quietArg);
-
-    StringArgument propertiesFileArgument = new StringArgument(
+    this.propertiesFileArgument = new StringArgument(
         "propertiesFilePath", null, OPTION_LONG_PROP_FILE_PATH, false, false,
         true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_PROP_FILE_PATH.get());
-    defaultArgs.add(propertiesFileArgument);
-    setFilePropertiesArgument(propertiesFileArgument);
+    defaultArgs.add(this.propertiesFileArgument);
+    setFilePropertiesArgument(this.propertiesFileArgument);
 
-    BooleanArgument noPropertiesFileArgument = new BooleanArgument(
+    this.noPropertiesFileArgument = new BooleanArgument(
         "noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
         INFO_DESCRIPTION_NO_PROP_FILE.get());
-    defaultArgs.add(noPropertiesFileArgument);
-    setNoPropertiesFileArgument(noPropertiesFileArgument);
+    defaultArgs.add(this.noPropertiesFileArgument);
+    setNoPropertiesFileArgument(this.noPropertiesFileArgument);
 
     initializeGlobalArguments(defaultArgs);
   }
@@ -467,7 +529,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         null, INFO_DESCRIPTION_ENABLE_REPLICATION_HOST1.get());
 
     port1Arg = new IntegerArgument("port1", OPTION_SHORT_PORT, "port1",
-        false, false, true, INFO_PORT_PLACEHOLDER.get(), 389, null,
+        false, false, true, INFO_PORT_PLACEHOLDER.get(), 4444, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT1.get());
 
     bindDn1Arg = new StringArgument("bindDN1", OPTION_SHORT_BINDDN,
@@ -500,7 +562,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         null, INFO_DESCRIPTION_ENABLE_REPLICATION_HOST2.get());
 
     port2Arg = new IntegerArgument("port2", null, "port2",
-        false, false, true, INFO_PORT_PLACEHOLDER.get(), 389, null,
+        false, false, true, INFO_PORT_PLACEHOLDER.get(), 4444, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT2.get());
 
     bindDn2Arg = new StringArgument("bindDN2", null,
@@ -597,7 +659,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_HOST_SOURCE.get());
 
     portSourceArg = new IntegerArgument("portSource", OPTION_SHORT_PORT,
-        "portSource", false, false, true, INFO_PORT_PLACEHOLDER.get(), 389,
+        "portSource", false, false, true, INFO_PORT_PLACEHOLDER.get(), 4444,
         null,
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_SOURCE.get());
 
@@ -607,7 +669,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_HOST_DESTINATION.get());
 
     portDestinationArg = new IntegerArgument("portDestination", null,
-        "portDestination", false, false, true, INFO_PORT_PLACEHOLDER.get(), 389,
+        "portDestination", false, false, true, INFO_PORT_PLACEHOLDER.get(),
+        4444,
         null,
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_DESTINATION.get());
 
