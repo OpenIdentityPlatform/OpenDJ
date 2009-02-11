@@ -259,7 +259,9 @@ public class TLSByteChannel implements
      * {@inheritDoc}
      */
     public boolean isOpen() {
-        return sslEngine.isInboundDone() && sslEngine.isOutboundDone();
+        if(sslEngine.isInboundDone() || sslEngine.isOutboundDone())
+          return false;
+        return true;
     }
 
     /**
