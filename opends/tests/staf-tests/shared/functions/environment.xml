@@ -221,7 +221,7 @@
         <!-- Get Directory Server Variables -->
         <call function="'GetDirectoryServerVars'">
           { 'location'  : STAF_REMOTE_HOSTNAME,
-            'dsPath'    : '%s' % InstanceInstallDir  }
+            'dsPath'    : '%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)  }
         </call>
 
         <if expr="RC != 0">
@@ -401,11 +401,11 @@
       </message>
       <call function="'deleteFolder'">
         { 'location'   : STAF_REMOTE_HOSTNAME ,
-          'foldername' : DIRECTORY_INSTANCE_DIR }
+          'foldername' : '%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME) }
       </call>
       <call function="'createFolder'">
         { 'location'   : STAF_REMOTE_HOSTNAME ,
-          'foldername' : DIRECTORY_INSTANCE_DIR }
+          'foldername' : '%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME) }
       </call>
 
       <call function="'GetDirectoryServerInformation'"/>

@@ -67,7 +67,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath"
                         type="optional"
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -216,7 +216,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-     <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+     <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -330,7 +330,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath"
                        type="optional"
-                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -561,160 +561,6 @@
     </sequence>
   </function>
 
-
-  <!-- This function restart DS using the stop-ds script -->    
-  <function name="RestartDs">
-    <function-prolog>
-      This function restarts a Directory Server
-    </function-prolog>    
-    <function-map-args>    
-      <function-arg-def name="location"
-                        type="optional"
-                        default="STAF_REMOTE_HOSTNAME">
-        <function-arg-description>
-          Location of target host
-        </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
-      </function-arg-def>
-      <function-arg-def name="dsPath"
-                       type="optional"
-                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
-        <function-arg-description>
-          Pathname to installation root
-        </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
-      </function-arg-def>
-    
-      <function-arg-def name="dsHost"
-                        type="optional"
-                        default="'%s' % DIRECTORY_INSTANCE_HOST">
-        <function-arg-description>
-          Directory server hostname or IP address
-        </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
-      </function-arg-def>
-    
-      <function-arg-def name="dsPort"
-                        type="optional"
-                        default="'%s' % DIRECTORY_INSTANCE_PORT">
-        <function-arg-description>
-          Directory server port number
-        </function-arg-description> 
-        <function-arg-property name="type" value="port"/>
-      </function-arg-def>      
-
-      <function-arg-def name="dsAdminPort"
-                        type="optional"
-                        default="'%s' % DIRECTORY_INSTANCE_ADMIN_PORT">
-        <function-arg-description>
-          Directory server admin port number
-        </function-arg-description> 
-        <function-arg-property name="type" value="port"/>
-      </function-arg-def>
-
-      <function-arg-def name="dsBindDN"
-                        type="optional"
-                        default="'%s' % DIRECTORY_INSTANCE_DN">
-        <function-arg-description>
-          Bind DN
-        </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
-      </function-arg-def>
-    
-      <function-arg-def name="dsBindPwd"
-                        type="optional"
-                        default="'%s' % DIRECTORY_INSTANCE_PSWD">  
-        <function-arg-description>
-          Bind password
-        </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>
-    
-      <function-arg-def name="dsBindPwdFile" type="optional">
-        <function-arg-description>
-          Bind password file
-        </function-arg-description>
-        <function-arg-property name="type" value="integer"/>
-       </function-arg-def>
-      <function-arg-def name="extraParams" type="optional" default="''">
-        <function-arg-description>
-          Optional extra parameters for specific test cases
-        </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>          
-    </function-map-args>
-    
-  
-    <sequence>
-   
-      <!-- Build the Command -->
-      <script>
-        STAFCmdParamsList=[]
-        STAFCmdParams=''
-
-        if dsPath:
-          dsBinPath='%s/%s' % (dsPath,fileFolder)
-          STAFCmd='%s/stop-ds%s ' % (dsBinPath,fileExt)
-                  
-        if dsHost:
-          STAFCmdParamsList.append('-h %s' % dsHost)
-        
-        if dsAdminPort:
-          STAFCmdParamsList.append('-p %s' % dsAdminPort)
-          STAFCmdParamsList.append('-X')
-
-        if dsBindDN:
-          STAFCmdParamsList.append('-D "%s"' % dsBindDN)
-        
-        if dsBindPwd:
-          STAFCmdParamsList.append('-w "%s"' % dsBindPwd)
-        
-        if dsBindPwdFile:
-          STAFCmdParamsList.append('-j "%s"' % dsBindPwdFile)
-       
-        STAFCmdParamsList.append('-R')
-        
-        STAFCmdParams=' '.join(STAFCmdParamsList)
-      </script>
-      
-      <message>
-        '%s %s' % (STAFCmd, STAFCmdParams)
-      </message>
-          
-      <message>'******************************'</message>
-      <message>'*** Restarting the Server ***'</message> 
-      <message>'******************************'</message>
-      
-      <process name="'restart DS'">
-        <location>'%s' % (location)</location>
-        <command>'%s' % (STAFCmd)</command>
-        <parms>'%s' % (STAFCmdParams)</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-
-       <!-- Wait for DS to start -->
-       <call function="'isAlive'">
-            { 'location'         : location,
-              'dsPath'           : dsPath,              
-              'dsInstanceHost'   : dsHost ,
-              'dsInstancePort'   : dsPort ,
-              'dsInstanceDn'     : dsBindDN ,
-              'dsInstancePswd'   : dsBindPwd ,
-              'noOfLoops'        : 5 ,
-              'noOfMilliSeconds' : 6000 }
-       </call>
- 
-      <message>'*** Restarting the Server is completed ***'</message>              
-      <message>'***************************************'</message>      
-    </sequence>
-  </function>
-
-
   <!-- Import LDIF file Function -->
   <function name="importLdif">
     <function-prolog>
@@ -727,7 +573,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -803,7 +649,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath"
                         type="optional"
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">             
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -1091,7 +937,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -1385,7 +1231,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath"
                         type="optional"
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -1515,7 +1361,7 @@
               'dsInstancePort'   : myport ,
               'dsInstanceDn'     : mydn ,
               'dsInstancePswd'   : mypswd ,
-              'noOfLoops'        : 5 ,
+              'noOfLoops'        : 10 ,
               'noOfMilliSeconds' : 2000 }
           </call>
           
@@ -1595,7 +1441,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath"
                         type="optional"
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -1729,7 +1575,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -1981,7 +1827,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath"
                         type="optional"
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -2112,7 +1958,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -2331,7 +2177,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath"
                         type="optional"
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -2453,7 +2299,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -2623,7 +2469,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -2754,7 +2600,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -2872,7 +2718,7 @@
       <if expr="STAFCmdRC == 0">
         <sequence>
           <call function="'isAlive'">
-            { 'noOfLoops'        : 5 ,
+            { 'noOfLoops'        : 10 ,
               'noOfMilliSeconds' : 2000 }
           </call>      
         </sequence>
@@ -2897,7 +2743,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -3042,7 +2888,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -3179,7 +3025,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -3370,7 +3216,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -3500,7 +3346,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -3678,7 +3524,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath"
                         type="optional"
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -3774,7 +3620,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -3916,7 +3762,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath" 
                         type="optional" 
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -4120,7 +3966,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath" 
                         type="optional" 
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">             
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -4377,7 +4223,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -4501,7 +4347,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath"
                        type="optional"
-                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -4596,7 +4442,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath"
                        type="optional"
-                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -4716,7 +4562,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath"
                        type="optional"
-                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -4818,7 +4664,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath"
                        type="optional"
-                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>

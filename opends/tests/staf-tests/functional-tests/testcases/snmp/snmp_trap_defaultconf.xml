@@ -228,6 +228,13 @@
                       <call function="'StartDsWithScript'">
                         { 'location' : STAF_REMOTE_HOSTNAME }
                       </call>
+                      <!--- Check that DS started -->
+                      <call function="'isAlive'">
+                        {
+                        'noOfLoops'        : 10 ,
+                        'noOfMilliSeconds' : 2000
+                        }
+                      </call>
 
                       <message>
                         'trap_defaultconf: send event to the trap listener'
@@ -327,9 +334,16 @@
                         'trap_defaultconf: restart the server'
                       </message>
                       <call function="'StopDsWithScript'">
+                        { 'location'  : STAF_REMOTE_HOSTNAME }
+                      </call>
+                      <call function="'StartDsWithScript'">
+                        { 'location'  : STAF_REMOTE_HOSTNAME }
+                      </call>
+                      <!--- Check that DS started -->
+                      <call function="'isAlive'">
                         {
-                        'location'  : STAF_REMOTE_HOSTNAME ,
-                        'dsRestart' : 'True'
+                        'noOfLoops'        : 10 ,
+                        'noOfMilliSeconds' : 2000
                         }
                       </call>
 

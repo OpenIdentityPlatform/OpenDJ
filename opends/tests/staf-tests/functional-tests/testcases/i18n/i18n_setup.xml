@@ -83,7 +83,7 @@
               </call>
 
               <call function="'isAlive'">
-                { 'noOfLoops'        : 5 ,
+                { 'noOfLoops'        : 10 ,
                   'noOfMilliSeconds' : 2000 }
               </call>
               <call function="'checkRC'">

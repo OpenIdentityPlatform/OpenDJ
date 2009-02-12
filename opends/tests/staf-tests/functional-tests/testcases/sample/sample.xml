@@ -294,7 +294,7 @@
         { 'functionName'      : 'isAlive'                             ,
           'functionMessage'   : 'Checking if the server is available' ,
           'functionException' : 'Topology.StartException'             ,
-          'functionArguments' : { 'noOfLoops'        : 5    ,
+          'functionArguments' : { 'noOfLoops'        : 10    ,
                                   'noOfMilliSeconds' : 2000 }
         }
       </call>

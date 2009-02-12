@@ -87,15 +87,15 @@
                 'sourceLdif'  : sourceldif ,
                 'changesLdif' : '%s/clu/ldifmodify_checkbehavior.ldif' \
                                 % remote.data ,
-                'targetLdif'  : '%s/ldifmodify.out' % DIRECTORY_INSTANCE_DIR
+                'targetLdif'  : '%s/ldifmodify.out' % remote.temp
                 }
               </call>              
 
               <call function="'LdifDiffWithScript'">
                 { 
-                'sourceLdif' : '%s/ldifmodify.out' % DIRECTORY_INSTANCE_DIR ,
+                'sourceLdif' : '%s/ldifmodify.out' % remote.temp ,
                 'targetLdif' : '%s/clu/ldifmodify.ref' % remote.data ,
-                'outputLdif' : '%s/ldifmodify.diff' % DIRECTORY_INSTANCE_DIR
+                'outputLdif' : '%s/ldifmodify.diff' % remote.temp
                 }
               </call>
 
@@ -136,10 +136,8 @@
               <call function="'LdifModifyWithScript'">
                 {
                 'sourceLdif'  : sourceldif ,
-                'changesLdif' : '%s/clu/ldifmodify_moddn.ldif' \
-                                % remote.data ,
-                'targetLdif'  : '%s/ldifmodify_moddn.out' \
-                                % DIRECTORY_INSTANCE_DIR ,
+                'changesLdif' : '%s/clu/ldifmodify_moddn.ldif' % remote.data ,
+                'targetLdif'  : '%s/ldifmodify_moddn.out' % remote.temp ,
                 'expectedRC'  : 1
                 }
               </call>
@@ -194,8 +192,7 @@
                 'sourceLdif'  : sourceldif ,
                 'changesLdif' : '%s/clu/ldifmodify_concurrente.ldif' \
                                 % remote.data ,
-                'targetLdif'  : '%s/ldifmodify_concurrente.out' \
-                                % DIRECTORY_INSTANCE_DIR ,
+                'targetLdif'  : '%s/ldifmodify_concurrente.out' % remote.temp ,
                 'expectedRC'  : 1
                 }
               </call>

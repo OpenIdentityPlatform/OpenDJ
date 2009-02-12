@@ -165,7 +165,7 @@
         else:
           separator=':'
 
-        opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE)
+        opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_BIN,SNMP_OPENDS_JARFILE)
         snmpPath='%s/snmp' % remote.java
         jdmk_jarfile='%s/jdmkrt.jar' % snmpPath
 
@@ -333,7 +333,7 @@
         else:
           separator=':'
 
-        opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE)
+        opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_BIN,SNMP_OPENDS_JARFILE)
         snmpPath='%s/snmp' % remote.java
         jdmk_jarfile='%s/jdmkrt.jar' % snmpPath
 
@@ -465,7 +465,7 @@
         else:
           separator=':'
 
-        opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_DIR,SNMP_OPENDS_JARFILE)
+        opends_jarfile='%s/%s' % (DIRECTORY_INSTANCE_BIN,SNMP_OPENDS_JARFILE)
         snmpPath='%s/snmp' % remote.java
         jdmk_jarfile='%s/jdmkrt.jar' % snmpPath
         cp = 'CLASSPATH=%s%s%s%s%s%s.' \
@@ -514,7 +514,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath"
                         type="optional"
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>

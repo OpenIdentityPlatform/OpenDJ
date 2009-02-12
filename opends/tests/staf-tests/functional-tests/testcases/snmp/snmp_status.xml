@@ -56,6 +56,8 @@
             community = '%s@%s' \
               % (SNMP_PROPERTIES['community'], SNMP_PROPERTIES['community'])
             oid = 'dsServerType.1'
+            serverLogFile = '%s/%s/logs/server.out' \
+              % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
           </script>
 
           <!--- Test Case information
@@ -131,7 +133,7 @@
               <!--- Check that DS started -->
               <call function="'isAlive'">
                 {
-                'noOfLoops'        : 5 ,
+                'noOfLoops'        : 10 ,
                 'noOfMilliSeconds' : 2000
                 }
               </call>
@@ -377,15 +379,10 @@
               <call function="'StartDsWithScript'">
                 { 'location' : STAF_REMOTE_HOSTNAME }
               </call>
-
-              <script>
-                returnString = STAXResult[0][1]
-              </script>
-
               <!--- Check that DS started -->
               <call function="'isAlive'">
                 {
-                'noOfLoops'        : 5 ,
+                'noOfLoops'        : 10 ,
                 'noOfMilliSeconds' : 2000
                 }
               </call>
@@ -400,10 +397,11 @@
                 msg = '%s %s %s %s %s %s' % (msg1, msg2, msg3, msg4, msg5, msg6)
               </script>
 
-              <call function="'checktestString'">
+              <call function="'grep'">
                 {
-                'returnString'   : returnString ,
-                'expectedString' : msg
+                'location'  : STAF_REMOTE_HOSTNAME ,
+                'filename'  : serverLogFile ,
+                'testString': msg
                 }
               </call>
 
@@ -542,15 +540,10 @@
               <call function="'StartDsWithScript'">
                 { 'location' : STAF_REMOTE_HOSTNAME }
               </call>
-
-              <script>
-                returnString = STAXResult[0][1]
-              </script>
-
               <!--- Check that DS started -->
               <call function="'isAlive'">
                 {
-                'noOfLoops'        : 5 ,
+                'noOfLoops'        : 10 ,
                 'noOfMilliSeconds' : 2000
                 }
               </call>
@@ -562,10 +555,11 @@
                 msg = '%s %s %s' % (msg1, msg2, msg3)
               </script>
 
-              <call function="'checktestString'">
+              <call function="'grep'">
                 {
-                'returnString'   : returnString ,
-                'expectedString' : msg
+                'location'  : STAF_REMOTE_HOSTNAME ,
+                'filename'  : serverLogFile ,
+                'testString': msg
                 }
               </call>
 
@@ -578,10 +572,13 @@
                 msg6 = 'The SNMP connection Handler didn\'t started'
                 msg = '%s %s %s %s %s %s' % (msg1, msg2, msg3, msg4, msg5, msg6)
               </script>
-              <call function="'checktestStringNotPresent'">
+
+              <call function="'grep'">
                 {
-                'returnString' : returnString ,
-                'testString'   : msg
+                'location'   : STAF_REMOTE_HOSTNAME ,
+                'filename'   : serverLogFile ,
+                'testString' : msg ,
+                'expectedRC' : 1
                 }
               </call>
 
@@ -730,15 +727,10 @@
                   <call function="'StartDsWithScript'">
                     { 'location' : STAF_REMOTE_HOSTNAME }
                   </call>
-
-                  <script>
-                    returnString = STAXResult[0][1]
-                  </script>
-
                   <!--- Check that DS started -->
                   <call function="'isAlive'">
                     {
-                    'noOfLoops'        : 5 ,
+                    'noOfLoops'        : 10 ,
                     'noOfMilliSeconds' : 2000
                     }
                   </call>
@@ -750,10 +742,11 @@
                     msg = '%s %s %s' % (msg1, msg2, msg3)
                   </script>
 
-                  <call function="'checktestString'">
+                  <call function="'grep'">
                     {
-                    'returnString'   : returnString ,
-                    'expectedString' : msg
+                    'location'  : STAF_REMOTE_HOSTNAME ,
+                    'filename'  : serverLogFile ,
+                    'testString': msg
                     }
                   </call>
 

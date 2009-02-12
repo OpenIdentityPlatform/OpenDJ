@@ -90,7 +90,7 @@
                     'subcommand'     :  '%s' % componentList[componentNumber][0] ,
                     'objectType'     :  '%s' % componentList[componentNumber][1] ,
                     'objectName'     :  '%s' % componentList[componentNumber][2] ,
-                    'optionsString'  :  '--backend-name %s' DIRECTORY_INSTANCE_BE ,
+                    'optionsString'  :  '--backend-name %s' % DIRECTORY_INSTANCE_BE ,
                     'expectedRC'     : 0 
                   }
                   </call>
