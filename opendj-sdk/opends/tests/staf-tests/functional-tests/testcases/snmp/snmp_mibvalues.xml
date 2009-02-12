@@ -848,7 +848,7 @@
                     newDn = 'uid=user.%s' % newid
 
                     templateFile = 'template-%s.ldif' % loop
-                    templatePath = '%s/%s' % (TMPDIR, templateFile)
+                    templatePath = '%s/%s' % (remote.temp, templateFile)
                     ldifFile = 'moddn-%s.ldif' % loop
                     ldifPath = '%s/%s' % (DIRECTORY_INSTANCE_DIR, ldifFile)
                     ldifLines = []

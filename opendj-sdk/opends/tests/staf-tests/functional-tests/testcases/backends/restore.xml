@@ -130,7 +130,7 @@
               
               <!--- Check that DS started -->
               <call function="'isAlive'">
-                { 'noOfLoops'        : 5 ,
+                { 'noOfLoops'        : 10 ,
                   'noOfMilliSeconds' : 2000
                 }
               </call>
@@ -196,7 +196,7 @@
               
               <!--- Check that DS started -->
               <call function="'isAlive'">
-                { 'noOfLoops'        : 5 ,
+                { 'noOfLoops'        : 10 ,
                   'noOfMilliSeconds' : 2000
                 }
               </call>

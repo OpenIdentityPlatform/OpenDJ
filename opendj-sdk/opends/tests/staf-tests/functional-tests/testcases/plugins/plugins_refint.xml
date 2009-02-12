@@ -614,13 +614,15 @@
         'dsHost'      : DIRECTORY_INSTANCE_HOST,
         'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
         'dsBindDN'    : DIRECTORY_INSTANCE_DN,
-        'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD,
-        'dsRestart'   : ' ' }
+        'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD }
     </call>
-  
+    <call function="'StartDsWithScript'">
+      { 'location' : STAF_REMOTE_HOSTNAME }
+    </call>
+
     <!--- Check that DS started -->
     <call function="'isAlive'">
-     { 'noOfLoops'		: 5 ,
+     { 'noOfLoops'		: 10 ,
        'noOfMilliSeconds' : 2000
      }
     </call>

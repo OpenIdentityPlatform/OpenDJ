@@ -395,7 +395,19 @@
                     else:
                       jstaf_jarfile='%s/lib/JSTAF.jar' % STAFResult
                   </script>
-                  
+
+                  <!--- In IPS mode, get snmp-mib2605.jar from remote machine-->
+                  <if expr="DIRECTORY_INSTANCE_BIN != DIRECTORY_INSTANCE_DIR">
+                  <call function="'copyFile'">
+                    {
+                    'location'   : STAF_REMOTE_HOSTNAME,
+                    'srcfile'    : '%s/%s' % (DIRECTORY_INSTANCE_BIN,SNMP_OPENDS_JARFILE),
+                    'destfile'   : '%s/%s' % (TMPDIR,SNMP_OPENDS_JARFILE),
+                    'remotehost' : STAXServiceMachine
+                    }
+                  </call>
+                  </if>
+
                   <!---   Compile snmp java files on controler host -->
                   <message>
                     'Compile Java files under %s on %s' \
@@ -973,7 +985,7 @@
       
       <function-arg-def name="dsPath"
                         type="optional"
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -1232,7 +1244,7 @@
       
       <function-arg-def name="dsPath"
                         type="optional"
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -1384,7 +1396,7 @@
       
       <function-arg-def name="dsPath"
                         type="optional"
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -1751,7 +1763,7 @@
       
       <function-arg-def name="dsPath"
                         type="optional"
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -1906,7 +1918,7 @@
       
       <function-arg-def name="dsPath"
                         type="optional"
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -2047,7 +2059,7 @@
       
       <function-arg-def name="dsPath"
                         type="optional"
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>

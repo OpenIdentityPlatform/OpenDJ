@@ -73,20 +73,11 @@
               'dsStopTime'  : '20061212000000' }
             </call>
             
-            <call function="'Sleep'">
-              { 'location'  :	 STAF_REMOTE_HOSTNAME,
-              'sleepForMilliSeconds'  :  10000 }
-            </call>             
-            
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'  : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
-              'dsBaseDN'        : DIRECTORY_INSTANCE_SFX,
-              'dsFilter'        : 'objectclass=*'	,
-              'dsScope'	        : 'base',
-              'expectedRC'      :  0 }
+            <!--- Check that DS started -->
+            <call function="'isAlive'">
+             { 'noOfLoops'		: 10 ,
+               'noOfMilliSeconds' : 2000
+             }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -134,6 +125,14 @@
             <call function="'StartDsWithScript'">
               { 'location'  : STAF_REMOTE_HOSTNAME }
             </call>
+
+            <!--- Check that DS started -->
+            <call function="'isAlive'">
+             { 'noOfLoops'		: 10 ,
+               'noOfMilliSeconds' : 2000
+             }
+            </call>
+
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>

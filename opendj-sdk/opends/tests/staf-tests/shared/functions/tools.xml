@@ -44,7 +44,7 @@
       
       <function-arg-def name="dsPath"
                         type="optional"
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -249,7 +249,7 @@
       
       <function-arg-def name="dsPath"
                        type="optional"
-                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -393,7 +393,7 @@
       
       <function-arg-def name="dsPath"
                        type="optional"
-                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -507,7 +507,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath"
                        type="optional"
-                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -653,7 +653,7 @@
       
       <function-arg-def name="dsPath"
                         type="optional"
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -852,7 +852,7 @@
               'dsInstancePort'   : server.getPort(),
               'dsInstanceDn'     : server.getRootDn(),
               'dsInstancePswd'   : server.getRootPwd(),
-              'noOfLoops'        : 5 ,
+              'noOfLoops'        : 10 ,
               'noOfMilliSeconds' : 2000
             }
           </call>
@@ -914,7 +914,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath"
                         type="optional"
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -1090,7 +1090,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath"
                        type="optional"
-                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -1243,7 +1243,7 @@
       </function-arg-def>     
       <function-arg-def name="dsPath"
                        type="optional"
-                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -1371,7 +1371,7 @@
       </function-arg-def> 
       <function-arg-def name="dsPath"
                        type="optional"
-                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -1459,7 +1459,7 @@
       
       <function-arg-def name="dsPath"
                         type="optional"
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -1717,3 +1717,4 @@
   </function>
   
 </stax>
+

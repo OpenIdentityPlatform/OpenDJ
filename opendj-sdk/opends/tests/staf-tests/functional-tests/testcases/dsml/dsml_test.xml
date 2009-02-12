@@ -144,7 +144,7 @@
                           <call function="'testCase_Preamble'"/>
                           <script>
                             runFileName = runFileRE.sub('run',test)
-                            runFilePath = '/tmp/%s_%s' % (family, runFileName)
+                            runFilePath = '%s/%s_%s' % (local.temp, family, runFileName)
                             requestFilePath = '%s/dsml/suites/%s/data/%s' % \
                               (local.data,family,test)
                             expectedFileName = runFileRE.sub('res',test)

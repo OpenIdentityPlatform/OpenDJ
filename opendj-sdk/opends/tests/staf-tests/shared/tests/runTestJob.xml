@@ -144,7 +144,7 @@
 
         ServersInfoDict=eval(STAFResult)
 
-        ServerPath='%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+        ServerPath='%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)
         ServerName='unknown'        
         ServerVersion='unknown'
         ServerBuildId='unknown'

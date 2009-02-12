@@ -99,7 +99,7 @@
                     'dsEncoding'       : '8859-1' ,
                     'expectedRC'       : 'noCheck' ,
                     'outputFile'       : 'ldapsearch.out' ,
-                    'outputPath'       : TMPDIR
+                    'outputPath'       : remote.temp
                     }            
                   </call>
                   
@@ -110,8 +110,8 @@
                   <call function="'LdifDiffWithScript-new'">
                   { 
                   'sourceLdif' : RefFile ,
-                  'targetLdif' : '%s/ldapsearch.out' % TMPDIR ,
-                  'outputLdif' : '%s/ldifsearch.diff' % TMPDIR
+                  'targetLdif' : '%s/ldapsearch.out' % remote.temp ,
+                  'outputLdif' : '%s/ldifsearch.diff' % remote.temp
                   }
                   </call>
                   

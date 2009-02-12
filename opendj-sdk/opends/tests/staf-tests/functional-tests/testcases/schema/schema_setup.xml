@@ -61,7 +61,7 @@
               { 'functionName'      : 'isAlive'                       ,
                 'functionMessage'   : 'Start the Directory Server.'   ,
                 'functionException' : 'Server.StartException'         ,
-                'functionArguments' : { 'noOfLoops'        : 5        ,
+                'functionArguments' : { 'noOfLoops'        : 10        ,
                                         'noOfMilliSeconds' : 2000 }
               }
             </call>     

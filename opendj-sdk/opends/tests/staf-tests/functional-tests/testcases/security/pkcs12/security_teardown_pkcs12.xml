@@ -94,7 +94,8 @@
 
             <call function="'deleteFile'">
               { 'location' : STAF_REMOTE_HOSTNAME,
-                'filename' : '%s/../config/keystore' % OPENDS_BINPATH }
+                'filename' : '%s/%s/config/keystore' \
+                % (DIRECTORY_INSTANCE_DIR,OPENDSNAME) }
             </call>
 
             <call function="'checkRC'">

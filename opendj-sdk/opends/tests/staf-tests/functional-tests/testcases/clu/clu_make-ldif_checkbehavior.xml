@@ -83,8 +83,7 @@
               <call function="'MakeLdifWithScript'">
                 {
                 'templateFile'   : template ,
-                'ldifFile'       : '%s/make-ldif_seed0_1.ldif' \
-                                   % DIRECTORY_INSTANCE_DIR ,
+                'ldifFile'       : '%s/make-ldif_seed0_1.ldif' % remote.temp ,
                 'randomSeed'     : 0
                 }
               </call>
@@ -137,8 +136,7 @@
               <call function="'MakeLdifWithScript'">
                 {
                 'templateFile'   : template ,
-                'ldifFile'       : '%s/make-ldif_seed0_2.ldif' \
-                                   % DIRECTORY_INSTANCE_DIR ,
+                'ldifFile'       : '%s/make-ldif_seed0_2.ldif' % remote.temp ,
                 'randomSeed'     : 0
                 }
               </call>
@@ -157,8 +155,7 @@
               
               <call function="'ImportLdifWithScript'">
                 { 
-                'dsLdifFile'  : '%s/make-ldif_seed0_2.ldif' \
-                                %  DIRECTORY_INSTANCE_DIR ,
+                'dsLdifFile'  : '%s/make-ldif_seed0_2.ldif' % remote.temp ,
                 'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
                 'dsAppend'    : 'True'
                 }
@@ -182,7 +179,7 @@
               <!--- Check that DS started -->
               <call function="'isAlive'">
                 {
-                'noOfLoops'        : 5 ,
+                'noOfLoops'        : 10 ,
                 'noOfMilliSeconds' : 2000
                 }
               </call>
@@ -256,8 +253,7 @@
               <call function="'MakeLdifWithScript'">
                 {
                 'templateFile'   : template ,
-                'ldifFile'       : '%s/make-ldif_noseed_1.ldif' \
-                                   % DIRECTORY_INSTANCE_DIR
+                'ldifFile'       : '%s/make-ldif_noseed_1.ldif' % remote.temp
                 }
               </call>
 
@@ -268,8 +264,7 @@
               <call function="'MakeLdifWithScript'">
                 {
                 'templateFile'   : template ,
-                'ldifFile'       : '%s/make-ldif_noseed_2.ldif' \
-                                   % DIRECTORY_INSTANCE_DIR
+                'ldifFile'       : '%s/make-ldif_noseed_2.ldif' % remote.temp
                 }
               </call>
 
@@ -280,8 +275,7 @@
               <call function="'MakeLdifWithScript'">
                 {
                 'templateFile'   : template ,
-                'ldifFile'       : '%s/make-ldif_seed5.ldif' \
-                                   % DIRECTORY_INSTANCE_DIR ,
+                'ldifFile'       : '%s/make-ldif_seed5.ldif' % remote.temp ,
                 'randomSeed'     : 5
                 }
               </call>              
@@ -292,12 +286,9 @@
               
               <call function="'LdifDiffWithScript'">
                 { 
-                'sourceLdif' : '%s/make-ldif_seed0_1.ldif' \
-                % DIRECTORY_INSTANCE_DIR ,
-                'targetLdif' : '%s/make-ldif_seed0_2.ldif' \
-                % DIRECTORY_INSTANCE_DIR ,
-                'outputLdif' : '%s/make-ldif_seed0.diff' \
-                % DIRECTORY_INSTANCE_DIR
+                'sourceLdif' : '%s/make-ldif_seed0_1.ldif' % remote.temp ,
+                'targetLdif' : '%s/make-ldif_seed0_2.ldif' % remote.temp ,
+                'outputLdif' : '%s/make-ldif_seed0.diff' % remote.temp
                 }
               </call>              
 
@@ -308,12 +299,9 @@
               
               <call function="'LdifDiffWithScript'">
                 { 
-                'sourceLdif' : '%s/make-ldif_seed0_1.ldif' \
-                % DIRECTORY_INSTANCE_DIR ,
-                'targetLdif' : '%s/make-ldif_noseed_1.ldif' \
-                % DIRECTORY_INSTANCE_DIR ,
-                'outputLdif' : '%s/make-ldif_noseed_1.diff' \
-                % DIRECTORY_INSTANCE_DIR
+                'sourceLdif' : '%s/make-ldif_seed0_1.ldif' % remote.temp ,
+                'targetLdif' : '%s/make-ldif_noseed_1.ldif' % remote.temp ,
+                'outputLdif' : '%s/make-ldif_noseed_1.diff' % remote.temp
                 }
               </call>           
               
@@ -323,12 +311,9 @@
               
               <call function="'LdifDiffWithScript'">
                 { 
-                'sourceLdif' : '%s/make-ldif_noseed_1.ldif' \
-                % DIRECTORY_INSTANCE_DIR ,
-                'targetLdif' : '%s/make-ldif_noseed_2.ldif' \
-                % DIRECTORY_INSTANCE_DIR ,
-                'outputLdif' : '%s/make-ldif_noseed_2.diff' \
-                % DIRECTORY_INSTANCE_DIR
+                'sourceLdif' : '%s/make-ldif_noseed_1.ldif' % remote.temp ,
+                'targetLdif' : '%s/make-ldif_noseed_2.ldif' % remote.temp ,
+                'outputLdif' : '%s/make-ldif_noseed_2.diff' % remote.temp
                 }
               </call>
               
@@ -339,12 +324,9 @@
               
               <call function="'LdifDiffWithScript'">
                 { 
-                'sourceLdif' : '%s/make-ldif_seed0_1.ldif' \
-                % DIRECTORY_INSTANCE_DIR ,
-                'targetLdif' : '%s/make-ldif_seed5.ldif' \
-                % DIRECTORY_INSTANCE_DIR ,
-                'outputLdif' : '%s/make-ldif_seed5.diff' \
-                % DIRECTORY_INSTANCE_DIR
+                'sourceLdif' : '%s/make-ldif_seed0_1.ldif' % remote.temp ,
+                'targetLdif' : '%s/make-ldif_seed5.ldif' % remote.temp ,
+                'outputLdif' : '%s/make-ldif_seed5.diff' % remote.temp
                 }
               </call>
 

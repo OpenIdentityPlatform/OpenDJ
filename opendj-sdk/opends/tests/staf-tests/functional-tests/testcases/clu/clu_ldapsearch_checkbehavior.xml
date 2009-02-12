@@ -194,7 +194,7 @@
               <!--- Check that DS started -->
               <call function="'isAlive'">
                 {
-                'noOfLoops'        : 5 ,
+                'noOfLoops'        : 10 ,
                 'noOfMilliSeconds' : 2000
                 }
               </call>             
@@ -500,18 +500,19 @@
                 'dsBaseDN'         : basedn ,
                 'dsFilter'         : 'uid=user.1*' ,
                 'expectedRC'       : 'noCheck' ,
-                'outputFile'       : 'ldapsearch_simplepagesize_30.out'
+                'outputFile'       : 'ldapsearch_simplepagesize_30.out' ,
+                'outputPath'       : remote.temp
                 }                
               </call>
               
               <call function="'LdifDiffWithScript'">
                 { 
                 'sourceLdif' : '%s/ldapsearch_simplepagesize_30.out' \
-                               % DIRECTORY_INSTANCE_DIR ,
+                               % remote.temp ,
                 'targetLdif' : '%s/clu/ldapsearch_simplepagesize_30.ref' \
                                % remote.data ,
                 'outputLdif' : '%s/ldapsearch_simplepagesize_30.diff' \
-                               % DIRECTORY_INSTANCE_DIR
+                               % remote.temp
                 }
               </call>
               
@@ -537,18 +538,19 @@
                 'dsBaseDN'         : basedn ,
                 'dsFilter'         : 'uid=user.1*' ,
                 'expectedRC'       : 'noCheck' ,
-                'outputFile'       : 'ldapsearch_simplepagesize_1.out'
+                'outputFile'       : 'ldapsearch_simplepagesize_1.out' ,
+                'outputPath'       : remote.temp
                 }                
               </call>
 
               <call function="'LdifDiffWithScript'">
                 { 
                 'sourceLdif' : '%s/ldapsearch_simplepagesize_1.out' \
-                               % DIRECTORY_INSTANCE_DIR ,
+                               % remote.temp ,
                 'targetLdif' : '%s/clu/ldapsearch_simplepagesize_1.ref' \
                                % remote.data ,
                 'outputLdif' : '%s/ldapsearch_simplepagesize_1.diff' \
-                               % DIRECTORY_INSTANCE_DIR
+                               % remote.temp
                 }
               </call>
               
@@ -603,7 +605,8 @@
                 'dsBaseDN'         : basedn ,
                 'dsFilename'       : filterfile ,
                 'dsAttributes'     : 'dn' ,
-                'outputFile'       : 'ldapsearch_filterfile_and_attribute.out'
+                'outputFile'       : 'ldapsearch_filterfile_and_attribute.out' ,
+                'outputPath'       : remote.temp
                 }                
               </call>
 
@@ -622,11 +625,11 @@
               <call function="'LdifDiffWithScript'">
                 { 
                 'sourceLdif' : '%s/ldapsearch_filterfile_and_attribute.out' \
-                               % DIRECTORY_INSTANCE_DIR ,
+                               % remote.temp ,
                 'targetLdif' : '%s/clu/ldapsearch_filterfile_and_attribute.ref'\
                                % remote.data ,
                 'outputLdif' : '%s/ldapsearch_filterfile_and_attribute.diff' \
-                               % DIRECTORY_INSTANCE_DIR
+                               % remote.temp
                 }
               </call>
               

@@ -93,7 +93,7 @@
                 'dsBaseDN'       : basedn ,
                 'dsFilter'       : 'uid=user.1*' ,
                 'outputFile'     : 'ldapsearch.out' ,
-                'outputPath'     : DIRECTORY_INSTANCE_DIR
+                'outputPath'     : remote.temp
                 }                
               </call>
 
@@ -102,15 +102,15 @@
                 'dsLdifFile'   : dsfilename ,
                 'dsBaseDN'     : basedn ,
                 'dsFilter'     : 'uid=user.1*' ,
-                'dsOutputFile' : '%s/ldifsearch.out' % DIRECTORY_INSTANCE_DIR
+                'dsOutputFile' : '%s/ldifsearch.out' % remote.temp
                 }                
               </call>              
               
               <call function="'LdifDiffWithScript'">
                 { 
-                'sourceLdif' : '%s/ldifsearch.out' % DIRECTORY_INSTANCE_DIR ,
-                'targetLdif' : '%s/ldapsearch.out' % DIRECTORY_INSTANCE_DIR ,
-                'outputLdif' : '%s/ldifsearch.diff' % DIRECTORY_INSTANCE_DIR
+                'sourceLdif' : '%s/ldifsearch.out' % remote.temp ,
+                'targetLdif' : '%s/ldapsearch.out' % remote.temp ,
+                'outputLdif' : '%s/ldifsearch.diff' % remote.temp
                 }
               </call>
 
@@ -161,7 +161,7 @@
                 'dsBaseDN'       : 'dc=com' ,
                 'dsFilter'       : 'objectclass=*' ,
                 'outputFile'     : 'scope_ldapsearch.out' ,
-                'outputPath'     : DIRECTORY_INSTANCE_DIR
+                'outputPath'     : remote.temp
                 }                
               </call>
 
@@ -171,19 +171,15 @@
                 'dsSearchScope' : 'base' ,                
                 'dsBaseDN'      : 'dc=com' ,
                 'dsFilter'      : 'objectclass=*' ,                
-                'dsOutputFile'  : '%s/scope_ldifsearch.out' \
-                                  % DIRECTORY_INSTANCE_DIR
+                'dsOutputFile'  : '%s/scope_ldifsearch.out' % remote.temp
                 }                
               </call>              
               
               <call function="'LdifDiffWithScript'">
                 { 
-                'sourceLdif' : '%s/scope_ldifsearch.out' \
-                               % DIRECTORY_INSTANCE_DIR ,
-                'targetLdif' : '%s/scope_ldapsearch.out' \
-                               % DIRECTORY_INSTANCE_DIR ,
-                'outputLdif' : '%s/scope_ldifsearch.diff' \
-                               % DIRECTORY_INSTANCE_DIR
+                'sourceLdif' : '%s/scope_ldifsearch.out' % remote.temp ,
+                'targetLdif' : '%s/scope_ldapsearch.out' % remote.temp ,
+                'outputLdif' : '%s/scope_ldifsearch.diff' % remote.temp
                 }
               </call>
               
@@ -288,17 +284,17 @@
                 'dsFilterFile' : filterfile ,
                 'dsAttributes' : 'dn' ,                
                 'dsOutputFile' : '%s/ldifsearch_filterfile_and_attribute.out' \
-                                 % DIRECTORY_INSTANCE_DIR
+                                 % remote.temp
                 }                
               </call>
               
               <call function="'LdifDiffWithScript'">
                 { 
                 'sourceLdif' : '%s/ldifsearch_filterfile_and_attribute.out' \
-                               % DIRECTORY_INSTANCE_DIR ,
+                               % remote.temp ,
                 'targetLdif' : '%s/clu/ldapsearch_filterfile_and_attribute.ref'\
                                % remote.data ,
-                'outputLdif' : '%s/ldifmodify.diff' % DIRECTORY_INSTANCE_DIR
+                'outputLdif' : '%s/ldifmodify.diff' % remote.temp
                 }
               </call>
 
@@ -405,7 +401,7 @@
                 'dsFilter'       : 'uid=user.1*' ,
                 'dsAttributes'   : '@person' ,                
                 'outputFile'     : 'ocname1_ldapsearch.out' ,
-                'outputPath'     : DIRECTORY_INSTANCE_DIR
+                'outputPath'     : remote.temp
                 }                
               </call>
 
@@ -415,19 +411,15 @@
                 'dsBaseDN'     : basedn ,
                 'dsFilter'     : 'uid=user.1*' ,
                 'dsAttributes' : '@person' ,
-                'dsOutputFile' : '%s/ocname1_ldifsearch.out' \
-                                 % DIRECTORY_INSTANCE_DIR
+                'dsOutputFile' : '%s/ocname1_ldifsearch.out' % remote.temp
                 }                
               </call>              
               
               <call function="'LdifDiffWithScript'">
                 { 
-                'sourceLdif' : '%s/ocname1_ldifsearch.out' \
-                % DIRECTORY_INSTANCE_DIR ,
-                'targetLdif' : '%s/ocname1_ldapsearch.out' \
-                % DIRECTORY_INSTANCE_DIR ,
-                'outputLdif' : '%s/ocname1_ldifsearch.diff' \
-                % DIRECTORY_INSTANCE_DIR
+                'sourceLdif' : '%s/ocname1_ldifsearch.out' % remote.temp ,
+                'targetLdif' : '%s/ocname1_ldapsearch.out' % remote.temp ,
+                'outputLdif' : '%s/ocname1_ldifsearch.diff' % remote.temp
                 }
               </call>
               
@@ -452,7 +444,7 @@
                 'dsFilter'       : 'uid=user.1*' ,
                 'dsAttributes'   : '@inetorgperson' ,                
                 'outputFile'     : 'ocname2_ldapsearch.out' ,
-                'outputPath'     : DIRECTORY_INSTANCE_DIR
+                'outputPath'     : remote.temp
                 }                
               </call>
 
@@ -462,19 +454,15 @@
                 'dsBaseDN'     : basedn ,
                 'dsFilter'     : 'uid=user.1*' ,
                 'dsAttributes' : '@inetorgperson' ,
-                'dsOutputFile' : '%s/ocname2_ldifsearch.out' \
-                                 % DIRECTORY_INSTANCE_DIR
+                'dsOutputFile' : '%s/ocname2_ldifsearch.out' % remote.temp
                 }                
               </call>              
               
               <call function="'LdifDiffWithScript'">
                 { 
-                'sourceLdif' : '%s/ocname2_ldifsearch.out' \
-                % DIRECTORY_INSTANCE_DIR ,
-                'targetLdif' : '%s/ocname2_ldapsearch.out' \
-                % DIRECTORY_INSTANCE_DIR ,
-                'outputLdif' : '%s/ocname2_ldifsearch.diff' \
-                % DIRECTORY_INSTANCE_DIR
+                'sourceLdif' : '%s/ocname2_ldifsearch.out' % remote.temp ,
+                'targetLdif' : '%s/ocname2_ldapsearch.out' % remote.temp ,
+                'outputLdif' : '%s/ocname2_ldifsearch.diff' % remote.temp
                 }
               </call>
               

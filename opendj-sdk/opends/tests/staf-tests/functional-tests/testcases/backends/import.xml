@@ -1134,7 +1134,7 @@
               <call function="'ImportLdifWithScript'">
                   { 'location'         : STAF_REMOTE_HOSTNAME,
                   'dsLdifFile'         : '%s/backends/Example.ldif' % remote.data,
-                  'dsRejectFile'       : '%s/rejects.txt' % TMPDIR,
+                  'dsRejectFile'       : '%s/rejects.txt' % remote.temp,
                   'dsBackEnd'          : DIRECTORY_INSTANCE_BE
                   }
               </call>
@@ -1177,7 +1177,7 @@
               <call function="'ImportLdifWithScript'">
                   { 'location'         : STAF_REMOTE_HOSTNAME,
                   'dsLdifFile'         : '%s/backends/Example.ldif' % remote.data,
-                  'dsRejectFile'       : '%s/rejects.txt' % TMPDIR,
+                  'dsRejectFile'       : '%s/rejects.txt' % remote.temp,
                   'dsBackEnd'          : DIRECTORY_INSTANCE_BE
                   }
               </call>

@@ -178,6 +178,13 @@
                 'functionArguments' : { 'location' : STAF_REMOTE_HOSTNAME }
               }
             </call>
+            <!--- Check that DS started -->
+            <call function="'isAlive'">
+              {
+              'noOfLoops'        : 10 ,
+              'noOfMilliSeconds' : 2000
+              }
+            </call>
             <call function="'loopThroughFilters'">
               { 'filters' : 'after-modify' }
             </call>
@@ -347,6 +354,13 @@
                 'functionException' : 'CLI.start-ds',
                 'functionFailureTC' : '%s: %s:  ' ,
                 'functionArguments' : { 'location' : STAF_REMOTE_HOSTNAME }
+              }
+            </call>
+            <!--- Check that DS started -->
+            <call function="'isAlive'">
+              {
+              'noOfLoops'        : 10 ,
+              'noOfMilliSeconds' : 2000
               }
             </call>
             <call function="'loopThroughFilters'">
@@ -774,7 +788,7 @@
           { 'functionName'      : 'isAlive',
             'functionMessage'   : 'Checking if the server is available',
             'functionException' : 'Topology.StartException',
-            'functionArguments' : { 'noOfLoops'        : 5,
+            'functionArguments' : { 'noOfLoops'        : 10,
                                     'noOfMilliSeconds' : 2000 
                                   }
           }
