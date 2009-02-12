@@ -160,8 +160,13 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
      * constructor.
      */
     private void initSASLServer() throws SaslException {
-       this.saslServer = Sasl.createSaslServer(mechanism, SASL_DEFAULT_PROTOCOL,
+       saslServer = Sasl.createSaslServer(mechanism, SASL_DEFAULT_PROTOCOL,
                                                serverFQDN, saslProps, this);
+       if(saslServer == null) {
+         Message msg =
+                 ERR_SASL_CREATE_SASL_SERVER_FAILED.get(mechanism, serverFQDN);
+         throw new SaslException(Message.toString(msg));
+       }
     }
 
 
