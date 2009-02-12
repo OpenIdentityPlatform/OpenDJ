@@ -176,9 +176,8 @@ public class ExternalSASLMechanismHandler
     }
 
     if(!(clientConnection instanceof LDAPClientConnection)) {
-        //TODO SASLPhase2 need better message
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-        Message message = ERR_SASLEXTERNAL_NO_SECURITY_PROVIDER.get();
+        Message message = ERR_SASLEXTERNAL_NOT_LDAP_CLIENT_INSTANCE.get();
         bindOperation.setAuthFailureReason(message);
         return;
     }
