@@ -24,17 +24,15 @@
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
-package org.opends.server.workflowelement.localbackend;
+package org.opends.server.workflowelement.ndb;
 
 
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.opends.messages.Message;
-import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.LocalBackendWorkflowElementCfg;
@@ -48,58 +46,51 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
-import org.opends.server.workflowelement.LeafWorkflowElement;
+import
+  org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
 
 import static org.opends.server.config.ConfigConstants.*;
 
 
 
-
 /**
- * This class defines a local backend workflow element; e-g an entity that
- * handle the processing of an operation against a local backend.
+ * This class defines a NDB backend workflow element; e-g an entity that
+ * handle the processing of an operation against a NDB backend.
  */
-public class LocalBackendWorkflowElement extends
-    LeafWorkflowElement<LocalBackendWorkflowElementCfg>
-    implements ConfigurationChangeListener<LocalBackendWorkflowElementCfg>
+public class NDBWorkflowElement extends LocalBackendWorkflowElement
 {
-  // the backend associated with the local workflow element
+  // The backend associated with the NDB workflow element.
   private Backend backend;
 
 
-  // the set of local backend workflow elements registered with the server
-  private static TreeMap<String, LocalBackendWorkflowElement>
-       registeredLocalBackends =
-            new TreeMap<String, LocalBackendWorkflowElement>();
-
-  // The set of persistent searches registered with this work flow
-  // element.
-  private final List<PersistentSearch> persistentSearches =
-    new CopyOnWriteArrayList<PersistentSearch>();
-
-  // a lock to guarantee safe concurrent access to the registeredLocalBackends
-  // variable
-  private static final Object registeredLocalBackendsLock = new Object();
+  // The set of NDB backend workflow elements registered with the server.
+  private static TreeMap<String, NDBWorkflowElement>
+       registeredNDBBackends =
+            new TreeMap<String, NDBWorkflowElement>();
 
 
-  // A string indicating the type of the workflow element.
+  // The lock to guarantee safe concurrent access to the
+  // registeredNDBBackends variable.
+  private static final Object registeredNDBBackendsLock = new Object();
+
+
+  // The string indicating the type of the workflow element.
   private final String BACKEND_WORKFLOW_ELEMENT = "Backend";
 
 
   /**
-   * Creates a new instance of the local backend workflow element.
+   * Creates a new instance of the NDB backend workflow element.
    */
-  public LocalBackendWorkflowElement()
+  public NDBWorkflowElement()
   {
     // There is nothing to do in this constructor.
   }
 
 
   /**
-   * Initializes a new instance of the local backend workflow element.
+   * Initializes a new instance of the NDB backend workflow element.
    * This method is intended to be called by DirectoryServer when
    * workflow configuration mode is auto as opposed to
    * initializeWorkflowElement which is invoked when workflow
@@ -123,13 +114,13 @@ public class LocalBackendWorkflowElement extends
 
 
   /**
-   * Initializes a new instance of the local backend workflow element.
+   * Initializes a new instance of the NDB backend workflow element.
    * This method is intended to be called by DirectoryServer when
    * workflow configuration mode is manual as opposed to
    * initialize(String,Backend) which is invoked when workflow
    * configuration mode is auto.
    *
-   * @param  configuration  The configuration for this local backend
+   * @param  configuration  The configuration for this NDB backend
    *                        workflow element.
    *
    * @throws  ConfigException  If there is a problem with the provided
@@ -140,6 +131,7 @@ public class LocalBackendWorkflowElement extends
    *                                   element that is not related to
    *                                   the provided configuration.
    */
+  @Override
   public void initializeWorkflowElement(
       LocalBackendWorkflowElementCfg configuration
       ) throws ConfigException, InitializationException
@@ -161,18 +153,13 @@ public class LocalBackendWorkflowElement extends
     // an NPE
     super.initialize(null, null);
     backend = null;
-
-    // Cancel all persistent searches.
-    for (PersistentSearch psearch : persistentSearches) {
-      psearch.cancel();
-    }
-    persistentSearches.clear();
   }
 
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       LocalBackendWorkflowElementCfg configuration,
       List<Message>                  unacceptableReasons
@@ -188,6 +175,7 @@ public class LocalBackendWorkflowElement extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       LocalBackendWorkflowElementCfg configuration
       )
@@ -250,10 +238,6 @@ public class LocalBackendWorkflowElement extends
         super.initialize(
           configuration.getWorkflowElementId(), BACKEND_WORKFLOW_ELEMENT);
         backend = newBackend;
-        if (backend != null)
-        {
-          setPrivate(backend.isPrivateBackend());
-        }
       }
     }
 
@@ -262,62 +246,62 @@ public class LocalBackendWorkflowElement extends
 
 
   /**
-   * Creates and registers a local backend with the server.
+   * Creates and registers a NDB backend with the server.
    *
    * @param workflowElementID  the identifier of the workflow element to create
-   * @param backend            the backend to associate with the local backend
+   * @param backend            the backend to associate with the NDB backend
    *                           workflow element
    *
-   * @return the existing local backend workflow element if it was
-   *         already created or a newly created local backend workflow
+   * @return the existing NDB backend workflow element if it was
+   *         already created or a newly created NDB backend workflow
    *         element.
    */
-  public static LocalBackendWorkflowElement createAndRegister(
+  public static NDBWorkflowElement createAndRegister(
       String workflowElementID,
       Backend backend)
   {
-    LocalBackendWorkflowElement localBackend = null;
+    NDBWorkflowElement ndbBackend = null;
 
     // If the requested workflow element does not exist then create one.
-    localBackend = registeredLocalBackends.get(workflowElementID);
-    if (localBackend == null)
+    ndbBackend = registeredNDBBackends.get(workflowElementID);
+    if (ndbBackend == null)
     {
-      localBackend = new LocalBackendWorkflowElement();
-      localBackend.initialize(workflowElementID, backend);
+      ndbBackend = new NDBWorkflowElement();
+      ndbBackend.initialize(workflowElementID, backend);
 
-      // store the new local backend in the list of registered backends
-      registerLocalBackend(localBackend);
+      // store the new NDB backend in the list of registered backends
+      registerNDBBackend(ndbBackend);
     }
 
-    return localBackend;
+    return ndbBackend;
   }
 
 
 
   /**
-   * Removes a local backend that was registered with the server.
+   * Removes a NDB backend that was registered with the server.
    *
    * @param workflowElementID  the identifier of the workflow element to remove
    */
   public static void remove(String workflowElementID)
   {
-    deregisterLocalBackend(workflowElementID);
+    deregisterNDBBackend(workflowElementID);
   }
 
 
 
   /**
-   * Removes all the local backends that were registered with the server.
+   * Removes all the NDB backends that were registered with the server.
    * This function is intended to be called when the server is shutting down.
    */
   public static void removeAll()
   {
-    synchronized (registeredLocalBackendsLock)
+    synchronized (registeredNDBBackendsLock)
     {
-      for (LocalBackendWorkflowElement localBackend:
-           registeredLocalBackends.values())
+      for (NDBWorkflowElement ndbBackend:
+           registeredNDBBackends.values())
       {
-        deregisterLocalBackend(localBackend.getWorkflowElementID());
+        deregisterNDBBackend(ndbBackend.getWorkflowElementID());
       }
     }
   }
@@ -325,26 +309,26 @@ public class LocalBackendWorkflowElement extends
 
 
   /**
-   * Registers a local backend with the server.
+   * Registers a NDB backend with the server.
    *
-   * @param localBackend  the local backend to register with the server
+   * @param ndbBackend  the NDB backend to register with the server
    */
-  private static void registerLocalBackend(
-                           LocalBackendWorkflowElement localBackend)
+  private static void registerNDBBackend(
+                           NDBWorkflowElement ndbBackend)
   {
-    synchronized (registeredLocalBackendsLock)
+    synchronized (registeredNDBBackendsLock)
     {
-      String localBackendID = localBackend.getWorkflowElementID();
-      LocalBackendWorkflowElement existingLocalBackend =
-        registeredLocalBackends.get(localBackendID);
+      String ndbBackendID = ndbBackend.getWorkflowElementID();
+      NDBWorkflowElement existingNDBBackend =
+        registeredNDBBackends.get(ndbBackendID);
 
-      if (existingLocalBackend == null)
+      if (existingNDBBackend == null)
       {
-        TreeMap<String, LocalBackendWorkflowElement> newLocalBackends =
+        TreeMap<String, NDBWorkflowElement> newNDBBackends =
           new TreeMap
-            <String, LocalBackendWorkflowElement>(registeredLocalBackends);
-        newLocalBackends.put(localBackendID, localBackend);
-        registeredLocalBackends = newLocalBackends;
+            <String, NDBWorkflowElement>(registeredNDBBackends);
+        newNDBBackends.put(ndbBackendID, ndbBackend);
+        registeredNDBBackends = newNDBBackends;
       }
     }
   }
@@ -352,24 +336,24 @@ public class LocalBackendWorkflowElement extends
 
 
   /**
-   * Deregisters a local backend with the server.
+   * Deregisters a NDB backend with the server.
    *
    * @param workflowElementID  the identifier of the workflow element to remove
    */
-  private static void deregisterLocalBackend(String workflowElementID)
+  private static void deregisterNDBBackend(String workflowElementID)
   {
-    synchronized (registeredLocalBackendsLock)
+    synchronized (registeredNDBBackendsLock)
     {
-      LocalBackendWorkflowElement existingLocalBackend =
-        registeredLocalBackends.get(workflowElementID);
+      NDBWorkflowElement existingNDBBackend =
+        registeredNDBBackends.get(workflowElementID);
 
-      if (existingLocalBackend != null)
+      if (existingNDBBackend != null)
       {
-        TreeMap<String, LocalBackendWorkflowElement> newLocalBackends =
-             new TreeMap<String, LocalBackendWorkflowElement>(
-                      registeredLocalBackends);
-        newLocalBackends.remove(workflowElementID);
-        registeredLocalBackends = newLocalBackends;
+        TreeMap<String, NDBWorkflowElement> newNDBBackends =
+             new TreeMap<String, NDBWorkflowElement>(
+                      registeredNDBBackends);
+        newNDBBackends.remove(workflowElementID);
+        registeredNDBBackends = newNDBBackends;
       }
     }
   }
@@ -379,48 +363,49 @@ public class LocalBackendWorkflowElement extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void execute(Operation operation) throws CanceledOperationException {
     switch (operation.getOperationType())
     {
       case BIND:
-        LocalBackendBindOperation bindOperation =
-             new LocalBackendBindOperation((BindOperation) operation);
+        NDBBindOperation bindOperation =
+             new NDBBindOperation((BindOperation) operation);
         bindOperation.processLocalBind(this);
         break;
 
       case SEARCH:
-        LocalBackendSearchOperation searchOperation =
-             new LocalBackendSearchOperation((SearchOperation) operation);
+        NDBSearchOperation searchOperation =
+             new NDBSearchOperation((SearchOperation) operation);
         searchOperation.processLocalSearch(this);
         break;
 
       case ADD:
-        LocalBackendAddOperation addOperation =
-             new LocalBackendAddOperation((AddOperation) operation);
+        NDBAddOperation addOperation =
+             new NDBAddOperation((AddOperation) operation);
         addOperation.processLocalAdd(this);
         break;
 
       case DELETE:
-        LocalBackendDeleteOperation deleteOperation =
-             new LocalBackendDeleteOperation((DeleteOperation) operation);
+        NDBDeleteOperation deleteOperation =
+             new NDBDeleteOperation((DeleteOperation) operation);
         deleteOperation.processLocalDelete(this);
         break;
 
       case MODIFY:
-        LocalBackendModifyOperation modifyOperation =
-             new LocalBackendModifyOperation((ModifyOperation) operation);
+        NDBModifyOperation modifyOperation =
+             new NDBModifyOperation((ModifyOperation) operation);
         modifyOperation.processLocalModify(this);
         break;
 
       case MODIFY_DN:
-        LocalBackendModifyDNOperation modifyDNOperation =
-             new LocalBackendModifyDNOperation((ModifyDNOperation) operation);
+        NDBModifyDNOperation modifyDNOperation =
+             new NDBModifyDNOperation((ModifyDNOperation) operation);
         modifyDNOperation.processLocalModifyDN(this);
         break;
 
       case COMPARE:
-        LocalBackendCompareOperation compareOperation =
-             new LocalBackendCompareOperation((CompareOperation) operation);
+        NDBCompareOperation compareOperation =
+             new NDBCompareOperation((CompareOperation) operation);
         compareOperation.processLocalCompare(this);
         break;
 
@@ -438,89 +423,14 @@ public class LocalBackendWorkflowElement extends
 
 
   /**
-   * Attaches the current local operation to the global operation so that
-   * operation runner can execute local operation post response later on.
+   * Gets the backend associated with this NDB backend workflow element.
    *
-   * @param <O>              subtype of Operation
-   * @param <L>              subtype of LocalBackendOperation
-   * @param globalOperation  the global operation to which local operation
-   *                         should be attached to
-   * @param currentLocalOperation  the local operation to attach to the global
-   *                               operation
-   */
-  @SuppressWarnings("unchecked")
-  public static final <O extends Operation,L> void
-              attachLocalOperation (O globalOperation, L currentLocalOperation)
-  {
-    List<?> existingAttachment =
-      (List<?>) globalOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS);
-
-    List<L> newAttachment = new ArrayList<L>();
-
-    if (existingAttachment != null)
-    {
-      // This line raises an unchecked conversion warning.
-      // There is nothing we can do to prevent this warning
-      // so let's get rid of it since we know the cast is safe.
-      newAttachment.addAll ((List<L>) existingAttachment);
-    }
-    newAttachment.add (currentLocalOperation);
-    globalOperation.setAttachment(Operation.LOCALBACKENDOPERATIONS,
-                                  newAttachment);
-  }
-
-
-
-  /**
-   * Gets the backend associated with this local backend workflow
-   * element.
-   *
-   * @return The backend associated with this local backend workflow
+   * @return The backend associated with this NDB backend workflow
    *         element.
    */
+  @Override
   public Backend getBackend()
   {
     return backend;
   }
-
-
-
-  /**
-   * Registers the provided persistent search operation with this
-   * local backend workflow element so that it will be notified of any
-   * add, delete, modify, or modify DN operations that are performed.
-   *
-   * @param persistentSearch
-   *          The persistent search operation to register with this
-   *          local backend workflow element.
-   */
-  void registerPersistentSearch(PersistentSearch persistentSearch)
-  {
-    PersistentSearch.CancellationCallback callback =
-      new PersistentSearch.CancellationCallback()
-    {
-      public void persistentSearchCancelled(PersistentSearch psearch)
-      {
-        persistentSearches.remove(psearch);
-      }
-    };
-
-    persistentSearches.add(persistentSearch);
-    persistentSearch.registerCancellationCallback(callback);
-  }
-
-
-
-  /**
-   * Gets the list of persistent searches currently active against
-   * this local backend workflow element.
-   *
-   * @return The list of persistent searches currently active against
-   *         this local backend workflow element.
-   */
-  List<PersistentSearch> getPersistentSearches()
-  {
-    return persistentSearches;
-  }
 }
-

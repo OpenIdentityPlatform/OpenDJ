@@ -104,23 +104,35 @@ public class LocalBackendModifyDNOperation
 
 
 
-  // The backend in which the operation is to be processed.
-  private Backend backend;
+  /**
+   * The backend in which the operation is to be processed.
+   */
+  protected Backend backend;
 
-  // Indicates whether the no-op control was included in the request.
-  private boolean noOp;
+  /**
+   * Indicates whether the no-op control was included in the request.
+   */
+  protected boolean noOp;
 
-  // The client connection on which this operation was requested.
-  private ClientConnection clientConnection;
+  /**
+   * The client connection on which this operation was requested.
+   */
+  protected ClientConnection clientConnection;
 
-  // The original DN of the entry.
-  DN entryDN;
+  /**
+   * The original DN of the entry.
+   */
+  protected DN entryDN;
 
-  // The current entry, before it is renamed.
-  private Entry currentEntry;
+  /**
+   * The current entry, before it is renamed.
+   */
+  protected Entry currentEntry;
 
-  // The new entry, as it will appear after it has been renamed.
-  private Entry newEntry;
+  /**
+   * The new entry, as it will appear after it has been renamed.
+   */
+  protected Entry newEntry;
 
   // The LDAP post-read request control, if present in the request.
   private LDAPPostReadRequestControl postReadRequest;
@@ -128,8 +140,10 @@ public class LocalBackendModifyDNOperation
   // The LDAP pre-read request control, if present in the request.
   private LDAPPreReadRequestControl preReadRequest;
 
-  // The new RDN for the entry.
-  private RDN newRDN;
+  /**
+   * The new RDN for the entry.
+   */
+  protected RDN newRDN;
 
 
 
@@ -187,7 +201,7 @@ public class LocalBackendModifyDNOperation
    * @throws CanceledOperationException
    *           if this operation should be cancelled
    */
-  void processLocalModifyDN(final LocalBackendWorkflowElement wfe)
+  public void processLocalModifyDN(final LocalBackendWorkflowElement wfe)
       throws CanceledOperationException
   {
     boolean executePostOpPlugins = false;
@@ -684,7 +698,7 @@ modifyDNProcessing:
    * @throws  DirectoryException  If a problem occurs that should cause the
    *                              modify DN operation to fail.
    */
-  private void handleRequestControls()
+  protected void handleRequestControls()
           throws DirectoryException
   {
     List<Control> requestControls = getRequestControls();
@@ -836,7 +850,7 @@ modifyDNProcessing:
    * @throws  DirectoryException  If a problem occurs that should cause the
    *                              modify DN operation to fail.
    */
-  private void applyRDNChanges(List<Modification> modifications)
+  protected void applyRDNChanges(List<Modification> modifications)
           throws DirectoryException
   {
     // If we should delete the old RDN values from the entry, then do so.
@@ -951,7 +965,7 @@ modifyDNProcessing:
    * @throws  DirectoryException  If a problem occurs that should cause the
    *                              modify DN operation to fail.
    */
-  private void applyPreOpModifications(List<Modification> modifications,
+  protected void applyPreOpModifications(List<Modification> modifications,
                                        int startPos)
           throws DirectoryException
   {
@@ -1007,7 +1021,7 @@ modifyDNProcessing:
    * Performs any necessary processing to create the pre-read and/or post-read
    * response controls and attach them to the response.
    */
-  private void processReadEntryControls()
+  protected void processReadEntryControls()
   {
     if (preReadRequest != null)
     {
@@ -1109,7 +1123,12 @@ modifyDNProcessing:
     }
   }
 
-  private boolean handleConflictResolution() {
+  /**
+   * Handle conflict resolution.
+   * @return  {@code true} if processing should continue for the operation, or
+   *          {@code false} if not.
+   */
+  protected boolean handleConflictResolution() {
       boolean returnVal = true;
 
       for (SynchronizationProvider<?> provider :
@@ -1141,7 +1160,12 @@ modifyDNProcessing:
       return returnVal;
   }
 
-  private boolean processPreOperation() {
+  /**
+   * Process pre operation.
+   * @return  {@code true} if processing should continue for the operation, or
+   *          {@code false} if not.
+   */
+  protected boolean processPreOperation() {
       boolean returnVal = true;
 
       for (SynchronizationProvider<?> provider :
@@ -1171,7 +1195,10 @@ modifyDNProcessing:
       return returnVal;
   }
 
-  private void processSynchPostOperationPlugins() {
+  /**
+   * Invoke post operation synchronization providers.
+   */
+  protected void processSynchPostOperationPlugins() {
       for (SynchronizationProvider<?> provider : DirectoryServer
               .getSynchronizationProviders()) {
           try {

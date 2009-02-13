@@ -24,32 +24,27 @@
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
-package org.opends.server.workflowelement.localbackend;
+package org.opends.server.workflowelement.ndb;
+
 
 
 
 import java.util.List;
-
-import org.opends.server.api.Backend;
-import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.MatchedValuesControl;
-import org.opends.server.controls.PersistentSearchControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.AccessControlConfigManager;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
-import org.opends.server.core.SearchOperationWrapper;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
+import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
@@ -59,6 +54,10 @@ import org.opends.server.types.operation.PreOperationSearchOperation;
 import org.opends.server.types.operation.SearchEntrySearchOperation;
 import org.opends.server.types.operation.SearchReferenceSearchOperation;
 
+import
+  org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
+import
+  org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -67,11 +66,11 @@ import static org.opends.server.util.StaticUtils.*;
 
 
 /**
- * This class defines an operation used to search for entries in a local backend
+ * This class defines an operation used to search for entries in a NDB backend
  * of the Directory Server.
  */
-public class LocalBackendSearchOperation
-       extends SearchOperationWrapper
+public class NDBSearchOperation
+       extends LocalBackendSearchOperation
        implements PreOperationSearchOperation, PostOperationSearchOperation,
                   SearchEntrySearchOperation, SearchReferenceSearchOperation
 {
@@ -83,64 +82,32 @@ public class LocalBackendSearchOperation
 
 
   /**
-   * The backend in which the search is to be performed.
-   */
-  protected Backend backend;
-
-  /**
-   * Indicates whether we should actually process the search.  This should
-   * only be false if it's a persistent search with changesOnly=true.
-   */
-  protected boolean processSearch;
-
-  /**
-   * The client connection for the search operation.
-   */
-  protected ClientConnection clientConnection;
-
-  /**
-   * The base DN for the search.
-   */
-  protected DN baseDN;
-
-  /**
-   * The persistent search request, if applicable.
-   */
-  protected PersistentSearch persistentSearch;
-
-  /**
-   * The filter for the search.
-   */
-  protected SearchFilter filter;
-
-
-
-  /**
-   * Creates a new operation that may be used to search for entries in a local
+   * Creates a new operation that may be used to search for entries in a NDB
    * backend of the Directory Server.
    *
    * @param  search  The operation to process.
    */
-  public LocalBackendSearchOperation(SearchOperation search)
+  public NDBSearchOperation(SearchOperation search)
   {
     super(search);
-    LocalBackendWorkflowElement.attachLocalOperation(search, this);
+    NDBWorkflowElement.attachLocalOperation(search, this);
   }
 
 
 
   /**
-   * Process this search operation against a local backend.
+   * Process this search operation against a NDB backend.
    *
-   * @param wfe
-   *          The local backend work-flow element.
-   * @throws CanceledOperationException
-   *           if this operation should be cancelled
+   * @param  wfe The local backend work-flow element.
+   *
+   * @throws CanceledOperationException if this operation should be
+   * cancelled
    */
+  @Override
   public void processLocalSearch(LocalBackendWorkflowElement wfe)
-      throws CanceledOperationException
-  {
+    throws CanceledOperationException {
     boolean executePostOpPlugins = false;
+
     this.backend = wfe.getBackend();
 
     clientConnection = getClientConnection();
@@ -238,14 +205,6 @@ searchProcessing:
       setResultCode(ResultCode.SUCCESS);
 
 
-      // If there's a persistent search, then register it with the server.
-      if (persistentSearch != null)
-      {
-        wfe.registerPersistentSearch(persistentSearch);
-        persistentSearch.enable();
-      }
-
-
       // Process the search in the backend and all its subordinates.
       try
       {
@@ -263,22 +222,10 @@ searchProcessing:
 
         setResponseData(de);
 
-        if (persistentSearch != null)
-        {
-          persistentSearch.cancel();
-          setSendResponse(true);
-        }
-
         break searchProcessing;
       }
       catch (CanceledOperationException coe)
       {
-        if (persistentSearch != null)
-        {
-          persistentSearch.cancel();
-          setSendResponse(true);
-        }
-
         throw coe;
       }
       catch (Exception e)
@@ -291,12 +238,6 @@ searchProcessing:
         setResultCode(DirectoryServer.getServerErrorResultCode());
         appendErrorMessage(ERR_SEARCH_BACKEND_EXCEPTION.get(
                                 getExceptionMessage(e)));
-
-        if (persistentSearch != null)
-        {
-          persistentSearch.cancel();
-          setSendResponse(true);
-        }
 
         break searchProcessing;
       }
@@ -322,12 +263,14 @@ searchProcessing:
   }
 
 
+
   /**
    * Handles any controls contained in the request.
    *
    * @throws  DirectoryException  If there is a problem with any of the request
    *                              controls.
    */
+  @Override
   protected void handleRequestControls()
           throws DirectoryException
   {
@@ -449,22 +392,6 @@ searchProcessing:
             setProxiedAuthorizationDN(authorizationEntry.getDN());
           }
         }
-        else if (oid.equals(OID_PERSISTENT_SEARCH))
-        {
-          PersistentSearchControl psearchControl =
-            getRequestControl(PersistentSearchControl.DECODER);
-
-          persistentSearch = new PersistentSearch(this,
-                                      psearchControl.getChangeTypes(),
-                                      psearchControl.getReturnECs());
-
-          // If we're only interested in changes, then we don't actually want
-          // to process the search now.
-          if (psearchControl.getChangesOnly())
-          {
-            processSearch = false;
-          }
-        }
         else if (oid.equals(OID_LDAP_SUBENTRIES))
         {
           setReturnLDAPSubentries(true);
@@ -508,4 +435,3 @@ searchProcessing:
     }
   }
 }
-

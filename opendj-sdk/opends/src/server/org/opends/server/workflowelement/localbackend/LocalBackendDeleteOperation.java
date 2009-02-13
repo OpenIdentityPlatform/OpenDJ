@@ -89,20 +89,30 @@ public class LocalBackendDeleteOperation
 
 
 
-  // The backend in which the operation is to be processed.
-  private Backend backend;
+  /**
+   * The backend in which the operation is to be processed.
+   */
+  protected Backend backend;
 
-  // Indicates whether the LDAP no-op control has been requested.
-  private boolean noOp;
+  /**
+   * Indicates whether the LDAP no-op control has been requested.
+   */
+  protected boolean noOp;
 
-  // The client connection on which this operation was requested.
-  private ClientConnection clientConnection;
+  /**
+   * The client connection on which this operation was requested.
+   */
+  protected ClientConnection clientConnection;
 
-  // The DN of the entry to be deleted.
-  private DN entryDN;
+  /**
+   * The DN of the entry to be deleted.
+   */
+  protected DN entryDN;
 
-  // The entry to be deleted.
-  private Entry entry;
+  /**
+   * The entry to be deleted.
+   */
+  protected Entry entry;
 
   // The pre-read request control included in the request, if applicable.
   private LDAPPreReadRequestControl preReadRequest;
@@ -144,7 +154,7 @@ public class LocalBackendDeleteOperation
    * @throws CanceledOperationException
    *           if this operation should be cancelled
    */
-  void processLocalDelete(final LocalBackendWorkflowElement wfe)
+  public void processLocalDelete(final LocalBackendWorkflowElement wfe)
       throws CanceledOperationException
   {
     boolean executePostOpPlugins = false;
@@ -488,7 +498,7 @@ deleteProcessing:
    * @throws  DirectoryException  If a problem occurs that should cause the
    *                              operation to fail.
    */
-  private void handleRequestControls()
+  protected void handleRequestControls()
           throws DirectoryException
   {
     List<Control> requestControls = getRequestControls();
@@ -620,7 +630,7 @@ deleteProcessing:
   /**
    * Performs any processing needed for the LDAP pre-read control.
    */
-  private void processPreReadControl()
+  protected void processPreReadControl()
   {
     if (preReadRequest != null)
     {
@@ -672,7 +682,12 @@ deleteProcessing:
     }
   }
 
-  private boolean handleConflictResolution() {
+  /**
+   * Handle conflict resolution.
+   * @return  {@code true} if processing should continue for the operation, or
+   *          {@code false} if not.
+   */
+  protected boolean handleConflictResolution() {
       boolean returnVal = true;
 
       for (SynchronizationProvider<?> provider :
@@ -703,7 +718,10 @@ deleteProcessing:
       return returnVal;
   }
 
-  private void processSynchPostOperationPlugins() {
+  /**
+   * Invoke post operation synchronization providers.
+   */
+  protected void processSynchPostOperationPlugins() {
 
       for (SynchronizationProvider<?> provider :
           DirectoryServer.getSynchronizationProviders()) {
@@ -722,7 +740,12 @@ deleteProcessing:
       }
   }
 
-  private boolean processPreOperation() {
+  /**
+   * Process pre operation.
+   * @return  {@code true} if processing should continue for the operation, or
+   *          {@code false} if not.
+   */
+  protected boolean processPreOperation() {
       boolean returnVal = true;
 
       for (SynchronizationProvider<?> provider :
