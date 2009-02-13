@@ -769,7 +769,6 @@ public class LDAPClientConnection extends ClientConnection implements
     if (writerBuffer == null)
     {
       writerBuffer = new WriterBuffer();
-      // TODO SASLPhase2 maybe don't want to cache these
       if (isSecure())
       {
         int appBufSize = activeProvider.getAppBufSize();
@@ -792,9 +791,6 @@ public class LDAPClientConnection extends ClientConnection implements
         {
           TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
               message.toString());
-
-          // TODO SASLPhase2 message buffer?
-          // TRACER.debugData(DebugLogLevel.VERBOSE, messageBuffer);
         }
 
         if (keepStats)
@@ -2378,7 +2374,6 @@ public class LDAPClientConnection extends ClientConnection implements
   {
     if (isSecure() && activeProvider.getName().equals("TLS"))
     {
-      // TODO SASLPhase2 more general message
       unavailableReason.append(ERR_LDAP_TLS_EXISTING_SECURITY_PROVIDER
           .get(activeProvider.getName()));
       return false;
